@@ -169,6 +169,31 @@ jest.mock('../../components/detail/documentation/LinkDialog', () => ({
         ) : null,
 }));
 
+// The dialog has its own spec; here only what it is opened for matters.
+jest.mock('../../components/detail/documentation/PublicationDialog', () => ({
+    PublicationDialog: ({
+        open,
+        apiId,
+        item,
+        itemsInside,
+        onClose,
+    }: {
+        open: boolean;
+        apiId: string;
+        item: { title: string; published: boolean };
+        itemsInside: number;
+        onClose: () => void;
+    }) =>
+        open ? (
+            <div role="dialog" aria-label={item.published ? 'Unpublish item' : 'Publish item'}>
+                {`${item.published ? 'Unpublishing' : 'Publishing'} ${item.title} in ${apiId}, ${itemsInside} items inside`}
+                <button type="button" onClick={onClose}>
+                    Close
+                </button>
+            </div>
+        ) : null,
+}));
+
 // The dialog has its own spec; here only whether the page opens it, for which API and listings, matters.
 jest.mock('../../components/detail/documentation/PublishToPortalDialog', () => ({
     PublishToPortalDialog: ({
@@ -427,16 +452,14 @@ describe('ApiDocumentationPage', () => {
             givenDocumentation({ items: [GUIDES], publications: [publication(true)] });
         });
 
-        it('asks first, naming the API and saying the documentation is kept', async () => {
+        it('asks first, naming the API and saying its documentation becomes invisible too', async () => {
             const user = userEvent.setup();
             renderPage();
 
             await user.click(screen.getByRole('button', { name: 'Unpublish' }));
 
             const dialog = screen.getByRole('dialog', { name: 'Unpublish "Payment API"?' });
-            expect(dialog).toHaveTextContent(
-                'The API and its documentation disappear from the developer portal. Nothing is deleted: publishing again shows every page, folder and link.',
-            );
+            expect(dialog).toHaveTextContent('The API and its documentation will become invisible in the developer portal.');
             expect(mockUnpublish).not.toHaveBeenCalled();
         });
 
@@ -705,6 +728,41 @@ describe('ApiDocumentationPage', () => {
             expect(screen.queryByRole('menuitem', { name: 'Add page' })).not.toBeInTheDocument();
             expect(screen.queryByRole('menuitem', { name: 'Add folder' })).not.toBeInTheDocument();
             expect(screen.queryByRole('menuitem', { name: 'Add link' })).not.toBeInTheDocument();
+        });
+    });
+
+    describe('publishing and unpublishing an item', () => {
+        it('opens the dialog to unpublish a published item, and closes it', async () => {
+            givenDocumentation({ items: [GUIDES, GETTING_STARTED, { ...CHANGELOG, published: true }], publications: [publication(true)] });
+            renderPage();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Changelog' }));
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Unpublish' }));
+            expect(screen.getByRole('dialog', { name: 'Unpublish item' })).toHaveTextContent(
+                'Unpublishing Changelog in api-1, 0 items inside',
+            );
+
+            await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+            expect(screen.queryByRole('dialog', { name: 'Unpublish item' })).not.toBeInTheDocument();
+        });
+
+        it('opens the dialog to publish a folder, counting every item inside', async () => {
+            givenDocumentation({ items: [GUIDES, GETTING_STARTED, CHANGELOG], publications: [publication(true)] });
+            renderPage();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Publish' }));
+
+            expect(screen.getByRole('dialog', { name: 'Publish item' })).toHaveTextContent('Publishing Guides in api-1, 1 items inside');
+        });
+
+        it('keeps Publish disabled while the API is listed only in a hidden listing', async () => {
+            givenDocumentation({ items: [GUIDES, GETTING_STARTED, CHANGELOG], publications: [publication(false)] });
+            renderPage();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Changelog' }));
+
+            expect(screen.getByRole('menuitem', { name: 'Publish' })).toHaveAttribute('aria-disabled', 'true');
         });
     });
 

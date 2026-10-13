@@ -141,14 +141,20 @@ describe('EditPageDetailsDialog', () => {
         await user.click(saveButton());
 
         await waitFor(() => expect(onClose).toHaveBeenCalled());
-        expect(mockUpdate).toHaveBeenCalledWith('env-1', 'api-1', 'oauth', {
-            type: 'PAGE',
-            title: 'OAuth 2.0 setup',
-            order: 0,
-            published: false,
-            visibility: 'PRIVATE',
-            parentId: 'guides',
-        });
+        expect(mockUpdate).toHaveBeenCalledWith(
+            'env-1',
+            'api-1',
+            'oauth',
+            {
+                type: 'PAGE',
+                title: 'OAuth 2.0 setup',
+                order: 0,
+                published: false,
+                visibility: 'PRIVATE',
+                parentId: 'guides',
+            },
+            {},
+        );
         expect(notify.success).toHaveBeenCalledWith("Page 'OAuth 2.0 setup' saved");
     });
 
@@ -189,6 +195,7 @@ describe('EditPageDetailsDialog', () => {
                 'api-1',
                 'oauth',
                 expect.objectContaining({ title: '  OAuth setup ', visibility: 'PRIVATE' }),
+                {},
             );
         });
 
@@ -205,6 +212,7 @@ describe('EditPageDetailsDialog', () => {
                 'api-1',
                 'oauth',
                 expect.objectContaining({ title: 'OAuth setup', visibility: 'PRIVATE', source: SOURCE }),
+                {},
             );
         });
     });

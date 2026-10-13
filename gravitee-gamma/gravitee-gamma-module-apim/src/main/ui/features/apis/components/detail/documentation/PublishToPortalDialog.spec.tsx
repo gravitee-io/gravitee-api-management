@@ -101,6 +101,16 @@ describe('PublishToPortalDialog', () => {
         );
     });
 
+    it('says the API and its documentation become visible, including the items unpublished one by one', () => {
+        renderDialog();
+
+        expect(
+            screen.getByText(
+                'The API and its documentation will become visible in the developer portal. Every page, folder and link will be published, including those unpublished individually.',
+            ),
+        ).not.toBeNull();
+    });
+
     it('offers the section named APIs first, and publishes the API there', async () => {
         const { user, onClose } = renderDialog();
 

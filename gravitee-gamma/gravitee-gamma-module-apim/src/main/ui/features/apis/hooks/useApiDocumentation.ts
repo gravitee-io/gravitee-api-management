@@ -30,12 +30,12 @@ import {
     unpublishApiFromPortal,
     updateApiDocumentationItem,
 } from '../services/apiDocumentation';
-import type { UpdateApiDocumentationItem } from '../types/apiDocumentation';
 import { apiDocumentationKeys } from '../utils/queryKeys';
 
-export interface UpdateApiDocumentationItemVariables {
+interface ChangeApiDocumentationItemVariables {
     navId: string;
-    payload: UpdateApiDocumentationItem;
+    changes: DocumentationItemChanges;
+    /** When a folder is published, publishes everything inside it too. Unpublishing a folder always unpublishes its contents. */
     propagatePublishToChildren?: boolean;
 }
 
@@ -95,14 +95,6 @@ export function useCreateApiDocumentationItem(apiId: string) {
     return useApiDocumentationMutation(apiId, createApiDocumentationItem);
 }
 
-export function useUpdateApiDocumentationItem(apiId: string) {
-    return useApiDocumentationMutation(
-        apiId,
-        (envId, id, { navId, payload, propagatePublishToChildren }: UpdateApiDocumentationItemVariables) =>
-            updateApiDocumentationItem(envId, id, navId, payload, { propagatePublishToChildren }),
-    );
-}
-
 /**
  * Changes some fields of an item. The update replaces the whole item, so it is built from the item as the server has it
  * at that moment rather than as the screen last loaded it, which could undo a change made since.
@@ -112,7 +104,7 @@ export function useChangeApiDocumentationItem(apiId: string) {
 
     return useApiDocumentationMutation(
         apiId,
-        async (envId, id, { navId, changes }: { navId: string; changes: DocumentationItemChanges }) => {
+        async (envId, id, { navId, changes, propagatePublishToChildren }: ChangeApiDocumentationItemVariables) => {
             const documentation = await queryClient.fetchQuery({
                 queryKey: apiDocumentationKeys.list(envId, id),
                 queryFn: () => listApiDocumentation(envId, id),
@@ -122,7 +114,7 @@ export function useChangeApiDocumentationItem(apiId: string) {
             if (!item) {
                 throw new Error('This item no longer exists in the documentation of this API.');
             }
-            return updateApiDocumentationItem(envId, id, navId, toUpdatePayload(item, changes));
+            return updateApiDocumentationItem(envId, id, navId, toUpdatePayload(item, changes), { propagatePublishToChildren });
         },
     );
 }

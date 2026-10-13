@@ -228,14 +228,20 @@ describe('FolderDialog', () => {
             await user.click(button('Save'));
 
             await waitFor(() => expect(onClose).toHaveBeenCalled());
-            expect(mockUpdate).toHaveBeenCalledWith('env-1', 'api-1', 'auth', {
-                type: 'FOLDER',
-                title: 'Auth',
-                order: 0,
-                published: false,
-                visibility: 'PRIVATE',
-                parentId: 'guides',
-            });
+            expect(mockUpdate).toHaveBeenCalledWith(
+                'env-1',
+                'api-1',
+                'auth',
+                {
+                    type: 'FOLDER',
+                    title: 'Auth',
+                    order: 0,
+                    published: false,
+                    visibility: 'PRIVATE',
+                    parentId: 'guides',
+                },
+                {},
+            );
             expect(mockCreate).not.toHaveBeenCalled();
             expect(onCreated).not.toHaveBeenCalled();
             expect(notify.success).toHaveBeenCalledWith("Folder 'Auth' saved");
@@ -317,6 +323,7 @@ describe('FolderDialog', () => {
                     'api-1',
                     'auth',
                     expect.objectContaining({ title: ' SDK reference ', visibility: 'PRIVATE', source: SOURCE }),
+                    {},
                 );
             });
         });

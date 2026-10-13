@@ -268,15 +268,21 @@ describe('LinkDialog', () => {
             await user.click(button('Save'));
 
             await waitFor(() => expect(onClose).toHaveBeenCalled());
-            expect(mockUpdate).toHaveBeenCalledWith('env-1', 'api-1', 'status', {
-                type: 'LINK',
-                title: 'Status',
-                order: 0,
-                published: false,
-                visibility: 'PRIVATE',
-                parentId: 'guides',
-                url: 'https://status.example.org',
-            });
+            expect(mockUpdate).toHaveBeenCalledWith(
+                'env-1',
+                'api-1',
+                'status',
+                {
+                    type: 'LINK',
+                    title: 'Status',
+                    order: 0,
+                    published: false,
+                    visibility: 'PRIVATE',
+                    parentId: 'guides',
+                    url: 'https://status.example.org',
+                },
+                {},
+            );
             expect(mockCreate).not.toHaveBeenCalled();
             expect(onCreated).not.toHaveBeenCalled();
             expect(notify.success).toHaveBeenCalledWith("Link 'Status' saved");
@@ -294,6 +300,7 @@ describe('LinkDialog', () => {
                 'api-1',
                 'status',
                 expect.objectContaining({ title: 'Status page (live)', url: 'https://status.example.com' }),
+                {},
             );
         });
 

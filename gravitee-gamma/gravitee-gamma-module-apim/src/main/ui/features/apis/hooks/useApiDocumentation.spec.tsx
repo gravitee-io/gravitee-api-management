@@ -29,7 +29,6 @@ import {
     usePublishApiToPortal,
     useSaveApiDocumentationPageContent,
     useUnpublishApiFromPortal,
-    useUpdateApiDocumentationItem,
 } from './useApiDocumentation';
 import { ApimApiError } from '../../../shared/api/apimClient';
 import {
@@ -47,8 +46,8 @@ import {
 import type {
     CreateApiDocumentationItem,
     ImportPortalNavigationRequest,
+    PortalNavigationFolder,
     PortalNavigationPage,
-    UpdateApiDocumentationItem,
 } from '../types/apiDocumentation';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
@@ -72,7 +71,6 @@ const mockGetApiDocumentationPageContent = jest.mocked(getApiDocumentationPageCo
 const API_DOCUMENTATION_LIST = { queryKey: ['api-documentation', 'env-1', 'api-1', 'list'] };
 
 const CREATE_PAYLOAD: CreateApiDocumentationItem = { type: 'FOLDER', title: 'Guides', area: 'TOP_NAVBAR', visibility: 'PUBLIC' };
-const UPDATE_PAYLOAD: UpdateApiDocumentationItem = { type: 'FOLDER', title: 'Guides', order: 0, published: true, visibility: 'PUBLIC' };
 const IMPORT_REQUEST: ImportPortalNavigationRequest = {
     title: 'Docs',
     source: { type: 'github-fetcher', configuration: { repository: 'docs' } },
@@ -181,13 +179,6 @@ describe('useApiDocumentation hooks', () => {
             variables: CREATE_PAYLOAD,
             service: mockCreateApiDocumentationItem,
             expectedCall: ['env-1', 'api-1', CREATE_PAYLOAD],
-        },
-        {
-            name: 'useUpdateApiDocumentationItem',
-            render: () => renderWithQueryClient(() => useUpdateApiDocumentationItem('api-1')),
-            variables: { navId: 'nav-1', payload: UPDATE_PAYLOAD, propagatePublishToChildren: true },
-            service: mockUpdateApiDocumentationItem,
-            expectedCall: ['env-1', 'api-1', 'nav-1', UPDATE_PAYLOAD, { propagatePublishToChildren: true }],
         },
         {
             name: 'useDeleteApiDocumentationItem',
@@ -310,15 +301,41 @@ describe('useApiDocumentation hooks', () => {
 
             await act(() => result.current.mutateAsync({ navId: 'nav-1', changes: { title: 'Pet store' } }));
 
-            expect(mockUpdateApiDocumentationItem).toHaveBeenCalledWith('env-1', 'api-1', 'nav-1', {
-                type: 'PAGE',
-                title: 'Pet store',
-                order: 0,
-                published: true,
-                visibility: 'PUBLIC',
-                parentId: 'guides',
-                source: SOURCE,
-            });
+            expect(mockUpdateApiDocumentationItem).toHaveBeenCalledWith(
+                'env-1',
+                'api-1',
+                'nav-1',
+                {
+                    type: 'PAGE',
+                    title: 'Pet store',
+                    order: 0,
+                    published: true,
+                    visibility: 'PUBLIC',
+                    parentId: 'guides',
+                    source: SOURCE,
+                },
+                {},
+            );
+        });
+
+        it("publishes a folder's contents with it when asked", async () => {
+            const { portalPageContentId: _content, ...fields } = PAGE;
+            const folder: PortalNavigationFolder = { ...fields, id: 'guides', title: 'Guides', type: 'FOLDER', published: false };
+            mockListApiDocumentation.mockResolvedValue({ items: [folder], publications: [] });
+            mockUpdateApiDocumentationItem.mockResolvedValue(folder);
+            const { result } = renderWithQueryClient(() => useChangeApiDocumentationItem('api-1'));
+
+            await act(() =>
+                result.current.mutateAsync({ navId: 'guides', changes: { published: true }, propagatePublishToChildren: true }),
+            );
+
+            expect(mockUpdateApiDocumentationItem).toHaveBeenCalledWith(
+                'env-1',
+                'api-1',
+                'guides',
+                expect.objectContaining({ type: 'FOLDER', published: true }),
+                { propagatePublishToChildren: true },
+            );
         });
 
         it("refreshes this API's documentation once it succeeds", async () => {
