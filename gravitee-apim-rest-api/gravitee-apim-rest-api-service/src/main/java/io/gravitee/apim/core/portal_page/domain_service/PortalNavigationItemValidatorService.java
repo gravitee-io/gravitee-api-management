@@ -50,7 +50,6 @@ import io.gravitee.apim.core.portal_page.domain_service.validation.UpdatePortalN
 import io.gravitee.apim.core.portal_page.domain_service.validation.UpdateValidationContext;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
@@ -317,7 +316,7 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
             updates
                 .stream()
                 // A move that changes the owner is judged against the listings of the API the item leaves
-                .anyMatch(u -> u.existing() instanceof PortalNavigationItemContainer || u.toUpdate().getReference() != null)
+                .anyMatch(update -> update.isExistingContainer() || update.isUpdatingReference())
         );
     }
 
