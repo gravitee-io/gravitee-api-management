@@ -53,8 +53,8 @@ describe('IntegrationDirectMembersTable', () => {
                 { id: 'user-2', displayName: 'John Smith', roles: [{ name: 'OWNER', scope: 'INTEGRATION' }] },
             ],
             [
-                ['Jane Doe', /^user$/i],
-                ['John Smith', /^owner$/i],
+                ['Jane Doe', /^USER$/],
+                ['John Smith', /^OWNER$/],
             ],
         ],
         [
@@ -72,7 +72,7 @@ describe('IntegrationDirectMembersTable', () => {
                 { id: 'user-3', displayName: 'No Roles' },
             ],
             [
-                ['Jane Doe', /^owner$/i],
+                ['Jane Doe', /^OWNER$/],
                 ['John Smith', /^—$/],
                 ['No Roles', /^—$/],
             ],
@@ -80,9 +80,9 @@ describe('IntegrationDirectMembersTable', () => {
         [
             'a member with no integration-scope role',
             [{ id: 'user-1', displayName: 'Jane Doe', roles: [{ name: 'API_PUBLISHER', scope: 'ENVIRONMENT' }] }],
-            [['Jane Doe', /^api publisher$/i]],
+            [['Jane Doe', /^API_PUBLISHER$/]],
         ],
-        ['a member without a display name', [{ id: 'user-1', roles: [{ name: 'USER', scope: 'INTEGRATION' }] }], [[/^\?$/, /^user$/i]]],
+        ['a member without a display name', [{ id: 'user-1', roles: [{ name: 'USER', scope: 'INTEGRATION' }] }], [[/^\?$/, /^USER$/]]],
     ])("shows one row per member with the member's name and role for %s", (_scenario, members, expectedRows) => {
         renderTable(members);
 
@@ -105,6 +105,6 @@ describe('IntegrationDirectMembersTable', () => {
         ]);
 
         expect(dataTableHarness().getRow('Paula Owner').getCellText('Role')).toBe('Primary Owner');
-        expect(dataTableHarness().getRow('Jane Doe').getCellText('Role')).toBe('User');
+        expect(dataTableHarness().getRow('Jane Doe').getCellText('Role')).toBe('USER');
     });
 });
