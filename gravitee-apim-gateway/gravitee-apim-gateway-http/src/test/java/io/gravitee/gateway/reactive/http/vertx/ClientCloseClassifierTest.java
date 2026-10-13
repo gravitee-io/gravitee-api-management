@@ -31,6 +31,7 @@ import io.gravitee.gateway.reactive.http.vertx.ClientCloseClassifier.ClientClose
 import io.gravitee.reporter.api.v4.metric.Diagnostic;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.vertx.core.http.HttpClosedException;
+import io.vertx.core.http.StreamResetException;
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
 import java.time.Duration;
@@ -95,6 +96,22 @@ class ClientCloseClassifierTest {
         assertThat(ClientCloseClassifier.classify(closed).key()).isEqualTo(ClientCloseClassifier.CLIENT_ABORTED_CHANNEL_CLOSED);
         assertThat(ClientCloseClassifier.isClientConnectionClose(closed)).isTrue();
         assertThat(ClientCloseClassifier.isClientConnectionClose(new IOException("Connection was closed"))).isTrue();
+    }
+
+    @Test
+    void should_recognise_http2_stream_reset_as_a_client_close() {
+        // An HTTP/2 client cancelling one request resets its stream (CANCEL = 8) and keeps the connection open.
+        StreamResetException reset = new StreamResetException(8);
+        assertThat(ClientCloseClassifier.isClientConnectionClose(reset)).isTrue();
+        assertThat(ClientCloseClassifier.classify(reset).key()).isEqualTo(ClientCloseClassifier.CLIENT_ABORTED_STREAM_RESET);
+        assertThat(ClientCloseClassifier.classify(reset).message()).isEqualTo(ClientCloseClassifier.CLIENT_ABORTED_STREAM_RESET_MESSAGE);
+    }
+
+    @Test
+    void should_recognise_wrapped_http2_stream_reset_via_cause_chain() {
+        IOException wrapped = new IOException("write failed", new StreamResetException(8));
+        assertThat(ClientCloseClassifier.isClientConnectionClose(wrapped)).isTrue();
+        assertThat(ClientCloseClassifier.classify(wrapped).key()).isEqualTo(ClientCloseClassifier.CLIENT_ABORTED_STREAM_RESET);
     }
 
     @Test

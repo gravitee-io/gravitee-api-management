@@ -24,6 +24,7 @@ import io.gravitee.gateway.reactive.core.context.diagnostic.DiagnosticReportHelp
 import io.gravitee.reporter.api.v4.metric.Diagnostic;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.vertx.core.http.HttpClosedException;
+import io.vertx.core.http.StreamResetException;
 import java.nio.channels.ClosedChannelException;
 import java.util.Locale;
 import lombok.CustomLog;
@@ -47,9 +48,11 @@ public final class ClientCloseClassifier {
     public static final String CLIENT_ABORTED_TCP_RESET = "CLIENT_ABORTED_TCP_RESET";
     public static final String CLIENT_ABORTED_BROKEN_PIPE = "CLIENT_ABORTED_BROKEN_PIPE";
     public static final String CLIENT_ABORTED_CHANNEL_CLOSED = "CLIENT_ABORTED_CHANNEL_CLOSED";
+    public static final String CLIENT_ABORTED_STREAM_RESET = "CLIENT_ABORTED_STREAM_RESET";
     public static final String CLIENT_ABORTED_TCP_RESET_MESSAGE = "The client reset the connection";
     public static final String CLIENT_ABORTED_BROKEN_PIPE_MESSAGE = "The client closed the connection while the response was being written";
     public static final String CLIENT_ABORTED_CHANNEL_CLOSED_MESSAGE = "The client closed the connection";
+    public static final String CLIENT_ABORTED_STREAM_RESET_MESSAGE = "The client cancelled the request (HTTP/2 stream reset)";
 
     private static final int CLIENT_CLOSED_REQUEST_499 = 499;
     private static final int MAX_CAUSE_DEPTH = 20;
@@ -66,6 +69,9 @@ public final class ClientCloseClassifier {
      * Consistent with the upstream connector's classifier.
      */
     public static ClientCloseReason classify(Throwable cause) {
+        if (hasCause(cause, StreamResetException.class)) {
+            return new ClientCloseReason(CLIENT_ABORTED_STREAM_RESET, CLIENT_ABORTED_STREAM_RESET_MESSAGE);
+        }
         if (hasCause(cause, ClosedChannelException.class) || hasCause(cause, HttpClosedException.class)) {
             return new ClientCloseReason(CLIENT_ABORTED_CHANNEL_CLOSED, CLIENT_ABORTED_CHANNEL_CLOSED_MESSAGE);
         }
@@ -91,7 +97,11 @@ public final class ClientCloseClassifier {
         // Vert.x signals a connection close on an in-flight request with HttpClosedException ("Connection was closed");
         // a fully-closed NIO channel surfaces as ClosedChannelException. Both are genuine client-side closes, not
         // gateway logic faults — recognizing them keeps a mid-stream client abort from being reported as a clean 2xx.
-        if (hasCause(t, ClosedChannelException.class) || hasCause(t, HttpClosedException.class)) {
+        // An HTTP/2 client cancels a single request by resetting its stream ("Stream reset: 8"), keeping the
+        // connection open: the message matches none of the connection-level wordings below.
+        if (
+            hasCause(t, ClosedChannelException.class) || hasCause(t, HttpClosedException.class) || hasCause(t, StreamResetException.class)
+        ) {
             return true;
         }
         String messages = collectChainMessages(t);
