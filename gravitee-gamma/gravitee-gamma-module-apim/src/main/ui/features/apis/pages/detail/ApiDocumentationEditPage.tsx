@@ -31,6 +31,7 @@ import { useDeferredValue, useEffect, useState, type ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { notify } from '../../../../shared/notify';
+import { AsyncApiPreview } from '../../components/detail/documentation/AsyncApiPreview';
 import { ItemAccessBadge, ItemPublishedBadge } from '../../components/detail/documentation/DocumentationItemBadges';
 import { EditPageDetailsDialog } from '../../components/detail/documentation/EditPageDetailsDialog';
 import { GraviteeMarkdownPreview } from '../../components/detail/documentation/GraviteeMarkdownPreview';
@@ -266,12 +267,7 @@ function PageEditor({
                     <div className="h-full overflow-auto rounded-lg border p-4">
                         {saved.type === 'GRAVITEE_MARKDOWN' ? <GraviteeMarkdownPreview content={previewContent} /> : null}
                         {saved.type === 'OPENAPI' ? <OpenApiPreview content={previewContent} configuration={saved.configuration} /> : null}
-                        {saved.type === 'ASYNCAPI' ? (
-                            <p className="text-sm text-muted-foreground">
-                                AsyncAPI preview isn&apos;t available here yet. The developer portal renders this page once it&apos;s
-                                published.
-                            </p>
-                        ) : null}
+                        {saved.type === 'ASYNCAPI' ? <AsyncApiPreview content={previewContent} /> : null}
                     </div>
                 </ResizablePanel>
             </ResizablePanelGroup>
