@@ -36,6 +36,7 @@ export interface HealthCheckConfigFormState {
     target: string;
     overrideEndpointPath: boolean;
     headers: HealthCheckHeaderRow[];
+    body: string;
     assertion: string;
     successThreshold: number;
     failureThreshold: number;
@@ -47,6 +48,7 @@ export const DEFAULT_HEALTH_CHECK_CONFIG: HealthCheckConfigFormState = {
     target: '/',
     overrideEndpointPath: true,
     headers: [],
+    body: '',
     assertion: '{#response.status == 200}',
     successThreshold: 2,
     failureThreshold: 2,
@@ -66,6 +68,7 @@ export function parseHealthCheckConfig(config: HealthCheckConfiguration | undefi
             name: h.name ?? '',
             value: h.value ?? '',
         })),
+        body: config.body ?? DEFAULT_HEALTH_CHECK_CONFIG.body,
         assertion: config.assertion ?? DEFAULT_HEALTH_CHECK_CONFIG.assertion,
         successThreshold: config.successThreshold ?? DEFAULT_HEALTH_CHECK_CONFIG.successThreshold,
         failureThreshold: config.failureThreshold ?? DEFAULT_HEALTH_CHECK_CONFIG.failureThreshold,
@@ -99,6 +102,7 @@ export function serializeHealthCheckConfig(form: HealthCheckConfigFormState): He
         target: form.target.trim(),
         overrideEndpointPath: form.overrideEndpointPath,
         headers: form.headers.filter(h => h.name.trim()).map(h => ({ name: h.name.trim(), value: h.value })),
+        ...((form.method === 'POST' || form.method === 'PUT') && form.body.trim() ? { body: form.body } : {}),
         assertion: form.assertion.trim() || DEFAULT_HEALTH_CHECK_CONFIG.assertion,
         successThreshold: form.successThreshold,
         failureThreshold: form.failureThreshold,

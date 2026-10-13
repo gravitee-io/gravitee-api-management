@@ -54,7 +54,12 @@ export interface Cors {
     exposeHeaders?: string[];
     allowCredentials?: boolean;
     maxAge?: number;
+    allowPrivateNetwork?: boolean;
     runPolicies?: boolean;
+}
+
+export interface RequestValidation {
+    rejectNullByte?: boolean;
 }
 
 export interface HttpListener {
@@ -63,6 +68,7 @@ export interface HttpListener {
     hosts?: VirtualHost[];
     entrypoints?: { type: string }[];
     cors?: Cors;
+    requestValidation?: RequestValidation;
 }
 
 export interface HttpEndpoint {
@@ -325,6 +331,7 @@ export interface HealthCheckConfiguration {
     target?: string;
     overrideEndpointPath?: boolean;
     headers?: HealthCheckHeader[];
+    body?: string;
     assertion?: string;
     successThreshold?: number;
     failureThreshold?: number;
