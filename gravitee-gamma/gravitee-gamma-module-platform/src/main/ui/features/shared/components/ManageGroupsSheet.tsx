@@ -29,12 +29,13 @@ import {
 import { SearchIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import type { EnvironmentGroup } from '../../../shared/types/groupMembers';
+import type { EnvironmentGroup } from '../types/groupMembers';
 
 export function ManageGroupsSheet({
     open,
     allGroups,
     currentGroupIds,
+    description,
     onClose,
     onSave,
     isSaving,
@@ -42,6 +43,7 @@ export function ManageGroupsSheet({
     open: boolean;
     allGroups: EnvironmentGroup[];
     currentGroupIds: string[];
+    description: string;
     onClose: () => void;
     onSave: (groupIds: string[]) => void;
     isSaving: boolean;
@@ -83,7 +85,7 @@ export function ManageGroupsSheet({
             <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: '480px' }}>
                 <SheetHeader>
                     <SheetTitle>Manage groups</SheetTitle>
-                    <SheetDescription>Select the groups that should have access to this application.</SheetDescription>
+                    <SheetDescription>{description}</SheetDescription>
                 </SheetHeader>
 
                 <div className="flex min-h-0 flex-1 flex-col gap-4 px-4">
