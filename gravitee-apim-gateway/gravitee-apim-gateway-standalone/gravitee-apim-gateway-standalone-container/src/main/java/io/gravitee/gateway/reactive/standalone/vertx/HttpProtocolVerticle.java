@@ -194,6 +194,8 @@ public class HttpProtocolVerticle extends AbstractVerticle {
         // An HTTP/2 client cancels a single request by resetting its stream and keeps the connection open, so the
         // connection handlers above never fire. The response close handler does, per stream. A response that ended
         // normally is skipped so post-response processing (reporting) is not cut short.
+        // The verticle owns this single-slot handler: registering another response close handler elsewhere would
+        // silently replace it and stream resets would be ignored again (ClientStreamResetPropagationV4IntegrationTest).
         final HttpServerResponse response = request.response();
         response.closeHandler(event -> {
             if (!response.ended()) {

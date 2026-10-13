@@ -108,6 +108,13 @@ class ClientCloseClassifierTest {
     }
 
     @Test
+    void should_recognise_wrapped_http2_stream_reset_via_cause_chain() {
+        IOException wrapped = new IOException("write failed", new StreamResetException(8));
+        assertThat(ClientCloseClassifier.isClientConnectionClose(wrapped)).isTrue();
+        assertThat(ClientCloseClassifier.classify(wrapped).key()).isEqualTo(ClientCloseClassifier.CLIENT_ABORTED_STREAM_RESET);
+    }
+
+    @Test
     void should_not_treat_a_genuine_gateway_error_as_a_client_close() {
         // C1 guard: arbitrary throwables on the response stream must NOT be classified as client aborts, otherwise
         // a real gateway fault gets masked as a 499.

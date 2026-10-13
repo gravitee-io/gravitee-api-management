@@ -21,6 +21,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
@@ -58,7 +59,7 @@ import org.junit.jupiter.api.extension.ParameterContext;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ClientStreamResetPropagationV4IntegrationTest extends AbstractGatewayTest {
 
-    private static final String HTTP_1_1_API = "/apis/v4/http/clientabort/api-client-abort-single-connection.json";
+    private static final String SINGLE_CONNECTION_API = "/apis/v4/http/clientabort/api-client-abort-single-connection.json";
     private static final String BACKEND_PATH = "/endpoint";
     private static final long PROBE_LATENCY_BUDGET_MS = 2500;
 
@@ -86,19 +87,21 @@ class ClientStreamResetPropagationV4IntegrationTest extends AbstractGatewayTest 
     }
 
     @Test
-    @DeployApi(HTTP_1_1_API)
-    void should_release_pool_slot_when_in_flight_stream_is_reset(HttpClient httpClient) throws Exception {
+    @DeployApi(SINGLE_CONNECTION_API)
+    void should_release_pool_slot_when_in_flight_stream_is_reset(HttpClient httpClient) {
         stubSlowThenFastBackend(6000);
 
-        // Dispatched to the backend (single connection acquired), then cancelled while the backend is still answering.
-        resetStreamAfter(httpClient, 500);
+        // Cancelled once dispatched to the backend (single connection acquired), while the backend is still answering.
+        var request = sendRequest(httpClient);
+        awaitBackendRequests(1);
+        request.reset();
 
         // Without propagation the slot is held for the backend's 6s answer (or the 8s read timeout).
         assertProbeAcquiresSlotWithin(httpClient, PROBE_LATENCY_BUDGET_MS);
     }
 
     @Test
-    @DeployApi(HTTP_1_1_API)
+    @DeployApi(SINGLE_CONNECTION_API)
     void should_not_dispatch_queued_stream_that_was_reset(HttpClient httpClient) throws Exception {
         stubSlowThenFastBackend(3000);
 
@@ -107,10 +110,15 @@ class ClientStreamResetPropagationV4IntegrationTest extends AbstractGatewayTest 
             .flatMap(HttpClientRequest::rxSend)
             .flatMap(HttpClientResponse::rxBody)
             .test();
-        Thread.sleep(500);
+        // The slow request owns the only connection before the next one is sent.
+        awaitBackendRequests(1);
 
         // Cancelled while QUEUED for the only connection: must never be granted the slot nor reach the backend.
-        resetStreamAfter(httpClient, 300);
+        var queuedRequest = sendRequest(httpClient);
+        // Lets the stream reach the gateway before the reset. Too short only lets the reset win the race (the test then
+        // passes without exercising the queue); it cannot fail the test, the slow request holds the slot for 3s.
+        Thread.sleep(300);
+        queuedRequest.reset();
 
         slowRequest.awaitDone(10, TimeUnit.SECONDS).assertComplete();
         assertProbeAcquiresSlotWithin(httpClient, PROBE_LATENCY_BUDGET_MS);
@@ -119,8 +127,8 @@ class ClientStreamResetPropagationV4IntegrationTest extends AbstractGatewayTest 
         wiremock.verify(2, getRequestedFor(urlPathEqualTo(BACKEND_PATH)));
     }
 
-    /** Sends a request, then resets its stream after the given delay; the client connection stays open. */
-    private void resetStreamAfter(HttpClient httpClient, long delayMillis) throws Exception {
+    /** Sends a request over HTTP/2 and returns it once its stream is open; the client connection stays open. */
+    private HttpClientRequest sendRequest(HttpClient httpClient) {
         final AtomicReference<HttpClientRequest> request = new AtomicReference<>();
         httpClient
             .rxRequest(HttpMethod.GET, "/test")
@@ -128,12 +136,17 @@ class ClientStreamResetPropagationV4IntegrationTest extends AbstractGatewayTest 
             .flatMap(HttpClientRequest::rxSend)
             .onErrorComplete()
             .subscribe();
-        Thread.sleep(delayMillis);
-        assertThat(request.get()).as("request must have been sent before reset").isNotNull();
+        await()
+            .atMost(5, TimeUnit.SECONDS)
+            .until(() -> request.get() != null);
         assertThat(request.get().version()).isEqualTo(HttpVersion.HTTP_2);
-        request.get().reset();
-        // Leaves the gateway a beat to observe the reset.
-        Thread.sleep(200);
+        return request.get();
+    }
+
+    private void awaitBackendRequests(int count) {
+        await()
+            .atMost(5, TimeUnit.SECONDS)
+            .until(() -> wiremock.findAll(getRequestedFor(urlPathEqualTo(BACKEND_PATH))).size() >= count);
     }
 
     private void stubSlowThenFastBackend(int slowDelayMillis) {
