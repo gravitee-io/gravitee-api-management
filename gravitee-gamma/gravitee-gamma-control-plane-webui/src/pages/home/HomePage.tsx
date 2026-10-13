@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import { Button } from '@gravitee/graphene-core';
-import { RefreshCwIcon } from '@gravitee/graphene-core/icons';
 import { useMemo } from 'react';
 
 import { ApplicationCard, type CardMetrics } from './components/application-card/ApplicationCard';
@@ -43,11 +41,9 @@ function pluralize(count: number | null, singular: string, plural: string): stri
 interface HomePageProps {
     readonly modules: readonly GammaModule[];
     readonly loading: boolean;
-    readonly error: Error | null;
-    readonly onRetry?: () => void;
 }
 
-export function HomePage({ modules, loading, error, onRetry }: HomePageProps) {
+export function HomePage({ modules, loading }: HomePageProps) {
     const user = useUser();
     const envHrid = useEnvHrid();
     const envName = useEnvironmentStore(s => s.currentEnvironment?.name);
@@ -125,20 +121,7 @@ export function HomePage({ modules, loading, error, onRetry }: HomePageProps) {
                     <p className="text-xs text-muted-foreground">Navigate to any Gravitee product</p>
                 </div>
 
-                {error ? (
-                    <div
-                        role="alert"
-                        className="flex items-center gap-3 rounded-lg border border-destructive/50 bg-destructive/5 px-4 py-3"
-                    >
-                        <p className="flex-1 text-sm text-destructive">Failed to load modules: {error.message}</p>
-                        {onRetry && (
-                            <Button variant="outline" size="sm" onClick={onRetry}>
-                                <RefreshCwIcon aria-hidden />
-                                Retry
-                            </Button>
-                        )}
-                    </div>
-                ) : loading ? (
+                {loading ? (
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-busy="true">
                         {APPLICATIONS.map(app => (
                             <div key={app.title} className="flex flex-col gap-3 rounded-xl border bg-card p-5 opacity-60">

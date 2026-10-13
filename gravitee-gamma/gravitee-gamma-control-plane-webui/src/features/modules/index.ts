@@ -18,4 +18,5 @@ export { HOME_ICON, MODULE_ICONS } from './modules.icons';
 export { useGammaModules } from './hooks/useGammaModules';
 export { useModulesStore } from './modules.store';
 export { MODULE_LABELS, getModuleLabel } from './modules.labels';
+export { ModulesLoadFailed } from './components/ModulesLoadFailed';
 export { RemoteModuleRoute } from './components/RemoteModuleRoute';
