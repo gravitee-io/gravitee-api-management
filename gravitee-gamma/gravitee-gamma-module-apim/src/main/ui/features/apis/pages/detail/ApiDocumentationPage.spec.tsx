@@ -138,6 +138,37 @@ jest.mock('../../components/detail/documentation/FolderDialog', () => ({
         ) : null,
 }));
 
+// The dialog has its own spec; here only what it is opened for matters.
+jest.mock('../../components/detail/documentation/LinkDialog', () => ({
+    LinkDialog: ({
+        open,
+        apiId,
+        link,
+        parent,
+        onClose,
+        onCreated,
+    }: {
+        open: boolean;
+        apiId: string;
+        link?: { title: string };
+        parent?: { title: string };
+        onClose: () => void;
+        onCreated?: () => void;
+    }) =>
+        open ? (
+            <div role="dialog" aria-label={link ? 'Edit link details' : 'Add a link'}>
+                {link ? `Editing the details of ${link.title} in ${apiId}` : `Adding a link to ${apiId}`}
+                {parent ? `, inside ${parent.title}` : ', at the top level'}
+                <button type="button" onClick={onClose}>
+                    Close
+                </button>
+                <button type="button" onClick={onCreated}>
+                    Created
+                </button>
+            </div>
+        ) : null,
+}));
+
 // The dialog has its own spec; here only whether the page opens it, for which API and listings, matters.
 jest.mock('../../components/detail/documentation/PublishToPortalDialog', () => ({
     PublishToPortalDialog: ({
@@ -180,6 +211,16 @@ const GETTING_STARTED: ApiDocumentationItem = {
     type: 'PAGE',
     portalPageContentId: 'content-1',
     order: 0,
+};
+const STATUS_PAGE: ApiDocumentationItem = {
+    ...BASE,
+    id: 'status',
+    rootId: 'guides',
+    parentId: 'guides',
+    title: 'Status page',
+    type: 'LINK',
+    url: 'https://status.acme.io',
+    order: 1,
 };
 const CHANGELOG: ApiDocumentationItem = {
     ...BASE,
@@ -470,6 +511,18 @@ describe('ApiDocumentationPage', () => {
 
             expect(screen.getByRole('link', { name: 'Getting started' })).toBeInTheDocument();
         });
+
+        it('include the folder a link was just added to', async () => {
+            const { unmount } = renderPage();
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Add link' }));
+            await userEvent.click(screen.getByRole('button', { name: 'Created' }));
+            unmount();
+
+            renderPage();
+
+            expect(screen.getByRole('link', { name: 'Getting started' })).toBeInTheDocument();
+        });
     });
 
     it('invites to write documentation when the API has none', () => {
@@ -588,7 +641,7 @@ describe('ApiDocumentationPage', () => {
             renderPage();
 
             await userEvent.click(screen.getByRole('button', { name: 'Add documentation' }));
-            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Page', 'Folder']);
+            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Page', 'Folder', 'Link']);
             await userEvent.click(screen.getByRole('menuitem', { name: 'Folder' }));
             expect(screen.getByRole('dialog', { name: 'Add a folder' })).toHaveTextContent('Adding a folder to api-1, at the top level');
 
@@ -603,6 +656,26 @@ describe('ApiDocumentationPage', () => {
             await userEvent.click(screen.getByRole('menuitem', { name: 'Add folder' }));
 
             expect(screen.getByRole('dialog', { name: 'Add a folder' })).toHaveTextContent('Adding a folder to api-1, inside Guides');
+        });
+
+        it('opens the link dialog for this API from the Add menu, and closes it', async () => {
+            renderPage();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Add documentation' }));
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Link' }));
+            expect(screen.getByRole('dialog', { name: 'Add a link' })).toHaveTextContent('Adding a link to api-1, at the top level');
+
+            await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+            expect(screen.queryByRole('dialog', { name: 'Add a link' })).not.toBeInTheDocument();
+        });
+
+        it('opens the link dialog for a folder from its row', async () => {
+            renderPage();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Add link' }));
+
+            expect(screen.getByRole('dialog', { name: 'Add a link' })).toHaveTextContent('Adding a link to api-1, inside Guides');
         });
 
         it('offers the same Add menu from the empty state', async () => {
@@ -631,6 +704,37 @@ describe('ApiDocumentationPage', () => {
             await userEvent.click(screen.getByRole('button', { name: 'Actions for Guides' }));
             expect(screen.queryByRole('menuitem', { name: 'Add page' })).not.toBeInTheDocument();
             expect(screen.queryByRole('menuitem', { name: 'Add folder' })).not.toBeInTheDocument();
+            expect(screen.queryByRole('menuitem', { name: 'Add link' })).not.toBeInTheDocument();
+        });
+    });
+
+    describe('editing the details of a link', () => {
+        beforeEach(() => {
+            givenDocumentation({ items: [GUIDES, GETTING_STARTED, STATUS_PAGE, CHANGELOG], publications: [] });
+        });
+
+        it('opens them from the link row, naming the folder holding it, and closes them', async () => {
+            renderPage();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Expand Guides' }));
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Status page' }));
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Edit details' }));
+            expect(screen.getByRole('dialog', { name: 'Edit link details' })).toHaveTextContent(
+                'Editing the details of Status page in api-1, inside Guides',
+            );
+            expect(screen.queryByRole('dialog', { name: 'Edit folder details' })).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+            expect(screen.queryByRole('dialog', { name: 'Edit link details' })).not.toBeInTheDocument();
+        });
+
+        it('opens them from the title of the link', async () => {
+            renderPage();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Expand Guides' }));
+            await userEvent.click(screen.getByRole('button', { name: 'Status page' }));
+
+            expect(screen.getByRole('dialog', { name: 'Edit link details' })).toBeInTheDocument();
         });
     });
 

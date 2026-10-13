@@ -138,7 +138,7 @@ function FolderForm({ apiId, folder, parent, syncState = 'NOT_SYNCED', itemsInsi
 
                 <div className="flex flex-col gap-1.5">
                     <DocumentationItemDetailsFields
-                        itemNoun="folder"
+                        itemType="FOLDER"
                         title={title}
                         onTitleChange={handleTitleChange}
                         isPrivate={isPrivate}

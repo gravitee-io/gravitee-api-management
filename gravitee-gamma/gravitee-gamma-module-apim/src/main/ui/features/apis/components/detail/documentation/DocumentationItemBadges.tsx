@@ -19,9 +19,9 @@ import type { ReactNode } from 'react';
 import type { ApiDocumentationItem, ApiPortalPublication, PortalVisibility } from '../../../types/apiDocumentation';
 import { getPublishedSection } from '../../../utils/documentationTree';
 
-type ItemType = ApiDocumentationItem['type'];
+export type ItemType = ApiDocumentationItem['type'];
 
-const ITEM_NOUNS: Record<ItemType, string> = { PAGE: 'page', FOLDER: 'folder', LINK: 'link' };
+export const ITEM_NOUNS: Record<ItemType, string> = { PAGE: 'page', FOLDER: 'folder', LINK: 'link' };
 
 export function ItemPublishedBadge({ published, itemType }: Readonly<{ published: boolean; itemType: ItemType }>) {
     return published ? (
