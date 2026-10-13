@@ -18,7 +18,7 @@ import type { DynamicPropertyConfig, DynamicPropertySslStore } from '../../../..
 
 // ─── HTTP method ──────────────────────────────────────────────────────────────
 
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS' | 'CONNECT' | 'TRACE';
 
 // ─── Header entry ─────────────────────────────────────────────────────────────
 
@@ -170,14 +170,14 @@ export const DEFAULT_JOLT = `[
     }
 ]`;
 
-export const DEFAULT_SCHEDULE = '0 */5 * * * *';
+export const DEFAULT_SCHEDULE = '*/30 * * * * *';
 
 export const DEFAULT_HTTP_CLIENT: HttpClientFormState = {
     connectTimeout: 5000,
     readTimeout: 10000,
     keepAliveTimeout: 30000,
     idleTimeout: 60000,
-    maxConcurrentConnections: 10,
+    maxConcurrentConnections: 1,
     keepAlive: true,
     pipelining: false,
     useCompression: false,

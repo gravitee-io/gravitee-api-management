@@ -16,6 +16,7 @@
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { ApiDynamicPropertiesPage } from './ApiDynamicPropertiesPage';
@@ -31,6 +32,33 @@ jest.mock('@gravitee/gamma-modules-sdk', () => ({
 }));
 
 jest.mock('@gravitee/graphene-core/icons', () => new Proxy({}, { get: () => () => null }));
+
+// Radix Select portals its listbox and only mounts options on pointer interaction,
+// which jsdom does not simulate. Render Select as a native <select>/<option> so the
+// offered HTTP methods are observable (same pattern as ApiBroadcastsPage.spec.tsx).
+jest.mock('@gravitee/graphene-core', () => {
+    const actual = jest.requireActual('@gravitee/graphene-core');
+    return {
+        ...actual,
+        Select: ({
+            value,
+            onValueChange,
+            children,
+        }: {
+            value?: string;
+            onValueChange?: (v: string) => void;
+            children: React.ReactNode;
+        }) => (
+            <select aria-label="method" value={value} onChange={e => onValueChange?.(e.target.value)}>
+                {children}
+            </select>
+        ),
+        SelectContent: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+        SelectItem: ({ value, children }: { value: string; children: React.ReactNode }) => <option value={value}>{children}</option>,
+        SelectTrigger: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+        SelectValue: () => null,
+    };
+});
 
 // ─── React Query mock ─────────────────────────────────────────────────────────
 
@@ -232,8 +260,18 @@ it('shows the trust-all security warning when trustAll is enabled', async () => 
 it('seeds form from defaults when the API has no dynamic property config', () => {
     renderPage(makeApi({ services: undefined }));
 
-    // Default schedule is present
-    expect(screen.getByDisplayValue('0 */5 * * * *')).not.toBeNull();
+    expect(screen.getByDisplayValue('*/30 * * * * *')).not.toBeNull();
     // Enabled toggle is off by default
     expect(screen.getByRole('switch', { name: /enable dynamic properties/i })).not.toBeChecked();
+});
+
+// ─── 11. DP methods: CONNECT/TRACE in method list, no max-connections field ──
+
+it('offers CONNECT and TRACE and hides the max concurrent connections field', () => {
+    renderPage(makeApi({ services: { dynamicProperty: DYNAMIC_CONFIG } }));
+
+    expect(screen.getByRole('option', { name: 'CONNECT' })).not.toBeNull();
+    expect(screen.getByRole('option', { name: 'TRACE' })).not.toBeNull();
+
+    expect(screen.queryByLabelText(/max concurrent connections/i)).toBeNull();
 });

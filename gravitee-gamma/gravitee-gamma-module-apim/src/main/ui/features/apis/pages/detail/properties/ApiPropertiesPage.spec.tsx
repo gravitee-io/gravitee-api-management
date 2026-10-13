@@ -141,6 +141,24 @@ it('adds a plain-text property and calls updateApiProperties with the new key/va
     );
 });
 
+it('allows adding a property with an empty value when the key is unique', async () => {
+    const user = userEvent.setup();
+    renderPage([]);
+
+    await user.click(screen.getByRole('button', { name: /add property/i }));
+
+    const dialog = screen.getByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText(/key/i), { target: { value: 'el.placeholder' } });
+    expect(within(dialog).getByRole('button', { name: /add property/i })).toBeEnabled();
+    await user.click(within(dialog).getByRole('button', { name: /add property/i }));
+
+    await waitFor(() => expect(mockUpdateApiProperties).toHaveBeenCalledTimes(1));
+    const [, , sentProperties] = mockUpdateApiProperties.mock.calls[0];
+    expect(sentProperties).toEqual(
+        expect.arrayContaining([expect.objectContaining({ key: 'el.placeholder', value: '', encryptable: false })]),
+    );
+});
+
 // ─── 6. Encrypt value: sets encryptable=true on the property ─────────────────
 
 it('calls updateApiProperties with encryptable=true when Encrypt value is clicked', async () => {

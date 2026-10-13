@@ -40,7 +40,7 @@ export function ToggleRow({ id, label, description, hint, checked, disabled, onC
                 </div>
                 <InfoTooltip content={hint} />
             </div>
-            <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} disabled={disabled} />
+            <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} disabled={disabled} aria-label={label} />
         </div>
     );
 }

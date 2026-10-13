@@ -189,7 +189,7 @@ function PropertyDialog({ state, existingKeys, isSaving, onClose, onSave }: Prop
         return null;
     }, [isAdd, keyTrimmed, existingKeys]);
 
-    const canSave = isAdd ? keyTrimmed.length > 0 && valueTrimmed.length > 0 && !keyError : !isEditEncrypted || valueTrimmed.length > 0;
+    const canSave = isAdd ? keyTrimmed.length > 0 && !keyError : !isEditEncrypted || valueTrimmed.length > 0;
 
     const handleSave = () => {
         if (isAdd) {
