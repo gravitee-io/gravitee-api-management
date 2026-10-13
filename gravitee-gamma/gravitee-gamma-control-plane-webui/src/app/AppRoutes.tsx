@@ -17,7 +17,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { LoginPage, ProtectedRoute, PublicOnlyRoute } from '../features/auth';
 import { EnvironmentGuard, RootRedirect } from '../features/environment';
-import { type GammaModule, RemoteModuleRoute, useGammaModules } from '../features/modules';
+import { type GammaModule, ModulesLoadFailed, RemoteModuleRoute, useGammaModules } from '../features/modules';
 import { HomePage } from '../pages/home';
 import { TasksPage } from '../pages/tasks';
 import { ContentSkeleton } from '../shared/components/ContentSkeleton';
@@ -26,8 +26,10 @@ import { ShellLayout } from '../shared/components/ShellLayout';
 
 export function AppRoutes() {
     const { modules, loading, error, retry } = useGammaModules();
+    // The list of modules could not be loaded. It stays so while a retry runs, until one succeeds.
+    const loadFailed = error !== null && modules.length === 0;
 
-    if (loading && modules.length === 0) {
+    if (loading && modules.length === 0 && !loadFailed) {
         return (
             <Routes>
                 <Route element={<PublicOnlyRoute />}>
@@ -55,12 +57,24 @@ export function AppRoutes() {
                 <Route path="/environments/:envHrid" element={<ShellLayout modules={modules} />}>
                     <Route element={<EnvironmentGuard />}>
                         <Route element={<RouteLayout />}>
-                            <Route path="home" element={<HomePage modules={modules} loading={loading} error={error} onRetry={retry} />} />
+                            {/* Without the list, Home has nothing left to show: its sections come from the modules. */}
+                            <Route
+                                path="home"
+                                element={
+                                    loadFailed ? (
+                                        <ModulesLoadFailed retrying={loading} onRetry={retry} />
+                                    ) : (
+                                        <HomePage modules={modules} loading={loading} />
+                                    )
+                                }
+                            />
                             <Route path="tasks" element={<TasksPage />} />
                         </Route>
                         {modules.map((m: GammaModule) => (
                             <Route key={m.id} path={`${m.id}/*`} element={<RemoteModuleRoute module={m} />} />
                         ))}
+                        {/* Without the list, any other address may be a module's: it is kept, and opens once the list is there. */}
+                        {loadFailed && <Route path="*" element={<ModulesLoadFailed retrying={loading} onRetry={retry} />} />}
                         <Route index element={<Navigate to="home" replace />} />
                     </Route>
                 </Route>
