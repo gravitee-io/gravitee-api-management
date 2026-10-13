@@ -25,6 +25,7 @@ import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.core.logs_engine.domain_service.FilterContext;
 import io.gravitee.apim.core.logs_engine.domain_service.LogNamesPostProcessor;
+import io.gravitee.apim.core.logs_engine.exception.UnsupportedFilterOperatorException;
 import io.gravitee.apim.core.logs_engine.model.ApiLog;
 import io.gravitee.apim.core.logs_engine.model.ApiLogDiagnostic;
 import io.gravitee.apim.core.logs_engine.model.ArrayFilter;
@@ -248,18 +249,13 @@ public class SearchEnvironmentLogsUseCase {
             return;
         }
 
-        clearFilterIds(filter, filterContext);
-    }
-
-    private void clearFilterIds(StringFilter filter, FilterContext filterContext) {
-        updateFilterIds(filter.name(), filterContext, Collections.emptySet());
+        throw new UnsupportedFilterOperatorException(filter.name().name(), String.valueOf(filter.operator()));
     }
 
     private void applyArrayFilter(ArrayFilter filter, FilterContext filterContext) {
-        // URI only supports EQ operator from StringFilter, ignore all ArrayFilters for
-        // URI
+        // The engine holds a single path pattern, so a list cannot be expressed.
         if (filter.name() == FilterName.URI) {
-            return;
+            throw new UnsupportedFilterOperatorException(filter.name().name(), String.valueOf(filter.operator()));
         }
 
         if (filter.operator() == Operator.IN) {
@@ -267,22 +263,23 @@ public class SearchEnvironmentLogsUseCase {
             return;
         }
 
-        updateFilterIds(filter.name(), filterContext, Collections.emptySet());
+        throw new UnsupportedFilterOperatorException(filter.name().name(), String.valueOf(filter.operator()));
     }
 
     private void applyNumericFilter(NumericFilter filter, FilterContext filterContext) {
-        if (filter.name() == FilterName.RESPONSE_TIME) {
-            if (filter.value() == null) {
-                throw new ValidationDomainException("Filter RESPONSE_TIME requires a non-null value");
-            }
-            if (filter.value() < 0) {
-                throw new ValidationDomainException("Filter RESPONSE_TIME does not accept negative values.");
-            }
-            if (filter.operator() == Operator.GTE) {
-                filterContext.limitByResponseTimeFrom(filter.value().longValue());
-            } else if (filter.operator() == Operator.LTE) {
-                filterContext.limitByResponseTimeTo(filter.value().longValue());
-            }
+        if (filter.name() != FilterName.RESPONSE_TIME || (filter.operator() != Operator.GTE && filter.operator() != Operator.LTE)) {
+            throw new UnsupportedFilterOperatorException(filter.name().name(), String.valueOf(filter.operator()));
+        }
+        if (filter.value() == null) {
+            throw new ValidationDomainException("Filter RESPONSE_TIME requires a non-null value");
+        }
+        if (filter.value() < 0) {
+            throw new ValidationDomainException("Filter RESPONSE_TIME does not accept negative values.");
+        }
+        if (filter.operator() == Operator.GTE) {
+            filterContext.limitByResponseTimeFrom(filter.value().longValue());
+        } else {
+            filterContext.limitByResponseTimeTo(filter.value().longValue());
         }
     }
 

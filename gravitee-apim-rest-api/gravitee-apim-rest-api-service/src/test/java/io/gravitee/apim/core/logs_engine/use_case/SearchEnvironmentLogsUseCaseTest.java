@@ -32,6 +32,7 @@ import io.gravitee.apim.core.gateway.model.BaseInstance;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.core.logs_engine.domain_service.LogNamesPostProcessor;
+import io.gravitee.apim.core.logs_engine.exception.UnsupportedFilterOperatorException;
 import io.gravitee.apim.core.logs_engine.model.ApiLogDiagnostic;
 import io.gravitee.apim.core.logs_engine.model.ArrayFilter;
 import io.gravitee.apim.core.logs_engine.model.Filter;
@@ -180,40 +181,51 @@ class SearchEnvironmentLogsUseCaseTest {
         }
 
         @Test
-        void should_ignore_string_filter_with_wrong_operator() {
-            // StringFilter only supports EQ
+        void should_reject_an_array_filter_with_an_operator_it_does_not_support() {
+            // The request schema routes EQ to StringFilter, so only an internal caller can build this.
             var request = new SearchLogsRequest(
                 null,
-                List.of(new Filter(new StringFilter(FilterName.API, Operator.IN, API1.getId()))), // Should be ignored
+                List.of(new Filter(new ArrayFilter(FilterName.APPLICATION, Operator.EQ, List.of("app-1")))),
                 1,
                 10
             );
 
-            var response = when_searching(request);
-
-            assertThat(response.response().pagination().totalCount()).isEqualTo(0);
+            assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Filter APPLICATION does not support operator EQ.");
         }
 
         @Test
-        void should_ignore_array_filter_with_wrong_operator() {
-            // ArrayFilter only supports IN
+        void should_reject_a_path_filter_with_the_in_operator() {
+            // The engine holds a single path pattern. This used to return early and leave the search unfiltered.
             var request = new SearchLogsRequest(
                 null,
-                List.of(new Filter(new ArrayFilter(FilterName.APPLICATION, Operator.EQ, List.of("app-1")))), // Should
-                // be
-                // ignored
+                List.of(new Filter(new ArrayFilter(FilterName.URI, Operator.IN, List.of("/api/users", "/api/products")))),
                 1,
                 10
             );
 
-            var response = when_searching(request);
+            assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
+                .isInstanceOf(UnsupportedFilterOperatorException.class)
+                .hasMessage("Filter URI does not support operator IN.");
+        }
 
-            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
-            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+        @ParameterizedTest(name = "{0} {1}")
+        @MethodSource("unsupportedStringFilterOperators")
+        void should_reject_a_string_filter_with_an_operator_it_does_not_support(FilterName name, Operator operator) {
+            var request = new SearchLogsRequest(null, List.of(new Filter(new StringFilter(name, operator, "/api"))), 1, 10);
 
-            assertThat(filtersCaptor.getValue().applicationIds()).isEmpty();
+            assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
+                .isInstanceOf(UnsupportedFilterOperatorException.class)
+                .hasMessage("Filter " + name + " does not support operator " + operator + ".");
+        }
 
-            assertThat(response.response().pagination().totalCount()).isEqualTo(1);
+        static Stream<Arguments> unsupportedStringFilterOperators() {
+            return Stream.of(
+                Arguments.of(FilterName.URI, Operator.IN),
+                Arguments.of(FilterName.API, Operator.GTE),
+                Arguments.of(FilterName.API, Operator.IN)
+            );
         }
 
         @ParameterizedTest
@@ -694,24 +706,22 @@ class SearchEnvironmentLogsUseCaseTest {
             );
         }
 
-        @Test
-        void should_ignore_numeric_filter_with_unsupported_operator() {
-            var request = new SearchLogsRequest(
-                null,
-                List.of(
-                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.EQ, 100)),
-                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.IN, 200))
-                ),
-                1,
-                10
+        @ParameterizedTest(name = "{0} {1}")
+        @MethodSource("unsupportedNumericFilterOperators")
+        void should_reject_a_numeric_filter_with_an_operator_it_does_not_support(FilterName name, Operator operator) {
+            var request = new SearchLogsRequest(null, List.of(new Filter(new NumericFilter(name, operator, 100))), 1, 10);
+
+            assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
+                .isInstanceOf(UnsupportedFilterOperatorException.class)
+                .hasMessage("Filter " + name + " does not support operator " + operator + ".");
+        }
+
+        static Stream<Arguments> unsupportedNumericFilterOperators() {
+            return Stream.of(
+                Arguments.of(FilterName.RESPONSE_TIME, Operator.EQ),
+                Arguments.of(FilterName.RESPONSE_TIME, Operator.IN),
+                Arguments.of(FilterName.HTTP_STATUS, Operator.GTE)
             );
-
-            when_searching(request);
-
-            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
-            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
-
-            assertThat(filtersCaptor.getValue().responseTimeRanges()).isEmpty();
         }
 
         @Test
