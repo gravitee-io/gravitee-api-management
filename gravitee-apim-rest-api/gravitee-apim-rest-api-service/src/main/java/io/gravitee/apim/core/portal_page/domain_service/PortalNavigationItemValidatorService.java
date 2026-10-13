@@ -50,7 +50,6 @@ import io.gravitee.apim.core.portal_page.domain_service.validation.UpdatePortalN
 import io.gravitee.apim.core.portal_page.domain_service.validation.UpdateValidationContext;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
@@ -312,7 +311,13 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
     }
 
     private static boolean shouldFetch(List<CreatePortalNavigationItem> creates, List<PendingUpdate> updates) {
-        return (hasApiOrApiProductItems(creates) || updates.stream().anyMatch(u -> u.existing() instanceof PortalNavigationItemContainer));
+        return (
+            hasApiOrApiProductItems(creates) ||
+            updates
+                .stream()
+                // A move that changes the owner is judged against the listings of the API the item leaves
+                .anyMatch(update -> update.isExistingContainer() || update.isUpdatingReference())
+        );
     }
 
     private List<PortalNavigationItem> fetchAllNavigationItems(String environmentId) {

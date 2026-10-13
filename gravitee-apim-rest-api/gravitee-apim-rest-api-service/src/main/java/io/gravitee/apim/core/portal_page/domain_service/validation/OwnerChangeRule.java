@@ -33,6 +33,10 @@ import java.util.stream.Collectors;
  * A move that hands an item, and everything below it, to another owner. Automation names the owner of what
  * it manages and would no longer recognise it, and the documentation of an API cannot itself list an API
  * or an API Product.
+ *
+ * The documentation of an API is shown under each of its listings, so an item taken out of the API leaves
+ * all of them while the caller pointed at one: with more than one listing the move is refused. A listing
+ * inside an API Product shows the API as a member of the product, not its documentation, and does not count.
  */
 public class OwnerChangeRule implements UpdatePortalNavigationItemValidationRule {
 
@@ -43,6 +47,9 @@ public class OwnerChangeRule implements UpdatePortalNavigationItemValidationRule
 
     @Override
     public void validate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
+        if (existingItem.getReference() instanceof NavigationItemReference.ApiReference left && standaloneListingsOf(left, ctx) > 1) {
+            throw InvalidPortalNavigationItemDataException.apiListedInMoreThanOnePlace(left.apiId());
+        }
         boolean becomesApiDocumentation = toUpdate.getReference() instanceof NavigationItemReference.ApiReference;
         for (var moved : withDescendants(existingItem, ctx.navigationItems())) {
             if (moved.getAutomationMetadata() != null) {
@@ -52,6 +59,17 @@ public class OwnerChangeRule implements UpdatePortalNavigationItemValidationRule
                 throw InvalidPortalNavigationItemDataException.apiDocumentationCannotHoldListing(moved.getId().json());
             }
         }
+    }
+
+    private static long standaloneListingsOf(NavigationItemReference.ApiReference api, UpdateValidationContext ctx) {
+        return ctx
+            .navigationItems()
+            .stream()
+            .filter(PortalNavigationApi.class::isInstance)
+            .map(PortalNavigationApi.class::cast)
+            .filter(listing -> listing.appliesToApiId(api.apiId()))
+            .filter(listing -> ApiProductAncestorValidation.findApiProductId(listing.getParentId(), ctx.itemsById()).isEmpty())
+            .count();
     }
 
     private static List<PortalNavigationItem> withDescendants(PortalNavigationItem item, List<PortalNavigationItem> allItems) {

@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal.domain_service.navigation;
 
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import java.util.List;
 
@@ -30,5 +31,14 @@ public interface PortalNavigationValidator {
 
     void validateToUpdate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existing);
 
-    record PendingUpdate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existing) {}
+    record PendingUpdate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existing) {
+        public boolean isExistingContainer() {
+            return existing instanceof PortalNavigationItemContainer;
+        }
+
+        /** The update hands the item to another owner: the reference is only set when a move changes it. */
+        public boolean isUpdatingReference() {
+            return toUpdate.getReference() != null;
+        }
+    }
 }

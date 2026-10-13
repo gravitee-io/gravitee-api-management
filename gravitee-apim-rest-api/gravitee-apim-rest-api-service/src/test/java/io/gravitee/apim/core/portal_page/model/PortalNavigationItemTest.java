@@ -186,4 +186,13 @@ class PortalNavigationItemTest {
 
         assertThat(page.getReference()).isEqualTo(api);
     }
+
+    @Test
+    void should_apply_to_the_api_it_lists_only() {
+        var listing = PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().json(), "Listing", null, "api-a");
+
+        assertThat(listing.appliesToApiId("api-a")).isTrue();
+        assertThat(listing.appliesToApiId("api-b")).isFalse();
+        assertThat(listing.appliesToApiId(null)).isFalse();
+    }
 }
