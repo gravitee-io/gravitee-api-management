@@ -151,6 +151,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
           domain: 'Domain',
           scopes: null,
           serverURL: 'ServerURL',
+          tokenEndpointAuthMethod: null,
         },
         userProfileMapping: {
           email: 'email',
@@ -270,6 +271,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
           domain: 'Domain',
           scopes: ['Scope A', 'Scope B'],
           serverURL: 'ServerURL',
+          tokenEndpointAuthMethod: null,
         });
 
         const idInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=id]' }));
@@ -316,6 +318,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
             domain: 'Domain',
             scopes: ['Scope A', 'Scope B'],
             serverURL: 'ServerURL',
+            tokenEndpointAuthMethod: null,
           },
           userProfileMapping: {
             email: 'Email',
@@ -404,6 +407,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
           tokenEndpoint: 'TokenEndpoint',
           tokenIntrospectionEndpoint: 'TokenIntrospectionEndpoint',
           userInfoEndpoint: 'UserInfoEndpoint',
+          tokenEndpointAuthMethod: null,
           userLogoutEndpoint: 'UserLogoutEndpoint',
         });
 
@@ -453,6 +457,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
             tokenEndpoint: 'TokenEndpoint',
             tokenIntrospectionEndpoint: 'TokenIntrospectionEndpoint',
             userInfoEndpoint: 'UserInfoEndpoint',
+            tokenEndpointAuthMethod: null,
             userLogoutEndpoint: 'UserLogoutEndpoint',
           },
           userProfileMapping: {
@@ -526,6 +531,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
             domain: 'Domain',
             scopes: null,
             serverURL: 'ServerURL',
+            tokenEndpointAuthMethod: null,
           },
           userProfileMapping: {
             email: null,
@@ -593,6 +599,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
           domain: 'Updated Domain',
           scopes: null,
           serverURL: 'UpdatedServerURL',
+          tokenEndpointAuthMethod: null,
         },
         userProfileMapping: {
           email: null,
@@ -627,6 +634,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
             domain: 'Domain',
             scopes: null,
             serverURL: 'ServerURL',
+            tokenEndpointAuthMethod: null,
           },
           userProfileMapping: {
             email: null,
@@ -748,6 +756,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
             domain: 'Domain',
             scopes: null,
             serverURL: 'ServerURL',
+            tokenEndpointAuthMethod: null,
           },
           userProfileMapping: {
             email: null,

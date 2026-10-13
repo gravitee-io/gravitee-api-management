@@ -25,11 +25,7 @@
       <mat-error *ngIf="configurationFormGroup.get('clientId').hasError('required')">Client Id is required.</mat-error>
     </mat-form-field>
 
-    <mat-form-field class="identity-provider__card__form-field">
-      <mat-label>Client Secret</mat-label>
-      <input matInput name="configurationClientSecret" type="password" formControlName="clientSecret" required />
-      <mat-error *ngIf="configurationFormGroup.get('clientSecret').hasError('required')">Client Secret is required.</mat-error>
-    </mat-form-field>
+    <org-settings-identity-provider-client-secret></org-settings-identity-provider-client-secret>
 
     <mat-form-field class="identity-provider__card__form-field">
       <mat-label>Server URL</mat-label>
@@ -41,6 +37,17 @@
       <mat-label>Security domain</mat-label>
       <input matInput name="configurationDomain" formControlName="domain" required />
       <mat-error *ngIf="configurationFormGroup.get('domain').hasError('required')">Security domain is required.</mat-error>
+    </mat-form-field>
+
+    <mat-form-field class="identity-provider__card__form-field">
+      <mat-label>Client Authentication Method</mat-label>
+      <mat-select name="configurationTokenEndpointAuthMethod" formControlName="tokenEndpointAuthMethod">
+        <mat-option [value]="null">Provider default</mat-option>
+        <mat-option *ngFor="let method of clientAuthenticationMethods" [value]="method.value">{{ method.label }}</mat-option>
+      </mat-select>
+      <mat-hint
+        >How APIM sends its credentials to the token and introspection endpoints. Leave unset to keep the current behavior.</mat-hint
+      >
     </mat-form-field>
 
     <mat-form-field class="identity-provider__card__form-field">
