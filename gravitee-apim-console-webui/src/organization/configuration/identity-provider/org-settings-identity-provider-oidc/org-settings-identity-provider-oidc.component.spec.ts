@@ -60,4 +60,35 @@ describe('OrgSettingsIdentityProviderOidcComponent', () => {
   it('scopes control should have default values on init', () => {
     expect(scopesControl.value).toEqual(['openid', 'profile', 'email']);
   });
+
+  it('accepts an empty client secret when the client authenticates with none', () => {
+    component.configurationFormGroup.patchValue({
+      clientId: 'public-client',
+      clientSecret: '',
+      tokenEndpoint: 'https://idp.example/token',
+      authorizeEndpoint: 'https://idp.example/authorize',
+      userInfoEndpoint: 'https://idp.example/userinfo',
+      tokenEndpointAuthMethod: 'none',
+    });
+    fixture.detectChanges();
+
+    expect(component.configurationFormGroup.get('clientSecret').valid).toBe(true);
+    expect(component.configurationFormGroup.valid).toBe(true);
+  });
+
+  it('requires a client secret when the client authenticates with client_secret_basic', () => {
+    component.configurationFormGroup.patchValue({
+      clientId: 'confidential-client',
+      clientSecret: '',
+      tokenEndpoint: 'https://idp.example/token',
+      authorizeEndpoint: 'https://idp.example/authorize',
+      userInfoEndpoint: 'https://idp.example/userinfo',
+      tokenEndpointAuthMethod: 'client_secret_basic',
+    });
+    component.configurationFormGroup.get('clientSecret').markAsTouched();
+    fixture.detectChanges();
+
+    expect(component.configurationFormGroup.get('clientSecret').valid).toBe(false);
+    expect(fixture.nativeElement.textContent).toContain('Client Secret is required.');
+  });
 });

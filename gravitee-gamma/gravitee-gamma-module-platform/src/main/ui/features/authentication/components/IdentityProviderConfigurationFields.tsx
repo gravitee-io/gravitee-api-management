@@ -14,7 +14,19 @@
  * limitations under the License.
  */
 
-import { Field, FieldError, FieldLabel, Input, PasswordInput } from '@gravitee/graphene-core';
+import {
+    Field,
+    FieldDescription,
+    FieldError,
+    FieldLabel,
+    Input,
+    PasswordInput,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@gravitee/graphene-core';
 
 import { ColorField } from './ColorField';
 import { RequiredMark } from './RequiredMark';
@@ -53,20 +65,47 @@ export function IdentityProviderConfigurationFields({
             </Field>
             <Field>
                 <FieldLabel htmlFor="idp-client-secret">
-                    Client Secret <RequiredMark />
+                    Client Secret {form.configuration.tokenEndpointAuthMethod === 'none' ? null : <RequiredMark />}
                 </FieldLabel>
                 <PasswordInput
                     id="idp-client-secret"
                     autoComplete="off"
                     value={form.configuration.clientSecret}
                     disabled={disabled}
-                    aria-required="true"
+                    aria-required={form.configuration.tokenEndpointAuthMethod !== 'none'}
                     aria-invalid={showErrors && !!errors.clientSecret}
                     aria-describedby={showErrors && errors.clientSecret ? 'idp-client-secret-error' : undefined}
                     onChange={event => onPatch({ clientSecret: event.target.value })}
                 />
                 {showErrors && errors.clientSecret ? <FieldError id="idp-client-secret-error">{errors.clientSecret}</FieldError> : null}
             </Field>
+
+            {form.type === 'OIDC' || form.type === 'GRAVITEEIO_AM' ? (
+                <Field>
+                    <FieldLabel htmlFor="idp-token-endpoint-auth-method">Client Authentication Method</FieldLabel>
+                    <Select
+                        value={form.configuration.tokenEndpointAuthMethod ?? 'provider-default'}
+                        disabled={disabled}
+                        onValueChange={value => onPatch({ tokenEndpointAuthMethod: value === 'provider-default' ? undefined : value })}
+                    >
+                        <SelectTrigger id="idp-token-endpoint-auth-method" data-testid="idp-token-endpoint-auth-method">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="provider-default">Provider default</SelectItem>
+                            <SelectItem value="client_secret_basic">
+                                Client secret in the Authorization header (client_secret_basic)
+                            </SelectItem>
+                            <SelectItem value="client_secret_post">Client secret in the request body (client_secret_post)</SelectItem>
+                            <SelectItem value="none">Public client, no client secret (none)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <FieldDescription>
+                        How APIM sends its credentials to the token and introspection endpoints. Leave unset to keep the current behavior.
+                        Public clients use none and do not need a client secret.
+                    </FieldDescription>
+                </Field>
+            ) : null}
 
             {form.type === 'GRAVITEEIO_AM' ? (
                 <>

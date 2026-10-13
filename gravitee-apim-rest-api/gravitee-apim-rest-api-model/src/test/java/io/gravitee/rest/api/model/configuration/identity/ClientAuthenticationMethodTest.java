@@ -37,8 +37,10 @@ class ClientAuthenticationMethodTest {
         {
             "client_secret_basic, CLIENT_SECRET_BASIC",
             "client_secret_post, CLIENT_SECRET_POST",
+            "none, NONE",
             "CLIENT_SECRET_BASIC, CLIENT_SECRET_BASIC",
             "CLIENT_SECRET_POST, CLIENT_SECRET_POST",
+            "NONE, NONE",
             "Client_Secret_Basic, CLIENT_SECRET_BASIC",
         }
     )
@@ -60,7 +62,7 @@ class ClientAuthenticationMethodTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "client_secret_jwt", "none", "private_key_jwt", "basic", "client-secret-basic", "nonsense" })
+    @ValueSource(strings = { "client_secret_jwt", "private_key_jwt", "basic", "client-secret-basic", "nonsense" })
     void should_resolve_an_unsupported_or_unknown_value_to_null(String configured) {
         assertThat(ClientAuthenticationMethod.fromValue(configured)).isNull();
     }
@@ -69,5 +71,6 @@ class ClientAuthenticationMethodTest {
     void should_expose_the_oidc_names_as_values() {
         assertThat(ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue()).isEqualTo("client_secret_basic");
         assertThat(ClientAuthenticationMethod.CLIENT_SECRET_POST.getValue()).isEqualTo("client_secret_post");
+        assertThat(ClientAuthenticationMethod.NONE.getValue()).isEqualTo("none");
     }
 }

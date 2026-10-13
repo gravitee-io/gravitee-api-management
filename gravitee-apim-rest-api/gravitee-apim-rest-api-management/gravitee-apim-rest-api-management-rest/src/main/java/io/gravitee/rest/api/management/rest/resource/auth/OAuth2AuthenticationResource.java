@@ -86,7 +86,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     private static final String PROVIDER_UNAVAILABLE_ERROR = "identity_provider_unavailable";
     private static final String CLIENT_AUTHENTICATION_HINT =
         "The identity provider rejected the client credentials. Check that the tokenEndpointAuthMethod configured on " +
-        "the identity provider matches the method the provider expects (client_secret_basic or client_secret_post); " +
+        "the identity provider matches the method the provider expects (client_secret_basic, client_secret_post, or none); " +
         "the token and introspection endpoints must both accept it.";
 
     @Autowired
@@ -261,6 +261,13 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                     form.putSingle(CLIENT_ID_KEY, identityProvider.getClientId());
                 }
                 form.add(CLIENT_SECRET, identityProvider.getClientSecret());
+            }
+            case NONE -> {
+                // A public client is identified by client_id alone. Sending an empty client_secret makes providers
+                // that advertise token_endpoint_auth_method=none reject the request as invalid_client.
+                if (form.getFirst(CLIENT_ID_KEY) == null) {
+                    form.putSingle(CLIENT_ID_KEY, identityProvider.getClientId());
+                }
             }
         }
     }

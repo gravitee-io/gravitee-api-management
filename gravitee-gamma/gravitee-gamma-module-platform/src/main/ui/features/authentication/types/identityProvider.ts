@@ -59,6 +59,8 @@ export interface IdentityProviderConfiguration {
     authorizeEndpoint?: string;
     userInfoEndpoint?: string;
     userLogoutEndpoint?: string;
+    /** OpenID Connect token_endpoint_auth_method. Absent means the provider default. */
+    tokenEndpointAuthMethod?: string;
 }
 
 export interface GroupMapping {
