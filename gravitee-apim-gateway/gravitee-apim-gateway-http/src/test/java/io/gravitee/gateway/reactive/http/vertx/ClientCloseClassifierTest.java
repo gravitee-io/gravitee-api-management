@@ -38,7 +38,6 @@ import java.time.Duration;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
-import org.slf4j.helpers.NOPLogger;
 
 /**
  * Pins the (key, message) mapping for client-close reasons (APIM-12769) and the decoration lifecycle guards: a
@@ -264,8 +263,6 @@ class ClientCloseClassifierTest {
     }
 
     private static HttpBaseExecutionContext mockContext() {
-        HttpBaseExecutionContext ctx = mock(HttpBaseExecutionContext.class);
-        lenient().when(ctx.withLogger(any())).thenReturn(NOPLogger.NOP_LOGGER);
-        return ctx;
+        return mock(HttpBaseExecutionContext.class);
     }
 }

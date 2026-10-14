@@ -36,7 +36,6 @@ import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFact
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
-import io.vertx.core.http.PoolOptions;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
@@ -76,11 +75,10 @@ class ClientStreamResetPropagationV4IntegrationTest extends AbstractGatewayTest 
     @Override
     protected void configureHttpClient(
         HttpClientOptions options,
-        PoolOptions poolOptions,
         GatewayDynamicConfig.Config gatewayConfig,
         ParameterContext parameterContext
     ) {
-        super.configureHttpClient(options, poolOptions, gatewayConfig, parameterContext);
+        super.configureHttpClient(options, gatewayConfig, parameterContext);
         // HTTP/2 with prior knowledge: every request below is a stream on the same client connection.
         options.setProtocolVersion(HttpVersion.HTTP_2);
         options.setHttp2ClearTextUpgrade(false);
