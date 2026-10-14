@@ -273,3 +273,19 @@ Included from always-rendered templates (e.g. deployment) so external-config ins
 {{- end -}}
 {{- get $result "url" -}}
 {{- end -}}
+
+{{/*
+Builds the Edge reactor URL from gateway.services.edge.ingress, under the same conditions as the edge ingress itself.
+Returns scheme://first-host/path without a trailing slash, since the Edge daemon appends its routes to it,
+or an empty string when the edge ingress is not rendered or has no host.
+*/}}
+{{- define "gateway.route.edgeReactorUrl" -}}
+{{- if and .Values.gateway.enabled (dig "edge" "enabled" false .Values.gateway) (dig "services" "edge" "enabled" false .Values.gateway) -}}
+{{- $edgeIngress := dig "services" "edge" "ingress" dict .Values.gateway -}}
+{{- $hosts := default (list) (get $edgeIngress "hosts") -}}
+{{- if and (default false (get $edgeIngress "enabled")) (gt (len $hosts) 0) -}}
+{{- $scheme := include "gateway.route.schemeForRoute" (dict "route" $edgeIngress) -}}
+{{- printf "%s://%s%s" $scheme (index $hosts 0) (default "" (get $edgeIngress "path")) | trimSuffix "/" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}

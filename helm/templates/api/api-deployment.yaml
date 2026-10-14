@@ -215,6 +215,11 @@ spec:
             - name: portal.entrypoint
               value: {{ $portalUrl | quote }}
             {{- end }}
+            {{- $edgeReactorUrl := include "gateway.route.edgeReactorUrl" . -}}
+            {{- if $edgeReactorUrl }}
+            - name: installation.edge.reactorUrl
+              value: {{ $edgeReactorUrl | quote }}
+            {{- end }}
             {{- end }}
             {{- with .Values.kafkaConsole.jwt.secret }}
               {{- if .value }}

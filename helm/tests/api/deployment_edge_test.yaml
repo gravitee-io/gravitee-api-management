@@ -1,0 +1,246 @@
+suite: Test Management API deployment with the Edge reactor URL
+templates:
+  - "api/api-deployment.yaml"
+  - "api/api-configmap.yaml"
+  - "gateway/gateway-edge-ingress.yaml"
+tests:
+  - it: Inject the edge reactor URL with HTTPS by default
+    set:
+      gateway:
+        edge:
+          enabled: true
+        services:
+          edge:
+            ingress:
+              enabled: true
+              hosts:
+                - edge.example.com
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: installation.edge.reactorUrl
+            value: https://edge.example.com
+        template: api/api-deployment.yaml
+      - hasDocuments:
+          count: 1
+        template: gateway/gateway-edge-ingress.yaml
+
+  - it: Inject the edge reactor URL with the scheme declared on the edge ingress
+    set:
+      gateway:
+        edge:
+          enabled: true
+        services:
+          edge:
+            ingress:
+              enabled: true
+              scheme: http
+              hosts:
+                - edge.example.com
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: installation.edge.reactorUrl
+            value: http://edge.example.com
+        template: api/api-deployment.yaml
+
+  - it: Inject the edge reactor URL with the edge ingress path
+    set:
+      gateway:
+        edge:
+          enabled: true
+        services:
+          edge:
+            ingress:
+              enabled: true
+              path: /edge
+              hosts:
+                - edge.example.com
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: installation.edge.reactorUrl
+            value: https://edge.example.com/edge
+        template: api/api-deployment.yaml
+
+  - it: Inject the edge reactor URL without the trailing slash of the edge ingress path
+    set:
+      gateway:
+        edge:
+          enabled: true
+        services:
+          edge:
+            ingress:
+              enabled: true
+              path: /edge/
+              hosts:
+                - edge.example.com
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: installation.edge.reactorUrl
+            value: https://edge.example.com/edge
+        template: api/api-deployment.yaml
+
+  - it: Inject the edge reactor URL without a path when the edge ingress path is empty
+    set:
+      gateway:
+        edge:
+          enabled: true
+        services:
+          edge:
+            ingress:
+              enabled: true
+              path: ""
+              hosts:
+                - edge.example.com
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: installation.edge.reactorUrl
+            value: https://edge.example.com
+        template: api/api-deployment.yaml
+
+  - it: Inject the edge reactor URL from the first edge ingress host
+    set:
+      gateway:
+        edge:
+          enabled: true
+        services:
+          edge:
+            ingress:
+              enabled: true
+              hosts:
+                - first-edge.example.com
+                - second-edge.example.com
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: installation.edge.reactorUrl
+            value: https://first-edge.example.com
+        template: api/api-deployment.yaml
+
+  - it: Do not inject the edge reactor URL by default
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "installation.edge.reactorUrl")]
+        template: api/api-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: gateway/gateway-edge-ingress.yaml
+
+  - it: Do not inject the edge reactor URL when the gateway edge server is not configured
+    set:
+      gateway:
+        services:
+          edge:
+            ingress:
+              enabled: true
+              hosts:
+                - edge.example.com
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "installation.edge.reactorUrl")]
+        template: api/api-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: gateway/gateway-edge-ingress.yaml
+
+  - it: Do not inject the edge reactor URL when the edge ingress is disabled
+    set:
+      gateway:
+        edge:
+          enabled: true
+        services:
+          edge:
+            ingress:
+              enabled: false
+              hosts:
+                - edge.example.com
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "installation.edge.reactorUrl")]
+        template: api/api-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: gateway/gateway-edge-ingress.yaml
+
+  - it: Do not inject the edge reactor URL when the edge ingress has no host
+    set:
+      gateway:
+        edge:
+          enabled: true
+        services:
+          edge:
+            ingress:
+              enabled: true
+              hosts: []
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "installation.edge.reactorUrl")]
+        template: api/api-deployment.yaml
+
+  - it: Do not inject the edge reactor URL when the gateway edge server is disabled
+    set:
+      gateway:
+        edge:
+          enabled: false
+        services:
+          edge:
+            ingress:
+              enabled: true
+              hosts:
+                - edge.example.com
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "installation.edge.reactorUrl")]
+        template: api/api-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: gateway/gateway-edge-ingress.yaml
+
+  - it: Do not inject the edge reactor URL when the edge service is disabled
+    set:
+      gateway:
+        edge:
+          enabled: true
+        services:
+          edge:
+            enabled: false
+            ingress:
+              enabled: true
+              hosts:
+                - edge.example.com
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "installation.edge.reactorUrl")]
+        template: api/api-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: gateway/gateway-edge-ingress.yaml
+
+  - it: Do not inject the edge reactor URL when the gateway is disabled
+    set:
+      gateway:
+        enabled: false
+        edge:
+          enabled: true
+        services:
+          edge:
+            ingress:
+              enabled: true
+              hosts:
+                - edge.example.com
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "installation.edge.reactorUrl")]
+        template: api/api-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: gateway/gateway-edge-ingress.yaml
