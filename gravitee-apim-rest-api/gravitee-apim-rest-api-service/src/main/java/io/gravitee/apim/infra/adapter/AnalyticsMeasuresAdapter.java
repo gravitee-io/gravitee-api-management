@@ -123,6 +123,7 @@ public interface AnalyticsMeasuresAdapter {
     Filter.Name toFilterName(io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name name);
 
     @ValueMapping(source = "CONTAINS", target = MappingConstants.THROW_EXCEPTION)
+    @ValueMapping(source = "STARTS_WITH", target = MappingConstants.THROW_EXCEPTION)
     Filter.Operator toFilterOperator(io.gravitee.apim.core.observability.model.FilterOperator operator);
 
     /** Written by hand for the value, which MapStruct would pass through as is: a traffic scope changes model. */

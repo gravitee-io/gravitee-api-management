@@ -242,7 +242,7 @@ class ObservabilityLogsFilterCoverageTest {
         return switch (operator) {
             case IN -> new Filter(new ArrayFilter(name, Operator.IN, List.of(value)));
             case GTE, LTE -> new Filter(new NumericFilter(name, Operator.valueOf(operator.name()), Integer.valueOf(value)));
-            case EQ, CONTAINS -> new Filter(new StringFilter(name, Operator.valueOf(operator.name()), value));
+            case EQ, CONTAINS, STARTS_WITH -> new Filter(new StringFilter(name, Operator.valueOf(operator.name()), value));
         };
     }
 

@@ -680,15 +680,12 @@ describe('EnvLogsComponent', () => {
       req.flush(EMPTY_RESPONSE);
     }));
 
-    it('should send the HTTP Path filter under its catalog name', fakeAsync(() => {
-      // The console used to rewrite HTTP_PATH to the engine's URI spelling. That translation now lives in the
-      // Management API, which aliases the catalog names — so the console forwards what the catalog published.
-      // EQ is the only operator the catalog advertises for HTTP_PATH; the engine refuses IN over a path.
-      setupWithFilter('HTTP_PATH', 'HTTP Path', ['/v1/test/test2'], 'EQ');
+    it('should send the Request URI filter under its catalog name and operator', fakeAsync(() => {
+      setupWithFilter('URI', 'Request URI', ['/v1/test/test2'], 'STARTS_WITH');
 
       const req = httpTestingController.expectOne({ method: 'POST', url: SEARCH_URL });
       expect(req.request.body.filters).toEqual(
-        expect.arrayContaining([expect.objectContaining({ name: 'HTTP_PATH', operator: 'EQ', value: '/v1/test/test2' })]),
+        expect.arrayContaining([expect.objectContaining({ name: 'URI', operator: 'STARTS_WITH', value: '/v1/test/test2' })]),
       );
       req.flush(EMPTY_RESPONSE);
     }));

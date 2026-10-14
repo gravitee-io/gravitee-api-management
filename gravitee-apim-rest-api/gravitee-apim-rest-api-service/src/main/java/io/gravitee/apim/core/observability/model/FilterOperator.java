@@ -24,4 +24,5 @@ public enum FilterOperator {
     GTE,
     IN,
     CONTAINS,
+    STARTS_WITH,
 }

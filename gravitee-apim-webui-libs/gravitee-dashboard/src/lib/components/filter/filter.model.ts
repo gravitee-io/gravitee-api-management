@@ -17,7 +17,7 @@ import { FilterName } from '../widget/model/request/enum/filter-name';
 import { RequestFilter } from '../widget/model/request/request';
 
 export type FilterType = 'KEYWORD' | 'STRING' | 'NUMBER' | 'ENUM';
-export type FilterOperator = 'EQ' | 'NEQ' | 'CONTAINS' | 'IN' | 'NOT_IN' | 'LTE' | 'GTE';
+export type FilterOperator = 'EQ' | 'NEQ' | 'CONTAINS' | 'STARTS_WITH' | 'IN' | 'NOT_IN' | 'LTE' | 'GTE';
 
 // FilterDefinition — mirrors the backend /filter-definitions endpoint response item.
 // All discriminant fields are widened to handle unknown values from future backend evolutions.
@@ -56,6 +56,7 @@ export const OPERATOR_SYMBOLS: Partial<Record<string, string>> = {
   EQ: '=',
   NEQ: '≠',
   CONTAINS: 'contains',
+  STARTS_WITH: 'starts with',
   IN: 'in',
   NOT_IN: 'not in',
   GTE: '≥',

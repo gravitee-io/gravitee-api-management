@@ -67,10 +67,10 @@ public interface LogsEngineMapper {
     /**
      * Resolves a wire filter name to the logs engine vocabulary.
      *
-     * <p>The console now sends the names published by {@code /observability/filters/definition}. Three of them
+     * <p>The console now sends the names published by {@code /observability/filters/definition}. Two of them
      * spell the same field differently from the logs engine, so they are aliased here — the single place that
-     * knows about the divergence. The historical spellings stay accepted for links saved before the
-     * reconciliation.
+     * knows about the divergence. {@code HTTP_PATH} is the historical logs spelling of {@code URI}, and stays
+     * accepted, like the engine's own spellings, for links saved before the reconciliation.
      */
     default FilterName mapFilterName(io.gravitee.rest.api.management.v2.rest.model.logs.engine.FilterName filterName) {
         return switch (filterName) {

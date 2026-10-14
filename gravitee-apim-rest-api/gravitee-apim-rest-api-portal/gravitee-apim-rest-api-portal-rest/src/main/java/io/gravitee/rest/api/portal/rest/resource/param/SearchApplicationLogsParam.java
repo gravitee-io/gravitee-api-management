@@ -74,7 +74,10 @@ public class SearchApplicationLogsParam {
     @Parameter(name = "transactionIds", description = "Filter by transaction IDs")
     private Set<String> transactionIds;
 
-    @Parameter(name = "path", description = "Filter by API path")
+    @Parameter(
+        name = "path",
+        description = "Filter on the request URI, query string included, by prefix: `*` matches any sequence, `?` any single character, `\\` escapes; `/` is prepended when missing"
+    )
     private String path;
 
     @Parameter(name = "responseTimeRanges", description = "Filter by ranges of request response times")

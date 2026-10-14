@@ -5173,7 +5173,9 @@ components:
                     items:
                         type: string
                 path:
-                    description: Filter with path used for the request
+                    description: |
+                        Filter on the request URI, query string included, by prefix. `*` matches any sequence,
+                        `?` any single character and `\` escapes the next character; `/` is prepended when missing.
                     type: string
                 responseTimeRanges:
                     type: array

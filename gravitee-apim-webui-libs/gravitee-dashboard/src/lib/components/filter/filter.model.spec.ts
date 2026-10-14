@@ -71,6 +71,18 @@ describe('OPERATOR_SYMBOLS', () => {
   });
 });
 
+describe('buildChipLabel with STARTS_WITH operator', () => {
+  it('should display "starts with" for STARTS_WITH operator', () => {
+    const condition: FilterCondition = {
+      field: 'URI',
+      label: 'Request URI',
+      operator: 'STARTS_WITH',
+      values: ['/api'],
+    };
+    expect(buildChipLabel(condition)).toBe('Request URI starts with /api');
+  });
+});
+
 describe('buildChipLabel with CONTAINS operator', () => {
   it('should display "contains" symbol for CONTAINS operator', () => {
     const condition: FilterCondition = {

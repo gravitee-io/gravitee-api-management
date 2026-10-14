@@ -706,6 +706,8 @@ class SearchEnvironmentLogsUseCaseTest {
 
         static Stream<Arguments> uriFiltersProvider() {
             return Stream.of(
+                Arguments.of(List.of(new Filter(new StringFilter(FilterName.URI, Operator.STARTS_WITH, "/api/users"))), "/api/users"),
+                // EQ is the deprecated alias of STARTS_WITH on URI, kept so links saved since 4.13.0 still resolve.
                 Arguments.of(List.of(new Filter(new StringFilter(FilterName.URI, Operator.EQ, "/api/users"))), "/api/users"),
                 Arguments.of(
                     List.of(
@@ -773,6 +775,7 @@ class SearchEnvironmentLogsUseCaseTest {
         static Stream<Arguments> unsupportedStringFilterOperators() {
             return Stream.of(
                 Arguments.of(FilterName.URI, Operator.CONTAINS),
+                Arguments.of(FilterName.API, Operator.STARTS_WITH),
                 Arguments.of(FilterName.API, Operator.CONTAINS),
                 Arguments.of(FilterName.API, Operator.IN)
             );

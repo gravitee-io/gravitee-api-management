@@ -153,7 +153,7 @@ describe('ObservabilityFiltersApiService', () => {
     });
     const req = httpMock.expectOne(`${base}/observability/filters/definition`);
     req.flush({
-      data: [{ name: 'URI', label: 'HTTP Path', type: 'STRING', operators: ['EQ'] }],
+      data: [{ name: 'URI', label: 'Request URI', type: 'STRING', operators: ['STARTS_WITH'] }],
     });
   });
 

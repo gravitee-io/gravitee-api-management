@@ -77,7 +77,16 @@ export interface SignalMarker {
   tooltip: string;
 }
 
-const KNOWN_OPERATORS: ReadonlySet<string> = new Set<FilterOperator>(['EQ', 'NEQ', 'CONTAINS', 'IN', 'NOT_IN', 'LTE', 'GTE']);
+const KNOWN_OPERATORS: ReadonlySet<string> = new Set<FilterOperator>([
+  'EQ',
+  'NEQ',
+  'CONTAINS',
+  'STARTS_WITH',
+  'IN',
+  'NOT_IN',
+  'LTE',
+  'GTE',
+]);
 
 /** Human-readable labels for `FilterDefinition.apiTypes` in the "Filter by" list; tokens not listed stay as-is (e.g. LLM, MCP). */
 const ADD_FILTER_API_TYPE_DISPLAY_LABELS: Readonly<Record<string, string>> = {
@@ -284,6 +293,8 @@ export class AddFilterDialogComponent implements OnInit, AfterViewInit {
         return '≠';
       case 'CONTAINS':
         return 'Contains';
+      case 'STARTS_WITH':
+        return 'Starts with';
       case 'IN':
         return 'In';
       case 'NOT_IN':
