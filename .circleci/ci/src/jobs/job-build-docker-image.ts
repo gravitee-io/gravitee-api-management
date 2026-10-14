@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { commands, Config, parameters, reusable } from '@circleci/circleci-config-sdk';
-import { computeImagesTag, GraviteeioVersion, isBlank, isSupportBranchOrMaster, parse } from '../utils';
+import { computeImagesTag, GraviteeioVersion, isBlank, parse } from '../utils';
 import { CircleCIEnvironment } from '../pipelines';
 import { CreateDockerContextCommand, DockerLoginCommand, DockerLogoutCommand } from '../commands';
 import { orbs } from '../orbs';
@@ -31,7 +31,7 @@ export class BuildDockerWebUiImageJob {
   ]);
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment, isProd: boolean): reusable.ParameterizedJob {
-    dynamicConfig.importOrb(orbs.keeper).importOrb(orbs.aquasec);
+    dynamicConfig.importOrb(orbs.keeper);
 
     const createDockerContextCommand = CreateDockerContextCommand.get();
     dynamicConfig.addReusableCommand(createDockerContextCommand);
@@ -60,43 +60,6 @@ export class BuildDockerWebUiImageJob {
           command: `${dockerBuildCommand(environment, dockerTags, isProd)}`,
           working_directory: '<< parameters.apim-project >>',
         }),
-        ...(isProd || isSupportBranchOrMaster(environment.branch)
-          ? [
-              new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-                'secret-url': config.secrets.aquaKey,
-                'var-name': 'AQUA_KEY',
-              }),
-              new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-                'secret-url': config.secrets.aquaSecret,
-                'var-name': 'AQUA_SECRET',
-              }),
-              new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-                'secret-url': config.secrets.aquaRegistryUsername,
-                'var-name': 'AQUA_USERNAME',
-              }),
-              new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-                'secret-url': config.secrets.aquaRegistryPassword,
-                'var-name': 'AQUA_PASSWORD',
-              }),
-              new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-                'secret-url': config.secrets.aquaScannerKey,
-                'var-name': 'SCANNER_TOKEN',
-              }),
-              new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-                'secret-url': config.secrets.githubApiToken,
-                'var-name': 'GITHUB_TOKEN',
-              }),
-              new reusable.ReusedCommand(orbs.aquasec.commands['install_billy']),
-              new reusable.ReusedCommand(orbs.aquasec.commands['pull_aqua_scanner_image']),
-              new reusable.ReusedCommand(orbs.aquasec.commands['register_artifact'], {
-                artifact_to_register: `${dockerTags[0]}`,
-              }),
-              new reusable.ReusedCommand(orbs.aquasec.commands['scan_docker_image'], {
-                docker_image_to_scan: `${dockerTags[0]}`,
-                scanner_url: config.aqua.scannerUrl,
-              }),
-            ]
-          : []),
         new reusable.ReusedCommand(dockerLogoutCommand),
       ],
     );
@@ -113,7 +76,7 @@ export class BuildDockerBackendImageJob {
   ]);
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment, isProd: boolean): reusable.ParameterizedJob {
-    dynamicConfig.importOrb(orbs.keeper).importOrb(orbs.aquasec);
+    dynamicConfig.importOrb(orbs.keeper);
 
     const createDockerContextCommand = CreateDockerContextCommand.get();
     dynamicConfig.addReusableCommand(createDockerContextCommand);
@@ -137,63 +100,18 @@ export class BuildDockerBackendImageJob {
         new commands.SetupRemoteDocker({ version: config.docker.version }),
         new reusable.ReusedCommand(createDockerContextCommand),
         new reusable.ReusedCommand(dockerLoginCommand),
-        ...aquaSetupCommands(),
-        ...variants.flatMap((variant) => {
+        ...variants.map((variant) => {
           const dockerTags: string[] = dockerTagsArgument(environment, parsedGraviteeioVersion, isProd, variant);
-          return [
-            new commands.Run({
-              name: `Build docker image for << parameters.apim-project >>-${variant}`,
-              command: `${dockerBuildCommand(environment, dockerTags, isProd, variant)}`,
-              working_directory: '<< parameters.apim-project >>',
-            }),
-            ...(isProd || isSupportBranchOrMaster(environment.branch)
-              ? [
-                  new reusable.ReusedCommand(orbs.aquasec.commands['register_artifact'], {
-                    artifact_to_register: `${dockerTags[0]}`,
-                  }),
-                  new reusable.ReusedCommand(orbs.aquasec.commands['scan_docker_image'], {
-                    docker_image_to_scan: `${dockerTags[0]}`,
-                    scanner_url: config.aqua.scannerUrl,
-                  }),
-                ]
-              : []),
-          ];
+          return new commands.Run({
+            name: `Build docker image for << parameters.apim-project >>-${variant}`,
+            command: `${dockerBuildCommand(environment, dockerTags, isProd, variant)}`,
+            working_directory: '<< parameters.apim-project >>',
+          });
         }),
         new reusable.ReusedCommand(dockerLogoutCommand),
       ],
     );
   }
-}
-
-function aquaSetupCommands() {
-  return [
-    new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-      'secret-url': config.secrets.aquaKey,
-      'var-name': 'AQUA_KEY',
-    }),
-    new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-      'secret-url': config.secrets.aquaSecret,
-      'var-name': 'AQUA_SECRET',
-    }),
-    new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-      'secret-url': config.secrets.aquaRegistryUsername,
-      'var-name': 'AQUA_USERNAME',
-    }),
-    new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-      'secret-url': config.secrets.aquaRegistryPassword,
-      'var-name': 'AQUA_PASSWORD',
-    }),
-    new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-      'secret-url': config.secrets.aquaScannerKey,
-      'var-name': 'SCANNER_TOKEN',
-    }),
-    new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-      'secret-url': config.secrets.githubApiToken,
-      'var-name': 'GITHUB_TOKEN',
-    }),
-    new reusable.ReusedCommand(orbs.aquasec.commands['install_billy']),
-    new reusable.ReusedCommand(orbs.aquasec.commands['pull_aqua_scanner_image']),
-  ];
 }
 
 function dockerBuildCommand(environment: CircleCIEnvironment, dockerTags: string[], isProd: boolean, variant?: Variant) {
@@ -218,16 +136,18 @@ function dockerBuildCommand(environment: CircleCIEnvironment, dockerTags: string
   return command;
 }
 
-function dockerTagsArgument(
+export function dockerTagsArgument(
   environment: CircleCIEnvironment,
   graviteeioVersion: GraviteeioVersion,
   isProd: boolean,
   variant?: Variant,
+  // Build jobs are parameterized by image, the scan job knows the image names it targets.
+  imageName: string = '<< parameters.docker-image-name >>',
 ): string[] {
   const tags: string[] = [];
   const suffix = variant === 'debian' ? '-debian' : '';
   if (isProd) {
-    const stub = `graviteeio/<< parameters.docker-image-name >>:`;
+    const stub = `graviteeio/${imageName}:`;
 
     // Default tag
     tags.push(stub + graviteeioVersion.full + suffix);
@@ -247,7 +167,7 @@ function dockerTagsArgument(
     }
   } else {
     const tag = computeImagesTag(environment.branch);
-    tags.push(`graviteeio.azurecr.io/<< parameters.docker-image-name >>:${tag}${suffix}`);
+    tags.push(`graviteeio.azurecr.io/${imageName}:${tag}${suffix}`);
   }
   return tags;
 }

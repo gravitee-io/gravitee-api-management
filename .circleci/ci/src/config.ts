@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const aqua = {
-  scannerUrl: 'https://82fb8f75da.cloud.aquasec.com',
-};
-
 const artifactoryUrl = 'https://odbxikk7vo-artifactory.services.clever-cloud.com';
 
 const awsCliVersion = '2.22.35';
 const awsECRUrl = '430630701098.dkr.ecr.eu-west-2.amazonaws.com';
 
 const cache = {
-  prefix: 'gravitee-api-management-v14',
+  prefix: 'gravitee-api-management-v15',
 };
 
 const components = {
@@ -54,7 +50,7 @@ const executor = {
     // Version can be found here https://docs.microsoft.com/en-us/cli/azure/release-notes-azure-cli
     // be careful when updating the version as it looks it is not following semver
     image: 'mcr.microsoft.com/azure-cli',
-    version: '2.34.1',
+    version: '2.88.0',
   },
   base: {
     image: 'cimg/base',
@@ -89,6 +85,10 @@ const jobContext = ['cicd-orchestrator'];
 
 const maven = {
   settingsFile: '.gravitee.settings.xml',
+  // Pinned: an unpinned plugin coordinate makes Maven resolve maven-metadata.xml first.
+  dependencyPluginVersion: '3.8.1',
+  azureFeedUrl: 'https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee/maven/v1',
+  azureSnapshotsFeedUrl: 'https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee-snapshots/maven/v1',
 };
 
 const yarn = {
@@ -96,7 +96,7 @@ const yarn = {
 };
 
 const orbs = {
-  aquasec: '1.0.5',
+  aikido: '1.0.3',
   artifactory: '1.0.1',
   awsCli: '5.1.2',
   awsS3: '4.1.0',
@@ -108,11 +108,7 @@ const orbs = {
 };
 
 const secrets = {
-  aquaKey: 'keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key',
-  aquaSecret: 'keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/Secret',
-  aquaScannerKey: 'keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/ScannerToken',
-  aquaRegistryUsername: 'keeper://LYg-wdlM5UDzSqFFH6Kyig/field/login',
-  aquaRegistryPassword: 'keeper://LYg-wdlM5UDzSqFFH6Kyig/field/password',
+  aikidoApiKey: 'keeper://_XrkO71xa9HZBwxYoUHX0w/field/password',
   artifactoryApiKey: 'keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/password',
   artifactoryUser: 'keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/login',
   awsAccessKeyId: 'keeper://Mqmplmfu17bDR5XRLmO1mQ/field/password',
@@ -125,7 +121,6 @@ const secrets = {
   azureRegistryPassword: 'keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password',
   azureRegistryUsername: 'keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login',
   azureTenant: 'keeper://UryantA7MvZe8fkWwcUt8g/custom_field/tenant',
-  chromaticProjectToken: 'keeper://Hp1bFl5s0doxnQgqkMdCdg/field/password',
   cypressCloudKey: 'keeper://FVzylPCgY-LJsgjkW4q1eQ/field/password',
   circleCiToken: 'keeper://G4hBnFUDBYb9Sw3TxhvjHg/custom_field/token',
   dockerhubBotUserName: 'keeper://cooU9UoXIk8Kj0hsP2rkBw/field/login',
@@ -140,7 +135,7 @@ const secrets = {
   graviteeLicense: 'keeper://w8WBpALVCgYdxtV5pVrQsw/custom_field/base64',
   graviteePackageCloudToken: 'keeper://8CG6HxY5gYsl-85eJKuIoA/field/password',
   jiraToken: 'keeper://hfnQD5TEfxzwRXUKhJhM-A/field/password',
-  mavenSettings: 'keeper://7CgijuGiFDSLynRJt1Dm9w/custom_field/xml',
+  mavenSettings: 'keeper://7CgijuGiFDSLynRJt1Dm9w/custom_field/xml_azure',
   slackAccessToken: 'keeper://ZOz4db245GNaETVwmPBk8w/field/password',
   sonarToken: 'keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password',
 };
@@ -165,7 +160,6 @@ const docker = {
 
 export type Variant = 'alpine' | 'debian';
 export const config = {
-  aqua,
   artifactoryUrl,
   awsCliVersion,
   awsECRUrl,

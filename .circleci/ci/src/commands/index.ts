@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export * from './cmd-azure-artifacts-token';
 export * from './cmd-create-docker-context';
 export * from './cmd-docker-login';
 export * from './cmd-docker-logout';

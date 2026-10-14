@@ -15,10 +15,11 @@
  */
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { OpenJdkExecutor } from '../../executors';
-import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import { AzureArtifactsTokenCommand, NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
+import { mavenParallelism } from '../../utils';
 
 export class BuildBackendJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
@@ -27,21 +28,27 @@ export class BuildBackendJob {
     const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig, environment);
+    const azureArtifactsTokenCmd = AzureArtifactsTokenCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(saveMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
+    dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
 
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: jobName }),
+      new reusable.ReusedCommand(azureArtifactsTokenCmd),
       new commands.Run({
         name: 'Build project',
-        command: `mvn -s ${config.maven.settingsFile} clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc`,
+        command: `mvn -s ${config.maven.settingsFile} clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true ${mavenParallelism('large')} -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc`,
         environment: {
           BUILD_ID: environment.buildId,
           BUILD_NUMBER: environment.buildNum,
           GIT_COMMIT: environment.sha1,
+          // Cap the maven JVM heap: its default is derived from the memory of the
+          // underlying CI host, not from the resource class of the job.
+          MAVEN_OPTS: '-Xmx2048m',
         },
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),

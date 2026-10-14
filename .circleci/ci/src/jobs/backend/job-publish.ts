@@ -16,34 +16,51 @@
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { config } from '../../config';
-import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import { AzureArtifactsTokenCommand, NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { OpenJdkExecutor } from '../../executors';
 import { CircleCIEnvironment } from '../../pipelines';
+import { mavenParallelism } from '../../utils';
 
 export class PublishJob {
-  public static create(dynamicConfig: Config, environment: CircleCIEnvironment, target: 'nexus' | 'artifactory'): Job {
-    const jobName = `job-publish-on-${target}`;
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
+    const jobName = 'job-publish-snapshot';
 
     const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig, environment);
+    const azureArtifactsTokenCmd = AzureArtifactsTokenCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(saveMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
+    dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
 
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName }),
-      target === 'nexus'
-        ? new commands.Run({
-            name: 'Maven Package and deploy to Nexus Snapshots',
-            command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -s ${config.maven.settingsFile} -U`,
-          })
-        : new commands.Run({
-            name: 'Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)',
-            command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -s ${config.maven.settingsFile} -U -P gio-artifactory-snapshot`,
-          }),
+      new reusable.ReusedCommand(azureArtifactsTokenCmd),
+      new commands.Run({
+        name: 'Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)',
+        command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true ${mavenParallelism('large')} -s ${config.maven.settingsFile} -U -P gio-artifactory-snapshot`,
+      }),
+      // This deploys a second time rather than reusing what the step above produced: the
+      // OpenAPI generator rewrites its sources on every run — 868 files on the management-v2
+      // model alone — so the compiler finds them newer than the classes and rebuilds. The two
+      // repositories end up with equivalent jars, not identical bytes; comparing checksums
+      // between them proves nothing.
+      //
+      // altDeploymentRepository overrides what the profile sets, leaving profiles and signing
+      // alone. Fatal on failure, like the deploy above.
+
+      new commands.Run({
+        name: 'Maven deploy to the Azure feed (snapshots)',
+        // Both flags on purpose: for a SNAPSHOT version maven-deploy-plugin reads
+        // altSnapshotDeploymentRepository first, so a profile setting it would win over
+        // altDeploymentRepository alone. No profile does today; this keeps the command
+        // line authoritative if one ever does.
+        command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true ${mavenParallelism('large')} -s ${config.maven.settingsFile} -U -P gio-artifactory-snapshot -DaltDeploymentRepository=azure-artifacts-gravitee-snapshots::${config.maven.azureSnapshotsFeedUrl} \\
+  -DaltSnapshotDeploymentRepository=azure-artifacts-gravitee-snapshots::${config.maven.azureSnapshotsFeedUrl}`,
+      }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName }),
     ];

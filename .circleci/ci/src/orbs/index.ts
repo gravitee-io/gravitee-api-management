@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { aquasec } from './aquasec';
+import { aikido } from './aikido';
 import { artifactory } from './artifactory';
 import { awsCli } from './aws-cli';
 import { awsS3 } from './aws-s3';
@@ -24,7 +24,7 @@ import { keeper } from './keeper';
 import { slack } from './slack';
 
 export const orbs = {
-  aquasec,
+  aikido,
   artifactory,
   awsCli,
   awsS3,
