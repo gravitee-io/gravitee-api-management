@@ -21,6 +21,7 @@ import type {
     ApiPortalPublication,
     ApiPortalPublishLocationsResponse,
     CreateApiDocumentationItem,
+    FetchPortalNavigationItemResponse,
     ImportPortalNavigationRequest,
     ImportPortalNavigationResponse,
     PortalPageContent,
@@ -63,6 +64,14 @@ export async function updateApiDocumentationItem(
 
 export async function deleteApiDocumentationItem(environmentId: string, apiId: string, navId: string): Promise<void> {
     return apimFetchJsonV2<void>(environmentId, itemPath(apiId, navId), { method: 'DELETE' });
+}
+
+export async function fetchApiDocumentationItem(
+    environmentId: string,
+    apiId: string,
+    navId: string,
+): Promise<FetchPortalNavigationItemResponse> {
+    return apimFetchJsonV2<FetchPortalNavigationItemResponse>(environmentId, `${itemPath(apiId, navId)}/_fetch`, { method: 'POST' });
 }
 
 export async function importApiDocumentation(

@@ -25,6 +25,7 @@ import {
     useApiPublishLocations,
     useCreateApiDocumentationItem,
     useDeleteApiDocumentationItem,
+    useFetchApiDocumentationItem,
     useImportApiDocumentation,
     usePublishApiToPortal,
     useSaveApiDocumentationPageContent,
@@ -34,6 +35,7 @@ import { ApimApiError } from '../../../shared/api/apimClient';
 import {
     createApiDocumentationItem,
     deleteApiDocumentationItem,
+    fetchApiDocumentationItem,
     getApiDocumentationPageContent,
     importApiDocumentation,
     listApiDocumentation,
@@ -67,6 +69,7 @@ const mockPublishApiToPortal = jest.mocked(publishApiToPortal);
 const mockUnpublishApiFromPortal = jest.mocked(unpublishApiFromPortal);
 const mockSaveApiDocumentationPageContent = jest.mocked(saveApiDocumentationPageContent);
 const mockGetApiDocumentationPageContent = jest.mocked(getApiDocumentationPageContent);
+const mockFetchApiDocumentationItem = jest.mocked(fetchApiDocumentationItem);
 
 const API_DOCUMENTATION_LIST = { queryKey: ['api-documentation', 'env-1', 'api-1', 'list'] };
 
@@ -370,6 +373,44 @@ describe('useApiDocumentation hooks', () => {
             await act(async () => {
                 await expect(result.current.mutateAsync({ navId: 'nav-1', changes: { title: 'Pet store' } })).rejects.toBe(serverError);
             });
+        });
+    });
+
+    describe('useFetchApiDocumentationItem', () => {
+        const FOLDER_FETCHED = { summary: { succeeded: 2, failed: 0, results: [] } };
+
+        it('fetches the item from its source in the current environment', async () => {
+            mockFetchApiDocumentationItem.mockResolvedValue(FOLDER_FETCHED);
+            const { result } = renderWithQueryClient(() => useFetchApiDocumentationItem('api-1'));
+
+            await act(async () => {
+                await expect(result.current.mutateAsync('nav-1')).resolves.toBe(FOLDER_FETCHED);
+            });
+
+            expect(mockFetchApiDocumentationItem).toHaveBeenCalledWith('env-1', 'api-1', 'nav-1');
+        });
+
+        it("refreshes this API's documentation and the content of its pages, which a fetch may have replaced", async () => {
+            mockFetchApiDocumentationItem.mockResolvedValue(FOLDER_FETCHED);
+            const { result, invalidateQueries } = renderWithQueryClient(() => useFetchApiDocumentationItem('api-1'));
+
+            await act(() => result.current.mutateAsync('nav-1'));
+
+            expect(invalidateQueries).toHaveBeenCalledTimes(2);
+            expect(invalidateQueries).toHaveBeenCalledWith(API_DOCUMENTATION_LIST);
+            expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['api-documentation', 'env-1', 'api-1', 'content'] });
+        });
+
+        it('refreshes the documentation even when the fetch fails, as the server records the failure', async () => {
+            mockFetchApiDocumentationItem.mockRejectedValue(new ApimApiError(400, 'Not a sourced item'));
+            const { result, invalidateQueries } = renderWithQueryClient(() => useFetchApiDocumentationItem('api-1'));
+
+            await act(async () => {
+                await expect(result.current.mutateAsync('nav-1')).rejects.toThrow('Not a sourced item');
+            });
+
+            expect(invalidateQueries).toHaveBeenCalledWith(API_DOCUMENTATION_LIST);
+            expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['api-documentation', 'env-1', 'api-1', 'content'] });
         });
     });
 });

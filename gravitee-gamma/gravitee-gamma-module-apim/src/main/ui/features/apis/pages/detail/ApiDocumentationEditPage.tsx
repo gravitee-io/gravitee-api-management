@@ -27,6 +27,7 @@ import { GraviteeMarkdownPreview } from '../../components/detail/documentation/G
 import { SourceFetchStatus } from '../../components/detail/documentation/SourceFetchStatus';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDocumentation, useApiDocumentationPageContent, useSaveApiDocumentationPageContent } from '../../hooks/useApiDocumentation';
+import { useFetchNow } from '../../hooks/useFetchNow';
 import type { ApiDocumentationItem, PortalNavigationFolder, PortalNavigationPage, PortalPageContent } from '../../types/apiDocumentation';
 import { allowedChanges, getAncestors, hasSource, type SyncState, syncStateOf } from '../../utils/documentationTree';
 import { editorLanguageFor, PAGE_CONTENT_TYPE_LABELS } from '../../utils/pageContentType';
@@ -98,18 +99,22 @@ function ApiDocumentationEditContent({ apiId, pageId }: Readonly<{ apiId: string
     const syncState = syncStateOf(page, ancestors);
     const allowed = allowedChanges(syncState);
     const parent = ancestors.at(-1);
+    const readOnly = !canEdit || !allowed.content;
 
     return (
         <PageEditor
-            key={page.id}
+            // A page turning editable starts its draft over from its content, which fetches may have replaced since the
+            // draft was copied.
+            key={`${page.id}:${readOnly}`}
             apiId={apiId}
             page={page}
             parent={parent?.type === 'FOLDER' ? parent : undefined}
             ancestors={ancestors}
             saved={content.data}
             syncState={syncState}
-            readOnly={!canEdit || !allowed.content}
+            readOnly={readOnly}
             canEditDetails={canEdit && allowed.access}
+            canFetch={canEdit && syncState === 'OWN_SOURCE'}
         />
     );
 }
@@ -131,6 +136,7 @@ function PageEditor({
     syncState,
     readOnly,
     canEditDetails,
+    canFetch,
 }: Readonly<{
     apiId: string;
     page: PortalNavigationPage;
@@ -140,6 +146,8 @@ function PageEditor({
     syncState: SyncState;
     readOnly: boolean;
     canEditDetails: boolean;
+    /** Whether the page has a source of its own and the user may fetch it. */
+    canFetch: boolean;
 }>) {
     const saveContent = useSaveApiDocumentationPageContent(apiId);
     const [draft, setDraft] = useState(saved.content);
@@ -152,6 +160,7 @@ function PageEditor({
     const loadedContent = neverFetched ? '' : saved.content;
     const shownContent = readOnly ? loadedContent : draft;
     const previewContent = useDeferredValue(shownContent);
+    const { fetchNow, isFetching } = useFetchNow(apiId);
 
     const isDirty = !readOnly && draft !== saved.content;
     useWarnBeforeUnload(isDirty);
@@ -215,6 +224,8 @@ function PageEditor({
                 <SourceFetchStatus
                     source={page.source}
                     syncedFolder={syncState === 'BELOW_SYNCED_FOLDER' ? ancestors.find(hasSource) : undefined}
+                    onFetch={canFetch ? () => void fetchNow(page) : undefined}
+                    isFetching={isFetching}
                 />
             )}
 

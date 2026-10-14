@@ -17,6 +17,7 @@ import {
     allowedChanges,
     buildDocumentationRows,
     defaultPublishSectionId,
+    fetchableItemIds,
     getAncestors,
     getHiddenListing,
     getPublishedSection,
@@ -157,6 +158,55 @@ describe('syncStateOf', () => {
 
         expect(syncStateOf(page('endpoints', 0, 'v1'), ancestors)).toBe('BELOW_SYNCED_FOLDER');
         expect(syncStateOf(page('endpoints', 0, 'v1', SOURCE), ancestors)).toBe('BELOW_SYNCED_FOLDER');
+    });
+});
+
+// Mirrors what the server's manual fetch accepts.
+describe('fetchableItemIds', () => {
+    const IMPORTED_SOURCE: PortalNavigationItemSource = { ...SOURCE, subtreeImport: true };
+
+    it('includes a page or an imported folder with a source of its own', () => {
+        const items = [page('petstore', 0, undefined, SOURCE), folder('reference', 1, undefined, IMPORTED_SOURCE)];
+
+        expect(fetchableItemIds(items)).toEqual(new Set(['petstore', 'reference']));
+    });
+
+    it('leaves out a folder with a source it was not imported from, holding no page with a source', () => {
+        const items = [folder('reference', 0, undefined, SOURCE), page('endpoints', 0, 'reference')];
+
+        expect(fetchableItemIds(items)).toEqual(new Set());
+    });
+
+    it('includes a plain folder holding a page with a source at any depth', () => {
+        const items = [folder('guides', 0), folder('v1', 0, 'guides'), page('petstore', 0, 'v1', SOURCE)];
+
+        expect(fetchableItemIds(items)).toEqual(new Set(['guides', 'v1', 'petstore']));
+    });
+
+    it('leaves out a plain folder holding no page with a source', () => {
+        expect(fetchableItemIds([folder('guides', 0), page('oauth', 0, 'guides')])).toEqual(new Set());
+    });
+
+    it('leaves out what is below a synced folder, which is fetched through that folder', () => {
+        const items = [
+            folder('reference', 0, undefined, IMPORTED_SOURCE),
+            folder('v1', 0, 'reference'),
+            page('endpoints', 0, 'v1', SOURCE),
+        ];
+
+        expect(fetchableItemIds(items)).toEqual(new Set(['reference']));
+    });
+
+    it('leaves out an imported folder below another synced folder, which is fetched through the folder above', () => {
+        const items = [folder('reference', 0, undefined, SOURCE), folder('sdk', 0, 'reference', IMPORTED_SOURCE)];
+
+        expect(fetchableItemIds(items)).toEqual(new Set());
+    });
+
+    it('includes a folder with a source it was not imported from when it holds a page with a source', () => {
+        const items = [folder('reference', 0, undefined, SOURCE), folder('v1', 0, 'reference'), page('endpoints', 0, 'v1', SOURCE)];
+
+        expect(fetchableItemIds(items)).toEqual(new Set(['reference']));
     });
 });
 

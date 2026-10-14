@@ -21,6 +21,7 @@ import { type DocumentationItemChanges, toUpdatePayload } from '../components/de
 import {
     createApiDocumentationItem,
     deleteApiDocumentationItem,
+    fetchApiDocumentationItem,
     getApiDocumentationPageContent,
     importApiDocumentation,
     listApiDocumentation,
@@ -121,6 +122,22 @@ export function useChangeApiDocumentationItem(apiId: string) {
 
 export function useDeleteApiDocumentationItem(apiId: string) {
     return useApiDocumentationMutation(apiId, deleteApiDocumentationItem);
+}
+
+/** A fetch can replace the content of one page or of every page below a folder, so all of them are reloaded. */
+export function useFetchApiDocumentationItem(apiId: string) {
+    const env = useEnvironment();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationKey: apiDocumentationKeys.fetch(env?.id ?? '', apiId),
+        mutationFn: (navId: string) => fetchApiDocumentationItem(env!.id, apiId, navId),
+        // A failed fetch is recorded on the source, so the documentation is reloaded either way.
+        onSettled: () => {
+            void queryClient.invalidateQueries({ queryKey: apiDocumentationKeys.list(env!.id, apiId) });
+            void queryClient.invalidateQueries({ queryKey: apiDocumentationKeys.contents(env!.id, apiId) });
+        },
+    });
 }
 
 export function useImportApiDocumentation(apiId: string) {

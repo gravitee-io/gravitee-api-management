@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Alert, AlertDescription } from '@gravitee/graphene-core';
-import { AlertCircleIcon } from '@gravitee/graphene-core/icons';
+import { Alert, AlertDescription, Button } from '@gravitee/graphene-core';
+import { AlertCircleIcon, RefreshCwIcon } from '@gravitee/graphene-core/icons';
 
 import type { ApiDocumentationItem, PortalNavigationItemSource } from '../../../types/apiDocumentation';
 import { describeCronSchedule } from '../../../utils/cronSchedule';
@@ -25,11 +25,16 @@ import { formatDateTime } from '../../../utils/formatDate';
 export function SourceFetchStatus({
     source,
     syncedFolder,
+    onFetch,
+    isFetching = false,
 }: Readonly<{
     /** The page's own source. */
     source?: PortalNavigationItemSource;
     /** The folder synced from a source that the page is in, which fetches it. */
     syncedFolder?: ApiDocumentationItem;
+    /** Absent without the permission to fetch. */
+    onFetch?: () => void;
+    isFetching?: boolean;
 }>) {
     if (syncedFolder) {
         return (
@@ -38,7 +43,7 @@ export function SourceFetchStatus({
                 aria-label="External source"
                 className="rounded-lg border bg-muted/40 px-3 py-2 text-sm text-muted-foreground"
             >
-                Managed by the folder {syncedFolder.title}, read only.
+                Managed by the folder {syncedFolder.title}, read only. Fetch it from that folder.
             </div>
         );
     }
@@ -59,6 +64,12 @@ export function SourceFetchStatus({
             >
                 <span className="font-medium">Content from {fetcherLabel(source.type)}, read only</span>
                 <span className="flex-1 text-muted-foreground">{details.join(' · ')}</span>
+                {onFetch ? (
+                    <Button size="sm" variant="outline" onClick={onFetch} disabled={isFetching}>
+                        <RefreshCwIcon className="size-4" aria-hidden />
+                        Fetch now
+                    </Button>
+                ) : null}
             </div>
             {source.lastFetchError ? (
                 <Alert variant="destructive">

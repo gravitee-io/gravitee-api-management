@@ -46,8 +46,19 @@ import { type ComponentType, type MouseEvent, useCallback, useMemo, useState } f
 import { Link } from 'react-router-dom';
 
 import { ITEM_NOUNS, ItemAccessBadge, ItemPublishedBadge } from './DocumentationItemBadges';
-import type { ApiDocumentationItem, PortalNavigationFolder, PortalNavigationLink } from '../../../types/apiDocumentation';
-import { allowedChanges, buildDocumentationRows, type DocumentationRow, hasSource } from '../../../utils/documentationTree';
+import type {
+    ApiDocumentationItem,
+    PortalNavigationFolder,
+    PortalNavigationLink,
+    PortalNavigationPage,
+} from '../../../types/apiDocumentation';
+import {
+    allowedChanges,
+    buildDocumentationRows,
+    type DocumentationRow,
+    fetchableItemIds,
+    hasSource,
+} from '../../../utils/documentationTree';
 
 type ColCell = { row: { original: DocumentationRow } };
 
@@ -83,6 +94,8 @@ export function DocumentationTree({
     onEditDetails,
     isApiPublished,
     onChangePublication,
+    isFetching,
+    onFetch,
 }: Readonly<{
     items: ApiDocumentationItem[];
     isLoading: boolean;
@@ -98,9 +111,13 @@ export function DocumentationTree({
     onEditDetails: (item: ApiDocumentationItem) => void;
     isApiPublished: boolean;
     onChangePublication: (row: DocumentationRow) => void;
+    /** Whether a fetch is running: another one is not offered meanwhile, as the server would fetch the same sources twice. */
+    isFetching: boolean;
+    onFetch: (item: PortalNavigationPage | PortalNavigationFolder) => void;
 }>) {
     const rows = useMemo(() => buildDocumentationRows(items, expandedIds), [items, expandedIds]);
     const itemsById = useMemo(() => new Map(items.map(item => [item.id, item])), [items]);
+    const fetchable = useMemo(() => fetchableItemIds(items), [items]);
     const [contextMenu, setContextMenu] = useState<RowContextMenuState | null>(null);
     const canEditDetails = useCallback((row: DocumentationRow) => canEdit && allowedChanges(row.syncState).access, [canEdit]);
 
@@ -110,6 +127,14 @@ export function DocumentationTree({
             const { item } = row;
             const allowed = allowedChanges(row.syncState);
             const actions: RowAction[] = [];
+            if (canEdit && item.type !== 'LINK' && fetchable.has(item.id)) {
+                actions.push({
+                    label: 'Fetch now',
+                    icon: RefreshCwIcon,
+                    disabledReason: isFetching ? 'A fetch is already running.' : undefined,
+                    onSelect: () => onFetch(item),
+                });
+            }
             if (canAdd && item.type === 'FOLDER' && allowed.addInside) {
                 actions.push({ label: 'Add page', icon: PlusIcon, onSelect: () => onAddPage(item) });
                 actions.push({ label: 'Add folder', icon: FolderOpenIcon, onSelect: () => onAddFolder(item) });
@@ -136,9 +161,12 @@ export function DocumentationTree({
             return actions;
         },
         [
+            canEdit,
+            fetchable,
+            isFetching,
+            onFetch,
             canEditDetails,
             onEditDetails,
-            canEdit,
             isApiPublished,
             itemsById,
             onChangePublication,

@@ -23,6 +23,7 @@ import { ApimApiError } from '../../../../shared/api/apimClient';
 import { notify } from '../../../../shared/notify';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDocumentation, useDeleteApiDocumentationItem, useUnpublishApiFromPortal } from '../../hooks/useApiDocumentation';
+import { useFetchNow } from '../../hooks/useFetchNow';
 import type { ApiDocumentationItem, ApiPortalNavigationItemsResponse, ApiPortalPublication } from '../../types/apiDocumentation';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
@@ -39,8 +40,12 @@ jest.mock('../../hooks/useApiDocumentation', () => ({
     useUnpublishApiFromPortal: jest.fn(),
 }));
 
+jest.mock('../../hooks/useFetchNow', () => ({
+    useFetchNow: jest.fn(),
+}));
+
 jest.mock('../../../../shared/notify', () => ({
-    notify: { success: jest.fn(), error: jest.fn() },
+    notify: { success: jest.fn(), warning: jest.fn(), error: jest.fn() },
 }));
 
 // The dialog has its own spec; here only whether the page opens it, for which API, and what follows, matters.
@@ -224,6 +229,8 @@ const mockUseDeleteApiDocumentationItem = useDeleteApiDocumentationItem as jest.
 const mockDelete = jest.fn();
 const mockUseUnpublishApiFromPortal = useUnpublishApiFromPortal as jest.Mock;
 const mockUnpublish = jest.fn();
+const mockUseFetchNow = useFetchNow as jest.Mock;
+const mockFetchNow = jest.fn();
 
 const BASE = { organizationId: 'DEFAULT', environmentId: 'DEFAULT', area: 'TOP_NAVBAR', published: false, visibility: 'PUBLIC' } as const;
 const GUIDES: ApiDocumentationItem = { ...BASE, id: 'guides', rootId: 'guides', title: 'Guides', type: 'FOLDER', order: 0 };
@@ -307,6 +314,7 @@ beforeEach(() => {
     mockUseDeleteApiDocumentationItem.mockReturnValue({ mutateAsync: mockDelete, isPending: false });
     mockUnpublish.mockResolvedValue(undefined);
     mockUseUnpublishApiFromPortal.mockReturnValue({ mutateAsync: mockUnpublish, isPending: false });
+    mockUseFetchNow.mockReturnValue({ fetchNow: mockFetchNow, isFetching: false });
 });
 
 describe('ApiDocumentationPage', () => {
@@ -626,6 +634,44 @@ describe('ApiDocumentationPage', () => {
             await userEvent.keyboard('{Escape}');
             await userEvent.click(screen.getByRole('button', { name: 'Actions for Guides' }));
             expect(screen.queryByRole('menuitem', { name: 'Delete' })).not.toBeInTheDocument();
+        });
+    });
+
+    describe('fetching an item from its source', () => {
+        const SOURCE = { type: 'github-fetcher', configuration: {} };
+        const PETSTORE: ApiDocumentationItem = { ...CHANGELOG, id: 'petstore', title: 'Petstore API', source: SOURCE };
+        const REFERENCE: ApiDocumentationItem = {
+            ...GUIDES,
+            id: 'reference',
+            rootId: 'reference',
+            title: 'Reference',
+            source: { ...SOURCE, subtreeImport: true },
+        };
+
+        beforeEach(() => {
+            givenDocumentation({ items: [PETSTORE, REFERENCE], publications: [] });
+        });
+
+        // How a fetch is reported is useFetchNow's; here only which item the tree asks to fetch, and when, matters.
+        it('fetches the item chosen in the tree', async () => {
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Petstore API' }));
+            await user.click(screen.getByRole('menuitem', { name: 'Fetch now' }));
+
+            expect(mockFetchNow).toHaveBeenCalledWith(PETSTORE);
+            expect(mockUseFetchNow).toHaveBeenCalledWith('api-1');
+        });
+
+        it('offers no fetch while another one is running', async () => {
+            mockUseFetchNow.mockReturnValue({ fetchNow: mockFetchNow, isFetching: true });
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Reference' }));
+
+            expect(screen.getByRole('menuitem', { name: 'Fetch now' })).toHaveAttribute('aria-disabled', 'true');
         });
     });
 

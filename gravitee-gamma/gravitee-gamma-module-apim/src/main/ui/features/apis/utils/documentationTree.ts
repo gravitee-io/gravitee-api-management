@@ -129,6 +129,27 @@ export function syncStateOf(item: ApiDocumentationItem, ancestors: ApiDocumentat
     return hasSource(item) ? 'OWN_SOURCE' : 'NOT_SYNCED';
 }
 
+/**
+ * The items a manual fetch accepts, as the server decides: a page with a source, a folder imported from one (which
+ * imports again), and any other folder holding a page with a source, whose fetch refreshes every such page below it —
+ * a folder with a source it was not imported from included. What a synced folder holds is fetched through that folder.
+ */
+export function fetchableItemIds(items: ApiDocumentationItem[]): Set<string> {
+    const fetchable = new Set<string>();
+    for (const item of items) {
+        if (!hasSource(item)) continue;
+        const ancestors = getAncestors(items, item);
+        const firstSynced = ancestors.findIndex(hasSource);
+        if (item.type === 'PAGE') {
+            const reachable = firstSynced === -1 ? [...ancestors, item] : ancestors.slice(0, firstSynced + 1);
+            reachable.forEach(reached => fetchable.add(reached.id));
+        } else if (item.type === 'FOLDER' && firstSynced === -1 && item.source?.subtreeImport) {
+            fetchable.add(item.id);
+        }
+    }
+    return fetchable;
+}
+
 export interface AllowedChanges {
     content: boolean;
     title: boolean;

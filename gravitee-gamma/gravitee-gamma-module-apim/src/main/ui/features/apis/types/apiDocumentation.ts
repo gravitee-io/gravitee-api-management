@@ -175,6 +175,12 @@ export interface ImportPortalNavigationResponse {
     summary: PortalNavigationItemsFetchSummary;
 }
 
+/** A page fetch returns the updated page; a folder fetch returns the outcome for each page below it. */
+export interface FetchPortalNavigationItemResponse {
+    item?: ApiDocumentationItem;
+    summary?: PortalNavigationItemsFetchSummary;
+}
+
 /** An installed fetcher plugin, with the settings form a source of that type needs. */
 export interface Fetcher {
     id: string;

@@ -24,6 +24,7 @@ import { ApimApiError } from '../../../../shared/api/apimClient';
 import { notify } from '../../../../shared/notify';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
 import {
+    fetchApiDocumentationItem,
     getApiDocumentationPageContent,
     listApiDocumentation,
     saveApiDocumentationPageContent,
@@ -45,7 +46,7 @@ jest.mock('../../context/ApiDetailContext', () => ({
 jest.mock('../../services/apiDocumentation');
 
 jest.mock('../../../../shared/notify', () => ({
-    notify: { success: jest.fn(), error: jest.fn() },
+    notify: { success: jest.fn(), warning: jest.fn(), error: jest.fn() },
 }));
 
 let mockLayoutConfig: Record<string, unknown> | undefined;
@@ -90,6 +91,7 @@ const mockListApiDocumentation = jest.mocked(listApiDocumentation);
 const mockGetContent = jest.mocked(getApiDocumentationPageContent);
 const mockSaveContent = jest.mocked(saveApiDocumentationPageContent);
 const mockUpdateItem = jest.mocked(updateApiDocumentationItem);
+const mockFetchItem = jest.mocked(fetchApiDocumentationItem);
 
 const SOURCE = { type: 'github-fetcher', configuration: {} };
 
@@ -407,7 +409,8 @@ describe('ApiDocumentationEditPage', () => {
             renderPage();
 
             expect((await editor()).readOnly).toBe(true);
-            expect(screen.getByText('Managed by the folder Guides, read only.')).toBeInTheDocument();
+            expect(screen.getByText('Managed by the folder Guides, read only. Fetch it from that folder.')).toBeInTheDocument();
+            expect(screen.queryByRole('button', { name: 'Fetch now' })).not.toBeInTheDocument();
             expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
             expect(screen.queryByRole('button', { name: 'Edit details' })).not.toBeInTheDocument();
         });
@@ -471,6 +474,52 @@ describe('ApiDocumentationEditPage', () => {
                 ),
             ).toBeInTheDocument();
             expect(screen.getByLabelText('Preview')).not.toHaveTextContent('# Getting started');
+        });
+
+        it('fetches it on demand and shows the content fetched', async () => {
+            givenItems([GUIDES, SYNCED]);
+            mockFetchItem.mockImplementation(async () => {
+                givenContent('# Getting started, fetched again');
+                return { item: SYNCED };
+            });
+            const user = userEvent.setup();
+            renderPage();
+            await editor();
+
+            await user.click(screen.getByRole('button', { name: 'Fetch now' }));
+
+            expect(mockFetchItem).toHaveBeenCalledWith('env-1', 'api-1', 'getting-started');
+            await waitFor(async () => expect((await editor()).value).toBe('# Getting started, fetched again'));
+            expect(notify.success).toHaveBeenCalledWith("Content of 'Getting started' fetched");
+        });
+
+        it('starts editing from the content last fetched once the page no longer has a source', async () => {
+            givenItems([GUIDES, SYNCED]);
+            mockFetchItem.mockImplementation(async () => {
+                givenContent('# Fetched again');
+                return { item: SYNCED };
+            });
+            const user = userEvent.setup();
+            const queryClient = renderPage();
+            await editor();
+            await user.click(screen.getByRole('button', { name: 'Fetch now' }));
+            await waitFor(async () => expect((await editor()).value).toBe('# Fetched again'));
+
+            givenItems([GUIDES, GETTING_STARTED]);
+            await act(() => queryClient.invalidateQueries());
+
+            await waitFor(async () => expect((await editor()).readOnly).toBe(false));
+            expect((await editor()).value).toBe('# Fetched again');
+            expect(saveButton().disabled).toBe(true);
+        });
+
+        it('offers no fetch without api-documentation-u', async () => {
+            grantedPermissions = ['api-documentation-r'];
+            givenItems([GUIDES, SYNCED]);
+            renderPage();
+            await editor();
+
+            expect(screen.queryByRole('button', { name: 'Fetch now' })).not.toBeInTheDocument();
         });
     });
 
