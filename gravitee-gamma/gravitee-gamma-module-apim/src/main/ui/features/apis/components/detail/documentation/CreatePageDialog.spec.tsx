@@ -34,6 +34,9 @@ jest.mock('../../../../../shared/notify', () => ({
     notify: { success: jest.fn(), warning: jest.fn(), error: jest.fn() },
 }));
 
+// Missing from jsdom.
+Element.prototype.scrollIntoView ??= () => {};
+
 const mockCreateItem = jest.mocked(createApiDocumentationItem);
 const mockSaveContent = jest.mocked(saveApiDocumentationPageContent);
 
@@ -103,6 +106,10 @@ function createButton() {
 }
 
 describe('CreatePageDialog', () => {
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     // jsdom's File does not extend the global Blob here, so it has no text() to inherit.
     beforeAll(() => {
         global.ResizeObserver = class ResizeObserver {
@@ -387,6 +394,43 @@ describe('CreatePageDialog', () => {
     });
 
     describe('when the server refuses', () => {
+        it('clears the refusal once what was entered changes', async () => {
+            mockCreateItem.mockRejectedValue(new ApimApiError(400, 'A sibling already uses this title'));
+            const { user } = renderDialog();
+            await user.type(titleInput(), 'Getting started');
+            await user.click(createButton());
+            await screen.findByText('A sibling already uses this title');
+
+            await user.type(titleInput(), ' again');
+
+            expect(screen.queryByText('A sibling already uses this title')).not.toBeInTheDocument();
+        });
+
+        it('brings the refusal into view, as a long dialog scrolls it out of sight', async () => {
+            const scrollIntoView = jest.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(() => {});
+            mockCreateItem.mockRejectedValue(new ApimApiError(400, 'A sibling already uses this title'));
+            const { user } = renderDialog();
+            await user.type(titleInput(), 'Getting started');
+
+            await user.click(createButton());
+
+            const refusal = (await screen.findByText('A sibling already uses this title')).closest('[role="alert"]');
+            expect(scrollIntoView.mock.contexts).toContain(refusal);
+        });
+
+        it('brings the same refusal into view again when it is given again', async () => {
+            const scrollIntoView = jest.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(() => {});
+            mockCreateItem.mockRejectedValue(new ApimApiError(400, 'A sibling already uses this title'));
+            const { user } = renderDialog();
+            await user.type(titleInput(), 'Getting started');
+
+            await user.click(createButton());
+            await screen.findByText('A sibling already uses this title');
+            await user.click(createButton());
+
+            await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(2));
+        });
+
         it('keeps the dialog open with what was entered when the page cannot be created', async () => {
             const serverError = new ApimApiError(400, 'A sibling already uses this title');
             mockCreateItem.mockRejectedValue(serverError);
@@ -395,7 +439,8 @@ describe('CreatePageDialog', () => {
             await importFile(user, new File([OPENAPI_YAML], 'petstore.yaml'));
             await user.click(createButton());
 
-            await waitFor(() => expect(notify.error).toHaveBeenCalledWith(serverError, 'Failed to create the page'));
+            expect(await screen.findByText('A sibling already uses this title')).toBeInTheDocument();
+            expect(notify.error).not.toHaveBeenCalled();
             expect(onClose).not.toHaveBeenCalled();
             expect(onCreated).not.toHaveBeenCalled();
             expect(titleInput().value).toBe('petstore');

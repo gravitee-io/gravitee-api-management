@@ -26,9 +26,10 @@ import {
 } from '@gravitee/graphene-core';
 import { useState, type FormEvent } from 'react';
 
+import { RefusalAlert, ScrollableDialogBody, WITHIN_VIEWPORT } from './dialogLayout';
 import { DocumentationItemDetailsFields, privateParentOf } from './DocumentationItemDetailsFields';
 import { type ImportedFile, ImportFileField } from './ImportFileField';
-import { type NewDocumentationPage, useCreateDocumentationPage } from '../../../hooks/useCreateDocumentationPage';
+import { type CreatePageResult, type NewDocumentationPage, useCreateDocumentationPage } from '../../../hooks/useCreateDocumentationPage';
 import { SelectionCards, type SelectionCardItem } from '../../../pages/detail/general/SelectionCards';
 import type { PortalNavigationFolder, PortalPageContentType } from '../../../types/apiDocumentation';
 import { titleFromFileName } from '../../../utils/documentationFile';
@@ -65,7 +66,7 @@ export function CreatePageDialog({
     return (
         // Escape, a click outside and the close button would leave the creation running, and then open the page anyway.
         <Dialog open={open} onOpenChange={isOpen => !isOpen && !isCreating && onClose()}>
-            <DialogContent style={{ maxWidth: '560px' }}>
+            <DialogContent style={{ maxWidth: '560px', ...WITHIN_VIEWPORT }}>
                 <CreatePageForm parent={parent} createPage={createPage} isCreating={isCreating} onClose={onClose} onCreated={onCreated} />
             </DialogContent>
         </Dialog>
@@ -81,7 +82,7 @@ function CreatePageForm({
     onCreated,
 }: Readonly<{
     parent?: PortalNavigationFolder;
-    createPage: (page: NewDocumentationPage) => Promise<string | null>;
+    createPage: (page: NewDocumentationPage) => Promise<CreatePageResult>;
     isCreating: boolean;
     onClose: () => void;
     onCreated: (pageId: string) => void;
@@ -94,12 +95,22 @@ function CreatePageForm({
     const [source, setSource] = useState<ContentSource>('FILL');
     const [pageType, setPageType] = useState<PortalPageContentType>('GRAVITEE_MARKDOWN');
     const [importedFile, setImportedFile] = useState<ImportedFile | null>(null);
+    const [refusal, setRefusal] = useState<string | null>(null);
 
     const imported = source === 'IMPORT' ? importedFile : null;
     const canCreate = title.trim() !== '' && (source === 'FILL' || imported !== null) && !isCreating;
 
+    // A refusal is about what was entered: it no longer applies once that changes.
+    function changing<T>(set: (value: T) => void) {
+        return (value: T) => {
+            set(value);
+            setRefusal(null);
+        };
+    }
+
     function handleImportedFile(file: ImportedFile | null) {
         setImportedFile(file);
+        setRefusal(null);
         if (!file || (title.trim() !== '' && title !== titleFromFile)) return;
         const fileTitle = titleFromFileName(file.file.name);
         setTitle(fileTitle);
@@ -109,14 +120,20 @@ function CreatePageForm({
     async function handleSubmit(event: FormEvent) {
         event.preventDefault();
         if (!canCreate) return;
-        const pageId = await createPage({
+        // Cleared first, so that the same refusal given again is shown, and brought into view, again.
+        setRefusal(null);
+        const result = await createPage({
             title: title.trim(),
             visibility: isPrivate ? 'PRIVATE' : 'PUBLIC',
             contentType: imported?.contentType ?? pageType,
             content: imported?.content ?? '',
             parentId: parent?.id,
         });
-        if (pageId) onCreated(pageId);
+        if ('refusal' in result) {
+            setRefusal(result.refusal);
+        } else {
+            onCreated(result.pageId);
+        }
     }
 
     return (
@@ -128,32 +145,47 @@ function CreatePageForm({
                 </DialogDescription>
             </DialogHeader>
 
-            <div className="flex flex-col gap-5">
-                <form id="create-documentation-page-form" onSubmit={handleSubmit} className="flex flex-col gap-5">
-                    <DocumentationItemDetailsFields
-                        title={title}
-                        onTitleChange={setTitle}
-                        isPrivate={isPrivate}
-                        onPrivateChange={setIsPrivate}
-                        privateParent={privateParent}
-                        disabled={isCreating}
-                    />
+            <ScrollableDialogBody>
+                <div className="flex flex-col gap-5">
+                    <RefusalAlert refusal={refusal} />
+                    <form id="create-documentation-page-form" onSubmit={handleSubmit} className="flex flex-col gap-5">
+                        <DocumentationItemDetailsFields
+                            title={title}
+                            onTitleChange={changing(setTitle)}
+                            isPrivate={isPrivate}
+                            onPrivateChange={changing(setIsPrivate)}
+                            privateParent={privateParent}
+                            disabled={isCreating}
+                        />
 
-                    <FieldSet className="gap-1.5">
-                        <FieldLegend variant="label">Content</FieldLegend>
-                        <SelectionCards options={CONTENT_SOURCES} activeId={source} onChange={setSource} ariaLabel="Content" />
-                    </FieldSet>
-
-                    {source === 'FILL' ? (
                         <FieldSet className="gap-1.5">
-                            <FieldLegend variant="label">Page type</FieldLegend>
-                            <SelectionCards options={PAGE_TYPES} activeId={pageType} onChange={setPageType} ariaLabel="Page type" />
+                            <FieldLegend variant="label">Content</FieldLegend>
+                            <SelectionCards
+                                options={CONTENT_SOURCES}
+                                activeId={source}
+                                onChange={changing(setSource)}
+                                ariaLabel="Content"
+                            />
                         </FieldSet>
+
+                        {source === 'FILL' ? (
+                            <FieldSet className="gap-1.5">
+                                <FieldLegend variant="label">Page type</FieldLegend>
+                                <SelectionCards
+                                    options={PAGE_TYPES}
+                                    activeId={pageType}
+                                    onChange={changing(setPageType)}
+                                    ariaLabel="Page type"
+                                />
+                            </FieldSet>
+                        ) : null}
+                    </form>
+                    {/* Outside the form: Graphene's FileUpload remove button has no type, so it would submit it. */}
+                    {source === 'IMPORT' ? (
+                        <ImportFileField value={importedFile} onChange={handleImportedFile} disabled={isCreating} />
                     ) : null}
-                </form>
-                {/* Outside the form: Graphene's FileUpload remove button has no type, so it would submit it. */}
-                {source === 'IMPORT' ? <ImportFileField value={importedFile} onChange={handleImportedFile} disabled={isCreating} /> : null}
-            </div>
+                </div>
+            </ScrollableDialogBody>
 
             <DialogFooter>
                 <Button type="button" variant="outline" onClick={onClose} disabled={isCreating}>
