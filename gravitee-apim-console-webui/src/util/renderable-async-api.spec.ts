@@ -220,11 +220,25 @@ describe('toRenderableAsyncApi', () => {
     expect(rendered).toEqual(JSON.stringify(JSON.parse(rendered), null, 2));
   });
 
-  it('should walk a node shared through YAML aliases only once', () => {
+  it.each(['3.0.0', '2.6.0'])('should walk a node shared through YAML aliases only once in an AsyncAPI %s document', version => {
     const levels = Array.from({ length: 40 }, (_, i) => `l${i + 1}: &l${i + 1} [*l${i}, *l${i}]`).join('\n');
-    const content = `asyncapi: 3.0.0\nl0: &l0 { leaf: true }\n${levels}\n`;
+    const content = `asyncapi: ${version}\ndefaultContentType: application/xml\nl0: &l0 { leaf: true }\n${levels}\n`;
 
     expect(toRenderableAsyncApi(content)).toBe(content);
+  });
+
+  it('should return a document whose anchors loop back unchanged', () => {
+    const content = `${ASYNCAPI_3_XSD}x-loop: &loop\n  self: *loop\n`;
+
+    expect(toRenderableAsyncApi(content)).toBe(content);
+  });
+
+  it.each(['application/xml;version=1.0', 'text/xml'])('should recognise %s as an XML Schema format', schemaFormat => {
+    const content = ASYNCAPI_3_XSD.replace('schemaFormat: application/xml', `schemaFormat: ${schemaFormat}`);
+
+    const payload = JSON.parse(toRenderableAsyncApi(content)).components.messages.OrderCreated.payload;
+
+    expect(payload.type).toEqual('string');
   });
 
   it.each([
@@ -234,6 +248,7 @@ describe('toRenderableAsyncApi', () => {
     ['content that is not an AsyncAPI document', 'openapi: 3.0.0\npayload:\n  schemaFormat: application/xml\n  schema: <xs:schema/>\n'],
     ['an AsyncAPI 3 document declaring an Avro format on the message, as AsyncAPI 2 did', ASYNCAPI_3_WITH_AVRO_ON_MESSAGE],
     ['an AsyncAPI 3 document declaring an XML Schema format on the message, as AsyncAPI 2 did', ASYNCAPI_3_WITH_XSD_ON_MESSAGE],
+    ['a stream of several YAML documents', `${ASYNCAPI_3_XSD}---\n${ASYNCAPI_3_XSD}`],
     ['empty content', ''],
     ['no content', undefined],
     ['null content', null],

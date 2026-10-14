@@ -36,26 +36,26 @@ export function toRenderableAsyncApi<T extends string | null | undefined>(conten
   if (!content || !/xml|xsd/i.test(content)) {
     return content;
   }
-  const document = readAsyncApiDocument(content);
-  if (!document) {
+  try {
+    const document = readAsyncApiDocument(content);
+    if (!document) {
+      return content;
+    }
+    // AsyncAPI 2.x declares the payload format on the message; 3.x moved it into the payload, a
+    // Multi Format Schema Object, and rejects it on the message.
+    const replaced = String(document.asyncapi).startsWith('2.')
+      ? replaceMessagePayloads(document, new WeakSet())
+      : replaceMultiFormatSchemas(document, new WeakSet());
+    // Indented, so the viewer's error line numbers still tell the values apart.
+    return replaced ? JSON.stringify(document, null, 2) : content;
+  } catch {
+    // Unreadable YAML, or anchors that loop back and cannot be laid out as JSON.
     return content;
   }
-  // AsyncAPI 2.x declares the payload format on the message; 3.x moved it into the payload, a
-  // Multi Format Schema Object, and rejects it on the message.
-  const replaced = String(document.asyncapi).startsWith('2.')
-    ? replaceMessagePayloads(document, new WeakSet())
-    : replaceMultiFormatSchemas(document, new WeakSet());
-  // Indented, so the viewer's error line numbers still tell the values apart.
-  return replaced ? JSON.stringify(document, null, 2) : content;
 }
 
 function readAsyncApiDocument(content: string): JsonNode | undefined {
-  let documents: unknown[];
-  try {
-    documents = loadAll(content, { schema: ASYNCAPI_YAML_SCHEMA });
-  } catch {
-    return undefined;
-  }
+  const documents = loadAll(content, { schema: ASYNCAPI_YAML_SCHEMA });
   const [document] = documents;
   return documents.length === 1 && isNode(document) && 'asyncapi' in document ? document : undefined;
 }
