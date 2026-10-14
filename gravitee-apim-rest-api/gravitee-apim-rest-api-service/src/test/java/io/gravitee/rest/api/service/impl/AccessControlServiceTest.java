@@ -20,12 +20,14 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.AccessControlEntity;
 import io.gravitee.rest.api.model.GroupEntity;
@@ -96,6 +98,9 @@ public class AccessControlServiceTest {
 
     @Mock
     private GroupService groupService;
+
+    @Mock
+    private PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService;
 
     public static void connectUser() {
         // reset authentication to avoid side effect during test executions.
@@ -210,6 +215,80 @@ public class AccessControlServiceTest {
         boolean canAccess = accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertTrue(canAccess);
+    }
+
+    @Test
+    public void should_consume_published_public_api_from_portal() {
+        connectUser();
+
+        assertTrue(
+            accessControlService.canConsumeApiFromPortal(
+                GraviteeContext.getExecutionContext(),
+                anApi(Visibility.PUBLIC, ApiLifecycleState.PUBLISHED)
+            )
+        );
+    }
+
+    @Test
+    public void should_consume_unpublished_public_api_listed_in_portal_navigation() {
+        connectUser();
+        when(
+            portalNavigationApiVisibilityDomainService.isApiVisibleToUser(GraviteeContext.getCurrentEnvironment(), API_ID, USERNAME)
+        ).thenReturn(true);
+
+        assertTrue(
+            accessControlService.canConsumeApiFromPortal(
+                GraviteeContext.getExecutionContext(),
+                anApi(Visibility.PUBLIC, ApiLifecycleState.UNPUBLISHED)
+            )
+        );
+    }
+
+    @Test
+    public void should_not_consume_unpublished_public_api_missing_from_portal_navigation() {
+        connectUser();
+        when(
+            portalNavigationApiVisibilityDomainService.isApiVisibleToUser(GraviteeContext.getCurrentEnvironment(), API_ID, USERNAME)
+        ).thenReturn(false);
+
+        assertFalse(
+            accessControlService.canConsumeApiFromPortal(
+                GraviteeContext.getExecutionContext(),
+                anApi(Visibility.PUBLIC, ApiLifecycleState.UNPUBLISHED)
+            )
+        );
+    }
+
+    @Test
+    public void should_not_consume_private_api_listed_in_portal_navigation_when_user_cannot_consume_it() {
+        connectUser();
+        GenericApiEntity api = anApi(Visibility.PRIVATE, ApiLifecycleState.UNPUBLISHED);
+        when(apiAuthorizationService.canConsumeApi(GraviteeContext.getExecutionContext(), USERNAME, api)).thenReturn(false);
+        lenient()
+            .when(portalNavigationApiVisibilityDomainService.isApiVisibleToUser(GraviteeContext.getCurrentEnvironment(), API_ID, USERNAME))
+            .thenReturn(true);
+
+        assertFalse(accessControlService.canConsumeApiFromPortal(GraviteeContext.getExecutionContext(), api));
+    }
+
+    @Test
+    public void should_consume_private_api_listed_in_portal_navigation_when_user_can_consume_it() {
+        connectUser();
+        GenericApiEntity api = anApi(Visibility.PRIVATE, ApiLifecycleState.UNPUBLISHED);
+        when(apiAuthorizationService.canConsumeApi(GraviteeContext.getExecutionContext(), USERNAME, api)).thenReturn(true);
+        when(
+            portalNavigationApiVisibilityDomainService.isApiVisibleToUser(GraviteeContext.getCurrentEnvironment(), API_ID, USERNAME)
+        ).thenReturn(true);
+
+        assertTrue(accessControlService.canConsumeApiFromPortal(GraviteeContext.getExecutionContext(), api));
+    }
+
+    private static GenericApiEntity anApi(Visibility visibility, ApiLifecycleState lifecycleState) {
+        ApiEntity api = new ApiEntity();
+        api.setId(API_ID);
+        api.setVisibility(visibility);
+        api.setLifecycleState(lifecycleState);
+        return api;
     }
 
     @Test
