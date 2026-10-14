@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -228,6 +229,31 @@ class HeartbeatEventSchedulerTest {
 
         assertThat(published).containsExactly(EventType.GATEWAY_STARTED, EventType.GATEWAY_STOPPED);
         verify(eventRepository, never()).createOrPatch(any());
+    }
+
+    @Test
+    void should_wait_for_a_running_heartbeat_before_marking_the_event_stopped() throws Exception {
+        List<String> persisted = recordPersistedEvents();
+        heartbeatEvent.setId("gateway-id");
+        heartbeatEvent.setType(EventType.GATEWAY_STARTED);
+        cut.start();
+
+        CountDownLatch preStopDone = new CountDownLatch(1);
+        Thread stopper = new Thread(() -> {
+            cut.preStop();
+            preStopDone.countDown();
+        });
+        // Holds the lock HeartbeatEventPublisher takes while it updates the event
+        synchronized (heartbeatEvent) {
+            stopper.start();
+            assertThat(preStopDone.await(200, TimeUnit.MILLISECONDS)).isFalse();
+            assertThat(heartbeatEvent.getType()).isEqualTo(EventType.GATEWAY_STARTED);
+            assertThat(persisted).isEmpty();
+        }
+
+        assertThat(preStopDone.await(5, TimeUnit.SECONDS)).isTrue();
+        assertThat(persisted).containsExactly(EventType.GATEWAY_STOPPED + " stopped_at=" + heartbeatEvent.getUpdatedAt().getTime());
+        cut.stop();
     }
 
     /**
