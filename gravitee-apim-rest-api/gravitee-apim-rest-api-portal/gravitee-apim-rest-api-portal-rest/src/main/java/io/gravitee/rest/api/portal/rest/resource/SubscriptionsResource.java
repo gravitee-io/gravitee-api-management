@@ -52,6 +52,7 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.inject.Inject;
@@ -129,6 +130,8 @@ public class SubscriptionsResource extends AbstractResource {
                     plan.getReferenceId(),
                     PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())
                 );
+            } else if (!accessControlService.canAccessApiFromPortal(executionContext, plan.getReferenceId())) {
+                throw new ApiNotFoundException(plan.getReferenceId());
             }
 
             var auditInfo = getAuditInfo();
