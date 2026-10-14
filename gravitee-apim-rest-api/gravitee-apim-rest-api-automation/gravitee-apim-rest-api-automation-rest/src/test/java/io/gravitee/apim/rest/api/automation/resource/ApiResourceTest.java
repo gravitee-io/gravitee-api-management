@@ -19,11 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
@@ -31,6 +31,7 @@ import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupPolicyPlugin;
 import io.gravitee.apim.rest.api.automation.helpers.HRIDHelper;
 import io.gravitee.apim.rest.api.automation.model.ApiV4State;
@@ -53,6 +54,8 @@ import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
@@ -408,14 +411,14 @@ class ApiResourceTest extends AbstractResourceTest {
         void should_delete_api_and_return_no_content() {
             expectNoContent(HRID);
 
-            verify(apiService, atLeastOnce()).delete(any(), eq(HRIDToUUID.api().context(auditInfo).hrid(HRID).id()), eq(true));
+            verify(apiService).delete(any(), eq(HRIDToUUID.api().context(auditInfo).hrid(HRID).id()), eq(true));
         }
 
         @Test
         void should_delete_api_and_return_no_content_with_valid_guid() {
             expectNoContent(API_ID, true);
 
-            verify(apiService, atLeastOnce()).delete(any(), eq(API_ID), eq(true));
+            verify(apiService).delete(any(), eq(API_ID), eq(true));
         }
 
         @Test
@@ -423,6 +426,33 @@ class ApiResourceTest extends AbstractResourceTest {
             doThrow(new ApiNotFoundException("unknown")).when(apiService).delete(any(), any(), eq(true));
 
             expectNotFound("unknown");
+        }
+
+        @Test
+        void should_return_a_500_status_code_when_documentation_cleanup_fails() {
+            var apiId = HRIDToUUID.api().context(auditInfo).hrid(HRID).id();
+            doThrow(new TechnicalDomainException("Failed to clean up API documentation"))
+                .when(apiService)
+                .delete(any(), eq(apiId), eq(true));
+
+            try (var response = rootTarget().path(HRID).request().delete()) {
+                assertThat(response.getStatus()).isEqualTo(500);
+            }
+
+            verify(apiService).delete(any(), eq(apiId), eq(true));
+        }
+
+        @Test
+        void should_return_a_403_status_code_without_delete_permission() {
+            when(
+                permissionService.hasPermission(any(), eq(RolePermission.API_DEFINITION), any(), any(RolePermissionAction[].class))
+            ).thenReturn(false);
+
+            try (var response = rootTarget().path(HRID).request().delete()) {
+                assertThat(response.getStatus()).isEqualTo(403);
+            }
+
+            verifyNoInteractions(apiService);
         }
 
         private void expectNoContent(String hrid) {
