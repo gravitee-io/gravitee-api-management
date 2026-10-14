@@ -24,12 +24,15 @@ import { ApimApiError } from '../../../../shared/api/apimClient';
 import { notify } from '../../../../shared/notify';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
 import {
+    fetchApiDocumentationItem,
     getApiDocumentationPageContent,
     listApiDocumentation,
     saveApiDocumentationPageContent,
     updateApiDocumentationItem,
 } from '../../services/apiDocumentation';
 import type { ApiDocumentationItem, PortalPageContent, PortalPageContentType } from '../../types/apiDocumentation';
+import { describeCronSchedule } from '../../utils/cronSchedule';
+import { formatDateTime } from '../../utils/formatDate';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useEnvironment: jest.fn(),
@@ -43,7 +46,7 @@ jest.mock('../../context/ApiDetailContext', () => ({
 jest.mock('../../services/apiDocumentation');
 
 jest.mock('../../../../shared/notify', () => ({
-    notify: { success: jest.fn(), error: jest.fn() },
+    notify: { success: jest.fn(), warning: jest.fn(), error: jest.fn() },
 }));
 
 let mockLayoutConfig: Record<string, unknown> | undefined;
@@ -88,6 +91,7 @@ const mockListApiDocumentation = jest.mocked(listApiDocumentation);
 const mockGetContent = jest.mocked(getApiDocumentationPageContent);
 const mockSaveContent = jest.mocked(saveApiDocumentationPageContent);
 const mockUpdateItem = jest.mocked(updateApiDocumentationItem);
+const mockFetchItem = jest.mocked(fetchApiDocumentationItem);
 
 const SOURCE = { type: 'github-fetcher', configuration: {} };
 
@@ -405,9 +409,31 @@ describe('ApiDocumentationEditPage', () => {
             renderPage();
 
             expect((await editor()).readOnly).toBe(true);
-            expect(screen.getByText("This page is synced from an external source, so it can't be edited here.")).toBeInTheDocument();
+            expect(screen.getByRole('status', { name: 'External source' })).toHaveTextContent(
+                /^Managed by the folder Guides, read only\.$/,
+            );
+            expect(screen.queryByRole('button', { name: 'Fetch now' })).not.toBeInTheDocument();
             expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
             expect(screen.queryByRole('button', { name: 'Edit details' })).not.toBeInTheDocument();
+        });
+
+        it('sends the user to a synced folder that can be fetched', async () => {
+            givenItems([{ ...GUIDES, source: { ...SOURCE, subtreeImport: true } }, GETTING_STARTED]);
+            renderPage();
+            await editor();
+
+            expect(screen.getByText('Managed by the folder Guides, read only. Fetch it from that folder.')).toBeInTheDocument();
+        });
+
+        it('does not send a user without api-documentation-u to fetch the synced folder', async () => {
+            grantedPermissions = ['api-documentation-r'];
+            givenItems([{ ...GUIDES, source: { ...SOURCE, subtreeImport: true } }, GETTING_STARTED]);
+            renderPage();
+            await editor();
+
+            expect(screen.getByRole('status', { name: 'External source' })).toHaveTextContent(
+                /^Managed by the folder Guides, read only\.$/,
+            );
         });
 
         it('keeps the content of a synced page read only, but lets its details be edited', async () => {
@@ -415,11 +441,164 @@ describe('ApiDocumentationEditPage', () => {
             renderPage();
 
             expect((await editor()).readOnly).toBe(true);
-            expect(
-                screen.getByText("This page's content is synced from an external source, so it can't be edited here."),
-            ).toBeInTheDocument();
+            expect(screen.getByText('Content from GitHub, read only')).toBeInTheDocument();
             expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
             expect(screen.getByRole('button', { name: 'Edit details' })).toBeInTheDocument();
+        });
+    });
+
+    describe('a page synced from its own source', () => {
+        const LAST_FETCHED_AT = '2026-10-12T10:42:00Z';
+        const FAILED_AT = '2026-10-12T16:42:00Z';
+        const SYNCED: ApiDocumentationItem = {
+            ...GETTING_STARTED,
+            source: { ...SOURCE, useAutoFetch: true, fetchCron: '0 0 * * * *', lastFetchedAt: LAST_FETCHED_AT },
+        };
+
+        it('names its source, when it was last fetched and how often it is fetched', async () => {
+            givenItems([GUIDES, SYNCED]);
+            renderPage();
+            await editor();
+
+            const status = screen.getByRole('status', { name: 'External source' });
+            expect(status).toHaveTextContent('Content from GitHub, read only');
+            expect(status).toHaveTextContent(`Last fetched ${formatDateTime(LAST_FETCHED_AT)}`);
+            expect(status).toHaveTextContent(describeCronSchedule('0 0 * * * *')!);
+        });
+
+        it('says it has not been fetched yet', async () => {
+            givenItems([GUIDES, { ...GETTING_STARTED, source: SOURCE }]);
+            renderPage();
+            await editor();
+
+            expect(screen.getByRole('status', { name: 'External source' })).toHaveTextContent('Not fetched yet');
+        });
+
+        it('shows no schedule once automatic fetching is off', async () => {
+            givenItems([GUIDES, { ...SYNCED, source: { ...SYNCED.source!, useAutoFetch: false } }]);
+            renderPage();
+            await editor();
+
+            expect(screen.getByRole('status', { name: 'External source' })).not.toHaveTextContent(describeCronSchedule('0 0 * * * *')!);
+        });
+
+        it("does not add a period to the server's reason when it already ends with one", async () => {
+            givenItems([
+                GUIDES,
+                { ...SYNCED, source: { ...SYNCED.source!, lastFetchAttemptAt: FAILED_AT, lastFetchError: 'Repository not found.' } },
+            ]);
+            renderPage();
+            await editor();
+
+            expect(screen.getByText(/Repository not found\. The content below/)).toBeInTheDocument();
+        });
+
+        it("explains a failed last fetch with the server's reason, keeping the content of the last successful one", async () => {
+            givenItems([
+                GUIDES,
+                { ...SYNCED, source: { ...SYNCED.source!, lastFetchAttemptAt: FAILED_AT, lastFetchError: 'Unable to fetch content' } },
+            ]);
+            renderPage();
+            await editor();
+
+            expect(
+                screen.getByText(
+                    `Last fetch failed on ${formatDateTime(FAILED_AT)}. Unable to fetch content. The content below is from the last successful fetch.`,
+                ),
+            ).toBeInTheDocument();
+        });
+
+        it('shows no content before its first successful fetch, rather than the placeholder the page was created with', async () => {
+            givenItems([
+                GUIDES,
+                { ...GETTING_STARTED, source: { ...SOURCE, lastFetchAttemptAt: FAILED_AT, lastFetchError: 'Unable to fetch content' } },
+            ]);
+            renderPage();
+
+            expect((await editor()).value).toBe('');
+            expect(
+                screen.getByText(
+                    /No content has been fetched from it yet\. Until then, the page holds the placeholder it was created with\./,
+                ),
+            ).toBeInTheDocument();
+            expect(screen.getByLabelText('Preview')).not.toHaveTextContent('# Getting started');
+        });
+
+        it('fetches it on demand and shows the content fetched', async () => {
+            givenItems([GUIDES, SYNCED]);
+            mockFetchItem.mockImplementation(async () => {
+                givenContent('# Getting started, fetched again');
+                return { item: SYNCED };
+            });
+            const user = userEvent.setup();
+            renderPage();
+            await editor();
+
+            await user.click(screen.getByRole('button', { name: 'Fetch now' }));
+
+            expect(mockFetchItem).toHaveBeenCalledWith('env-1', 'api-1', 'getting-started');
+            await waitFor(async () => expect((await editor()).value).toBe('# Getting started, fetched again'));
+            expect(notify.success).toHaveBeenCalledWith("Content of 'Getting started' fetched");
+        });
+
+        it('starts editing from the content last fetched once the page no longer has a source', async () => {
+            givenItems([GUIDES, SYNCED]);
+            mockFetchItem.mockImplementation(async () => {
+                givenContent('# Fetched again');
+                return { item: SYNCED };
+            });
+            const user = userEvent.setup();
+            const queryClient = renderPage();
+            await editor();
+            await user.click(screen.getByRole('button', { name: 'Fetch now' }));
+            await waitFor(async () => expect((await editor()).value).toBe('# Fetched again'));
+
+            givenItems([GUIDES, GETTING_STARTED]);
+            await act(() => queryClient.invalidateQueries());
+
+            await waitFor(async () => expect((await editor()).readOnly).toBe(false));
+            expect((await editor()).value).toBe('# Fetched again');
+            expect(saveButton().disabled).toBe(true);
+        });
+
+        it('offers no other fetch while one runs', async () => {
+            givenItems([GUIDES, SYNCED]);
+            mockFetchItem.mockReturnValue(new Promise(() => {}));
+            const user = userEvent.setup();
+            renderPage();
+            await editor();
+
+            await user.click(screen.getByRole('button', { name: 'Fetch now' }));
+
+            await waitFor(() => expect(screen.getByRole('button', { name: 'Fetch now' })).toBeDisabled());
+        });
+
+        it('does not show the placeholder as fetched content while its first fetch reloads', async () => {
+            const neverFetched = { ...GETTING_STARTED, source: SOURCE };
+            givenItems([GUIDES, neverFetched]);
+            mockFetchItem.mockImplementation(async () => {
+                givenItems([GUIDES, { ...neverFetched, source: { ...SOURCE, lastFetchedAt: LAST_FETCHED_AT } }]);
+                mockGetContent.mockReturnValue(new Promise(() => {}));
+                return { item: SYNCED };
+            });
+            const user = userEvent.setup();
+            renderPage();
+            await editor();
+
+            await user.click(screen.getByRole('button', { name: 'Fetch now' }));
+            await waitFor(() => expect(mockGetContent).toHaveBeenCalledTimes(2));
+            await act(async () => {});
+
+            expect((await editor()).value).toBe('');
+        });
+
+        it('offers no fetch without api-documentation-u', async () => {
+            grantedPermissions = ['api-documentation-r'];
+            givenItems([GUIDES, SYNCED]);
+            renderPage();
+            await editor();
+
+            expect(screen.queryByRole('button', { name: 'Fetch now' })).not.toBeInTheDocument();
         });
     });
 

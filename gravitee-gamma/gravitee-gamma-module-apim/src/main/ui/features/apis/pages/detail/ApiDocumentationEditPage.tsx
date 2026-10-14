@@ -24,10 +24,12 @@ import { notify } from '../../../../shared/notify';
 import { ItemAccessBadge, ItemPublishedBadge } from '../../components/detail/documentation/DocumentationItemBadges';
 import { EditPageDetailsDialog } from '../../components/detail/documentation/EditPageDetailsDialog';
 import { GraviteeMarkdownPreview } from '../../components/detail/documentation/GraviteeMarkdownPreview';
+import { SourceFetchStatus } from '../../components/detail/documentation/SourceFetchStatus';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDocumentation, useApiDocumentationPageContent, useSaveApiDocumentationPageContent } from '../../hooks/useApiDocumentation';
+import { useFetchNow } from '../../hooks/useFetchNow';
 import type { ApiDocumentationItem, PortalNavigationFolder, PortalNavigationPage, PortalPageContent } from '../../types/apiDocumentation';
-import { allowedChanges, getAncestors, type SyncState, syncStateOf } from '../../utils/documentationTree';
+import { allowedChanges, fetchableItemIds, getAncestors, hasSource, type SyncState, syncStateOf } from '../../utils/documentationTree';
 import { editorLanguageFor, PAGE_CONTENT_TYPE_LABELS } from '../../utils/pageContentType';
 
 export function ApiDocumentationEditPage() {
@@ -97,18 +99,25 @@ function ApiDocumentationEditContent({ apiId, pageId }: Readonly<{ apiId: string
     const syncState = syncStateOf(page, ancestors);
     const allowed = allowedChanges(syncState);
     const parent = ancestors.at(-1);
+    const readOnly = !canEdit || !allowed.content;
+    const syncedFolder = syncState === 'BELOW_SYNCED_FOLDER' ? ancestors.find(hasSource) : undefined;
 
     return (
         <PageEditor
-            key={page.id}
+            // A page turning editable starts its draft over from its content, which fetches may have replaced since the
+            // draft was copied.
+            key={`${page.id}:${readOnly}`}
             apiId={apiId}
             page={page}
             parent={parent?.type === 'FOLDER' ? parent : undefined}
             ancestors={ancestors}
             saved={content.data}
             syncState={syncState}
-            readOnly={!canEdit || !allowed.content}
+            readOnly={readOnly}
             canEditDetails={canEdit && allowed.access}
+            canFetch={canEdit && syncState === 'OWN_SOURCE'}
+            syncedFolder={syncedFolder}
+            canFetchSyncedFolder={canEdit && syncedFolder !== undefined && fetchableItemIds(items).has(syncedFolder.id)}
         />
     );
 }
@@ -130,6 +139,9 @@ function PageEditor({
     syncState,
     readOnly,
     canEditDetails,
+    canFetch,
+    syncedFolder,
+    canFetchSyncedFolder,
 }: Readonly<{
     apiId: string;
     page: PortalNavigationPage;
@@ -139,12 +151,23 @@ function PageEditor({
     syncState: SyncState;
     readOnly: boolean;
     canEditDetails: boolean;
+    /** Whether the page has a source of its own and the user may fetch it. */
+    canFetch: boolean;
+    syncedFolder?: ApiDocumentationItem;
+    canFetchSyncedFolder: boolean;
 }>) {
     const saveContent = useSaveApiDocumentationPageContent(apiId);
     const [draft, setDraft] = useState(saved.content);
     const [isSaving, setIsSaving] = useState(false);
     const [isEditingDetails, setIsEditingDetails] = useState(false);
-    const previewContent = useDeferredValue(draft);
+    // The draft is copied from the content once. A read-only page has no draft of its own: it shows the content as
+    // loaded, which a fetch replaces. Until its first successful fetch, a sourced page only holds the placeholder it was
+    // created with, which would read as fetched content.
+    const neverFetched = syncState === 'OWN_SOURCE' && !page.source?.lastFetchedAt;
+    const loadedContent = neverFetched ? '' : saved.content;
+    const shownContent = readOnly ? loadedContent : draft;
+    const previewContent = useDeferredValue(shownContent);
+    const { fetchNow, isFetching } = useFetchNow(apiId);
 
     const isDirty = !readOnly && draft !== saved.content;
     useWarnBeforeUnload(isDirty);
@@ -204,26 +227,24 @@ function PageEditor({
                 {actions}
             </header>
 
-            {syncState !== 'NOT_SYNCED' ? (
-                <Alert>
-                    <AlertDescription>
-                        {syncState === 'BELOW_SYNCED_FOLDER' ? (
-                            <>This page is synced from an external source, so it can&apos;t be edited here.</>
-                        ) : (
-                            <>This page&apos;s content is synced from an external source, so it can&apos;t be edited here.</>
-                        )}
-                    </AlertDescription>
-                </Alert>
-            ) : null}
+            {syncState === 'NOT_SYNCED' ? null : (
+                <SourceFetchStatus
+                    source={page.source}
+                    syncedFolder={syncedFolder}
+                    canFetchSyncedFolder={canFetchSyncedFolder}
+                    onFetch={canFetch ? () => void fetchNow(page) : undefined}
+                    isFetching={isFetching}
+                />
+            )}
 
             {/* A row sized by its content could not shrink below the editor's last size, which the editor then keeps
                 chasing as the window shrinks: the row takes the space left, whatever the editor's size. */}
             <div className="grid min-h-0 flex-1 grid-cols-2 gap-4" style={{ gridTemplateRows: 'minmax(0, 1fr)' }}>
                 <CodeEditor
                     className="min-h-0"
-                    value={draft}
+                    value={shownContent}
                     onChange={value => setDraft(value ?? '')}
-                    language={editorLanguageFor(saved.type, draft)}
+                    language={editorLanguageFor(saved.type, shownContent)}
                     readOnly={readOnly}
                     height="100%"
                 />

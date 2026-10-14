@@ -15,12 +15,13 @@
  */
 
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { type Query, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { type DocumentationItemChanges, toUpdatePayload } from '../components/detail/documentation/toUpdatePayload';
 import {
     createApiDocumentationItem,
     deleteApiDocumentationItem,
+    fetchApiDocumentationItem,
     getApiDocumentationPageContent,
     importApiDocumentation,
     listApiDocumentation,
@@ -30,6 +31,8 @@ import {
     unpublishApiFromPortal,
     updateApiDocumentationItem,
 } from '../services/apiDocumentation';
+import type { ApiPortalNavigationItemsResponse } from '../types/apiDocumentation';
+import { replaceablePageIds } from '../utils/documentationTree';
 import { apiDocumentationKeys } from '../utils/queryKeys';
 
 interface ChangeApiDocumentationItemVariables {
@@ -121,6 +124,39 @@ export function useChangeApiDocumentationItem(apiId: string) {
 
 export function useDeleteApiDocumentationItem(apiId: string) {
     return useApiDocumentationMutation(apiId, deleteApiDocumentationItem);
+}
+
+/** A fetch can replace the content of one page or of every page below a folder, so all of them are reloaded. */
+export function useFetchApiDocumentationItem(apiId: string) {
+    const env = useEnvironment();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationKey: apiDocumentationKeys.fetch(env?.id ?? '', apiId),
+        mutationFn: (navId: string) => fetchApiDocumentationItem(env!.id, apiId, navId),
+        // A failed fetch is recorded on the source, so the documentation is reloaded either way. The content first: the
+        // list says whether a page was ever fetched, and paired with the content from before, would show its placeholder
+        // as fetched content.
+        onSettled: async (_result, _error, navId) => {
+            const documentation = queryClient.getQueryData<ApiPortalNavigationItemsResponse>(apiDocumentationKeys.list(env!.id, apiId));
+            const replaceable = new Set(replaceablePageIds(documentation?.items ?? [], navId));
+            // Only the content the fetch can replace: a page written by hand may hold a draft, which a reset would lose.
+            const contents = {
+                queryKey: apiDocumentationKeys.contents(env!.id, apiId),
+                predicate: (query: Query) => replaceable.has(String(query.queryKey.at(-1))),
+            };
+            // A read started before the fetch brings the content from before, and a refresh would join it rather than
+            // read again: it is cancelled first.
+            await queryClient.cancelQueries(contents);
+            try {
+                await queryClient.invalidateQueries(contents, { throwOnError: true });
+            } catch {
+                // Kept, the content from before would show as fetched: it is dropped, and the editor says it failed to load.
+                void queryClient.resetQueries(contents);
+            }
+            await queryClient.invalidateQueries({ queryKey: apiDocumentationKeys.list(env!.id, apiId) });
+        },
+    });
 }
 
 export function useImportApiDocumentation(apiId: string) {

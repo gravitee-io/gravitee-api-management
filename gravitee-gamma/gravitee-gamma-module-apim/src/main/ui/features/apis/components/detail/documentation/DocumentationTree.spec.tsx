@@ -53,7 +53,7 @@ const REFERENCE: ApiDocumentationItem = {
     title: 'Reference',
     type: 'FOLDER',
     order: 1,
-    source: { type: 'github-fetcher', configuration: {} },
+    source: { type: 'github-fetcher', configuration: {}, subtreeImport: true },
 };
 const ENDPOINTS: ApiDocumentationItem = {
     ...BASE,
@@ -85,6 +85,7 @@ function renderTree(
         canEdit: boolean;
         isLoading: boolean;
         isApiPublished: boolean;
+        isFetching: boolean;
     }> = {},
 ) {
     const onDelete = jest.fn();
@@ -93,6 +94,7 @@ function renderTree(
     const onAddLink = jest.fn();
     const onEditDetails = jest.fn();
     const onChangePublication = jest.fn();
+    const onFetch = jest.fn();
     render(
         <MemoryRouter initialEntries={['/apis/api-1/documentation']}>
             <Routes>
@@ -112,13 +114,15 @@ function renderTree(
                             onEditDetails={onEditDetails}
                             isApiPublished={overrides.isApiPublished ?? true}
                             onChangePublication={onChangePublication}
+                            isFetching={overrides.isFetching ?? false}
+                            onFetch={onFetch}
                         />
                     }
                 />
             </Routes>
         </MemoryRouter>,
     );
-    return { onDelete, onAddPage, onAddFolder, onAddLink, onEditDetails, onChangePublication };
+    return { onDelete, onAddPage, onAddFolder, onAddLink, onEditDetails, onChangePublication, onFetch };
 }
 
 // The page owns which folders are open; this stands in for it.
@@ -414,7 +418,7 @@ describe('DocumentationTree', () => {
 
             await user.click(screen.getByRole('button', { name: 'Actions for Endpoints' }));
 
-            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Edit details', 'Publish']);
+            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Fetch now', 'Edit details', 'Publish']);
         });
 
         it('does not offer it on a page with its own source inside a synced folder, as the editor does not either', async () => {
@@ -457,13 +461,13 @@ describe('DocumentationTree', () => {
             expect(onEditDetails).toHaveBeenCalledWith(GUIDES);
         });
 
-        it('offers only it on a folder synced from its own source, whose access can still change', async () => {
+        it('offers it, besides fetching, on a folder synced from its own source, whose access can still change', async () => {
             const user = userEvent.setup();
             renderTree();
 
             await user.click(screen.getByRole('button', { name: 'Actions for Reference' }));
 
-            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Edit details', 'Publish']);
+            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Fetch now', 'Edit details', 'Publish']);
         });
 
         it('does not offer it on a folder inside a synced folder, which the server keeps read only', async () => {
@@ -597,6 +601,67 @@ describe('DocumentationTree', () => {
             expect((await screen.findByRole('tooltip')).textContent).toBe("A page can't be published inside an unpublished folder.");
             await user.keyboard('{Enter}');
             expect(onChangePublication).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('fetching an item from its source', () => {
+        const SYNCED_PAGE: ApiDocumentationItem = {
+            ...OAUTH,
+            id: 'petstore',
+            title: 'Petstore API',
+            order: 2,
+            source: { type: 'http-fetcher', configuration: {} },
+        };
+
+        it('offers it first on a folder synced from its own source, and reports which one', async () => {
+            const user = userEvent.setup();
+            const { onFetch } = renderTree();
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Reference' }));
+            expect(screen.getAllByRole('menuitem')[0]).toHaveTextContent('Fetch now');
+            await user.click(screen.getByRole('menuitem', { name: 'Fetch now' }));
+
+            expect(onFetch).toHaveBeenCalledWith(REFERENCE);
+        });
+
+        it('offers it on a plain folder holding a synced page, to fetch every such page', async () => {
+            const user = userEvent.setup();
+            const { onFetch } = renderTree({ items: [GUIDES, GETTING_STARTED, SYNCED_PAGE] });
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+            await user.click(screen.getByRole('menuitem', { name: 'Fetch now' }));
+
+            expect(onFetch).toHaveBeenCalledWith(GUIDES);
+        });
+
+        it('does not offer it on a plain folder holding no synced page', async () => {
+            const user = userEvent.setup();
+            renderTree();
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+
+            expect(screen.queryByRole('menuitem', { name: 'Fetch now' })).not.toBeInTheDocument();
+        });
+
+        it('does not offer it without the permission to update the documentation', async () => {
+            const user = userEvent.setup();
+            renderTree({ canEdit: false, items: [GUIDES, SYNCED_PAGE] });
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+
+            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Add page', 'Add folder', 'Add link', 'Delete']);
+        });
+
+        it('keeps it disabled while a fetch is running', async () => {
+            const user = userEvent.setup();
+            const { onFetch } = renderTree({ isFetching: true });
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Reference' }));
+            const fetchNow = screen.getByRole('menuitem', { name: 'Fetch now' });
+            expect(fetchNow).toHaveAttribute('aria-disabled', 'true');
+            await user.click(fetchNow);
+
+            expect(onFetch).not.toHaveBeenCalled();
         });
     });
 

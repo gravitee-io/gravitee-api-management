@@ -25,6 +25,7 @@ import {
     useApiPublishLocations,
     useCreateApiDocumentationItem,
     useDeleteApiDocumentationItem,
+    useFetchApiDocumentationItem,
     useImportApiDocumentation,
     usePublishApiToPortal,
     useSaveApiDocumentationPageContent,
@@ -34,6 +35,7 @@ import { ApimApiError } from '../../../shared/api/apimClient';
 import {
     createApiDocumentationItem,
     deleteApiDocumentationItem,
+    fetchApiDocumentationItem,
     getApiDocumentationPageContent,
     importApiDocumentation,
     listApiDocumentation,
@@ -67,6 +69,7 @@ const mockPublishApiToPortal = jest.mocked(publishApiToPortal);
 const mockUnpublishApiFromPortal = jest.mocked(unpublishApiFromPortal);
 const mockSaveApiDocumentationPageContent = jest.mocked(saveApiDocumentationPageContent);
 const mockGetApiDocumentationPageContent = jest.mocked(getApiDocumentationPageContent);
+const mockFetchApiDocumentationItem = jest.mocked(fetchApiDocumentationItem);
 
 const API_DOCUMENTATION_LIST = { queryKey: ['api-documentation', 'env-1', 'api-1', 'list'] };
 
@@ -370,6 +373,125 @@ describe('useApiDocumentation hooks', () => {
             await act(async () => {
                 await expect(result.current.mutateAsync({ navId: 'nav-1', changes: { title: 'Pet store' } })).rejects.toBe(serverError);
             });
+        });
+    });
+
+    describe('useFetchApiDocumentationItem', () => {
+        const FOLDER_FETCHED = { summary: { succeeded: 2, failed: 0, results: [] } };
+
+        it('fetches the item from its source in the current environment', async () => {
+            mockFetchApiDocumentationItem.mockResolvedValue(FOLDER_FETCHED);
+            const { result } = renderWithQueryClient(() => useFetchApiDocumentationItem('api-1'));
+
+            await act(async () => {
+                await expect(result.current.mutateAsync('nav-1')).resolves.toBe(FOLDER_FETCHED);
+            });
+
+            expect(mockFetchApiDocumentationItem).toHaveBeenCalledWith('env-1', 'api-1', 'nav-1');
+        });
+
+        it("refreshes this API's documentation and the content of its pages, which a fetch may have replaced", async () => {
+            mockFetchApiDocumentationItem.mockResolvedValue(FOLDER_FETCHED);
+            const { result, invalidateQueries } = renderWithQueryClient(() => useFetchApiDocumentationItem('api-1'));
+
+            await act(() => result.current.mutateAsync('nav-1'));
+
+            expect(invalidateQueries).toHaveBeenCalledTimes(2);
+            expect(invalidateQueries).toHaveBeenCalledWith(API_DOCUMENTATION_LIST);
+            expect(invalidateQueries).toHaveBeenCalledWith(
+                expect.objectContaining({ queryKey: ['api-documentation', 'env-1', 'api-1', 'content'] }),
+                { throwOnError: true },
+            );
+        });
+
+        describe('reading the content again', () => {
+            const renderContentAndFetch = () =>
+                renderWithQueryClient(() => ({
+                    content: useApiDocumentationPageContent('api-1', 'nav-1'),
+                    fetch: useFetchApiDocumentationItem('api-1'),
+                }));
+            const contentOf = (text: string) => ({ id: 'content-1', type: 'GRAVITEE_MARKDOWN' as const, content: text });
+
+            beforeEach(() => {
+                mockFetchApiDocumentationItem.mockResolvedValue(FOLDER_FETCHED);
+            });
+
+            it('reads it afresh after the fetch, rather than joining a read started before it', async () => {
+                let resolveEarlierRead: (content: ReturnType<typeof contentOf>) => void = () => {};
+                mockGetApiDocumentationPageContent
+                    .mockReturnValueOnce(new Promise(resolve => (resolveEarlierRead = resolve)))
+                    .mockResolvedValue(contentOf('# Fetched'));
+                const { result } = renderContentAndFetch();
+                await waitFor(() => expect(mockGetApiDocumentationPageContent).toHaveBeenCalledTimes(1));
+
+                await act(() => result.current.fetch.mutateAsync('nav-1'));
+                resolveEarlierRead(contentOf('# Placeholder'));
+
+                await waitFor(() => expect(result.current.content.data?.content).toBe('# Fetched'));
+                expect(mockGetApiDocumentationPageContent).toHaveBeenCalledTimes(2);
+            });
+
+            it('leaves the content of a page written by hand alone, so that a draft of it survives', async () => {
+                const page: PortalNavigationPage = {
+                    id: 'nav-1',
+                    organizationId: 'DEFAULT',
+                    environmentId: 'env-1',
+                    title: 'Petstore',
+                    type: 'PAGE',
+                    area: 'TOP_NAVBAR',
+                    rootId: 'nav-1',
+                    order: 0,
+                    published: false,
+                    visibility: 'PUBLIC',
+                    portalPageContentId: 'content-1',
+                };
+                const synced: PortalNavigationPage = { ...page, source: { type: 'http-fetcher', configuration: {} } };
+                const manual: PortalNavigationPage = { ...page, id: 'manual', rootId: 'manual', portalPageContentId: 'content-2' };
+                mockListApiDocumentation.mockResolvedValue({ items: [synced, manual], publications: [] });
+                mockGetApiDocumentationPageContent.mockImplementation(async (_env, _api, navId) => contentOf(`# ${navId}`));
+                const { result } = renderWithQueryClient(() => ({
+                    list: useApiDocumentation('api-1'),
+                    synced: useApiDocumentationPageContent('api-1', 'nav-1'),
+                    manual: useApiDocumentationPageContent('api-1', 'manual'),
+                    fetch: useFetchApiDocumentationItem('api-1'),
+                }));
+                await waitFor(() => expect(result.current.list.isSuccess && result.current.manual.isSuccess).toBe(true));
+                mockGetApiDocumentationPageContent.mockRejectedValue(new ApimApiError(503, 'Unavailable'));
+
+                await act(() => result.current.fetch.mutateAsync('nav-1'));
+
+                await waitFor(() => expect(result.current.synced.isError).toBe(true));
+                expect(result.current.manual.data?.content).toBe('# manual');
+                expect(mockGetApiDocumentationPageContent.mock.calls.filter(([, , navId]) => navId === 'manual')).toHaveLength(1);
+            });
+
+            it('drops the content from before when reading it again fails, rather than keeping it as fetched', async () => {
+                mockGetApiDocumentationPageContent.mockResolvedValueOnce(contentOf('# Placeholder'));
+                const { result, invalidateQueries } = renderContentAndFetch();
+                await waitFor(() => expect(result.current.content.data?.content).toBe('# Placeholder'));
+                mockGetApiDocumentationPageContent.mockRejectedValue(new ApimApiError(503, 'Unavailable'));
+
+                await act(() => result.current.fetch.mutateAsync('nav-1'));
+
+                await waitFor(() => expect(result.current.content.isError).toBe(true));
+                expect(result.current.content.data).toBeUndefined();
+                expect(invalidateQueries).toHaveBeenCalledWith(API_DOCUMENTATION_LIST);
+            });
+        });
+
+        it('refreshes the documentation even when the fetch fails, as the server records the failure', async () => {
+            mockFetchApiDocumentationItem.mockRejectedValue(new ApimApiError(400, 'Not a sourced item'));
+            const { result, invalidateQueries } = renderWithQueryClient(() => useFetchApiDocumentationItem('api-1'));
+
+            await act(async () => {
+                await expect(result.current.mutateAsync('nav-1')).rejects.toThrow('Not a sourced item');
+            });
+
+            expect(invalidateQueries).toHaveBeenCalledWith(API_DOCUMENTATION_LIST);
+            expect(invalidateQueries).toHaveBeenCalledWith(
+                expect.objectContaining({ queryKey: ['api-documentation', 'env-1', 'api-1', 'content'] }),
+                { throwOnError: true },
+            );
         });
     });
 });

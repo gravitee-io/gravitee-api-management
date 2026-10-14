@@ -16,6 +16,7 @@
 import {
     createApiDocumentationItem,
     deleteApiDocumentationItem,
+    fetchApiDocumentationItem,
     getApiDocumentationPageContent,
     importApiDocumentation,
     listApiDocumentation,
@@ -119,6 +120,21 @@ describe('apiDocumentation service', () => {
         it('URL-encodes the item id', async () => {
             await deleteApiDocumentationItem('env-1', 'api-1', 'nav 1');
             expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', `${BASE_PATH}/nav%201`, { method: 'DELETE' });
+        });
+    });
+
+    describe('fetchApiDocumentationItem', () => {
+        it('POSTs a fetch of the item from its source', async () => {
+            const response = { summary: { succeeded: 1, failed: 0, results: [] } };
+            mockApimFetchJsonV2.mockResolvedValueOnce(response);
+
+            await expect(fetchApiDocumentationItem('env-1', 'api-1', 'nav-1')).resolves.toBe(response);
+            expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', `${BASE_PATH}/nav-1/_fetch`, { method: 'POST' });
+        });
+
+        it('URL-encodes the item id', async () => {
+            await fetchApiDocumentationItem('env-1', 'api-1', 'nav/1');
+            expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', `${BASE_PATH}/nav%2F1/_fetch`, { method: 'POST' });
         });
     });
 

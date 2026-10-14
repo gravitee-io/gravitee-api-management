@@ -129,6 +129,43 @@ export function syncStateOf(item: ApiDocumentationItem, ancestors: ApiDocumentat
     return hasSource(item) ? 'OWN_SOURCE' : 'NOT_SYNCED';
 }
 
+/**
+ * The items a manual fetch accepts, as the server decides: a page with a source, a folder imported from one (which
+ * imports again), and any other folder holding a page with a source, whose fetch refreshes every such page below it —
+ * a folder with a source it was not imported from included. What a synced folder holds is fetched through that folder.
+ */
+export function fetchableItemIds(items: ApiDocumentationItem[]): Set<string> {
+    const fetchable = new Set<string>();
+    for (const item of items) {
+        if (!hasSource(item)) continue;
+        const ancestors = getAncestors(items, item);
+        const firstSynced = ancestors.findIndex(hasSource);
+        if (item.type === 'PAGE') {
+            const reachable = firstSynced === -1 ? [...ancestors, item] : ancestors.slice(0, firstSynced + 1);
+            reachable.forEach(reached => fetchable.add(reached.id));
+        } else if (item.type === 'FOLDER' && firstSynced === -1 && item.source?.subtreeImport) {
+            fetchable.add(item.id);
+        }
+    }
+    return fetchable;
+}
+
+/**
+ * The pages whose content a fetch of the given item can replace: the item itself, and the synced pages below it. A page
+ * written by hand is never replaced, and may hold a draft. Without the documentation, only the item itself.
+ */
+export function replaceablePageIds(items: ApiDocumentationItem[], navId: string): string[] {
+    if (!items.some(item => item.id === navId)) return [navId];
+    return items
+        .filter(item => item.type === 'PAGE')
+        .filter(item => {
+            const ancestors = getAncestors(items, item);
+            const inFetchedItem = item.id === navId || ancestors.some(ancestor => ancestor.id === navId);
+            return inFetchedItem && syncStateOf(item, ancestors) !== 'NOT_SYNCED';
+        })
+        .map(item => item.id);
+}
+
 export interface AllowedChanges {
     content: boolean;
     title: boolean;

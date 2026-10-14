@@ -52,6 +52,7 @@ import { PublishToPortalDialog } from '../../components/detail/documentation/Pub
 import { useApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDocumentation, useDeleteApiDocumentationItem, useUnpublishApiFromPortal } from '../../hooks/useApiDocumentation';
 import { useExpandedDocumentationFolders } from '../../hooks/useExpandedDocumentationFolders';
+import { useFetchNow } from '../../hooks/useFetchNow';
 import type { ApiDocumentationItem, ApiPortalPublication, PortalNavigationFolder } from '../../types/apiDocumentation';
 import { type DocumentationRow, getAncestors, getPublishedSection, syncStateOf } from '../../utils/documentationTree';
 
@@ -89,6 +90,7 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     const { data, isLoading, isError } = useApiDocumentation(apiId);
     const deleteMutation = useDeleteApiDocumentationItem(apiId);
     const unpublishMutation = useUnpublishApiFromPortal(apiId);
+    const { fetchNow, isFetching } = useFetchNow(apiId);
     const expandedFolders = useExpandedDocumentationFolders(apiId);
     const navigate = useNavigate();
     const [toDelete, setToDelete] = useState<DocumentationRow | null>(null);
@@ -193,6 +195,8 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                     onEditDetails={openEditDetailsDialog}
                     isApiPublished={getPublishedSection(data?.publications ?? []) !== undefined}
                     onChangePublication={openPublicationDialog}
+                    isFetching={isFetching}
+                    onFetch={fetchNow}
                 />
             )}
 
