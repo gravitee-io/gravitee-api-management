@@ -14,12 +14,14 @@
         "@gravitee/graphene-policy-studio": "3.27.0",
         "@tanstack/react-query": "5.100.14",
         "js-yaml": "5.4.2",
+        "mobx": "6.16.1",
         "react": "19.2.6",
         "react-dom": "19.2.6",
         "react-grid-layout": "2.2.3",
         "react-hook-form": "7.76.1",
         "react-router-dom": "7.15.1",
         "redoc": "2.5.4",
+        "styled-components": "6.6.0",
         "swagger-ui": "5.32.15"
     }
 }
