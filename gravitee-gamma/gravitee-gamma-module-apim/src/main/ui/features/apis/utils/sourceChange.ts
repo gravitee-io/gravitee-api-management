@@ -13,20 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { ExternalSourceState } from '../components/detail/documentation/ExternalSourceConfig';
 import type { PortalNavigationItemSource } from '../types/apiDocumentation';
 
 /**
  * Whether an edited source is the one stored. Only what the user sets counts: the fetcher, its settings and the schedule.
- * What the server records about the fetches is left out, and a setting left empty counts as unset, as a settings form
- * fills in the fields it shows.
+ * What the server records about the fetches is left out. A setting left empty or off counts as unset: a settings form
+ * fills in the fields it shows, and the server leaves settings that are false out.
  */
 export function isSameSource(stored: PortalNavigationItemSource, edited: PortalNavigationItemSource): boolean {
     return comparable(stored) === comparable(edited);
 }
 
+const UNSET_VALUES = new Set<unknown>(['', undefined, null, false]);
+
 function comparable(source: PortalNavigationItemSource): string {
     const configuration = Object.keys(source.configuration)
-        .filter(key => source.configuration[key] !== '' && source.configuration[key] !== undefined && source.configuration[key] !== null)
+        .filter(key => !UNSET_VALUES.has(source.configuration[key]))
         .sort()
         .map(key => [key, source.configuration[key]]);
     const useAutoFetch = source.useAutoFetch ?? false;
@@ -40,9 +43,9 @@ function comparable(source: PortalNavigationItemSource): string {
 export function sourceChangeOf(
     stored: PortalNavigationItemSource | undefined,
     fetched: boolean,
-    edited: PortalNavigationItemSource | null,
+    edited: ExternalSourceState,
 ): PortalNavigationItemSource | null | undefined {
     if (!fetched) return stored ? null : undefined;
-    if (!edited) return undefined;
-    return stored && isSameSource(stored, edited) ? undefined : edited;
+    if (!edited.source) return undefined;
+    return stored && edited.unchanged ? undefined : edited.source;
 }

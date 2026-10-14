@@ -123,7 +123,7 @@ function FolderForm({
     const visibility: PortalVisibility = isPrivate ? 'PRIVATE' : 'PUBLIC';
     // A title the server refuses to change goes back exactly as stored: trimmed, it would count as a rename.
     const newTitle = folder && !titleEditable ? folder.title : title.trim();
-    const sourceChange = editsOwnSource ? sourceChangeOf(folder.source, fetched, sourceState.source) : undefined;
+    const sourceChange = editsOwnSource ? sourceChangeOf(folder.source, fetched, sourceState) : undefined;
     const hasChanges = !folder || newTitle !== folder.title || visibility !== folder.visibility || sourceChange !== undefined;
     const sourceReady = isImport ? sourceState.valid : !sourceChange || sourceState.valid;
     const canSave = newTitle !== '' && hasChanges && sourceReady && !isSaving;

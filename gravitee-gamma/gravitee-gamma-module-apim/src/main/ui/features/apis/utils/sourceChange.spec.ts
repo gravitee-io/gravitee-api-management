@@ -48,6 +48,21 @@ describe('isSameSource', () => {
         expect(isSameSource({ ...STORED, useAutoFetch: false }, { ...STORED, useAutoFetch: false, fetchCron: undefined })).toBe(true);
     });
 
+    it('treats a switch left off as unset, as the server leaves settings that are false out', () => {
+        expect(
+            isSameSource(
+                { ...STORED, configuration: { repository: 'petstore' } },
+                { ...STORED, configuration: { repository: 'petstore', useSystemProxy: false } },
+            ),
+        ).toBe(true);
+        expect(
+            isSameSource(
+                { ...STORED, configuration: { repository: 'petstore', useSystemProxy: true } },
+                { ...STORED, configuration: { repository: 'petstore', useSystemProxy: false } },
+            ),
+        ).toBe(false);
+    });
+
     it('treats a setting left empty as unset', () => {
         expect(
             isSameSource(
@@ -62,23 +77,23 @@ describe('sourceChangeOf', () => {
     const EDITED: PortalNavigationItemSource = { type: 'gitlab-fetcher', configuration: { project: 'acme/sdk' }, useAutoFetch: false };
 
     it('removes the stored source when the item stops being fetched', () => {
-        expect(sourceChangeOf(STORED, false, EDITED)).toBeNull();
+        expect(sourceChangeOf(STORED, false, { source: EDITED, valid: true })).toBeNull();
     });
 
     it('changes nothing for an item without a source that is not fetched', () => {
-        expect(sourceChangeOf(undefined, false, null)).toBeUndefined();
+        expect(sourceChangeOf(undefined, false, { source: null, valid: false })).toBeUndefined();
     });
 
     it('adds the edited source to an item without one', () => {
-        expect(sourceChangeOf(undefined, true, EDITED)).toBe(EDITED);
+        expect(sourceChangeOf(undefined, true, { source: EDITED, valid: true })).toBe(EDITED);
     });
 
     it('replaces the stored source by an edited one that differs', () => {
-        expect(sourceChangeOf(STORED, true, EDITED)).toBe(EDITED);
+        expect(sourceChangeOf(STORED, true, { source: EDITED, valid: true, unchanged: false })).toBe(EDITED);
     });
 
     it('keeps the stored source when the edit leaves it as it is, or could not be made', () => {
-        expect(sourceChangeOf(STORED, true, { ...STORED, lastFetchedAt: undefined })).toBeUndefined();
-        expect(sourceChangeOf(STORED, true, null)).toBeUndefined();
+        expect(sourceChangeOf(STORED, true, { source: STORED, valid: true, unchanged: true })).toBeUndefined();
+        expect(sourceChangeOf(STORED, true, { source: null, valid: false })).toBeUndefined();
     });
 });

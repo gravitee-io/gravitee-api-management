@@ -37,6 +37,7 @@ import { type FieldValues, useForm } from 'react-hook-form';
 import { useFetchers } from '../../../hooks/useFetchers';
 import type { PortalNavigationItemSource } from '../../../types/apiDocumentation';
 import { fetcherLabel } from '../../../utils/fetcherSchema';
+import { isSameSource } from '../../../utils/sourceChange';
 import { MASKED_SECRET, maskedSecretKeys, sameSourceAddress } from '../../../utils/sourceSecrets';
 import { CronScheduleInput, validateCron } from '../../CronScheduleInput';
 
@@ -44,6 +45,8 @@ import { CronScheduleInput, validateCron } from '../../CronScheduleInput';
 export interface ExternalSourceState {
     source: PortalNavigationItemSource | null;
     valid: boolean;
+    /** Given a stored source: whether the edited one is that source, the defaults of its fetcher's settings aside. */
+    unchanged?: boolean;
 }
 
 interface FetcherSettings {
@@ -81,16 +84,25 @@ export function ExternalSourceConfig({
 
     const scheduleError = fetchCron ? validateCron(fetchCron) : 'Choose when to fetch.';
 
+    // The server leaves out settings left at their default, which the settings form fills in again.
+    const storedWithDefaults = useMemo(() => {
+        const schema = fetchers?.find(candidate => candidate.id === storedSource?.type)?.schema;
+        if (!storedSource || !schema) return storedSource;
+        return { ...storedSource, configuration: { ...settingsDefaults(schema), ...storedSource.configuration } };
+    }, [fetchers, storedSource]);
+
     useEffect(() => {
         if (!type || !settings) {
-            onChangeRef.current({ source: null, valid: false });
+            onChangeRef.current({ source: null, valid: false, ...(storedWithDefaults ? { unchanged: false } : {}) });
             return;
         }
+        const source = { type, configuration: settings.configuration, useAutoFetch, ...(useAutoFetch ? { fetchCron } : {}) };
         onChangeRef.current({
-            source: { type, configuration: settings.configuration, useAutoFetch, ...(useAutoFetch ? { fetchCron } : {}) },
+            source,
             valid: settings.valid && (!useAutoFetch || scheduleError === null),
+            ...(storedWithDefaults ? { unchanged: isSameSource(storedWithDefaults, source) } : {}),
         });
-    }, [type, settings, useAutoFetch, fetchCron, scheduleError]);
+    }, [type, settings, useAutoFetch, fetchCron, scheduleError, storedWithDefaults]);
 
     if (isLoading) {
         return <Skeleton className="h-24 w-full rounded" />;
@@ -198,7 +210,7 @@ function FetcherSettingsForm({
     const form = useForm<FieldValues>({
         resolver,
         mode: 'onTouched',
-        defaultValues: { configuration: storedConfiguration ?? ((extractDefaults(schema) ?? {}) as Record<string, unknown>) },
+        defaultValues: { configuration: { ...settingsDefaults(schema), ...storedConfiguration } },
     });
     const [secretsCleared, setSecretsCleared] = useState(false);
     const [jsonText, setJsonText] = useState<string | null>(null);
@@ -334,6 +346,10 @@ function FetcherSettingsForm({
             ) : null}
         </div>
     );
+}
+
+function settingsDefaults(schema: JsonSchema): Record<string, unknown> {
+    return (extractDefaults(schema) ?? {}) as Record<string, unknown>;
 }
 
 function parseConfiguration(text: string): Record<string, unknown> | null {

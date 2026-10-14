@@ -407,6 +407,27 @@ describe('EditPageDetailsDialog', () => {
             ).toBeInTheDocument();
         });
 
+        it("does not count the defaults of its fetcher's settings as a change of source", async () => {
+            mockListFetchers.mockResolvedValue([
+                {
+                    ...GITHUB_FETCHER,
+                    schema: {
+                        ...GITHUB_FETCHER.schema,
+                        properties: {
+                            ...GITHUB_FETCHER.schema.properties,
+                            useSystemProxy: { title: 'Use system proxy', type: 'boolean', default: false },
+                        },
+                    },
+                },
+            ]);
+            renderDialog({ page: SYNCED_PAGE, syncState: 'OWN_SOURCE' });
+
+            await screen.findByRole('textbox', { name: /Repository/ });
+
+            await waitFor(() => expect(saveButton().disabled).toBe(true));
+            expect(screen.getByRole('switch', { name: 'Use system proxy' })).toHaveAttribute('aria-checked', 'false');
+        });
+
         it('fetches nothing when only the access changes', async () => {
             mockList.mockResolvedValue({ items: [GUIDES, SYNCED_PAGE], publications: [] });
             const { user, onClose } = renderDialog({ page: SYNCED_PAGE, syncState: 'OWN_SOURCE' });

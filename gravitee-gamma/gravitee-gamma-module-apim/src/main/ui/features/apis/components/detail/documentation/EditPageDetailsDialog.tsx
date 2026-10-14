@@ -119,7 +119,7 @@ function EditPageDetailsForm({
     const visibility = isPrivate ? 'PRIVATE' : 'PUBLIC';
     // A title the server refuses to change goes back exactly as stored: trimmed, it would count as a rename.
     const newTitle = titleEditable ? title.trim() : page.title;
-    const sourceChange = ownSourceEditable ? sourceChangeOf(page.source, fetched, sourceState.source) : undefined;
+    const sourceChange = ownSourceEditable ? sourceChangeOf(page.source, fetched, sourceState) : undefined;
     const hasChanges = newTitle !== page.title || visibility !== page.visibility || sourceChange !== undefined;
     const sourceReady = !sourceChange || sourceState.valid;
     const canSave = newTitle !== '' && hasChanges && sourceReady && !isSaving;

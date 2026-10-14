@@ -177,7 +177,7 @@ describe('ExternalSourceConfig', () => {
         it('sends a masked secret back unchanged, for the server to keep the stored one', async () => {
             const { lastState } = renderConfig({ storedSource: STORED_GITHUB_SOURCE });
 
-            await waitFor(() => expect(lastState()).toEqual({ source: STORED_GITHUB_SOURCE, valid: true }));
+            await waitFor(() => expect(lastState()).toEqual({ source: STORED_GITHUB_SOURCE, valid: true, unchanged: true }));
             expect(screen.queryByText(/re-enter/i)).not.toBeInTheDocument();
         });
 
@@ -202,7 +202,7 @@ describe('ExternalSourceConfig', () => {
 
             expect(screen.getByRole('textbox', { name: /Personal access token/ })).toHaveValue(MASKED_SECRET);
             expect(screen.queryByText(/re-enter/i)).not.toBeInTheDocument();
-            await waitFor(() => expect(lastState()).toEqual({ source: STORED_GITHUB_SOURCE, valid: true }));
+            await waitFor(() => expect(lastState()).toEqual({ source: STORED_GITHUB_SOURCE, valid: true, unchanged: true }));
         });
 
         it('keeps a secret typed for the new address when the address returns to the stored one', async () => {
@@ -230,6 +230,30 @@ describe('ExternalSourceConfig', () => {
                 personalAccessToken: '',
             });
             expect(screen.getByText(/re-enter/i)).toBeInTheDocument();
+        });
+
+        it("does not count the defaults of its fetcher's settings as a change", async () => {
+            mockListFetchers.mockResolvedValue([
+                {
+                    ...GITHUB_FETCHER,
+                    schema: {
+                        ...GITHUB_FETCHER.schema,
+                        properties: {
+                            ...GITHUB_FETCHER.schema.properties,
+                            useSystemProxy: { title: 'Use system proxy', type: 'boolean' },
+                        },
+                    },
+                },
+            ]);
+            const { user, lastState } = renderConfig({
+                storedSource: { type: 'github-fetcher', configuration: { repository: 'petstore' }, useAutoFetch: false },
+            });
+            const repository = await screen.findByRole('textbox', { name: /Repository/ });
+            await waitFor(() => expect(lastState()?.unchanged).toBe(true));
+
+            await user.type(repository, '-v2');
+
+            await waitFor(() => expect(lastState()?.unchanged).toBe(false));
         });
 
         it('says when its fetcher is no longer installed', async () => {
