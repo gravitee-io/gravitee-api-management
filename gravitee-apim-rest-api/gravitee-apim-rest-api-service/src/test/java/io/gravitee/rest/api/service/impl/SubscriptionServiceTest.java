@@ -40,6 +40,7 @@ import static org.mockito.Mockito.anyMap;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.nullable;
@@ -381,7 +382,7 @@ public class SubscriptionServiceTest {
         Subscription otherUserSubscription = new Subscription();
         otherUserSubscription.setId("other-user-subscription");
         otherUserSubscription.setStatus(ACCEPTED);
-        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(List.of(otherUserSubscription));
+        lenient().when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(List.of(otherUserSubscription));
 
         Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(
             GraviteeContext.getExecutionContext(),
@@ -398,7 +399,7 @@ public class SubscriptionServiceTest {
         Subscription anySubscription = new Subscription();
         anySubscription.setId("any-subscription");
         anySubscription.setStatus(ACCEPTED);
-        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(List.of(anySubscription));
+        lenient().when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(List.of(anySubscription));
 
         Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(
             GraviteeContext.getExecutionContext(),
