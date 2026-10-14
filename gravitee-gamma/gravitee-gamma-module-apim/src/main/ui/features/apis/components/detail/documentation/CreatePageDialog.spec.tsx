@@ -261,29 +261,26 @@ describe('CreatePageDialog', () => {
             expect(screen.getByRole('textbox', { name: /URL/ })).toHaveValue('https://docs.acme.io/openapi.yaml');
         });
 
-        it('keeps showing the refusal once the form can be edited again', async () => {
+        async function refuseLinkedSource() {
             mockCreateItem.mockRejectedValue(new ApimApiError(400, 'The source address docs.internal is not allowed'));
             const { user } = renderDialog();
             await user.type(titleInput(), 'Petstore API');
             await linkHttpSource(user);
             await waitFor(() => expect(createButton().disabled).toBe(false));
-
             await user.click(createButton());
             await screen.findByRole('alert');
             await waitFor(() => expect(screen.getByRole('textbox', { name: /URL/ })).toBeEnabled());
+            return user;
+        }
+
+        it('keeps showing the refusal once the form can be edited again', async () => {
+            await refuseLinkedSource();
 
             expect(screen.getByRole('alert')).toHaveTextContent('The source address docs.internal is not allowed');
         });
 
         it('clears the refusal once the source settings change', async () => {
-            mockCreateItem.mockRejectedValue(new ApimApiError(400, 'The source address docs.internal is not allowed'));
-            const { user } = renderDialog();
-            await user.type(titleInput(), 'Petstore API');
-            await linkHttpSource(user);
-            await waitFor(() => expect(createButton().disabled).toBe(false));
-            await user.click(createButton());
-            await screen.findByRole('alert');
-            await waitFor(() => expect(screen.getByRole('textbox', { name: /URL/ })).toBeEnabled());
+            const user = await refuseLinkedSource();
 
             await user.type(screen.getByRole('textbox', { name: /URL/ }), '/v2');
 
