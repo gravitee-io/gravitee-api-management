@@ -74,6 +74,13 @@ public class InvalidQueryException extends ValidationDomainException {
         );
     }
 
+    public static InvalidQueryException forUnsupportedAnalyticsOperator(String operator, String filterName) {
+        return new InvalidQueryException(
+            "Operator '" + operator + "' is not supported for analytics queries on filter '" + filterName + "'",
+            "analytics.filter.unsupported"
+        );
+    }
+
     public static InvalidQueryException forUnknownAPIType(String apiType) {
         return new InvalidQueryException("Unknown API type '" + apiType + "'", "analytics.filter.invalidValue");
     }
