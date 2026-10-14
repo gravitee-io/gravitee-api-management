@@ -26,9 +26,11 @@ import {
     FieldDescription,
     FieldLegend,
     FieldSet,
+    Label,
+    Switch,
 } from '@gravitee/graphene-core';
-import { RefreshCwIcon } from '@gravitee/graphene-core/icons';
-import { useEffect, useState, type FormEvent } from 'react';
+import { AlertCircleIcon, RefreshCwIcon } from '@gravitee/graphene-core/icons';
+import { useEffect, useId, useState, type FormEvent } from 'react';
 
 import { RefusalAlert, ScrollableDialogBody, WITHIN_VIEWPORT } from './dialogLayout';
 import { DocumentationItemDetailsFields, privateParentOf } from './DocumentationItemDetailsFields';
@@ -40,10 +42,12 @@ import {
     useCreateApiDocumentationItem,
     useImportApiDocumentation,
 } from '../../../hooks/useApiDocumentation';
+import { useFetchNow } from '../../../hooks/useFetchNow';
 import { SelectionCards, type SelectionCardItem } from '../../../pages/detail/general/SelectionCards';
 import type { PortalNavigationFolder, PortalVisibility } from '../../../types/apiDocumentation';
 import { allowedChanges, type SyncState } from '../../../utils/documentationTree';
 import { fetchSummaryOutcome } from '../../../utils/fetchOutcome';
+import { sourceChangeOf } from '../../../utils/sourceChange';
 
 type FolderContents = 'EMPTY' | 'IMPORT';
 
@@ -98,6 +102,7 @@ function FolderForm({
     const createItem = useCreateApiDocumentationItem(apiId);
     const changeItem = useChangeApiDocumentationItem(apiId);
     const importFolder = useImportApiDocumentation(apiId);
+    const { fetchNow } = useFetchNow(apiId);
     const privateParent = privateParentOf(parent);
     const [contents, setContents] = useState<FolderContents>('EMPTY');
     const [sourceState, setSourceState] = useState<ExternalSourceState>({ source: null, valid: false });
@@ -105,16 +110,22 @@ function FolderForm({
     const [isPrivate, setIsPrivate] = useState(folder ? folder.visibility === 'PRIVATE' : privateParent !== undefined);
     const [isSaving, setIsSaving] = useState(false);
     const [refusal, setRefusal] = useState<string | null>(null);
+    // Only a folder imported from a source has one to change: the server refuses to attach one to any other folder.
+    const editsOwnSource = folder?.source !== undefined && syncState === 'OWN_SOURCE';
+    const [fetched, setFetched] = useState(editsOwnSource);
+    const fetchedId = useId();
 
     useEffect(() => onSavingChange(isSaving), [isSaving, onSavingChange]);
 
     const isImport = !folder && contents === 'IMPORT';
-    const titleEditable = allowedChanges(syncState).title;
+    // The server locks the title of a synced folder, and lifts the lock in the update removing its source.
+    const titleEditable = allowedChanges(syncState).title || (editsOwnSource && !fetched);
     const visibility: PortalVisibility = isPrivate ? 'PRIVATE' : 'PUBLIC';
     // A title the server refuses to change goes back exactly as stored: trimmed, it would count as a rename.
     const newTitle = folder && !titleEditable ? folder.title : title.trim();
-    const hasChanges = !folder || newTitle !== folder.title || visibility !== folder.visibility;
-    const sourceReady = !isImport || sourceState.valid;
+    const sourceChange = editsOwnSource ? sourceChangeOf(folder.source, fetched, sourceState.source) : undefined;
+    const hasChanges = !folder || newTitle !== folder.title || visibility !== folder.visibility || sourceChange !== undefined;
+    const sourceReady = isImport ? sourceState.valid : !sourceChange || sourceState.valid;
     const canSave = newTitle !== '' && hasChanges && sourceReady && !isSaving;
     const madePrivate = folder?.visibility === 'PUBLIC' && isPrivate;
 
@@ -125,6 +136,13 @@ function FolderForm({
 
     function handlePrivateChange(next: boolean) {
         setIsPrivate(next);
+        setRefusal(null);
+    }
+
+    function handleFetchedChange(next: boolean) {
+        setFetched(next);
+        // A source locks the title: it shows the one that will be saved.
+        if (next && folder) setTitle(folder.title);
         setRefusal(null);
     }
 
@@ -146,8 +164,13 @@ function FolderForm({
         setIsSaving(true);
         try {
             if (folder) {
-                await changeItem.mutateAsync({ navId: folder.id, changes: { title: newTitle, visibility } });
+                await changeItem.mutateAsync({
+                    navId: folder.id,
+                    changes: { title: newTitle, visibility, ...(sourceChange === undefined ? {} : { source: sourceChange }) },
+                });
                 notify.success(`Folder '${newTitle}' saved`);
+                // An update never fetches: the folder would keep the old pages until the next fetch.
+                if (sourceChange) void fetchNow({ id: folder.id, title: newTitle });
             } else if (isImport && sourceState.source) {
                 const { summary } = await importFolder.mutateAsync({
                     title: newTitle,
@@ -191,7 +214,7 @@ function FolderForm({
             <ScrollableDialogBody>
                 <div className="flex flex-col gap-5">
                     <form id="documentation-folder-form" onSubmit={handleSubmit} className="flex flex-col gap-5">
-                        {syncState === 'OWN_SOURCE' ? (
+                        {syncState === 'OWN_SOURCE' && fetched ? (
                             <Alert>
                                 <RefreshCwIcon aria-hidden />
                                 <AlertDescription>
@@ -245,6 +268,33 @@ function FolderForm({
                             </p>
                             <ExternalSourceConfig forImport onChange={handleSourceChange} disabled={isSaving} />
                         </div>
+                    ) : null}
+                    {editsOwnSource ? (
+                        <FieldSet className="gap-3">
+                            <FieldLegend variant="label">External source</FieldLegend>
+                            <div className="flex items-center gap-2">
+                                <Switch id={fetchedId} checked={fetched} onCheckedChange={handleFetchedChange} disabled={isSaving} />
+                                <Label htmlFor={fetchedId} className="font-normal">
+                                    Fetch this folder from an external source
+                                </Label>
+                            </div>
+                            {fetched ? (
+                                <ExternalSourceConfig
+                                    forImport
+                                    storedSource={folder.source}
+                                    onChange={handleSourceChange}
+                                    disabled={isSaving}
+                                />
+                            ) : (
+                                <Alert>
+                                    <AlertCircleIcon aria-hidden />
+                                    <AlertDescription>
+                                        The source will be removed. The folder and the items in it stop being fetched and become editable.
+                                        Their current content is kept.
+                                    </AlertDescription>
+                                </Alert>
+                            )}
+                        </FieldSet>
                     ) : null}
                 </div>
             </ScrollableDialogBody>
