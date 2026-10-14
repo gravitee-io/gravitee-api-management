@@ -21,10 +21,6 @@ declare module '@gravitee/gravitee-markdown-element' {
     export function registerGmdViewerElement(): Promise<void>;
 }
 
-declare module 'redoc/bundles/redoc.standalone.js' {
-    export function init(spec: object, options: Record<string, unknown>, element: HTMLElement, callback?: (error?: unknown) => void): void;
-}
-
 declare module '@asyncapi/react-component/browser/index.js' {
     import AsyncApiComponent from '@asyncapi/react-component';
 

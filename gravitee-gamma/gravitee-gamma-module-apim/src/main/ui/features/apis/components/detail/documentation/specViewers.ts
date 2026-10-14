@@ -15,6 +15,7 @@
  */
 import type { AsyncApiProps } from '@asyncapi/react-component';
 import type { ComponentType } from 'react';
+import type { AppStore, Redoc } from 'redoc';
 import type { SwaggerUIOptions } from 'swagger-ui';
 
 /** What Swagger UI returns: its whole system, of which `@types/swagger-ui` leaves out the actions. */
@@ -24,8 +25,9 @@ export interface SwaggerUiInstance {
 
 export type SwaggerUiFactory = (options: SwaggerUIOptions) => SwaggerUiInstance;
 
-export interface RedocStandalone {
-    init(spec: object, options: Record<string, unknown>, element: HTMLElement, callback?: (error?: unknown) => void): void;
+export interface RedocLibrary {
+    AppStore: typeof AppStore;
+    Redoc: typeof Redoc;
 }
 
 export type AsyncApiViewer = ComponentType<AsyncApiProps>;
@@ -37,8 +39,8 @@ export async function loadSwaggerUi(): Promise<SwaggerUiFactory> {
     return (await import('./specViewerBundles/swaggerUi')).default as unknown as SwaggerUiFactory;
 }
 
-export async function loadRedoc(): Promise<RedocStandalone> {
-    return (await import('./specViewerBundles/redoc')).default;
+export async function loadRedoc(): Promise<RedocLibrary> {
+    return import('./specViewerBundles/redoc');
 }
 
 export async function loadAsyncApiViewer(): Promise<AsyncApiViewer> {

@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// The standalone bundle, as in the portal: the `redoc` package itself needs styled-components and mobx, which the
-// repository does not install. Its styles are injected by the bundle, under generated class names. It exports `init`
-// by name, with no default export.
-import * as Redoc from 'redoc/bundles/redoc.standalone.js';
-
-export default Redoc;
+// Redoc's library, rendered with Gamma's React. The standalone bundle the portal uses builds its stores itself and
+// never disposes of them, so each document it renders leaves a window scroll listener behind.
+export { AppStore, Redoc } from 'redoc';

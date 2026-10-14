@@ -17,7 +17,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SwaggerUIOptions } from 'swagger-ui';
 
 import { PreviewLoadError, PreviewLoading, SpecPreviewFrame } from './SpecPreviewFrame';
-import { loadRedoc, loadSwaggerUi, type SwaggerUiInstance } from './specViewers';
+import { loadRedoc, loadSwaggerUi, type RedocLibrary, type SwaggerUiInstance } from './specViewers';
 import { useSpecPreview } from '../../../hooks/useSpecPreview';
 import type { PortalPageOpenApiConfiguration, PortalPageSwaggerConfiguration } from '../../../types/apiDocumentation';
 import type { SpecDocument } from '../../../utils/specDocument';
@@ -108,47 +108,54 @@ function SwaggerUiViewer({
     );
 }
 
+type RedocStore = InstanceType<RedocLibrary['AppStore']>;
+
 function RedocViewer({ specDocument, serverUrl }: Readonly<{ specDocument: SpecDocument; serverUrl?: string }>) {
     const spec = useMemo(() => withServer(specDocument, serverUrl), [specDocument, serverUrl]);
-    const hostRef = useRef<HTMLDivElement>(null);
-    const [status, setStatus] = useState<ViewerStatus>('loading');
+    const [library, setLibrary] = useState<RedocLibrary | 'failed'>();
+    const [rendered, setRendered] = useState<{ store: RedocStore; version: number } | 'failed'>();
 
     useEffect(() => {
         let isCancelled = false;
         loadRedoc()
-            .then(Redoc => {
-                const host = hostRef.current;
-                if (isCancelled || !host) return;
-                // Redoc renders once into the element it is given: each document gets a fresh one.
-                const element = document.createElement('div');
-                host.replaceChildren(element);
-                Redoc.init(spec, REDOC_OPTIONS, element, (error?: unknown) => {
-                    if (isCancelled) return;
-                    if (error) {
-                        console.error('[OpenApiPreview] Redoc could not render the document', error);
-                        setStatus('failed');
-                    } else {
-                        setStatus('ready');
-                    }
-                });
+            .then(loaded => {
+                if (!isCancelled) setLibrary(loaded);
             })
             .catch((error: unknown) => {
                 console.error('[OpenApiPreview] Failed to load Redoc', error);
-                if (!isCancelled) setStatus('failed');
+                if (!isCancelled) setLibrary('failed');
             });
         return () => {
             isCancelled = true;
         };
-    }, [spec]);
+    }, []);
 
-    return (
-        <>
-            {status === 'loading' ? <PreviewLoading /> : null}
-            {status === 'failed' ? <PreviewLoadError /> : null}
-            {/* Kept while failed, so that the next document can be rendered into it. */}
-            <div ref={hostRef} hidden={status === 'failed'} />
-        </>
-    );
+    // A store holds window listeners until it is disposed: each document gets its own, released when the next one
+    // replaces it or the preview closes. The preview has no search, so no store builds a search index.
+    useEffect(() => {
+        if (!library || library === 'failed') return;
+        // Only an OpenAPI document reaches the viewer (parseSpecDocument); Redoc checks the rest of it.
+        const openApiSpec = spec as unknown as ConstructorParameters<RedocLibrary['AppStore']>[0];
+        let store: RedocStore;
+        try {
+            store = new library.AppStore(openApiSpec, undefined, REDOC_OPTIONS, false);
+        } catch (error: unknown) {
+            console.error('[OpenApiPreview] Redoc could not read the document', error);
+            setRendered('failed');
+            return;
+        }
+        setRendered(previous => ({ store, version: (previous && previous !== 'failed' ? previous.version : 0) + 1 }));
+        return () => store.dispose();
+    }, [library, spec]);
+
+    if (library === 'failed' || rendered === 'failed') {
+        return <PreviewLoadError />;
+    }
+    if (!library || !rendered) {
+        return <PreviewLoading />;
+    }
+    // Redoc sets up a store when it mounts: a new store needs a new Redoc, not an update of the previous one.
+    return <library.Redoc key={rendered.version} store={rendered.store} />;
 }
 
 /** The portal editor's rule: a base URL replaces the document's servers, unless Swagger UI uses the API entrypoints. */
