@@ -132,7 +132,7 @@ public class ApiResource extends AbstractResource {
         // The documentation view follows the visibility of the API's navigation item, not of the API itself
         if (
             include.contains(INCLUDE_PLANS) &&
-            (!isDocumentationView || accessControlService.canAccessApiFromPortal(executionContext, genericApiEntity))
+            (!isDocumentationView || accessControlService.canConsumeApiFromPortal(executionContext, genericApiEntity))
         ) {
             List<Plan> plans = planSearchService
                 .findByApi(executionContext, genericApiEntity, true)
