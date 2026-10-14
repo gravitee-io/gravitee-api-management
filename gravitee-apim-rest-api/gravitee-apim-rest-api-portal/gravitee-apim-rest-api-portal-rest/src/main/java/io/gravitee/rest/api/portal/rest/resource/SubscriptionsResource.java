@@ -130,7 +130,7 @@ public class SubscriptionsResource extends AbstractResource {
                     plan.getReferenceId(),
                     PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())
                 );
-            } else if (!accessControlService.canAccessApiFromPortal(executionContext, plan.getReferenceId())) {
+            } else if (!accessControlService.canConsumeApiFromPortal(executionContext, plan.getReferenceId())) {
                 throw new ApiNotFoundException(plan.getReferenceId());
             }
 
