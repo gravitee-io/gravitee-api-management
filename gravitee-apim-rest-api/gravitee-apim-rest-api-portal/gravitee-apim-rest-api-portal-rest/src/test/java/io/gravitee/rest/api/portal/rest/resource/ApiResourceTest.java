@@ -451,4 +451,64 @@ public class ApiResourceTest extends AbstractResourceTest {
         final Api responseApi = response.readEntity(Api.class);
         assertNotNull(responseApi);
     }
+
+    @Test
+    public void should_not_include_plans_with_documentation_view_when_api_is_not_accessible() {
+        givenPublicNavigationItemWithOnePublishedPlan();
+        doReturn(false)
+            .when(accessControlService)
+            .canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class));
+
+        final Response response = target(API)
+            .queryParam(PortalApiViewParam.QUERY_PARAM_NAME, PortalApiViewParam.DOCUMENTATION)
+            .queryParam("include", "plans")
+            .request()
+            .get();
+
+        assertEquals(OK_200, response.getStatus());
+        final List<Plan> plans = response.readEntity(Api.class).getPlans();
+        assertTrue(plans == null || plans.isEmpty());
+    }
+
+    @Test
+    public void should_include_plans_with_documentation_view_when_api_is_accessible() {
+        givenPublicNavigationItemWithOnePublishedPlan();
+
+        final Response response = target(API)
+            .queryParam(PortalApiViewParam.QUERY_PARAM_NAME, PortalApiViewParam.DOCUMENTATION)
+            .queryParam("include", "plans")
+            .request()
+            .get();
+
+        assertEquals(OK_200, response.getStatus());
+        assertEquals(1, response.readEntity(Api.class).getPlans().size());
+    }
+
+    private void givenPublicNavigationItemWithOnePublishedPlan() {
+        portalNavigationItemsQueryService.initWith(
+            List.of(
+                PortalNavigationApi.builder()
+                    .id(PortalNavigationItemId.random())
+                    .organizationId("DEFAULT")
+                    .environmentId(ENV_ID)
+                    .title("Nav for " + API)
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .apiId(API)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .segment(PortalNavigationItem.slugify("Nav for " + API).value())
+                    .build()
+            )
+        );
+
+        PlanEntity plan = new PlanEntity();
+        plan.setId("A");
+        plan.setSecurity(PlanSecurityType.API_KEY);
+        plan.setStatus(PlanStatus.PUBLISHED);
+        doReturn(Set.of(plan))
+            .when(planSearchService)
+            .findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(true));
+        doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
+    }
 }
