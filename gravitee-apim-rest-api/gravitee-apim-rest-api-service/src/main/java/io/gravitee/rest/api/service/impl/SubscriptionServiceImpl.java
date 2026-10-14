@@ -283,7 +283,13 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             query.setApplication(application);
         } else if (isAuthenticated()) {
             Set<ApplicationListItem> applications = applicationService.findByUser(executionContext, getAuthenticatedUsername());
+            // The repositories read an empty application filter as no filter at all
+            if (applications.isEmpty()) {
+                return List.of();
+            }
             query.setApplications(applications.stream().map(ApplicationListItem::getId).collect(toList()));
+        } else {
+            return List.of();
         }
 
         return search(executionContext, query);
