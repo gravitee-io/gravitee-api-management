@@ -66,8 +66,12 @@ public class ApiPlansResource extends AbstractResource {
 
         GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
 
-        // Public API can be accessed without permission
-        if (!hasPermission(executionContext, API_PLAN, apiId, READ) && !Visibility.PUBLIC.equals(genericApiEntity.getVisibility())) {
+        // Public API exposed in a portal can be accessed without permission
+        if (
+            !hasPermission(executionContext, API_PLAN, apiId, READ) &&
+            !(Visibility.PUBLIC.equals(genericApiEntity.getVisibility()) &&
+                accessControlService.canConsumeApiFromPortal(executionContext, genericApiEntity))
+        ) {
             throw new ApiNotFoundException(apiId);
         }
 
