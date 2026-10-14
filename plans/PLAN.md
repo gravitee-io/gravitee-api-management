@@ -150,7 +150,7 @@ isProject: false
 
 **One hard blocker.** STORY-01 fixes a bug that ships today: saving a page in the classic editor silently detaches it from its API. It bites only GitOps-created documentation at the moment, but once all documentation belongs to the API it happens on nearly every edit. Nothing else in Phase 2 onward should start before it lands.
 
-**Still open:** six decisions, five of which block a story not done yet — see [Decisions that block stories](#decisions-that-block-stories).
+**Still open:** four decisions, three of which block a story not done yet — see [Decisions that block stories](#decisions-that-block-stories).
 
 ---
 
@@ -493,7 +493,7 @@ Nothing a user can see breaks either way — the cost is accumulating orphan row
 **Accepted for this release, not fixed.** Three consequences:
 
 - Owner assignment must skip `API_PRODUCT` parents.
-- **API products are the realistic reason an API has two listing rows** — `ApiItemCreateRule.isApiIdAlreadyUsed` compares API-product ancestry, so the same API may be listed once standalone and once inside a product. Each row was seeded its own starter page, so the duplicate-starter-page case in STORY-19 is the API-product case, not a hypothetical.
+- **API products are the realistic reason an API has two listing rows** — `ApiItemCreateRule.isApiIdAlreadyUsed` compares API-product ancestry, so the same API may be listed once standalone and once inside a product. Each row was seeded its own starter page, but the product's stays with the product (STORY-02a), so it is not a duplicate for STORY-19.
 - Ancestry walks stop at the ownership edge, so product-scoped rules are structurally unreachable from an API-owned item.
 
 ### Gravitee Markdown in Gamma
@@ -1003,7 +1003,8 @@ Decided earlier, when PORTAL-231 was written, and now reflected in the stories:
 - Running it twice changes nothing the second time, and an interrupted run resumes safely.
 - Items carrying an external source, and everything below them, are migrated like any other item. Afterwards they are still read-only and can still be refreshed: an item below a migrated sourced folder is refused an edit, the sourced root cannot be renamed or moved while it keeps its source, and a refresh leaves the root and its descendants owned by the API.
 - Positions are renumbered contiguously where two groups merge.
-- Duplicate starter pages are handled per the agreed policy; contents are never merged.
+- Starter pages are migrated like any other page and all kept: none is hidden, renamed or deleted, and contents are never merged (decision 6).
+- If an API has more than one standalone listing row, the children of all of them become the API's documentation, in one list (decision 8).
 - Nested items receive both the new ownership and the new root in the same pass.
 - Works on both supported databases.
 - Every decision taken is logged.
@@ -1012,14 +1013,14 @@ Decided earlier, when PORTAL-231 was written, and now reflected in the stories:
 - *edit* `UPG/UpgraderOrder.java` — a new constant at 726, after the existing api-owned rekey upgrader at 725
 - *read only* `UPG/PortalNavigationItemApiOwnedRekeyUpgrader.java` — the template: in-place field updates, no create or delete, ids unchanged, full-collection scan. Copy its shape, including its resumability guard
 - *read only* `UPG/ApiNavigationSubtreePaths.java` — the existing path-reconstruction helper; the walk here is a generalisation of it without the deterministic-id ownership test
-**Size:** L · **Depends on:** STORY-03, STORY-18 · **Blocked by:** decision 6
+**Size:** L · **Depends on:** STORY-03, STORY-18
 **Note:** sourced items were first left out, for fear they would lose their read-only protection. They are included since 2026-10-14, after review of the STORY-08 pull request ([#21182](https://github.com/gravitee-io/gravitee-api-management/pull/21182)) showed that leaving them out strands every folder imported before STORY-08. The fear does not hold: `SourcedItemReadOnlyRule` decides from the item's own source and its stored parent chain, never from ownership, and the migration changes the parent of a subtree's root only. A refresh re-imports with the owner the root has, so it keeps the API.
 **Note:** no rollback. Do not assign to whoever is newest to this codebase. The architecture test forbidding a particular paging call applies here — follow the existing upgrader's scan.
 **Subtasks:**
 1. The walk: find everything stored under each listing row, with the ownership relabelled in place and an already-aligned guard so a second run does nothing.
 2. Sourced items: migrate them with the rest, the parent chain below the root unchanged, and prove they stay read-only and refreshable afterwards.
 3. Renumber positions contiguously where two groups merge.
-4. Duplicate starter pages, per the agreed policy.
+4. Merge the children of every standalone listing row of an API into its one list (decision 8).
 5. Carry the new ownership and root down to nested items in the same pass.
 6. The fixture matrix and the run-twice diff.
 
@@ -1549,9 +1550,9 @@ Track C is roughly half the total work, so with four people the split is two on 
 | 3 | ~~What happens when the portal has no top-level sections at all?~~ **Settled: the publish dialog still opens, with the section picker empty and a short explanation, so the user sees that choosing a location is the step that blocks. Publishing stays disabled; Gamma never creates a section.** | — |
 | 4 | Does deleting an API from the console clean up its documentation in this release? | 37 |
 | 5 | Should an API whose only documentation is an empty folder still get a starter page? | 09 |
-| 6 | May the migration delete a duplicate starter page that still matches the template? | 19 |
+| 6 | ~~May the migration delete a duplicate starter page that still matches the template?~~ **Settled: no.** Starter pages are migrated like any other page and all kept; a segment clash gives the migrated one a suffix. The realistic duplicate is a template "Overview" seeded under the listing next to an "Overview" the API already had, which the portal already shows side by side | — |
 | 7 | Confirm Documentation stays hidden for federated APIs | 23 |
-| 8 | Migrate-and-dedupe or skip, for an API listed more than once | 19 |
+| 8 | ~~Migrate-and-dedupe or skip, for an API listed more than once~~ **Settled: a plain merge.** The uniqueness rule means an API never has more than one standalone listing row; if older data has more, every row's children become the API's documentation, shown under each row | — |
 | 9 | ~~Moving an item out of an API listed in several portals — refuse, or define the semantic?~~ **Settled: refuse.** Defining it would need the caller to say which listing they mean, and a way to remove an item from one listing only, which the ownership model does not have. Only standalone listings count: a listing inside an API product does not show the API's documentation. | — |
 
 **Settled during design, recorded so the reasoning is not relitigated:**
@@ -1592,7 +1593,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | Deleting an API from the console leaks documentation and page text | Medium | STORY-37, or an accepted known issue |
 | The migration cannot be reversed | Medium | In-place updates, unchanged ids, logging, run-twice test (STORY-19) |
 | Items with an external source lose read-only protection after migration | Medium | Read-only is decided by the source and the stored parent chain, not by ownership, and the migration keeps that chain below each root. STORY-19 tests it |
-| Duplicate starter pages when an API was listed twice | Medium | Decision 6; STORY-18 sizes it first |
+| Two "Overview" pages side by side after the migration | Low (accepted) | Decision 6: both kept, as the portal already shows them; the migrated one's URL may get a suffix |
 | Per-item visibility and ordering apply to every portal listing the API | Medium | Explicit wording; decision 1 |
 | Moves that change owner corrupt sibling order | Medium | STORY-06; Gamma's own moves never change owner |
 | Permission annotations are OR-semantics, allowing escalation on requests with a body | Medium | STORY-13, kept as its own story |
