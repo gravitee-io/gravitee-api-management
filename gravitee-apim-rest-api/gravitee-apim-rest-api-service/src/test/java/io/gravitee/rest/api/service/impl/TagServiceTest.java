@@ -168,7 +168,7 @@ public class TagServiceTest {
     }
 
     @Test
-    public void should_delete_tag_from_api_products_on_org_tag_delete() throws TechnicalException {
+    public void should_delete_tag_key_from_apis_and_api_products_on_org_tag_delete() throws TechnicalException {
         var tagKey = "external";
         var tagId = "tag-uuid";
         var environmentId = "env-1";
@@ -192,7 +192,7 @@ public class TagServiceTest {
         tagService.delete(executionContext, tagKey, REFERENCE_ID, REFERENCE_TYPE);
 
         var inOrder = inOrder(apiTagService, apiProductTagDomainService, tagRepository, auditService);
-        inOrder.verify(apiTagService).deleteTagFromAPIs(executionContext, tagId);
+        inOrder.verify(apiTagService).deleteTagFromAPIs(executionContext, tagKey);
         inOrder.verify(apiProductTagDomainService).deleteTagFromApiProducts(environmentId, tagKey);
         inOrder.verify(tagRepository).delete(tagId);
         inOrder.verify(auditService).createOrganizationAuditLog(eq(executionContext), any());

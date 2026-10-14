@@ -226,7 +226,7 @@ public class TagServiceImpl extends AbstractService implements TagService {
                 String tagId = tag.getId();
                 String tagKey = tag.getKey();
                 // Cascade first (idempotent), delete the org tag row last so a retry can complete cleanup.
-                apiTagService.deleteTagFromAPIs(executionContext, tagId);
+                apiTagService.deleteTagFromAPIs(executionContext, tagKey);
                 environmentService
                     .findByOrganization(executionContext.getOrganizationId())
                     .forEach(env -> apiProductTagDomainService.deleteTagFromApiProducts(env.getId(), tagKey));
