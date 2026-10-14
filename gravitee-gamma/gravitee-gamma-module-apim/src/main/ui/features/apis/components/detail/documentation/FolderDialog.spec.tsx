@@ -388,6 +388,35 @@ describe('FolderDialog', () => {
                     expect(mockListFetchers).toHaveBeenCalledWith('env-1', { forImport: true });
                 });
 
+                it('saves nothing while it is left as it is', async () => {
+                    renderDialog({ folder: IMPORTED, syncState: 'OWN_SOURCE' });
+
+                    await screen.findByRole('textbox', { name: /Project/ });
+
+                    await waitFor(() => expect(button('Save').disabled).toBe(true));
+                });
+
+                it('fetches nothing when only the access changes', async () => {
+                    const { user, onClose } = renderDialog({ folder: IMPORTED, syncState: 'OWN_SOURCE' });
+                    await screen.findByRole('textbox', { name: /Project/ });
+
+                    await user.click(privateSwitch());
+                    await user.click(button('Save'));
+
+                    await waitFor(() => expect(onClose).toHaveBeenCalled());
+                    expect(mockUpdate.mock.calls[0][3]).toMatchObject({ source: IMPORTED.source });
+                    expect(mockFetchItem).not.toHaveBeenCalled();
+                });
+
+                it('cannot be saved once a required setting is cleared', async () => {
+                    const { user } = renderDialog({ folder: IMPORTED, syncState: 'OWN_SOURCE' });
+                    const project = await screen.findByRole('textbox', { name: /Project/ });
+
+                    await user.clear(project);
+
+                    await waitFor(() => expect(button('Save').disabled).toBe(true));
+                });
+
                 it('saves a changed source, then fetches the folder from it', async () => {
                     const { user, onClose } = renderDialog({ folder: IMPORTED, syncState: 'OWN_SOURCE' });
                     const project = await screen.findByRole('textbox', { name: /Project/ });
@@ -430,6 +459,22 @@ describe('FolderDialog', () => {
                     expect(payload).not.toHaveProperty('source');
                     expect(mockFetchItem).not.toHaveBeenCalled();
                 });
+            });
+
+            it('offers only to remove a source it was not imported with, which the server refuses to change', async () => {
+                const legacy = { ...AUTH, source: SOURCE };
+                mockList.mockResolvedValue({ items: [GUIDES, legacy], publications: [] });
+                const { user, onClose } = renderDialog({ folder: legacy, syncState: 'OWN_SOURCE' });
+
+                expect(screen.getByText(/can only be removed here/)).toBeInTheDocument();
+                expect(screen.queryByRole('combobox', { name: 'Source type' })).not.toBeInTheDocument();
+                expect(button('Save').disabled).toBe(true);
+
+                await user.click(screen.getByRole('switch', { name: 'Fetch this folder from an external source' }));
+                await user.click(button('Save'));
+
+                await waitFor(() => expect(onClose).toHaveBeenCalled());
+                expect(mockUpdate.mock.calls[0][3]).not.toHaveProperty('source');
             });
 
             it('changes its access, sending its title, spaces included, and its source back unchanged', async () => {

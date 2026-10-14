@@ -220,7 +220,8 @@ function EditPageDetailsForm({
                             ) : null}
                             {fetched ? (
                                 <ExternalSourceConfig storedSource={page.source} onChange={handleSourceChange} disabled={isSaving} />
-                            ) : page.source ? (
+                            ) : null}
+                            {!fetched && page.source ? (
                                 <Alert>
                                     <AlertCircleIcon aria-hidden />
                                     <AlertDescription>

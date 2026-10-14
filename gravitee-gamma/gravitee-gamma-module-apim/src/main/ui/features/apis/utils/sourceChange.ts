@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ExternalSourceState } from '../components/detail/documentation/ExternalSourceConfig';
 import type { PortalNavigationItemSource } from '../types/apiDocumentation';
 
 /**
@@ -43,7 +42,7 @@ function comparable(source: PortalNavigationItemSource): string {
 export function sourceChangeOf(
     stored: PortalNavigationItemSource | undefined,
     fetched: boolean,
-    edited: ExternalSourceState,
+    edited: { source: PortalNavigationItemSource | null; unchanged?: boolean },
 ): PortalNavigationItemSource | null | undefined {
     if (!fetched) return stored ? null : undefined;
     if (!edited.source) return undefined;

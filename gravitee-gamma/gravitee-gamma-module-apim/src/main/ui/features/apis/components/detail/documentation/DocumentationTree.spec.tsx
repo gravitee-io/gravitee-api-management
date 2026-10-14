@@ -259,6 +259,16 @@ describe('DocumentationTree', () => {
         expect(screen.getByRole('button', { name: 'Actions for Status page' })).toBeInTheDocument();
     });
 
+    it('does not point to Edit details for removing a source when the user cannot edit', async () => {
+        const user = userEvent.setup();
+        renderTree({ canEdit: false });
+
+        await user.click(screen.getByRole('button', { name: 'Actions for Reference' }));
+        await user.hover(screen.getByRole('menuitem', { name: 'Delete' }));
+
+        expect(await screen.findByRole('tooltip')).toHaveTextContent(/^Remove its external source first\.$/);
+    });
+
     it('says to remove the source of a synced item before deleting it, as the server refuses to delete it', async () => {
         const user = userEvent.setup();
         const { onDelete } = renderTree();

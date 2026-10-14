@@ -112,6 +112,8 @@ function FolderForm({
     const [refusal, setRefusal] = useState<string | null>(null);
     // Only a folder imported from a source has one to change: the server refuses to attach one to any other folder.
     const editsOwnSource = folder?.source !== undefined && syncState === 'OWN_SOURCE';
+    // A source the folder was not imported with can only be removed: the server refuses to replace it.
+    const sourceReplaceable = folder?.source?.subtreeImport === true;
     const [fetched, setFetched] = useState(editsOwnSource);
     const fetchedId = useId();
 
@@ -278,14 +280,20 @@ function FolderForm({
                                     Fetch this folder from an external source
                                 </Label>
                             </div>
-                            {fetched ? (
+                            {fetched && sourceReplaceable ? (
                                 <ExternalSourceConfig
                                     forImport
                                     storedSource={folder.source}
                                     onChange={handleSourceChange}
                                     disabled={isSaving}
                                 />
-                            ) : (
+                            ) : null}
+                            {fetched && !sourceReplaceable ? (
+                                <p className="text-xs text-muted-foreground">
+                                    This folder was not imported from its source, so the source can only be removed here.
+                                </p>
+                            ) : null}
+                            {fetched ? null : (
                                 <Alert>
                                     <AlertCircleIcon aria-hidden />
                                     <AlertDescription>

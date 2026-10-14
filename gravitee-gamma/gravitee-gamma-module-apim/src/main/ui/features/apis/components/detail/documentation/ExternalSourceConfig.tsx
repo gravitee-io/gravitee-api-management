@@ -88,7 +88,7 @@ export function ExternalSourceConfig({
     const storedWithDefaults = useMemo(() => {
         const schema = fetchers?.find(candidate => candidate.id === storedSource?.type)?.schema;
         if (!storedSource || !schema) return storedSource;
-        return { ...storedSource, configuration: { ...settingsDefaults(schema), ...storedSource.configuration } };
+        return { ...storedSource, configuration: storedSettings(schema, storedSource.configuration) };
     }, [fetchers, storedSource]);
 
     useEffect(() => {
@@ -207,10 +207,14 @@ function FetcherSettingsForm({
     onChange: (settings: FetcherSettings) => void;
 }>) {
     const resolver = useMemo(() => jsonSchemaResolver(schema, { basePath: 'configuration' }), [schema]);
+    const storedBaseline = useMemo(
+        () => (storedConfiguration ? storedSettings(schema, storedConfiguration) : undefined),
+        [schema, storedConfiguration],
+    );
     const form = useForm<FieldValues>({
         resolver,
         mode: 'onTouched',
-        defaultValues: { configuration: { ...settingsDefaults(schema), ...storedConfiguration } },
+        defaultValues: { configuration: storedBaseline ?? settingsDefaults(schema) },
     });
     const [secretsCleared, setSecretsCleared] = useState(false);
     const [jsonText, setJsonText] = useState<string | null>(null);
@@ -247,8 +251,8 @@ function FetcherSettingsForm({
      */
     const syncSecretsWithAddress = useCallback(
         (configuration: Record<string, unknown>): Record<string, unknown> => {
-            if (!storedConfiguration) return configuration;
-            if (sameSourceAddress(storedConfiguration, configuration)) {
+            if (!storedBaseline) return configuration;
+            if (sameSourceAddress(storedBaseline, configuration)) {
                 const restorable = clearedSecrets.current.filter(key => !configuration[key]);
                 clearedSecrets.current = [];
                 setSecretsCleared(false);
@@ -262,7 +266,7 @@ function FetcherSettingsForm({
             setSecretsCleared(true);
             return { ...configuration, ...Object.fromEntries(masked.map(key => [key, ''])) };
         },
-        [storedConfiguration],
+        [storedBaseline],
     );
 
     useEffect(() => {
@@ -350,6 +354,17 @@ function FetcherSettingsForm({
 
 function settingsDefaults(schema: JsonSchema): Record<string, unknown> {
     return (extractDefaults(schema) ?? {}) as Record<string, unknown>;
+}
+
+/**
+ * The stored settings as the settings form shows them. The server leaves settings that are false out: a switch it left
+ * out is off, whatever its default. Any other setting it left out takes its default, as the form fills it in.
+ */
+function storedSettings(schema: JsonSchema, stored: Record<string, unknown>): Record<string, unknown> {
+    const switchesLeftOut = Object.entries(schema.properties ?? {})
+        .filter(([key, property]) => typeof property === 'object' && property.type === 'boolean' && !(key in stored))
+        .map(([key]) => [key, false]);
+    return { ...settingsDefaults(schema), ...Object.fromEntries(switchesLeftOut), ...stored };
 }
 
 function parseConfiguration(text: string): Record<string, unknown> | null {
