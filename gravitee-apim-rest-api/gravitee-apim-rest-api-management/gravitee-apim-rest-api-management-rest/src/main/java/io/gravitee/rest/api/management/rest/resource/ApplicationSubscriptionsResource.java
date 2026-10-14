@@ -41,6 +41,7 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -121,6 +122,13 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
         GenericPlanEntity planEntity = planSearchService.findById(executionContext, plan);
 
         if (
+            planEntity.getReferenceType() != GenericPlanEntity.ReferenceType.API_PRODUCT &&
+            !canConsumeApi(executionContext, planEntity.getReferenceId())
+        ) {
+            throw new ApiNotFoundException(planEntity.getReferenceId());
+        }
+
+        if (
             planEntity.isCommentRequired() && (newSubscriptionEntity.getRequest() == null || newSubscriptionEntity.getRequest().isEmpty())
         ) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Plan requires a consumer comment when subscribing").build();
@@ -132,6 +140,14 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
         return Response.created(this.getRequestUriBuilder().path(subscription.getId()).replaceQueryParam("plan", null).build())
             .entity(subscription)
             .build();
+    }
+
+    private boolean canConsumeApi(ExecutionContext executionContext, String apiId) {
+        if (isAdmin()) {
+            return true;
+        }
+        GenericApiEntity api = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
+        return apiAuthorizationService.canConsumeApi(executionContext, getAuthenticatedUser(), api);
     }
 
     @GET
