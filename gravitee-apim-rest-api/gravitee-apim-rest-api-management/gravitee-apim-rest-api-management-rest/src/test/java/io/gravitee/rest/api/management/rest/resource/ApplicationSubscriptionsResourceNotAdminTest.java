@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -29,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -39,7 +39,7 @@ import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
-import java.util.Set;
+import java.util.Map;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,7 +63,7 @@ class ApplicationSubscriptionsResourceNotAdminTest extends AbstractResourceTest 
 
     @BeforeEach
     void init() {
-        reset(apiSearchServiceV4, apiAuthorizationServiceV4, accessControlService, planSearchService, subscriptionService, userService);
+        reset(apiSearchServiceV4, membershipService, accessControlService, planSearchService, subscriptionService, userService);
 
         PlanEntity plan = new PlanEntity();
         plan.setId(PLAN);
@@ -104,7 +104,9 @@ class ApplicationSubscriptionsResourceNotAdminTest extends AbstractResourceTest 
 
     @Test
     void should_subscribe_when_user_is_a_member_of_api_not_consumable_from_portal() {
-        when(apiAuthorizationServiceV4.findApiIdsByUserId(any(), eq(USER_NAME), isNull(), eq(false))).thenReturn(Set.of(API));
+        when(membershipService.getUserMemberPermissions(any(), eq(MembershipReferenceType.API), eq(API), eq(USER_NAME))).thenReturn(
+            Map.of("DEFINITION", new char[] { 'R' })
+        );
         when(accessControlService.canConsumeApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(false);
         givenSubscriptionIsCreated();
 
