@@ -24,6 +24,10 @@ const XML_SCHEMA_FORMAT = /^(?:application|text)\/(?:[\w.-]+\+)?(?:xml|xsd)$/i;
 // plain property.
 const ASYNCAPI_YAML_SCHEMA = CORE_SCHEMA.withTags(mergeTag);
 
+// JSON.stringify writes a node shared through YAML aliases once per reference: a document that would expand past
+// this many nodes, or that loops back, would stall the page once rewritten, so it is left to the viewer.
+const MAX_EXPANDED_NODES = 100_000;
+
 /**
  * The AsyncAPI viewer (`@asyncapi/web-component`) has no schema parser for XML Schema: up to 2.x
  * it refuses the whole document ("Unknown schema format"), from 3.x it shows the payload as `any`.
@@ -38,7 +42,7 @@ export function toRenderableAsyncApi<T extends string | null | undefined>(conten
   }
   try {
     const document = readAsyncApiDocument(content);
-    if (!document) {
+    if (!document || expandedSize(document, new Map()) > MAX_EXPANDED_NODES) {
       return content;
     }
     // AsyncAPI 2.x declares the payload format on the message; 3.x moved it into the payload, a
@@ -58,6 +62,28 @@ function readAsyncApiDocument(content: string): JsonNode | undefined {
   const documents = loadAll(content, { schema: ASYNCAPI_YAML_SCHEMA });
   const [document] = documents;
   return documents.length === 1 && isNode(document) && 'asyncapi' in document ? document : undefined;
+}
+
+// `sizes` holds each node's expanded size once measured, so a shared node is measured once; a node still being
+// measured reads as infinite, which a loop back to it reports.
+function expandedSize(node: unknown, sizes: Map<JsonNode, number>): number {
+  if (!isNode(node)) {
+    return 1;
+  }
+  const measured = sizes.get(node);
+  if (measured !== undefined) {
+    return measured;
+  }
+  sizes.set(node, Infinity);
+  let size = 1;
+  for (const value of Object.values(node)) {
+    size += expandedSize(value, sizes);
+    if (size > MAX_EXPANDED_NODES) {
+      break;
+    }
+  }
+  sizes.set(node, size);
+  return size;
 }
 
 // `visited` keeps a node shared through YAML aliases from being walked once per reference.

@@ -227,6 +227,13 @@ describe('toRenderableAsyncApi', () => {
     expect(toRenderableAsyncApi(content)).toBe(content);
   });
 
+  it('should return a document whose aliases would expand past the size a page can lay out unchanged', () => {
+    const levels = Array.from({ length: 18 }, (_, i) => `l${i + 1}: &l${i + 1} [*l${i}, *l${i}]`).join('\n');
+    const content = `${ASYNCAPI_3_XSD}x-fan-out:\n  l0: &l0 { leaf: true }\n${levels.replace(/^/gm, '  ')}\n`;
+
+    expect(toRenderableAsyncApi(content)).toBe(content);
+  });
+
   it('should return a document whose anchors loop back unchanged', () => {
     const content = `${ASYNCAPI_3_XSD}x-loop: &loop\n  self: *loop\n`;
 
