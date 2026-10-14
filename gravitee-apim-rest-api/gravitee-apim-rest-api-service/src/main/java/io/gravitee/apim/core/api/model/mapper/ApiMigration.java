@@ -431,12 +431,25 @@ class ApiMigration {
             }
             var jsonNode = jsonMapper.readTree(lb.getConfiguration()).get("target");
             var target = jsonNode != null ? jsonNode.asText() : null;
-            var target1 = jsonMapper.createObjectNode().put("target", target);
+            var target1 = jsonMapper.createObjectNode().put("target", stripTrailingSlash(target));
             return MigrationResult.value(jsonMapper.writeValueAsString(target1));
         } catch (JsonProcessingException e) {
             log.error("Unable to map configuration for endpoint {}", lb.getName(), e);
             return MigrationResult.issue(MigrationWarnings.ENDPOINT_PARSE_ERROR, MigrationResult.State.IMPOSSIBLE);
         }
+    }
+
+    /**
+     * V4 http-proxy concatenates {@code URL.getPath()} with {@code pathInfo} (always starting with {@code /}).
+     * Keeping a trailing slash on the migrated target ({@code https://host/} → path {@code /}) produces
+     * double slashes ({@code //echo}). Strip one trailing slash so migration preserves V2 request URLs.
+     */
+    @Nullable
+    private static String stripTrailingSlash(@Nullable String target) {
+        if (target == null || target.length() <= 1 || !target.endsWith("/")) {
+            return target;
+        }
+        return target.substring(0, target.length() - 1);
     }
 
     @Nullable
