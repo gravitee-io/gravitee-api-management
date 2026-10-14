@@ -349,6 +349,17 @@ class PortalNavigationApiVisibilityDomainServiceTest {
         }
 
         @Test
+        void api_listed_in_a_private_and_a_public_item_is_visible_to_non_member_by_id() {
+            navQueryService.initWith(
+                List.of(
+                    publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE),
+                    publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PUBLIC)
+                )
+            );
+            assertThat(domainService.isApiVisibleToUser(ENV_ID, PRIVATE_API_ID, USER_ID)).isTrue();
+        }
+
+        @Test
         void unknown_api_is_not_visible_by_id() {
             navQueryService.initWith(List.of(publishedApiNavItem(PUBLIC_API_ID, PortalVisibility.PUBLIC)));
             assertThat(domainService.isApiVisibleToUser(ENV_ID, "non-existent-api", USER_ID)).isFalse();
