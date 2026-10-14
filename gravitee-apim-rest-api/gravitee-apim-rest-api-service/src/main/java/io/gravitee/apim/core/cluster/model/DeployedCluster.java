@@ -45,5 +45,7 @@ public class DeployedCluster {
 
         private String crossId;
         private String name;
+        /** Why a Message API cannot use this connection; {@code null} when it can. Never carries credentials. */
+        private String messageApiUnsupportedReason;
     }
 }

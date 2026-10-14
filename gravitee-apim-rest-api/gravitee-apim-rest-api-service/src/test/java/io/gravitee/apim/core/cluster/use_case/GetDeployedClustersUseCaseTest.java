@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import inmemory.EventLatestQueryServiceInMemory;
+import io.gravitee.apim.core.cluster.domain_service.DeployedClustersDomainService;
 import io.gravitee.apim.core.cluster.model.DeployedCluster;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.definition.model.cluster.ClusterType;
@@ -44,7 +45,7 @@ class GetDeployedClustersUseCaseTest {
         eventLatestQueryService.reset();
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        useCase = new GetDeployedClustersUseCase(eventLatestQueryService, objectMapper);
+        useCase = new GetDeployedClustersUseCase(new DeployedClustersDomainService(eventLatestQueryService, objectMapper), objectMapper);
     }
 
     @Test
@@ -67,7 +68,9 @@ class GetDeployedClustersUseCaseTest {
                 "configuration": {
                     "connections": [
                         { "crossId": "primary", "name": "Primary Connection", "bootstrapServers": "kafka:9092", "security": { "protocol": "PLAINTEXT" } },
-                        { "crossId": "secondary", "name": "Secondary Connection", "bootstrapServers": "kafka2:9092", "security": { "protocol": "SSL" } }
+                        { "crossId": "secondary", "name": "Secondary Connection", "bootstrapServers": "kafka2:9092", "security": { "protocol": "SSL" } },
+                        { "crossId": "sasl", "name": "SASL Connection", "bootstrapServers": "kafka3:9093", "security": { "protocol": "SASL_SSL", "sasl": { "mechanism": { "type": "SCRAM-SHA-512", "username": "a", "password": "b" } } } },
+                        { "crossId": "oauth", "name": "OAuth Connection", "bootstrapServers": "kafka3:9093", "security": { "protocol": "SASL_SSL", "sasl": { "mechanism": { "type": "OAUTHBEARER_TOKEN" } } } }
                     ]
                 }
             }
@@ -97,10 +100,13 @@ class GetDeployedClustersUseCaseTest {
         assertThat(cluster.getName()).isEqualTo("My Kafka Cluster");
         assertThat(cluster.getDescription()).isEqualTo("A test cluster");
         assertThat(cluster.getVersion()).isEqualTo(2);
-        assertThat(cluster.getConnections()).hasSize(2);
+        assertThat(cluster.getConnections()).hasSize(4);
         assertThat(cluster.getConnections().get(0).getCrossId()).isEqualTo("primary");
         assertThat(cluster.getConnections().get(0).getName()).isEqualTo("Primary Connection");
         assertThat(cluster.getConnections().get(1).getCrossId()).isEqualTo("secondary");
+        assertThat(cluster.getConnections())
+            .extracting(DeployedCluster.DeployedClusterConnection::getMessageApiUnsupportedReason)
+            .containsExactly(null, null, null, "Message APIs do not support the SASL mechanism OAUTHBEARER_TOKEN yet.");
     }
 
     @Test
