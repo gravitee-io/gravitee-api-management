@@ -12,6 +12,11 @@
       &.right {
         float: right;
       }
+
+      &--events {
+        flex-basis: 100%;
+        margin-right: 0;
+      }
     }
 
     .action {
