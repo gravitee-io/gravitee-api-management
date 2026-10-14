@@ -398,7 +398,51 @@ describe('useApiDocumentation hooks', () => {
 
             expect(invalidateQueries).toHaveBeenCalledTimes(2);
             expect(invalidateQueries).toHaveBeenCalledWith(API_DOCUMENTATION_LIST);
-            expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['api-documentation', 'env-1', 'api-1', 'content'] });
+            expect(invalidateQueries).toHaveBeenCalledWith(
+                { queryKey: ['api-documentation', 'env-1', 'api-1', 'content'] },
+                { throwOnError: true },
+            );
+        });
+
+        describe('reading the content again', () => {
+            const renderContentAndFetch = () =>
+                renderWithQueryClient(() => ({
+                    content: useApiDocumentationPageContent('api-1', 'nav-1'),
+                    fetch: useFetchApiDocumentationItem('api-1'),
+                }));
+            const contentOf = (text: string) => ({ id: 'content-1', type: 'GRAVITEE_MARKDOWN' as const, content: text });
+
+            beforeEach(() => {
+                mockFetchApiDocumentationItem.mockResolvedValue(FOLDER_FETCHED);
+            });
+
+            it('reads it afresh after the fetch, rather than joining a read started before it', async () => {
+                let resolveEarlierRead: (content: ReturnType<typeof contentOf>) => void = () => {};
+                mockGetApiDocumentationPageContent
+                    .mockReturnValueOnce(new Promise(resolve => (resolveEarlierRead = resolve)))
+                    .mockResolvedValue(contentOf('# Fetched'));
+                const { result } = renderContentAndFetch();
+                await waitFor(() => expect(mockGetApiDocumentationPageContent).toHaveBeenCalledTimes(1));
+
+                await act(() => result.current.fetch.mutateAsync('nav-1'));
+                resolveEarlierRead(contentOf('# Placeholder'));
+
+                await waitFor(() => expect(result.current.content.data?.content).toBe('# Fetched'));
+                expect(mockGetApiDocumentationPageContent).toHaveBeenCalledTimes(2);
+            });
+
+            it('drops the content from before when reading it again fails, rather than keeping it as fetched', async () => {
+                mockGetApiDocumentationPageContent.mockResolvedValueOnce(contentOf('# Placeholder'));
+                const { result, invalidateQueries } = renderContentAndFetch();
+                await waitFor(() => expect(result.current.content.data?.content).toBe('# Placeholder'));
+                mockGetApiDocumentationPageContent.mockRejectedValue(new ApimApiError(503, 'Unavailable'));
+
+                await act(() => result.current.fetch.mutateAsync('nav-1'));
+
+                await waitFor(() => expect(result.current.content.isError).toBe(true));
+                expect(result.current.content.data).toBeUndefined();
+                expect(invalidateQueries).toHaveBeenCalledWith(API_DOCUMENTATION_LIST);
+            });
         });
 
         it('refreshes the documentation even when the fetch fails, as the server records the failure', async () => {
@@ -410,7 +454,10 @@ describe('useApiDocumentation hooks', () => {
             });
 
             expect(invalidateQueries).toHaveBeenCalledWith(API_DOCUMENTATION_LIST);
-            expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['api-documentation', 'env-1', 'api-1', 'content'] });
+            expect(invalidateQueries).toHaveBeenCalledWith(
+                { queryKey: ['api-documentation', 'env-1', 'api-1', 'content'] },
+                { throwOnError: true },
+            );
         });
     });
 });

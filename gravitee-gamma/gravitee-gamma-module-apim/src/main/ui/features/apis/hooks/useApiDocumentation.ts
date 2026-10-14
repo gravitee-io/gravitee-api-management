@@ -136,7 +136,16 @@ export function useFetchApiDocumentationItem(apiId: string) {
         // list says whether a page was ever fetched, and paired with the content from before, would show its placeholder
         // as fetched content.
         onSettled: async () => {
-            await queryClient.invalidateQueries({ queryKey: apiDocumentationKeys.contents(env!.id, apiId) });
+            const contents = { queryKey: apiDocumentationKeys.contents(env!.id, apiId) };
+            // A read started before the fetch brings the content from before, and a refresh would join it rather than
+            // read again: it is cancelled first.
+            await queryClient.cancelQueries(contents);
+            try {
+                await queryClient.invalidateQueries(contents, { throwOnError: true });
+            } catch {
+                // Kept, the content from before would show as fetched: it is dropped, and the editor says it failed to load.
+                void queryClient.resetQueries(contents);
+            }
             await queryClient.invalidateQueries({ queryKey: apiDocumentationKeys.list(env!.id, apiId) });
         },
     });
