@@ -13,18 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ComponentHarness } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { waitFor } from '@testing-library/dom';
 
 import { PageSwaggerComponent } from './page-swagger.component';
-import { PageSwaggerHarness } from './page-swagger.harness';
 import { fakePage } from '../../../entities/page/page.fixtures';
 import { AppTestingModule } from '../../../testing/app-testing.module';
 
 // setup-jest mocks swagger-ui globally; this suite renders the real one, so that a swagger-ui or
 // React upgrade that breaks rendering (e.g. swagger-ui resolved onto React 19) fails here.
 jest.unmock('swagger-ui');
+
+class SwaggerOperationPathHarness extends ComponentHarness {
+  public static hostSelector = '.opblock-summary-path';
+
+  public async getPath(): Promise<string> {
+    return (await this.host()).text();
+  }
+}
 
 const SPEC = JSON.stringify({
   openapi: '3.0.0',
@@ -38,7 +46,6 @@ const SPEC = JSON.stringify({
 
 describe('PageSwaggerComponent rendering', () => {
   let fixture: ComponentFixture<PageSwaggerComponent>;
-  let harness: PageSwaggerHarness;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -48,7 +55,6 @@ describe('PageSwaggerComponent rendering', () => {
     fixture = TestBed.createComponent(PageSwaggerComponent);
     fixture.componentRef.setInput('page', fakePage({ type: 'SWAGGER', content: SPEC }));
     fixture.detectChanges();
-    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, PageSwaggerHarness);
   });
 
   afterEach(() => {
@@ -56,6 +62,11 @@ describe('PageSwaggerComponent rendering', () => {
   });
 
   it('should render the operations of the spec', async () => {
-    await waitFor(async () => expect(await harness.getOperationPaths()).toEqual(['/pets']));
+    const loader = TestbedHarnessEnvironment.loader(fixture);
+
+    await waitFor(async () => {
+      const operationPaths = await loader.getAllHarnesses(SwaggerOperationPathHarness);
+      expect(await Promise.all(operationPaths.map(operationPath => operationPath.getPath()))).toEqual(['/pets']);
+    });
   });
 });
