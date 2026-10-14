@@ -22,6 +22,7 @@ import io.gravitee.apim.core.portal_page.use_case.FetchPortalNavigationItemUseCa
 import io.gravitee.apim.core.portal_page.use_case.GetApiPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
+import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageContentConfigurationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageContentUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
@@ -30,6 +31,7 @@ import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationI
 import io.gravitee.rest.api.management.v2.rest.model.FetchPortalNavigationItemResponse;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageContent;
+import io.gravitee.rest.api.management.v2.rest.model.PortalPageOpenApiConfiguration;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPageContent;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -44,6 +46,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
@@ -71,6 +74,9 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
 
     @Inject
     private UpdatePortalPageContentUseCase updatePortalPageContentUseCase;
+
+    @Inject
+    private UpdatePortalPageContentConfigurationUseCase updatePortalPageContentConfigurationUseCase;
 
     @Inject
     private ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
@@ -186,6 +192,30 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
                 environmentId,
                 page.getPortalPageContentId().json(),
                 PortalPageContentMapper.INSTANCE.map(updatePortalPageContent)
+            )
+        );
+        return PortalPageContentMapper.INSTANCE.map(output.portalPageContent());
+    }
+
+    @Path("content/configuration")
+    @PATCH
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    public PortalPageContent updateApiPortalNavigationPageContentConfiguration(
+        @PathParam("apiId") String apiId,
+        @PathParam("navId") String navigationItemId,
+        @Valid @NotNull final PortalPageOpenApiConfiguration configuration
+    ) {
+        var environmentId = GraviteeContext.getCurrentEnvironment();
+        var page = apiOwnedNavigationDomainService.requireOwnedPage(environmentId, apiId, PortalNavigationItemId.of(navigationItemId));
+
+        var output = updatePortalPageContentConfigurationUseCase.execute(
+            new UpdatePortalPageContentConfigurationUseCase.Input(
+                GraviteeContext.getCurrentOrganization(),
+                environmentId,
+                page.getPortalPageContentId().json(),
+                PortalPageContentMapper.INSTANCE.mapToConfiguration(configuration)
             )
         );
         return PortalPageContentMapper.INSTANCE.map(output.portalPageContent());

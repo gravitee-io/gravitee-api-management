@@ -3773,6 +3773,44 @@ paths:
                                 $ref: "#/components/schemas/Error"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/portal-navigation-items/{navId}/content/configuration:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/portalNavigationItemIdParam"
+        patch:
+            tags:
+                - API Documentation
+            summary: Update the OpenAPI viewer configuration of a portal documentation page owned by an API
+            description: |-
+                Choose how the portal renders an OpenAPI page owned by the API: Swagger UI or Redoc, and their options.
+                The page's content is left unchanged. A page fetched from an external source can be configured.
+
+                User must have the API_DOCUMENTATION[UPDATE] permission.
+            operationId: updateApiPortalNavigationPageContentConfiguration
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "./openapi-environments.yaml#/components/schemas/PortalPageOpenApiConfiguration"
+            responses:
+                "200":
+                    $ref: "./openapi-environments.yaml#/components/responses/PortalPageContentResponse"
+                "400":
+                    description: The item is a folder or a link, which has no content
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The page does not exist, is not owned by the API, or its content is not OpenAPI
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
 
     # API SpecGen
     /environments/{envId}/apis/{apiId}/spec-gen/_state:
