@@ -206,6 +206,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProdu
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosingApiDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemRenderingDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
@@ -1557,14 +1558,18 @@ public class ResourceContextConfiguration {
         PortalNavigationItemDomainService domainService,
         PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService,
         PortalNavigationBulkImportDomainService portalNavigationBulkImportDomainService,
-        PortalNavigationItemsQueryService portalNavigationItemsQueryService
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        PortalNavigationItemCreationExpansionDomainService portalNavigationItemCreationExpansionDomainService,
+        PortalNavigationItemRenderingDomainService portalNavigationItemRenderingDomainService
     ) {
         return new ImportPortalNavigationUseCase(
             portalNavigationItemValidatorService,
             domainService,
             portalNavigationItemSourceDomainService,
             portalNavigationBulkImportDomainService,
-            portalNavigationItemsQueryService
+            portalNavigationItemsQueryService,
+            portalNavigationItemCreationExpansionDomainService,
+            portalNavigationItemRenderingDomainService
         );
     }
 
