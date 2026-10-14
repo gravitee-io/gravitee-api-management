@@ -109,7 +109,7 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
             case ZONE -> "zone";
             case HTTP_METHOD -> "http-method";
             case HTTP_STATUS_CODE_GROUP, HTTP_STATUS -> "status";
-            case HTTP_PATH -> "path";
+            case HTTP_PATH -> "path-info.keyword";
             case HTTP_PATH_MAPPING -> "mapped-path";
             case GEO_IP_COUNTRY -> "geoip.country_iso_code";
             case GEO_IP_REGION -> "geoip.region_name";
