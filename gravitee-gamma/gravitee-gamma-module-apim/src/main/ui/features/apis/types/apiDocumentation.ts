@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { JsonSchema } from '@gravitee/graphene-core';
 
 export type PortalArea = 'HOMEPAGE' | 'TOP_NAVBAR';
 
@@ -172,6 +173,13 @@ export interface PortalNavigationItemsFetchSummary {
 export interface ImportPortalNavigationResponse {
     rootFolder: PortalNavigationFolder;
     summary: PortalNavigationItemsFetchSummary;
+}
+
+/** An installed fetcher plugin, with the settings form a source of that type needs. */
+export interface Fetcher {
+    id: string;
+    name: string;
+    schema: JsonSchema;
 }
 
 export interface PortalPageContent {

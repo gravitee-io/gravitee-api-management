@@ -1,0 +1,62 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
+
+import { useFetchers } from './useFetchers';
+import { listFetchers } from '../services/fetchers';
+
+jest.mock('@gravitee/gamma-modules-sdk', () => ({
+    ...jest.requireActual<object>('@gravitee/gamma-modules-sdk'),
+    useEnvironment: jest.fn(),
+}));
+jest.mock('../services/fetchers');
+
+const mockUseEnvironment = jest.mocked(useEnvironment);
+const mockListFetchers = jest.mocked(listFetchers);
+
+const HTTP_FETCHER = { id: 'http-fetcher', name: 'HTTP', schema: { type: 'object' as const, properties: {} } };
+
+function renderUseFetchers() {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    return renderHook(() => useFetchers(), { wrapper });
+}
+
+describe('useFetchers', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockUseEnvironment.mockReturnValue({ id: 'env-1' } as ReturnType<typeof useEnvironment>);
+        mockListFetchers.mockResolvedValue([HTTP_FETCHER]);
+    });
+
+    it('loads the fetchers installed in the current environment', async () => {
+        const { result } = renderUseFetchers();
+
+        await waitFor(() => expect(result.current.data).toEqual([HTTP_FETCHER]));
+        expect(mockListFetchers).toHaveBeenCalledWith('env-1');
+    });
+
+    it('does not load without an environment', () => {
+        mockUseEnvironment.mockReturnValue(undefined as unknown as ReturnType<typeof useEnvironment>);
+
+        renderUseFetchers();
+
+        expect(mockListFetchers).not.toHaveBeenCalled();
+    });
+});

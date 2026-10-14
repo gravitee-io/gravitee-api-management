@@ -178,6 +178,11 @@ export const apiDocumentationKeys = {
     content: (envId: string, apiId: string, navId: string) => [...apiDocumentationKeys.api(envId, apiId), 'content', navId] as const,
 };
 
+export const fetcherKeys = {
+    all: ['fetchers'] as const,
+    list: (envId: string) => [...fetcherKeys.all, envId] as const,
+};
+
 export const apiPlanKeys = {
     all: ['api-plans'] as const,
     list: (envId: string, ctx: PlanContext, statuses: PlanStatus[], page: number, perPage: number) =>
