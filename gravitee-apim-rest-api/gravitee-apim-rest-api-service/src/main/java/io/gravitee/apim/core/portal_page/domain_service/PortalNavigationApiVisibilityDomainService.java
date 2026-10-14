@@ -106,9 +106,8 @@ public class PortalNavigationApiVisibilityDomainService {
             .stream()
             .filter(PortalNavigationApi.class::isInstance)
             .map(PortalNavigationApi.class::cast)
-            .findFirst()
-            .map(item -> isVisibleToUser(item, userId))
-            .orElse(false);
+            // An API can be listed several times, once at the top level and once under each of its API products
+            .anyMatch(item -> isVisibleToUser(item, userId));
     }
 
     /**
