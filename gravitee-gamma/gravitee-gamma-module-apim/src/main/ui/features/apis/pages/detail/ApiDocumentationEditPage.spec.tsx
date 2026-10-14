@@ -30,6 +30,8 @@ import {
     updateApiDocumentationItem,
 } from '../../services/apiDocumentation';
 import type { ApiDocumentationItem, PortalPageContent, PortalPageContentType } from '../../types/apiDocumentation';
+import { describeCronSchedule } from '../../utils/cronSchedule';
+import { formatDateTime } from '../../utils/formatDate';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useEnvironment: jest.fn(),
@@ -405,7 +407,7 @@ describe('ApiDocumentationEditPage', () => {
             renderPage();
 
             expect((await editor()).readOnly).toBe(true);
-            expect(screen.getByText("This page is synced from an external source, so it can't be edited here.")).toBeInTheDocument();
+            expect(screen.getByText('Managed by the folder Guides, read only.')).toBeInTheDocument();
             expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
             expect(screen.queryByRole('button', { name: 'Edit details' })).not.toBeInTheDocument();
         });
@@ -415,11 +417,60 @@ describe('ApiDocumentationEditPage', () => {
             renderPage();
 
             expect((await editor()).readOnly).toBe(true);
-            expect(
-                screen.getByText("This page's content is synced from an external source, so it can't be edited here."),
-            ).toBeInTheDocument();
+            expect(screen.getByText('Content from GitHub, read only')).toBeInTheDocument();
             expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
             expect(screen.getByRole('button', { name: 'Edit details' })).toBeInTheDocument();
+        });
+    });
+
+    describe('a page synced from its own source', () => {
+        const LAST_FETCHED_AT = '2026-10-12T10:42:00Z';
+        const FAILED_AT = '2026-10-12T16:42:00Z';
+        const SYNCED: ApiDocumentationItem = {
+            ...GETTING_STARTED,
+            source: { ...SOURCE, useAutoFetch: true, fetchCron: '0 0 * * * *', lastFetchedAt: LAST_FETCHED_AT },
+        };
+
+        it('names its source, when it was last fetched and how often it is fetched', async () => {
+            givenItems([GUIDES, SYNCED]);
+            renderPage();
+            await editor();
+
+            const status = screen.getByRole('status', { name: 'External source' });
+            expect(status).toHaveTextContent('Content from GitHub, read only');
+            expect(status).toHaveTextContent(`Last fetched ${formatDateTime(LAST_FETCHED_AT)}`);
+            expect(status).toHaveTextContent(describeCronSchedule('0 0 * * * *')!);
+        });
+
+        it("explains a failed last fetch with the server's reason, keeping the content of the last successful one", async () => {
+            givenItems([
+                GUIDES,
+                { ...SYNCED, source: { ...SYNCED.source!, lastFetchAttemptAt: FAILED_AT, lastFetchError: 'Unable to fetch content' } },
+            ]);
+            renderPage();
+            await editor();
+
+            expect(
+                screen.getByText(
+                    `Last fetch failed on ${formatDateTime(FAILED_AT)}. Unable to fetch content. The content below is from the last successful fetch.`,
+                ),
+            ).toBeInTheDocument();
+        });
+
+        it('shows no content before its first successful fetch, rather than the placeholder the page was created with', async () => {
+            givenItems([
+                GUIDES,
+                { ...GETTING_STARTED, source: { ...SOURCE, lastFetchAttemptAt: FAILED_AT, lastFetchError: 'Unable to fetch content' } },
+            ]);
+            renderPage();
+
+            expect((await editor()).value).toBe('');
+            expect(
+                screen.getByText(
+                    /No content has been fetched from it yet\. Until then, the page holds the placeholder it was created with\./,
+                ),
+            ).toBeInTheDocument();
+            expect(screen.getByLabelText('Preview')).not.toHaveTextContent('# Getting started');
         });
     });
 

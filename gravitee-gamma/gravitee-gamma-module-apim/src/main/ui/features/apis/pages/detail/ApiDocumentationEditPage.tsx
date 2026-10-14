@@ -24,10 +24,11 @@ import { notify } from '../../../../shared/notify';
 import { ItemAccessBadge, ItemPublishedBadge } from '../../components/detail/documentation/DocumentationItemBadges';
 import { EditPageDetailsDialog } from '../../components/detail/documentation/EditPageDetailsDialog';
 import { GraviteeMarkdownPreview } from '../../components/detail/documentation/GraviteeMarkdownPreview';
+import { SourceFetchStatus } from '../../components/detail/documentation/SourceFetchStatus';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDocumentation, useApiDocumentationPageContent, useSaveApiDocumentationPageContent } from '../../hooks/useApiDocumentation';
 import type { ApiDocumentationItem, PortalNavigationFolder, PortalNavigationPage, PortalPageContent } from '../../types/apiDocumentation';
-import { allowedChanges, getAncestors, type SyncState, syncStateOf } from '../../utils/documentationTree';
+import { allowedChanges, getAncestors, hasSource, type SyncState, syncStateOf } from '../../utils/documentationTree';
 import { editorLanguageFor, PAGE_CONTENT_TYPE_LABELS } from '../../utils/pageContentType';
 
 export function ApiDocumentationEditPage() {
@@ -144,7 +145,13 @@ function PageEditor({
     const [draft, setDraft] = useState(saved.content);
     const [isSaving, setIsSaving] = useState(false);
     const [isEditingDetails, setIsEditingDetails] = useState(false);
-    const previewContent = useDeferredValue(draft);
+    // The draft is copied from the content once. A read-only page has no draft of its own: it shows the content as
+    // loaded, which a fetch replaces. Until its first successful fetch, a sourced page only holds the placeholder it was
+    // created with, which would read as fetched content.
+    const neverFetched = syncState === 'OWN_SOURCE' && !page.source?.lastFetchedAt;
+    const loadedContent = neverFetched ? '' : saved.content;
+    const shownContent = readOnly ? loadedContent : draft;
+    const previewContent = useDeferredValue(shownContent);
 
     const isDirty = !readOnly && draft !== saved.content;
     useWarnBeforeUnload(isDirty);
@@ -204,26 +211,21 @@ function PageEditor({
                 {actions}
             </header>
 
-            {syncState !== 'NOT_SYNCED' ? (
-                <Alert>
-                    <AlertDescription>
-                        {syncState === 'BELOW_SYNCED_FOLDER' ? (
-                            <>This page is synced from an external source, so it can&apos;t be edited here.</>
-                        ) : (
-                            <>This page&apos;s content is synced from an external source, so it can&apos;t be edited here.</>
-                        )}
-                    </AlertDescription>
-                </Alert>
-            ) : null}
+            {syncState === 'NOT_SYNCED' ? null : (
+                <SourceFetchStatus
+                    source={page.source}
+                    syncedFolder={syncState === 'BELOW_SYNCED_FOLDER' ? ancestors.find(hasSource) : undefined}
+                />
+            )}
 
             {/* A row sized by its content could not shrink below the editor's last size, which the editor then keeps
                 chasing as the window shrinks: the row takes the space left, whatever the editor's size. */}
             <div className="grid min-h-0 flex-1 grid-cols-2 gap-4" style={{ gridTemplateRows: 'minmax(0, 1fr)' }}>
                 <CodeEditor
                     className="min-h-0"
-                    value={draft}
+                    value={shownContent}
                     onChange={value => setDraft(value ?? '')}
-                    language={editorLanguageFor(saved.type, draft)}
+                    language={editorLanguageFor(saved.type, shownContent)}
                     readOnly={readOnly}
                     height="100%"
                 />
