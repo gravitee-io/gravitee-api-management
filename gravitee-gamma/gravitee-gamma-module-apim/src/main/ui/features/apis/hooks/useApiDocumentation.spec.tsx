@@ -399,7 +399,7 @@ describe('useApiDocumentation hooks', () => {
             expect(invalidateQueries).toHaveBeenCalledTimes(2);
             expect(invalidateQueries).toHaveBeenCalledWith(API_DOCUMENTATION_LIST);
             expect(invalidateQueries).toHaveBeenCalledWith(
-                { queryKey: ['api-documentation', 'env-1', 'api-1', 'content'] },
+                expect.objectContaining({ queryKey: ['api-documentation', 'env-1', 'api-1', 'content'] }),
                 { throwOnError: true },
             );
         });
@@ -431,6 +431,40 @@ describe('useApiDocumentation hooks', () => {
                 expect(mockGetApiDocumentationPageContent).toHaveBeenCalledTimes(2);
             });
 
+            it('leaves the content of a page written by hand alone, so that a draft of it survives', async () => {
+                const page: PortalNavigationPage = {
+                    id: 'nav-1',
+                    organizationId: 'DEFAULT',
+                    environmentId: 'env-1',
+                    title: 'Petstore',
+                    type: 'PAGE',
+                    area: 'TOP_NAVBAR',
+                    rootId: 'nav-1',
+                    order: 0,
+                    published: false,
+                    visibility: 'PUBLIC',
+                    portalPageContentId: 'content-1',
+                };
+                const synced: PortalNavigationPage = { ...page, source: { type: 'http-fetcher', configuration: {} } };
+                const manual: PortalNavigationPage = { ...page, id: 'manual', rootId: 'manual', portalPageContentId: 'content-2' };
+                mockListApiDocumentation.mockResolvedValue({ items: [synced, manual], publications: [] });
+                mockGetApiDocumentationPageContent.mockImplementation(async (_env, _api, navId) => contentOf(`# ${navId}`));
+                const { result } = renderWithQueryClient(() => ({
+                    list: useApiDocumentation('api-1'),
+                    synced: useApiDocumentationPageContent('api-1', 'nav-1'),
+                    manual: useApiDocumentationPageContent('api-1', 'manual'),
+                    fetch: useFetchApiDocumentationItem('api-1'),
+                }));
+                await waitFor(() => expect(result.current.list.isSuccess && result.current.manual.isSuccess).toBe(true));
+                mockGetApiDocumentationPageContent.mockRejectedValue(new ApimApiError(503, 'Unavailable'));
+
+                await act(() => result.current.fetch.mutateAsync('nav-1'));
+
+                await waitFor(() => expect(result.current.synced.isError).toBe(true));
+                expect(result.current.manual.data?.content).toBe('# manual');
+                expect(mockGetApiDocumentationPageContent.mock.calls.filter(([, , navId]) => navId === 'manual')).toHaveLength(1);
+            });
+
             it('drops the content from before when reading it again fails, rather than keeping it as fetched', async () => {
                 mockGetApiDocumentationPageContent.mockResolvedValueOnce(contentOf('# Placeholder'));
                 const { result, invalidateQueries } = renderContentAndFetch();
@@ -455,7 +489,7 @@ describe('useApiDocumentation hooks', () => {
 
             expect(invalidateQueries).toHaveBeenCalledWith(API_DOCUMENTATION_LIST);
             expect(invalidateQueries).toHaveBeenCalledWith(
-                { queryKey: ['api-documentation', 'env-1', 'api-1', 'content'] },
+                expect.objectContaining({ queryKey: ['api-documentation', 'env-1', 'api-1', 'content'] }),
                 { throwOnError: true },
             );
         });

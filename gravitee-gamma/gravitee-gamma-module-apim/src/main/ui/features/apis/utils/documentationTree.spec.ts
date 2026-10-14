@@ -18,6 +18,7 @@ import {
     buildDocumentationRows,
     defaultPublishSectionId,
     fetchableItemIds,
+    replaceablePageIds,
     getAncestors,
     getHiddenListing,
     getPublishedSection,
@@ -162,6 +163,29 @@ describe('syncStateOf', () => {
 });
 
 // Mirrors what the server's manual fetch accepts.
+describe('replaceablePageIds', () => {
+    it('is the fetched page itself', () => {
+        expect(replaceablePageIds([page('petstore', 0, undefined, SOURCE)], 'petstore')).toEqual(['petstore']);
+    });
+
+    it('is every synced page below a fetched folder, leaving out the pages written by hand', () => {
+        const items = [
+            folder('guides', 0),
+            page('petstore', 0, 'guides', SOURCE),
+            page('oauth', 1, 'guides'),
+            folder('reference', 2, 'guides', { ...SOURCE, subtreeImport: true }),
+            page('endpoints', 0, 'reference'),
+            page('elsewhere', 1, undefined, SOURCE),
+        ];
+
+        expect(replaceablePageIds(items, 'guides')).toEqual(['petstore', 'endpoints']);
+    });
+
+    it('is the fetched item alone when the documentation is not known', () => {
+        expect(replaceablePageIds([], 'petstore')).toEqual(['petstore']);
+    });
+});
+
 describe('fetchableItemIds', () => {
     const IMPORTED_SOURCE: PortalNavigationItemSource = { ...SOURCE, subtreeImport: true };
 

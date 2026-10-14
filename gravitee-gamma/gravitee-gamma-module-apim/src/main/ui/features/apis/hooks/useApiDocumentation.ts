@@ -15,7 +15,7 @@
  */
 
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { type Query, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { type DocumentationItemChanges, toUpdatePayload } from '../components/detail/documentation/toUpdatePayload';
 import {
@@ -31,6 +31,8 @@ import {
     unpublishApiFromPortal,
     updateApiDocumentationItem,
 } from '../services/apiDocumentation';
+import type { ApiPortalNavigationItemsResponse } from '../types/apiDocumentation';
+import { replaceablePageIds } from '../utils/documentationTree';
 import { apiDocumentationKeys } from '../utils/queryKeys';
 
 interface ChangeApiDocumentationItemVariables {
@@ -135,8 +137,14 @@ export function useFetchApiDocumentationItem(apiId: string) {
         // A failed fetch is recorded on the source, so the documentation is reloaded either way. The content first: the
         // list says whether a page was ever fetched, and paired with the content from before, would show its placeholder
         // as fetched content.
-        onSettled: async () => {
-            const contents = { queryKey: apiDocumentationKeys.contents(env!.id, apiId) };
+        onSettled: async (_result, _error, navId) => {
+            const documentation = queryClient.getQueryData<ApiPortalNavigationItemsResponse>(apiDocumentationKeys.list(env!.id, apiId));
+            const replaceable = new Set(replaceablePageIds(documentation?.items ?? [], navId));
+            // Only the content the fetch can replace: a page written by hand may hold a draft, which a reset would lose.
+            const contents = {
+                queryKey: apiDocumentationKeys.contents(env!.id, apiId),
+                predicate: (query: Query) => replaceable.has(String(query.queryKey.at(-1))),
+            };
             // A read started before the fetch brings the content from before, and a refresh would join it rather than
             // read again: it is cancelled first.
             await queryClient.cancelQueries(contents);

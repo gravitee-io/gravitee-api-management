@@ -150,6 +150,22 @@ export function fetchableItemIds(items: ApiDocumentationItem[]): Set<string> {
     return fetchable;
 }
 
+/**
+ * The pages whose content a fetch of the given item can replace: the item itself, and the synced pages below it. A page
+ * written by hand is never replaced, and may hold a draft. Without the documentation, only the item itself.
+ */
+export function replaceablePageIds(items: ApiDocumentationItem[], navId: string): string[] {
+    if (!items.some(item => item.id === navId)) return [navId];
+    return items
+        .filter(item => item.type === 'PAGE')
+        .filter(item => {
+            const ancestors = getAncestors(items, item);
+            const inFetchedItem = item.id === navId || ancestors.some(ancestor => ancestor.id === navId);
+            return inFetchedItem && syncStateOf(item, ancestors) !== 'NOT_SYNCED';
+        })
+        .map(item => item.id);
+}
+
 export interface AllowedChanges {
     content: boolean;
     title: boolean;
