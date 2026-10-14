@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.Visibility.PUBLIC;
 
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.rest.api.model.AccessControlEntity;
 import io.gravitee.rest.api.model.AccessControlReferenceType;
 import io.gravitee.rest.api.model.GroupEntity;
@@ -66,22 +67,48 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
     @Autowired
     private RoleService roleService;
 
+    @Autowired
+    private PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService;
+
     @Override
     public boolean canAccessApiFromPortal(ExecutionContext executionContext, GenericApiEntity genericApiEntity) {
-        if (!ApiLifecycleState.PUBLISHED.equals(genericApiEntity.getLifecycleState())) {
-            return false;
-        } else if (PUBLIC.equals(genericApiEntity.getVisibility())) {
-            return true;
-        } else if (isAuthenticated()) {
-            return apiAuthorizationService.canConsumeApi(executionContext, getAuthenticatedUsername(), genericApiEntity);
-        }
-        return false;
+        return isPublished(genericApiEntity) && canConsumeApi(executionContext, genericApiEntity);
     }
 
     @Override
     public boolean canAccessApiFromPortal(ExecutionContext executionContext, String apiId) {
         GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
         return canAccessApiFromPortal(executionContext, genericApi);
+    }
+
+    @Override
+    public boolean canConsumeApiFromPortal(ExecutionContext executionContext, String apiId) {
+        GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
+        return canConsumeApiFromPortal(executionContext, genericApi);
+    }
+
+    @Override
+    public boolean canConsumeApiFromPortal(ExecutionContext executionContext, GenericApiEntity genericApiEntity) {
+        return (
+            canConsumeApi(executionContext, genericApiEntity) &&
+            (isPublished(genericApiEntity) ||
+                portalNavigationApiVisibilityDomainService.isApiVisibleToUser(
+                    executionContext.getEnvironmentId(),
+                    genericApiEntity.getId(),
+                    getAuthenticatedUsername()
+                ))
+        );
+    }
+
+    private static boolean isPublished(GenericApiEntity genericApiEntity) {
+        return ApiLifecycleState.PUBLISHED.equals(genericApiEntity.getLifecycleState());
+    }
+
+    private boolean canConsumeApi(ExecutionContext executionContext, GenericApiEntity genericApiEntity) {
+        if (PUBLIC.equals(genericApiEntity.getVisibility())) {
+            return true;
+        }
+        return isAuthenticated() && apiAuthorizationService.canConsumeApi(executionContext, getAuthenticatedUsername(), genericApiEntity);
     }
 
     private boolean canAccessPage(final ExecutionContext executionContext, GenericApiEntity genericApiEntity, PageEntity pageEntity) {

@@ -29,6 +29,14 @@ public interface AccessControlService {
 
     boolean canAccessApiFromPortal(ExecutionContext executionContext, GenericApiEntity apiEntity);
 
+    /**
+     * Unlike {@link #canAccessApiFromPortal}, an API not published to the catalog is accepted when the next gen portal
+     * lists it in its navigation.
+     */
+    boolean canConsumeApiFromPortal(ExecutionContext executionContext, String apiId);
+
+    boolean canConsumeApiFromPortal(ExecutionContext executionContext, GenericApiEntity apiEntity);
+
     boolean canAccessPageFromPortal(final ExecutionContext executionContext, PageEntity pageEntity);
 
     boolean canAccessPageFromPortal(final ExecutionContext executionContext, String apiId, PageEntity pageEntity);
