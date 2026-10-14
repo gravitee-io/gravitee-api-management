@@ -25,8 +25,13 @@ const ADDRESS_FIELD = /^(repository|.*[uU]rl)$/;
  * (`FetcherConfigurationAddress.sameAddress`): the repository and every field ending in `url` or `Url` must match.
  */
 export function sameSourceAddress(stored: Record<string, unknown>, edited: Record<string, unknown>): boolean {
-    const addressFields = new Set([...Object.keys(stored), ...Object.keys(edited)].filter(field => ADDRESS_FIELD.test(field)));
+    const addressFields = new Set([...Object.keys(stored), ...Object.keys(edited)].filter(isAddressField));
     return [...addressFields].every(field => (stored[field] ?? null) === (edited[field] ?? null));
+}
+
+/** Whether a setting is part of the address a masked secret is kept for: the repository, or a field ending in `url` or `Url`. */
+export function isAddressField(field: string): boolean {
+    return ADDRESS_FIELD.test(field);
 }
 
 export function maskedSecretKeys(configuration: Record<string, unknown>): string[] {

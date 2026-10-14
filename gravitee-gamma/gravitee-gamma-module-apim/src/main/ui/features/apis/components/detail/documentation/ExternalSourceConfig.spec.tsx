@@ -274,20 +274,29 @@ describe('ExternalSourceConfig', () => {
             await waitFor(() => expect(lastState()?.unchanged).toBe(true));
         });
 
-        it('asks again for a masked secret once the form fills in an address the stored settings leave out', async () => {
+        it('leaves out an address the stored settings leave out, so that a masked secret is kept', async () => {
             mockListFetchers.mockResolvedValue([
                 githubFetcherWith({
                     githubUrl: { title: 'GitHub URL', type: 'string', default: 'https://api.github.com' },
                     filepath: { title: 'File path', type: 'string' },
                 }),
             ]);
-            const { user } = renderConfig({ storedSource: STORED_GITHUB_SOURCE });
+            const { user, lastState } = renderConfig({ storedSource: STORED_GITHUB_SOURCE });
 
-            await user.type(await screen.findByRole('textbox', { name: /File path/ }), 'docs');
+            expect(await screen.findByRole('textbox', { name: /GitHub URL/ })).toHaveValue('');
+            await user.click(screen.getByRole('switch', { name: 'Fetch automatically' }));
+            await user.type(screen.getByRole('textbox', { name: /File path/ }), 'docs');
 
-            // The server compares the addresses as stored: to it, an address filled in by its default is another one.
-            expect(screen.getByRole('textbox', { name: /Personal access token/ })).toHaveValue('');
-            expect(screen.getByText(/re-enter/i)).toBeInTheDocument();
+            // The server compares the addresses as stored: an address filled in by its default would be another one.
+            expect(screen.getByRole('textbox', { name: /Personal access token/ })).toHaveValue(MASKED_SECRET);
+            expect(screen.queryByText(/re-enter/i)).not.toBeInTheDocument();
+            await waitFor(() =>
+                expect(lastState()?.source?.configuration).toEqual({
+                    repository: 'petstore',
+                    personalAccessToken: MASKED_SECRET,
+                    filepath: 'docs',
+                }),
+            );
         });
 
         it('says when its fetcher is no longer installed', async () => {

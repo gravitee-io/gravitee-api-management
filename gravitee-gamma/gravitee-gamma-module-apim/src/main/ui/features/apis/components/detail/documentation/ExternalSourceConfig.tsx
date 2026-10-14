@@ -38,7 +38,7 @@ import { useFetchers } from '../../../hooks/useFetchers';
 import type { PortalNavigationItemSource } from '../../../types/apiDocumentation';
 import { fetcherLabel } from '../../../utils/fetcherSchema';
 import { isSameSource } from '../../../utils/sourceChange';
-import { MASKED_SECRET, maskedSecretKeys, sameSourceAddress } from '../../../utils/sourceSecrets';
+import { isAddressField, MASKED_SECRET, maskedSecretKeys, sameSourceAddress } from '../../../utils/sourceSecrets';
 import { CronScheduleInput, validateCron } from '../../CronScheduleInput';
 
 /** The source as edited so far, and whether it can be saved as it is. */
@@ -359,13 +359,16 @@ function settingsDefaults(schema: JsonSchema): Record<string, unknown> {
 
 /**
  * The stored settings as the settings form shows them. The server leaves settings that are false out: a switch it left
- * out is off, whatever its default. Any other setting it left out takes its default, as the form fills it in.
+ * out is off, whatever its default. An address it left out stays out: the server compares addresses as stored, and one
+ * filled in by its default would be another, for which it refuses a masked secret. Any other setting it left out takes
+ * its default, as the form fills it in.
  */
 function storedSettings(schema: JsonSchema, stored: Record<string, unknown>): Record<string, unknown> {
+    const defaults = Object.entries(settingsDefaults(schema)).filter(([key]) => !isAddressField(key));
     const switchesLeftOut = Object.entries(schema.properties ?? {})
         .filter(([key, property]) => typeof property === 'object' && property.type === 'boolean' && !(key in stored))
         .map(([key]) => [key, false]);
-    return { ...settingsDefaults(schema), ...Object.fromEntries(switchesLeftOut), ...stored };
+    return { ...Object.fromEntries(defaults), ...Object.fromEntries(switchesLeftOut), ...stored };
 }
 
 function parseConfiguration(text: string): Record<string, unknown> | null {
