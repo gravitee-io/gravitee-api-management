@@ -157,6 +157,15 @@ export function DocumentationTree({
             }
             if (canDelete && allowed.delete) {
                 actions.push({ label: 'Delete', icon: Trash2Icon, destructive: true, onSelect: () => onDelete(row) });
+            } else if (canDelete && row.syncState === 'OWN_SOURCE') {
+                // The server refuses to delete an item that has a source, which Edit details can remove.
+                actions.push({
+                    label: 'Delete',
+                    icon: Trash2Icon,
+                    destructive: true,
+                    disabledReason: 'Remove its external source first, from Edit details.',
+                    onSelect: () => onDelete(row),
+                });
             }
             return actions;
         },

@@ -248,7 +248,7 @@ describe('DocumentationTree', () => {
         expect(onDelete).toHaveBeenCalledWith(expect.objectContaining({ item: GUIDES, descendantCount: 2 }));
     });
 
-    it('offers no delete on a synced item or anything below it, which the server refuses', async () => {
+    it('offers no delete on anything below a synced item, which the server refuses', async () => {
         const user = userEvent.setup();
         renderTree();
 
@@ -257,8 +257,20 @@ describe('DocumentationTree', () => {
         expect(screen.getByText('Endpoints')).toBeInTheDocument();
         expect(screen.queryByRole('button', { name: 'Actions for Endpoints' })).not.toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Actions for Status page' })).toBeInTheDocument();
+    });
+
+    it('says to remove the source of a synced item before deleting it, as the server refuses to delete it', async () => {
+        const user = userEvent.setup();
+        const { onDelete } = renderTree();
+
         await user.click(screen.getByRole('button', { name: 'Actions for Reference' }));
-        expect(screen.queryByRole('menuitem', { name: 'Delete' })).not.toBeInTheDocument();
+        const deleteItem = screen.getByRole('menuitem', { name: 'Delete' });
+        expect(deleteItem).toHaveAttribute('aria-disabled', 'true');
+        await user.hover(deleteItem);
+        expect(await screen.findByRole('tooltip')).toHaveTextContent('Remove its external source first, from Edit details.');
+
+        await user.click(deleteItem);
+        expect(onDelete).not.toHaveBeenCalled();
     });
 
     it('offers no delete without the permission', async () => {
@@ -418,7 +430,12 @@ describe('DocumentationTree', () => {
 
             await user.click(screen.getByRole('button', { name: 'Actions for Endpoints' }));
 
-            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Fetch now', 'Edit details', 'Publish']);
+            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual([
+                'Fetch now',
+                'Edit details',
+                'Publish',
+                'Delete',
+            ]);
         });
 
         it('does not offer it on a page with its own source inside a synced folder, as the editor does not either', async () => {
@@ -467,7 +484,12 @@ describe('DocumentationTree', () => {
 
             await user.click(screen.getByRole('button', { name: 'Actions for Reference' }));
 
-            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Fetch now', 'Edit details', 'Publish']);
+            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual([
+                'Fetch now',
+                'Edit details',
+                'Publish',
+                'Delete',
+            ]);
         });
 
         it('does not offer it on a folder inside a synced folder, which the server keeps read only', async () => {
