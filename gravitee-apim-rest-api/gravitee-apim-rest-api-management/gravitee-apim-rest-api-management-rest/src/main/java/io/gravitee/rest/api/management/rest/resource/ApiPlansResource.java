@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PlanService;
@@ -71,6 +72,9 @@ public class ApiPlansResource extends AbstractResource {
     @Inject
     private GroupService groupService;
 
+    @Inject
+    private AccessControlService accessControlService;
+
     @Context
     private ResourceContext resourceContext;
 
@@ -104,7 +108,7 @@ public class ApiPlansResource extends AbstractResource {
         if (
             !hasPermission(executionContext, RolePermission.API_PLAN, api, RolePermissionAction.READ) &&
             !hasPermission(executionContext, RolePermission.API_LOG, api, RolePermissionAction.READ) &&
-            apiEntity.getVisibility() == Visibility.PRIVATE
+            !isPublicAndExposedInPortal(executionContext, apiEntity)
         ) {
             throw new ForbiddenAccessException();
         }
@@ -193,7 +197,7 @@ public class ApiPlansResource extends AbstractResource {
     public Response getApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
-            Visibility.PUBLIC.equals(apiService.findById(executionContext, api).getVisibility()) ||
+            isPublicAndExposedInPortal(executionContext, apiService.findById(executionContext, api)) ||
             hasPermission(GraviteeContext.getExecutionContext(), API_PLAN, api, READ)
         ) {
             PlanEntity planEntity = planService.findById(executionContext, plan);
@@ -336,5 +340,11 @@ public class ApiPlansResource extends AbstractResource {
         filtered.setGeneralConditions(entity.getGeneralConditions());
 
         return filtered;
+    }
+
+    private boolean isPublicAndExposedInPortal(ExecutionContext executionContext, ApiEntity apiEntity) {
+        return (
+            Visibility.PUBLIC.equals(apiEntity.getVisibility()) && accessControlService.canAccessApiFromPortal(executionContext, apiEntity)
+        );
     }
 }
