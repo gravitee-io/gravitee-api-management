@@ -53,6 +53,7 @@ import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.exception.MaskedApiPropertyValueException;
 import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.apim.core.flow.domain_service.XmlValidationPolicyChecker;
+import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationCleanupDomainService;
 import io.gravitee.apim.core.subscription_form.domain_service.RemoveApiFromSubscriptionFormDomainService;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.data.domain.Page;
@@ -366,6 +367,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Autowired
     private RemoveApiFromSubscriptionFormDomainService removeApiFromSubscriptionFormDomainService;
+
+    @Autowired
+    private ApiDocumentationCleanupDomainService apiDocumentationCleanupDomainService;
 
     @Autowired
     private PolicyService policyService;
@@ -1705,6 +1709,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // Delete pages
             pageService.deleteAllByApi(executionContext, apiId);
+            apiDocumentationCleanupDomainService.cleanupForApi(api.getEnvironmentId(), apiId);
 
             // Delete top API
             topApiService.delete(executionContext, apiId);
