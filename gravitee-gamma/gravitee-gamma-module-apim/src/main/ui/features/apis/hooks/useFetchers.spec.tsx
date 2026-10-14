@@ -32,10 +32,15 @@ const mockListFetchers = jest.mocked(listFetchers);
 
 const HTTP_FETCHER = { id: 'http-fetcher', name: 'HTTP', schema: { type: 'object' as const, properties: {} } };
 
-function renderUseFetchers() {
+function createWrapper() {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
-    return renderHook(() => useFetchers(), { wrapper });
+    return function Wrapper({ children }: { children: ReactNode }) {
+        return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    };
+}
+
+function renderUseFetchers(options?: { forImport?: boolean }) {
+    return renderHook(() => useFetchers(options), { wrapper: createWrapper() });
 }
 
 describe('useFetchers', () => {
@@ -49,7 +54,26 @@ describe('useFetchers', () => {
         const { result } = renderUseFetchers();
 
         await waitFor(() => expect(result.current.data).toEqual([HTTP_FETCHER]));
-        expect(mockListFetchers).toHaveBeenCalledWith('env-1');
+        expect(mockListFetchers).toHaveBeenCalledWith('env-1', { forImport: false });
+    });
+
+    it('keeps the fetchers for an import apart from the full list', async () => {
+        mockListFetchers.mockImplementation(async (_envId, options) => (options?.forImport ? [] : [HTTP_FETCHER]));
+
+        const { result } = renderHook(() => ({ all: useFetchers(), forImport: useFetchers({ forImport: true }) }), {
+            wrapper: createWrapper(),
+        });
+
+        await waitFor(() => expect(result.current.forImport.isSuccess && result.current.all.isSuccess).toBe(true));
+        expect(result.current.all.data).toEqual([HTTP_FETCHER]);
+        expect(result.current.forImport.data).toEqual([]);
+    });
+
+    it('loads only the fetchers that can list a folder for an import', async () => {
+        const { result } = renderUseFetchers({ forImport: true });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+        expect(mockListFetchers).toHaveBeenCalledWith('env-1', { forImport: true });
     });
 
     it('does not load without an environment', () => {

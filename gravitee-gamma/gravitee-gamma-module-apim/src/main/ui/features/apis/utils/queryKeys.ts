@@ -182,7 +182,7 @@ export const apiDocumentationKeys = {
 
 export const fetcherKeys = {
     all: ['fetchers'] as const,
-    list: (envId: string) => [...fetcherKeys.all, envId] as const,
+    list: (envId: string, forImport: boolean) => [...fetcherKeys.all, envId, forImport ? 'import' : 'all'] as const,
 };
 
 export const apiPlanKeys = {

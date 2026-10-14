@@ -71,12 +71,12 @@ const GITHUB_FETCHER: Fetcher = {
     },
 };
 
-function renderConfig() {
+function renderConfig(props: { forImport?: boolean } = {}) {
     const onChange = jest.fn<void, [ExternalSourceState]>();
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const config = (disabled: boolean) => (
         <QueryClientProvider client={queryClient}>
-            <ExternalSourceConfig onChange={onChange} disabled={disabled} />
+            <ExternalSourceConfig {...props} onChange={onChange} disabled={disabled} />
         </QueryClientProvider>
     );
     const { rerender } = render(config(false));
@@ -104,7 +104,15 @@ describe('ExternalSourceConfig', () => {
         await user.click(screen.getByRole('option', { name: 'HTTP' }));
 
         expect(screen.getByRole('textbox', { name: /URL/ })).toBeInTheDocument();
-        expect(mockListFetchers).toHaveBeenCalledWith('env-1');
+        expect(mockListFetchers).toHaveBeenCalledWith('env-1', { forImport: false });
+    });
+
+    it('offers only the fetchers that can list a folder for an import, and says so', async () => {
+        renderConfig({ forImport: true });
+
+        await screen.findByRole('combobox', { name: 'Source type' });
+        expect(mockListFetchers).toHaveBeenCalledWith('env-1', { forImport: true });
+        expect(screen.getByText('Only sources that can list a folder are offered.')).toBeInTheDocument();
     });
 
     it('is invalid until a fetcher is chosen and its required settings are filled in', async () => {
@@ -292,5 +300,12 @@ describe('ExternalSourceConfig', () => {
         renderConfig();
 
         expect(await screen.findByText(/no external source type is installed/i)).toBeInTheDocument();
+    });
+
+    it('says when no installed fetcher can import a folder', async () => {
+        mockListFetchers.mockResolvedValue([]);
+        renderConfig({ forImport: true });
+
+        expect(await screen.findByText(/no installed external source type can import a folder/i)).toBeInTheDocument();
     });
 });

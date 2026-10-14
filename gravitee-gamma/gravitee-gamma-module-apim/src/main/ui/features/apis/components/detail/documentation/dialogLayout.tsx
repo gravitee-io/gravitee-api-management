@@ -38,10 +38,15 @@ export const WITHIN_VIEWPORT: CSSProperties = {
 
 /**
  * The part of a dialog capped {@link WITHIN_VIEWPORT} that scrolls, keeping the title, the close button and the actions
- * in view. It reaches into the dialog's padding so that focus rings at its edges are not cut off.
+ * in view. It reaches into the dialog's padding so that focus rings at its edges are not cut off, and so that a switch
+ * at its bottom, whose click area reaches 8px past it, does not make it scroll. Inline, as graphene ships no -my-1.
  */
 export function ScrollableDialogBody({ children }: Readonly<{ children: ReactNode }>) {
-    return <div className="-mx-4 min-h-0 overflow-y-auto px-4 py-1">{children}</div>;
+    return (
+        <div className="-mx-4 min-h-0 overflow-y-auto px-4 py-2" style={{ marginBlock: '-0.25rem' }}>
+            {children}
+        </div>
+    );
 }
 
 /**

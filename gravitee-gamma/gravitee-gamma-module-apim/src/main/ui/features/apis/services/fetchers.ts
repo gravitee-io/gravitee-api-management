@@ -29,10 +29,11 @@ const NO_SETTINGS: JsonSchema = { type: 'object', properties: {} };
 
 /**
  * The installed fetcher plugins, each with its settings form. The list comes from the v1 Management API, the only one
- * exposing it.
+ * exposing it. An import needs a fetcher that can list a folder, which `import=true` keeps.
  */
-export async function listFetchers(environmentId: string): Promise<Fetcher[]> {
-    const fetchers = await apimFetchJsonV1Env<FetcherListItem[]>(environmentId, '/fetchers?expand=schema');
+export async function listFetchers(environmentId: string, options: { forImport?: boolean } = {}): Promise<Fetcher[]> {
+    const query = options.forImport ? '?expand=schema&import=true' : '?expand=schema';
+    const fetchers = await apimFetchJsonV1Env<FetcherListItem[]>(environmentId, `/fetchers${query}`);
     return fetchers.map(fetcher => ({
         id: fetcher.id,
         name: fetcher.name ?? fetcherLabel(fetcher.id),

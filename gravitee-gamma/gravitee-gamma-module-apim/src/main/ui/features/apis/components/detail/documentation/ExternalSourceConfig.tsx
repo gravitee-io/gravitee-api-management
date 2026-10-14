@@ -54,13 +54,16 @@ interface FetcherSettings {
  * a JSON editor for any schema the form renders badly.
  */
 export function ExternalSourceConfig({
+    forImport = false,
     disabled = false,
     onChange,
 }: Readonly<{
+    /** Offers only the fetchers that can list a folder. */
+    forImport?: boolean;
     disabled?: boolean;
     onChange: (state: ExternalSourceState) => void;
 }>) {
-    const { data: fetchers, isLoading, isError } = useFetchers();
+    const { data: fetchers, isLoading, isError } = useFetchers({ forImport });
     const [type, setType] = useState('');
     const [settings, setSettings] = useState<FetcherSettings | null>(null);
     const [useAutoFetch, setUseAutoFetch] = useState(false);
@@ -98,7 +101,9 @@ export function ExternalSourceConfig({
     if (fetchers.length === 0) {
         return (
             <p className="text-sm text-muted-foreground">
-                No external source type is installed. Ask your administrator to install one, such as GitHub or HTTP.
+                {forImport
+                    ? 'No installed external source type can import a folder. Ask your administrator to install one, such as GitHub or GitLab.'
+                    : 'No external source type is installed. Ask your administrator to install one, such as GitHub or HTTP.'}
             </p>
         );
     }
@@ -126,6 +131,7 @@ export function ExternalSourceConfig({
                         ))}
                     </SelectContent>
                 </Select>
+                {forImport ? <p className="text-xs text-muted-foreground">Only sources that can list a folder are offered.</p> : null}
             </div>
 
             {fetcher ? <FetcherSettingsForm key={fetcher.id} schema={fetcher.schema} disabled={disabled} onChange={setSettings} /> : null}

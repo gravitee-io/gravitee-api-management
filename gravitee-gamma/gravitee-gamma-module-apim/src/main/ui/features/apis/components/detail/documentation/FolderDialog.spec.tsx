@@ -22,8 +22,14 @@ import type { ReactNode } from 'react';
 import { FolderDialog } from './FolderDialog';
 import { ApimApiError } from '../../../../../shared/api/apimClient';
 import { notify } from '../../../../../shared/notify';
-import { createApiDocumentationItem, listApiDocumentation, updateApiDocumentationItem } from '../../../services/apiDocumentation';
-import type { PortalNavigationFolder, PortalNavigationItemSource } from '../../../types/apiDocumentation';
+import {
+    createApiDocumentationItem,
+    importApiDocumentation,
+    listApiDocumentation,
+    updateApiDocumentationItem,
+} from '../../../services/apiDocumentation';
+import { listFetchers } from '../../../services/fetchers';
+import type { Fetcher, PortalNavigationFolder, PortalNavigationItemSource } from '../../../types/apiDocumentation';
 import type { SyncState } from '../../../utils/documentationTree';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
@@ -31,6 +37,7 @@ jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useEnvironment: jest.fn(),
 }));
 jest.mock('../../../services/apiDocumentation');
+jest.mock('../../../services/fetchers');
 jest.mock('../../../../../shared/notify', () => ({
     notify: { success: jest.fn(), warning: jest.fn(), error: jest.fn() },
 }));
@@ -38,6 +45,20 @@ jest.mock('../../../../../shared/notify', () => ({
 const mockList = jest.mocked(listApiDocumentation);
 const mockCreate = jest.mocked(createApiDocumentationItem);
 const mockUpdate = jest.mocked(updateApiDocumentationItem);
+const mockImport = jest.mocked(importApiDocumentation);
+const mockListFetchers = jest.mocked(listFetchers);
+
+const GITLAB_FETCHER: Fetcher = {
+    id: 'gitlab-fetcher',
+    name: 'GitLab',
+    schema: { type: 'object', properties: { project: { title: 'Project', type: 'string' } }, required: ['project'] },
+};
+
+// The pointer-capture and scrolling APIs Radix's select calls when it opens are missing from jsdom.
+Element.prototype.hasPointerCapture ??= () => false;
+Element.prototype.setPointerCapture ??= () => {};
+Element.prototype.releasePointerCapture ??= () => {};
+Element.prototype.scrollIntoView ??= () => {};
 
 const GUIDES: PortalNavigationFolder = {
     id: 'guides',
@@ -101,6 +122,10 @@ function button(name: string) {
 }
 
 describe('FolderDialog', () => {
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     beforeAll(() => {
         global.ResizeObserver = class ResizeObserver {
             observe() {}
@@ -115,6 +140,7 @@ describe('FolderDialog', () => {
         mockList.mockResolvedValue({ items: [GUIDES, AUTH], publications: [] });
         mockCreate.mockResolvedValue({ ...GUIDES, id: 'new-folder', title: 'Tutorials' });
         mockUpdate.mockResolvedValue(AUTH);
+        mockListFetchers.mockResolvedValue([GITLAB_FETCHER]);
     });
 
     describe('adding a folder', () => {
@@ -185,6 +211,31 @@ describe('FolderDialog', () => {
             expect(button('Create').disabled).toBe(false);
             expect(onClose).not.toHaveBeenCalled();
             expect(onCreated).not.toHaveBeenCalled();
+        });
+
+        it('brings the refusal into view, as a long dialog scrolls it out of sight', async () => {
+            const scrollIntoView = jest.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(() => {});
+            mockCreate.mockRejectedValue(new ApimApiError(400, 'A sibling item already uses the title "Guides"'));
+            const { user } = renderDialog();
+
+            await user.type(titleInput(), 'Guides');
+            await user.click(button('Create'));
+
+            const refusal = (await screen.findByText('A sibling item already uses the title "Guides"')).closest('[role="alert"]');
+            expect(scrollIntoView.mock.contexts).toContain(refusal);
+        });
+
+        it('brings the same refusal into view again when it is given again', async () => {
+            const scrollIntoView = jest.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(() => {});
+            mockCreate.mockRejectedValue(new ApimApiError(400, 'A sibling item already uses the title "Guides"'));
+            const { user } = renderDialog();
+            await user.type(titleInput(), 'Guides');
+
+            await user.click(button('Create'));
+            await screen.findByText('A sibling item already uses the title "Guides"');
+            await user.click(button('Create'));
+
+            await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(2));
         });
 
         it('creates only once when Create is clicked twice', async () => {
@@ -332,6 +383,159 @@ describe('FolderDialog', () => {
             renderDialog({ folder: AUTH });
 
             expect(screen.queryByText(/synced from an external source/)).toBeNull();
+        });
+    });
+
+    describe('importing a folder from a repository', () => {
+        const SUMMARY = { succeeded: 14, failed: 0, results: [] };
+
+        async function fillImport(user: ReturnType<typeof userEvent.setup>) {
+            await user.click(screen.getByRole('radio', { name: 'Import from a repository' }));
+            await user.type(titleInput(), 'SDK reference');
+            await user.click(await screen.findByRole('combobox', { name: 'Source type' }));
+            await user.click(await screen.findByRole('option', { name: 'GitLab' }));
+            await user.type(screen.getByRole('textbox', { name: /Project/ }), 'acme/sdk');
+        }
+
+        async function submitImport(user: ReturnType<typeof userEvent.setup>) {
+            await waitFor(() => expect(button('Import').disabled).toBe(false));
+            await user.click(button('Import'));
+        }
+
+        beforeEach(() => {
+            mockImport.mockResolvedValue({ rootFolder: { ...GUIDES, id: 'sdk', title: 'SDK reference' }, summary: SUMMARY });
+        });
+
+        it('creates an empty folder by default, and offers an import instead', () => {
+            renderDialog();
+
+            expect(screen.getByRole('radio', { name: 'Empty folder' })).toHaveAttribute('aria-checked', 'true');
+            expect(screen.getByRole('radio', { name: 'Import from a repository' })).toHaveAttribute('aria-checked', 'false');
+        });
+
+        it('offers only the fetchers that can list a folder, and explains how the pages are laid out', async () => {
+            const { user } = renderDialog();
+
+            await user.click(screen.getByRole('radio', { name: 'Import from a repository' }));
+
+            await screen.findByRole('combobox', { name: 'Source type' });
+            expect(mockListFetchers).toHaveBeenCalledWith('env-1', { forImport: true });
+            expect(screen.getByText(/A \.gravitee\.json manifest decides the hierarchy/)).toBeInTheDocument();
+        });
+
+        it('imports the folder with its source, then says how many pages were fetched', async () => {
+            const { user, onClose, onCreated } = renderDialog({ parent: GUIDES });
+
+            await fillImport(user);
+            await submitImport(user);
+
+            await waitFor(() => expect(onClose).toHaveBeenCalled());
+            expect(mockImport).toHaveBeenCalledWith('env-1', 'api-1', {
+                title: 'SDK reference',
+                parentId: 'guides',
+                visibility: 'PUBLIC',
+                source: { type: 'gitlab-fetcher', configuration: { project: 'acme/sdk' }, useAutoFetch: false },
+            });
+            expect(mockCreate).not.toHaveBeenCalled();
+            expect(onCreated).toHaveBeenCalled();
+            expect(notify.success).toHaveBeenCalledWith("Folder 'SDK reference' imported. 14 pages fetched");
+        });
+
+        it('creates an empty folder after an import was started then given up', async () => {
+            const { user, onClose } = renderDialog();
+
+            await user.click(screen.getByRole('radio', { name: 'Import from a repository' }));
+            await user.click(await screen.findByRole('combobox', { name: 'Source type' }));
+            await user.click(await screen.findByRole('option', { name: 'GitLab' }));
+            await user.click(screen.getByRole('radio', { name: 'Empty folder' }));
+            await user.type(titleInput(), 'Tutorials');
+
+            expect(button('Create').disabled).toBe(false);
+            await user.click(button('Create'));
+            await waitFor(() => expect(onClose).toHaveBeenCalled());
+            expect(mockCreate).toHaveBeenCalled();
+            expect(mockImport).not.toHaveBeenCalled();
+        });
+
+        it('locks the choice between an empty folder and an import while importing', async () => {
+            mockImport.mockReturnValue(new Promise(() => {}));
+            const { user } = renderDialog();
+            await fillImport(user);
+
+            await submitImport(user);
+
+            await waitFor(() => expect(screen.getByRole('radio', { name: 'Empty folder' })).toBeDisabled());
+            expect(screen.getByRole('radio', { name: 'Import from a repository' })).toBeDisabled();
+            expect(screen.getByRole('textbox', { name: /Project/ })).toHaveValue('acme/sdk');
+        });
+
+        it('cannot be closed while importing', async () => {
+            mockImport.mockReturnValue(new Promise(() => {}));
+            const { user, onClose } = renderDialog();
+            await fillImport(user);
+            await submitImport(user);
+            await waitFor(() => expect(button('Cancel').disabled).toBe(true));
+
+            await user.keyboard('{Escape}');
+
+            expect(onClose).not.toHaveBeenCalled();
+            expect(screen.getByRole('dialog')).toBeInTheDocument();
+        });
+
+        it('keeps Import disabled until the source is complete', async () => {
+            const { user } = renderDialog();
+
+            await user.click(screen.getByRole('radio', { name: 'Import from a repository' }));
+            await user.type(titleInput(), 'SDK reference');
+
+            expect(button('Import').disabled).toBe(true);
+        });
+
+        it('names the files that could not be fetched, the folder being created all the same', async () => {
+            mockImport.mockResolvedValue({
+                rootFolder: { ...GUIDES, id: 'sdk', title: 'SDK reference' },
+                summary: {
+                    succeeded: 12,
+                    failed: 2,
+                    results: [
+                        { title: 'errors.md', success: false },
+                        { title: 'webhooks.md', success: false },
+                    ],
+                },
+            });
+            const { user, onCreated } = renderDialog();
+
+            await fillImport(user);
+            await submitImport(user);
+
+            await waitFor(() => expect(onCreated).toHaveBeenCalled());
+            expect(notify.warning).toHaveBeenCalledWith(
+                "Folder 'SDK reference' imported. 12 of 14 pages fetched. Failed: errors.md, webhooks.md.",
+            );
+        });
+
+        it('shows why the server refuses, keeping the dialog open with what was entered', async () => {
+            mockImport.mockRejectedValue(new ApimApiError(400, 'The source address gitlab.internal is not allowed'));
+            const { user, onClose } = renderDialog();
+
+            await fillImport(user);
+            await submitImport(user);
+
+            expect(await screen.findByText('The source address gitlab.internal is not allowed')).toBeInTheDocument();
+            expect(onClose).not.toHaveBeenCalled();
+            expect(screen.getByRole('textbox', { name: /Project/ })).toHaveValue('acme/sdk');
+        });
+
+        it('clears the refusal once the source changes', async () => {
+            mockImport.mockRejectedValue(new ApimApiError(400, 'The source address gitlab.internal is not allowed'));
+            const { user } = renderDialog();
+            await fillImport(user);
+            await submitImport(user);
+            await screen.findByText('The source address gitlab.internal is not allowed');
+
+            await user.type(screen.getByRole('textbox', { name: /Project/ }), '-v2');
+
+            await waitFor(() => expect(screen.queryByText('The source address gitlab.internal is not allowed')).not.toBeInTheDocument());
         });
     });
 
