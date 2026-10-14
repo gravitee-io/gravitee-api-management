@@ -159,6 +159,40 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void should_subscribe_to_plan_of_api_neither_member_of_nor_accessible_from_portal_when_admin() {
+        reset(apiSearchServiceV4, accessControlService, membershipService, planSearchService, subscriptionService, userService);
+
+        io.gravitee.rest.api.model.v4.plan.PlanEntity foundPlan = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        foundPlan.setApiId("private-api");
+        PlanSecurity planSecurity = new PlanSecurity();
+        planSecurity.setType("api-key");
+        foundPlan.setSecurity(planSecurity);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN))).thenReturn(foundPlan);
+        ApiEntity privateApi = new ApiEntity();
+        privateApi.setId("private-api");
+        privateApi.setPrimaryOwner(mock(PrimaryOwnerEntity.class));
+        when(
+            apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), any(), eq(false), eq(false), eq(false))
+        ).thenReturn(privateApi);
+
+        SubscriptionEntity createdSubscription = new SubscriptionEntity();
+        createdSubscription.setPlan(PLAN);
+        createdSubscription.setId(SUBSCRIPTION);
+        when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(createdSubscription);
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any(), anyBoolean())).thenReturn(mock(UserEntity.class));
+
+        final Response response = envTarget()
+            .path(APPLICATION)
+            .path("subscriptions")
+            .queryParam("plan", PLAN)
+            .request()
+            .post(Entity.json(new NewSubscriptionEntity()));
+
+        assertEquals(CREATED_201, response.getStatus());
+        verify(accessControlService, never()).canAccessApiFromPortal(any(), any(String.class));
+    }
+
+    @Test
     public void shouldGetSubscriptions_expandingSecurity() {
         reset(apiSearchServiceV4, planSearchService, subscriptionService, userService);
 
