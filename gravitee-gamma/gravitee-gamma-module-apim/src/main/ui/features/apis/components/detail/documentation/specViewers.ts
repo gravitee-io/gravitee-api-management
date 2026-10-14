@@ -15,8 +15,10 @@
  */
 import type { AsyncApiProps } from '@asyncapi/react-component';
 import type { ComponentType } from 'react';
-import type { AppStore, Redoc } from 'redoc';
+import type { Redoc } from 'redoc';
 import type { SwaggerUIOptions } from 'swagger-ui';
+
+import type { createRedocStore } from './specViewerBundles/redoc';
 
 /** What Swagger UI returns: its whole system, of which `@types/swagger-ui` leaves out the actions. */
 export interface SwaggerUiInstance {
@@ -26,7 +28,7 @@ export interface SwaggerUiInstance {
 export type SwaggerUiFactory = (options: SwaggerUIOptions) => SwaggerUiInstance;
 
 export interface RedocLibrary {
-    AppStore: typeof AppStore;
+    createRedocStore: typeof createRedocStore;
     Redoc: typeof Redoc;
 }
 
