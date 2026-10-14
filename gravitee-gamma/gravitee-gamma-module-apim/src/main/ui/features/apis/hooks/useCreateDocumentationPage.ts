@@ -55,6 +55,7 @@ export function useCreateDocumentationPage(apiId: string) {
     }: NewDocumentationPage): Promise<CreatePageResult> {
         setIsCreating(true);
         let pageId: string;
+        let fetchError: string | undefined;
         try {
             const page = await createItem.mutateAsync({
                 type: 'PAGE',
@@ -66,15 +67,16 @@ export function useCreateDocumentationPage(apiId: string) {
                 source,
             });
             pageId = page.id;
-            // A failed first fetch does not fail the creation: the server records it on the source instead.
-            const fetchError = page.type === 'PAGE' ? page.source?.lastFetchError : undefined;
-            if (fetchError) {
-                notify.warning(`Page '${title}' was created, but its content could not be fetched: ${fetchError}`);
-                return { pageId };
-            }
+            fetchError = page.type === 'PAGE' ? page.source?.lastFetchError : undefined;
         } catch (error) {
             setIsCreating(false);
-            return { refusal: extractErrorMessage(error) };
+            return { refusal: extractErrorMessage(error) || 'The page could not be created.' };
+        }
+
+        // A failed first fetch does not fail the creation: the server records it on the source instead.
+        if (fetchError) {
+            notify.warning(`Page '${title}' was created, but its content could not be fetched: ${fetchError}`);
+            return { pageId };
         }
 
         // A page is created empty: its text can only be written through its content, once the page exists.

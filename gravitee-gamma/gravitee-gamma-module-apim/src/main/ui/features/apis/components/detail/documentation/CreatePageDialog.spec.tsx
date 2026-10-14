@@ -15,7 +15,7 @@
  */
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 
@@ -260,6 +260,85 @@ describe('CreatePageDialog', () => {
             expect(onCreated).not.toHaveBeenCalled();
             expect(screen.getByRole('textbox', { name: /URL/ })).toHaveValue('https://docs.acme.io/openapi.yaml');
         });
+
+        it('keeps showing the refusal once the form can be edited again', async () => {
+            mockCreateItem.mockRejectedValue(new ApimApiError(400, 'The source address docs.internal is not allowed'));
+            const { user } = renderDialog();
+            await user.type(titleInput(), 'Petstore API');
+            await linkHttpSource(user);
+            await waitFor(() => expect(createButton().disabled).toBe(false));
+
+            await user.click(createButton());
+            await screen.findByRole('alert');
+            await waitFor(() => expect(screen.getByRole('textbox', { name: /URL/ })).toBeEnabled());
+
+            expect(screen.getByRole('alert')).toHaveTextContent('The source address docs.internal is not allowed');
+        });
+
+        it('clears the refusal once the source settings change', async () => {
+            mockCreateItem.mockRejectedValue(new ApimApiError(400, 'The source address docs.internal is not allowed'));
+            const { user } = renderDialog();
+            await user.type(titleInput(), 'Petstore API');
+            await linkHttpSource(user);
+            await waitFor(() => expect(createButton().disabled).toBe(false));
+            await user.click(createButton());
+            await screen.findByRole('alert');
+            await waitFor(() => expect(screen.getByRole('textbox', { name: /URL/ })).toBeEnabled());
+
+            await user.type(screen.getByRole('textbox', { name: /URL/ }), '/v2');
+
+            await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
+        });
+
+        it('creates the page with its schedule when it is fetched automatically', async () => {
+            const { user, onCreated } = renderDialog();
+            await user.type(titleInput(), 'Petstore API');
+            await linkHttpSource(user);
+
+            await user.click(screen.getByRole('switch', { name: 'Fetch automatically' }));
+            fireEvent.change(screen.getByRole('textbox', { name: 'Schedule (cron)' }), { target: { value: '0 0 */6 * * *' } });
+            await waitFor(() => expect(createButton().disabled).toBe(false));
+            await user.click(createButton());
+
+            await waitFor(() => expect(onCreated).toHaveBeenCalledWith('nav-1'));
+            expect(mockCreateItem).toHaveBeenCalledWith(
+                'env-1',
+                'api-1',
+                expect.objectContaining({
+                    source: {
+                        type: 'http-fetcher',
+                        configuration: { url: 'https://docs.acme.io/openapi.yaml' },
+                        useAutoFetch: true,
+                        fetchCron: '0 0 */6 * * *',
+                    },
+                }),
+            );
+        });
+
+        it('creates the page without its source once content is filled in instead', async () => {
+            mockCreateItem.mockResolvedValue(CREATED_PAGE);
+            const { user, onCreated } = renderDialog();
+            await user.type(titleInput(), 'Petstore API');
+            await linkHttpSource(user);
+            await waitFor(() => expect(createButton().disabled).toBe(false));
+
+            await user.click(screen.getByRole('radio', { name: 'Fill in content' }));
+            await user.click(createButton());
+
+            await waitFor(() => expect(onCreated).toHaveBeenCalledWith('nav-1'));
+            expect(mockCreateItem).toHaveBeenCalledWith('env-1', 'api-1', expect.objectContaining({ source: undefined }));
+        });
+
+        it('keeps Create disabled when switching from a complete source to importing a file', async () => {
+            const { user } = renderDialog();
+            await user.type(titleInput(), 'Petstore API');
+            await linkHttpSource(user);
+            await waitFor(() => expect(createButton().disabled).toBe(false));
+
+            await chooseImport(user);
+
+            expect(createButton().disabled).toBe(true);
+        });
     });
 
     describe('filling in content', () => {
@@ -500,6 +579,17 @@ describe('CreatePageDialog', () => {
     });
 
     describe('when the server refuses', () => {
+        it('still says the page could not be created when the error carries no message', async () => {
+            mockCreateItem.mockRejectedValue(new Error(''));
+            const { user, onCreated } = renderDialog();
+            await user.type(titleInput(), 'Getting started');
+
+            await user.click(createButton());
+
+            expect(await screen.findByRole('alert')).toHaveTextContent('The page could not be created.');
+            expect(onCreated).not.toHaveBeenCalled();
+        });
+
         it('clears the refusal once what was entered changes', async () => {
             mockCreateItem.mockRejectedValue(new ApimApiError(400, 'A sibling already uses this title'));
             const { user } = renderDialog();
