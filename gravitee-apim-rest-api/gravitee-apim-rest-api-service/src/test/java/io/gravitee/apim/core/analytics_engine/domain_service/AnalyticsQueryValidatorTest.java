@@ -25,6 +25,7 @@ import io.gravitee.apim.core.analytics_engine.exception.InvalidQueryException;
 import io.gravitee.apim.core.analytics_engine.model.*;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.observability.model.FilterOperator;
+import io.gravitee.apim.infra.adapter.AnalyticsMeasuresAdapter;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
 import java.time.Instant;
 import java.util.Arrays;
@@ -35,6 +36,8 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 /**
  * @author GraviteeSource Team
@@ -231,6 +234,54 @@ class AnalyticsQueryValidatorTest {
             } catch (InvalidQueryException e) {
                 return !e.getMessage().contains("not supported for analytics queries");
             }
+        }
+    }
+
+    @Nested
+    class UnsupportedAnalyticsOperators {
+
+        @Test
+        void should_reject_an_operator_the_analytics_engine_cannot_evaluate() {
+            var request = measuresRequestWith(new Filter(FilterSpec.Name.HTTP_METHOD, FilterOperator.CONTAINS, "GET"));
+
+            assertThatThrownBy(() -> validator.validateMeasuresRequest(request))
+                .isInstanceOf(InvalidQueryException.class)
+                .hasMessage("Operator 'CONTAINS' is not supported for analytics queries on filter 'HTTP_METHOD'");
+        }
+
+        @ParameterizedTest
+        @EnumSource(FilterOperator.class)
+        void should_accept_exactly_the_operators_the_engine_translates(FilterOperator operator) {
+            Object value = operator == FilterOperator.IN ? List.of("GET") : "GET";
+            var request = measuresRequestWith(new Filter(FilterSpec.Name.HTTP_METHOD, operator, value));
+
+            assertThat(accepts(request)).isEqualTo(translates(operator));
+        }
+
+        private boolean accepts(MeasuresRequest request) {
+            try {
+                validator.validateMeasuresRequest(request);
+                return true;
+            } catch (InvalidQueryException e) {
+                return false;
+            }
+        }
+
+        private static boolean translates(FilterOperator operator) {
+            try {
+                AnalyticsMeasuresAdapter.INSTANCE.toFilterOperator(operator);
+                return true;
+            } catch (IllegalArgumentException e) {
+                return false;
+            }
+        }
+
+        private static MeasuresRequest measuresRequestWith(Filter filter) {
+            return new MeasuresRequest(
+                VALID_TIME_RANGE,
+                List.of(filter),
+                List.of(new MetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT)))
+            );
         }
     }
 }
