@@ -64,7 +64,8 @@ function FakeRedoc({ store }: { store: FakeRedocStore }) {
     );
 }
 
-const redoc = { AppStore: FakeRedocStore, Redoc: FakeRedoc } as unknown as RedocLibrary;
+const createRedocStore = jest.fn(async (spec: Spec) => new FakeRedocStore(spec));
+const redoc = { createRedocStore, Redoc: FakeRedoc } as unknown as RedocLibrary;
 
 const PETSTORE = 'openapi: 3.0.3\ninfo:\n  title: Petstore\n  version: 1.0.0\nservers:\n  - url: https://petstore.example.com\npaths: {}\n';
 const PAYMENTS = 'openapi: 3.0.3\ninfo:\n  title: Payments\n  version: 1.0.0\npaths: {}\n';
@@ -83,6 +84,7 @@ describe('OpenApiPreview', () => {
     beforeEach(() => {
         swaggerUi.mockClear();
         FakeRedocStore.created = [];
+        createRedocStore.mockClear();
         mockLoadSwaggerUi.mockReset().mockResolvedValue(swaggerUi);
         mockLoadRedoc.mockReset().mockResolvedValue(redoc);
     });
@@ -231,6 +233,26 @@ describe('OpenApiPreview', () => {
             ]);
         });
 
+        it('drops a Redoc document read too late, once the content has moved on', async () => {
+            let finishReadingPetstore: () => void = () => undefined;
+            createRedocStore.mockImplementationOnce(
+                spec => new Promise(resolve => (finishReadingPetstore = () => resolve(new FakeRedocStore(spec)))),
+            );
+            const { rerender } = render(<OpenApiPreview content={PETSTORE} configuration={REDOC} />);
+            await act(() => Promise.resolve());
+
+            rerender(<OpenApiPreview content={PAYMENTS} configuration={REDOC} />);
+            wait(SPEC_PREVIEW_DELAY_MS);
+            await screen.findByRole('heading', { name: 'Redoc: Payments' });
+            await act(async () => finishReadingPetstore());
+
+            expect(screen.getByRole('heading', { name: 'Redoc: Payments' })).toBeInTheDocument();
+            expect(FakeRedocStore.created.map(store => [store.spec.info.title, store.disposed])).toEqual([
+                ['Payments', false],
+                ['Petstore', true],
+            ]);
+        });
+
         it('keeps the last preview while the content does not parse, saying why it is out of date', async () => {
             const { rerender } = render(<OpenApiPreview content={PETSTORE} configuration={REDOC} />);
             await screen.findByRole('heading', { name: 'Redoc: Petstore' });
@@ -296,14 +318,7 @@ describe('OpenApiPreview', () => {
 
         it('shows an error when Redoc cannot read the document', async () => {
             const failure = new Error('Invalid reference token');
-            mockLoadRedoc.mockResolvedValue({
-                ...redoc,
-                AppStore: class {
-                    constructor() {
-                        throw failure;
-                    }
-                },
-            } as unknown as RedocLibrary);
+            createRedocStore.mockRejectedValue(failure);
 
             render(<OpenApiPreview content={PETSTORE} configuration={REDOC} />);
 

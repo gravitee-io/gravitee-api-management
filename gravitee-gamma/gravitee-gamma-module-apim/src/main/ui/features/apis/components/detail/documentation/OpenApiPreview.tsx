@@ -108,7 +108,7 @@ function SwaggerUiViewer({
     );
 }
 
-type RedocStore = InstanceType<RedocLibrary['AppStore']>;
+type RedocStore = Awaited<ReturnType<RedocLibrary['createRedocStore']>>;
 
 function RedocViewer({ specDocument, serverUrl }: Readonly<{ specDocument: SpecDocument; serverUrl?: string }>) {
     const spec = useMemo(() => withServer(specDocument, serverUrl), [specDocument, serverUrl]);
@@ -130,22 +130,30 @@ function RedocViewer({ specDocument, serverUrl }: Readonly<{ specDocument: SpecD
         };
     }, []);
 
-    // A store holds window listeners until it is disposed: each document gets its own, released when the next one
-    // replaces it or the preview closes. The preview has no search, so no store builds a search index.
+    // A store holds a window listener until it is disposed: each document gets its own, released when the next one
+    // replaces it or the preview closes, including one that finishes reading after that.
     useEffect(() => {
         if (!library || library === 'failed') return;
-        // Only an OpenAPI document reaches the viewer (parseSpecDocument); Redoc checks the rest of it.
-        const openApiSpec = spec as unknown as ConstructorParameters<RedocLibrary['AppStore']>[0];
-        let store: RedocStore;
-        try {
-            store = new library.AppStore(openApiSpec, undefined, REDOC_OPTIONS, false);
-        } catch (error: unknown) {
-            console.error('[OpenApiPreview] Redoc could not read the document', error);
-            setRendered('failed');
-            return;
-        }
-        setRendered(previous => ({ store, version: (previous && previous !== 'failed' ? previous.version : 0) + 1 }));
-        return () => store.dispose();
+        let isCancelled = false;
+        let store: RedocStore | undefined;
+        library
+            .createRedocStore(spec, REDOC_OPTIONS)
+            .then(created => {
+                if (isCancelled) {
+                    created.dispose();
+                    return;
+                }
+                store = created;
+                setRendered(previous => ({ store: created, version: (previous && previous !== 'failed' ? previous.version : 0) + 1 }));
+            })
+            .catch((error: unknown) => {
+                console.error('[OpenApiPreview] Redoc could not read the document', error);
+                if (!isCancelled) setRendered('failed');
+            });
+        return () => {
+            isCancelled = true;
+            store?.dispose();
+        };
     }, [library, spec]);
 
     if (library === 'failed' || rendered === 'failed') {
