@@ -44,6 +44,8 @@ jest.mock('../../context/ApiDetailContext', () => ({
 }));
 
 jest.mock('../../services/apiDocumentation');
+// Linking a source lists the fetchers; none is needed by these tests.
+jest.mock('../../services/fetchers', () => ({ listFetchers: jest.fn(async () => []) }));
 
 jest.mock('../../../../shared/notify', () => ({
     notify: { success: jest.fn(), warning: jest.fn(), error: jest.fn() },
@@ -346,6 +348,18 @@ describe('ApiDocumentationEditPage', () => {
     });
 
     describe('editing the details', () => {
+        it('warns, when linking a source, that the unsaved content would be lost', async () => {
+            const user = userEvent.setup();
+            renderPage();
+            await user.type(await editor(), ' today');
+
+            await user.click(screen.getByRole('button', { name: 'Edit details' }));
+            const dialog = screen.getByRole('dialog', { name: 'Edit page details' });
+            await user.click(within(dialog).getByRole('switch', { name: 'Fetch this page from an external source' }));
+
+            expect(within(dialog).getByText(/unsaved changes to the content will be lost/)).toBeInTheDocument();
+        });
+
         it('opens the details of the page beside the content actions', async () => {
             const user = userEvent.setup();
             renderPage();
@@ -387,7 +401,10 @@ describe('ApiDocumentationEditPage', () => {
             await user.click(await screen.findByRole('button', { name: 'Edit details' }));
 
             const dialog = screen.getByRole('dialog', { name: 'Edit page details' });
-            expect((within(dialog).getByRole('switch') as HTMLButtonElement).disabled).toBe(true);
+            expect(
+                (within(dialog).getByRole('switch', { name: 'Authentication is required to view this page' }) as HTMLButtonElement)
+                    .disabled,
+            ).toBe(true);
             expect(within(dialog).getByText(/requires authentication, so this page does too/).textContent).toBe(
                 'The parent folder Guides requires authentication, so this page does too.',
             );
