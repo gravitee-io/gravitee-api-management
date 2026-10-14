@@ -301,4 +301,11 @@ describe('ExternalSourceConfig', () => {
 
         expect(await screen.findByText(/no external source type is installed/i)).toBeInTheDocument();
     });
+
+    it('says when no installed fetcher can import a folder', async () => {
+        mockListFetchers.mockResolvedValue([]);
+        renderConfig({ forImport: true });
+
+        expect(await screen.findByText(/no installed external source type can import a folder/i)).toBeInTheDocument();
+    });
 });

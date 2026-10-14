@@ -26,10 +26,17 @@ interface SelectionCardsProps<T extends string> {
     activeId: T;
     onChange: (id: T) => void;
     ariaLabel?: string;
+    disabled?: boolean;
 }
 
 /** Boxed radio-card picker for nested choices, avoiding stacking tabs inside tabs. */
-export function SelectionCards<T extends string>({ options, activeId, onChange, ariaLabel = 'Options' }: Readonly<SelectionCardsProps<T>>) {
+export function SelectionCards<T extends string>({
+    options,
+    activeId,
+    onChange,
+    ariaLabel = 'Options',
+    disabled = false,
+}: Readonly<SelectionCardsProps<T>>) {
     return (
         <div
             className="grid gap-2"
@@ -47,8 +54,9 @@ export function SelectionCards<T extends string>({ options, activeId, onChange, 
                         aria-checked={selected}
                         aria-label={option.label}
                         onClick={() => onChange(option.id)}
+                        disabled={disabled}
                         className={cn(
-                            'flex items-start gap-2.5 rounded-lg border p-3 text-left transition-colors',
+                            'flex items-start gap-2.5 rounded-lg border p-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50',
                             selected ? 'border-primary bg-primary/5' : 'hover:bg-muted/50',
                         )}
                     >

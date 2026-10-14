@@ -52,6 +52,20 @@ describe('useFetchers', () => {
         expect(mockListFetchers).toHaveBeenCalledWith('env-1', { forImport: false });
     });
 
+    it('keeps the fetchers for an import apart from the full list', async () => {
+        const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+        const wrapper = ({ children }: { children: ReactNode }) => (
+            <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        );
+        mockListFetchers.mockImplementation(async (_envId, options) => (options?.forImport ? [] : [HTTP_FETCHER]));
+
+        const { result } = renderHook(() => ({ all: useFetchers(), forImport: useFetchers({ forImport: true }) }), { wrapper });
+
+        await waitFor(() => expect(result.current.forImport.isSuccess && result.current.all.isSuccess).toBe(true));
+        expect(result.current.all.data).toEqual([HTTP_FETCHER]);
+        expect(result.current.forImport.data).toEqual([]);
+    });
+
     it('loads only the fetchers that can list a folder for an import', async () => {
         const { result } = renderUseFetchers({ forImport: true });
 

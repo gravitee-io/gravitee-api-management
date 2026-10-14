@@ -47,6 +47,12 @@ import { fetchSummaryOutcome } from '../../../utils/fetchOutcome';
 
 type FolderContents = 'EMPTY' | 'IMPORT';
 
+const SUBMIT_LABELS = {
+    save: { idle: 'Save', running: 'Saving…' },
+    import: { idle: 'Import', running: 'Importing…' },
+    create: { idle: 'Create', running: 'Creating…' },
+} as const;
+
 const FOLDER_CONTENTS: readonly SelectionCardItem<FolderContents>[] = [
     { id: 'EMPTY', label: 'Empty folder', description: 'Add pages to it yourself' },
     { id: 'IMPORT', label: 'Import from a repository', description: 'Pages fetched from a folder' },
@@ -167,17 +173,7 @@ function FolderForm({
         }
     }
 
-    const submitLabel = folder
-        ? isSaving
-            ? 'Saving…'
-            : 'Save'
-        : isImport
-          ? isSaving
-              ? 'Importing…'
-              : 'Import'
-          : isSaving
-            ? 'Creating…'
-            : 'Create';
+    const submitLabel = SUBMIT_LABELS[folder ? 'save' : isImport ? 'import' : 'create'][isSaving ? 'running' : 'idle'];
 
     return (
         <>
@@ -214,6 +210,7 @@ function FolderForm({
                                     activeId={contents}
                                     onChange={handleContentsChange}
                                     ariaLabel="Contents"
+                                    disabled={isSaving}
                                 />
                             </FieldSet>
                         )}

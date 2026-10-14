@@ -121,9 +121,6 @@ function button(name: string) {
     return screen.getByRole('button', { name }) as HTMLButtonElement;
 }
 
-// jsdom ships no scrollIntoView, which a refusal shown above a scrolled form is brought into view with.
-Element.prototype.scrollIntoView ??= () => {};
-
 describe('FolderDialog', () => {
     afterEach(() => {
         jest.restoreAllMocks();
@@ -400,6 +397,11 @@ describe('FolderDialog', () => {
             await user.type(screen.getByRole('textbox', { name: /Project/ }), 'acme/sdk');
         }
 
+        async function submitImport(user: ReturnType<typeof userEvent.setup>) {
+            await waitFor(() => expect(button('Import').disabled).toBe(false));
+            await user.click(button('Import'));
+        }
+
         beforeEach(() => {
             mockImport.mockResolvedValue({ rootFolder: { ...GUIDES, id: 'sdk', title: 'SDK reference' }, summary: SUMMARY });
         });
@@ -425,8 +427,7 @@ describe('FolderDialog', () => {
             const { user, onClose, onCreated } = renderDialog({ parent: GUIDES });
 
             await fillImport(user);
-            await waitFor(() => expect(button('Import').disabled).toBe(false));
-            await user.click(button('Import'));
+            await submitImport(user);
 
             await waitFor(() => expect(onClose).toHaveBeenCalled());
             expect(mockImport).toHaveBeenCalledWith('env-1', 'api-1', {
@@ -456,6 +457,31 @@ describe('FolderDialog', () => {
             expect(mockImport).not.toHaveBeenCalled();
         });
 
+        it('locks the choice between an empty folder and an import while importing', async () => {
+            mockImport.mockReturnValue(new Promise(() => {}));
+            const { user } = renderDialog();
+            await fillImport(user);
+
+            await submitImport(user);
+
+            await waitFor(() => expect(screen.getByRole('radio', { name: 'Empty folder' })).toBeDisabled());
+            expect(screen.getByRole('radio', { name: 'Import from a repository' })).toBeDisabled();
+            expect(screen.getByRole('textbox', { name: /Project/ })).toHaveValue('acme/sdk');
+        });
+
+        it('cannot be closed while importing', async () => {
+            mockImport.mockReturnValue(new Promise(() => {}));
+            const { user, onClose } = renderDialog();
+            await fillImport(user);
+            await submitImport(user);
+            await waitFor(() => expect(button('Cancel').disabled).toBe(true));
+
+            await user.keyboard('{Escape}');
+
+            expect(onClose).not.toHaveBeenCalled();
+            expect(screen.getByRole('dialog')).toBeInTheDocument();
+        });
+
         it('keeps Import disabled until the source is complete', async () => {
             const { user } = renderDialog();
 
@@ -480,8 +506,7 @@ describe('FolderDialog', () => {
             const { user, onCreated } = renderDialog();
 
             await fillImport(user);
-            await waitFor(() => expect(button('Import').disabled).toBe(false));
-            await user.click(button('Import'));
+            await submitImport(user);
 
             await waitFor(() => expect(onCreated).toHaveBeenCalled());
             expect(notify.warning).toHaveBeenCalledWith(
@@ -494,8 +519,7 @@ describe('FolderDialog', () => {
             const { user, onClose } = renderDialog();
 
             await fillImport(user);
-            await waitFor(() => expect(button('Import').disabled).toBe(false));
-            await user.click(button('Import'));
+            await submitImport(user);
 
             expect(await screen.findByText('The source address gitlab.internal is not allowed')).toBeInTheDocument();
             expect(onClose).not.toHaveBeenCalled();
@@ -506,8 +530,7 @@ describe('FolderDialog', () => {
             mockImport.mockRejectedValue(new ApimApiError(400, 'The source address gitlab.internal is not allowed'));
             const { user } = renderDialog();
             await fillImport(user);
-            await waitFor(() => expect(button('Import').disabled).toBe(false));
-            await user.click(button('Import'));
+            await submitImport(user);
             await screen.findByText('The source address gitlab.internal is not allowed');
 
             await user.type(screen.getByRole('textbox', { name: /Project/ }), '-v2');
