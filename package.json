@@ -119,7 +119,7 @@
         "react-router-dom": "7.18.3",
         "redoc": "2.5.4",
         "rxjs": "7.8.2",
-        "swagger-ui": "5.20.1",
+        "swagger-ui": "5.32.15",
         "tinycolor2": "1.6.0",
         "url": "0.11.4",
         "v-accordion": "1.6.0",
@@ -277,6 +277,8 @@
     "resolutions": {
         "nwsapi": "2.2.25",
         "@angular-builders/custom-webpack/@angular-devkit/build-angular": "20.3.14",
-        "@angular-builders/custom-webpack/webpack": "5.107.2"
+        "@angular-builders/custom-webpack/webpack": "5.107.2",
+        "swagger-ui/react": "18.3.1",
+        "swagger-ui/react-dom": "18.3.1"
     }
 }
