@@ -54,7 +54,7 @@ public class UpdatePortalNavigationItemUseCase {
         if (toUpdate.getSource() != null) {
             toUpdate.getSource().setSubtreeImport(existing.getSource() != null && existing.getSource().isSubtreeImport());
         }
-        validatorService.validateToUpdate(toUpdate, existing);
+        validatorService.validateToUpdateCascadingVisibility(toUpdate, existing);
         var updatedItem = domainService.update(toUpdate, existing, input.propagatePublishToChildren());
         if (updatedItem.getSource() != null) {
             sourceDomainService.removeSensitiveData(updatedItem.getSource());
