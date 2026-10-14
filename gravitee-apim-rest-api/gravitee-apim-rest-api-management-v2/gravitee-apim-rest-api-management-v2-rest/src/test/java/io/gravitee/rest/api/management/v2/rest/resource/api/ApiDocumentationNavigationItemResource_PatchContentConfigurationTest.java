@@ -234,16 +234,24 @@ class ApiDocumentationNavigationItemResource_PatchContentConfigurationTest exten
     }
 
     @Test
+    void should_return_404_when_navigation_item_does_not_exist() {
+        Response response = configure(PortalNavigationItemId.random(), SWAGGER_CONFIGURATION);
+
+        assertThat(response).hasStatus(NOT_FOUND_404);
+    }
+
+    @Test
     void should_return_403_with_environment_documentation_permission_only() {
         var page = anOpenApiPageOwnedBy(API_ID);
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
+                eq(RolePermission.ENVIRONMENT_DOCUMENTATION),
+                eq(ENVIRONMENT),
                 eq(RolePermissionAction.UPDATE)
             )
-        ).thenReturn(false);
+        ).thenReturn(true);
 
         Response response = configure(page.getId(), SWAGGER_CONFIGURATION);
 
