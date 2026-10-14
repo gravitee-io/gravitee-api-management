@@ -220,10 +220,12 @@ function OpenApiViewerSettingsForm({
                 <DialogDescription>Changes apply in every portal that lists this API.</DialogDescription>
             </DialogHeader>
 
+            {/* Inline, as Graphene's prebuilt stylesheet has no arbitrary max-height class. */}
             <form
                 id="openapi-viewer-settings-form"
                 onSubmit={handleSubmit}
-                className="-mx-1 flex max-h-[60vh] flex-col gap-5 overflow-y-auto px-1 py-1"
+                className="-mx-1 flex flex-col gap-5 overflow-y-auto px-1 py-1"
+                style={{ maxHeight: '60vh' }}
             >
                 {refusal ? (
                     <Alert variant="destructive">
