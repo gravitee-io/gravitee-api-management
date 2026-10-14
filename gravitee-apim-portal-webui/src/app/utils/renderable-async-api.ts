@@ -25,7 +25,7 @@ const XML_SCHEMA_FORMAT = /^(?:application|text)\/(?:[\w.-]+\+)?(?:xml|xsd)$/i;
 const ASYNCAPI_YAML_SCHEMA = CORE_SCHEMA.withTags(mergeTag);
 
 // JSON.stringify writes a value shared through YAML aliases once per reference: a document that would expand past
-// this size (one per node, plus one per 64 characters of text), or that loops back, would stall the page once
+// this size (one per node, plus one per 64 characters of text or key), or that loops back, would stall the page once
 // rewritten, so it is left to the viewer. It also bounds the walks below, aliases included.
 const MAX_EXPANDED_SIZE = 100_000;
 
@@ -75,8 +75,8 @@ function expandedSize(node: unknown, sizes: Map<JsonNode, number>): number {
   }
   sizes.set(node, Infinity);
   let size = 1;
-  for (const value of Object.values(node)) {
-    size += expandedSize(value, sizes);
+  for (const [key, value] of Object.entries(node)) {
+    size += Math.floor(key.length / 64) + expandedSize(value, sizes);
     if (size > MAX_EXPANDED_SIZE) {
       break;
     }

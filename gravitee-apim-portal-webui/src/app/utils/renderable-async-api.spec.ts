@@ -234,6 +234,13 @@ describe('toRenderableAsyncApi', () => {
     expect(toRenderableAsyncApi(content)).toBe(content);
   });
 
+  it('should return a document whose aliases repeat a long key past the size a page can lay out unchanged', () => {
+    const levels = Array.from({ length: 10 }, (_, i) => `  l${i + 1}: &l${i + 1} [*l${i}, *l${i}]`).join('\n');
+    const content = `${ASYNCAPI_3_XSD}x-fan-out:\n  l0: &l0 { ${'k'.repeat(10000)}: 1 }\n${levels}\n`;
+
+    expect(toRenderableAsyncApi(content)).toBe(content);
+  });
+
   it('should replace an XML Schema payload reused through an alias wherever it appears', () => {
     const content = ASYNCAPI_3_XSD.replace(
       '      payload:\n        schemaFormat: application/xml',
