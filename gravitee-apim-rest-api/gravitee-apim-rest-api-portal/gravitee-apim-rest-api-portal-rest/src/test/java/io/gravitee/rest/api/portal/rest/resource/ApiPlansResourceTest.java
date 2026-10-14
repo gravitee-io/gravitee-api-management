@@ -62,6 +62,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         apiEntity.setId(API);
         apiEntity.setVisibility(Visibility.PUBLIC);
         when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(apiEntity);
+        when(accessControlService.canConsumeApiFromPortal(GraviteeContext.getExecutionContext(), apiEntity)).thenReturn(true);
 
         plan1 = new PlanEntity();
         plan1.setId("A");
@@ -186,5 +187,17 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         assertEquals("errors.api.notFound", error.getCode());
         assertEquals("404", error.getStatus());
         assertEquals("Api [" + API + "] cannot be found.", error.getMessage());
+    }
+
+    @Test
+    public void should_have_NotFound_with_public_API_exposed_in_no_portal_and_no_READ_permission() {
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
+        when(
+            accessControlService.canConsumeApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class))
+        ).thenReturn(false);
+
+        final Response response = target(API).path("plans").request().get();
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
     }
 }
