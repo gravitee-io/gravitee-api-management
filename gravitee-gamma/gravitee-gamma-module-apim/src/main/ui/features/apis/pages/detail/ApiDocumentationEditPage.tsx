@@ -26,7 +26,7 @@ import {
     useLayoutConfig,
 } from '@gravitee/graphene-core';
 import { CodeEditor } from '@gravitee/graphene-core/code-editor';
-import { FolderOpenIcon, PencilIcon } from '@gravitee/graphene-core/icons';
+import { FolderOpenIcon, PencilIcon, SettingsIcon } from '@gravitee/graphene-core/icons';
 import { useDeferredValue, useEffect, useState, type ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
 
@@ -36,6 +36,7 @@ import { ItemAccessBadge, ItemPublishedBadge } from '../../components/detail/doc
 import { EditPageDetailsDialog } from '../../components/detail/documentation/EditPageDetailsDialog';
 import { GraviteeMarkdownPreview } from '../../components/detail/documentation/GraviteeMarkdownPreview';
 import { OpenApiPreview } from '../../components/detail/documentation/OpenApiPreview';
+import { OpenApiViewerSettingsDialog } from '../../components/detail/documentation/OpenApiViewerSettingsDialog';
 import { SourceFetchStatus } from '../../components/detail/documentation/SourceFetchStatus';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDocumentation, useApiDocumentationPageContent, useSaveApiDocumentationPageContent } from '../../hooks/useApiDocumentation';
@@ -130,6 +131,8 @@ function ApiDocumentationEditContent({ apiId, pageId }: Readonly<{ apiId: string
             canFetch={canEdit && syncState === 'OWN_SOURCE'}
             syncedFolder={syncedFolder}
             canFetchSyncedFolder={canEdit && syncedFolder !== undefined && fetchableItemIds(items).has(syncedFolder.id)}
+            // As in the portal editor: a synced page can be configured, a page inside a synced folder cannot.
+            canConfigureViewer={canEdit && syncState !== 'BELOW_SYNCED_FOLDER' && content.data.type === 'OPENAPI'}
         />
     );
 }
@@ -154,6 +157,7 @@ function PageEditor({
     canFetch,
     syncedFolder,
     canFetchSyncedFolder,
+    canConfigureViewer,
 }: Readonly<{
     apiId: string;
     page: PortalNavigationPage;
@@ -167,11 +171,13 @@ function PageEditor({
     canFetch: boolean;
     syncedFolder?: ApiDocumentationItem;
     canFetchSyncedFolder: boolean;
+    canConfigureViewer: boolean;
 }>) {
     const saveContent = useSaveApiDocumentationPageContent(apiId);
     const [draft, setDraft] = useState(saved.content);
     const [isSaving, setIsSaving] = useState(false);
     const [isEditingDetails, setIsEditingDetails] = useState(false);
+    const [isConfiguringViewer, setIsConfiguringViewer] = useState(false);
     // The draft is copied from the content once. A read-only page has no draft of its own: it shows the content as
     // loaded, which a fetch replaces. Until its first successful fetch, a sourced page only holds the placeholder it was
     // created with, which would read as fetched content.
@@ -200,6 +206,12 @@ function PageEditor({
     const actions =
         readOnly && !canEditDetails ? null : (
             <div className="flex shrink-0 gap-2">
+                {canConfigureViewer ? (
+                    <Button variant="outline" onClick={() => setIsConfiguringViewer(true)}>
+                        <SettingsIcon className="size-4" aria-hidden />
+                        Configure
+                    </Button>
+                ) : null}
                 {canEditDetails ? (
                     <Button variant="outline" onClick={() => setIsEditingDetails(true)}>
                         <PencilIcon className="size-4" aria-hidden />
@@ -281,6 +293,16 @@ function PageEditor({
                     syncState={syncState}
                     hasUnsavedContent={isDirty}
                     onClose={() => setIsEditingDetails(false)}
+                />
+            ) : null}
+
+            {canConfigureViewer ? (
+                <OpenApiViewerSettingsDialog
+                    open={isConfiguringViewer}
+                    apiId={apiId}
+                    pageId={page.id}
+                    configuration={saved.configuration}
+                    onClose={() => setIsConfiguringViewer(false)}
                 />
             ) : null}
         </div>

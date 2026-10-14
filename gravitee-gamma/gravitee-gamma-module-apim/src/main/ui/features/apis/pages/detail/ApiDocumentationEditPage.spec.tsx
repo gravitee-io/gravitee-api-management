@@ -28,6 +28,7 @@ import {
     fetchApiDocumentationItem,
     getApiDocumentationPageContent,
     listApiDocumentation,
+    saveApiDocumentationPageConfiguration,
     saveApiDocumentationPageContent,
     updateApiDocumentationItem,
 } from '../../services/apiDocumentation';
@@ -103,11 +104,18 @@ jest.mock('../../components/detail/documentation/AsyncApiPreview', () => ({
     AsyncApiPreview: ({ content }: { content: string }) => <div aria-label="Preview">AsyncAPI preview: {content}</div>,
 }));
 
+// jsdom has none of the pointer-capture and scrolling APIs Radix's select calls when it opens.
+Element.prototype.hasPointerCapture ??= () => false;
+Element.prototype.setPointerCapture ??= () => {};
+Element.prototype.releasePointerCapture ??= () => {};
+Element.prototype.scrollIntoView ??= () => {};
+
 const mockUseHasPermission = useHasPermission as jest.Mock;
 const mockUseApiDetailContext = useApiDetailContext as jest.Mock;
 const mockListApiDocumentation = jest.mocked(listApiDocumentation);
 const mockGetContent = jest.mocked(getApiDocumentationPageContent);
 const mockSaveContent = jest.mocked(saveApiDocumentationPageContent);
+const mockSaveConfiguration = jest.mocked(saveApiDocumentationPageConfiguration);
 const mockUpdateItem = jest.mocked(updateApiDocumentationItem);
 const mockFetchItem = jest.mocked(fetchApiDocumentationItem);
 
@@ -451,6 +459,83 @@ describe('ApiDocumentationEditPage', () => {
             expect(within(dialog).getByText(/requires authentication, so this page does too/).textContent).toBe(
                 'The parent folder Guides requires authentication, so this page does too.',
             );
+        });
+    });
+
+    describe('configuring the OpenAPI viewer', () => {
+        it('opens the viewer configuration of an OpenAPI page beside the other actions', async () => {
+            const user = userEvent.setup();
+            givenContent('openapi: 3.0.0\n', 'OPENAPI', { viewer: 'REDOC', tryItURL: 'https://api.example.com' });
+            renderPage();
+
+            await user.click(await screen.findByRole('button', { name: 'Configure' }));
+
+            const dialog = screen.getByRole('dialog', { name: 'Configure OpenAPI Viewer' });
+            expect((within(dialog).getByRole('textbox', { name: 'Base URL' }) as HTMLInputElement).value).toBe('https://api.example.com');
+        });
+
+        it.each<PortalPageContentType>(['GRAVITEE_MARKDOWN', 'ASYNCAPI'])('offers no viewer configuration for a %s page', async type => {
+            givenContent('content', type);
+            renderPage();
+
+            await editor();
+            expect(screen.queryByRole('button', { name: 'Configure' })).not.toBeInTheDocument();
+        });
+
+        it('offers no viewer configuration without api-documentation-u', async () => {
+            grantedPermissions = ['api-documentation-r'];
+            givenContent('openapi: 3.0.0\n', 'OPENAPI', { viewer: 'REDOC' });
+            renderPage();
+
+            await editor();
+            expect(screen.queryByRole('button', { name: 'Configure' })).not.toBeInTheDocument();
+        });
+
+        it('lets a synced page be configured, as in the portal editor', async () => {
+            givenContent('openapi: 3.0.0\n', 'OPENAPI', { viewer: 'REDOC' });
+            givenItems([GUIDES, { ...GETTING_STARTED, source: SOURCE }]);
+            renderPage();
+
+            expect(await screen.findByRole('button', { name: 'Configure' })).toBeInTheDocument();
+        });
+
+        it('offers no viewer configuration inside a synced folder, as in the portal editor', async () => {
+            givenContent('openapi: 3.0.0\n', 'OPENAPI', { viewer: 'REDOC' });
+            givenItems([{ ...GUIDES, source: SOURCE }, GETTING_STARTED]);
+            renderPage();
+
+            await editor();
+            expect(screen.queryByRole('button', { name: 'Configure' })).not.toBeInTheDocument();
+        });
+
+        it('previews in the viewer just saved, keeping the unsaved content', async () => {
+            const user = userEvent.setup();
+            givenContent('openapi: 3.0.0\n', 'OPENAPI', { viewer: 'REDOC', tryItURL: '' });
+            mockSaveConfiguration.mockImplementation(async (_envId, _apiId, _navId, configuration) => ({
+                id: 'content-1',
+                type: 'OPENAPI',
+                content: 'openapi: 3.0.0\n',
+                configuration,
+            }));
+            renderPage();
+            fireEvent.change(await editor(), { target: { value: 'openapi: 3.1.0\n' } });
+
+            await user.click(screen.getByRole('button', { name: 'Configure' }));
+            const dialog = screen.getByRole('dialog', { name: 'Configure OpenAPI Viewer' });
+            await user.click(within(dialog).getByRole('combobox', { name: 'OpenAPI Documentation Viewer' }));
+            await user.click(await screen.findByRole('option', { name: 'SwaggerUI' }));
+            await user.click(within(dialog).getByRole('button', { name: 'Save' }));
+
+            await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Configure OpenAPI Viewer' })).not.toBeInTheDocument());
+            expect(mockSaveConfiguration).toHaveBeenCalledWith(
+                'env-1',
+                'api-1',
+                'getting-started',
+                expect.objectContaining({ viewer: 'SWAGGER' }),
+            );
+            expect(screen.getByLabelText('Preview')).toHaveTextContent('OpenAPI preview in SWAGGER: openapi: 3.1.0');
+            expect((await editor()).value).toBe('openapi: 3.1.0\n');
+            expect(saveButton().disabled).toBe(false);
         });
     });
 
