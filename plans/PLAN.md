@@ -61,7 +61,7 @@ todos:
     status: completed
   - id: STORY-18
     content: "Measure how much existing data needs migrating. Spike — informs STORY-19's policy."
-    status: pending
+    status: completed
   - id: STORY-19
     content: "Move existing editor-created API documentation to API ownership. One-time, no rollback."
     status: pending
@@ -989,12 +989,19 @@ Decided earlier, when PORTAL-231 was written, and now reflected in the stories:
 ### PHASE 4 — Bring existing data in line
 
 #### STORY-18 — Measure how much existing data needs migrating
+**Status:** Done without a measurement — no environment holds representative data. Replaced by the assumptions below, and STORY-19 reports the real figures on its first run.
 **Why:** two of STORY-19's policy decisions depend on how often the awkward cases actually occur, particularly APIs listed in more than one place.
 **Acceptance criteria:**
 - A query, run against representative data, reporting: how many APIs have documentation stored under a listing row; how many are listed in more than one place; how many have more than one starter page; how many such items carry an external source.
 - Findings written up, with a recommendation for STORY-19's duplicate handling.
 **Files:** none — a query and a short written finding. Keep the query in the ticket so STORY-19 can re-run it to verify the migration.
 **Size:** S · **Depends on:** nothing
+**Assumptions, in place of the count** (taken from which release introduced what: listing rows in 4.11, starter pages seeded under them in 4.12, the editor's import in 4.13, API-owned writes from the editor in 4.14):
+- Only installs that listed APIs in the Next Gen portal's navigation on 4.11, 4.12 or 4.13 have data to migrate; most have none.
+- Where there is data, it is mostly one starter page per API listed on 4.12 or 4.13, plus a few items written by hand.
+- Items with an external source under a listing are rare. No API has two standalone listing rows: the uniqueness rule has existed as long as listing rows.
+- Two "Overview" pages side by side, segment clashes, and hand-made folders at a path a GitOps configuration declares are uncommon.
+None of them changes STORY-19's design if wrong; each only changes how much the migration does.
 
 #### STORY-19 — Move existing editor-created API documentation to API ownership
 **Why:** without it, the editor writes API-owned items while older items stay under listing rows. The two groups form separate sibling sets, so items rendered side by side can share a position and a URL name with nothing complaining. This includes folders the portal editor imported from an external source: since STORY-08 a new import under a listing is stored as API-owned documentation, while older imports stay portal-owned children of the listing row, missing from Gamma's documentation screen.
@@ -1007,13 +1014,13 @@ Decided earlier, when PORTAL-231 was written, and now reflected in the stories:
 - If an API has more than one standalone listing row, the children of all of them become the API's documentation, in one list (decision 8).
 - Nested items receive both the new ownership and the new root in the same pass.
 - Works on both supported databases.
-- Every decision taken is logged.
+- Every decision taken is logged, and each environment ends with a summary of what was migrated and what was left alone, per reason — the figures STORY-18 would have measured.
 **Files:**
 - *create* `UPG/PortalNavigationItemApiOwnedConsoleMigrationUpgrader.java`
 - *edit* `UPG/UpgraderOrder.java` — a new constant at 726, after the existing api-owned rekey upgrader at 725
 - *read only* `UPG/PortalNavigationItemApiOwnedRekeyUpgrader.java` — the template: in-place field updates, no create or delete, ids unchanged, full-collection scan. Copy its shape, including its resumability guard
 - *read only* `UPG/ApiNavigationSubtreePaths.java` — the existing path-reconstruction helper; the walk here is a generalisation of it without the deterministic-id ownership test
-**Size:** L · **Depends on:** STORY-03, STORY-18
+**Size:** L · **Depends on:** STORY-03
 **Note:** sourced items were first left out, for fear they would lose their read-only protection. They are included since 2026-10-14, after review of the STORY-08 pull request ([#21182](https://github.com/gravitee-io/gravitee-api-management/pull/21182)) showed that leaving them out strands every folder imported before STORY-08. The fear does not hold: `SourcedItemReadOnlyRule` decides from the item's own source and its stored parent chain, never from ownership, and the migration changes the parent of a subtree's root only. A refresh re-imports with the owner the root has, so it keeps the API.
 **Note:** no rollback. Do not assign to whoever is newest to this codebase. The architecture test forbidding a particular paging call applies here — follow the existing upgrader's scan.
 **Subtasks:**
@@ -1525,7 +1532,7 @@ The longest backend chain is **01 → 03 → 05 → 06** ≈ 8. It only becomes 
 
 ## Suggested order and parallel tracks
 
-**Day one, in parallel:** STORY-11 (contract, unblocks PHASE 6), STORY-20 (the zone.js spike, gates PHASE 5), STORY-18 (the data count, informs STORY-19). All three are small and all three unblock something.
+**Day one, in parallel:** STORY-11 (contract, unblocks PHASE 6), STORY-20 (the zone.js spike, gates PHASE 5), STORY-18 (the data count, informs STORY-19; later replaced by assumptions). All three are small and all three unblock something.
 
 **Then three tracks:**
 
