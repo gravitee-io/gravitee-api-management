@@ -378,6 +378,44 @@ class V2ToV4MigrationOperatorTest {
             });
         }
 
+        @ParameterizedTest
+        @CsvSource(
+            {
+                "https://api.gravitee.io/, https://api.gravitee.io",
+                "https://api.gravitee.io/echo/, https://api.gravitee.io/echo",
+                "http://example.com, http://example.com",
+                "http://example.com/base, http://example.com/base",
+            }
+        )
+        void should_strip_trailing_slash_from_endpoint_target(String v2Target, String expectedV4Target) {
+            var endpoint = new Endpoint();
+            endpoint.setName("test-endpoint");
+            endpoint.setType("http");
+            endpoint.setConfiguration("{\"target\":\"" + v2Target + "\"}");
+            endpoint.setInherit(false);
+            var endpointGroup = new EndpointGroup();
+            endpointGroup.setName("default-group");
+            endpointGroup.setEndpoints(Set.of(endpoint));
+
+            var proxy = new Proxy();
+            proxy.setVirtualHosts(List.of(new VirtualHost()));
+            proxy.setGroups(Set.of(endpointGroup));
+
+            var apiDef = new io.gravitee.definition.model.Api();
+            apiDef.setId("test-api");
+            apiDef.setName("Test API");
+            apiDef.setVersion("1.0");
+            apiDef.setProxy(proxy);
+
+            var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+
+            var result = get(mapper.mapApi(api));
+
+            var mappedEndpoint = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst().getEndpoints().getFirst();
+            assertThat(mappedEndpoint.getConfiguration()).contains("\"target\":\"" + expectedV4Target + "\"");
+            assertThat(mappedEndpoint.getConfiguration()).doesNotContain("\"target\":\"" + expectedV4Target + "/\"");
+        }
+
         @Test
         void should_migrate_endpoint_and_group() {
             // Setup Endpoint
