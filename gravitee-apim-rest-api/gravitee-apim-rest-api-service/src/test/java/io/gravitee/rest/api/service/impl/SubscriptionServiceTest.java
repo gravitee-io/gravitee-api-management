@@ -40,6 +40,7 @@ import static org.mockito.Mockito.anyMap;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.nullable;
@@ -371,6 +372,41 @@ public class SubscriptionServiceTest {
         );
 
         assertEquals(2, subscriptions.size());
+    }
+
+    @Test
+    public void should_return_no_subscription_when_user_has_no_active_application() throws TechnicalException {
+        SecurityContextHolder.setContext(generateSecurityContext());
+        when(applicationService.findByUser(GraviteeContext.getExecutionContext(), "tester")).thenReturn(Set.of());
+        Subscription otherUserSubscription = new Subscription();
+        otherUserSubscription.setId("other-user-subscription");
+        otherUserSubscription.setStatus(ACCEPTED);
+        lenient().when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(List.of(otherUserSubscription));
+
+        Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(
+            GraviteeContext.getExecutionContext(),
+            null,
+            null
+        );
+
+        assertThat(subscriptions).isEmpty();
+    }
+
+    @Test
+    public void should_return_no_subscription_when_not_authenticated_and_no_application_given() throws TechnicalException {
+        SecurityContextHolder.clearContext();
+        Subscription anySubscription = new Subscription();
+        anySubscription.setId("any-subscription");
+        anySubscription.setStatus(ACCEPTED);
+        lenient().when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(List.of(anySubscription));
+
+        Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(
+            GraviteeContext.getExecutionContext(),
+            null,
+            null
+        );
+
+        assertThat(subscriptions).isEmpty();
     }
 
     @Test
