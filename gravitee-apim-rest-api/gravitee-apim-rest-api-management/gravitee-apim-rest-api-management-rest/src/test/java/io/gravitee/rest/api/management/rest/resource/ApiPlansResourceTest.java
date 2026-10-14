@@ -24,6 +24,9 @@ import static org.mockito.Mockito.*;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -50,13 +53,37 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
     @Before
     public void init() {
-        Mockito.reset(planService, apiService);
+        Mockito.reset(planService, apiService, accessControlService);
         GraviteeContext.cleanContext();
     }
 
     @After
     public void tearDown() {
         GraviteeContext.cleanContext();
+    }
+
+    @Test
+    public void should_return_403_when_getting_plans_of_public_api_exposed_in_no_portal_without_permission() {
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(publicApi());
+        withoutPlanOrLogPermission();
+        when(accessControlService.canAccessApiFromPortal(any(ExecutionContext.class), any(ApiEntity.class))).thenReturn(false);
+
+        final Response response = envTarget().path(API).path("plans").request().get();
+
+        assertEquals(FORBIDDEN_403, response.getStatus());
+        verify(planService, never()).findByApi(any(), any());
+    }
+
+    @Test
+    public void should_return_403_when_getting_a_plan_of_public_api_exposed_in_no_portal_without_permission() {
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(publicApi());
+        withoutPlanOrLogPermission();
+        when(accessControlService.canAccessApiFromPortal(any(ExecutionContext.class), any(ApiEntity.class))).thenReturn(false);
+
+        final Response response = envTarget().path(API).path("plans").path(PLAN).request().get();
+
+        assertEquals(FORBIDDEN_403, response.getStatus());
+        verify(planService, never()).findById(any(), any());
     }
 
     @Test
@@ -117,6 +144,32 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         assertEquals(NO_CONTENT_204, response.getStatus());
         verify(planService, times(1)).delete(eq(GraviteeContext.getExecutionContext()), eq(PLAN));
+    }
+
+    private void withoutPlanOrLogPermission() {
+        when(
+            permissionService.hasPermission(
+                any(ExecutionContext.class),
+                eq(RolePermission.API_PLAN),
+                eq(API),
+                any(RolePermissionAction[].class)
+            )
+        ).thenReturn(false);
+        when(
+            permissionService.hasPermission(
+                any(ExecutionContext.class),
+                eq(RolePermission.API_LOG),
+                eq(API),
+                any(RolePermissionAction[].class)
+            )
+        ).thenReturn(false);
+    }
+
+    private static ApiEntity publicApi() {
+        ApiEntity api = new ApiEntity();
+        api.setId(API);
+        api.setVisibility(Visibility.PUBLIC);
+        return api;
     }
 
     private ApiEntity getApi(DefinitionVersion version) {
