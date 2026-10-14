@@ -30,8 +30,13 @@ jest.mock('../../../services/fetchers');
 
 // Monaco does not run in jsdom: a textarea stands in for the editor.
 jest.mock('@gravitee/graphene-core/code-editor', () => ({
-    CodeEditor: ({ value, onChange }: { value?: string; onChange?: (next: string) => void }) => (
-        <textarea aria-label="Source settings as JSON" value={value} onChange={event => onChange?.(event.target.value)} />
+    CodeEditor: ({ value, onChange, disabled }: { value?: string; onChange?: (next: string) => void; disabled?: boolean }) => (
+        <textarea
+            aria-label="Source settings as JSON"
+            value={value}
+            onChange={event => onChange?.(event.target.value)}
+            disabled={disabled}
+        />
     ),
 }));
 
@@ -69,13 +74,14 @@ const GITHUB_FETCHER: Fetcher = {
 function renderConfig() {
     const onChange = jest.fn<void, [ExternalSourceState]>();
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    render(
+    const config = (disabled: boolean) => (
         <QueryClientProvider client={queryClient}>
-            <ExternalSourceConfig onChange={onChange} />
-        </QueryClientProvider>,
+            <ExternalSourceConfig onChange={onChange} disabled={disabled} />
+        </QueryClientProvider>
     );
+    const { rerender } = render(config(false));
     const lastState = () => onChange.mock.calls.at(-1)?.[0];
-    return { onChange, lastState, user: userEvent.setup() };
+    return { onChange, lastState, user: userEvent.setup(), disable: () => rerender(config(true)) };
 }
 
 async function chooseFetcher(user: ReturnType<typeof userEvent.setup>, name: string) {
@@ -156,6 +162,18 @@ describe('ExternalSourceConfig', () => {
         );
     });
 
+    it('says why a schedule is not valid, and is invalid until it is', async () => {
+        const { user, lastState } = renderConfig();
+        await chooseFetcher(user, 'GitHub');
+        await user.type(screen.getByRole('textbox', { name: /Repository/ }), 'petstore');
+        await user.click(screen.getByRole('switch', { name: 'Fetch automatically' }));
+
+        fireEvent.change(screen.getByRole('textbox', { name: 'Schedule (cron)' }), { target: { value: '* * *' } });
+
+        expect(await screen.findByText('Must have exactly 6 fields: sec min hr dom mon dow')).toBeInTheDocument();
+        await waitFor(() => expect(lastState()?.valid).toBe(false));
+    });
+
     it('says a schedule is needed once automatic fetching is on', async () => {
         const { user } = renderConfig();
         await chooseFetcher(user, 'GitHub');
@@ -193,6 +211,17 @@ describe('ExternalSourceConfig', () => {
         expect(screen.getByRole('switch', { name: 'Edit as JSON' })).toBeDisabled();
     });
 
+    it('takes JSON that is not an object as unreadable settings', async () => {
+        const { user, lastState } = renderConfig();
+        await chooseFetcher(user, 'GitHub');
+
+        await user.click(screen.getByRole('switch', { name: 'Edit as JSON' }));
+        fireEvent.change(screen.getByRole('textbox', { name: 'Source settings as JSON' }), { target: { value: '[]' } });
+
+        expect(await screen.findByText('The settings are not valid JSON.')).toBeInTheDocument();
+        await waitFor(() => expect(lastState()?.valid).toBe(false));
+    });
+
     it('says why JSON that can be read is still not valid for the source type', async () => {
         const { user, lastState } = renderConfig();
         await chooseFetcher(user, 'GitHub');
@@ -202,6 +231,52 @@ describe('ExternalSourceConfig', () => {
 
         expect(await screen.findByText('Some settings are missing or not valid for this source type.')).toBeInTheDocument();
         await waitFor(() => expect(lastState()?.valid).toBe(false));
+    });
+
+    it("starts from the defaults of the fetcher's schema", async () => {
+        mockListFetchers.mockResolvedValue([
+            {
+                id: 'gitlab-fetcher',
+                name: 'GitLab',
+                schema: {
+                    type: 'object',
+                    properties: {
+                        project: { title: 'Project', type: 'string' },
+                        branchOrTag: { title: 'Branch or tag', type: 'string', default: 'main' },
+                    },
+                },
+            },
+        ]);
+        const { user, lastState } = renderConfig();
+
+        await chooseFetcher(user, 'GitLab');
+
+        expect(screen.getByRole('textbox', { name: /Branch or tag/ })).toHaveValue('main');
+        await waitFor(() => expect(lastState()?.source?.configuration).toEqual({ branchOrTag: 'main' }));
+    });
+
+    it('locks every setting while disabled', async () => {
+        const { user, disable } = renderConfig();
+        await chooseFetcher(user, 'GitHub');
+        await user.click(screen.getByRole('switch', { name: 'Fetch automatically' }));
+
+        disable();
+
+        expect(screen.getByRole('combobox', { name: 'Source type' })).toBeDisabled();
+        expect(screen.getByRole('textbox', { name: /Repository/ })).toBeDisabled();
+        expect(screen.getByRole('switch', { name: 'Edit as JSON' })).toBeDisabled();
+        expect(screen.getByRole('switch', { name: 'Fetch automatically' })).toBeDisabled();
+        expect(screen.getByRole('textbox', { name: 'Schedule (cron)' })).toBeDisabled();
+    });
+
+    it('locks the JSON editor while disabled', async () => {
+        const { user, disable } = renderConfig();
+        await chooseFetcher(user, 'HTTP');
+        await user.click(screen.getByRole('switch', { name: 'Edit as JSON' }));
+
+        disable();
+
+        expect(screen.getByRole('textbox', { name: 'Source settings as JSON' })).toBeDisabled();
     });
 
     it('says when the fetchers cannot be loaded, instead of offering an empty choice', async () => {

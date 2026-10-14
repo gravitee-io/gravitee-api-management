@@ -31,7 +31,7 @@ import {
 } from '@gravitee/graphene-core';
 import { CodeEditor } from '@gravitee/graphene-core/code-editor';
 import { AlertCircleIcon } from '@gravitee/graphene-core/icons';
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { type FieldValues, useForm } from 'react-hook-form';
 
 import { useFetchers } from '../../../hooks/useFetchers';
@@ -71,17 +71,18 @@ export function ExternalSourceConfig({
     const onChangeRef = useRef(onChange);
     onChangeRef.current = onChange;
 
+    const scheduleError = fetchCron ? validateCron(fetchCron) : 'Choose when to fetch.';
+
     useEffect(() => {
         if (!type || !settings) {
             onChangeRef.current({ source: null, valid: false });
             return;
         }
-        const scheduleValid = !useAutoFetch || validateCron(fetchCron) === null;
         onChangeRef.current({
             source: { type, configuration: settings.configuration, useAutoFetch, ...(useAutoFetch ? { fetchCron } : {}) },
-            valid: settings.valid && scheduleValid,
+            valid: settings.valid && (!useAutoFetch || scheduleError === null),
         });
-    }, [type, settings, useAutoFetch, fetchCron]);
+    }, [type, settings, useAutoFetch, fetchCron, scheduleError]);
 
     if (isLoading) {
         return <Skeleton className="h-24 w-full rounded" />;
@@ -141,7 +142,7 @@ export function ExternalSourceConfig({
                         idPrefix={`${autoFetchId}-schedule`}
                         value={fetchCron}
                         onChange={setFetchCron}
-                        error={fetchCron ? (validateCron(fetchCron) ?? undefined) : 'Choose when to fetch.'}
+                        error={scheduleError ?? undefined}
                         disabled={disabled}
                     />
                 ) : null}
@@ -176,32 +177,35 @@ function FetcherSettingsForm({
     // Validation is asynchronous: only the outcome for the latest settings is reported.
     const reportCount = useRef(0);
 
-    async function report(configuration: Record<string, unknown>) {
-        const count = ++reportCount.current;
-        const result = await resolver({ configuration }, undefined, { fields: {}, shouldUseNativeValidation: false });
-        if (count === reportCount.current) {
-            const valid = Object.keys(result.errors).length === 0;
-            setSettingsValid(valid);
-            onChangeRef.current({ configuration, valid });
-        }
-    }
+    const report = useCallback(
+        async (configuration: Record<string, unknown>) => {
+            const count = ++reportCount.current;
+            const result = await resolver({ configuration }, undefined, { fields: {}, shouldUseNativeValidation: false });
+            if (count === reportCount.current) {
+                const valid = Object.keys(result.errors).length === 0;
+                setSettingsValid(valid);
+                onChangeRef.current({ configuration, valid });
+            }
+        },
+        [resolver],
+    );
+
+    const currentConfiguration = useCallback((): Record<string, unknown> => form.getValues().configuration ?? {}, [form]);
 
     useEffect(() => {
         const reports = reportCount;
-        void report(form.getValues().configuration ?? {});
+        void report(currentConfiguration());
         const subscription = form.watch(values => void report((values.configuration ?? {}) as Record<string, unknown>));
         return () => {
             subscription.unsubscribe();
             // A validation still running for a fetcher no longer chosen must not report.
             reports.current++;
         };
-        // The form and its resolver live as long as this component, which a new fetcher remounts.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [form, report, currentConfiguration]);
 
     function toggleJson(editAsJson: boolean) {
         setJsonInvalid(false);
-        setJsonText(editAsJson ? JSON.stringify(form.getValues().configuration ?? {}, null, 2) : null);
+        setJsonText(editAsJson ? JSON.stringify(currentConfiguration(), null, 2) : null);
     }
 
     function editJson(text: string) {
@@ -210,7 +214,7 @@ function FetcherSettingsForm({
         if (!parsed) {
             setJsonInvalid(true);
             reportCount.current++;
-            onChangeRef.current({ configuration: form.getValues().configuration ?? {}, valid: false });
+            onChangeRef.current({ configuration: currentConfiguration(), valid: false });
             return;
         }
         setJsonInvalid(false);
@@ -226,7 +230,13 @@ function FetcherSettingsForm({
                     {/* Sized by the editor itself: graphene ships a fixed set of Tailwind utilities, and a height class it
                         does not use itself (such as h-48) does not exist. */}
                     <div className="overflow-hidden rounded-md border">
-                        <CodeEditor value={jsonText} onChange={value => editJson(value ?? '')} language="json" height="12rem" />
+                        <CodeEditor
+                            value={jsonText}
+                            onChange={value => editJson(value ?? '')}
+                            language="json"
+                            height="12rem"
+                            disabled={disabled}
+                        />
                     </div>
                     {jsonInvalid ? <p className="text-xs text-destructive">The settings are not valid JSON.</p> : null}
                     {/* The form shows which field is wrong; the JSON editor cannot, so it says why the source cannot be saved. */}
