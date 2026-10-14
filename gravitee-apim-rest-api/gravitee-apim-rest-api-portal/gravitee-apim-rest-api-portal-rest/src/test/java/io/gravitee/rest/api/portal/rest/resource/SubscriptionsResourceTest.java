@@ -28,6 +28,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -126,6 +127,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         planEntity.setReferenceId(API);
         planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
         doReturn(planEntity).when(planSearchService).findById(GraviteeContext.getExecutionContext(), PLAN);
+        doReturn(true).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
     }
 
     @Test
@@ -221,6 +223,16 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         assertNotNull(subscriptionResponse.getKeys());
         assertEquals(1, subscriptionResponse.getKeys().size());
         assertEquals(key, subscriptionResponse.getKeys().get(0));
+    }
+
+    @Test
+    void should_return_404_and_not_subscribe_when_user_cannot_access_api_of_plan() {
+        doReturn(false).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
+
+        Response response = target().request().post(Entity.json(new SubscriptionInput().application(APPLICATION).plan(PLAN)));
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+        verify(createSubscriptionUseCase, never()).execute(any());
     }
 
     @Test
