@@ -52,8 +52,6 @@ import lombok.CustomLog;
 @CustomLog
 final class ListingDocumentationMigrationPlan {
 
-    private static final String STARTER_PAGE_TITLE = "Overview";
-
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final String SOURCE = "source";
 
@@ -98,7 +96,7 @@ final class ListingDocumentationMigrationPlan {
             item.setOrder(order);
             itemUpdater.accept(item);
         });
-        for (var relabel : relabels) {
+        relabels.forEach(relabel -> {
             var item = itemsById.get(relabel.itemId());
             item.setParentId(relabel.parentId());
             item.setRootId(relabel.rootId());
@@ -106,7 +104,7 @@ final class ListingDocumentationMigrationPlan {
             item.setReferenceId(relabel.apiId());
             item.setSegment(relabel.segment());
             itemUpdater.accept(item);
-        }
+        });
     }
 
     boolean isEmpty() {
@@ -147,64 +145,46 @@ final class ListingDocumentationMigrationPlan {
     private record Relabel(String itemId, String parentId, String rootId, String apiId, String segment) {}
 
     private void planEnvironment() {
-        // Sorted by API id so that two runs over the same data log and write in the same order
-        var standaloneRowsByApi = new TreeMap<String, List<PortalNavigationItem>>();
-        for (var row : items) {
-            if (row.getType() != PortalNavigationItem.Type.API || row.getApiId() == null) {
-                continue;
-            }
-            if (isUnderApiProduct(row)) {
-                var left = countBelow(row);
-                if (left > 0) {
-                    itemsLeftUnderApiProducts += left;
-                    decisions.add(
-                        "Left %d item(s) under listing [%s] of API [%s]: it is inside an API product".formatted(
-                            left,
-                            row.getId(),
-                            row.getApiId()
-                        )
-                    );
-                }
-                continue;
-            }
-            standaloneRowsByApi.computeIfAbsent(row.getApiId(), apiId -> new ArrayList<>()).add(row);
+        items
+            .stream()
+            .filter(PortalNavigationItem.IS_API_ITEM_PREDICATE)
+            .filter(row -> !skipIfUnderApiProduct(row))
+            // Sorted by API id so that two runs over the same data log and write in the same order
+            .collect(Collectors.groupingBy(PortalNavigationItem::getApiId, TreeMap::new, Collectors.toList()))
+            .forEach(this::planApi);
+    }
+
+    private boolean skipIfUnderApiProduct(PortalNavigationItem row) {
+        if (!isUnderApiProduct(row)) {
+            return false;
         }
-        standaloneRowsByApi.forEach(this::planApi);
+        var left = countBelow(row);
+        if (left > 0) {
+            itemsLeftUnderApiProducts += left;
+            decisions.add(
+                "Left %d item(s) under listing [%s] of API [%s]: it is inside an API product".formatted(left, row.getId(), row.getApiId())
+            );
+        }
+        return true;
     }
 
     private void planApi(String apiId, List<PortalNavigationItem> rows) {
         rows.sort(Comparator.comparing(PortalNavigationItem::getId));
         if (!existingApiIds.contains(apiId)) {
-            for (var row : rows) {
-                var left = countBelow(row);
-                if (left > 0) {
-                    itemsLeftForMissingApis += left;
-                    decisions.add("Left %d item(s) under listing [%s]: API [%s] no longer exists".formatted(left, row.getId(), apiId));
-                }
-            }
+            rows.forEach(row -> leaveForMissingApi(apiId, row));
             return;
         }
 
-        var moving = new ArrayList<Candidate>();
-        for (int rowIndex = 0; rowIndex < rows.size(); rowIndex++) {
-            var row = rows.get(rowIndex);
-            for (var child : childrenByParentId.getOrDefault(row.getId(), List.of())) {
-                var subtree = subtree(child);
-                if (subtree.stream().anyMatch(ListingDocumentationMigrationPlan::isManagedByPortalAutomation)) {
-                    itemsLeftForPortalAutomation += subtree.size();
-                    decisions.add(
-                        "Left [%s] and %d item(s) below it under listing [%s] of API [%s]: Portal automation manages it".formatted(
-                            child.getId(),
-                            subtree.size() - 1,
-                            row.getId(),
-                            apiId
-                        )
-                    );
-                    continue;
-                }
-                moving.add(new Candidate(child, rowIndex, subtree));
-            }
-        }
+        var moving = IntStream.range(0, rows.size())
+            .boxed()
+            .flatMap(rowIndex ->
+                childrenByParentId
+                    .getOrDefault(rows.get(rowIndex).getId(), List.of())
+                    .stream()
+                    .map(child -> new Candidate(child, rowIndex, subtree(child)))
+            )
+            .filter(candidate -> !skipIfManagedByPortalAutomation(apiId, candidate))
+            .collect(Collectors.toCollection(ArrayList::new));
         if (moving.isEmpty()) {
             return;
         }
@@ -233,6 +213,31 @@ final class ListingDocumentationMigrationPlan {
         var listOrder = planPositions(moving, existingRoots);
         moving.sort(Comparator.comparingInt(candidate -> listOrder.indexOf(candidate.top())));
         planRelabels(apiId, moving, existingRoots);
+    }
+
+    private void leaveForMissingApi(String apiId, PortalNavigationItem row) {
+        var left = countBelow(row);
+        if (left > 0) {
+            itemsLeftForMissingApis += left;
+            decisions.add("Left %d item(s) under listing [%s]: API [%s] no longer exists".formatted(left, row.getId(), apiId));
+        }
+    }
+
+    private boolean skipIfManagedByPortalAutomation(String apiId, Candidate candidate) {
+        var subtree = candidate.subtree();
+        if (subtree.stream().noneMatch(ListingDocumentationMigrationPlan::isManagedByPortalAutomation)) {
+            return false;
+        }
+        itemsLeftForPortalAutomation += subtree.size();
+        decisions.add(
+            "Left [%s] and %d item(s) below it under listing [%s] of API [%s]: Portal automation manages it".formatted(
+                candidate.top().getId(),
+                subtree.size() - 1,
+                candidate.top().getParentId(),
+                apiId
+            )
+        );
+        return true;
     }
 
     /**
@@ -269,46 +274,55 @@ final class ListingDocumentationMigrationPlan {
             .map(PortalNavigationItem::getSegment)
             .filter(Objects::nonNull)
             .collect(Collectors.toCollection(HashSet::new));
-        for (var candidate : moving) {
-            var top = candidate.top();
-            var segment = uniqueSegment(top, usedSegments);
-            usedSegments.add(segment);
-            if (!Objects.equals(segment, top.getSegment())) {
-                segmentsRenamed++;
-                decisions.add(
-                    "Renamed the segment of [%s] from [%s] to [%s]: API [%s] already has a top item named so".formatted(
-                        top.getId(),
-                        top.getSegment(),
-                        segment,
-                        apiId
-                    )
-                );
-            }
+        moving.forEach(candidate -> planRelabel(apiId, candidate, usedSegments));
+    }
 
-            for (var item : candidate.subtree()) {
-                itemsMoved++;
-                if (isSourcedOrBelowSourced(item, top)) {
-                    sourcedItemsMoved++;
-                }
-                if (item.getType() == PortalNavigationItem.Type.PAGE && STARTER_PAGE_TITLE.equals(item.getTitle())) {
-                    starterPagesMoved++;
-                }
-            }
-
-            for (var item : candidate.subtree().reversed()) {
-                var isTop = item == top;
-                var relabel = new Relabel(
+    private void planRelabel(String apiId, Candidate candidate, Set<String> usedSegments) {
+        var top = candidate.top();
+        var segment = claimSegment(apiId, top, usedSegments);
+        countMoved(candidate);
+        candidate
+            .subtree()
+            .reversed()
+            .stream()
+            .map(item ->
+                new Relabel(
                     item.getId(),
-                    isTop ? null : item.getParentId(),
+                    item == top ? null : item.getParentId(),
                     top.getId(),
                     apiId,
-                    isTop ? segment : item.getSegment()
-                );
-                if (!isAligned(item, relabel)) {
-                    relabels.add(relabel);
-                }
-            }
+                    item == top ? segment : item.getSegment()
+                )
+            )
+            .filter(relabel -> !isAligned(itemsById.get(relabel.itemId()), relabel))
+            .forEach(relabels::add);
+    }
+
+    private String claimSegment(String apiId, PortalNavigationItem top, Set<String> usedSegments) {
+        var segment = uniqueSegment(top, usedSegments);
+        usedSegments.add(segment);
+        if (!Objects.equals(segment, top.getSegment())) {
+            segmentsRenamed++;
+            decisions.add(
+                "Renamed the segment of [%s] from [%s] to [%s]: API [%s] already has a top item named so".formatted(
+                    top.getId(),
+                    top.getSegment(),
+                    segment,
+                    apiId
+                )
+            );
         }
+        return segment;
+    }
+
+    private void countMoved(Candidate candidate) {
+        var subtree = candidate.subtree();
+        itemsMoved += subtree.size();
+        sourcedItemsMoved += (int) subtree
+            .stream()
+            .filter(item -> isSourcedOrBelowSourced(item, candidate.top()))
+            .count();
+        starterPagesMoved += (int) subtree.stream().filter(PortalNavigationItem.IS_OVERVIEW_PAGE_PREDICATE).count();
     }
 
     private static String uniqueSegment(PortalNavigationItem top, Set<String> used) {
