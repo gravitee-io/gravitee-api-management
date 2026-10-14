@@ -127,7 +127,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         planEntity.setReferenceId(API);
         planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
         doReturn(planEntity).when(planSearchService).findById(GraviteeContext.getExecutionContext(), PLAN);
-        doReturn(true).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
+        doReturn(true).when(accessControlService).canConsumeApiFromPortal(GraviteeContext.getExecutionContext(), API);
     }
 
     @Test
@@ -227,7 +227,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
 
     @Test
     void should_return_404_and_not_subscribe_when_user_cannot_access_api_of_plan() {
-        doReturn(false).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
+        doReturn(false).when(accessControlService).canConsumeApiFromPortal(GraviteeContext.getExecutionContext(), API);
 
         Response response = target().request().post(Entity.json(new SubscriptionInput().application(APPLICATION).plan(PLAN)));
 

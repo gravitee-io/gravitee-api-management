@@ -159,8 +159,8 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void should_subscribe_to_plan_of_api_user_cannot_consume_when_admin() {
-        reset(apiSearchServiceV4, apiAuthorizationServiceV4, planSearchService, subscriptionService, userService);
+    void should_subscribe_to_plan_of_api_neither_member_of_nor_consumable_from_portal_when_admin() {
+        reset(apiSearchServiceV4, apiAuthorizationServiceV4, accessControlService, planSearchService, subscriptionService, userService);
 
         io.gravitee.rest.api.model.v4.plan.PlanEntity foundPlan = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
         foundPlan.setReferenceId("private-api");
@@ -175,7 +175,7 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
         when(
             apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), any(), eq(false), eq(false), eq(false))
         ).thenReturn(privateApi);
-        when(apiAuthorizationServiceV4.canConsumeApi(any(), any(), any())).thenReturn(false);
+        when(accessControlService.canConsumeApiFromPortal(any(), any(String.class))).thenReturn(false);
 
         SubscriptionEntity createdSubscription = new SubscriptionEntity();
         createdSubscription.setPlan(PLAN);

@@ -115,7 +115,7 @@ public class SubscriptionsResource extends AbstractResource {
         String applicationId = subscriptionInput.getApplication();
         if (hasPermission(executionContext, RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.CREATE)) {
             GenericPlanEntity plan = planSearchService.findById(executionContext, subscriptionInput.getPlan());
-            if (!accessControlService.canAccessApiFromPortal(executionContext, plan.getReferenceId())) {
+            if (!accessControlService.canConsumeApiFromPortal(executionContext, plan.getReferenceId())) {
                 throw new ApiNotFoundException(plan.getReferenceId());
             }
 
