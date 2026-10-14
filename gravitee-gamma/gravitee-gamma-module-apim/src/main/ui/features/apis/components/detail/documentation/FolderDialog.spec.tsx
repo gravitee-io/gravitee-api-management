@@ -27,6 +27,7 @@ import {
     importApiDocumentation,
     listApiDocumentation,
     updateApiDocumentationItem,
+    fetchApiDocumentationItem,
 } from '../../../services/apiDocumentation';
 import { listFetchers } from '../../../services/fetchers';
 import type { Fetcher, PortalNavigationFolder, PortalNavigationItemSource } from '../../../types/apiDocumentation';
@@ -47,6 +48,7 @@ const mockCreate = jest.mocked(createApiDocumentationItem);
 const mockUpdate = jest.mocked(updateApiDocumentationItem);
 const mockImport = jest.mocked(importApiDocumentation);
 const mockListFetchers = jest.mocked(listFetchers);
+const mockFetchItem = jest.mocked(fetchApiDocumentationItem);
 
 const GITLAB_FETCHER: Fetcher = {
     id: 'gitlab-fetcher',
@@ -357,6 +359,122 @@ describe('FolderDialog', () => {
                 expect(
                     screen.getByText("This folder is synced from an external source, so its title can't change here. Its access can."),
                 ).not.toBeNull();
+            });
+
+            it('offers no source to change when it was not imported, as the server refuses one', () => {
+                renderDialog({ folder: AUTH });
+
+                expect(screen.queryByRole('switch', { name: 'Fetch this folder from an external source' })).not.toBeInTheDocument();
+            });
+
+            describe('imported from a repository', () => {
+                const IMPORTED = {
+                    ...AUTH,
+                    source: { type: 'gitlab-fetcher', configuration: { project: 'acme/sdk' }, useAutoFetch: false, subtreeImport: true },
+                };
+                const sourceSwitch = () => screen.getByRole('switch', { name: 'Fetch this folder from an external source' });
+
+                beforeEach(() => {
+                    mockList.mockResolvedValue({ items: [GUIDES, IMPORTED], publications: [] });
+                    mockUpdate.mockResolvedValue(IMPORTED);
+                    mockFetchItem.mockResolvedValue({ summary: { succeeded: 3, failed: 0, results: [] } });
+                });
+
+                it('shows its source, among the fetchers that can import a folder', async () => {
+                    renderDialog({ folder: IMPORTED, syncState: 'OWN_SOURCE' });
+
+                    expect(sourceSwitch()).toHaveAttribute('aria-checked', 'true');
+                    expect(await screen.findByRole('textbox', { name: /Project/ })).toHaveValue('acme/sdk');
+                    expect(mockListFetchers).toHaveBeenCalledWith('env-1', { forImport: true });
+                });
+
+                it('saves nothing while it is left as it is', async () => {
+                    renderDialog({ folder: IMPORTED, syncState: 'OWN_SOURCE' });
+
+                    await screen.findByRole('textbox', { name: /Project/ });
+
+                    await waitFor(() => expect(button('Save').disabled).toBe(true));
+                });
+
+                it('fetches nothing when only the access changes', async () => {
+                    const { user, onClose } = renderDialog({ folder: IMPORTED, syncState: 'OWN_SOURCE' });
+                    await screen.findByRole('textbox', { name: /Project/ });
+
+                    await user.click(privateSwitch());
+                    await user.click(button('Save'));
+
+                    await waitFor(() => expect(onClose).toHaveBeenCalled());
+                    expect(mockUpdate.mock.calls[0][3]).toMatchObject({ source: IMPORTED.source });
+                    expect(mockFetchItem).not.toHaveBeenCalled();
+                });
+
+                it('cannot be saved once a required setting is cleared', async () => {
+                    const { user } = renderDialog({ folder: IMPORTED, syncState: 'OWN_SOURCE' });
+                    const project = await screen.findByRole('textbox', { name: /Project/ });
+
+                    await user.clear(project);
+
+                    await waitFor(() => expect(button('Save').disabled).toBe(true));
+                });
+
+                it('saves a changed source, then fetches the folder from it', async () => {
+                    const { user, onClose } = renderDialog({ folder: IMPORTED, syncState: 'OWN_SOURCE' });
+                    const project = await screen.findByRole('textbox', { name: /Project/ });
+
+                    await user.clear(project);
+                    await user.type(project, 'acme/sdk-v2');
+                    await waitFor(() => expect(button('Save').disabled).toBe(false));
+                    await user.click(button('Save'));
+
+                    await waitFor(() => expect(onClose).toHaveBeenCalled());
+                    expect(mockUpdate).toHaveBeenCalledWith(
+                        'env-1',
+                        'api-1',
+                        'auth',
+                        expect.objectContaining({
+                            source: { type: 'gitlab-fetcher', configuration: { project: 'acme/sdk-v2' }, useAutoFetch: false },
+                        }),
+                        {},
+                    );
+                    await waitFor(() => expect(mockFetchItem).toHaveBeenCalledWith('env-1', 'api-1', 'auth'));
+                });
+
+                it('removes the source, saying the folder and what it holds become editable, and lets it be renamed', async () => {
+                    const { user, onClose } = renderDialog({ folder: IMPORTED, syncState: 'OWN_SOURCE' });
+                    expect(titleInput().disabled).toBe(true);
+
+                    await user.click(sourceSwitch());
+
+                    expect(
+                        screen.getByText(/The source will be removed\. The folder and the items in it stop being fetched/),
+                    ).toBeInTheDocument();
+                    expect(titleInput().disabled).toBe(false);
+                    await user.clear(titleInput());
+                    await user.type(titleInput(), 'SDK');
+                    await user.click(button('Save'));
+
+                    await waitFor(() => expect(onClose).toHaveBeenCalled());
+                    const payload = mockUpdate.mock.calls[0][3];
+                    expect(payload).toMatchObject({ title: 'SDK' });
+                    expect(payload).not.toHaveProperty('source');
+                    expect(mockFetchItem).not.toHaveBeenCalled();
+                });
+            });
+
+            it('offers only to remove a source it was not imported with, which the server refuses to change', async () => {
+                const legacy = { ...AUTH, source: SOURCE };
+                mockList.mockResolvedValue({ items: [GUIDES, legacy], publications: [] });
+                const { user, onClose } = renderDialog({ folder: legacy, syncState: 'OWN_SOURCE' });
+
+                expect(screen.getByText(/can only be removed here/)).toBeInTheDocument();
+                expect(screen.queryByRole('combobox', { name: 'Source type' })).not.toBeInTheDocument();
+                expect(button('Save').disabled).toBe(true);
+
+                await user.click(screen.getByRole('switch', { name: 'Fetch this folder from an external source' }));
+                await user.click(button('Save'));
+
+                await waitFor(() => expect(onClose).toHaveBeenCalled());
+                expect(mockUpdate.mock.calls[0][3]).not.toHaveProperty('source');
             });
 
             it('changes its access, sending its title, spaces included, and its source back unchanged', async () => {

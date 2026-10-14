@@ -109,6 +109,34 @@ describe('toUpdatePayload', () => {
         });
     });
 
+    it("replaces a page's external source, keeping everything else", () => {
+        const replacement: PortalNavigationItemSource = {
+            type: 'http-fetcher',
+            configuration: { url: 'https://docs.acme.io/petstore.yaml' },
+        };
+
+        expect(toUpdatePayload(SYNCED_PAGE, { source: replacement })).toEqual({
+            type: 'PAGE',
+            title: 'Petstore',
+            order: 2,
+            published: true,
+            visibility: 'PUBLIC',
+            parentId: 'guides',
+            source: replacement,
+        });
+    });
+
+    it("sends no external source once a folder's is removed", () => {
+        expect(toUpdatePayload(SYNCED_FOLDER, { source: null })).toEqual({
+            type: 'FOLDER',
+            title: 'Specs',
+            order: 2,
+            published: true,
+            visibility: 'PUBLIC',
+            parentId: undefined,
+        });
+    });
+
     it("keeps a link's address when it is unpublished", () => {
         expect(toUpdatePayload(LINK, { published: false })).toEqual({
             type: 'LINK',

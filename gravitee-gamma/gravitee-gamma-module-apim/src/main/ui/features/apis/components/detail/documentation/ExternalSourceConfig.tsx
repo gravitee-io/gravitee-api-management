@@ -36,12 +36,17 @@ import { type FieldValues, useForm } from 'react-hook-form';
 
 import { useFetchers } from '../../../hooks/useFetchers';
 import type { PortalNavigationItemSource } from '../../../types/apiDocumentation';
+import { fetcherLabel } from '../../../utils/fetcherSchema';
+import { isSameSource } from '../../../utils/sourceChange';
+import { isAddressField, MASKED_SECRET, maskedSecretKeys, sameSourceAddress } from '../../../utils/sourceSecrets';
 import { CronScheduleInput, validateCron } from '../../CronScheduleInput';
 
 /** The source as edited so far, and whether it can be saved as it is. */
 export interface ExternalSourceState {
     source: PortalNavigationItemSource | null;
     valid: boolean;
+    /** Given a stored source: whether the edited one is that source, the defaults of its fetcher's settings aside. */
+    unchanged?: boolean;
 }
 
 interface FetcherSettings {
@@ -54,20 +59,23 @@ interface FetcherSettings {
  * a JSON editor for any schema the form renders badly.
  */
 export function ExternalSourceConfig({
+    storedSource,
     forImport = false,
     disabled = false,
     onChange,
 }: Readonly<{
+    /** The source the item has; going back to its fetcher brings its settings back. */
+    storedSource?: PortalNavigationItemSource;
     /** Offers only the fetchers that can list a folder. */
     forImport?: boolean;
     disabled?: boolean;
     onChange: (state: ExternalSourceState) => void;
 }>) {
     const { data: fetchers, isLoading, isError } = useFetchers({ forImport });
-    const [type, setType] = useState('');
+    const [type, setType] = useState(storedSource?.type ?? '');
     const [settings, setSettings] = useState<FetcherSettings | null>(null);
-    const [useAutoFetch, setUseAutoFetch] = useState(false);
-    const [fetchCron, setFetchCron] = useState('');
+    const [useAutoFetch, setUseAutoFetch] = useState(storedSource?.useAutoFetch ?? false);
+    const [fetchCron, setFetchCron] = useState(storedSource?.fetchCron ?? '');
     const typeId = useId();
     const autoFetchId = useId();
 
@@ -76,16 +84,25 @@ export function ExternalSourceConfig({
 
     const scheduleError = fetchCron ? validateCron(fetchCron) : 'Choose when to fetch.';
 
+    // The server leaves out settings left at their default, which the settings form fills in again.
+    const storedWithDefaults = useMemo(() => {
+        const schema = fetchers?.find(candidate => candidate.id === storedSource?.type)?.schema;
+        if (!storedSource || !schema) return storedSource;
+        return { ...storedSource, configuration: storedSettings(schema, storedSource.configuration) };
+    }, [fetchers, storedSource]);
+
     useEffect(() => {
         if (!type || !settings) {
-            onChangeRef.current({ source: null, valid: false });
+            onChangeRef.current({ source: null, valid: false, ...(storedWithDefaults ? { unchanged: false } : {}) });
             return;
         }
+        const source = { type, configuration: settings.configuration, useAutoFetch, ...(useAutoFetch ? { fetchCron } : {}) };
         onChangeRef.current({
-            source: { type, configuration: settings.configuration, useAutoFetch, ...(useAutoFetch ? { fetchCron } : {}) },
+            source,
             valid: settings.valid && (!useAutoFetch || scheduleError === null),
+            ...(storedWithDefaults ? { unchanged: isSameSource(storedWithDefaults, source) } : {}),
         });
-    }, [type, settings, useAutoFetch, fetchCron, scheduleError]);
+    }, [type, settings, useAutoFetch, fetchCron, scheduleError, storedWithDefaults]);
 
     if (isLoading) {
         return <Skeleton className="h-24 w-full rounded" />;
@@ -109,6 +126,7 @@ export function ExternalSourceConfig({
     }
 
     const fetcher = fetchers.find(candidate => candidate.id === type);
+    const isStoredType = storedSource !== undefined && storedSource.type === type;
 
     function chooseFetcher(id: string) {
         setSettings(null);
@@ -134,7 +152,26 @@ export function ExternalSourceConfig({
                 {forImport ? <p className="text-xs text-muted-foreground">Only sources that can list a folder are offered.</p> : null}
             </div>
 
-            {fetcher ? <FetcherSettingsForm key={fetcher.id} schema={fetcher.schema} disabled={disabled} onChange={setSettings} /> : null}
+            {type && !fetcher ? (
+                <Alert variant="destructive">
+                    <AlertCircleIcon />
+                    <AlertDescription>
+                        The {fetcherLabel(type)} source type is no longer installed. Choose another one, or ask your administrator to
+                        install it again.
+                    </AlertDescription>
+                </Alert>
+            ) : null}
+
+            {fetcher ? (
+                <FetcherSettingsForm
+                    key={fetcher.id}
+                    schema={fetcher.schema}
+                    storedConfiguration={isStoredType ? storedSource.configuration : undefined}
+                    storedSettingsShown={isStoredType ? storedWithDefaults?.configuration : undefined}
+                    disabled={disabled}
+                    onChange={setSettings}
+                />
+            ) : null}
 
             <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-2">
@@ -160,10 +197,16 @@ export function ExternalSourceConfig({
 // Keyed by fetcher, so that choosing another one starts its settings afresh.
 function FetcherSettingsForm({
     schema,
+    storedConfiguration,
+    storedSettingsShown,
     disabled,
     onChange,
 }: Readonly<{
     schema: JsonSchema;
+    /** The settings the item has, when the source keeps its fetcher. */
+    storedConfiguration?: Record<string, unknown>;
+    /** Those settings as the form shows them, the ones the server left out filled in. */
+    storedSettingsShown?: Record<string, unknown>;
     disabled: boolean;
     onChange: (settings: FetcherSettings) => void;
 }>) {
@@ -171,8 +214,9 @@ function FetcherSettingsForm({
     const form = useForm<FieldValues>({
         resolver,
         mode: 'onTouched',
-        defaultValues: { configuration: (extractDefaults(schema) ?? {}) as Record<string, unknown> },
+        defaultValues: { configuration: storedSettingsShown ?? settingsDefaults(schema) },
     });
+    const [secretsCleared, setSecretsCleared] = useState(false);
     const [jsonText, setJsonText] = useState<string | null>(null);
     const [jsonInvalid, setJsonInvalid] = useState(false);
     const [settingsValid, setSettingsValid] = useState(true);
@@ -198,16 +242,53 @@ function FetcherSettingsForm({
 
     const currentConfiguration = useCallback((): Record<string, unknown> => form.getValues().configuration ?? {}, [form]);
 
+    // The secrets cleared for another address, put back masked if the address returns to the stored one.
+    const clearedSecrets = useRef<string[]>([]);
+
+    /**
+     * The server restores a masked secret only for the address it belongs to. Once the address changes, a masked secret
+     * would be refused, so it is cleared for the user to enter it again.
+     */
+    const syncSecretsWithAddress = useCallback(
+        (configuration: Record<string, unknown>): Record<string, unknown> => {
+            if (!storedConfiguration) return configuration;
+            // Compared with the settings as stored, as the server compares them.
+            if (sameSourceAddress(storedConfiguration, configuration)) {
+                const restorable = clearedSecrets.current.filter(key => !configuration[key]);
+                clearedSecrets.current = [];
+                setSecretsCleared(false);
+                return restorable.length === 0
+                    ? configuration
+                    : { ...configuration, ...Object.fromEntries(restorable.map(key => [key, MASKED_SECRET])) };
+            }
+            const masked = maskedSecretKeys(configuration);
+            if (masked.length === 0) return configuration;
+            clearedSecrets.current = [...new Set([...clearedSecrets.current, ...masked])];
+            setSecretsCleared(true);
+            return { ...configuration, ...Object.fromEntries(masked.map(key => [key, ''])) };
+        },
+        [storedConfiguration],
+    );
+
     useEffect(() => {
         const reports = reportCount;
         void report(currentConfiguration());
-        const subscription = form.watch(values => void report((values.configuration ?? {}) as Record<string, unknown>));
+        const subscription = form.watch(values => {
+            const configuration = (values.configuration ?? {}) as Record<string, unknown>;
+            const synced = syncSecretsWithAddress(configuration);
+            if (synced !== configuration) {
+                // The watch fires again with the synced values, which are reported then.
+                form.reset({ configuration: synced }, { keepDefaultValues: true });
+                return;
+            }
+            void report(configuration);
+        });
         return () => {
             subscription.unsubscribe();
             // A validation still running for a fetcher no longer chosen must not report.
             reports.current++;
         };
-    }, [form, report, currentConfiguration]);
+    }, [form, report, currentConfiguration, syncSecretsWithAddress]);
 
     function toggleJson(editAsJson: boolean) {
         setJsonInvalid(false);
@@ -224,7 +305,9 @@ function FetcherSettingsForm({
             return;
         }
         setJsonInvalid(false);
-        form.reset({ configuration: parsed }, { keepDefaultValues: true });
+        const synced = syncSecretsWithAddress(parsed);
+        if (synced !== parsed) setJsonText(JSON.stringify(synced, null, 2));
+        form.reset({ configuration: synced }, { keepDefaultValues: true });
     }
 
     return (
@@ -257,8 +340,35 @@ function FetcherSettingsForm({
                     Edit as JSON
                 </Label>
             </div>
+            {secretsCleared ? (
+                <Alert>
+                    <AlertCircleIcon />
+                    <AlertDescription>
+                        The address changed, so the saved secrets were cleared. Re-enter them: a secret is only kept for the address it was
+                        saved for.
+                    </AlertDescription>
+                </Alert>
+            ) : null}
         </div>
     );
+}
+
+function settingsDefaults(schema: JsonSchema): Record<string, unknown> {
+    return (extractDefaults(schema) ?? {}) as Record<string, unknown>;
+}
+
+/**
+ * The stored settings as the settings form shows them. The server leaves settings that are false out: a switch it left
+ * out is off, whatever its default. An address it left out stays out: the server compares addresses as stored, and one
+ * filled in by its default would be another, for which it refuses a masked secret. Any other setting it left out takes
+ * its default, as the form fills it in.
+ */
+function storedSettings(schema: JsonSchema, stored: Record<string, unknown>): Record<string, unknown> {
+    const defaults = Object.entries(settingsDefaults(schema)).filter(([key]) => !isAddressField(key));
+    const switchesLeftOut = Object.entries(schema.properties ?? {})
+        .filter(([key, property]) => typeof property === 'object' && property.type === 'boolean' && !(key in stored))
+        .map(([key]) => [key, false]);
+    return { ...Object.fromEntries(defaults), ...Object.fromEntries(switchesLeftOut), ...stored };
 }
 
 function parseConfiguration(text: string): Record<string, unknown> | null {

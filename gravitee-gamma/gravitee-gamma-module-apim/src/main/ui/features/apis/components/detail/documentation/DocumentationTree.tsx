@@ -155,8 +155,15 @@ export function DocumentationTree({
                           },
                 );
             }
-            if (canDelete && allowed.delete) {
-                actions.push({ label: 'Delete', icon: Trash2Icon, destructive: true, onSelect: () => onDelete(row) });
+            // The server refuses to delete an item that has a source, which Edit details can remove.
+            if (canDelete && (allowed.delete || row.syncState === 'OWN_SOURCE')) {
+                actions.push({
+                    label: 'Delete',
+                    icon: Trash2Icon,
+                    destructive: true,
+                    disabledReason: allowed.delete ? undefined : removeSourceFirstReason(canEditDetails(row)),
+                    onSelect: () => onDelete(row),
+                });
             }
             return actions;
         },
@@ -301,6 +308,10 @@ function publishBlockedReason(
         return `A ${noun} can't be published inside an unpublished folder.`;
     }
     return undefined;
+}
+
+function removeSourceFirstReason(canEditDetails: boolean): string {
+    return canEditDetails ? 'Remove its external source first, from Edit details.' : 'Remove its external source first.';
 }
 
 function RowActionItems({ actions }: Readonly<{ actions: RowAction[] }>) {

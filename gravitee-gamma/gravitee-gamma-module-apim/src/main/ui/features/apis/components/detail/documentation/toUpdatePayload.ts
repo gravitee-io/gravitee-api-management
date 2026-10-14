@@ -13,7 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ApiDocumentationItem, PortalVisibility, UpdateApiDocumentationItem } from '../../../types/apiDocumentation';
+import type {
+    ApiDocumentationItem,
+    PortalNavigationItemSource,
+    PortalVisibility,
+    UpdateApiDocumentationItem,
+} from '../../../types/apiDocumentation';
 
 export interface DocumentationItemChanges {
     title?: string;
@@ -23,12 +28,14 @@ export interface DocumentationItemChanges {
     parentId?: string;
     /** A link's address; ignored for a page or a folder. */
     url?: string;
+    /** A new external source for a page or a folder, or null to remove it; ignored for a link. */
+    source?: PortalNavigationItemSource | null;
 }
 
 /**
  * The update replacing an item with the given changes. An update replaces the whole item, so everything not changed
  * is copied from the item — a page's or folder's external source above all, whose omission unlinks it, and a link's
- * address, without which the server refuses the update.
+ * address, without which the server refuses the update. Only an explicit removal sends no source.
  */
 export function toUpdatePayload(item: ApiDocumentationItem, changes: DocumentationItemChanges = {}): UpdateApiDocumentationItem {
     const fields = {
@@ -41,5 +48,6 @@ export function toUpdatePayload(item: ApiDocumentationItem, changes: Documentati
     if (item.type === 'LINK') {
         return { type: 'LINK', ...fields, url: changes.url ?? item.url };
     }
-    return { type: item.type, ...fields, source: item.source };
+    const source = changes.source === undefined ? item.source : (changes.source ?? undefined);
+    return { type: item.type, ...fields, ...(source ? { source } : {}) };
 }

@@ -269,6 +269,7 @@ function PageEditor({
                     page={page}
                     parent={parent}
                     syncState={syncState}
+                    hasUnsavedContent={isDirty}
                     onClose={() => setIsEditingDetails(false)}
                 />
             ) : null}
