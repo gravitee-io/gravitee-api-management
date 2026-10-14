@@ -32,10 +32,15 @@ const mockListFetchers = jest.mocked(listFetchers);
 
 const HTTP_FETCHER = { id: 'http-fetcher', name: 'HTTP', schema: { type: 'object' as const, properties: {} } };
 
-function renderUseFetchers(options?: { forImport?: boolean }) {
+function createWrapper() {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
-    return renderHook(() => useFetchers(options), { wrapper });
+    return function Wrapper({ children }: { children: ReactNode }) {
+        return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    };
+}
+
+function renderUseFetchers(options?: { forImport?: boolean }) {
+    return renderHook(() => useFetchers(options), { wrapper: createWrapper() });
 }
 
 describe('useFetchers', () => {
@@ -53,13 +58,11 @@ describe('useFetchers', () => {
     });
 
     it('keeps the fetchers for an import apart from the full list', async () => {
-        const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-        const wrapper = ({ children }: { children: ReactNode }) => (
-            <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-        );
         mockListFetchers.mockImplementation(async (_envId, options) => (options?.forImport ? [] : [HTTP_FETCHER]));
 
-        const { result } = renderHook(() => ({ all: useFetchers(), forImport: useFetchers({ forImport: true }) }), { wrapper });
+        const { result } = renderHook(() => ({ all: useFetchers(), forImport: useFetchers({ forImport: true }) }), {
+            wrapper: createWrapper(),
+        });
 
         await waitFor(() => expect(result.current.forImport.isSuccess && result.current.all.isSuccess).toBe(true));
         expect(result.current.all.data).toEqual([HTTP_FETCHER]);
