@@ -18,6 +18,9 @@ import { isObject } from 'lodash';
 
 type JsonNode = Record<string, unknown> & { asyncapi?: unknown; schemaFormat?: unknown; schema?: unknown; payload?: unknown };
 
+// application/xml, text/xml, application/xsd, application/xsd+xml, ... — parameters such as `;version=1.0` are ignored.
+const XML_SCHEMA_FORMAT = /^(?:application|text)\/(?:[\w.-]+\+)?(?:xml|xsd)$/i;
+
 // A rewritten document is handed to the viewer as JSON, where an unresolved `<<` key would be a
 // plain property.
 const ASYNCAPI_YAML_SCHEMA = CORE_SCHEMA.withTags(mergeTag);
@@ -30,7 +33,8 @@ const ASYNCAPI_YAML_SCHEMA = CORE_SCHEMA.withTags(mergeTag);
  * cannot be read included, so the viewer still reports its own errors.
  */
 export function toRenderableAsyncApi<T extends string | null | undefined>(content: T): T | string {
-  if (!content) {
+  // Most documents have no XML Schema at all: skip parsing them.
+  if (!content || !/xml|xsd/i.test(content)) {
     return content;
   }
   const document = readAsyncApiDocument(content);
@@ -102,7 +106,7 @@ function isNode(value: unknown): value is JsonNode {
 }
 
 function isXmlSchemaFormat(schemaFormat: unknown): schemaFormat is string {
-  return typeof schemaFormat === 'string' && /\bx(ml|sd)\b/.test(schemaFormat.split(';')[0].toLowerCase());
+  return typeof schemaFormat === 'string' && XML_SCHEMA_FORMAT.test(schemaFormat.split(';')[0].trim());
 }
 
 function quoteXmlSchema(schemaFormat: string, schema: unknown): JsonNode {

@@ -201,6 +201,12 @@ describe('toRenderableAsyncApi', () => {
     expect(payload.type).toEqual('string');
   });
 
+  it('should leave a format that only mentions xml in its name alone', () => {
+    const content = ASYNCAPI_3_XSD.replace('schemaFormat: application/xml', 'schemaFormat: application/vnd.example.xml-catalog');
+
+    expect(toRenderableAsyncApi(content)).toBe(content);
+  });
+
   it('should resolve YAML merge keys in a rewritten document', () => {
     const message = JSON.parse(toRenderableAsyncApi(ASYNCAPI_3_XSD_WITH_MERGE_KEY)).components.messages.OrderCreated;
 
