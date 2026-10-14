@@ -167,6 +167,7 @@ export function ExternalSourceConfig({
                     key={fetcher.id}
                     schema={fetcher.schema}
                     storedConfiguration={isStoredType ? storedSource.configuration : undefined}
+                    storedSettingsShown={isStoredType ? storedWithDefaults?.configuration : undefined}
                     disabled={disabled}
                     onChange={setSettings}
                 />
@@ -197,24 +198,23 @@ export function ExternalSourceConfig({
 function FetcherSettingsForm({
     schema,
     storedConfiguration,
+    storedSettingsShown,
     disabled,
     onChange,
 }: Readonly<{
     schema: JsonSchema;
     /** The settings the item has, when the source keeps its fetcher. */
     storedConfiguration?: Record<string, unknown>;
+    /** Those settings as the form shows them, the ones the server left out filled in. */
+    storedSettingsShown?: Record<string, unknown>;
     disabled: boolean;
     onChange: (settings: FetcherSettings) => void;
 }>) {
     const resolver = useMemo(() => jsonSchemaResolver(schema, { basePath: 'configuration' }), [schema]);
-    const storedBaseline = useMemo(
-        () => (storedConfiguration ? storedSettings(schema, storedConfiguration) : undefined),
-        [schema, storedConfiguration],
-    );
     const form = useForm<FieldValues>({
         resolver,
         mode: 'onTouched',
-        defaultValues: { configuration: storedBaseline ?? settingsDefaults(schema) },
+        defaultValues: { configuration: storedSettingsShown ?? settingsDefaults(schema) },
     });
     const [secretsCleared, setSecretsCleared] = useState(false);
     const [jsonText, setJsonText] = useState<string | null>(null);
@@ -251,8 +251,9 @@ function FetcherSettingsForm({
      */
     const syncSecretsWithAddress = useCallback(
         (configuration: Record<string, unknown>): Record<string, unknown> => {
-            if (!storedBaseline) return configuration;
-            if (sameSourceAddress(storedBaseline, configuration)) {
+            if (!storedConfiguration) return configuration;
+            // Compared with the settings as stored, as the server compares them.
+            if (sameSourceAddress(storedConfiguration, configuration)) {
                 const restorable = clearedSecrets.current.filter(key => !configuration[key]);
                 clearedSecrets.current = [];
                 setSecretsCleared(false);
@@ -266,7 +267,7 @@ function FetcherSettingsForm({
             setSecretsCleared(true);
             return { ...configuration, ...Object.fromEntries(masked.map(key => [key, ''])) };
         },
-        [storedBaseline],
+        [storedConfiguration],
     );
 
     useEffect(() => {

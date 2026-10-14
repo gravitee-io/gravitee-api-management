@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+import type { JsonSchema } from '@gravitee/graphene-core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -71,6 +72,10 @@ const GITHUB_FETCHER: Fetcher = {
         required: ['repository'],
     },
 };
+
+function githubFetcherWith(properties: Record<string, JsonSchema>): Fetcher {
+    return { ...GITHUB_FETCHER, schema: { ...GITHUB_FETCHER.schema, properties: { ...GITHUB_FETCHER.schema.properties, ...properties } } };
+}
 
 const STORED_GITHUB_SOURCE: PortalNavigationItemSource = {
     type: 'github-fetcher',
@@ -233,18 +238,7 @@ describe('ExternalSourceConfig', () => {
         });
 
         it("does not count the defaults of its fetcher's settings as a change", async () => {
-            mockListFetchers.mockResolvedValue([
-                {
-                    ...GITHUB_FETCHER,
-                    schema: {
-                        ...GITHUB_FETCHER.schema,
-                        properties: {
-                            ...GITHUB_FETCHER.schema.properties,
-                            useSystemProxy: { title: 'Use system proxy', type: 'boolean' },
-                        },
-                    },
-                },
-            ]);
+            mockListFetchers.mockResolvedValue([githubFetcherWith({ useSystemProxy: { title: 'Use system proxy', type: 'boolean' } })]);
             const { user, lastState } = renderConfig({
                 storedSource: { type: 'github-fetcher', configuration: { repository: 'petstore' }, useAutoFetch: false },
             });
@@ -258,16 +252,7 @@ describe('ExternalSourceConfig', () => {
 
         it('shows a switch the server left out as off, even when its default is on', async () => {
             mockListFetchers.mockResolvedValue([
-                {
-                    ...GITHUB_FETCHER,
-                    schema: {
-                        ...GITHUB_FETCHER.schema,
-                        properties: {
-                            ...GITHUB_FETCHER.schema.properties,
-                            useSystemProxy: { title: 'Use system proxy', type: 'boolean', default: true },
-                        },
-                    },
-                },
+                githubFetcherWith({ useSystemProxy: { title: 'Use system proxy', type: 'boolean', default: true } }),
             ]);
             const { lastState } = renderConfig({
                 storedSource: { type: 'github-fetcher', configuration: { repository: 'petstore' }, useAutoFetch: false },
@@ -280,18 +265,7 @@ describe('ExternalSourceConfig', () => {
         });
 
         it('does not count a setting left at a default other than off as a change', async () => {
-            mockListFetchers.mockResolvedValue([
-                {
-                    ...GITHUB_FETCHER,
-                    schema: {
-                        ...GITHUB_FETCHER.schema,
-                        properties: {
-                            ...GITHUB_FETCHER.schema.properties,
-                            branchOrTag: { title: 'Branch', type: 'string', default: 'main' },
-                        },
-                    },
-                },
-            ]);
+            mockListFetchers.mockResolvedValue([githubFetcherWith({ branchOrTag: { title: 'Branch', type: 'string', default: 'main' } })]);
             const { lastState } = renderConfig({
                 storedSource: { type: 'github-fetcher', configuration: { repository: 'petstore' }, useAutoFetch: false },
             });
@@ -300,26 +274,20 @@ describe('ExternalSourceConfig', () => {
             await waitFor(() => expect(lastState()?.unchanged).toBe(true));
         });
 
-        it('keeps a masked secret when the stored settings leave an address at its default', async () => {
+        it('asks again for a masked secret once the form fills in an address the stored settings leave out', async () => {
             mockListFetchers.mockResolvedValue([
-                {
-                    ...GITHUB_FETCHER,
-                    schema: {
-                        ...GITHUB_FETCHER.schema,
-                        properties: {
-                            ...GITHUB_FETCHER.schema.properties,
-                            githubUrl: { title: 'GitHub URL', type: 'string', default: 'https://api.github.com' },
-                            filepath: { title: 'File path', type: 'string' },
-                        },
-                    },
-                },
+                githubFetcherWith({
+                    githubUrl: { title: 'GitHub URL', type: 'string', default: 'https://api.github.com' },
+                    filepath: { title: 'File path', type: 'string' },
+                }),
             ]);
             const { user } = renderConfig({ storedSource: STORED_GITHUB_SOURCE });
 
             await user.type(await screen.findByRole('textbox', { name: /File path/ }), 'docs');
 
-            expect(screen.getByRole('textbox', { name: /Personal access token/ })).toHaveValue(MASKED_SECRET);
-            expect(screen.queryByText(/re-enter/i)).not.toBeInTheDocument();
+            // The server compares the addresses as stored: to it, an address filled in by its default is another one.
+            expect(screen.getByRole('textbox', { name: /Personal access token/ })).toHaveValue('');
+            expect(screen.getByText(/re-enter/i)).toBeInTheDocument();
         });
 
         it('says when its fetcher is no longer installed', async () => {
