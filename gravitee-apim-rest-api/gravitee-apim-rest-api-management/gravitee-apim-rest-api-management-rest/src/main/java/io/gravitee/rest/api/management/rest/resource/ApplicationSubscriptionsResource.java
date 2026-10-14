@@ -25,6 +25,7 @@ import io.gravitee.rest.api.management.rest.model.Subscription;
 import io.gravitee.rest.api.management.rest.model.wrapper.SubscriptionEntityPageResult;
 import io.gravitee.rest.api.management.rest.resource.param.ListStringParam;
 import io.gravitee.rest.api.management.rest.resource.param.ListSubscriptionStatusParam;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -150,8 +151,10 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
         // Admins and members subscribe from the Console, even to an API exposed in no portal
         return (
             isAdmin() ||
-            apiAuthorizationService.findApiIdsByUserId(executionContext, getAuthenticatedUser(), null, false).contains(apiId) ||
-            accessControlService.canConsumeApiFromPortal(executionContext, apiId)
+            accessControlService.canConsumeApiFromPortal(executionContext, apiId) ||
+            !membershipService
+                .getUserMemberPermissions(executionContext, MembershipReferenceType.API, apiId, getAuthenticatedUser())
+                .isEmpty()
         );
     }
 
