@@ -18,8 +18,14 @@ import { ComponentHarness, TestElement } from '@angular/cdk/testing';
 export class PageSwaggerHarness extends ComponentHarness {
   public static hostSelector = 'app-page-swagger';
   protected locateSwagger = this.locatorFor('[data-testid="swagger"]');
+  protected locateOperationPaths = this.locatorForAll('.opblock-summary-path');
 
   public async getSwagger(): Promise<TestElement> {
     return await this.locateSwagger();
+  }
+
+  public async getOperationPaths(): Promise<string[]> {
+    const operationPaths = await this.locateOperationPaths();
+    return Promise.all(operationPaths.map(operationPath => operationPath.text()));
   }
 }

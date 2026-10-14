@@ -6,7 +6,11 @@ module.exports = {
   setupFiles: ['jest-canvas-mock'],
   setupFilesAfterEnv: [__dirname + '/setup-jest.ts'],
   modulePathIgnorePatterns: ['<rootDir>/dist/'],
-  transformIgnorePatterns: ['/node_modules/(?!(.*\\.mjs$)|lodash-es|marked-extended-tables|(@asciidoctor/.*?\\.js)$)'],
+  // swagger-client and react-syntax-highlighter ship ESM only; they are loaded by the real swagger-ui,
+  // possibly from swagger-ui's own nested node_modules.
+  transformIgnorePatterns: [
+    '/node_modules/(?!(.*\\.mjs$)|lodash-es|marked-extended-tables|(@asciidoctor/.*?\\.js)$|(?:[^/]+/node_modules/)?(?:swagger-client|react-syntax-highlighter)/)',
+  ],
   collectCoverageFrom: [
     'src/**/*.{ts,html}',
     '!src/**/*.spec.{ts,tsx}',
