@@ -63,7 +63,7 @@ public class ApiTagServiceImpl implements ApiTagService {
     }
 
     @Override
-    public void deleteTagFromAPIs(ExecutionContext executionContext, final String tagId) {
+    public void deleteTagFromAPIs(ExecutionContext executionContext, final String tagKey) {
         environmentService
             .findByOrganization(executionContext.getOrganizationId())
             .stream()
@@ -75,10 +75,10 @@ public class ApiTagServiceImpl implements ApiTagService {
                     ApiFieldFilter.allFields()
                 )
             )
-            .forEach(api -> removeTag(executionContext, api, tagId));
+            .forEach(api -> removeTag(executionContext, api, tagKey));
     }
 
-    private void removeTag(ExecutionContext executionContext, Api api, String tagId) throws TechnicalManagementException {
+    private void removeTag(ExecutionContext executionContext, Api api, String tagKey) throws TechnicalManagementException {
         // Skip if API is federated or has origin Kubernetes
         if (
             api.getDefinitionVersion() == DefinitionVersion.FEDERATED ||
@@ -91,7 +91,7 @@ public class ApiTagServiceImpl implements ApiTagService {
         log.debug(
             "Starting tag removal process for API: {}, tag: '{}', definition version: {}",
             api.getId(),
-            tagId,
+            tagKey,
             api.getDefinitionVersion()
         );
         try {
@@ -102,7 +102,7 @@ public class ApiTagServiceImpl implements ApiTagService {
                     api.getDefinition(),
                     io.gravitee.definition.model.Api.class
                 );
-                if (apiDefinition.getTags().remove(tagId)) {
+                if (apiDefinition.getTags().remove(tagKey)) {
                     api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
                     updated = apiRepository.update(api);
                 }
@@ -111,10 +111,10 @@ public class ApiTagServiceImpl implements ApiTagService {
                     api.getDefinition(),
                     io.gravitee.definition.model.v4.AbstractApi.class
                 );
-                if (apiDefinition.getTags().remove(tagId)) {
+                if (apiDefinition.getTags().remove(tagKey)) {
                     api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
                     updated = apiRepository.update(api);
-                    log.debug("API '{}' updated successfully after removing tag '{}'", api.getId(), tagId);
+                    log.debug("API '{}' updated successfully after removing tag '{}'", api.getId(), tagKey);
                 }
             }
             if (updated != null) {
