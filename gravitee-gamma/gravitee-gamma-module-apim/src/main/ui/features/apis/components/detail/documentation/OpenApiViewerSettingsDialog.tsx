@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 import {
-    Alert,
-    AlertDescription,
     Button,
     Dialog,
     DialogContent,
@@ -36,9 +34,9 @@ import {
     SelectValue,
     Switch,
 } from '@gravitee/graphene-core';
-import { AlertCircleIcon } from '@gravitee/graphene-core/icons';
 import { useId, useState, type FormEvent, type ReactNode } from 'react';
 
+import { RefusalAlert, ScrollableDialogBody, WITHIN_VIEWPORT } from './dialogLayout';
 import { notify } from '../../../../../shared/notify';
 import { extractErrorMessage } from '../../../../../shared/notify/extractErrorMessage';
 import { useSaveApiDocumentationPageConfiguration } from '../../../hooks/useApiDocumentation';
@@ -74,6 +72,9 @@ interface Toggle {
 }
 
 const BASE_URL_PATTERN = /^$|^https?:\/\/\S+$/;
+
+// A select's options as wide as its field, which they would otherwise outgrow or fall short of.
+const SELECT_CONTENT_STYLE = { width: 'var(--radix-select-trigger-width)', minWidth: 'unset' };
 
 // The fields, labels, hints and defaults of the portal editor's Configure dialog, in its order.
 const ENTRYPOINTS_TOGGLE: Toggle = {
@@ -153,7 +154,7 @@ export function OpenApiViewerSettingsDialog({
 }>) {
     return (
         <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
-            <DialogContent style={{ maxWidth: '560px' }}>
+            <DialogContent style={{ maxWidth: '560px', ...WITHIN_VIEWPORT }}>
                 <OpenApiViewerSettingsForm apiId={apiId} pageId={pageId} configuration={configuration} onClose={onClose} />
             </DialogContent>
         </Dialog>
@@ -190,6 +191,8 @@ function OpenApiViewerSettingsForm({
     async function handleSubmit(event: FormEvent) {
         event.preventDefault();
         if (!baseUrlValid || isSaving) return;
+        // Cleared first, so that the same refusal given again is shown, and brought into view, again.
+        setRefusal(null);
         setIsSaving(true);
         try {
             await saveConfiguration.mutateAsync({ navId: pageId, configuration: toConfiguration(settings) });
@@ -220,97 +223,88 @@ function OpenApiViewerSettingsForm({
                 <DialogDescription>Changes apply in every portal that lists this API.</DialogDescription>
             </DialogHeader>
 
-            {/* Inline, as Graphene's prebuilt stylesheet has no arbitrary max-height class. */}
-            <form
-                id="openapi-viewer-settings-form"
-                onSubmit={handleSubmit}
-                className="-mx-1 flex flex-col gap-5 overflow-y-auto px-1 py-1"
-                style={{ maxHeight: '60vh' }}
-            >
-                {refusal ? (
-                    <Alert variant="destructive">
-                        <AlertCircleIcon aria-hidden />
-                        <AlertDescription>{refusal}</AlertDescription>
-                    </Alert>
-                ) : null}
+            <ScrollableDialogBody>
+                <form id="openapi-viewer-settings-form" onSubmit={handleSubmit} className="flex flex-col gap-5">
+                    <RefusalAlert refusal={refusal} />
 
-                {isSwagger ? renderToggle(ENTRYPOINTS_TOGGLE) : null}
+                    {isSwagger ? renderToggle(ENTRYPOINTS_TOGGLE) : null}
 
-                <Field orientation="vertical" className="gap-1.5" data-invalid={!baseUrlValid || undefined}>
-                    <FieldLabel htmlFor={ids.baseUrl}>Base URL</FieldLabel>
-                    <Input
-                        id={ids.baseUrl}
-                        value={settings.tryItURL}
-                        onChange={event => change({ tryItURL: event.target.value })}
-                        aria-invalid={!baseUrlValid}
-                        disabled={usesEntrypoints || isSaving}
-                    />
-                    {baseUrlValid ? null : <FieldError>Must be a valid URL starting with http:// or https://</FieldError>}
-                    <FieldDescription>
-                        Custom base URL to use as server URL. If empty and not using API entrypoints as a base URL, the server URL from the
-                        specification will be used.
-                    </FieldDescription>
-                </Field>
+                    <Field orientation="vertical" className="gap-1.5" data-invalid={!baseUrlValid || undefined}>
+                        <FieldLabel htmlFor={ids.baseUrl}>Base URL</FieldLabel>
+                        <Input
+                            id={ids.baseUrl}
+                            value={settings.tryItURL}
+                            onChange={event => change({ tryItURL: event.target.value })}
+                            aria-invalid={!baseUrlValid}
+                            disabled={usesEntrypoints || isSaving}
+                        />
+                        {baseUrlValid ? null : <FieldError>Must be a valid URL starting with http:// or https://</FieldError>}
+                        <FieldDescription>
+                            Custom base URL to use as server URL. If empty and not using API entrypoints as a base URL, the server URL from
+                            the specification will be used.
+                        </FieldDescription>
+                    </Field>
 
-                <Field orientation="vertical" className="gap-1.5">
-                    <FieldLabel htmlFor={ids.viewer}>OpenAPI Documentation Viewer</FieldLabel>
-                    <Select value={settings.viewer} onValueChange={viewer => change({ viewer: viewer as Viewer })} disabled={isSaving}>
-                        <SelectTrigger id={ids.viewer} className="w-full">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent position="popper" style={{ width: 'var(--radix-select-trigger-width)', minWidth: 'unset' }}>
-                            <SelectItem value="SWAGGER">SwaggerUI</SelectItem>
-                            <SelectItem value="REDOC">Redoc</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </Field>
+                    <Field orientation="vertical" className="gap-1.5">
+                        <FieldLabel htmlFor={ids.viewer}>OpenAPI Documentation Viewer</FieldLabel>
+                        <Select value={settings.viewer} onValueChange={viewer => change({ viewer: viewer as Viewer })} disabled={isSaving}>
+                            <SelectTrigger id={ids.viewer} className="w-full">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent position="popper" style={SELECT_CONTENT_STYLE}>
+                                <SelectItem value="SWAGGER">SwaggerUI</SelectItem>
+                                <SelectItem value="REDOC">Redoc</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </Field>
 
-                {isSwagger ? (
-                    <>
-                        {SERVER_AND_TRY_IT_TOGGLES.map(renderToggle)}
+                    {isSwagger ? (
+                        <>
+                            {SERVER_AND_TRY_IT_TOGGLES.map(renderToggle)}
 
-                        <Field orientation="vertical" className="gap-1.5">
-                            <FieldLabel htmlFor={ids.docExpansion}>Expand content on the page</FieldLabel>
-                            <Select
-                                value={settings.docExpansion}
-                                onValueChange={docExpansion => change({ docExpansion: docExpansion as OpenApiDocExpansion })}
-                                disabled={isSaving}
-                            >
-                                <SelectTrigger id={ids.docExpansion} className="w-full">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent position="popper" style={{ width: 'var(--radix-select-trigger-width)', minWidth: 'unset' }}>
-                                    {DOC_EXPANSIONS.map(expansion => (
-                                        <SelectItem key={expansion.value} value={expansion.value}>
-                                            {expansion.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FieldDescription>
-                                Determines whether to expand operations, tags, or nothing by default when the page is opened.
-                            </FieldDescription>
-                        </Field>
+                            <Field orientation="vertical" className="gap-1.5">
+                                <FieldLabel htmlFor={ids.docExpansion}>Expand content on the page</FieldLabel>
+                                <Select
+                                    value={settings.docExpansion}
+                                    onValueChange={docExpansion => change({ docExpansion: docExpansion as OpenApiDocExpansion })}
+                                    disabled={isSaving}
+                                >
+                                    <SelectTrigger id={ids.docExpansion} className="w-full">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent position="popper" style={SELECT_CONTENT_STYLE}>
+                                        {DOC_EXPANSIONS.map(expansion => (
+                                            <SelectItem key={expansion.value} value={expansion.value}>
+                                                {expansion.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FieldDescription>
+                                    Determines whether to expand operations, tags, or nothing by default when the page is opened.
+                                </FieldDescription>
+                            </Field>
 
-                        {DISPLAY_TOGGLES.map(renderToggle)}
+                            {DISPLAY_TOGGLES.map(renderToggle)}
 
-                        <Field orientation="vertical" className="gap-1.5">
-                            <FieldLabel htmlFor={ids.maxDisplayedTags}>Max number of tagged operations displayed</FieldLabel>
-                            <Input
-                                id={ids.maxDisplayedTags}
-                                type="number"
-                                min={-1}
-                                value={settings.maxDisplayedTags}
-                                onChange={event => change({ maxDisplayedTags: event.target.value })}
-                                disabled={isSaving}
-                            />
-                            <FieldDescription>
-                                Limits the number of tagged operations displayed to the specific value. -1 means to show all operations.
-                            </FieldDescription>
-                        </Field>
-                    </>
-                ) : null}
-            </form>
+                            <Field orientation="vertical" className="gap-1.5">
+                                <FieldLabel htmlFor={ids.maxDisplayedTags}>Max number of tagged operations displayed</FieldLabel>
+                                <Input
+                                    id={ids.maxDisplayedTags}
+                                    type="number"
+                                    min={-1}
+                                    value={settings.maxDisplayedTags}
+                                    onChange={event => change({ maxDisplayedTags: event.target.value })}
+                                    disabled={isSaving}
+                                />
+                                <FieldDescription>
+                                    Limits the number of tagged operations displayed to the specific value. -1 means to show all operations.
+                                </FieldDescription>
+                            </Field>
+                        </>
+                    ) : null}
+                </form>
+            </ScrollableDialogBody>
 
             <DialogFooter>
                 <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>

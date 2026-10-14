@@ -263,6 +263,29 @@ describe('OpenApiViewerSettingsDialog', () => {
         expect(saveButton().disabled).toBe(false);
     });
 
+    it('brings the refusal into view, as the SwaggerUI options scroll it out of sight', async () => {
+        const scrollIntoView = jest.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(() => {});
+        mockSave.mockRejectedValue(new ApimApiError(400, 'Invalid configuration'));
+        const { user } = renderDialog(SWAGGER);
+
+        await user.click(saveButton());
+
+        const refusal = (await screen.findByText('Invalid configuration')).closest('[role="alert"]');
+        expect(scrollIntoView.mock.contexts).toContain(refusal);
+    });
+
+    it('brings the same refusal into view again when it is given again', async () => {
+        const scrollIntoView = jest.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(() => {});
+        mockSave.mockRejectedValue(new ApimApiError(400, 'Invalid configuration'));
+        const { user } = renderDialog(SWAGGER);
+
+        await user.click(saveButton());
+        await screen.findByText('Invalid configuration');
+        await user.click(saveButton());
+
+        await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(2));
+    });
+
     it('saves nothing when cancelled', async () => {
         const { user, onClose } = renderDialog();
 
