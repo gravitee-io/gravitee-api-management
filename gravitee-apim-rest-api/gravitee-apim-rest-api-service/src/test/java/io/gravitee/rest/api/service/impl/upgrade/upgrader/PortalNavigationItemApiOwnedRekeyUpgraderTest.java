@@ -20,18 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.node.api.upgrader.UpgraderException;
-import io.gravitee.repository.management.api.PortalNavigationItemRepository;
-import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria;
 import io.gravitee.repository.management.model.AutomationMetadata;
 import io.gravitee.repository.management.model.AutomationTargetReferenceType;
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import io.gravitee.repository.management.model.PortalNavigationReferenceType;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -350,141 +344,5 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
 
     private static String newFolderId(String apiId, String path) {
         return HRIDToUUID.navigation().context(ORG, ENV).api(apiId).folder(path).id();
-    }
-
-    private static class FakePortalNavigationItemRepository implements PortalNavigationItemRepository {
-
-        private final List<PortalNavigationItem> items = new ArrayList<>();
-        private int updateCount;
-
-        void initWith(List<PortalNavigationItem> initial) {
-            items.clear();
-            items.addAll(initial);
-            updateCount = 0;
-        }
-
-        List<PortalNavigationItem> storage() {
-            return items;
-        }
-
-        int updateCount() {
-            return updateCount;
-        }
-
-        PortalNavigationItem get(String id) {
-            return findById(id).orElseThrow(() -> new AssertionError("No item at id " + id));
-        }
-
-        @Override
-        public Set<PortalNavigationItem> findAll() {
-            return Set.copyOf(items);
-        }
-
-        @Override
-        public Optional<PortalNavigationItem> findById(String id) {
-            return items
-                .stream()
-                .filter(item -> item.getId().equals(id))
-                .findFirst();
-        }
-
-        @Override
-        public PortalNavigationItem create(PortalNavigationItem item) {
-            items.add(item);
-            return item;
-        }
-
-        @Override
-        public PortalNavigationItem update(PortalNavigationItem item) {
-            updateCount++;
-            items.removeIf(existing -> existing.getId().equals(item.getId()));
-            items.add(item);
-            return item;
-        }
-
-        @Override
-        public void delete(String id) {
-            items.removeIf(item -> item.getId().equals(id));
-        }
-
-        @Override
-        public List<PortalNavigationItem> findAllByOrganizationIdAndEnvironmentId(String organizationId, String environmentId) {
-            return List.of();
-        }
-
-        @Override
-        public List<PortalNavigationItem> findByAutomationReference(
-            String environmentId,
-            AutomationTargetReferenceType referenceType,
-            String referenceId
-        ) {
-            return List.of();
-        }
-
-        @Override
-        public List<PortalNavigationItem> findAllByParentIdAndEnvironmentId(String parentId, String environmentId) {
-            return List.of();
-        }
-
-        @Override
-        public List<PortalNavigationItem> findAllByAreaAndEnvironmentIdAndParentIdIsNull(
-            PortalNavigationItem.Area area,
-            String environmentId
-        ) {
-            return List.of();
-        }
-
-        @Override
-        public List<PortalNavigationItem> findAllTopLevelByAreaAndEnvironmentAndReference(
-            PortalNavigationItem.Area area,
-            String environmentId,
-            PortalNavigationReferenceType referenceType,
-            String referenceId
-        ) {
-            return List.of();
-        }
-
-        @Override
-        public List<PortalNavigationItem> findAllByAreaAndEnvironmentId(PortalNavigationItem.Area area, String environmentId) {
-            return List.of();
-        }
-
-        @Override
-        public List<PortalNavigationItem> searchByCriteria(PortalNavigationItemCriteria criteria) {
-            return List.of();
-        }
-
-        @Override
-        public List<PortalNavigationItem> findAllByRootId(String rootId, String environmentId) {
-            return List.of();
-        }
-
-        @Override
-        public void deleteByIds(List<String> ids) {
-            items.removeIf(item -> ids.contains(item.getId()));
-        }
-
-        @Override
-        public void deleteByOrganizationId(String organizationId) {
-            items.removeIf(item -> item.getOrganizationId().equals(organizationId));
-        }
-
-        @Override
-        public boolean updateConfigurationIfUnchanged(String id, String expectedConfiguration, String configuration) {
-            return items
-                .stream()
-                .filter(item -> item.getId().equals(id) && Objects.equals(item.getConfiguration(), expectedConfiguration))
-                .findFirst()
-                .map(item -> {
-                    item.setConfiguration(configuration);
-                    return true;
-                })
-                .orElse(false);
-        }
-
-        @Override
-        public void deleteByEnvironmentId(String environmentId) {
-            items.removeIf(item -> item.getEnvironmentId().equals(environmentId));
-        }
     }
 }
