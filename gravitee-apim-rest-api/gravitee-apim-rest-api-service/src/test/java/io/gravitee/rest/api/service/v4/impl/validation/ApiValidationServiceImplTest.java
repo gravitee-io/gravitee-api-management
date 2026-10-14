@@ -35,6 +35,7 @@ import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
+import io.gravitee.apim.core.cluster.domain_service.ValidateKafkaClusterBindingDomainService;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.plugin.query_service.EntrypointPluginQueryService;
@@ -133,6 +134,9 @@ public class ApiValidationServiceImplTest {
     @Mock
     private ApiProductQueryService apiProductQueryService;
 
+    @Mock
+    private ValidateKafkaClusterBindingDomainService validateKafkaClusterBindingDomainService;
+
     @BeforeEach
     public void setUp() throws Exception {
         apiValidationService = new ApiValidationServiceImpl(
@@ -147,7 +151,8 @@ public class ApiValidationServiceImplTest {
             planValidationService,
             apiServicePluginService,
             flowValidationDomainService,
-            apiProductQueryService
+            apiProductQueryService,
+            validateKafkaClusterBindingDomainService
         );
     }
 
@@ -174,6 +179,10 @@ public class ApiValidationServiceImplTest {
         verify(resourcesValidationService, never()).validateAndSanitize(any());
         verify(planValidationService, never()).validateAndSanitize(any(), any());
         verify(flowValidationDomainService, times(1)).validatePathParameters(any(), any(), any());
+        verify(validateKafkaClusterBindingDomainService).validate(
+            GraviteeContext.getExecutionContext().getEnvironmentId(),
+            newApiEntity.getEndpointGroups()
+        );
     }
 
     @Test
@@ -205,6 +214,10 @@ public class ApiValidationServiceImplTest {
         verify(resourcesValidationService, times(1)).validateAndSanitize(List.of());
         verify(planValidationService, times(1)).validateAndSanitize(apiEntity.getType(), Set.of(), Set.of());
         verify(flowValidationDomainService, times(1)).validatePathParameters(any(), any(), any());
+        verify(validateKafkaClusterBindingDomainService).validate(
+            GraviteeContext.getExecutionContext().getEnvironmentId(),
+            apiEntity.getEndpointGroups()
+        );
     }
 
     @Test
@@ -481,6 +494,10 @@ public class ApiValidationServiceImplTest {
             existingApiEntity
         );
         assertEquals("\"A Description\"", updateApiEntity.getDescription());
+        verify(validateKafkaClusterBindingDomainService).validate(
+            GraviteeContext.getExecutionContext().getEnvironmentId(),
+            updateApiEntity.getEndpointGroups()
+        );
     }
 
     @Test
@@ -535,7 +552,8 @@ public class ApiValidationServiceImplTest {
             planValidationService,
             apiServicePluginService,
             flowValidationDomainService,
-            apiProductQueryService
+            apiProductQueryService,
+            validateKafkaClusterBindingDomainService
         );
 
         var primaryOwnerEntity = new PrimaryOwnerEntity();
@@ -575,7 +593,8 @@ public class ApiValidationServiceImplTest {
             planValidationService,
             apiServicePluginService,
             new FlowValidationDomainService(mock(PolicyValidationDomainService.class), mock(EntrypointPluginQueryService.class)),
-            apiProductQueryService
+            apiProductQueryService,
+            validateKafkaClusterBindingDomainService
         );
 
         HttpSelector httpSelector = new HttpSelector();
