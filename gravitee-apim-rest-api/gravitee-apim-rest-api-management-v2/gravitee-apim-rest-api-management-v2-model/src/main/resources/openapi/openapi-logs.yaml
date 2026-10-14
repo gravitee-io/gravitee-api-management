@@ -136,6 +136,12 @@ paths:
                   pageCount: 1
                   pageItemsCount: 1
                   totalCount: 1
+        "400":
+          description: Invalid search request, such as a filter used with an operator it does not support
+          content:
+            application/json:
+              schema:
+                $ref: "./openapi-analytics.yaml#/components/schemas/Error"
         "500":
           description: Internal server error
           content:
@@ -386,6 +392,7 @@ components:
         mapping:
           EQ: "#/components/schemas/StringFilter"
           CONTAINS: "#/components/schemas/StringFilter"
+          STARTS_WITH: "#/components/schemas/StringFilter"
           IN: "#/components/schemas/ArrayFilter"
           GTE: "#/components/schemas/NumericFilter"
           LTE: "#/components/schemas/NumericFilter"
@@ -468,9 +475,13 @@ components:
         Available filter names for filtering connection logs.
 
         Prefer the names published by `GET /observability/filters/definition`, which are the ones this
-        list is aligned on. `MCP_METHOD`, `URI` and `RESPONSE_TIME` are the historical spellings of
-        `MCP_PROXY_METHOD`, `HTTP_PATH` and `HTTP_GATEWAY_RESPONSE_TIME`; they remain accepted so that
-        links saved before the vocabularies were reconciled keep working.
+        list is aligned on. `MCP_METHOD` and `RESPONSE_TIME` are the historical spellings of
+        `MCP_PROXY_METHOD` and `HTTP_GATEWAY_RESPONSE_TIME`, and `HTTP_PATH` the historical logs spelling of
+        `URI`; they remain accepted so that links saved before the vocabularies were reconciled keep working.
+
+        `URI` matches the request URI, query string included, by prefix. In its value, `*` matches any
+        sequence, `?` any single character and `\` escapes the next character; `/` is prepended when
+        missing.
 
     Operator:
       type: string
@@ -480,5 +491,11 @@ components:
         - LTE
         - IN
         - CONTAINS
-      description: Filter operator
+        - STARTS_WITH
+      description: |
+        Filter operator. Use the operators the filter catalog (`GET /observability/filters/definition`)
+        advertises for each filter: an operator a filter does not support answers 400.
+
+        `URI` takes `STARTS_WITH`. `EQ` on `URI` is a deprecated alias of `STARTS_WITH`, accepted so that
+        links saved before `STARTS_WITH` existed keep working: it has always matched by prefix.
 

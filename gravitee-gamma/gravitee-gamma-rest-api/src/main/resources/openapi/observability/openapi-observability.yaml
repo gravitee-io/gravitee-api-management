@@ -1991,7 +1991,7 @@ components:
             description: |
                 Comparison operator. Each filter advertises the ones it supports in the `operators` of
                 its catalog entry; any other is refused. Read case-insensitively on input.
-            enum: [EQ, IN, GTE, LTE, CONTAINS]
+            enum: [EQ, IN, GTE, LTE, CONTAINS, STARTS_WITH]
 
         EnumValue:
             type: object

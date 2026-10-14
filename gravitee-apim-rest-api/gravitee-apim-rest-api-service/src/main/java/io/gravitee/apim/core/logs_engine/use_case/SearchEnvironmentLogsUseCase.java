@@ -282,7 +282,10 @@ public class SearchEnvironmentLogsUseCase {
             return;
         }
 
-        if (filter.operator() == Operator.EQ) {
+        boolean isEquality = filter.operator() == Operator.EQ;
+        // URI is matched by prefix whatever the operator: STARTS_WITH says so, EQ stays its deprecated spelling.
+        boolean isUriPrefix = filter.operator() == Operator.STARTS_WITH && filter.name() == FilterName.URI;
+        if (isEquality || isUriPrefix) {
             updateFilterIds(filter.name(), filterContext, Set.of(filter.value()));
             return;
         }
