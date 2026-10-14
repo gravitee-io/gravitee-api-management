@@ -1,7 +1,7 @@
 import { syncProcessCwd } from 'zx';
 import { computeVersion, extractVersion } from '../helpers/version-helper.mjs';
-import { getJiraIssuesOfVersion, getJiraVersion } from '../helpers/jira-helper.mjs';
-import { ChangelogSections, ComponentTypes, getTicketsFor } from '../helpers/changelog-helper.mjs';
+import { getJiraIssuesOfVersions, getJiraVersions } from '../helpers/jira-helper.mjs';
+import { ChangelogSections, getTicketSections } from '../helpers/changelog-helper.mjs';
 
 syncProcessCwd(); // restores legacy v7 behavior
 
@@ -29,25 +29,21 @@ echo(chalk.blue(`# Clone ${docRepository} repository`));
 await $`git clone --depth 1  ${docRepositoryURL} --single-branch --branch=main`;
 cd(docRepository);
 
-const version = await getJiraVersion(releasingVersion);
-if (version === undefined) {
-  echo(chalk.blue(`No Jira release found for: ${releasingVersion}, nothing to do.`));
+const jiraProjectKeys = await getJiraVersions(releasingVersion);
+if (jiraProjectKeys.length === 0) {
+  echo(chalk.blue(`No Jira release found for: ${releasingVersion} in any project, nothing to do.`));
   process.exit(0);
 }
-const issues = await getJiraIssuesOfVersion(version.id);
+echo(chalk.blue(`# Jira projects releasing ${releasingVersion}: ${jiraProjectKeys.join(', ')}`));
+
+const issues = await getJiraIssuesOfVersions(jiraProjectKeys, releasingVersion);
 
 let changelogPatchTemplate = `
 ## Gravitee API Management ${releasingVersion} - ${new Date().toLocaleDateString('en-US', dateOptions)}
 `;
 
 ChangelogSections.forEach((section) => {
-  let changelogSection = '';
-  [...ComponentTypes, 'Other'].forEach((componentType) => {
-    const ticketsForComponent = getTicketsFor(issues, componentType, section.ticketType);
-    if (ticketsForComponent) {
-      changelogSection += ticketsForComponent;
-    }
-  });
+  const changelogSection = getTicketSections(issues, section.ticketType).join('');
   if (changelogSection) {
     changelogPatchTemplate += `<details>
 
@@ -76,6 +72,12 @@ try {
   await $`gh pr close --delete-branch ${gitBranch}`;
 } catch (e) {
   // Best effort to have no open PR before creating a new one
+}
+try {
+  await $`git push origin --delete ${gitBranch}`;
+} catch (e) {
+  // Best effort: remote branch may not exist
+  echo(chalk.yellow(`# Could not delete remote branch ${gitBranch} (may not exist), continuing`));
 }
 await $`git checkout -b ${gitBranch}`;
 await $`git add ./${docApimChangelogFile}`;
