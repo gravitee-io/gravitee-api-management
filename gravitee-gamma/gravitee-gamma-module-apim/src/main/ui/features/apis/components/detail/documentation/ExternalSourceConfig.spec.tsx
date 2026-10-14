@@ -20,7 +20,8 @@ import userEvent from '@testing-library/user-event';
 
 import { ExternalSourceConfig, type ExternalSourceState } from './ExternalSourceConfig';
 import { listFetchers } from '../../../services/fetchers';
-import type { Fetcher } from '../../../types/apiDocumentation';
+import type { Fetcher, PortalNavigationItemSource } from '../../../types/apiDocumentation';
+import { MASKED_SECRET } from '../../../utils/sourceSecrets';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     ...jest.requireActual<object>('@gravitee/gamma-modules-sdk'),
@@ -71,7 +72,13 @@ const GITHUB_FETCHER: Fetcher = {
     },
 };
 
-function renderConfig(props: { forImport?: boolean } = {}) {
+const STORED_GITHUB_SOURCE: PortalNavigationItemSource = {
+    type: 'github-fetcher',
+    configuration: { repository: 'petstore', personalAccessToken: MASKED_SECRET },
+    useAutoFetch: false,
+};
+
+function renderConfig(props: { forImport?: boolean; storedSource?: PortalNavigationItemSource } = {}) {
     const onChange = jest.fn<void, [ExternalSourceState]>();
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const config = (disabled: boolean) => (
@@ -144,6 +151,92 @@ describe('ExternalSourceConfig', () => {
 
         await chooseFetcher(user, 'GitHub');
         expect(screen.getByRole('textbox', { name: /Repository/ })).toHaveValue('');
+    });
+
+    describe('starting from a stored source', () => {
+        it('shows its fetcher, its settings and its schedule', async () => {
+            renderConfig({ storedSource: { ...STORED_GITHUB_SOURCE, useAutoFetch: true, fetchCron: '0 0 */6 * * *' } });
+
+            expect(await screen.findByRole('textbox', { name: /Repository/ })).toHaveValue('petstore');
+            expect(screen.getByRole('combobox', { name: 'Source type' })).toHaveTextContent('GitHub');
+            expect(screen.getByRole('switch', { name: 'Fetch automatically' })).toBeChecked();
+            expect(screen.getByRole('textbox', { name: 'Schedule (cron)' })).toHaveValue('0 0 */6 * * *');
+        });
+
+        it('restores the stored settings when going back to its fetcher', async () => {
+            const { user } = renderConfig({ storedSource: STORED_GITHUB_SOURCE });
+            await screen.findByRole('textbox', { name: /Repository/ });
+
+            await chooseFetcher(user, 'HTTP');
+            expect(screen.getByRole('textbox', { name: /URL/ })).toHaveValue('');
+
+            await chooseFetcher(user, 'GitHub');
+            expect(screen.getByRole('textbox', { name: /Repository/ })).toHaveValue('petstore');
+        });
+
+        it('sends a masked secret back unchanged, for the server to keep the stored one', async () => {
+            const { lastState } = renderConfig({ storedSource: STORED_GITHUB_SOURCE });
+
+            await waitFor(() => expect(lastState()).toEqual({ source: STORED_GITHUB_SOURCE, valid: true }));
+            expect(screen.queryByText(/re-enter/i)).not.toBeInTheDocument();
+        });
+
+        it('clears a masked secret and asks for it again when the address changes', async () => {
+            const { user, lastState } = renderConfig({ storedSource: STORED_GITHUB_SOURCE });
+            const repository = await screen.findByRole('textbox', { name: /Repository/ });
+
+            await user.clear(repository);
+            await user.type(repository, 'billing');
+
+            expect(screen.getByRole('textbox', { name: /Personal access token/ })).toHaveValue('');
+            expect(screen.getByText(/re-enter/i)).toBeInTheDocument();
+            await waitFor(() => expect(lastState()?.source?.configuration).toEqual({ repository: 'billing', personalAccessToken: '' }));
+        });
+
+        it('puts a cleared secret back once the address returns to the stored one', async () => {
+            const { user, lastState } = renderConfig({ storedSource: STORED_GITHUB_SOURCE });
+            const repository = await screen.findByRole('textbox', { name: /Repository/ });
+
+            await user.clear(repository);
+            await user.type(repository, 'petstore');
+
+            expect(screen.getByRole('textbox', { name: /Personal access token/ })).toHaveValue(MASKED_SECRET);
+            expect(screen.queryByText(/re-enter/i)).not.toBeInTheDocument();
+            await waitFor(() => expect(lastState()).toEqual({ source: STORED_GITHUB_SOURCE, valid: true }));
+        });
+
+        it('keeps a secret typed for the new address when the address returns to the stored one', async () => {
+            const { user } = renderConfig({ storedSource: STORED_GITHUB_SOURCE });
+            const repository = await screen.findByRole('textbox', { name: /Repository/ });
+
+            await user.type(repository, '-v2');
+            await user.type(screen.getByRole('textbox', { name: /Personal access token/ }), 'ghp_new');
+            await user.type(repository, '{Backspace}{Backspace}{Backspace}');
+
+            expect(screen.getByRole('textbox', { name: /Personal access token/ })).toHaveValue('ghp_new');
+        });
+
+        it('shows the cleared secret in the JSON too, as it will be saved', async () => {
+            const { user } = renderConfig({ storedSource: STORED_GITHUB_SOURCE });
+            await screen.findByRole('textbox', { name: /Repository/ });
+
+            await user.click(screen.getByRole('switch', { name: 'Edit as JSON' }));
+            fireEvent.change(screen.getByRole('textbox', { name: 'Source settings as JSON' }), {
+                target: { value: JSON.stringify({ repository: 'billing', personalAccessToken: MASKED_SECRET }) },
+            });
+
+            expect(JSON.parse((screen.getByRole('textbox', { name: 'Source settings as JSON' }) as HTMLTextAreaElement).value)).toEqual({
+                repository: 'billing',
+                personalAccessToken: '',
+            });
+            expect(screen.getByText(/re-enter/i)).toBeInTheDocument();
+        });
+
+        it('says when its fetcher is no longer installed', async () => {
+            renderConfig({ storedSource: { type: 'bitbucket-fetcher', configuration: {}, useAutoFetch: false } });
+
+            expect(await screen.findByText(/no longer installed/i)).toBeInTheDocument();
+        });
     });
 
     it('requires a valid schedule once automatic fetching is on', async () => {
