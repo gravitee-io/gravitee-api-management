@@ -23,7 +23,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
 import io.gravitee.repository.management.model.PortalNavigationItem;
-import io.gravitee.repository.management.model.PortalNavigationReferenceType;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
  * already moved what automation had created there; this moves what is left.
  * <p>
  * Rows are only updated in place — never created, deleted or given another id — and the rules live in
- * {@link ListingDocumentationMigrationPlanner}. Positions are written before any item moves, so a run
+ * {@link ListingDocumentationMigrationPlan}. Positions are written before any item moves, so a run
  * that stops part-way and starts again reads the same merged order back from them.
  */
 @Component
@@ -82,27 +82,20 @@ public class PortalNavigationItemApiOwnedConsoleMigrationUpgrader implements Upg
     }
 
     private void migrateEnvironment(String environmentId, List<PortalNavigationItem> items) throws TechnicalException {
-        var plan = ListingDocumentationMigrationPlanner.plan(items, existingListedApis(environmentId, items));
-        var byId = items.stream().collect(Collectors.toMap(PortalNavigationItem::getId, item -> item));
-
-        for (var position : plan.positions().entrySet()) {
-            var item = byId.get(position.getKey());
-            item.setOrder(position.getValue());
-            portalNavigationItemRepository.update(item);
-        }
-        for (var relabel : plan.relabels()) {
-            var item = byId.get(relabel.itemId());
-            item.setParentId(relabel.parentId());
-            item.setRootId(relabel.rootId());
-            item.setReferenceType(PortalNavigationReferenceType.API);
-            item.setReferenceId(relabel.apiId());
-            item.setSegment(relabel.segment());
-            portalNavigationItemRepository.update(item);
-        }
+        var plan = new ListingDocumentationMigrationPlan(items, existingListedApis(environmentId, items));
+        plan.apply(this::update);
 
         plan.decisions().forEach(decision -> log.info("Environment {}: {}", environmentId, decision));
         if (!plan.isEmpty() || !plan.decisions().isEmpty()) {
             log.info("Environment {}: API documentation moved off listing rows: {}", environmentId, plan.summary());
+        }
+    }
+
+    private void update(PortalNavigationItem item) {
+        try {
+            portalNavigationItemRepository.update(item);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("Unable to move portal navigation item " + item.getId() + " to its API", e);
         }
     }
 

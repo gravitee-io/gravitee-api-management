@@ -28,7 +28,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class ListingDocumentationMigrationPlannerTest {
+class ListingDocumentationMigrationPlanTest {
 
     private static final String API_ID = "api-1";
 
@@ -62,10 +62,10 @@ class ListingDocumentationMigrationPlannerTest {
             item("orphan-page", PortalNavigationItem.Type.PAGE, "orphan-row", 0, "orphan-page")
         );
 
-        var summary = ListingDocumentationMigrationPlanner.plan(items, Set.of(API_ID)).summary();
+        var summary = new ListingDocumentationMigrationPlan(items, Set.of(API_ID)).summary();
 
         assertThat(summary).isEqualTo(
-            new ListingDocumentationMigrationPlanner.Summary(
+            new ListingDocumentationMigrationPlan.Summary(
                 /* apisMigrated */ 1,
                 /* itemsMoved */ 4,
                 /* sourcedItemsMoved */ 2,
@@ -85,12 +85,12 @@ class ListingDocumentationMigrationPlannerTest {
         apiRoot.setReferenceType(PortalNavigationReferenceType.API);
         apiRoot.setReferenceId(API_ID);
 
-        var plan = ListingDocumentationMigrationPlanner.plan(
+        var plan = new ListingDocumentationMigrationPlan(
             List.of(item("section", PortalNavigationItem.Type.FOLDER, null, 0, "section"), row("row-1", API_ID, "section"), apiRoot),
             Set.of(API_ID)
         );
 
-        assertThat(plan.summary()).isEqualTo(new ListingDocumentationMigrationPlanner.Summary(0, 0, 0, 0, 0, 0, 0, 0, 0));
+        assertThat(plan.summary()).isEqualTo(new ListingDocumentationMigrationPlan.Summary(0, 0, 0, 0, 0, 0, 0, 0, 0));
         assertThat(plan.isEmpty()).isTrue();
     }
 
