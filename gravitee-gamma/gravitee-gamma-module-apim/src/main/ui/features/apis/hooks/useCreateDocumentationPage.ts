@@ -18,7 +18,7 @@ import { useState } from 'react';
 import { useCreateApiDocumentationItem, useSaveApiDocumentationPageContent } from './useApiDocumentation';
 import { notify } from '../../../shared/notify';
 import { extractErrorMessage } from '../../../shared/notify/extractErrorMessage';
-import type { PortalPageContentType, PortalVisibility } from '../types/apiDocumentation';
+import type { PortalNavigationItemSource, PortalPageContentType, PortalVisibility } from '../types/apiDocumentation';
 
 export interface NewDocumentationPage {
     title: string;
@@ -28,6 +28,8 @@ export interface NewDocumentationPage {
     content: string;
     /** A folder owned by the API; without it, the page is created at the top level. */
     parentId?: string;
+    /** Where the page is fetched from. The server fetches its content on creation, so none is saved here. */
+    source?: PortalNavigationItemSource;
 }
 
 /** The page's id once it exists, or why the server refused to create it, for the form to show where it was entered. */
@@ -43,12 +45,33 @@ export function useCreateDocumentationPage(apiId: string) {
     // Stays true once the page exists: the caller moves on to it.
     const [isCreating, setIsCreating] = useState(false);
 
-    async function createPage({ title, visibility, contentType, content, parentId }: NewDocumentationPage): Promise<CreatePageResult> {
+    async function createPage({
+        title,
+        visibility,
+        contentType,
+        content,
+        parentId,
+        source,
+    }: NewDocumentationPage): Promise<CreatePageResult> {
         setIsCreating(true);
         let pageId: string;
         try {
-            const page = await createItem.mutateAsync({ type: 'PAGE', title, contentType, area: 'TOP_NAVBAR', visibility, parentId });
+            const page = await createItem.mutateAsync({
+                type: 'PAGE',
+                title,
+                contentType,
+                area: 'TOP_NAVBAR',
+                visibility,
+                parentId,
+                source,
+            });
             pageId = page.id;
+            // A failed first fetch does not fail the creation: the server records it on the source instead.
+            const fetchError = page.type === 'PAGE' ? page.source?.lastFetchError : undefined;
+            if (fetchError) {
+                notify.warning(`Page '${title}' was created, but its content could not be fetched: ${fetchError}`);
+                return { pageId };
+            }
         } catch (error) {
             setIsCreating(false);
             return { refusal: extractErrorMessage(error) };

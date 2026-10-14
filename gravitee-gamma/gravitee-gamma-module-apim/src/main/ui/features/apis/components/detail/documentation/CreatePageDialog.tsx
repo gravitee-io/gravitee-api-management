@@ -28,6 +28,7 @@ import { useState, type FormEvent } from 'react';
 
 import { RefusalAlert, ScrollableDialogBody, WITHIN_VIEWPORT } from './dialogLayout';
 import { DocumentationItemDetailsFields, privateParentOf } from './DocumentationItemDetailsFields';
+import { ExternalSourceConfig, type ExternalSourceState } from './ExternalSourceConfig';
 import { type ImportedFile, ImportFileField } from './ImportFileField';
 import { type CreatePageResult, type NewDocumentationPage, useCreateDocumentationPage } from '../../../hooks/useCreateDocumentationPage';
 import { SelectionCards, type SelectionCardItem } from '../../../pages/detail/general/SelectionCards';
@@ -35,11 +36,12 @@ import type { PortalNavigationFolder, PortalPageContentType } from '../../../typ
 import { titleFromFileName } from '../../../utils/documentationFile';
 import { PAGE_CONTENT_TYPE_LABELS } from '../../../utils/pageContentType';
 
-type ContentSource = 'FILL' | 'IMPORT';
+type ContentSource = 'FILL' | 'IMPORT' | 'EXTERNAL';
 
 const CONTENT_SOURCES: readonly SelectionCardItem<ContentSource>[] = [
     { id: 'FILL', label: 'Fill in content', description: 'Write the page in the editor' },
     { id: 'IMPORT', label: 'Import from file', description: '.md, .yaml, .yml or .json' },
+    { id: 'EXTERNAL', label: 'Link to external source', description: 'Fetched from a repository' },
 ];
 
 const PAGE_TYPES: readonly SelectionCardItem<PortalPageContentType>[] = (['GRAVITEE_MARKDOWN', 'OPENAPI', 'ASYNCAPI'] as const).map(
@@ -95,10 +97,12 @@ function CreatePageForm({
     const [source, setSource] = useState<ContentSource>('FILL');
     const [pageType, setPageType] = useState<PortalPageContentType>('GRAVITEE_MARKDOWN');
     const [importedFile, setImportedFile] = useState<ImportedFile | null>(null);
+    const [externalSource, setExternalSource] = useState<ExternalSourceState>({ source: null, valid: false });
     const [refusal, setRefusal] = useState<string | null>(null);
 
     const imported = source === 'IMPORT' ? importedFile : null;
-    const canCreate = title.trim() !== '' && (source === 'FILL' || imported !== null) && !isCreating;
+    const contentReady = source === 'FILL' || imported !== null || (source === 'EXTERNAL' && externalSource.valid);
+    const canCreate = title.trim() !== '' && contentReady && !isCreating;
 
     // A refusal is about what was entered: it no longer applies once that changes.
     function changing<T>(set: (value: T) => void) {
@@ -128,6 +132,7 @@ function CreatePageForm({
             contentType: imported?.contentType ?? pageType,
             content: imported?.content ?? '',
             parentId: parent?.id,
+            source: source === 'EXTERNAL' ? (externalSource.source ?? undefined) : undefined,
         });
         if ('refusal' in result) {
             setRefusal(result.refusal);
@@ -168,7 +173,7 @@ function CreatePageForm({
                             />
                         </FieldSet>
 
-                        {source === 'FILL' ? (
+                        {source === 'IMPORT' ? null : (
                             <FieldSet className="gap-1.5">
                                 <FieldLegend variant="label">Page type</FieldLegend>
                                 <SelectionCards
@@ -178,11 +183,20 @@ function CreatePageForm({
                                     ariaLabel="Page type"
                                 />
                             </FieldSet>
-                        ) : null}
+                        )}
                     </form>
                     {/* Outside the form: Graphene's FileUpload remove button has no type, so it would submit it. */}
                     {source === 'IMPORT' ? (
                         <ImportFileField value={importedFile} onChange={handleImportedFile} disabled={isCreating} />
+                    ) : null}
+                    {/* Outside the form too: a plugin's settings form may hold buttons of its own. */}
+                    {source === 'EXTERNAL' ? (
+                        <div className="flex flex-col gap-3">
+                            <ExternalSourceConfig onChange={changing(setExternalSource)} disabled={isCreating} />
+                            <p className="text-xs text-muted-foreground">
+                                The content is fetched when you create the page, and stays read only here.
+                            </p>
+                        </div>
                     ) : null}
                 </div>
             </ScrollableDialogBody>

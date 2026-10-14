@@ -18,14 +18,22 @@ import { AlertCircleIcon } from '@gravitee/graphene-core/icons';
 import { type CSSProperties, type ReactNode, useEffect, useRef } from 'react';
 
 /**
- * Graphene's dialog grows with its content, and can grow taller than the window, pushing its actions out of reach.
- * Capped at the window, it lays its header, body and footer out in a column for the body alone to scroll
- * ({@link ScrollableDialogBody}). Inline, as graphene ships no viewport-based max-height utility.
+ * Graphene's dialog grows with its content, and a source's settings can make it taller than the window, pushing its
+ * actions out of reach. Capped at the window, it lays its header, body and footer out in a column for the body alone to
+ * scroll ({@link ScrollableDialogBody}). Inline, as graphene ships no viewport-based max-height utility.
+ *
+ * A select's options open inside the dialog, positioned against the viewport. So the dialog is centered by margins
+ * rather than by graphene's translate, which would make it their reference and push them aside by the dialog's offset,
+ * and it does not clip its overflow, which would scroll it sideways to bring them into view.
  */
 export const WITHIN_VIEWPORT: CSSProperties = {
     maxHeight: 'calc(100dvh - 2rem)',
     display: 'flex',
     flexDirection: 'column',
+    translate: 'none',
+    inset: 0,
+    margin: 'auto',
+    height: 'fit-content',
 };
 
 /**

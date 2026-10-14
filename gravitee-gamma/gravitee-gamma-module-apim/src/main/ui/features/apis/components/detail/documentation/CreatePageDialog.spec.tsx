@@ -23,22 +23,34 @@ import { CreatePageDialog } from './CreatePageDialog';
 import { ApimApiError } from '../../../../../shared/api/apimClient';
 import { notify } from '../../../../../shared/notify';
 import { createApiDocumentationItem, saveApiDocumentationPageContent } from '../../../services/apiDocumentation';
-import type { PortalNavigationFolder, PortalNavigationPage } from '../../../types/apiDocumentation';
+import { listFetchers } from '../../../services/fetchers';
+import type { Fetcher, PortalNavigationFolder, PortalNavigationPage } from '../../../types/apiDocumentation';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     ...jest.requireActual<object>('@gravitee/gamma-modules-sdk'),
     useEnvironment: jest.fn(),
 }));
 jest.mock('../../../services/apiDocumentation');
+jest.mock('../../../services/fetchers');
 jest.mock('../../../../../shared/notify', () => ({
     notify: { success: jest.fn(), warning: jest.fn(), error: jest.fn() },
 }));
 
-// Missing from jsdom.
+// The pointer-capture and scrolling APIs Radix's select calls when it opens are missing from jsdom.
+Element.prototype.hasPointerCapture ??= () => false;
+Element.prototype.setPointerCapture ??= () => {};
+Element.prototype.releasePointerCapture ??= () => {};
 Element.prototype.scrollIntoView ??= () => {};
 
 const mockCreateItem = jest.mocked(createApiDocumentationItem);
 const mockSaveContent = jest.mocked(saveApiDocumentationPageContent);
+const mockListFetchers = jest.mocked(listFetchers);
+
+const HTTP_FETCHER: Fetcher = {
+    id: 'http-fetcher',
+    name: 'HTTP',
+    schema: { type: 'object', properties: { url: { title: 'URL', type: 'string' } }, required: ['url'] },
+};
 
 const CREATED_PAGE: PortalNavigationPage = {
     id: 'nav-1',
@@ -150,10 +162,104 @@ describe('CreatePageDialog', () => {
         expect(createButton().disabled).toBe(true);
     });
 
-    it('does not offer to link an external source yet', () => {
-        renderDialog();
+    describe('linking an external source', () => {
+        const SOURCED_PAGE: PortalNavigationPage = {
+            ...CREATED_PAGE,
+            title: 'Petstore API',
+            source: { type: 'http-fetcher', configuration: { url: 'https://docs.acme.io/openapi.yaml' }, useAutoFetch: false },
+        };
 
-        expect(screen.getAllByRole('radio').map(radio => radio.getAttribute('aria-label'))).not.toContain('Link to external source');
+        async function linkHttpSource(user: User) {
+            await user.click(screen.getByRole('radio', { name: 'Link to external source' }));
+            await user.click(await screen.findByRole('combobox', { name: 'Source type' }));
+            await user.click(await screen.findByRole('option', { name: 'HTTP' }));
+            await user.type(screen.getByRole('textbox', { name: /URL/ }), 'https://docs.acme.io/openapi.yaml');
+        }
+
+        beforeEach(() => {
+            mockListFetchers.mockResolvedValue([HTTP_FETCHER]);
+            mockCreateItem.mockResolvedValue(SOURCED_PAGE);
+        });
+
+        it('creates the page of the chosen type with its source, without saving any content, then hands it over', async () => {
+            const { user, onCreated } = renderDialog();
+
+            await user.type(titleInput(), 'Petstore API');
+            await linkHttpSource(user);
+            await user.click(screen.getByRole('radio', { name: 'OpenAPI' }));
+            await user.click(createButton());
+
+            await waitFor(() => expect(onCreated).toHaveBeenCalledWith('nav-1'));
+            expect(mockCreateItem).toHaveBeenCalledWith('env-1', 'api-1', {
+                type: 'PAGE',
+                title: 'Petstore API',
+                contentType: 'OPENAPI',
+                area: 'TOP_NAVBAR',
+                visibility: 'PUBLIC',
+                parentId: undefined,
+                source: { type: 'http-fetcher', configuration: { url: 'https://docs.acme.io/openapi.yaml' }, useAutoFetch: false },
+            });
+            expect(mockSaveContent).not.toHaveBeenCalled();
+            expect(notify.success).toHaveBeenCalledWith("Page 'Petstore API' created");
+        });
+
+        it('keeps Create disabled until the source is complete', async () => {
+            const { user } = renderDialog();
+
+            await user.type(titleInput(), 'Petstore API');
+            await user.click(screen.getByRole('radio', { name: 'Link to external source' }));
+            expect(createButton().disabled).toBe(true);
+
+            await user.click(await screen.findByRole('combobox', { name: 'Source type' }));
+            await user.click(await screen.findByRole('option', { name: 'HTTP' }));
+            expect(createButton().disabled).toBe(true);
+
+            await user.type(screen.getByRole('textbox', { name: /URL/ }), 'https://docs.acme.io/openapi.yaml');
+            await waitFor(() => expect(createButton().disabled).toBe(false));
+        });
+
+        it('says the content is fetched on creation and read only afterwards', async () => {
+            const { user } = renderDialog();
+
+            await user.click(screen.getByRole('radio', { name: 'Link to external source' }));
+
+            expect(screen.getByText(/fetched when you create the page/i)).toBeInTheDocument();
+        });
+
+        it('still hands over the page, saying why, when its first fetch fails', async () => {
+            mockCreateItem.mockResolvedValue({
+                ...SOURCED_PAGE,
+                source: { ...SOURCED_PAGE.source!, lastFetchError: 'Unable to fetch content from source type http-fetcher' },
+            });
+            const { user, onCreated } = renderDialog();
+
+            await user.type(titleInput(), 'Petstore API');
+            await linkHttpSource(user);
+            await waitFor(() => expect(createButton().disabled).toBe(false));
+            await user.click(createButton());
+
+            await waitFor(() => expect(onCreated).toHaveBeenCalledWith('nav-1'));
+            expect(notify.warning).toHaveBeenCalledWith(
+                "Page 'Petstore API' was created, but its content could not be fetched: Unable to fetch content from source type http-fetcher",
+            );
+            expect(notify.success).not.toHaveBeenCalled();
+        });
+
+        it("shows the server's refusal of the address and keeps what was entered", async () => {
+            const serverError = new ApimApiError(400, 'The source address docs.internal is not allowed');
+            mockCreateItem.mockRejectedValue(serverError);
+            const { user, onCreated } = renderDialog();
+
+            await user.type(titleInput(), 'Petstore API');
+            await linkHttpSource(user);
+            await waitFor(() => expect(createButton().disabled).toBe(false));
+            await user.click(createButton());
+
+            expect(await screen.findByRole('alert')).toHaveTextContent('The source address docs.internal is not allowed');
+            expect(notify.error).not.toHaveBeenCalled();
+            expect(onCreated).not.toHaveBeenCalled();
+            expect(screen.getByRole('textbox', { name: /URL/ })).toHaveValue('https://docs.acme.io/openapi.yaml');
+        });
     });
 
     describe('filling in content', () => {
