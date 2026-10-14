@@ -60,6 +60,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -171,7 +172,8 @@ class SearchObservabilityLogsUseCaseTest {
                     io.gravitee.gamma.rest.core.observability.filter.model.ApiType.ALL
                 ),
                 StaticFilters.AUTHZ_OPERATION.toSpec(),
-                StaticFilters.AUTHZ_INDETERMINATE_CAUSE.toSpec()
+                StaticFilters.AUTHZ_INDETERMINATE_CAUSE.toSpec(),
+                StaticFilters.URI.toSpec()
             )
         );
     }
@@ -579,6 +581,24 @@ class SearchObservabilityLogsUseCaseTest {
                 useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20))
             ).isInstanceOf(UnsupportedObservabilityFilterException.class);
             verifyNoInteractions(logsDataPort);
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = FilterOperator.class, names = { "STARTS_WITH", "EQ" })
+        void should_hand_the_request_uri_to_the_engine_as_starts_with(FilterOperator operator) {
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
+            );
+            when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
+
+            var filters = List.of(new FilterCondition("URI", operator, List.of("/api")));
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20));
+
+            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
+            verify(logsDataPort).searchLogs(any(), any(), captor.capture());
+            assertThat(captor.getValue().conditions()).containsExactly(
+                new FilterCondition("URI", FilterOperator.STARTS_WITH, List.of("/api"))
+            );
         }
 
         @Test

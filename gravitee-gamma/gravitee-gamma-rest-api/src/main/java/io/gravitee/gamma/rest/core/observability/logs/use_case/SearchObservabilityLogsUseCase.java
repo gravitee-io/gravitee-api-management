@@ -23,6 +23,7 @@ import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObs
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.ExtensibleFilters;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
@@ -91,7 +92,7 @@ public class SearchObservabilityLogsUseCase {
         int page = resolvePage(input);
         int perPage = resolvePerPage(input);
 
-        var conditions = input.filters != null ? input.filters : List.<FilterCondition>of();
+        var conditions = withUriEqAsStartsWith(input.filters != null ? input.filters : List.<FilterCondition>of());
 
         filterValidator.validate(conditions, Signal.LOGS);
         validateTimeRange(input.from, input.to);
@@ -137,6 +138,21 @@ public class SearchObservabilityLogsUseCase {
 
         var result = logsDataPort.searchLogs(input.organizationId, input.environmentId, query);
         return new Output(result, page, perPage);
+    }
+
+    /**
+     * {@code EQ} on {@code URI} is the deprecated spelling of {@code STARTS_WITH}: the request URI has always been
+     * matched by prefix, and links saved while the catalog advertised {@code EQ} must keep resolving.
+     */
+    private static List<FilterCondition> withUriEqAsStartsWith(List<FilterCondition> conditions) {
+        return conditions
+            .stream()
+            .map(condition ->
+                StaticFilters.URI.name().equals(condition.name()) && condition.operator() == FilterOperator.EQ
+                    ? new FilterCondition(condition.name(), FilterOperator.STARTS_WITH, condition.values())
+                    : condition
+            )
+            .toList();
     }
 
     private static int resolvePage(Input input) {

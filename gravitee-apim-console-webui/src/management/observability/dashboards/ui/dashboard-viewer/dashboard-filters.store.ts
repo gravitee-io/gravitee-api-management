@@ -21,6 +21,7 @@ import {
   encodeViewState,
   FILTER_DEFINITION_PROVIDER,
   FilterCondition,
+  FilterDefinition,
   ID_BASED_FILTER_NAMES,
   RequestFilter,
   TimeRange,
@@ -144,7 +145,11 @@ export class DashboardFiltersStore {
   add(condition: FilterCondition): void {
     this._conditions.update(prev => {
       const compatIdx = prev.findIndex(c => c.field === condition.field && areMergeableOperators(c.operator, condition.operator));
-      if (compatIdx === -1) return [...prev, condition];
+      if (compatIdx === -1) {
+        // The engines hold one value per field and operator, so a duplicate replaces the condition it repeats.
+        const duplicateIdx = prev.findIndex(c => c.field === condition.field && c.operator === condition.operator);
+        return duplicateIdx === -1 ? [...prev, condition] : prev.map((c, i) => (i === duplicateIdx ? condition : c));
+      }
 
       const existing = prev[compatIdx];
       const mergedValues = [...new Set([...existing.values, ...condition.values])];
@@ -231,8 +236,9 @@ export class DashboardFiltersStore {
     }
 
     // Conditions restored from the URL may reference filters this surface does not offer (e.g. a
-    // logs-only filter deep-linked onto an analytics dashboard) — drop them instead of querying an
-    // engine that rejects them (APIM-14828). The prune is asynchronous: until definitions arrive,
+    // logs-only filter deep-linked onto an analytics dashboard), or an operator the filter has since
+    // replaced (URI EQ before STARTS_WITH) — drop them instead of querying an engine that rejects
+    // them (APIM-14828) or reinterpreting them. The prune is asynchronous: until definitions arrive,
     // an initial query may still carry the unsupported filter and briefly error; it self-heals on
     // the re-query triggered below.
     this.definitionsPruneSubscription?.unsubscribe();
@@ -246,9 +252,12 @@ export class DashboardFiltersStore {
         )
         .subscribe(definitions => {
           if (generation !== this.labelResolutionGeneration) return;
-          const offered = new Set(definitions.map(definition => definition.name as string));
+          const offered = new Map(definitions.map(definition => [definition.name as string, definition]));
           const current = this._conditions();
-          const kept = current.filter(condition => offered.has(condition.field as string));
+          const kept = current.filter(condition => {
+            const definition = offered.get(condition.field as string);
+            return definition !== undefined && offersOperator(definition, condition.operator);
+          });
           if (kept.length === current.length) {
             // Nothing pruned — keep the same reference so no consumer re-queries.
             return;
@@ -302,6 +311,11 @@ const MEMBERSHIP_FAMILIES: ReadonlyArray<ReadonlySet<string>> = [new Set(['EQ', 
 
 function areMergeableOperators(a: string, b: string): boolean {
   return MEMBERSHIP_FAMILIES.some(family => family.has(a) && family.has(b));
+}
+
+/** A membership operator also counts when its sibling is offered: the store merges EQ values into IN. */
+function offersOperator(definition: FilterDefinition, operator: string): boolean {
+  return definition.operators.some(offered => offered === operator || areMergeableOperators(offered, operator));
 }
 
 function promoteMembershipOperator(op: string): string {

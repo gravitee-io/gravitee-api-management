@@ -21,4 +21,5 @@ public enum Operator {
     GTE,
     LTE,
     CONTAINS,
+    STARTS_WITH,
 }

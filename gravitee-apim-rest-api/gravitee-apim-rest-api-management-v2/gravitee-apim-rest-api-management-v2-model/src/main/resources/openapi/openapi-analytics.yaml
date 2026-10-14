@@ -1605,6 +1605,7 @@ components:
                 - LTE
                 - GTE
                 - CONTAINS
+                - STARTS_WITH
             description: Filter operator
 
         MeasureName:
@@ -2444,6 +2445,7 @@ components:
                 mapping:
                     EQ: "#/components/schemas/StringFilter"
                     CONTAINS: "#/components/schemas/StringFilter"
+                    STARTS_WITH: "#/components/schemas/StringFilter"
                     LTE: "#/components/schemas/NumberFilter"
                     GTE: "#/components/schemas/NumberFilter"
                     IN: "#/components/schemas/ArrayFilter"

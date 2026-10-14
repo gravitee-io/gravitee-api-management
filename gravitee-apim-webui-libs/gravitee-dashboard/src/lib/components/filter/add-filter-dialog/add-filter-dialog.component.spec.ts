@@ -65,6 +65,14 @@ const CONTAINS_STRING_DEF: FilterDefinition = {
   signals: ['LOGS'],
 };
 
+const STARTS_WITH_STRING_DEF: FilterDefinition = {
+  name: 'URI',
+  label: 'Request URI',
+  type: 'STRING',
+  operators: ['STARTS_WITH'],
+  signals: ['LOGS'],
+};
+
 const UNKNOWN_TYPE_DEF: FilterDefinition = {
   name: 'FUTURE_FILTER',
   label: 'Future Filter',
@@ -72,7 +80,7 @@ const UNKNOWN_TYPE_DEF: FilterDefinition = {
   operators: ['EQ', 'BETWEEN'],
 };
 
-const ALL_DEFINITIONS = [ENUM_DEF, NUMBER_DEF, KEYWORD_DEF, STRING_DEF, CONTAINS_STRING_DEF, UNKNOWN_TYPE_DEF];
+const ALL_DEFINITIONS = [ENUM_DEF, NUMBER_DEF, KEYWORD_DEF, STRING_DEF, CONTAINS_STRING_DEF, STARTS_WITH_STRING_DEF, UNKNOWN_TYPE_DEF];
 
 class MockDefinitionProvider implements FilterDefinitionProvider {
   getDefinitions() {
@@ -341,6 +349,23 @@ describe('AddFilterDialogComponent', () => {
         existingCondition: { field: 'HTTP_METHOD', label: 'HTTP Method', operator: 'EQ', values: ['GET'] },
       });
       expect(component['isEditMode']()).toBe(true);
+    });
+  });
+
+  describe('STARTS_WITH operator (URI filter)', () => {
+    beforeEach(async () => {
+      await setup();
+      component['selectDefinition'](STARTS_WITH_STRING_DEF);
+      fixture.detectChanges();
+    });
+
+    it('should auto-select STARTS_WITH when it is the only operator', () => {
+      expect(component['selectedOperator']()).toBe('STARTS_WITH');
+      expect(component['operatorControl'].value).toBe('STARTS_WITH');
+    });
+
+    it('should display operator label as "Starts with"', () => {
+      expect(component['operatorLabel']('STARTS_WITH')).toBe('Starts with');
     });
   });
 
