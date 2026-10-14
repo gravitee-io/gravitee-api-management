@@ -64,6 +64,8 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mockito;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -793,8 +795,10 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 });
         }
 
-        @Test
-        void should_filter_logs_by_uri() {
+        // EQ is the deprecated spelling of STARTS_WITH on URI.
+        @ParameterizedTest
+        @EnumSource(value = Operator.class, names = { "STARTS_WITH", "EQ" })
+        void should_filter_logs_by_uri_prefix(Operator operator) {
             connectionLogsCrudService.initWith(
                 List.of(
                     connectionLogFixtures.aConnectionLog("req1").toBuilder().uri("/foo").build(),
@@ -809,7 +813,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                         .from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z"))
                         .to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
                 )
-                .addFiltersItem(new Filter(new StringFilter().name(FilterName.URI).operator(Operator.EQ).value("/foo*")));
+                .addFiltersItem(new Filter(new StringFilter().name(FilterName.URI).operator(operator).value("/foo")));
 
             var response = searchTarget.request().post(Entity.json(request));
 

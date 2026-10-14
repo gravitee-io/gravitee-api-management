@@ -192,6 +192,12 @@ describe('DashboardFiltersStore', () => {
     expect(store.conditions().length).toBe(2);
   });
 
+  it('should replace a condition with the same field and the same non-membership operator', () => {
+    store.add({ field: 'URI', label: 'Request URI', operator: 'STARTS_WITH', values: ['/a'] });
+    store.add({ field: 'URI', label: 'Request URI', operator: 'STARTS_WITH', values: ['/b'] });
+    expect(store.conditions()).toEqual([{ field: 'URI', label: 'Request URI', operator: 'STARTS_WITH', values: ['/b'] }]);
+  });
+
   it('should not merge EQ and NEQ on same field', () => {
     store.add({ field: 'API', label: 'API', operator: 'EQ', values: ['a'] });
     store.add({ field: 'API', label: 'API', operator: 'NEQ', values: ['b'] });
@@ -360,6 +366,45 @@ describe('DashboardFiltersStore', () => {
 
     expect(hydratedStore.conditions().map(c => c.field)).toEqual(['API']);
     // The URL is re-synced so the pruned filter is not shared onward.
+    expect(navigate).toHaveBeenCalled();
+  });
+
+  it('should drop URL-hydrated conditions whose operator the filter no longer offers', () => {
+    const definitions$ = new Subject<FilterDefinition[]>();
+    const definitionProviderMock = { getDefinitions: jest.fn().mockReturnValue(definitions$.asObservable()) };
+    const navigate = jest.fn().mockResolvedValue(true);
+    const snapshot = {
+      queryParams: {
+        q: JSON.stringify({
+          filter: [
+            { field: 'URI', operator: 'EQ', value: '/api' },
+            { field: 'HTTP_PATH', operator: 'IN', value: ['/a', '/b'] },
+          ],
+        }),
+        v: '1',
+      },
+    };
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        DashboardFiltersStore,
+        { provide: FILTER_DEFINITION_PROVIDER, useValue: definitionProviderMock },
+        { provide: ActivatedRoute, useValue: { queryParams: new Subject<Record<string, string>>().asObservable(), snapshot } },
+        { provide: Router, useValue: { navigate } },
+      ],
+    });
+
+    const hydratedStore = TestBed.inject(DashboardFiltersStore);
+
+    definitions$.next([
+      { name: 'URI', label: 'Request URI', type: 'STRING', operators: ['STARTS_WITH'] },
+      { name: 'HTTP_PATH', label: 'HTTP Path', type: 'STRING', operators: ['EQ'] },
+    ]);
+    definitions$.complete();
+
+    // IN stays: it is what the store merges two EQ values of an EQ-only filter into.
+    expect(hydratedStore.conditions().map(c => `${c.field} ${c.operator}`)).toEqual(['HTTP_PATH IN']);
     expect(navigate).toHaveBeenCalled();
   });
 

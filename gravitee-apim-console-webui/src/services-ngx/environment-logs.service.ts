@@ -68,9 +68,9 @@ export type TimeRange = {
  * A filter-bar condition on its way to the logs search.
  *
  * Deliberately wider than the shared `RequestFilter`, which describes the analytics contract: the logs
- * catalog advertises names that contract's `FilterName` does not carry, and the `CONTAINS` operator it does
- * not list. Narrowing to it would force a cast at every call site and would say something untrue about what
- * this endpoint accepts.
+ * catalog advertises names that contract's `FilterName` does not carry, and the `CONTAINS` and
+ * `STARTS_WITH` operators it does not list. Narrowing to it would force a cast at every call site and
+ * would say something untrue about what this endpoint accepts.
  */
 export type LogsSearchFilter = {
   name: string;

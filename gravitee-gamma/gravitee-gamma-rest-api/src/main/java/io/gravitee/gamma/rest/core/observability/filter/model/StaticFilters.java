@@ -20,6 +20,7 @@ import static io.gravitee.gamma.rest.core.observability.filter.model.FilterOpera
 import static io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator.GTE;
 import static io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator.IN;
 import static io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator.LTE;
+import static io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator.STARTS_WITH;
 
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec.EnumValue;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec.Range;
@@ -38,16 +39,18 @@ import java.util.Set;
  * is an analytics facet, not a filter, so it does not appear here.
  *
  * <p>Request-path filtering is <b>two filters, one per signal</b>, because they read two different
- * fields: {@link #HTTP_PATH} is ANALYTICS and reads {@code path-info}, the templated path a metrics
- * document stores; {@link #URI} is LOGS and reads {@code uri}, the concrete request, which is the only
- * path a log document carries. A concrete URI is a poor analytics dimension anyway — unbounded
- * cardinality gives one bucket per request.
+ * fields: {@link #HTTP_PATH} is ANALYTICS and reads {@code path-info}, the path after the context path
+ * without the query string; {@link #URI} is LOGS and reads {@code uri}, the whole request target. The
+ * declared templates are {@code HTTP_PATH_MAPPING}. A concrete URI is a poor analytics dimension anyway —
+ * the query string splits every path into many buckets. {@link #URI} matches by prefix: in its value
+ * {@code *} matches any sequence, {@code ?} any single character and {@code \} escapes the next one.
  *
  * <p>Operators advertised here are restricted to what the v4 analytics/logs engines actually
  * translate today: {@code EQ, IN} for KEYWORD/ENUM and for the identifier-shaped STRING filters
  * ({@link #AUTHZ_SUBJECT_ID}, {@link #AUTHZ_ACTION}, {@link #AUTHZ_RESOURCE_ID}, {@link #AUTHZ_PDP},
  * {@link #AUTHZ_MATCHED_POLICY}, {@link #AUTHZ_POLICY_VERSION}), {@code EQ} for the free-text
- * ones, {@code CONTAINS} where a fragment is the only usable input ({@link #PAYLOAD}, {@link #AUTHZ_REASON}) and
+ * ones, {@code STARTS_WITH} for {@link #URI}, whose engine has always matched a prefix, {@code CONTAINS} where a
+ * fragment is the only usable input ({@link #PAYLOAD}, {@link #AUTHZ_REASON}) and
  * {@code EQ, GTE, LTE} for measured NUMBER filters. {@code NOT_IN} is intentionally absent until a translator
  * supports it.
  *
@@ -100,10 +103,10 @@ public enum StaticFilters {
         Defs.HTTP_CONNECTION_KINDS
     ),
     // Two fields, two names, one signal each — see the class javadoc. Advertising one of them on
-    // both signals would make the same `=` match the templated path on a dashboard and the concrete
-    // request in the logs.
+    // both signals would make the same filter match the path on a dashboard and the full request URI
+    // in the logs.
     HTTP_PATH("HTTP Path", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
-    URI("Request URI", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS, Defs.HTTP_CONNECTION_KINDS),
+    URI("Request URI", FilterType.STRING, Defs.STARTS_WITH_ONLY, null, null, Defs.LOGS, Defs.HTTP_CONNECTION_KINDS),
     HOST("Host", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
     HTTP_GATEWAY_RESPONSE_TIME(
         "Gateway Response Time",
@@ -347,6 +350,7 @@ public enum StaticFilters {
         private static final List<FilterOperator> EQ_IN = List.of(EQ, IN);
         private static final List<FilterOperator> EQ_ONLY = List.of(EQ);
         private static final List<FilterOperator> CONTAINS_ONLY = List.of(CONTAINS);
+        private static final List<FilterOperator> STARTS_WITH_ONLY = List.of(STARTS_WITH);
         private static final List<FilterOperator> NUMBER_OPS = List.of(EQ, GTE, LTE);
 
         private static final Set<Signal> LOGS = Set.of(Signal.LOGS);

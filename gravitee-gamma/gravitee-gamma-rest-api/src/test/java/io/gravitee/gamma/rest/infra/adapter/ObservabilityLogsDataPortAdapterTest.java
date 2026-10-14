@@ -512,7 +512,7 @@ class ObservabilityLogsDataPortAdapterTest {
         @Test
         void should_translate_uri_filter() {
             stubEmptySearchResult();
-            var query = queryWith(new FilterCondition("URI", FilterOperator.EQ, List.of("/api/v1/users")));
+            var query = queryWith(new FilterCondition("URI", FilterOperator.STARTS_WITH, List.of("/api/v1/users")));
 
             adapter.searchLogs(ORG, ENV, query);
 
