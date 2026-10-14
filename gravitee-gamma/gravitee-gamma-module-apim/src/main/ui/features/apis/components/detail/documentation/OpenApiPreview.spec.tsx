@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import type { SwaggerUIOptions } from 'swagger-ui';
 
 import { OpenApiPreview } from './OpenApiPreview';
@@ -120,6 +120,27 @@ describe('OpenApiPreview', () => {
     });
 
     describe('applying the configuration', () => {
+        it('keeps Swagger UI when the configuration is loaded again unchanged', async () => {
+            const configuration: PortalPageOpenApiConfiguration = { viewer: 'SWAGGER', docExpansion: 'list' };
+            const { rerender } = render(<OpenApiPreview content={PETSTORE} configuration={configuration} />);
+            await screen.findByRole('heading', { name: 'Swagger UI: Petstore' });
+
+            rerender(<OpenApiPreview content={PETSTORE} configuration={{ ...configuration }} />);
+            await act(() => Promise.resolve());
+
+            expect(swaggerUi).toHaveBeenCalledTimes(1);
+        });
+
+        it('builds Swagger UI again with a configuration that changed', async () => {
+            const { rerender } = render(<OpenApiPreview content={PETSTORE} configuration={{ viewer: 'SWAGGER', docExpansion: 'list' }} />);
+            await screen.findByRole('heading', { name: 'Swagger UI: Petstore' });
+
+            rerender(<OpenApiPreview content={PETSTORE} configuration={{ viewer: 'SWAGGER', docExpansion: 'full' }} />);
+
+            await waitFor(() => expect(swaggerUi).toHaveBeenCalledTimes(2));
+            expect(swaggerUi).toHaveBeenLastCalledWith(expect.objectContaining({ docExpansion: 'full' }));
+        });
+
         it('passes the Swagger UI options of the configuration', async () => {
             const configuration: PortalPageOpenApiConfiguration = {
                 viewer: 'SWAGGER',

@@ -67,8 +67,14 @@ function SwaggerUiViewer({
     specDocument,
     configuration,
 }: Readonly<{ specDocument: SpecDocument; configuration?: PortalPageSwaggerConfiguration }>) {
-    const spec = useMemo(() => withServer(specDocument, swaggerServerUrl(configuration)), [specDocument, configuration]);
-    const options = useMemo(() => swaggerOptions(configuration), [configuration]);
+    // A refetched page content brings an equal configuration as a new object, which must not build Swagger UI again.
+    const serverUrl = swaggerServerUrl(configuration);
+    const configurationKey = JSON.stringify(configuration ?? null);
+    const spec = useMemo(() => withServer(specDocument, serverUrl), [specDocument, serverUrl]);
+    const options = useMemo(
+        () => swaggerOptions((JSON.parse(configurationKey) as PortalPageSwaggerConfiguration | null) ?? undefined),
+        [configurationKey],
+    );
     const nodeRef = useRef<HTMLDivElement>(null);
     const instanceRef = useRef<SwaggerUiInstance | null>(null);
     const specRef = useRef(spec);
