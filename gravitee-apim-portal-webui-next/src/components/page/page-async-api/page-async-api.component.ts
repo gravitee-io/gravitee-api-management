@@ -15,12 +15,18 @@
  */
 import { Component, CUSTOM_ELEMENTS_SCHEMA, Input } from '@angular/core';
 
+import { inlineXsdPayloads } from '../../../app/helpers/asyncapi-xsd';
+
 @Component({
   selector: 'app-page-async-api',
   imports: [],
-  template: `<asyncapi-component id="#async-api" [schema]="content ?? ''" cssImportPath="assets/asyncapi/default.min.css" />`,
+  template: `<asyncapi-component id="#async-api" [schema]="schema" cssImportPath="assets/asyncapi/default.min.css" />`,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class PageAsyncApiComponent {
-  @Input() content!: string | undefined;
+  schema = '';
+
+  @Input() set content(content: string | undefined) {
+    this.schema = inlineXsdPayloads(content ?? '');
+  }
 }

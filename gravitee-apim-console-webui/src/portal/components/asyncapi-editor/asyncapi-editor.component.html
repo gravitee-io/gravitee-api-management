@@ -20,14 +20,14 @@
     <gio-monaco-editor
       [(ngModel)]="_value"
       [languageConfig]="{ language: 'yaml' }"
-      (ngModelChange)="_onChange($event)"
+      (ngModelChange)="onContentChange($event)"
       [disableMiniMap]="true"
       [disabled]="disabled"
     ></gio-monaco-editor>
   </div>
   @if (showPreview()) {
     <div class="content__editor__cell">
-      <asyncapi-component [schema]="_value" cssImportPath="assets/style/asyncapi-console-preview.css"></asyncapi-component>
+      <asyncapi-component [schema]="previewSchema" cssImportPath="assets/style/asyncapi-console-preview.css"></asyncapi-component>
     </div>
   }
 </div>

@@ -17,6 +17,8 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA, input } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { GioMonacoEditorModule } from '@gravitee/ui-particles-angular';
 
+import { inlineXsdPayloads } from '../../../util/asyncapi-xsd';
+
 @Component({
   selector: 'asyncapi-editor',
   standalone: true,
@@ -36,6 +38,7 @@ export class AsyncApiEditorComponent implements ControlValueAccessor {
   showPreview = input(true);
 
   _value = '';
+  previewSchema = '';
   private _disabled = false;
 
   _onChange: (value: string) => void = () => undefined;
@@ -51,6 +54,12 @@ export class AsyncApiEditorComponent implements ControlValueAccessor {
 
   writeValue(content: string): void {
     this._value = content ?? '';
+    this.previewSchema = inlineXsdPayloads(this._value);
+  }
+
+  onContentChange(content: string): void {
+    this.previewSchema = inlineXsdPayloads(content);
+    this._onChange(content);
   }
 
   get disabled(): boolean {

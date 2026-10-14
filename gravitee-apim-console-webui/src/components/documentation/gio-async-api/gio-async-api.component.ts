@@ -15,12 +15,18 @@
  */
 import { Component, Input } from '@angular/core';
 
+import { inlineXsdPayloads } from '../../../util/asyncapi-xsd';
+
 @Component({
   selector: 'gio-async-api',
   templateUrl: './gio-async-api.component.html',
   standalone: false,
 })
 export class GioAsyncApiComponent {
+  renderedSchema: string;
+
   @Input()
-  schema: string;
+  set schema(schema: string) {
+    this.renderedSchema = inlineXsdPayloads(schema);
+  }
 }

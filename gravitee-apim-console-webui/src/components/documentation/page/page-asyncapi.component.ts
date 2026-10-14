@@ -14,8 +14,15 @@
  * limitations under the License.
  */
 
+import { inlineXsdPayloads } from '../../../util/asyncapi-xsd';
+
 class PageAsyncApiComponentController implements ng.IComponentController {
   pageContent: any;
+  schema: string;
+
+  $onChanges() {
+    this.schema = inlineXsdPayloads(this.pageContent);
+  }
 }
 
 export const PageAsyncApiComponent: ng.IComponentOptions = {
