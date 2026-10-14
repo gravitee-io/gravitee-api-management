@@ -2108,9 +2108,13 @@ gateway:
       service:
         externalPort: 18093
         internalPort: 18093
+      # Declaring this ingress also feeds Edge Management: the management API receives its URL as `installation.edge.reactorUrl`.
+      # That env var wins over gravitee.yml; to publish another URL, set `installation.edge.reactorUrl` in `api.env`.
       ingress:
         enabled: false
         ingressClassName: ""
+        # scheme of the injected URL, https by default
+        # scheme: https
         pathType: Prefix
         path: /
         # Used to create an Ingress record.

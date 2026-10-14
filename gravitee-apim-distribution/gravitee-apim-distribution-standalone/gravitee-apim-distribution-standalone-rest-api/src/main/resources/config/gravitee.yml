@@ -866,6 +866,10 @@ notifiers:
 #      management: ${http.api.management.entrypoint}
 #      portal: ${http.api.portal.entrypoint}
 #      gamma: ${http.api.gamma.entrypoint}
+#  edge:
+#    # URL of the Edge reactor, proposed to the Edge module when an environment is set up (the per-environment value stays authoritative).
+#    # The Helm chart sets it from gateway.services.edge.ingress
+#    reactorUrl: https://edge-reactor.example.com
 #  standalone:
 #    console:
 #      url: http://localhost:3000
