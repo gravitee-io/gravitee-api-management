@@ -234,6 +234,13 @@ describe('toRenderableAsyncApi', () => {
     expect(toRenderableAsyncApi(content)).toBe(content);
   });
 
+  it('should return a document whose aliases nest deeper than the call stack unchanged', () => {
+    const chain = Array.from({ length: 20000 }, (_, i) => `  l${i + 1}: &l${i + 1} [*l${i}]`).join('\n');
+    const content = `${ASYNCAPI_3_XSD}x-chain:\n  l0: &l0 { leaf: true }\n${chain}\n`;
+
+    expect(toRenderableAsyncApi(content)).toBe(content);
+  });
+
   it('should return a document whose anchors loop back unchanged', () => {
     const content = `${ASYNCAPI_3_XSD}x-loop: &loop\n  self: *loop\n`;
 
