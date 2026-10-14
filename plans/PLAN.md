@@ -1,6 +1,6 @@
 ---
 name: API docs Gamma console
-overview: "Add API documentation management to the Gamma Console. Documentation is stored once against the API and shown inside each portal that lists it, so the Gamma Console, the classic portal editor and the automation pipeline all write to the same place. Gamma operations are governed by API-level permission; the Gravitee Markdown viewer is reused as-is through a web-component wrapper rather than rebuilt. Broken down into 37 independently testable stories across 7 phases."
+overview: "Add API documentation management to the Gamma Console. Documentation is stored once against the API and shown inside each portal that lists it, so the Gamma Console, the classic portal editor and the automation pipeline all write to the same place. Gamma operations are governed by API-level permission; the Gravitee Markdown viewer is reused as-is through a web-component wrapper rather than rebuilt. Broken down into 38 independently testable stories across 7 phases."
 todos:
   - id: STORY-01
     content: "Saving an API-owned item must not detach it from its API (Bug A). BLOCKER for everything else."
@@ -125,6 +125,9 @@ todos:
   - id: STORY-37
     content: "DEFERRABLE — Clean up an API's documentation when the API is deleted."
     status: pending
+  - id: STORY-38
+    content: "Make the legacy documentation migration script write each API's documentation as API-owned on 4.13, selected by an apimVersion setting checked against the server."
+    status: pending
 isProject: false
 ---
 
@@ -149,7 +152,7 @@ isProject: false
 - **Reconciling simultaneous console and GitOps edits is out of scope.** Existing behaviour is kept exactly: GitOps overwrites what it owns and refuses to touch what it does not.
 - **API products keep no ownership of their own** — their own pages stay portal-owned. An accepted asymmetry, not a gap to close here.
 
-**The shape of the work.** 37 stories across 7 phases, split roughly half backend, half frontend. Eight stories have nothing upstream of them; three of those unblock most of the rest and should go first — the API contract (opens all frontend work), the Markdown spike (gates the viewer), and a data count (sizes the migration).
+**The shape of the work.** 38 stories across 7 phases, split roughly half backend, half frontend. Eight stories have nothing upstream of them; three of those unblock most of the rest and should go first — the API contract (opens all frontend work), the Markdown spike (gates the viewer), and a data count (sizes the migration).
 
 **One hard blocker.** STORY-01 fixes a bug that ships today: saving a page in the classic editor silently detaches it from its API. It bites only GitOps-created documentation at the moment, but once all documentation belongs to the API it happens on nearly every edit. Nothing else in Phase 2 onward should start before it lands.
 
@@ -523,7 +526,7 @@ One signal input, no outputs, already Shadow DOM so its styles are self-containe
 
 ## Delivery breakdown
 
-Seven phases, 37 stories. Each story is independently mergeable and independently testable. Sizes: **S** ≤2 days, **M** 3–5 days, **L** 6+ days — at equal competence; see the note at the end on how an unfamiliar codebase changes that.
+Seven phases, 38 stories. Each story is independently mergeable and independently testable. Sizes: **S** ≤2 days, **M** 3–5 days, **L** 6+ days — at equal competence; see the note at the end on how an unfamiliar codebase changes that.
 
 **Path prefixes** used in the file lists below, to keep them readable:
 
@@ -1035,6 +1038,31 @@ None of them changes STORY-19's design if wrong; each only changes how much the 
 5. Carry the new ownership and root down to nested items in the same pass.
 6. The fixture matrix and the run-twice diff.
 
+#### STORY-38 — Migrate legacy API documentation straight to API ownership in the migration script
+**Why:** the [documentation migration script](https://github.com/gravitee-io/gravitee-migration-scripts/blob/main/developer-portal-documentation/README.md), written for 4.11 and 4.12, copies the legacy `pages` into the Next Gen portal through the Management API. It creates a listing row for each API under `DOCUMENTATION_MIGRATION/APIS`, and the API's pages under that row. On 4.13 those pages become owned by the API (STORY-03), so they are no longer inside the folder: deleting it, which the README gives as the way to run the script again, leaves them in place, and the next run duplicates them. The script's "already migrated" check looks only for listing rows, so an API that already has documentation, written in Gamma for example, gets legacy pages merged into it. Customers moving to the Next Gen portal on 4.13, from an older version or from the Classic portal, run the script there for the first time.
+**Acceptance criteria:**
+- A new `apimVersion` setting in `conf.json`. `4.13` or later selects the 4.13 behaviour; `4.11`, `4.12` or no value keeps today's, so existing configuration files still work.
+- Before writing anything, the script checks whether the server has the API-scoped documentation endpoints, by calling `GET .../apis/{apiId}/portal-navigation-items/_publish-locations` for the first API. When the setting and the server disagree, in either direction, it stops and says which value to set. This catches an old `conf.json` reused against 4.13.
+- With 4.13, each V4 API's legacy pages, folders and links are created through `POST .../apis/{apiId}/portal-navigation-items`: owned by the API, unpublished, top-level items with no parent. No listing row and no `APIS` folder are created; the API is placed in a portal later, from Gamma or the portal editor.
+- Page content is saved through `PUT .../apis/{apiId}/portal-navigation-items/{navId}/content` (STORY-12 Bis).
+- An API that already has documentation is skipped and reported, never merged into. Re-running after deleting `DOCUMENTATION_MIGRATION`, or after an interrupted run, migrates only the APIs not done yet.
+- An API whose migration fails part-way is named in the report, since the documentation it already has makes the next run skip it.
+- AsyncAPI pages are migrated as `ASYNCAPI` content.
+- V2 APIs are skipped and reported.
+- Environment documentation is migrated as today, into `DOCUMENTATION_MIGRATION/ENVIRONMENT`, still gated by that folder.
+- The README describes the setting, both behaviours, how re-running works on 4.13 and where to publish afterwards, and no longer lists AsyncAPI as a limitation.
+**Files** (in [gravitee-migration-scripts](https://github.com/gravitee-io/gravitee-migration-scripts), under `developer-portal-documentation/`):
+- *edit* `migrate-portal-documentation.js` — the setting, the check, and an API-owned writer for the API part. Reading legacy pages, the type mapping, environment documentation and the report are shared by both behaviours; `migrateSubtreeFlat` already writes through `io.createNavItem` and `io.updateContent`, so the writer passes API-scoped versions of the two
+- *edit* `migrate-portal-documentation.test.js` — the existing tests become the 4.11/4.12 suite, beside a 4.13 suite
+- *edit* `conf.json`, `README.md`
+**Size:** M · **Depends on:** STORY-12, STORY-12 Bis, STORY-13 · **Related:** STORY-19
+**Note:** two alternatives were rejected. A separate script for 4.13 would copy the reading side, which does not change: the source is the legacy `pages`, present in every version, and only the target differs. A script moving data from 4.12 to 4.13 would redo STORY-19, which already moves the documentation of anyone who ran the script before upgrading, on start-up.
+**Subtasks:**
+1. The setting and the check, with each combination of setting and server tested.
+2. The API-owned writer: create and content under the API path, no listing row, V2 APIs and APIs with documentation skipped.
+3. AsyncAPI.
+4. The report and the README.
+
 ---
 
 ### PHASE 5 — Gravitee Markdown in React
@@ -1476,6 +1504,7 @@ flowchart LR
     subgraph P4 ["Phase 4 · Data"]
         S18["18 Count data"]
         S19["19 Migration"]
+        S38["38 Migration script"]
     end
     subgraph P5 ["Phase 5 · Markdown"]
         S20["20 Zoneless spike"]
@@ -1521,6 +1550,8 @@ flowchart LR
     S11 --> S24
     S12 --> S13
     S12 --> S12B
+    S12B --> S38
+    S13 --> S38
     S12 --> S16
     S15 --> S16
     S12 --> S17
@@ -1569,7 +1600,7 @@ The longest backend chain is **01 → 03 → 05 → 06** ≈ 8. It only becomes 
 | Track | Stories | Notes |
 |---|---|---|
 | **A — ownership core** | 01 → 03 → 04, 05 → 06, 07, 08, 09, 02, 10, 36 | One owner. Stories 01, 02, 05, 06 all land in the same file, so they cannot be split further without constant conflicts |
-| **B — Gamma backend and data** | 11 → 12 → 12 Bis, 13, 14, 15, 16, 17, 35, 19, (37) | Independently testable from day one; 12 does not wait on track A because the explicit-owner rule needs no pipeline change |
+| **B — Gamma backend and data** | 11 → 12 → 12 Bis, 13, 14, 15, 16, 17, 35, 19, 38, (37) | Independently testable from day one; 12 does not wait on track A because the explicit-owner rule needs no pipeline change |
 | **C — frontend** | 20 → 21 → 22, 23, 24 → 25 → 26, 27, 28, 29, 30, 31, 33, 33 Bis, 34, 34 Bis, 32 | Build against the contract's stand-in. 32 last. 33 Bis carries its own small backend operation |
 
 Track C is roughly half the total work, so with four people the split is two on backend and two on frontend — the frontend divides cleanly (21/22/26/33/33 Bis/34/34 Bis against 24/25/27/28/29/30/31/32), while the backend cannot, because of the shared file in track A.
