@@ -256,7 +256,10 @@ class FilterValuesQueryServiceImplTest {
             Arguments.of(FilterSpec.Name.ENTRYPOINT, "entrypoint-id"),
             Arguments.of(FilterSpec.Name.ERROR_KEY, "error-key"),
             Arguments.of(FilterSpec.Name.REQUEST_ID, "request-id"),
-            Arguments.of(FilterSpec.Name.TRANSACTION_ID, "transaction-id")
+            Arguments.of(FilterSpec.Name.TRANSACTION_ID, "transaction-id"),
+            // The field the analytics engine filters on (HTTPFieldResolver): `path` is declared but never written.
+            Arguments.of(FilterSpec.Name.HTTP_PATH, "path-info.keyword"),
+            Arguments.of(FilterSpec.Name.URI, "uri")
         );
     }
 }
