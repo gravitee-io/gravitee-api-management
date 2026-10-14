@@ -132,10 +132,12 @@ export function useFetchApiDocumentationItem(apiId: string) {
     return useMutation({
         mutationKey: apiDocumentationKeys.fetch(env?.id ?? '', apiId),
         mutationFn: (navId: string) => fetchApiDocumentationItem(env!.id, apiId, navId),
-        // A failed fetch is recorded on the source, so the documentation is reloaded either way.
-        onSettled: () => {
-            void queryClient.invalidateQueries({ queryKey: apiDocumentationKeys.list(env!.id, apiId) });
-            void queryClient.invalidateQueries({ queryKey: apiDocumentationKeys.contents(env!.id, apiId) });
+        // A failed fetch is recorded on the source, so the documentation is reloaded either way. The content first: the
+        // list says whether a page was ever fetched, and paired with the content from before, would show its placeholder
+        // as fetched content.
+        onSettled: async () => {
+            await queryClient.invalidateQueries({ queryKey: apiDocumentationKeys.contents(env!.id, apiId) });
+            await queryClient.invalidateQueries({ queryKey: apiDocumentationKeys.list(env!.id, apiId) });
         },
     });
 }

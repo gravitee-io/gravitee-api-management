@@ -409,10 +409,31 @@ describe('ApiDocumentationEditPage', () => {
             renderPage();
 
             expect((await editor()).readOnly).toBe(true);
-            expect(screen.getByText('Managed by the folder Guides, read only. Fetch it from that folder.')).toBeInTheDocument();
+            expect(screen.getByRole('status', { name: 'External source' })).toHaveTextContent(
+                /^Managed by the folder Guides, read only\.$/,
+            );
             expect(screen.queryByRole('button', { name: 'Fetch now' })).not.toBeInTheDocument();
             expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
             expect(screen.queryByRole('button', { name: 'Edit details' })).not.toBeInTheDocument();
+        });
+
+        it('sends the user to a synced folder that can be fetched', async () => {
+            givenItems([{ ...GUIDES, source: { ...SOURCE, subtreeImport: true } }, GETTING_STARTED]);
+            renderPage();
+            await editor();
+
+            expect(screen.getByText('Managed by the folder Guides, read only. Fetch it from that folder.')).toBeInTheDocument();
+        });
+
+        it('does not send a user without api-documentation-u to fetch the synced folder', async () => {
+            grantedPermissions = ['api-documentation-r'];
+            givenItems([{ ...GUIDES, source: { ...SOURCE, subtreeImport: true } }, GETTING_STARTED]);
+            renderPage();
+            await editor();
+
+            expect(screen.getByRole('status', { name: 'External source' })).toHaveTextContent(
+                /^Managed by the folder Guides, read only\.$/,
+            );
         });
 
         it('keeps the content of a synced page read only, but lets its details be edited', async () => {
@@ -443,6 +464,33 @@ describe('ApiDocumentationEditPage', () => {
             expect(status).toHaveTextContent('Content from GitHub, read only');
             expect(status).toHaveTextContent(`Last fetched ${formatDateTime(LAST_FETCHED_AT)}`);
             expect(status).toHaveTextContent(describeCronSchedule('0 0 * * * *')!);
+        });
+
+        it('says it has not been fetched yet', async () => {
+            givenItems([GUIDES, { ...GETTING_STARTED, source: SOURCE }]);
+            renderPage();
+            await editor();
+
+            expect(screen.getByRole('status', { name: 'External source' })).toHaveTextContent('Not fetched yet');
+        });
+
+        it('shows no schedule once automatic fetching is off', async () => {
+            givenItems([GUIDES, { ...SYNCED, source: { ...SYNCED.source!, useAutoFetch: false } }]);
+            renderPage();
+            await editor();
+
+            expect(screen.getByRole('status', { name: 'External source' })).not.toHaveTextContent(describeCronSchedule('0 0 * * * *')!);
+        });
+
+        it("does not add a period to the server's reason when it already ends with one", async () => {
+            givenItems([
+                GUIDES,
+                { ...SYNCED, source: { ...SYNCED.source!, lastFetchAttemptAt: FAILED_AT, lastFetchError: 'Repository not found.' } },
+            ]);
+            renderPage();
+            await editor();
+
+            expect(screen.getByText(/Repository not found\. The content below/)).toBeInTheDocument();
         });
 
         it("explains a failed last fetch with the server's reason, keeping the content of the last successful one", async () => {
@@ -511,6 +559,37 @@ describe('ApiDocumentationEditPage', () => {
             await waitFor(async () => expect((await editor()).readOnly).toBe(false));
             expect((await editor()).value).toBe('# Fetched again');
             expect(saveButton().disabled).toBe(true);
+        });
+
+        it('offers no other fetch while one runs', async () => {
+            givenItems([GUIDES, SYNCED]);
+            mockFetchItem.mockReturnValue(new Promise(() => {}));
+            const user = userEvent.setup();
+            renderPage();
+            await editor();
+
+            await user.click(screen.getByRole('button', { name: 'Fetch now' }));
+
+            await waitFor(() => expect(screen.getByRole('button', { name: 'Fetch now' })).toBeDisabled());
+        });
+
+        it('does not show the placeholder as fetched content while its first fetch reloads', async () => {
+            const neverFetched = { ...GETTING_STARTED, source: SOURCE };
+            givenItems([GUIDES, neverFetched]);
+            mockFetchItem.mockImplementation(async () => {
+                givenItems([GUIDES, { ...neverFetched, source: { ...SOURCE, lastFetchedAt: LAST_FETCHED_AT } }]);
+                mockGetContent.mockReturnValue(new Promise(() => {}));
+                return { item: SYNCED };
+            });
+            const user = userEvent.setup();
+            renderPage();
+            await editor();
+
+            await user.click(screen.getByRole('button', { name: 'Fetch now' }));
+            await waitFor(() => expect(mockGetContent).toHaveBeenCalledTimes(2));
+            await act(async () => {});
+
+            expect((await editor()).value).toBe('');
         });
 
         it('offers no fetch without api-documentation-u', async () => {

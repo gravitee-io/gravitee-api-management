@@ -29,7 +29,7 @@ import { useApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDocumentation, useApiDocumentationPageContent, useSaveApiDocumentationPageContent } from '../../hooks/useApiDocumentation';
 import { useFetchNow } from '../../hooks/useFetchNow';
 import type { ApiDocumentationItem, PortalNavigationFolder, PortalNavigationPage, PortalPageContent } from '../../types/apiDocumentation';
-import { allowedChanges, getAncestors, hasSource, type SyncState, syncStateOf } from '../../utils/documentationTree';
+import { allowedChanges, fetchableItemIds, getAncestors, hasSource, type SyncState, syncStateOf } from '../../utils/documentationTree';
 import { editorLanguageFor, PAGE_CONTENT_TYPE_LABELS } from '../../utils/pageContentType';
 
 export function ApiDocumentationEditPage() {
@@ -100,6 +100,7 @@ function ApiDocumentationEditContent({ apiId, pageId }: Readonly<{ apiId: string
     const allowed = allowedChanges(syncState);
     const parent = ancestors.at(-1);
     const readOnly = !canEdit || !allowed.content;
+    const syncedFolder = syncState === 'BELOW_SYNCED_FOLDER' ? ancestors.find(hasSource) : undefined;
 
     return (
         <PageEditor
@@ -115,6 +116,8 @@ function ApiDocumentationEditContent({ apiId, pageId }: Readonly<{ apiId: string
             readOnly={readOnly}
             canEditDetails={canEdit && allowed.access}
             canFetch={canEdit && syncState === 'OWN_SOURCE'}
+            syncedFolder={syncedFolder}
+            canFetchSyncedFolder={canEdit && syncedFolder !== undefined && fetchableItemIds(items).has(syncedFolder.id)}
         />
     );
 }
@@ -137,6 +140,8 @@ function PageEditor({
     readOnly,
     canEditDetails,
     canFetch,
+    syncedFolder,
+    canFetchSyncedFolder,
 }: Readonly<{
     apiId: string;
     page: PortalNavigationPage;
@@ -148,6 +153,8 @@ function PageEditor({
     canEditDetails: boolean;
     /** Whether the page has a source of its own and the user may fetch it. */
     canFetch: boolean;
+    syncedFolder?: ApiDocumentationItem;
+    canFetchSyncedFolder: boolean;
 }>) {
     const saveContent = useSaveApiDocumentationPageContent(apiId);
     const [draft, setDraft] = useState(saved.content);
@@ -223,7 +230,8 @@ function PageEditor({
             {syncState === 'NOT_SYNCED' ? null : (
                 <SourceFetchStatus
                     source={page.source}
-                    syncedFolder={syncState === 'BELOW_SYNCED_FOLDER' ? ancestors.find(hasSource) : undefined}
+                    syncedFolder={syncedFolder}
+                    canFetchSyncedFolder={canFetchSyncedFolder}
                     onFetch={canFetch ? () => void fetchNow(page) : undefined}
                     isFetching={isFetching}
                 />

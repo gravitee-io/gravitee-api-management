@@ -25,6 +25,7 @@ import { formatDateTime } from '../../../utils/formatDate';
 export function SourceFetchStatus({
     source,
     syncedFolder,
+    canFetchSyncedFolder = false,
     onFetch,
     isFetching = false,
 }: Readonly<{
@@ -32,6 +33,8 @@ export function SourceFetchStatus({
     source?: PortalNavigationItemSource;
     /** The folder synced from a source that the page is in, which fetches it. */
     syncedFolder?: ApiDocumentationItem;
+    /** Whether the user may fetch that folder, which only some synced folders accept. */
+    canFetchSyncedFolder?: boolean;
     /** Absent without the permission to fetch. */
     onFetch?: () => void;
     isFetching?: boolean;
@@ -43,7 +46,8 @@ export function SourceFetchStatus({
                 aria-label="External source"
                 className="rounded-lg border bg-muted/40 px-3 py-2 text-sm text-muted-foreground"
             >
-                Managed by the folder {syncedFolder.title}, read only. Fetch it from that folder.
+                {`Managed by the folder ${syncedFolder.title}, read only.`}
+                {canFetchSyncedFolder ? ' Fetch it from that folder.' : null}
             </div>
         );
     }
