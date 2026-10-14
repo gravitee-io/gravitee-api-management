@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -237,6 +238,7 @@ class PortalNavigationItemApiOwnedConsoleMigrationUpgraderTest {
     void should_keep_every_starter_page() throws UpgraderException {
         var starter = page("starter", ROW, 0, "overview");
         starter.setTitle("Overview");
+        starter.setPublished(false);
         var own = apiRoot("own-overview", API_ID, 0, "overview");
         own.setType(PortalNavigationItem.Type.PAGE);
         own.setTitle("Overview");
@@ -251,6 +253,68 @@ class PortalNavigationItemApiOwnedConsoleMigrationUpgraderTest {
         assertThat(repository.get("starter").getSegment()).isEqualTo("overview-2");
         assertThat(repository.get("own-overview").isPublished()).isTrue();
         assertThat(repository.get("own-overview").getSegment()).isEqualTo("overview");
+    }
+
+    @Test
+    void should_unpublish_a_moved_item_whose_listing_was_unpublished() throws UpgraderException {
+        var row = row(ROW, API_ID, SECTION);
+        row.setPublished(false);
+        repository.initWith(List.of(section(SECTION), row, page("page", ROW, 0, "intro"), page("below", "page", 0, "below")));
+
+        assertThat(upgrader.upgrade()).isTrue();
+
+        assertThat(repository.get("page").isPublished()).isFalse();
+        // Hidden through the moved item, as it was through the listing
+        assertThat(repository.get("below").isPublished()).isTrue();
+    }
+
+    @Test
+    void should_unpublish_a_moved_item_when_a_section_above_its_listing_is_unpublished() throws UpgraderException {
+        var section = section(SECTION);
+        section.setPublished(false);
+        repository.initWith(List.of(section, row(ROW, API_ID, SECTION), page("page", ROW, 0, "intro")));
+
+        assertThat(upgrader.upgrade()).isTrue();
+
+        assertThat(repository.get("page").isPublished()).isFalse();
+    }
+
+    @Test
+    void should_make_a_moved_item_private_when_a_section_above_its_listing_is_private() throws UpgraderException {
+        var section = section(SECTION);
+        section.setVisibility(PortalNavigationItem.Visibility.PRIVATE);
+        repository.initWith(List.of(section, row(ROW, API_ID, SECTION), page("page", ROW, 0, "intro")));
+
+        assertThat(upgrader.upgrade()).isTrue();
+
+        assertThat(repository.get("page").getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PRIVATE);
+        assertThat(repository.get("page").isPublished()).isTrue();
+    }
+
+    @Test
+    void should_keep_the_visibility_of_a_moved_item_whose_listing_was_shown() throws UpgraderException {
+        var hidden = page("hidden", ROW, 1, "hidden");
+        hidden.setPublished(false);
+        hidden.setVisibility(PortalNavigationItem.Visibility.PRIVATE);
+        repository.initWith(List.of(section(SECTION), row(ROW, API_ID, SECTION), page("shown", ROW, 0, "shown"), hidden));
+
+        assertThat(upgrader.upgrade()).isTrue();
+
+        assertThat(repository.get("shown").isPublished()).isTrue();
+        assertThat(repository.get("shown").getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PUBLIC);
+        assertThat(repository.get("hidden").isPublished()).isFalse();
+        assertThat(repository.get("hidden").getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PRIVATE);
+    }
+
+    @Test
+    void should_leave_a_listing_whose_api_belongs_to_another_environment_alone() throws TechnicalException, UpgraderException {
+        when(apiRepository.findById("elsewhere")).thenReturn(Optional.of(Api.builder().id("elsewhere").environmentId("other-env").build()));
+        repository.initWith(List.of(section(SECTION), row(ROW, "elsewhere", SECTION), page("page", ROW, 0, "intro")));
+        var before = snapshot();
+
+        assertThat(upgrader.upgrade()).isTrue();
+
+        assertThat(snapshot()).isEqualTo(before);
     }
 
     @Test
@@ -406,7 +470,8 @@ class PortalNavigationItemApiOwnedConsoleMigrationUpgraderTest {
         String referenceId,
         Integer order,
         String segment,
-        boolean published
+        boolean published,
+        PortalNavigationItem.Visibility visibility
     ) {
         static Row of(PortalNavigationItem item) {
             return new Row(
@@ -416,12 +481,13 @@ class PortalNavigationItemApiOwnedConsoleMigrationUpgraderTest {
                 item.getReferenceId(),
                 item.getOrder(),
                 item.getSegment(),
-                item.isPublished()
+                item.isPublished(),
+                item.getVisibility()
             );
         }
 
         Row withOrder(Integer newOrder) {
-            return new Row(parentId, rootId, referenceType, referenceId, newOrder, segment, published);
+            return new Row(parentId, rootId, referenceType, referenceId, newOrder, segment, published, visibility);
         }
     }
 
@@ -466,6 +532,8 @@ class PortalNavigationItemApiOwnedConsoleMigrationUpgraderTest {
             .parentId(parentId)
             .rootId(SECTION)
             .order(order)
+            .published(true)
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
             .build();
     }
 }

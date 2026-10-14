@@ -27,7 +27,6 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
@@ -69,7 +68,7 @@ public class PortalNavigationItemApiOwnedConsoleMigrationUpgrader implements Upg
     }
 
     private boolean migrate() throws TechnicalException {
-        // One full scan, as PortalNavigationItemApiOwnedRekeyUpgrader#migrate does
+        // Navigation items are few, so one read of them all is cheaper than a query per environment
         Map<Map.Entry<String, String>, List<PortalNavigationItem>> byOrgAndEnv = portalNavigationItemRepository
             .findAll()
             .stream()
@@ -83,9 +82,10 @@ public class PortalNavigationItemApiOwnedConsoleMigrationUpgrader implements Upg
 
     private void migrateEnvironment(String environmentId, List<PortalNavigationItem> items) throws TechnicalException {
         var plan = new ListingDocumentationMigrationPlan(items, existingListedApis(environmentId, items));
+        // Logged before writing, so what was decided is on record even if a write fails part-way
+        plan.decisions().forEach(decision -> log.info("Environment {}: {}", environmentId, decision));
         plan.apply(this::update);
 
-        plan.decisions().forEach(decision -> log.info("Environment {}: {}", environmentId, decision));
         if (!plan.isEmpty() || !plan.decisions().isEmpty()) {
             log.info("Environment {}: API documentation moved off listing rows: {}", environmentId, plan.summary());
         }
@@ -103,9 +103,8 @@ public class PortalNavigationItemApiOwnedConsoleMigrationUpgrader implements Upg
     private Set<String> existingListedApis(String environmentId, List<PortalNavigationItem> items) throws TechnicalException {
         var listedApiIds = items
             .stream()
-            .filter(item -> item.getType() == PortalNavigationItem.Type.API)
+            .filter(PortalNavigationItem.IS_API_ITEM_PREDICATE)
             .map(PortalNavigationItem::getApiId)
-            .filter(Objects::nonNull)
             .collect(Collectors.toSet());
         var existing = new HashSet<String>();
         for (var apiId : listedApiIds) {

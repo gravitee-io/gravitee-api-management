@@ -73,7 +73,7 @@ class FakePortalNavigationItemRepository implements PortalNavigationItemReposito
 
     @Override
     public PortalNavigationItem create(PortalNavigationItem item) {
-        items.add(item);
+        items.add(copy(item));
         return item;
     }
 
