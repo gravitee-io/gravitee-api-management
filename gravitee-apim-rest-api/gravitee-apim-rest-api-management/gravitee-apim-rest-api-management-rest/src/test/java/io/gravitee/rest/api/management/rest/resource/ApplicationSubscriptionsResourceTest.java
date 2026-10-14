@@ -159,6 +159,41 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    void should_subscribe_to_plan_of_api_user_cannot_consume_when_admin() {
+        reset(apiSearchServiceV4, apiAuthorizationServiceV4, planSearchService, subscriptionService, userService);
+
+        io.gravitee.rest.api.model.v4.plan.PlanEntity foundPlan = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        foundPlan.setReferenceId("private-api");
+        foundPlan.setReferenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API);
+        PlanSecurity planSecurity = new PlanSecurity();
+        planSecurity.setType("api-key");
+        foundPlan.setSecurity(planSecurity);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN))).thenReturn(foundPlan);
+        ApiEntity privateApi = new ApiEntity();
+        privateApi.setId("private-api");
+        privateApi.setPrimaryOwner(mock(PrimaryOwnerEntity.class));
+        when(
+            apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), any(), eq(false), eq(false), eq(false))
+        ).thenReturn(privateApi);
+        when(apiAuthorizationServiceV4.canConsumeApi(any(), any(), any())).thenReturn(false);
+
+        SubscriptionEntity createdSubscription = new SubscriptionEntity();
+        createdSubscription.setPlan(PLAN);
+        createdSubscription.setId(SUBSCRIPTION);
+        when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(createdSubscription);
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any(), anyBoolean())).thenReturn(mock(UserEntity.class));
+
+        final Response response = envTarget()
+            .path(APPLICATION)
+            .path("subscriptions")
+            .queryParam("plan", PLAN)
+            .request()
+            .post(Entity.json(new NewSubscriptionEntity()));
+
+        assertEquals(CREATED_201, response.getStatus());
+    }
+
+    @Test
     public void shouldGetSubscriptions_expandingSecurity() {
         reset(apiSearchServiceV4, planSearchService, subscriptionService, userService);
 
