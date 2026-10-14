@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.slug.model.Slug;
@@ -69,6 +70,7 @@ final class ListingDocumentationMigrationPlan {
     private int starterPagesMoved;
     private int segmentsRenamed;
     private int apisWithSeveralListings;
+    private int itemsHidden;
     private int itemsLeftUnderApiProducts;
     private int itemsLeftForPortalAutomation;
     private int itemsLeftForMissingApis;
@@ -103,6 +105,8 @@ final class ListingDocumentationMigrationPlan {
             item.setReferenceType(PortalNavigationReferenceType.API);
             item.setReferenceId(relabel.apiId());
             item.setSegment(relabel.segment());
+            item.setPublished(relabel.published());
+            item.setVisibility(relabel.visibility());
             itemUpdater.accept(item);
         });
     }
@@ -123,6 +127,7 @@ final class ListingDocumentationMigrationPlan {
             starterPagesMoved,
             segmentsRenamed,
             apisWithSeveralListings,
+            itemsHidden,
             itemsLeftUnderApiProducts,
             itemsLeftForPortalAutomation,
             itemsLeftForMissingApis
@@ -136,13 +141,22 @@ final class ListingDocumentationMigrationPlan {
         int starterPagesMoved,
         int segmentsRenamed,
         int apisWithSeveralListings,
+        int itemsHidden,
         int itemsLeftUnderApiProducts,
         int itemsLeftForPortalAutomation,
         int itemsLeftForMissingApis
     ) {}
 
     /** The target state of one moved item; {@code parentId} is null for a new top item of the API. */
-    private record Relabel(String itemId, String parentId, String rootId, String apiId, String segment) {}
+    private record Relabel(
+        String itemId,
+        String parentId,
+        String rootId,
+        String apiId,
+        String segment,
+        boolean published,
+        PortalNavigationItem.Visibility visibility
+    ) {}
 
     private void planEnvironment() {
         items
@@ -280,22 +294,57 @@ final class ListingDocumentationMigrationPlan {
     private void planRelabel(String apiId, Candidate candidate, Set<String> usedSegments) {
         var top = candidate.top();
         var segment = claimSegment(apiId, top, usedSegments);
+        var topRelabel = hideAsTheListingDid(apiId, top, segment);
         countMoved(candidate);
         candidate
             .subtree()
             .reversed()
             .stream()
             .map(item ->
-                new Relabel(
-                    item.getId(),
-                    item == top ? null : item.getParentId(),
-                    top.getId(),
-                    apiId,
-                    item == top ? segment : item.getSegment()
-                )
+                item == top
+                    ? topRelabel
+                    : new Relabel(
+                        item.getId(),
+                        item.getParentId(),
+                        top.getId(),
+                        apiId,
+                        item.getSegment(),
+                        item.isPublished(),
+                        item.getVisibility()
+                    )
             )
             .filter(relabel -> !isAligned(itemsById.get(relabel.itemId()), relabel))
             .forEach(relabels::add);
+    }
+
+    /**
+     * Below a listing row, an item was hidden whenever the row or anything above it was. As a top item
+     * of the API it is only checked against its own flags and the API's visibility, so it takes the
+     * most restrictive state of that chain: nobody sees more after the move than before. Only the top
+     * item needs it — everything below is checked through it.
+     */
+    private Relabel hideAsTheListingDid(String apiId, PortalNavigationItem top, String segment) {
+        var listing = itemsById.get(top.getParentId());
+        var chain = new ArrayList<PortalNavigationItem>();
+        chain.add(listing);
+        chain.addAll(ancestors(listing));
+        var published = top.isPublished() && chain.stream().allMatch(PortalNavigationItem::isPublished);
+        var visibility = chain.stream().anyMatch(item -> item.getVisibility() == PortalNavigationItem.Visibility.PRIVATE)
+            ? PortalNavigationItem.Visibility.PRIVATE
+            : top.getVisibility();
+        if (published != top.isPublished() || visibility != top.getVisibility()) {
+            itemsHidden++;
+            decisions.add(
+                "Restricted [%s] to published=%s, visibility=%s, as listing [%s] of API [%s] or a section above it hid it".formatted(
+                    top.getId(),
+                    published,
+                    visibility,
+                    listing.getId(),
+                    apiId
+                )
+            );
+        }
+        return new Relabel(top.getId(), null, top.getId(), apiId, segment, published, visibility);
     }
 
     private String claimSegment(String apiId, PortalNavigationItem top, Set<String> usedSegments) {
@@ -343,7 +392,9 @@ final class ListingDocumentationMigrationPlan {
             Objects.equals(item.getRootId(), relabel.rootId()) &&
             item.getReferenceType() == PortalNavigationReferenceType.API &&
             relabel.apiId().equals(item.getReferenceId()) &&
-            Objects.equals(item.getSegment(), relabel.segment())
+            Objects.equals(item.getSegment(), relabel.segment()) &&
+            item.isPublished() == relabel.published() &&
+            item.getVisibility() == relabel.visibility()
         );
     }
 
@@ -373,34 +424,28 @@ final class ListingDocumentationMigrationPlan {
     }
 
     private boolean isUnderApiProduct(PortalNavigationItem row) {
-        var visited = new HashSet<String>();
-        var parentId = row.getParentId();
-        while (parentId != null && visited.add(parentId)) {
-            var parent = itemsById.get(parentId);
-            if (parent == null) {
-                return false;
-            }
-            if (parent.getType() == PortalNavigationItem.Type.API_PRODUCT) {
-                return true;
-            }
-            parentId = parent.getParentId();
-        }
-        return false;
+        return ancestors(row)
+            .stream()
+            .anyMatch(ancestor -> ancestor.getType() == PortalNavigationItem.Type.API_PRODUCT);
     }
 
     private boolean isSourcedOrBelowSourced(PortalNavigationItem item, PortalNavigationItem top) {
-        var visited = new HashSet<String>();
-        var current = item;
-        while (current != null && visited.add(current.getId())) {
-            if (hasSource(current)) {
-                return true;
-            }
-            if (current == top) {
-                return false;
-            }
-            current = itemsById.get(current.getParentId());
+        var chain = new ArrayList<PortalNavigationItem>();
+        chain.add(item);
+        chain.addAll(ancestors(item));
+        return chain.subList(0, chain.indexOf(top) + 1).stream().anyMatch(ListingDocumentationMigrationPlan::hasSource);
+    }
+
+    /** From the parent up; the walk stops at a missing parent, or where corrupt parents loop back. */
+    private List<PortalNavigationItem> ancestors(PortalNavigationItem item) {
+        var result = new ArrayList<PortalNavigationItem>();
+        var visited = new HashSet<String>(Set.of(item.getId()));
+        var parent = itemsById.get(item.getParentId());
+        while (parent != null && visited.add(parent.getId())) {
+            result.add(parent);
+            parent = itemsById.get(parent.getParentId());
         }
-        return false;
+        return result;
     }
 
     private static boolean hasSource(PortalNavigationItem item) {
@@ -410,9 +455,14 @@ final class ListingDocumentationMigrationPlan {
         try {
             JsonNode source = JSON.readTree(item.getConfiguration()).get(SOURCE);
             return source != null && !source.isNull();
-        } catch (Exception e) {
-            // Only the summary's count of sourced items depends on it; the item is moved either way
-            log.warn("Unable to read the configuration of portal navigation item {}; counting it as not sourced", item.getId(), e);
+        } catch (JsonProcessingException e) {
+            // Only the summary's count of sourced items depends on it; the item is moved either way. The
+            // exception is not logged: its message quotes the configuration, which can hold credentials.
+            log.warn(
+                "Unable to read the configuration of portal navigation item {} ({}); counting it as not sourced",
+                item.getId(),
+                e.getClass().getSimpleName()
+            );
             return false;
         }
     }

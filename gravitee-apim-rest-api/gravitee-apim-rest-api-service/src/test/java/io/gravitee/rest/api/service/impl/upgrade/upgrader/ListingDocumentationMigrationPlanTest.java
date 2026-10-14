@@ -45,10 +45,12 @@ class ListingDocumentationMigrationPlanTest {
         var apiRoot = item("api-overview", PortalNavigationItem.Type.PAGE, null, 0, "overview");
         apiRoot.setReferenceType(PortalNavigationReferenceType.API);
         apiRoot.setReferenceId(API_ID);
+        var hiddenRow = row("row-2", API_ID, "section");
+        hiddenRow.setPublished(false);
         var items = List.of(
             item("section", PortalNavigationItem.Type.FOLDER, null, 0, "section"),
             row("row-1", API_ID, "section"),
-            row("row-2", API_ID, "section"),
+            hiddenRow,
             starter,
             sourced,
             item("fetched", PortalNavigationItem.Type.PAGE, "sourced", 0, "readme"),
@@ -72,6 +74,7 @@ class ListingDocumentationMigrationPlanTest {
                 /* starterPagesMoved */ 1,
                 /* segmentsRenamed */ 1,
                 /* apisWithSeveralListings */ 1,
+                /* itemsHidden */ 1,
                 /* itemsLeftUnderApiProducts */ 1,
                 /* itemsLeftForPortalAutomation */ 1,
                 /* itemsLeftForMissingApis */ 1
@@ -90,7 +93,7 @@ class ListingDocumentationMigrationPlanTest {
             Set.of(API_ID)
         );
 
-        assertThat(plan.summary()).isEqualTo(new ListingDocumentationMigrationPlan.Summary(0, 0, 0, 0, 0, 0, 0, 0, 0));
+        assertThat(plan.summary()).isEqualTo(new ListingDocumentationMigrationPlan.Summary(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
         assertThat(plan.isEmpty()).isTrue();
     }
 
@@ -112,6 +115,7 @@ class ListingDocumentationMigrationPlanTest {
             .parentId(parentId)
             .rootId("section")
             .order(order)
+            .published(true)
             .build();
     }
 }
