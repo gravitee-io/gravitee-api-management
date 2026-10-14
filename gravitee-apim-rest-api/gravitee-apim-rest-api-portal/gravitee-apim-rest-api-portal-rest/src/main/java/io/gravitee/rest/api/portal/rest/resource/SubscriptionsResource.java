@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.mapper.KeyMapper;
 import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
@@ -49,7 +50,9 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -96,6 +99,9 @@ public class SubscriptionsResource extends AbstractResource {
     @Inject
     private GraviteeMapper graviteeMapper;
 
+    @Inject
+    private PlanSearchService planSearchService;
+
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -103,6 +109,11 @@ public class SubscriptionsResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String applicationId = subscriptionInput.getApplication();
         if (hasPermission(executionContext, RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.CREATE)) {
+            GenericPlanEntity plan = planSearchService.findById(executionContext, subscriptionInput.getPlan());
+            if (!accessControlService.canAccessApiFromPortal(executionContext, plan.getApiId())) {
+                throw new ApiNotFoundException(plan.getApiId());
+            }
+
             NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
             newSubscriptionEntity.setApplication(applicationId);
             newSubscriptionEntity.setPlan(subscriptionInput.getPlan());
