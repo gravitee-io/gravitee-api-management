@@ -997,11 +997,11 @@ Decided earlier, when PORTAL-231 was written, and now reflected in the stories:
 **Size:** S · **Depends on:** nothing
 
 #### STORY-19 — Move existing editor-created API documentation to API ownership
-**Why:** without it, the editor writes API-owned items while older items stay under listing rows. The two groups form separate sibling sets, so items rendered side by side can share a position and a URL name with nothing complaining.
+**Why:** without it, the editor writes API-owned items while older items stay under listing rows. The two groups form separate sibling sets, so items rendered side by side can share a position and a URL name with nothing complaining. This includes folders the portal editor imported from an external source: since STORY-08 a new import under a listing is stored as API-owned documentation, while older imports stay portal-owned children of the listing row, missing from Gamma's documentation screen.
 **Acceptance criteria:**
 - Runs once on start-up; relabels ownership and parentage in place; never creates, deletes or re-identifies a row.
 - Running it twice changes nothing the second time, and an interrupted run resumes safely.
-- Items carrying an external source, or with a sourced item above them, are skipped and keep working.
+- Items carrying an external source, and everything below them, are migrated like any other item. Afterwards they are still read-only and can still be refreshed: an item below a migrated sourced folder is refused an edit, the sourced root cannot be renamed or moved while it keeps its source, and a refresh leaves the root and its descendants owned by the API.
 - Positions are renumbered contiguously where two groups merge.
 - Duplicate starter pages are handled per the agreed policy; contents are never merged.
 - Nested items receive both the new ownership and the new root in the same pass.
@@ -1013,10 +1013,11 @@ Decided earlier, when PORTAL-231 was written, and now reflected in the stories:
 - *read only* `UPG/PortalNavigationItemApiOwnedRekeyUpgrader.java` — the template: in-place field updates, no create or delete, ids unchanged, full-collection scan. Copy its shape, including its resumability guard
 - *read only* `UPG/ApiNavigationSubtreePaths.java` — the existing path-reconstruction helper; the walk here is a generalisation of it without the deterministic-id ownership test
 **Size:** L · **Depends on:** STORY-03, STORY-18 · **Blocked by:** decision 6
+**Note:** sourced items were first left out, for fear they would lose their read-only protection. They are included since 2026-10-14, after review of the STORY-08 pull request ([#21182](https://github.com/gravitee-io/gravitee-api-management/pull/21182)) showed that leaving them out strands every folder imported before STORY-08. The fear does not hold: `SourcedItemReadOnlyRule` decides from the item's own source and its stored parent chain, never from ownership, and the migration changes the parent of a subtree's root only. A refresh re-imports with the owner the root has, so it keeps the API.
 **Note:** no rollback. Do not assign to whoever is newest to this codebase. The architecture test forbidding a particular paging call applies here — follow the existing upgrader's scan.
 **Subtasks:**
 1. The walk: find everything stored under each listing row, with the ownership relabelled in place and an already-aligned guard so a second run does nothing.
-2. Skip anything carrying an external source, or with a sourced item above it.
+2. Sourced items: migrate them with the rest, the parent chain below the root unchanged, and prove they stay read-only and refreshable afterwards.
 3. Renumber positions contiguously where two groups merge.
 4. Duplicate starter pages, per the agreed policy.
 5. Carry the new ownership and root down to nested items in the same pass.
@@ -1590,7 +1591,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | Publishing impossible when no top-level section exists | Medium | Accepted: the publish dialog explains it, a portal administrator adds a section (decision 3), and STORY-35 adds a default one |
 | Deleting an API from the console leaks documentation and page text | Medium | STORY-37, or an accepted known issue |
 | The migration cannot be reversed | Medium | In-place updates, unchanged ids, logging, run-twice test (STORY-19) |
-| Items with an external source lose read-only protection after migration | Medium | STORY-19 skips them |
+| Items with an external source lose read-only protection after migration | Medium | Read-only is decided by the source and the stored parent chain, not by ownership, and the migration keeps that chain below each root. STORY-19 tests it |
 | Duplicate starter pages when an API was listed twice | Medium | Decision 6; STORY-18 sizes it first |
 | Per-item visibility and ordering apply to every portal listing the API | Medium | Explicit wording; decision 1 |
 | Moves that change owner corrupt sibling order | Medium | STORY-06; Gamma's own moves never change owner |
