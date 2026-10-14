@@ -29,10 +29,13 @@ import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeRange;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
+import io.gravitee.apim.core.observability.model.FilterOperator;
 import io.gravitee.apim.core.observability.model.NumberRange;
 import io.gravitee.apim.core.observability.model.Signal;
 import io.gravitee.apim.core.utils.CollectionUtils;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -142,11 +145,22 @@ public class AnalyticsQueryValidator {
             if (!supportsAnalytics(filter.name())) {
                 throw InvalidQueryException.forUnsupportedAnalyticsFilter(filter.name().name());
             }
+            if (filter.operator() != null && !ANALYTICS_OPERATORS.contains(filter.operator())) {
+                throw InvalidQueryException.forUnsupportedAnalyticsOperator(filter.operator().name(), filter.name().name());
+            }
             if (filter.value() == null) {
                 throw InvalidQueryException.forNullFilterValue(filter.name().name());
             }
         }
     }
+
+    /** The operators {@code AnalyticsMeasuresAdapter.toFilterOperator} translates; pinned by AnalyticsQueryValidatorTest. */
+    private static final Set<FilterOperator> ANALYTICS_OPERATORS = EnumSet.of(
+        FilterOperator.EQ,
+        FilterOperator.IN,
+        FilterOperator.LTE,
+        FilterOperator.GTE
+    );
 
     /**
      * Whether the analytics engine can evaluate this filter, read from the catalog's signal axis rather than
