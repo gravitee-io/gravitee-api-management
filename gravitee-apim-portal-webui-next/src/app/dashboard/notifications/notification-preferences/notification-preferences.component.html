@@ -26,8 +26,8 @@
     aria-label="Notification preference scope"
     i18n-aria-label="@@notificationsPreferencesScopeAria"
   >
-    <mat-button-toggle value="APPLICATION" i18n="@@notificationsPreferencesScopeApps">Apps</mat-button-toggle>
-    <mat-button-toggle value="API" i18n="@@notificationsPreferencesScopeApis">APIs</mat-button-toggle>
+    <mat-button-toggle value="APPLICATION" i18n="@@notificationsPreferencesScopeApps">Applications</mat-button-toggle>
+    <mat-button-toggle value="API" i18n="@@notificationsPreferencesScopeApis">Subscribed APIs</mat-button-toggle>
   </mat-button-toggle-group>
 
   <div class="notification-preferences__selectors">
@@ -91,14 +91,11 @@
                   [attr.data-testid]="'notification-hook-' + hook.id"
                 >
                   <span class="notification-preferences__hook-label">{{ hook.label }}</span>
-                  @if (hook.description) {
-                    <span class="notification-preferences__hook-description next-gen-small">{{ hook.description }}</span>
-                  }
                 </mat-checkbox>
 
                 @if (hook.enabled && hook.isCloseToExpiry) {
                   <div class="notification-preferences__days">
-                    <mat-form-field appearance="outline" class="notification-preferences__days-field">
+                    <mat-form-field appearance="outline" class="notification-preferences__days-field" subscriptSizing="dynamic">
                       <mat-label i18n="@@notificationsPreferencesDaysLabel">Days</mat-label>
                       <input
                         matInput
@@ -110,7 +107,11 @@
                         [attr.aria-label]="hook.label"
                       />
                     </mat-form-field>
-                    <span class="next-gen-small" i18n="@@notificationsPreferencesDaysBeforeExpiry">days before expiry</span>
+                    <span
+                      class="notification-preferences__days-hint next-gen-small"
+                      i18n="@@notificationsPreferencesDaysBeforeExpiry"
+                      >days before expiry</span
+                    >
                   </div>
                 }
               </div>
