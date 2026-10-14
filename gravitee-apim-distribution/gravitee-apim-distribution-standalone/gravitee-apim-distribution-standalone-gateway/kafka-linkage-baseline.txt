@@ -1,0 +1,13 @@
+# Unresolved org.apache.kafka references of bundled plugins, analysed and accepted.
+# Read by gravitee-apim-distribution-kafka-linkage when this distribution is assembled.
+#
+# One line per reference: <plugin artifactId> <reference>  # <why it never runs>
+# Only dead code belongs here. A reference the plugin can reach is a bug: fix the plugin instead.
+# An entry that no longer matches fails the build, so remove it once the plugin links.
+
+# Confluent's schema-registry client calls the 9-argument constructor, which kafka-clients 3.9 extended.
+# Unreachable: these policies only use ProtobufSchema, ProtobufSchemaUtils and SchemaReference from
+# Confluent. Schema Registry, OAuth included, is reached through gravitee-resource-schema-registry-confluent,
+# which does not use Confluent's client.
+gravitee-policy-transform-avro-protobuf org/apache/kafka/common/security/oauthbearer/internals/secured/HttpAccessTokenRetriever.<init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljavax/net/ssl/SSLSocketFactory;Ljava/lang/String;JJLjava/lang/Integer;Ljava/lang/Integer;)V  # Unreachable: see above (ESM-287)
+gravitee-policy-transform-protobuf-json org/apache/kafka/common/security/oauthbearer/internals/secured/HttpAccessTokenRetriever.<init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljavax/net/ssl/SSLSocketFactory;Ljava/lang/String;JJLjava/lang/Integer;Ljava/lang/Integer;)V  # Unreachable: see above (ESM-287)

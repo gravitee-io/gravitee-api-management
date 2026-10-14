@@ -36,6 +36,7 @@
     <properties>
         <!--suppress UnresolvedMavenProperty -->
         <gravitee.gateway.log.dir>${gravitee.home}/logs</gravitee.gateway.log.dir>
+        <kafka.linkage.skip>false</kafka.linkage.skip>
     </properties>
 
     <dependencies>
@@ -225,6 +226,42 @@
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
+            </plugin>
+            <!--
+                Kafka plugins declare kafka-clients as provided: their own builds compile against a version
+                they never meet at runtime. Only this assembly shows which one they get, so the linkage
+                check runs here, on target/distribution. Skip it with -Dkafka.linkage.skip.
+            -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.6.4</version>
+                <executions>
+                    <execution>
+                        <id>kafka-linkage-check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${kafka.linkage.skip}</skip>
+                            <mainClass>io.gravitee.apim.distribution.kafka.KafkaLinkageCheck</mainClass>
+                            <includeProjectDependencies>false</includeProjectDependencies>
+                            <includePluginDependencies>true</includePluginDependencies>
+                            <arguments>
+                                <argument>${project.build.directory}/distribution</argument>
+                                <argument>${project.basedir}/kafka-linkage-baseline.txt</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>io.gravitee.apim.distribution</groupId>
+                        <artifactId>gravitee-apim-distribution-kafka-linkage</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>
