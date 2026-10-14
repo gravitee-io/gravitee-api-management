@@ -1003,9 +1003,9 @@ Decided earlier, when PORTAL-231 was written, and now reflected in the stories:
 - Findings written up, with a recommendation for STORY-19's duplicate handling.
 **Files:** none — a query and a short written finding. Keep the query in the ticket so STORY-19 can re-run it to verify the migration.
 **Size:** S · **Depends on:** nothing
-**Assumptions, in place of the count** (taken from which release introduced what: listing rows in 4.11, starter pages seeded under them in 4.12, the editor's import in 4.13, API-owned writes from the editor in 4.14):
-- Only installs that listed APIs in the Next Gen portal's navigation on 4.11, 4.12 or 4.13 have data to migrate; most have none.
-- Where there is data, it is mostly one starter page per API listed on 4.12 or 4.13, plus a few items written by hand.
+**Assumptions, in place of the count** (taken from which release introduced what: listing rows in 4.11, starter pages seeded under them in 4.12, and in 4.13 both the editor's import and API-owned writes from the editor, since this plan is backported to 4.13 before 4.13.0 is released):
+- Only installs that listed APIs in the Next Gen portal's navigation on 4.11 or 4.12 have data to migrate; most have none.
+- Where there is data, it is mostly one starter page per API listed on 4.12, plus a few items written by hand.
 - Items with an external source under a listing are rare. No API has two standalone listing rows: the uniqueness rule has existed as long as listing rows.
 - Two "Overview" pages side by side, segment clashes, and hand-made folders at a path a GitOps configuration declares are uncommon.
 None of them changes STORY-19's design if wrong; each only changes how much the migration does.
