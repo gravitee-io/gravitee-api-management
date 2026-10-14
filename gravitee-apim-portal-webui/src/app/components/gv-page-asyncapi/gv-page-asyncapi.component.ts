@@ -37,7 +37,7 @@ export class GvPageAsyncApiComponent implements OnInit {
 
   ngOnInit() {
     this.page = this.pageService.getCurrentPage();
-    this.schema = this.page.content ? toRenderableAsyncApi(this.page.content) : this.page.content;
+    this.schema = toRenderableAsyncApi(this.page.content);
   }
 
   openMedia(link: string) {

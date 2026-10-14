@@ -21,7 +21,7 @@ class PageAsyncApiComponentController implements ng.IComponentController {
   schema: string;
 
   $onChanges() {
-    this.schema = this.pageContent ? toRenderableAsyncApi(this.pageContent) : this.pageContent;
+    this.schema = toRenderableAsyncApi(this.pageContent);
   }
 }
 

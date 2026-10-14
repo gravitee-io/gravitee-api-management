@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CORE_SCHEMA, loadAll, mergeTag } from 'js-yaml';
 import { isObject } from 'lodash';
 
-import { loadYaml } from './yaml';
+type JsonNode = Record<string, unknown> & { asyncapi?: unknown; schemaFormat?: unknown; schema?: unknown; payload?: unknown };
 
-type JsonNode = Record<string, unknown> & { schemaFormat?: unknown; schema?: unknown; payload?: unknown };
+// A rewritten document is handed to the viewer as JSON, where an unresolved `<<` key would be a
+// plain property.
+const ASYNCAPI_YAML_SCHEMA = CORE_SCHEMA.withTags(mergeTag);
 
 /**
  * The AsyncAPI viewer (`@asyncapi/web-component`) has no schema parser for XML Schema: up to 2.x
@@ -26,34 +29,66 @@ type JsonNode = Record<string, unknown> & { schemaFormat?: unknown; schema?: unk
  * renders and the XSD stays readable. Any other content is returned unchanged — content that
  * cannot be read included, so the viewer still reports its own errors.
  */
-export function toRenderableAsyncApi(content: string): string {
-  let document: unknown;
-  try {
-    document = loadYaml(content);
-  } catch {
+export function toRenderableAsyncApi<T extends string | null | undefined>(content: T): T | string {
+  if (!content) {
     return content;
   }
-  if (!isNode(document) || !('asyncapi' in document)) {
+  const document = readAsyncApiDocument(content);
+  if (!document) {
     return content;
   }
-  return replaceXmlSchemaPayloads(document) ? JSON.stringify(document) : content;
+  // AsyncAPI 2.x declares the payload format on the message; 3.x moved it into the payload, a
+  // Multi Format Schema Object, and rejects it on the message.
+  const replaced = String(document.asyncapi).startsWith('2.')
+    ? replaceMessagePayloads(document, new WeakSet())
+    : replaceMultiFormatSchemas(document, new WeakSet());
+  // Indented, so the viewer's error line numbers still tell the values apart.
+  return replaced ? JSON.stringify(document, null, 2) : content;
 }
 
-function replaceXmlSchemaPayloads(node: JsonNode): boolean {
+function readAsyncApiDocument(content: string): JsonNode | undefined {
+  let documents: unknown[];
+  try {
+    documents = loadAll(content, { schema: ASYNCAPI_YAML_SCHEMA });
+  } catch {
+    return undefined;
+  }
+  const [document] = documents;
+  return documents.length === 1 && isNode(document) && 'asyncapi' in document ? document : undefined;
+}
+
+// `visited` keeps a node shared through YAML aliases from being walked once per reference.
+function replaceMultiFormatSchemas(node: JsonNode, visited: WeakSet<JsonNode>): boolean {
+  if (visited.has(node)) {
+    return false;
+  }
+  visited.add(node);
   let replaced = false;
   for (const [key, value] of Object.entries(node)) {
     if (!isNode(value)) {
       continue;
     }
-    // AsyncAPI 3.x: a Multi Format Schema Object holds both the format and the schema.
     if (isXmlSchemaFormat(value.schemaFormat) && 'schema' in value) {
       node[key] = quoteXmlSchema(value.schemaFormat, value.schema);
       replaced = true;
     } else {
-      replaced = replaceXmlSchemaPayloads(value) || replaced;
+      replaced = replaceMultiFormatSchemas(value, visited) || replaced;
     }
   }
-  // AsyncAPI 2.x: the message declares the format of its payload.
+  return replaced;
+}
+
+function replaceMessagePayloads(node: JsonNode, visited: WeakSet<JsonNode>): boolean {
+  if (visited.has(node)) {
+    return false;
+  }
+  visited.add(node);
+  let replaced = false;
+  for (const value of Object.values(node)) {
+    if (isNode(value)) {
+      replaced = replaceMessagePayloads(value, visited) || replaced;
+    }
+  }
   if (isXmlSchemaFormat(node.schemaFormat) && 'payload' in node) {
     node.payload = quoteXmlSchema(node.schemaFormat, node.payload);
     delete node.schemaFormat;

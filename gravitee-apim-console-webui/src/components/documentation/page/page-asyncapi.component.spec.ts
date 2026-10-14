@@ -16,7 +16,7 @@
 import { PageAsyncApiComponent } from './page-asyncapi.component';
 
 describe('PageAsyncApiComponent', () => {
-  const ControllerClass = PageAsyncApiComponent.controller as new () => any;
+  const ControllerClass = PageAsyncApiComponent.controller as new () => { pageContent: string; schema: string; $onChanges(): void };
 
   it('should render an XML Schema payload as its quoted schema', () => {
     const controller = new ControllerClass();

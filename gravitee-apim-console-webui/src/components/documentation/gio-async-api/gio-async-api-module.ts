@@ -20,7 +20,6 @@ import { GioAsyncApiComponent } from './gio-async-api.component';
 
 import { RenderableAsyncApiPipe } from '../../../shared/pipes/renderable-async-api.pipe';
 
-
 @NgModule({
   declarations: [GioAsyncApiComponent],
   exports: [GioAsyncApiComponent],

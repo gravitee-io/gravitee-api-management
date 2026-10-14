@@ -19,10 +19,9 @@ import { toRenderableAsyncApi } from '../../util/renderable-async-api';
 
 @Pipe({
   name: 'renderableAsyncApi',
-  standalone: true,
 })
 export class RenderableAsyncApiPipe implements PipeTransform {
   transform<T extends string | null | undefined>(content: T): T | string {
-    return content ? toRenderableAsyncApi(content) : content;
+    return toRenderableAsyncApi(content);
   }
 }
