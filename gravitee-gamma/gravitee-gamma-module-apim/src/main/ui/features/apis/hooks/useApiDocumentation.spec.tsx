@@ -27,6 +27,7 @@ import {
     useDeleteApiDocumentationItem,
     useImportApiDocumentation,
     usePublishApiToPortal,
+    useSaveApiDocumentationPageConfiguration,
     useSaveApiDocumentationPageContent,
     useUnpublishApiFromPortal,
 } from './useApiDocumentation';
@@ -39,6 +40,7 @@ import {
     listApiDocumentation,
     listApiPublishLocations,
     publishApiToPortal,
+    saveApiDocumentationPageConfiguration,
     saveApiDocumentationPageContent,
     unpublishApiFromPortal,
     updateApiDocumentationItem,
@@ -48,6 +50,7 @@ import type {
     ImportPortalNavigationRequest,
     PortalNavigationFolder,
     PortalNavigationPage,
+    PortalPageContent,
 } from '../types/apiDocumentation';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
@@ -66,6 +69,7 @@ const mockImportApiDocumentation = jest.mocked(importApiDocumentation);
 const mockPublishApiToPortal = jest.mocked(publishApiToPortal);
 const mockUnpublishApiFromPortal = jest.mocked(unpublishApiFromPortal);
 const mockSaveApiDocumentationPageContent = jest.mocked(saveApiDocumentationPageContent);
+const mockSaveApiDocumentationPageConfiguration = jest.mocked(saveApiDocumentationPageConfiguration);
 const mockGetApiDocumentationPageContent = jest.mocked(getApiDocumentationPageContent);
 
 const API_DOCUMENTATION_LIST = { queryKey: ['api-documentation', 'env-1', 'api-1', 'list'] };
@@ -272,6 +276,45 @@ describe('useApiDocumentation hooks', () => {
             await act(() => result.current.mutateAsync({ navId: 'nav-1', content: '# Hello again' }));
 
             expect(queryClient.getQueryData(['api-documentation', 'env-1', 'api-1', 'content', 'nav-1'])).toEqual(saved);
+        });
+    });
+
+    describe('useSaveApiDocumentationPageConfiguration', () => {
+        const PAGE_CONTENT = ['api-documentation', 'env-1', 'api-1', 'content', 'nav-1'];
+
+        it('saves the configuration of the page in the current environment', async () => {
+            mockSaveApiDocumentationPageConfiguration.mockResolvedValue({ id: 'content-1', type: 'OPENAPI', content: 'openapi: 3.0.3' });
+            const { result } = renderWithQueryClient(() => useSaveApiDocumentationPageConfiguration('api-1'));
+
+            await act(() => result.current.mutateAsync({ navId: 'nav-1', configuration: { viewer: 'REDOC', tryItURL: '' } }));
+
+            expect(mockSaveApiDocumentationPageConfiguration).toHaveBeenCalledWith('env-1', 'api-1', 'nav-1', {
+                viewer: 'REDOC',
+                tryItURL: '',
+            });
+        });
+
+        it('gives the page its new configuration and keeps the content it had, without loading it again', async () => {
+            const cached: PortalPageContent = {
+                id: 'content-1',
+                type: 'OPENAPI',
+                content: 'openapi: 3.0.3 # as last loaded',
+                configuration: { viewer: 'REDOC', tryItURL: '' },
+            };
+            mockSaveApiDocumentationPageConfiguration.mockResolvedValue({
+                ...cached,
+                content: 'openapi: 3.0.3 # saved elsewhere since',
+                configuration: { viewer: 'SWAGGER', tryIt: true },
+            });
+            const { result, queryClient, invalidateQueries } = renderWithQueryClient(() =>
+                useSaveApiDocumentationPageConfiguration('api-1'),
+            );
+            queryClient.setQueryData(PAGE_CONTENT, cached);
+
+            await act(() => result.current.mutateAsync({ navId: 'nav-1', configuration: { viewer: 'SWAGGER', tryIt: true } }));
+
+            expect(queryClient.getQueryData(PAGE_CONTENT)).toEqual({ ...cached, configuration: { viewer: 'SWAGGER', tryIt: true } });
+            expect(invalidateQueries).not.toHaveBeenCalled();
         });
     });
 

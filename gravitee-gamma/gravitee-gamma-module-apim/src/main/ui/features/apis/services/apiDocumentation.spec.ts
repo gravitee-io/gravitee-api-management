@@ -21,6 +21,7 @@ import {
     listApiDocumentation,
     listApiPublishLocations,
     publishApiToPortal,
+    saveApiDocumentationPageConfiguration,
     saveApiDocumentationPageContent,
     unpublishApiFromPortal,
     updateApiDocumentationItem,
@@ -187,6 +188,24 @@ describe('apiDocumentation service', () => {
         it('URL-encodes the page id', async () => {
             await saveApiDocumentationPageContent('env-1', 'api-1', 'nav/1', { content: '' });
             expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', `${BASE_PATH}/nav%2F1/content`, expect.anything());
+        });
+    });
+
+    describe('saveApiDocumentationPageConfiguration', () => {
+        it("PATCHes the configuration to the page's content configuration path", async () => {
+            await saveApiDocumentationPageConfiguration('env-1', 'api-1', 'nav-1', {
+                viewer: 'REDOC',
+                tryItURL: 'https://api.example.com',
+            });
+            expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', `${BASE_PATH}/nav-1/content/configuration`, {
+                method: 'PATCH',
+                body: JSON.stringify({ viewer: 'REDOC', tryItURL: 'https://api.example.com' }),
+            });
+        });
+
+        it('URL-encodes the page id', async () => {
+            await saveApiDocumentationPageConfiguration('env-1', 'api-1', 'nav/1', { viewer: 'REDOC' });
+            expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', `${BASE_PATH}/nav%2F1/content/configuration`, expect.anything());
         });
     });
 });

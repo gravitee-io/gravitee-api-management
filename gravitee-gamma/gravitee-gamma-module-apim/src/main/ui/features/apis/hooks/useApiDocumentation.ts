@@ -26,10 +26,12 @@ import {
     listApiDocumentation,
     listApiPublishLocations,
     publishApiToPortal,
+    saveApiDocumentationPageConfiguration,
     saveApiDocumentationPageContent,
     unpublishApiFromPortal,
     updateApiDocumentationItem,
 } from '../services/apiDocumentation';
+import type { PortalPageContent, PortalPageOpenApiConfiguration } from '../types/apiDocumentation';
 import { apiDocumentationKeys } from '../utils/queryKeys';
 
 interface ChangeApiDocumentationItemVariables {
@@ -144,6 +146,22 @@ export function useSaveApiDocumentationPageContent(apiId: string) {
             saveApiDocumentationPageContent(env!.id, apiId, navId, { content }),
         onSuccess: (saved, { navId }) => {
             queryClient.setQueryData(apiDocumentationKeys.content(env!.id, apiId, navId), saved);
+        },
+    });
+}
+
+export function useSaveApiDocumentationPageConfiguration(apiId: string) {
+    const env = useEnvironment();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ navId, configuration }: { navId: string; configuration: PortalPageOpenApiConfiguration }) =>
+            saveApiDocumentationPageConfiguration(env!.id, apiId, navId, configuration),
+        // Only the configuration is taken: the content the editor compares its draft with stays the one it loaded.
+        onSuccess: (saved, { navId }) => {
+            queryClient.setQueryData<PortalPageContent>(apiDocumentationKeys.content(env!.id, apiId, navId), current =>
+                current ? { ...current, configuration: saved.configuration } : saved,
+            );
         },
     });
 }

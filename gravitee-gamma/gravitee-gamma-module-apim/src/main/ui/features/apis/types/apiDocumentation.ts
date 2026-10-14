@@ -174,11 +174,19 @@ export interface ImportPortalNavigationResponse {
     summary: PortalNavigationItemsFetchSummary;
 }
 
+export type OpenApiDocExpansion = 'list' | 'full' | 'none';
+
 export interface PortalPageSwaggerConfiguration {
     viewer: 'SWAGGER';
     tryItURL?: string;
     entrypointsAsServers?: boolean;
-    docExpansion?: 'list' | 'full' | 'none';
+    contextPathAsServerPath?: boolean;
+    tryIt?: boolean;
+    tryItAnonymous?: boolean;
+    disableSyntaxHighlight?: boolean;
+    showURL?: boolean;
+    usePkce?: boolean;
+    docExpansion?: OpenApiDocExpansion;
     displayOperationId?: boolean;
     enableFiltering?: boolean;
     showExtensions?: boolean;
