@@ -22,5 +22,5 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
  * @author GraviteeSource Team
  */
 public interface ApiTagService {
-    void deleteTagFromAPIs(ExecutionContext executionContext, String tagId);
+    void deleteTagFromAPIs(ExecutionContext executionContext, String tagKey);
 }
