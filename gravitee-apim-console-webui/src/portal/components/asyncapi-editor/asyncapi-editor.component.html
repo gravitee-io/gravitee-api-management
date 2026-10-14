@@ -27,7 +27,10 @@
   </div>
   @if (showPreview()) {
     <div class="content__editor__cell">
-      <asyncapi-component [schema]="_value" cssImportPath="assets/style/asyncapi-console-preview.css"></asyncapi-component>
+      <asyncapi-component
+        [schema]="_value | renderableAsyncApi"
+        cssImportPath="assets/style/asyncapi-console-preview.css"
+      ></asyncapi-component>
     </div>
   }
 </div>
