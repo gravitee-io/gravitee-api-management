@@ -18,15 +18,16 @@ import { config } from '../../config';
 import { OpenJdkExecutor } from '../../executors';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { CircleCIEnvironment } from '../../pipelines';
-import { PrepareGpgCmd, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import { AzureArtifactsTokenCommand, PrepareGpgCmd, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { keeper } from '../../orbs/keeper';
 
-export class NexusStagingJob {
-  private static jobName: string = 'job-nexus-staging';
+export class PublishReleaseJob {
+  private static jobName: string = 'job-publish-release';
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     dynamicConfig.importOrb(keeper);
 
     const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
+    const azureArtifactsTokenCmd = AzureArtifactsTokenCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
 
     const prepareGpgCmd = PrepareGpgCmd.get(dynamicConfig);
@@ -34,6 +35,7 @@ export class NexusStagingJob {
 
     const saveMavenCacheCmd = SaveMavenJobCacheCommand.get();
     dynamicConfig.addReusableCommand(saveMavenCacheCmd);
+    dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
 
     const steps: Command[] = [
       new commands.Checkout(),
@@ -41,16 +43,20 @@ export class NexusStagingJob {
         name: `Checkout tag ${environment.graviteeioVersion}`,
         command: `git checkout ${environment.graviteeioVersion}`,
       }),
-      new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: NexusStagingJob.jobName }),
+      new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: PublishReleaseJob.jobName }),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(prepareGpgCmd),
+      new reusable.ReusedCommand(azureArtifactsTokenCmd),
       new commands.Run({
-        name: 'Release on Nexus',
-        command: `mvn clean deploy --activate-profiles gravitee-release --batch-mode -T 4 -DskipTests -Dskip.validation=true --settings ${config.maven.settingsFile} --update-snapshots`,
+        name: 'Maven deploy to the Azure feed (releases)',
+        // `gio-release`, not `gravitee-release`: the latter takes the deploy phase away from
+        // maven-deploy-plugin, and altDeploymentRepository would then be a parameter of a
+        // plugin that never runs. Same enforcer, GPG signing, sources and javadoc.
+        command: `mvn clean deploy --activate-profiles gio-release --batch-mode -T 4 -DskipTests -Dskip.validation=true --settings ${config.maven.settingsFile} --update-snapshots -DaltDeploymentRepository=azure-artifacts-gravitee::${config.maven.azureFeedUrl}`,
       }),
-      new reusable.ReusedCommand(saveMavenCacheCmd, { jobName: NexusStagingJob.jobName }),
+      new reusable.ReusedCommand(saveMavenCacheCmd, { jobName: PublishReleaseJob.jobName }),
     ];
 
-    return new Job(NexusStagingJob.jobName, OpenJdkExecutor.create('xlarge'), steps);
+    return new Job(PublishReleaseJob.jobName, OpenJdkExecutor.create('xlarge'), steps);
   }
 }

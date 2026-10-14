@@ -21,8 +21,8 @@ import { BaseExecutor } from '../executors';
 /**
  * Notifies the gravitee-apim-api-docs repository of a new APIM release so it
  * regenerates its OpenAPI documentation site. Fire-and-forget: the docs
- * pipeline absorbs Sonatype → Maven Central propagation delay on its side, so
- * we do not wait for completion here.
+ * pipeline resolves the jars from the Azure feed on its side, so we do not
+ * wait for completion here.
  */
 export class TriggerApimApiDocsPipelineJob {
   private static jobName: string = 'job-trigger-apim-api-docs-pipeline';

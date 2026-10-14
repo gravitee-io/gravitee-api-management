@@ -32,11 +32,6 @@ stateDiagram-v2
     sonarConsole: Sonar - gravitee-apim-console-webui
     webUILintConsole --> sonarConsole
 
-    storybook: Build Console Storybook
-    chromatic: console-webui-chromatic-deployment
-    setup --> storybook
-    storybook --> chromatic
-
     webUIConsole: Build APIM Console
     setup --> webUIConsole
     deployAzure: console-webui-deploy-on-azure-storage
@@ -105,11 +100,6 @@ stateDiagram-v2
     sonarConsole: Sonar - gravitee-apim-console-webui
     webUILintConsole --> sonarConsole
 
-    storybook: Build Console Storybook
-    chromatic: console-webui-chromatic-deployment
-    setup --> storybook
-    storybook --> chromatic
-
     webUIConsole: Build APIM Console
     setup --> webUIConsole
     deployAzure: console-webui-deploy-on-azure-storage
@@ -167,8 +157,7 @@ It's the same as the standard workflow, but with the addition of:
 -   the community build
 -   the E2E tests
 -   the Cypress UI tests
--   the publish on Artifactory
--   the publish on Nexus
+-   the publish of the snapshot
 -   the deploy on Azure Dev Environment
 
 ```mermaid
@@ -203,21 +192,14 @@ stateDiagram-v2
     test --> join_state_publish
     testPlugin --> join_state_publish
     testRepository --> join_state_publish
-    publishOnArtifactory: publish-on-artifactory
-    publishOnNexus: publish-on-nexus
-    join_state_publish --> publishOnArtifactory
-    join_state_publish --> publishOnNexus
+    publishSnapshot: publish-snapshot
+    join_state_publish --> publishSnapshot
 
     %% Console
     webUILintConsole: Lint & test APIM Console
     setup --> webUILintConsole
     sonarConsole: Sonar - gravitee-apim-console-webui
     webUILintConsole --> sonarConsole
-
-    storybook: Build Console Storybook
-    chromatic: console-webui-chromatic-deployment
-    setup --> storybook
-    storybook --> chromatic
 
     webUIConsole: Build APIM Console
     setup --> webUIConsole

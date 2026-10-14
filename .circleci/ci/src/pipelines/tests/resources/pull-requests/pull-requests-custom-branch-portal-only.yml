@@ -71,9 +71,9 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}
-            - gravitee-api-management-v14-<< parameters.jobName >>-master
+            - gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}
+            - gravitee-api-management-v15-<< parameters.jobName >>-master
     description: Restore Maven cache for a dedicated job
   cmd-save-maven-job-cache:
     parameters:
@@ -85,13 +85,30 @@ commands:
       - run:
           name: Exclude all APIM artefacts from cache.
           command: rm -rf ~/.m2/repository/io/gravitee/apim
+          when: always
+      - run:
+          name: Drop failed resolution markers from cache.
+          command: find ~/.m2 -name '*.lastUpdated' -delete
+          when: always
       - save_cache:
-          key: gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+          key: gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
           paths:
             - ~/.m2
           when: always
     description: Save Maven cache for a dedicated job
 jobs:
+  job-danger-js:
+    docker:
+      - image: cimg/node:20.11.1
+    resource_class: small
+    steps:
+      - checkout
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: DANGER_GITHUB_API_TOKEN
+      - run:
+          name: Run Danger JS
+          command: cd .circleci/danger && yarn run danger
   job-webui-lint-test:
     parameters:
       apim-ui-project:
@@ -194,7 +211,7 @@ jobs:
           at: .
       - restore_cache:
           keys:
-            - gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
+            - gravitee-api-management-v15-sonarcloud-analysis-<< parameters.cache_type >>
       - keeper/env-export:
           secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
           var-name: SONAR_TOKEN
@@ -202,11 +219,12 @@ jobs:
           name: Run Sonarcloud Analysis
           command: sonar-scanner -Dsonar.projectVersion=4.2.0
           working_directory: << parameters.working_directory >>
+          no_output_timeout: 30m
       - cmd-notify-on-failure
       - save_cache:
           paths:
             - /opt/sonar-scanner/.sonar/cache
-          key: gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
+          key: gravitee-api-management-v15-sonarcloud-analysis-<< parameters.cache_type >>
           when: always
   job-validate-workflow-status:
     docker:
@@ -219,19 +237,10 @@ jobs:
 workflows:
   pull_requests:
     jobs:
-      - aquasec/fs_scan:
+      - job-danger-js:
+          name: Run Danger JS
           context:
             - cicd-orchestrator
-          pre-steps:
-            - keeper/env-export:
-                secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
-                var-name: AQUA_KEY
-            - keeper/env-export:
-                secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/Secret
-                var-name: AQUA_SECRET
-            - keeper/env-export:
-                secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-                var-name: GITHUB_TOKEN
       - job-webui-lint-test:
           name: Lint & test APIM Portal Next
           context:
@@ -271,5 +280,4 @@ workflows:
             - Build APIM Portal
 orbs:
   keeper: gravitee-io/keeper@0.7.0
-  aquasec: gravitee-io/aquasec@1.0.5
   slack: circleci/slack@4.12.5

@@ -17,6 +17,7 @@ export * from './backend/index';
 export * from './e2e/index';
 export * from './frontend/index';
 export * from './helm/index';
+export * from './job-aikido-scan-docker-images';
 export * from './job-build-docker-image';
 export * from './job-danger-js';
 export * from './job-deploy-on-azure';

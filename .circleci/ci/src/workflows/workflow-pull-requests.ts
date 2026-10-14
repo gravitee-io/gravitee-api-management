@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config, Job, reusable, workflow, Workflow } from '@circleci/circleci-config-sdk';
+import { commands, Config, Job, workflow, Workflow } from '@circleci/circleci-config-sdk';
 
 import { CircleCIEnvironment } from '../pipelines';
 import { isE2EBranch, isSupportBranchOrMaster } from '../utils';
 import { config } from '../config';
 import { BaseExecutor } from '../executors';
 import {
+  AikidoScanDockerImagesJob,
   BuildBackendJob,
   BuildDockerBackendImageJob,
   BuildDockerWebUiImageJob,
-  ChromaticConsoleJob,
-  CommunityBuildBackendJob,
+  // CommunityBuildBackendJob, // suspended, see communityBuildJob below
   ConsoleWebuiBuildJob,
   DangerJsJob,
   DeployOnAzureJob,
@@ -38,7 +38,6 @@ import {
   ReleaseHelmJob,
   SetupJob,
   SonarCloudAnalysisJob,
-  StorybookConsoleJob,
   TestApimChartsJob,
   TestDefinitionJob,
   TestGatewayJob,
@@ -82,25 +81,15 @@ export class PullRequestsWorkflow {
     addValidationJob: boolean,
     shouldBuildDockerImages: boolean,
   ): workflow.WorkflowJob[] {
-    dynamicConfig.importOrb(orbs.keeper).importOrb(orbs.aquasec);
+    dynamicConfig.importOrb(orbs.keeper);
+
+    const dangerJSJob = DangerJsJob.create(dynamicConfig);
+    dynamicConfig.addJob(dangerJSJob);
 
     const jobs: workflow.WorkflowJob[] = [
-      new workflow.WorkflowJob(orbs.aquasec.jobs.fs_scan, {
+      new workflow.WorkflowJob(dangerJSJob, {
+        name: 'Run Danger JS',
         context: config.jobContext,
-        preSteps: [
-          new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-            'secret-url': config.secrets.aquaKey,
-            'var-name': 'AQUA_KEY',
-          }),
-          new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-            'secret-url': config.secrets.aquaSecret,
-            'var-name': 'AQUA_SECRET',
-          }),
-          new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-            'secret-url': config.secrets.githubApiToken,
-            'var-name': 'GITHUB_TOKEN',
-          }),
-        ],
       }),
     ];
     const requires: string[] = [];
@@ -108,7 +97,12 @@ export class PullRequestsWorkflow {
     if (!filterJobs || shouldBuildHelm(environment.changedFiles)) {
       const apimChartsTestJob = TestApimChartsJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(apimChartsTestJob);
-      jobs.push(new workflow.WorkflowJob(apimChartsTestJob, { name: 'Helm Chart - Lint & Test', context: config.jobContext }));
+      jobs.push(
+        new workflow.WorkflowJob(apimChartsTestJob, {
+          name: 'Helm Chart - Lint & Test',
+          context: config.jobContext,
+        }),
+      );
 
       requires.push('Helm Chart - Lint & Test');
     }
@@ -120,9 +114,6 @@ export class PullRequestsWorkflow {
       const validateBackendJob = ValidateJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(validateBackendJob);
 
-      const dangerJSJob = DangerJsJob.create(dynamicConfig);
-      dynamicConfig.addJob(dangerJSJob);
-
       const buildBackendJob = BuildBackendJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(buildBackendJob);
 
@@ -132,11 +123,6 @@ export class PullRequestsWorkflow {
           name: 'Validate backend',
           context: config.jobContext,
           requires: ['Setup'],
-        }),
-        new workflow.WorkflowJob(dangerJSJob, {
-          name: 'Run Danger JS',
-          context: config.jobContext,
-          requires: ['Validate backend'],
         }),
         new workflow.WorkflowJob(buildBackendJob, {
           name: 'Build backend',
@@ -218,6 +204,8 @@ export class PullRequestsWorkflow {
       }
 
       if (!filterJobs || shouldTestIntegrationTests(environment.changedFiles)) {
+        // Force validation workflow in case only integration tests have change
+        // addValidationJob = true;
         const testIntegrationJob = TestIntegrationJob.create(dynamicConfig, environment);
         dynamicConfig.addJob(testIntegrationJob);
 
@@ -228,6 +216,7 @@ export class PullRequestsWorkflow {
             requires: ['Build backend'],
           }),
         );
+        requires.push('Integration tests');
       }
 
       if (!filterJobs || shouldTestPlugin(environment.changedFiles)) {
@@ -286,12 +275,6 @@ export class PullRequestsWorkflow {
       const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(consoleWebuiBuildJob);
 
-      const storybookConsoleJob = StorybookConsoleJob.create(dynamicConfig, environment);
-      dynamicConfig.addJob(storybookConsoleJob);
-
-      const chromaticConsoleJob = ChromaticConsoleJob.create(dynamicConfig, environment);
-      dynamicConfig.addJob(chromaticConsoleJob);
-
       const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(sonarCloudAnalysisJob);
 
@@ -327,15 +310,6 @@ export class PullRequestsWorkflow {
       }
 
       jobs.push(
-        new workflow.WorkflowJob(storybookConsoleJob, {
-          name: 'Build Console Storybook',
-          context: config.jobContext,
-        }),
-        new workflow.WorkflowJob(chromaticConsoleJob, {
-          name: 'Deploy console in chromatic',
-          context: config.jobContext,
-          requires: ['Build Console Storybook'],
-        }),
         new workflow.WorkflowJob(sonarCloudAnalysisJob, {
           name: 'Sonar - gravitee-apim-console-webui',
           context: config.jobContext,
@@ -417,7 +391,9 @@ export class PullRequestsWorkflow {
     }
 
     // compute check-workflow job
-    if (addValidationJob && requires.length > 0) {
+    // This is the required status check on master and on the support branches. It only aggregates
+    // what ran, so with nothing to wait for it must still post, alone and green.
+    if (addValidationJob) {
       const checkWorkflowJob = new Job('job-validate-workflow-status', BaseExecutor.create('small'), [
         new commands.Run({
           name: 'Check workflow jobs',
@@ -425,7 +401,12 @@ export class PullRequestsWorkflow {
         }),
       ]);
       dynamicConfig.addJob(checkWorkflowJob);
-      jobs.push(new workflow.WorkflowJob(checkWorkflowJob, { name: 'Validate workflow status', requires }));
+      jobs.push(
+        new workflow.WorkflowJob(
+          checkWorkflowJob,
+          requires.length > 0 ? { name: 'Validate workflow status', requires } : { name: 'Validate workflow status' },
+        ),
+      );
     }
 
     return jobs;
@@ -507,14 +488,13 @@ export class PullRequestsWorkflow {
   }
 
   private static getMasterAndSupportJobs(dynamicConfig: Config, environment: CircleCIEnvironment): workflow.WorkflowJob[] {
-    const communityBuildJob = CommunityBuildBackendJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(communityBuildJob);
+    // Suspended: a build without credentials can no longer resolve the private artifacts.
+    // To bring it back, restore the import above and uncomment the two lines here and the job entry below.
+    // const communityBuildJob = CommunityBuildBackendJob.create(dynamicConfig, environment);
+    // dynamicConfig.addJob(communityBuildJob);
 
-    const publishOnArtifactoryJob = PublishJob.create(dynamicConfig, environment, 'artifactory');
-    dynamicConfig.addJob(publishOnArtifactoryJob);
-
-    const publishOnNexusJob = PublishJob.create(dynamicConfig, environment, 'nexus');
-    dynamicConfig.addJob(publishOnNexusJob);
+    const publishSnapshotJob = PublishJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(publishSnapshotJob);
 
     const releaseHelmDryRunJob = ReleaseHelmJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(releaseHelmDryRunJob);
@@ -532,7 +512,11 @@ export class PullRequestsWorkflow {
     dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
 
     return [
-      new workflow.WorkflowJob(communityBuildJob, { name: 'Check build as Community user', context: config.jobContext }),
+      // Suspended, see communityBuildJob above.
+      // new workflow.WorkflowJob(communityBuildJob, {
+      //   name: 'Check build as Community user',
+      //   context: config.jobContext,
+      // }),
       // Trigger SaaS Docker images creation
       new workflow.WorkflowJob(runTriggerSaasDockerImagesJob, {
         context: [...config.jobContext, 'keeper-orb-publishing'],
@@ -549,13 +533,8 @@ export class PullRequestsWorkflow {
         context: config.jobContext,
         requires: ['Trigger SaaS Docker images creation'],
       }),
-      new workflow.WorkflowJob(publishOnArtifactoryJob, {
-        name: 'Publish on artifactory',
-        context: config.jobContext,
-        requires: ['Test definition', 'Test gateway', 'Test plugins', 'Test repository', 'Test rest-api'],
-      }),
-      new workflow.WorkflowJob(publishOnNexusJob, {
-        name: 'Publish on nexus',
+      new workflow.WorkflowJob(publishSnapshotJob, {
+        name: 'Publish snapshot',
         context: config.jobContext,
         requires: ['Test definition', 'Test gateway', 'Test plugins', 'Test repository', 'Test rest-api'],
       }),
@@ -574,6 +553,7 @@ export class PullRequestsWorkflow {
           'Build APIM Portal docker image',
         ],
       }),
+      ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, false, ''),
     ];
   }
 }

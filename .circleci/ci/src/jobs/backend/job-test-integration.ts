@@ -17,7 +17,7 @@ import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { config } from '../../config';
 import { UbuntuExecutor } from '../../executors';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
-import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import { AzureArtifactsTokenCommand, NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { CircleCIEnvironment } from '../../pipelines';
 
 export class TestIntegrationJob {
@@ -27,7 +27,9 @@ export class TestIntegrationJob {
     const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig, environment);
+    const azureArtifactsTokenCmd = AzureArtifactsTokenCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
+    dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
     dynamicConfig.addReusableCommand(saveMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
 
@@ -35,6 +37,7 @@ export class TestIntegrationJob {
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: TestIntegrationJob.jobName }),
+      new reusable.ReusedCommand(azureArtifactsTokenCmd),
       new commands.cache.Restore({
         keys: [`${config.cache.prefix}-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}`],
       }),
