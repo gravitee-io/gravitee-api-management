@@ -106,7 +106,8 @@ public class ApiResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, true);
 
-        if (PortalApiViewParam.isDocumentationView(view)) {
+        boolean isDocumentationView = PortalApiViewParam.isDocumentationView(view);
+        if (isDocumentationView) {
             var output = getApiForPortalUseCase.execute(
                 new GetApiForPortalUseCase.Input(executionContext.getEnvironmentId(), apiId, username)
             );
@@ -128,7 +129,11 @@ public class ApiResource extends AbstractResource {
                 .collect(Collectors.toList());
             api.setPages(pages);
         }
-        if (include.contains(INCLUDE_PLANS)) {
+        // The documentation view follows the visibility of the API's navigation item, not of the API itself
+        if (
+            include.contains(INCLUDE_PLANS) &&
+            (!isDocumentationView || accessControlService.canAccessApiFromPortal(executionContext, genericApiEntity))
+        ) {
             List<Plan> plans = planSearchService
                 .findByApi(executionContext, genericApiEntity, true)
                 .stream()
