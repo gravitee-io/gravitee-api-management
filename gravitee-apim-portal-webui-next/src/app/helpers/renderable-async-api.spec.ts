@@ -220,18 +220,30 @@ describe('toRenderableAsyncApi', () => {
     expect(rendered).toEqual(JSON.stringify(JSON.parse(rendered), null, 2));
   });
 
-  it.each(['3.0.0', '2.6.0'])('should walk a node shared through YAML aliases only once in an AsyncAPI %s document', version => {
-    const levels = Array.from({ length: 40 }, (_, i) => `l${i + 1}: &l${i + 1} [*l${i}, *l${i}]`).join('\n');
-    const content = `asyncapi: ${version}\ndefaultContentType: application/xml\nl0: &l0 { leaf: true }\n${levels}\n`;
-
-    expect(toRenderableAsyncApi(content)).toBe(content);
-  });
-
   it('should return a document whose aliases would expand past the size a page can lay out unchanged', () => {
     const levels = Array.from({ length: 18 }, (_, i) => `l${i + 1}: &l${i + 1} [*l${i}, *l${i}]`).join('\n');
     const content = `${ASYNCAPI_3_XSD}x-fan-out:\n  l0: &l0 { leaf: true }\n${levels.replace(/^/gm, '  ')}\n`;
 
     expect(toRenderableAsyncApi(content)).toBe(content);
+  });
+
+  it('should return a document whose aliases repeat a long text past the size a page can lay out unchanged', () => {
+    const levels = Array.from({ length: 10 }, (_, i) => `  l${i + 1}: &l${i + 1} [*l${i}, *l${i}]`).join('\n');
+    const content = `${ASYNCAPI_3_XSD}x-fan-out:\n  l0: &l0 ${'x'.repeat(10000)}\n${levels}\n`;
+
+    expect(toRenderableAsyncApi(content)).toBe(content);
+  });
+
+  it('should replace an XML Schema payload reused through an alias wherever it appears', () => {
+    const content = ASYNCAPI_3_XSD.replace(
+      '      payload:\n        schemaFormat: application/xml',
+      '      payload: &orderPayload\n        schemaFormat: application/xml',
+    ).concat('    OrderUpdated:\n      payload: *orderPayload\n');
+
+    const messages = JSON.parse(toRenderableAsyncApi(content)).components.messages;
+
+    expect(messages.OrderCreated.payload.type).toEqual('string');
+    expect(messages.OrderUpdated.payload).toEqual(messages.OrderCreated.payload);
   });
 
   it('should return a document whose aliases nest deeper than the call stack unchanged', () => {

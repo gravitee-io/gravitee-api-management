@@ -24,9 +24,10 @@ const XML_SCHEMA_FORMAT = /^(?:application|text)\/(?:[\w.-]+\+)?(?:xml|xsd)$/i;
 // plain property.
 const ASYNCAPI_YAML_SCHEMA = CORE_SCHEMA.withTags(mergeTag);
 
-// JSON.stringify writes a node shared through YAML aliases once per reference: a document that would expand past
-// this many nodes, or that loops back, would stall the page once rewritten, so it is left to the viewer.
-const MAX_EXPANDED_NODES = 100_000;
+// JSON.stringify writes a value shared through YAML aliases once per reference: a document that would expand past
+// this size (one per node, plus one per 64 characters of text), or that loops back, would stall the page once
+// rewritten, so it is left to the viewer. It also bounds the walks below, aliases included.
+const MAX_EXPANDED_SIZE = 100_000;
 
 /**
  * The AsyncAPI viewer (`@asyncapi/web-component`) has no schema parser for XML Schema: up to 2.x
@@ -42,18 +43,16 @@ export function toRenderableAsyncApi<T extends string | null | undefined>(conten
   }
   try {
     const document = readAsyncApiDocument(content);
-    if (!document || expandedSize(document, new Map()) > MAX_EXPANDED_NODES) {
+    if (!document || expandedSize(document, new Map()) > MAX_EXPANDED_SIZE) {
       return content;
     }
     // AsyncAPI 2.x declares the payload format on the message; 3.x moved it into the payload, a
     // Multi Format Schema Object, and rejects it on the message.
-    const replaced = String(document.asyncapi).startsWith('2.')
-      ? replaceMessagePayloads(document, new WeakSet())
-      : replaceMultiFormatSchemas(document, new WeakSet());
+    const replaced = String(document.asyncapi).startsWith('2.') ? replaceMessagePayloads(document) : replaceMultiFormatSchemas(document);
     // Indented, so the viewer's error line numbers still tell the values apart.
     return replaced ? JSON.stringify(document, null, 2) : content;
   } catch {
-    // Unreadable YAML, or anchors that loop back and cannot be laid out as JSON.
+    // Unreadable YAML, or aliases nested deeper than the call stack.
     return content;
   }
 }
@@ -68,7 +67,7 @@ function readAsyncApiDocument(content: string): JsonNode | undefined {
 // measured reads as infinite, which a loop back to it reports.
 function expandedSize(node: unknown, sizes: Map<JsonNode, number>): number {
   if (!isNode(node)) {
-    return 1;
+    return typeof node === 'string' ? 1 + Math.floor(node.length / 64) : 1;
   }
   const measured = sizes.get(node);
   if (measured !== undefined) {
@@ -78,7 +77,7 @@ function expandedSize(node: unknown, sizes: Map<JsonNode, number>): number {
   let size = 1;
   for (const value of Object.values(node)) {
     size += expandedSize(value, sizes);
-    if (size > MAX_EXPANDED_NODES) {
+    if (size > MAX_EXPANDED_SIZE) {
       break;
     }
   }
@@ -86,12 +85,7 @@ function expandedSize(node: unknown, sizes: Map<JsonNode, number>): number {
   return size;
 }
 
-// `visited` keeps a node shared through YAML aliases from being walked once per reference.
-function replaceMultiFormatSchemas(node: JsonNode, visited: WeakSet<JsonNode>): boolean {
-  if (visited.has(node)) {
-    return false;
-  }
-  visited.add(node);
+function replaceMultiFormatSchemas(node: JsonNode): boolean {
   let replaced = false;
   for (const [key, value] of Object.entries(node)) {
     if (!isNode(value)) {
@@ -101,21 +95,17 @@ function replaceMultiFormatSchemas(node: JsonNode, visited: WeakSet<JsonNode>): 
       node[key] = quoteXmlSchema(value.schemaFormat, value.schema);
       replaced = true;
     } else {
-      replaced = replaceMultiFormatSchemas(value, visited) || replaced;
+      replaced = replaceMultiFormatSchemas(value) || replaced;
     }
   }
   return replaced;
 }
 
-function replaceMessagePayloads(node: JsonNode, visited: WeakSet<JsonNode>): boolean {
-  if (visited.has(node)) {
-    return false;
-  }
-  visited.add(node);
+function replaceMessagePayloads(node: JsonNode): boolean {
   let replaced = false;
   for (const value of Object.values(node)) {
     if (isNode(value)) {
-      replaced = replaceMessagePayloads(value, visited) || replaced;
+      replaced = replaceMessagePayloads(value) || replaced;
     }
   }
   if (isXmlSchemaFormat(node.schemaFormat) && 'payload' in node) {
