@@ -36,6 +36,7 @@ import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
@@ -94,6 +95,9 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
     @Inject
     private GetApiProductsUseCase getApiProductsUseCase;
 
+    @Inject
+    private AccessControlService accessControlService;
+
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("application")
     @Parameter(name = "application", hidden = true)
@@ -123,7 +127,7 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
 
         if (
             planEntity.getReferenceType() != GenericPlanEntity.ReferenceType.API_PRODUCT &&
-            !canConsumeApi(executionContext, planEntity.getReferenceId())
+            !canSubscribeToApi(executionContext, planEntity.getReferenceId())
         ) {
             throw new ApiNotFoundException(planEntity.getReferenceId());
         }
@@ -142,12 +146,13 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
             .build();
     }
 
-    private boolean canConsumeApi(ExecutionContext executionContext, String apiId) {
-        if (isAdmin()) {
-            return true;
-        }
-        GenericApiEntity api = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
-        return apiAuthorizationService.canConsumeApi(executionContext, getAuthenticatedUser(), api);
+    private boolean canSubscribeToApi(ExecutionContext executionContext, String apiId) {
+        // Admins and members subscribe from the Console, even to an API exposed in no portal
+        return (
+            isAdmin() ||
+            apiAuthorizationService.findApiIdsByUserId(executionContext, getAuthenticatedUser(), null, false).contains(apiId) ||
+            accessControlService.canConsumeApiFromPortal(executionContext, apiId)
+        );
     }
 
     @GET

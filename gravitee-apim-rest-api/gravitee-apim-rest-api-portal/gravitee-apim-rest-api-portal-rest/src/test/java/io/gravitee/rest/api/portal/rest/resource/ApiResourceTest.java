@@ -457,7 +457,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         givenPublicNavigationItemWithOnePublishedPlan();
         doReturn(false)
             .when(accessControlService)
-            .canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class));
+            .canConsumeApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class));
 
         final Response response = target(API)
             .queryParam(PortalApiViewParam.QUERY_PARAM_NAME, PortalApiViewParam.DOCUMENTATION)
@@ -473,6 +473,9 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Test
     public void should_include_plans_with_documentation_view_when_api_is_accessible() {
         givenPublicNavigationItemWithOnePublishedPlan();
+        doReturn(true)
+            .when(accessControlService)
+            .canConsumeApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class));
 
         final Response response = target(API)
             .queryParam(PortalApiViewParam.QUERY_PARAM_NAME, PortalApiViewParam.DOCUMENTATION)
