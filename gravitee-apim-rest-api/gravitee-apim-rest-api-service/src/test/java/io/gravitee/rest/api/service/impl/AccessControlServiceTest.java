@@ -20,6 +20,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -217,7 +218,7 @@ public class AccessControlServiceTest {
     }
 
     @Test
-    void should_consume_published_public_api_from_portal() {
+    public void should_consume_published_public_api_from_portal() {
         connectUser();
 
         assertTrue(
@@ -229,7 +230,7 @@ public class AccessControlServiceTest {
     }
 
     @Test
-    void should_consume_unpublished_public_api_listed_in_portal_navigation() {
+    public void should_consume_unpublished_public_api_listed_in_portal_navigation() {
         connectUser();
         when(
             portalNavigationApiVisibilityDomainService.isApiVisibleToUser(GraviteeContext.getCurrentEnvironment(), API_ID, USERNAME)
@@ -244,7 +245,7 @@ public class AccessControlServiceTest {
     }
 
     @Test
-    void should_not_consume_unpublished_public_api_missing_from_portal_navigation() {
+    public void should_not_consume_unpublished_public_api_missing_from_portal_navigation() {
         connectUser();
         when(
             portalNavigationApiVisibilityDomainService.isApiVisibleToUser(GraviteeContext.getCurrentEnvironment(), API_ID, USERNAME)
@@ -259,19 +260,19 @@ public class AccessControlServiceTest {
     }
 
     @Test
-    void should_not_consume_private_api_listed_in_portal_navigation_when_user_cannot_consume_it() {
+    public void should_not_consume_private_api_listed_in_portal_navigation_when_user_cannot_consume_it() {
         connectUser();
         GenericApiEntity api = anApi(Visibility.PRIVATE, ApiLifecycleState.UNPUBLISHED);
         when(apiAuthorizationService.canConsumeApi(GraviteeContext.getExecutionContext(), USERNAME, api)).thenReturn(false);
-        when(
-            portalNavigationApiVisibilityDomainService.isApiVisibleToUser(GraviteeContext.getCurrentEnvironment(), API_ID, USERNAME)
-        ).thenReturn(true);
+        lenient()
+            .when(portalNavigationApiVisibilityDomainService.isApiVisibleToUser(GraviteeContext.getCurrentEnvironment(), API_ID, USERNAME))
+            .thenReturn(true);
 
         assertFalse(accessControlService.canConsumeApiFromPortal(GraviteeContext.getExecutionContext(), api));
     }
 
     @Test
-    void should_consume_private_api_listed_in_portal_navigation_when_user_can_consume_it() {
+    public void should_consume_private_api_listed_in_portal_navigation_when_user_can_consume_it() {
         connectUser();
         GenericApiEntity api = anApi(Visibility.PRIVATE, ApiLifecycleState.UNPUBLISHED);
         when(apiAuthorizationService.canConsumeApi(GraviteeContext.getExecutionContext(), USERNAME, api)).thenReturn(true);
