@@ -25,9 +25,10 @@ import {
     DialogTitle,
     FieldDescription,
 } from '@gravitee/graphene-core';
-import { AlertCircleIcon, RefreshCwIcon } from '@gravitee/graphene-core/icons';
+import { RefreshCwIcon } from '@gravitee/graphene-core/icons';
 import { useState, type FormEvent } from 'react';
 
+import { RefusalAlert, ScrollableDialogBody, WITHIN_VIEWPORT } from './dialogLayout';
 import { DocumentationItemDetailsFields, privateParentOf } from './DocumentationItemDetailsFields';
 import { notify } from '../../../../../shared/notify';
 import { extractErrorMessage } from '../../../../../shared/notify/extractErrorMessage';
@@ -51,7 +52,7 @@ interface FolderDialogProps {
 export function FolderDialog({ open, ...props }: Readonly<FolderDialogProps & { open: boolean }>) {
     return (
         <Dialog open={open} onOpenChange={isOpen => !isOpen && props.onClose()}>
-            <DialogContent style={{ maxWidth: '480px' }}>
+            <DialogContent style={{ maxWidth: '480px', ...WITHIN_VIEWPORT }}>
                 <FolderForm {...props} />
             </DialogContent>
         </Dialog>
@@ -89,6 +90,8 @@ function FolderForm({ apiId, folder, parent, syncState = 'NOT_SYNCED', itemsInsi
     async function handleSubmit(event: FormEvent) {
         event.preventDefault();
         if (!canSave) return;
+        // Cleared first, so that the same refusal given again is shown, and brought into view, again.
+        setRefusal(null);
         setIsSaving(true);
         try {
             if (folder) {
@@ -119,43 +122,40 @@ function FolderForm({ apiId, folder, parent, syncState = 'NOT_SYNCED', itemsInsi
                 </DialogDescription>
             </DialogHeader>
 
-            <form id="documentation-folder-form" onSubmit={handleSubmit} className="flex flex-col gap-5">
-                {syncState === 'OWN_SOURCE' ? (
-                    <Alert>
-                        <RefreshCwIcon aria-hidden />
-                        <AlertDescription>
-                            This folder is synced from an external source, so its title can&apos;t change here. Its access can.
-                        </AlertDescription>
-                    </Alert>
-                ) : null}
-
-                {refusal ? (
-                    <Alert variant="destructive">
-                        <AlertCircleIcon aria-hidden />
-                        <AlertDescription>{refusal}</AlertDescription>
-                    </Alert>
-                ) : null}
-
-                <div className="flex flex-col gap-1.5">
-                    <DocumentationItemDetailsFields
-                        itemType="FOLDER"
-                        title={title}
-                        onTitleChange={handleTitleChange}
-                        isPrivate={isPrivate}
-                        onPrivateChange={handlePrivateChange}
-                        privateParent={privateParent}
-                        titleReadOnly={!titleEditable}
-                        disabled={isSaving}
-                    />
-                    {madePrivate && itemsInside > 0 ? (
-                        <FieldDescription>
-                            {itemsInside === 1
-                                ? 'The 1 item inside becomes private too.'
-                                : `The ${itemsInside} items inside become private too.`}
-                        </FieldDescription>
+            <ScrollableDialogBody>
+                <form id="documentation-folder-form" onSubmit={handleSubmit} className="flex flex-col gap-5">
+                    {syncState === 'OWN_SOURCE' ? (
+                        <Alert>
+                            <RefreshCwIcon aria-hidden />
+                            <AlertDescription>
+                                This folder is synced from an external source, so its title can&apos;t change here. Its access can.
+                            </AlertDescription>
+                        </Alert>
                     ) : null}
-                </div>
-            </form>
+
+                    <RefusalAlert refusal={refusal} />
+
+                    <div className="flex flex-col gap-1.5">
+                        <DocumentationItemDetailsFields
+                            itemType="FOLDER"
+                            title={title}
+                            onTitleChange={handleTitleChange}
+                            isPrivate={isPrivate}
+                            onPrivateChange={handlePrivateChange}
+                            privateParent={privateParent}
+                            titleReadOnly={!titleEditable}
+                            disabled={isSaving}
+                        />
+                        {madePrivate && itemsInside > 0 ? (
+                            <FieldDescription>
+                                {itemsInside === 1
+                                    ? 'The 1 item inside becomes private too.'
+                                    : `The ${itemsInside} items inside become private too.`}
+                            </FieldDescription>
+                        ) : null}
+                    </div>
+                </form>
+            </ScrollableDialogBody>
 
             <DialogFooter>
                 <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>

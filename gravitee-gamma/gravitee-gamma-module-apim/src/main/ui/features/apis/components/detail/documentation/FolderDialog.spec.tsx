@@ -100,7 +100,14 @@ function button(name: string) {
     return screen.getByRole('button', { name }) as HTMLButtonElement;
 }
 
+// jsdom ships no scrollIntoView, which a refusal shown above a scrolled form is brought into view with.
+Element.prototype.scrollIntoView ??= () => {};
+
 describe('FolderDialog', () => {
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     beforeAll(() => {
         global.ResizeObserver = class ResizeObserver {
             observe() {}
@@ -185,6 +192,31 @@ describe('FolderDialog', () => {
             expect(button('Create').disabled).toBe(false);
             expect(onClose).not.toHaveBeenCalled();
             expect(onCreated).not.toHaveBeenCalled();
+        });
+
+        it('brings the refusal into view, as a long dialog scrolls it out of sight', async () => {
+            const scrollIntoView = jest.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(() => {});
+            mockCreate.mockRejectedValue(new ApimApiError(400, 'A sibling item already uses the title "Guides"'));
+            const { user } = renderDialog();
+
+            await user.type(titleInput(), 'Guides');
+            await user.click(button('Create'));
+
+            const refusal = (await screen.findByText('A sibling item already uses the title "Guides"')).closest('[role="alert"]');
+            expect(scrollIntoView.mock.contexts).toContain(refusal);
+        });
+
+        it('brings the same refusal into view again when it is given again', async () => {
+            const scrollIntoView = jest.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(() => {});
+            mockCreate.mockRejectedValue(new ApimApiError(400, 'A sibling item already uses the title "Guides"'));
+            const { user } = renderDialog();
+            await user.type(titleInput(), 'Guides');
+
+            await user.click(button('Create'));
+            await screen.findByText('A sibling item already uses the title "Guides"');
+            await user.click(button('Create'));
+
+            await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(2));
         });
 
         it('creates only once when Create is clicked twice', async () => {
