@@ -61,12 +61,9 @@ export const gatewayErrorKeys = [
   'FAILURE_ENDPOINT_PUBLISH_FAILED',
   'FAILURE_ENDPOINT_SUBSCRIBE_FAILED',
   'CLIENT_ABORTED_DURING_RESPONSE_ERROR',
-<<<<<<< HEAD
-=======
   'CLIENT_ABORTED_DURING_REQUEST_ERROR',
   'CLIENT_ABORTED_TCP_RESET',
   'CLIENT_ABORTED_BROKEN_PIPE',
   'CLIENT_ABORTED_CHANNEL_CLOSED',
   'CLIENT_ABORTED_STREAM_RESET',
->>>>>>> 8ecea43 (fix(gateway): cancel the v4 upstream call when an HTTP/2 client resets its stream (#21197))
 ] as const;

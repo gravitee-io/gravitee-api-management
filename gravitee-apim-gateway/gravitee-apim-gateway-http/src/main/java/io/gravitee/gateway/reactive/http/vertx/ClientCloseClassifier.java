@@ -173,7 +173,7 @@ public final class ClientCloseClassifier {
             // with the exception event and error.type an APM breaks errors down by.
             ctx.putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ERROR, cause);
         }
-        ctx.withLogger(log).debug("Classified client close reason as {}", key);
+        log.debug("Classified client close reason as {}", key);
     }
 
     /** Walk the cause chain looking for a given exception type (the close cause may be wrapped). */
