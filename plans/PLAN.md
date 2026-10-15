@@ -22,7 +22,7 @@ todos:
     status: completed
   - id: STORY-06
     content: "Keep sibling ordering correct when an item changes owner."
-    status: pending
+    status: completed
   - id: STORY-07
     content: "Refuse moving an item out of an API that is listed in more than one place."
     status: pending
@@ -677,6 +677,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 2. Carry the owner down the subtree in the same pass as the root, with a three-level fixture.
 
 #### STORY-06 — Keep sibling ordering correct when an item changes owner
+**Status:** Done under [PORTAL-260](https://gravitee.atlassian.net/browse/PORTAL-260), as [#21121](https://github.com/gravitee-io/gravitee-api-management/pull/21121). The list an item leaves is found with the owner it had and the list it joins with the owner it gets, also when only the owner changes. The duplicate-name check is only reached by a caller that sends a path segment, which the Management API does not allow: through it, a move is never refused for a name, and the generated segment is unique among the destination's siblings.
 **Why:** the ordering logic reads the old owner in one place and the new owner in another, so a move across ownership renumbers the wrong group. Moving an item out of an API renumbers every top-level portal item.
 **Acceptance criteria:**
 - Moving an item onto an API: its new position among the API's documentation is correct, and the items it left behind are renumbered contiguously.
@@ -1663,7 +1664,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | Items with an external source lose read-only protection after migration | Medium | Read-only is decided by the source and the stored parent chain, not by ownership, and the migration keeps that chain below each root. STORY-19 tests it |
 | Two "Overview" pages side by side after the migration | Low (accepted) | Decision 6: both kept, as the portal already shows them; the migrated one's URL may get a suffix |
 | Per-item visibility and ordering apply to every portal listing the API | Medium | Explicit wording; decision 1 |
-| Moves that change owner corrupt sibling order | Medium | STORY-06; Gamma's own moves never change owner |
+| Moves that change owner corrupt sibling order | Medium | Closed: STORY-06 ([#21121](https://github.com/gravitee-io/gravitee-api-management/pull/21121)) |
 | Permission annotations are OR-semantics, allowing escalation on requests with a body | Medium | STORY-13, kept as its own story |
 | Gamma users can manage pages but cannot read or write their content, which needs environment permission | High | Closed: STORY-12 Bis reads and saves it under the API path ([#20887](https://github.com/gravitee-io/gravitee-api-management/pull/20887)) |
 | Creating a page can point it at another page's existing content and show that content in the portal | High | Closed: the Management API ignores `portalPageContentId` on every create (merged with #20695); automation keeps its ids |
