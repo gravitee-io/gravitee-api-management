@@ -17,6 +17,10 @@ package io.gravitee.gamma.module.platform.rest.resource.am;
 
 import io.gravitee.gamma.module.platform.core.am.use_case.ListDomainEntrypointsUseCase;
 import io.gravitee.gamma.module.platform.rest.resource.dto.am.AmDtos.GatewayEntrypointResponse;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -33,6 +37,7 @@ public class DomainEntrypointsResource {
     private ListDomainEntrypointsUseCase listDomainEntrypointsUseCase;
 
     @GET
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AM_CONFIGURATION, acls = { RolePermissionAction.READ }) })
     public List<GatewayEntrypointResponse> list(
         @PathParam("orgId") String orgId,
         @PathParam("amEnvId") String amEnvId,
