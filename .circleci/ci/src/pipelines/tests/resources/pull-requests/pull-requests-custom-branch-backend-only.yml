@@ -448,7 +448,7 @@ jobs:
       - cmd-azure-artifacts-token
       - run:
           name: Run gateway tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dgateway-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 8
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dgateway-modules -pl '!gravitee-apim-gateway/gravitee-apim-gateway-integration-tests' -Dskip.validation=true -Dgravitee.archrules.skip=true -T 8
       - run:
           name: Save test results
           command: |-
@@ -464,6 +464,34 @@ jobs:
           root: .
           paths:
             - gravitee-apim-gateway/gravitee-apim-gateway-coverage/target/site/jacoco-aggregate/
+  job-test-gateway-integration:
+    docker:
+      - image: cimg/openjdk:25.0.3
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-gateway-integration
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v16-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - cmd-azure-artifacts-token
+      - run:
+          name: Run gateway integration tests
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -nsu -pl gravitee-apim-gateway/gravitee-apim-gateway-integration-tests -Dskip.validation=true -Dgravitee.archrules.skip=true -T 8
+      - run:
+          name: Save test results
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-test-gateway-integration
+      - store_test_results:
+          path: ~/test-results
   job-test-rest-api:
     machine:
       image: ubuntu-2204:current
@@ -759,6 +787,12 @@ workflows:
             - Test gateway
           working_directory: gravitee-apim-gateway
           cache_type: backend
+      - job-test-gateway-integration:
+          name: Test gateway integration
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build backend
       - job-test-rest-api:
           name: Test rest-api
           context:
@@ -838,6 +872,7 @@ workflows:
             - Check graphene versions
             - Test definition
             - Test gateway
+            - Test gateway integration
             - Test rest-api
             - Test plugins
             - Test reporters
