@@ -31,7 +31,7 @@ todos:
     status: completed
   - id: STORY-09
     content: "Do not seed a second starter page when the API already has documentation."
-    status: pending
+    status: completed
   - id: STORY-10
     content: "Constrain API-owned folders and links to the top navigation area, not just pages."
     status: completed
@@ -156,7 +156,7 @@ isProject: false
 
 **One hard blocker.** STORY-01 fixes a bug that ships today: saving a page in the classic editor silently detaches it from its API. It bites only GitOps-created documentation at the moment, but once all documentation belongs to the API it happens on nearly every edit. Nothing else in Phase 2 onward should start before it lands.
 
-**Still open:** four decisions, three of which block a story not done yet — see [Decisions that block stories](#decisions-that-block-stories).
+**Still open:** three decisions, two of which block a story not done yet — see [Decisions that block stories](#decisions-that-block-stories).
 
 ---
 
@@ -718,6 +718,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 2. Owner on every descendant, with a nested fixture.
 
 #### STORY-09 — Do not seed a second starter page when the API already has documentation
+**Status:** Done under [PORTAL-261](https://gravitee.atlassian.net/browse/PORTAL-261), as [#21175](https://github.com/gravitee-io/gravitee-api-management/pull/21175). No starter page is seeded when the API already has a page or a link anywhere in its documentation, its own or under any standalone listing, hidden or not. An API whose only documentation is empty folders still gets one (decision 5). A listing inside an API product keeps its own starter page.
 **Why:** adding an API to a portal creates a starter page unless it already has one, but the check only looks at items stored under the listing row — it cannot see the API's own documentation. An API that already has pages gets a second, empty starter page.
 **Acceptance criteria:**
 - Adding an API that already has documentation creates no starter page.
@@ -725,7 +726,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 - **Decision required before starting:** whether an API whose only documentation is an empty folder should still get a starter page.
 **Files:**
 - *edit* `CORE/portal_page/domain_service/PortalNavigationDefaultPageDomainService.java` — the "does it already have a page" check, and route creation through the pipeline instead of calling the domain service directly
-**Size:** S · **Depends on:** STORY-03 · **Blocked by:** decision 5
+**Size:** S · **Depends on:** STORY-03
 **Subtasks:**
 1. Widen the existence check to look for items owned by the API.
 2. Route the seeded page through owner assignment so it is API-owned like everything else.
@@ -1619,7 +1620,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | 2 | ~~Should documentation written in Gamma start visible or hidden?~~ **Settled: hidden.** Items created through the API-scoped path are always unpublished, whatever the request says, and publishing the API publishes everything it owns, so an admin who publishes the entry does see the documentation | — |
 | 3 | ~~What happens when the portal has no top-level sections at all?~~ **Settled: the publish dialog still opens, with the section picker empty and a short explanation, so the user sees that choosing a location is the step that blocks. Publishing stays disabled; Gamma never creates a section.** | — |
 | 4 | Does deleting an API from the console clean up its documentation in this release? | 37 |
-| 5 | Should an API whose only documentation is an empty folder still get a starter page? | 09 |
+| 5 | ~~Should an API whose only documentation is an empty folder still get a starter page?~~ **Settled: yes.** Only a page or a link counts as documentation | — |
 | 6 | ~~May the migration delete a duplicate starter page that still matches the template?~~ **Settled: no.** Starter pages are migrated like any other page and all kept; a segment clash gives the migrated one a suffix. The realistic duplicate is a template "Overview" seeded under the listing next to an "Overview" the API already had, which the portal already shows side by side | — |
 | 7 | Confirm Documentation stays hidden for federated APIs | 23 |
 | 8 | ~~Migrate-and-dedupe or skip, for an API listed more than once~~ **Settled: a plain merge.** The uniqueness rule means an API never has more than one standalone listing row; if older data has more, every row's children become the API's documentation, shown under each row | — |
