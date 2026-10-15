@@ -131,7 +131,7 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
 
     @Override
     public void validate(List<CreatePortalNavigationItem> creates, List<PendingUpdate> updates, String environmentId) {
-        validate(creates, updates, environmentId, Set.of(), Set.of());
+        validate(creates, updates, environmentId, Set.of(), Set.of(), true);
     }
 
     private void validate(
@@ -139,7 +139,8 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
         List<PendingUpdate> updates,
         String environmentId,
         Set<PortalPageContentId> pendingContentIds,
-        Set<PortalNavigationItemId> itemIdsBeingReplaced
+        Set<PortalNavigationItemId> itemIdsBeingReplaced,
+        boolean recheckDescendantsOfVisibilityChanges
     ) {
         List<PortalNavigationItem> navigationItems = shouldFetch(creates, updates) ? fetchAllNavigationItems(environmentId) : List.of();
         Map<PortalNavigationItemId, PortalNavigationItem> itemsById = navigationItems
@@ -150,7 +151,12 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
             .filter(item -> item.getId() != null)
             .collect(Collectors.toMap(CreatePortalNavigationItem::getId, Function.identity(), (first, ignored) -> first));
 
-        List<PendingUpdate> augmentedUpdates = withDescendantsOfPendingContainers(creates, updates, environmentId);
+        List<PendingUpdate> augmentedUpdates = withDescendantsOfPendingContainers(
+            creates,
+            updates,
+            environmentId,
+            recheckDescendantsOfVisibilityChanges
+        );
         List<PendingSegmentClaim> pendingSegmentClaims = collectPendingSegmentClaims(creates, augmentedUpdates);
         Map<PortalNavigationItemId, PendingUpdate> pendingUpdatesByExistingId = updates
             .stream()
@@ -185,12 +191,13 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
         }
     }
 
-    // Include pre-existing descendants of pending container creates and of pending container updates that change visibility.
+    // Include pre-existing descendants of pending container creates and, when asked, of pending container updates that change visibility.
     // Descendants that already have their own pending update in this batch are skipped: that update is their validation.
     private List<PendingUpdate> withDescendantsOfPendingContainers(
         List<CreatePortalNavigationItem> creates,
         List<PendingUpdate> updates,
-        String environmentId
+        String environmentId,
+        boolean recheckDescendantsOfVisibilityChanges
     ) {
         var alreadyPendingIds = updates
             .stream()
@@ -205,7 +212,7 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
             .flatMap(container -> descendantsOf(container.getId(), environmentId).stream());
         var descendantsOfUpdates = updates
             .stream()
-            .filter(PortalNavigationItemValidatorService::isContainerVisibilityChange)
+            .filter(update -> recheckDescendantsOfVisibilityChanges && isContainerVisibilityChange(update))
             .flatMap(update -> descendantsOf(update.existing().getId(), environmentId).stream());
         var descendantUpdates = Stream.concat(descendantsOfCreates, descendantsOfUpdates)
             .filter(descendant -> !alreadyPendingIds.contains(descendant.getId()))
@@ -259,7 +266,7 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
 
     @Override
     public void validateOne(CreatePortalNavigationItem item, String environmentId) {
-        validate(List.of(item), List.of(), environmentId, Set.of(), Set.of());
+        validate(List.of(item), List.of(), environmentId, Set.of(), Set.of(), true);
     }
 
     /**
@@ -273,12 +280,21 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
         Set<PortalPageContentId> pendingContentIds,
         Set<PortalNavigationItemId> itemIdsBeingReplaced
     ) {
-        validate(List.of(item), List.of(), environmentId, pendingContentIds, itemIdsBeingReplaced);
+        validate(List.of(item), List.of(), environmentId, pendingContentIds, itemIdsBeingReplaced, true);
     }
 
     @Override
     public void validateToUpdate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem) {
         validate(List.of(), List.of(new PendingUpdate(toUpdate, existingItem)), existingItem.getEnvironmentId());
+    }
+
+    /**
+     * Like {@link #validateToUpdate}, for an update saved by {@link PortalNavigationItemDomainService#update}, which makes
+     * everything below a folder made private private too. The items below a folder whose visibility changes are therefore
+     * not checked against its new visibility, as they are for automation, where each item declares its own.
+     */
+    public void validateToUpdateCascadingVisibility(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem) {
+        validate(List.of(), List.of(new PendingUpdate(toUpdate, existingItem)), existingItem.getEnvironmentId(), Set.of(), Set.of(), false);
     }
 
     private static List<PendingSegmentClaim> collectPendingSegmentClaims(

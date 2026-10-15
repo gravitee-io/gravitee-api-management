@@ -2495,4 +2495,143 @@ class UpdatePortalNavigationItemUseCaseTest {
             assertThat(error).hasMessageContaining("not-a-cron");
         }
     }
+
+    @Nested
+    class FolderVisibilityChange {
+
+        private static final String FOLDER_ID = "00000000-0000-0000-0000-0000000a0001";
+        private static final String PAGE_ID = "00000000-0000-0000-0000-0000000a0002";
+        private static final String NESTED_FOLDER_ID = "00000000-0000-0000-0000-0000000a0003";
+        private static final String LINK_ID = "00000000-0000-0000-0000-0000000a0004";
+
+        /** The folder, a page and a folder inside it, and a link inside that folder, all as visible as the folder. */
+        private List<PortalNavigationItem> givenATree(PortalNavigationFolder folder) {
+            folder.markAsRoot();
+            var page = PortalNavigationItemFixtures.aPage(PAGE_ID, "Getting started", folder.getId());
+            var nestedFolder = PortalNavigationItemFixtures.aFolder(NESTED_FOLDER_ID, "Guides", folder.getId())
+                .toBuilder()
+                .order(1)
+                .build();
+            var link = PortalNavigationItemFixtures.aLink(LINK_ID, "Status", nestedFolder.getId());
+            List<PortalNavigationItem> tree = List.of(folder, page, nestedFolder, link);
+            tree.forEach(item -> item.setVisibility(folder.getVisibility()));
+            queryService.storage().addAll(tree);
+            return tree;
+        }
+
+        /** A folder imported from a source that can list files, as the import endpoint creates it. */
+        private PortalNavigationFolder aSyncedFolder() {
+            sourceDomainService.givenRemoteFile("getting-started.md", "# Getting started");
+            var source = PortalNavigationItemSource.builder()
+                .sourceType("http-fetcher")
+                .sourceConfiguration("{\"url\":\"https://example.com/docs\"}")
+                .subtreeImport(true)
+                .build();
+            return PortalNavigationItemFixtures.aFolder(FOLDER_ID, "Synced docs").toBuilder().source(source).build();
+        }
+
+        private PortalNavigationItem changeVisibility(PortalNavigationItem item, PortalVisibility visibility) {
+            return useCase
+                .execute(
+                    UpdatePortalNavigationItemUseCase.Input.builder()
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .navigationItemId(item.getId().json())
+                        .updatePortalNavigationItem(
+                            UpdatePortalNavigationItem.builder()
+                                .type(item.getType())
+                                .title(item.getTitle())
+                                .order(item.getOrder())
+                                .parentId(item.getParentId())
+                                .published(item.getPublished())
+                                .visibility(visibility)
+                                .source(item.getSource())
+                                .build()
+                        )
+                        .build()
+                )
+                .updatedItem();
+        }
+
+        private List<PortalVisibility> storedVisibilities(List<PortalNavigationItem> items) {
+            return items
+                .stream()
+                .map(item -> queryService.findByIdAndEnvironmentId(ENV_ID, item.getId()).getVisibility())
+                .toList();
+        }
+
+        @Test
+        void should_make_everything_inside_private_when_a_folder_holding_public_items_becomes_private() {
+            var tree = givenATree(PortalNavigationItemFixtures.aFolder(FOLDER_ID, "Docs"));
+
+            var saved = changeVisibility(tree.getFirst(), PortalVisibility.PRIVATE);
+
+            assertThat(saved.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
+            assertThat(storedVisibilities(tree)).containsOnly(PortalVisibility.PRIVATE);
+        }
+
+        @Test
+        void should_make_everything_inside_private_when_an_api_owned_folder_holding_public_items_becomes_private() {
+            var tree = givenATree(
+                PortalNavigationItemFixtures.aFolder(FOLDER_ID, "API docs").toBuilder().reference(new ApiReference("api-1")).build()
+            );
+
+            changeVisibility(tree.getFirst(), PortalVisibility.PRIVATE);
+
+            assertThat(storedVisibilities(tree)).containsOnly(PortalVisibility.PRIVATE);
+        }
+
+        @Test
+        void should_make_everything_inside_private_when_a_synced_folder_holding_public_items_becomes_private() {
+            var tree = givenATree(aSyncedFolder());
+
+            changeVisibility(tree.getFirst(), PortalVisibility.PRIVATE);
+
+            assertThat(storedVisibilities(tree)).containsOnly(PortalVisibility.PRIVATE);
+        }
+
+        @Test
+        void should_leave_the_items_inside_private_when_a_private_synced_folder_becomes_public() {
+            var folder = aSyncedFolder();
+            folder.setVisibility(PortalVisibility.PRIVATE);
+            var tree = givenATree(folder);
+
+            changeVisibility(folder, PortalVisibility.PUBLIC);
+
+            assertThat(storedVisibilities(tree)).containsExactly(
+                PortalVisibility.PUBLIC,
+                PortalVisibility.PRIVATE,
+                PortalVisibility.PRIVATE,
+                PortalVisibility.PRIVATE
+            );
+        }
+
+        @Test
+        void should_leave_the_items_inside_private_when_a_private_folder_becomes_public() {
+            var folder = PortalNavigationItemFixtures.aFolder(FOLDER_ID, "Docs");
+            folder.setVisibility(PortalVisibility.PRIVATE);
+            var tree = givenATree(folder);
+
+            changeVisibility(folder, PortalVisibility.PUBLIC);
+
+            assertThat(storedVisibilities(tree)).containsExactly(
+                PortalVisibility.PUBLIC,
+                PortalVisibility.PRIVATE,
+                PortalVisibility.PRIVATE,
+                PortalVisibility.PRIVATE
+            );
+        }
+
+        @Test
+        void should_still_refuse_making_an_item_public_inside_a_private_folder() {
+            var folder = PortalNavigationItemFixtures.aFolder(FOLDER_ID, "Docs");
+            folder.setVisibility(PortalVisibility.PRIVATE);
+            var page = givenATree(folder).get(1);
+
+            assertThatThrownBy(() -> changeVisibility(page, PortalVisibility.PUBLIC))
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                .hasMessageContaining("must be PUBLIC");
+            assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, page.getId()).getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
+        }
+    }
 }
