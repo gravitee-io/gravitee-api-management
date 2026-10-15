@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 
 import fixtures.DashboardFixtures;
 import inmemory.DashboardCrudServiceInMemory;
+import io.gravitee.apim.core.dashboard.model.Dashboard;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ArrayFilter;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterName;
@@ -70,6 +71,8 @@ class DashboardResourceTest extends AbstractResourceTest {
     private static final String ENVIRONMENT = "my-env";
     private static final String DASHBOARD_ID = "dashboard-123";
     private static final String NON_EXISTENT_ID = "non-existent-id";
+    private static final String FOREIGN_ENVIRONMENT = "another-env";
+    private static final String FOREIGN_DASHBOARD_ID = "foreign-dashboard";
 
     @Inject
     private DashboardCrudServiceInMemory dashboardCrudServiceInMemory;
@@ -142,7 +145,16 @@ class DashboardResourceTest extends AbstractResourceTest {
 
         target = rootTarget().path(DASHBOARD_ID);
 
-        dashboardCrudServiceInMemory.initWith(List.of(DashboardFixtures.aDashboard(DASHBOARD_ID, ENVIRONMENT, USER_NAME)));
+        dashboardCrudServiceInMemory.initWith(
+            List.of(
+                DashboardFixtures.aDashboard(DASHBOARD_ID, ENVIRONMENT, USER_NAME),
+                DashboardFixtures.aDashboard(FOREIGN_DASHBOARD_ID, FOREIGN_ENVIRONMENT, "another-user")
+            )
+        );
+    }
+
+    private Dashboard storedForeignDashboard() {
+        return dashboardCrudServiceInMemory.findByIdAndEnvironmentId(FOREIGN_DASHBOARD_ID, FOREIGN_ENVIRONMENT).orElseThrow();
     }
 
     @AfterEach
@@ -263,6 +275,13 @@ class DashboardResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_return_404_when_dashboard_belongs_to_another_environment() {
+            var response = rootTarget().path(FOREIGN_DASHBOARD_ID).request().get();
+
+            assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+        }
+
+        @Test
         void should_return_403_if_incorrect_permissions() {
             when(
                 permissionService.hasPermission(
@@ -325,7 +344,7 @@ class DashboardResourceTest extends AbstractResourceTest {
                 () -> assertThat(pieWidget.getRequest().getLimit()).isEqualTo(10)
             );
 
-            var stored = dashboardCrudServiceInMemory.findById(DASHBOARD_ID).orElseThrow();
+            var stored = dashboardCrudServiceInMemory.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT).orElseThrow();
             assertThat(stored.getName()).isEqualTo("Updated Dashboard");
             assertThat(stored.getLabels()).isEqualTo(Map.of("team", "platform"));
             assertThat(stored.getWidgets()).hasSize(2);
@@ -375,7 +394,7 @@ class DashboardResourceTest extends AbstractResourceTest {
                 () -> assertThat(numberFilter.getValue()).isEqualTo(200)
             );
 
-            var stored = dashboardCrudServiceInMemory.findById(DASHBOARD_ID).orElseThrow();
+            var stored = dashboardCrudServiceInMemory.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT).orElseThrow();
             var storedRequest = stored.getWidgets().getFirst().getRequest();
 
             assertThat(storedRequest.getFilters()).hasSize(2);
@@ -396,6 +415,16 @@ class DashboardResourceTest extends AbstractResourceTest {
         void should_return_404_when_dashboard_not_found() {
             var response = rootTarget().path(NON_EXISTENT_ID).request().put(json(DashboardFixtures.anUpdateDashboardMinimal()));
             assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+        }
+
+        @Test
+        void should_return_404_and_change_nothing_when_dashboard_belongs_to_another_environment() {
+            var before = storedForeignDashboard().toBuilder().build();
+
+            var response = rootTarget().path(FOREIGN_DASHBOARD_ID).request().put(json(DashboardFixtures.anUpdateDashboard()));
+
+            assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+            assertThat(storedForeignDashboard()).isEqualTo(before);
         }
 
         @Test
@@ -443,7 +472,7 @@ class DashboardResourceTest extends AbstractResourceTest {
 
             assertThat(response.getStatus()).isEqualTo(NO_CONTENT_204);
 
-            assertThat(dashboardCrudServiceInMemory.findById(DASHBOARD_ID)).isEmpty();
+            assertThat(dashboardCrudServiceInMemory.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT)).isEmpty();
         }
 
         @Test
@@ -451,6 +480,14 @@ class DashboardResourceTest extends AbstractResourceTest {
             var response = rootTarget().path(NON_EXISTENT_ID).request().delete();
 
             assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+        }
+
+        @Test
+        void should_return_404_and_keep_the_dashboard_when_it_belongs_to_another_environment() {
+            var response = rootTarget().path(FOREIGN_DASHBOARD_ID).request().delete();
+
+            assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+            assertThat(dashboardCrudServiceInMemory.findByIdAndEnvironmentId(FOREIGN_DASHBOARD_ID, FOREIGN_ENVIRONMENT)).isPresent();
         }
 
         @Test

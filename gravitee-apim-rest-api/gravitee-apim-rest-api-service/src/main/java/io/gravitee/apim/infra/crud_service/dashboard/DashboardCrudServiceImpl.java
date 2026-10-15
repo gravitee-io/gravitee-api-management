@@ -47,9 +47,12 @@ public class DashboardCrudServiceImpl implements DashboardCrudService {
     }
 
     @Override
-    public Optional<Dashboard> findById(String id) {
+    public Optional<Dashboard> findByIdAndEnvironmentId(String id, String environmentId) {
         try {
-            return customDashboardRepository.findById(id).map(DashboardAdapter.INSTANCE::toModel);
+            return customDashboardRepository
+                .findById(id)
+                .filter(dashboard -> environmentId.equals(dashboard.getEnvironmentId()))
+                .map(DashboardAdapter.INSTANCE::toModel);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurred while trying to find dashboard: " + id, e);
         }
