@@ -37,6 +37,7 @@ import org.apache.lucene.queryparser.classic.QueryParserBase;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.MatchNoDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
@@ -176,6 +177,10 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
     private Stream<Query> prepareQuery(String field, Object values, Map<String, String> remapFields) {
         if (Collection.class.isAssignableFrom(values.getClass())) {
             Collection<?> valuesAsCollection = (Collection<?>) values;
+            if (valuesAsCollection.isEmpty()) {
+                // No allowed value: dropping the filter would widen the search to every document
+                return Stream.of(new MatchNoDocsQuery());
+            }
             increaseMaxClauseCountIfNecessary(valuesAsCollection.size());
 
             BooleanQuery.Builder filterApisQuery = new BooleanQuery.Builder();
@@ -185,9 +190,7 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
                     BooleanClause.Occur.SHOULD
                 )
             );
-            if (!valuesAsCollection.isEmpty()) {
-                return Stream.of(filterApisQuery.build());
-            }
+            return Stream.of(filterApisQuery.build());
         } else if (values instanceof String value) {
             return Stream.of(new TermQuery(new Term(remapFields.getOrDefault(field, field), QueryParserBase.escape(value))));
         } else if (values instanceof Boolean bool) {
