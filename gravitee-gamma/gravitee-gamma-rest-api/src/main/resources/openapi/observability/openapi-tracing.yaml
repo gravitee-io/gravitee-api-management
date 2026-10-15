@@ -57,6 +57,9 @@ paths:
                 how many APIs the caller can see, and the single resource-attribute term is portable
                 across backends (Tempo doesn't efficiently OR over hundreds of api-ids).
 
+                Requires `API_LOG:READ` on `apiId`. Without it the endpoint returns **404**, the same
+                answer as for an unknown API.
+
                 When the time window is not pinned, the use case defaults to the last 24h ending at
                 server-now. When only `to` is provided, `from` defaults to `to - 24h`.
 
@@ -84,6 +87,8 @@ paths:
                                 $ref: "#/components/schemas/SearchTracesResponse"
                 "400":
                     $ref: "#/components/responses/InvalidSearchRequest"
+                "404":
+                    $ref: "#/components/responses/ApiNotReadable"
 
     /organizations/{orgId}/environments/{envId}/observability/traces/filters/definition:
         parameters:
@@ -199,6 +204,8 @@ paths:
                 `gravitee.api.id` rejects them, returning **404** (collapsing "trace does not
                 exist" and "trace exists but in another API" indistinguishably so cross-API
                 existence can't be probed).
+
+                Requires `API_LOG:READ` on `apiId`. Without it the endpoint returns the same **404**.
             operationId: getTrace
             parameters:
                 - $ref: "#/components/parameters/apiIdQueryParam"
@@ -859,10 +866,22 @@ components:
                                 httpStatus: 400
                                 message: "Operator 'IN' is not supported yet for filter 'HTTP_METHOD'"
                                 technicalCode: tracing.filter.unsupported_operator
+        ApiNotReadable:
+            description: |
+                The API does not exist, or the caller lacks `API_LOG:READ` on it (collapsed
+                indistinguishably so the existence of an API the caller cannot read can't be probed).
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+                    example:
+                        httpStatus: 404
+                        message: "Api not found."
         TraceNotFound:
             description: |
-                Trace not found — either it doesn't exist, OR the scope filter rejected every
-                span (collapsed indistinguishably so cross-scope existence can't be probed).
+                Trace not found — either it doesn't exist, the caller lacks `API_LOG:READ` on the
+                API, OR the scope filter rejected every span (collapsed indistinguishably so
+                cross-scope existence can't be probed).
                 Emitted by `TraceNotFoundException`.
             content:
                 application/json:
