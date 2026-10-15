@@ -16,6 +16,7 @@
 package io.gravitee.definition.model.v4.agent;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.agent.definition.AgentInput;
 import io.gravitee.definition.model.v4.agent.definition.AgentModel;
@@ -23,6 +24,7 @@ import io.gravitee.definition.model.v4.agent.definition.AgentOutput;
 import io.gravitee.definition.model.v4.agent.definition.AgentSkill;
 import io.gravitee.definition.model.v4.agent.definition.AgentTool;
 import io.gravitee.definition.model.v4.agent.definition.WorkingMemory;
+import io.gravitee.definition.model.v4.agent.evaluation.Recording;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -38,6 +40,9 @@ import lombok.ToString;
  * {@code instructions} prompt, capabilities ({@code tools}/{@code skills}/{@code workingMemory}) and the
  * {@code inputs}/{@code outputs} contract. Capabilities are inline plugin references ({@code tools}/{@code skills})
  * except memory, whose {@code workingMemory} references an independently-deployed chat-memory store resource.
+ *
+ * <p>An agent that scores other agents' work is not one of these: it is {@code kind:judge}, see
+ * {@link JudgeDefinition}.</p>
  */
 @NoArgsConstructor
 @AllArgsConstructor
@@ -60,6 +65,27 @@ public class StandaloneAgentDefinition {
 
     /** What this agent produces. See {@link AgentOutput} for what the list's length means. */
     private List<AgentOutput> outputs;
+
+    /**
+     * Where {@code judge} lived before it became a kind of its own — see {@link JudgeDefinition}.
+     *
+     * <p>Read but never written: the definition mapper ignores unknown properties, so without this slot a stale
+     * {@code standalone.judge} would load silently as an ordinary assistant. Keeping the key visible lets the gateway
+     * refuse it at deploy by name, with the fix spelled out, instead of answering prose on a judge's door. Left out
+     * of equality and serialization so it can never travel back to a store.</p>
+     */
+    @JsonProperty(value = "judge", access = JsonProperty.Access.WRITE_ONLY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Object judge;
+
+    /**
+     * Keeps a durable record of this agent's runs so they can be scored later — see {@link Recording}.
+     *
+     * <p>Off unless declared. It persists prompts and answers, so it is the agent's own decision rather than a
+     * gateway-wide setting.</p>
+     */
+    private Recording recording;
 
     /** The capability plugins this agent references — its model, tools and skills. */
     public List<Plugin> collectPlugins() {

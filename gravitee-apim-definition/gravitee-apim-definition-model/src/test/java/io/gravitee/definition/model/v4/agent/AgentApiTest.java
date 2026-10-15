@@ -24,6 +24,7 @@ import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.agent.definition.AgentInput;
 import io.gravitee.definition.model.v4.agent.definition.AgentOutput;
+import io.gravitee.definition.model.v4.agent.definition.JudgeScore;
 import io.gravitee.definition.model.v4.agent.workflow.AgentRefItem;
 import io.gravitee.definition.model.v4.agent.workflow.ConditionalItem;
 import io.gravitee.definition.model.v4.agent.workflow.ExternalAgentItem;
@@ -287,6 +288,108 @@ class AgentApiTest {
     }
 
     @Test
+    void should_round_trip_a_judge_kind_and_omit_it_when_absent() throws Exception {
+        // A judge declares the scale it scores on and what it is shown; the criteria are not here, they arrive per call.
+        // language=JSON
+        String json = """
+            { "definitionVersion": "V4", "type": "agent", "id": "relevance", "name": "Relevance", "apiVersion": "1.0.0",
+              "kind": "judge", "composable": true,
+              "judge": {
+                "model": { "type": "openai", "configuration": { "model": "gpt-5-mini" } },
+                "subject": "turn",
+                "instructions": "Treat an unsupported claim as failing the whole answer.",
+                "score": { "type": "categorical", "labels": [ "pass", "fail" ] },
+                "variables": [ "input", "output", "context" ]
+              } }
+            """;
+        AgentApi api = (AgentApi) mapper.readValue(json, AbstractApi.class);
+        JudgeDefinition judge = api.getJudge();
+
+        assertThat(api.getKind()).isEqualTo("judge");
+        assertThat(judge.getModel().getType()).isEqualTo("openai");
+        assertThat(judge.getSubject()).isEqualTo(JudgeDefinition.SUBJECT_TURN);
+        assertThat(judge.getInstructions()).startsWith("Treat an unsupported claim");
+        assertThat(judge.getScore().getType()).isEqualTo(JudgeScore.TYPE_CATEGORICAL);
+        assertThat(judge.getScore().getLabels()).containsExactly("pass", "fail");
+        assertThat(judge.getVariables()).containsExactly("input", "output", "context");
+        // Defaults are the runtime's to apply, not the model's — an undeclared field stays undeclared here.
+        assertThat(judge.getExplanation()).isNull();
+        // The kind names its body; the others are absent, not empty.
+        assertThat(api.getStandalone()).isNull();
+        assertThat(api.getWorkflow()).isNull();
+
+        String serialized = mapper.writeValueAsString(api);
+        assertThat(serialized).contains("\"labels\":[\"pass\",\"fail\"]");
+        assertThat(serialized).doesNotContain("\"explanation\":null");
+        assertThat(mapper.readValue(serialized, AbstractApi.class)).isEqualTo(api);
+
+        // NON_NULL: an ordinary agent must not gain a null `judge`, which would churn every stored definition.
+        AgentApi researcher = (AgentApi) mapper.readValue(RESEARCHER, AbstractApi.class);
+        assertThat(researcher.getJudge()).isNull();
+        assertThat(mapper.writeValueAsString(researcher)).doesNotContain("\"judge\"");
+    }
+
+    @Test
+    void should_still_see_a_legacy_standalone_judge_block_but_never_write_it_back() throws Exception {
+        // The mapper ignores unknown properties, so the retired `standalone.judge` would otherwise load silently as an
+        // assistant. It is kept visible so a gateway can refuse it by name — and kept out of what is written.
+        // language=JSON
+        String json = """
+            { "definitionVersion": "V4", "type": "agent", "id": "relevance", "name": "Relevance", "apiVersion": "1.0.0",
+              "kind": "standalone",
+              "standalone": { "role": "Judge.", "judge": { "score": { "type": "boolean" } } } }
+            """;
+        AgentApi api = (AgentApi) mapper.readValue(json, AbstractApi.class);
+
+        assertThat(api.getStandalone().getJudge()).isNotNull();
+        assertThat(mapper.writeValueAsString(api)).doesNotContain("\"judge\"");
+    }
+
+    @Test
+    void should_deserialize_an_evaluation_that_says_how_to_score_but_not_what() throws Exception {
+        // A third kind beside standalone and workflow. It carries only the durable half — which store, which
+        // evaluators — because which runs to score arrives per invocation from whoever curates evaluation sets.
+        // language=JSON
+        String json = """
+            { "definitionVersion": "V4", "type": "agent", "id": "nightly-eval", "name": "Nightly Eval",
+              "apiVersion": "1.0.0", "kind": "evaluation",
+              "evaluation": { "store": "eval-store", "evaluators": [ "quality", "groundedness" ] } }
+            """;
+        AgentApi api = (AgentApi) mapper.readValue(json, AbstractApi.class);
+
+        assertThat(api.getKind()).isEqualTo("evaluation");
+        assertThat(api.getEvaluation().getStore()).isEqualTo("eval-store");
+        assertThat(api.getEvaluation().getEvaluators()).containsExactly("quality", "groundedness");
+        // The bodies are mutually exclusive by kind, not by validation — an evaluation carries neither of the others.
+        assertThat(api.getStandalone()).isNull();
+        assertThat(api.getWorkflow()).isNull();
+
+        assertThat(mapper.readValue(mapper.writeValueAsString(api), AbstractApi.class)).isEqualTo(api);
+    }
+
+    @Test
+    void should_round_trip_recording_and_omit_it_when_absent() throws Exception {
+        // Recording persists prompts and answers, so it is declared per agent rather than switched on globally.
+        // language=JSON
+        String json = """
+            { "definitionVersion": "V4", "type": "agent", "id": "support", "name": "Support", "apiVersion": "1.0.0",
+              "kind": "standalone",
+              "standalone": { "instructions": "Help.", "recording": { "ref": "eval-store" } } }
+            """;
+        AgentApi api = (AgentApi) mapper.readValue(json, AbstractApi.class);
+
+        assertThat(api.getStandalone().getRecording().getRef()).isEqualTo("eval-store");
+        // Declaring the block is the opt-in; `enabled` exists only to suspend it.
+        assertThat(api.getStandalone().getRecording().getEnabled()).isNull();
+        assertThat(mapper.readValue(mapper.writeValueAsString(api), AbstractApi.class)).isEqualTo(api);
+
+        // NON_NULL: an agent that records nothing must not gain a null `recording`, which would churn every definition.
+        AgentApi researcher = (AgentApi) mapper.readValue(RESEARCHER, AbstractApi.class);
+        assertThat(researcher.getStandalone().getRecording()).isNull();
+        assertThat(mapper.writeValueAsString(researcher)).doesNotContain("\"recording\"");
+    }
+
+    @Test
     void should_collect_only_own_capability_plugins_not_referenced_agents() throws Exception {
         // Standalone: its own model/tools/skills (memory is a referenced resource → no plugin).
         AgentApi researcher = (AgentApi) mapper.readValue(RESEARCHER, AbstractApi.class);
@@ -301,5 +404,16 @@ class AgentApiTest {
         // Workflow/supervisor: the inline supervisor model IS contributed; the referenced items are not.
         AgentApi team = (AgentApi) mapper.readValue(WRITING_TEAM, AbstractApi.class);
         assertThat(team.getPlugins()).contains(new Plugin("model", "openai"));
+
+        // Judge: its model, and nothing else — a judge has no tools or skills to contribute.
+        AgentApi judge = AgentApi.builder()
+            .kind("judge")
+            .judge(
+                JudgeDefinition.builder()
+                    .model(io.gravitee.definition.model.v4.agent.definition.AgentModel.builder().type("anthropic").build())
+                    .build()
+            )
+            .build();
+        assertThat(judge.getPlugins()).containsExactly(new Plugin("model", "anthropic"));
     }
 }
