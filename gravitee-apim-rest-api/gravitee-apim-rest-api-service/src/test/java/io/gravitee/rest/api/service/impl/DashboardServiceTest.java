@@ -32,6 +32,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -330,6 +331,41 @@ class DashboardServiceTest {
     }
 
     @Test
+    void should_keep_the_stored_environment_when_body_names_another_one() throws TechnicalException {
+        when(dashboardRepository.findByReferenceAndId(ENVIRONMENT.name(), "REF_ID", DASHBOARD_ID)).thenReturn(of(aStoredDashboard(1)));
+        when(dashboardRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        final DashboardEntity dashboardEntity = dashboardService.update(
+            GraviteeContext.getExecutionContext(),
+            ENVIRONMENT,
+            "REF_ID",
+            anUpdateWithReference("OTHER_ENV", 1)
+        );
+
+        assertThat(dashboardEntity.getReferenceId()).isEqualTo("REF_ID");
+        verify(dashboardRepository).update(argThat(argument -> "REF_ID".equals(argument.getReferenceId())));
+        verify(dashboardRepository, never()).update(argThat(argument -> "OTHER_ENV".equals(argument.getReferenceId())));
+    }
+
+    @Test
+    void should_reorder_within_the_stored_environment_when_body_names_another_one() throws TechnicalException {
+        when(dashboardRepository.findByReferenceAndId(ENVIRONMENT.name(), "REF_ID", DASHBOARD_ID)).thenReturn(of(aStoredDashboard(1)));
+        when(dashboardRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        final DashboardEntity dashboardEntity = dashboardService.update(
+            GraviteeContext.getExecutionContext(),
+            ENVIRONMENT,
+            "REF_ID",
+            anUpdateWithReference("OTHER_ENV", 2)
+        );
+
+        assertThat(dashboardEntity.getReferenceId()).isEqualTo("REF_ID");
+        verify(dashboardRepository).findByReferenceAndType(eq(ENVIRONMENT.name()), eq("REF_ID"), any());
+        verify(dashboardRepository, never()).findByReferenceAndType(any(), eq("OTHER_ENV"), any());
+        verify(dashboardRepository, never()).update(argThat(argument -> "OTHER_ENV".equals(argument.getReferenceId())));
+    }
+
+    @Test
     void should_delete() throws TechnicalException {
         final Dashboard dashboard = mock(Dashboard.class);
         when(dashboardRepository.findByReferenceAndId(ENVIRONMENT.name(), "REF_ID", DASHBOARD_ID)).thenReturn(of(dashboard));
@@ -414,5 +450,27 @@ class DashboardServiceTest {
                 Tuple.tuple("ENV_ID", APPLICATION.name(), "Geo dashboard"),
                 Tuple.tuple("ENV_ID", APPLICATION.name(), "User dashboard")
             );
+    }
+
+    private static Dashboard aStoredDashboard(int order) {
+        return Dashboard.builder()
+            .id(DASHBOARD_ID)
+            .name("NAME")
+            .referenceType(ENVIRONMENT.name())
+            .referenceId("REF_ID")
+            .type(PLATFORM.name())
+            .order(order)
+            .build();
+    }
+
+    private static UpdateDashboardEntity anUpdateWithReference(String referenceId, int order) {
+        return UpdateDashboardEntity.builder()
+            .id(DASHBOARD_ID)
+            .name("NAME")
+            .order(order)
+            .referenceType(ENVIRONMENT)
+            .referenceId(referenceId)
+            .type(PLATFORM)
+            .build();
     }
 }

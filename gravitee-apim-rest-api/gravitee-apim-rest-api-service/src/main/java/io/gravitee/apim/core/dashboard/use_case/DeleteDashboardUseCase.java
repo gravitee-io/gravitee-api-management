@@ -45,7 +45,7 @@ public class DeleteDashboardUseCase {
 
     public void execute(Input input) {
         var existing = dashboardDomainService
-            .findById(input.dashboardId)
+            .findByIdAndEnvironmentId(input.dashboardId(), input.auditInfo().environmentId())
             .orElseThrow(() -> new DashboardNotFoundException(input.dashboardId));
         dashboardDomainService.delete(input.dashboardId());
         createAuditLog(existing, input.auditInfo);

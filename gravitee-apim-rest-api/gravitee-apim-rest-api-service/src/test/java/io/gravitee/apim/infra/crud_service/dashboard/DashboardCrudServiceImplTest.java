@@ -105,16 +105,26 @@ public class DashboardCrudServiceImplTest {
     }
 
     @Nested
-    class FindById {
+    class FindByIdAndEnvironmentId {
 
         @Test
         @SneakyThrows
         void should_find_a_dashboard() {
             when(customDashboardRepository.findById(DASHBOARD_ID)).thenReturn(Optional.of(aRepositoryDashboard()));
 
-            var result = service.findById(DASHBOARD_ID);
+            var result = service.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT_ID);
 
             assertThat(result).isPresent().get().usingRecursiveComparison().isEqualTo(aDashboard());
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_empty_if_dashboard_belongs_to_another_environment() {
+            when(customDashboardRepository.findById(DASHBOARD_ID)).thenReturn(Optional.of(aRepositoryDashboard()));
+
+            var result = service.findByIdAndEnvironmentId(DASHBOARD_ID, "another-env-id");
+
+            assertThat(result).isNotNull().isEmpty();
         }
 
         @Test
@@ -122,7 +132,7 @@ public class DashboardCrudServiceImplTest {
         void should_return_empty_if_dashboard_not_found() {
             when(customDashboardRepository.findById(DASHBOARD_ID)).thenReturn(Optional.empty());
 
-            var result = service.findById(DASHBOARD_ID);
+            var result = service.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT_ID);
 
             assertThat(result).isNotNull().isEmpty();
         }
@@ -131,7 +141,7 @@ public class DashboardCrudServiceImplTest {
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
             when(customDashboardRepository.findById(DASHBOARD_ID)).thenThrow(TechnicalException.class);
 
-            var throwable = catchThrowable(() -> service.findById(DASHBOARD_ID));
+            var throwable = catchThrowable(() -> service.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT_ID));
 
             assertThat(throwable)
                 .isInstanceOf(TechnicalDomainException.class)

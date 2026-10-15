@@ -33,10 +33,10 @@ public class DashboardCrudServiceInMemory implements DashboardCrudService, InMem
     }
 
     @Override
-    public Optional<Dashboard> findById(String dashboardId) {
+    public Optional<Dashboard> findByIdAndEnvironmentId(String dashboardId, String environmentId) {
         return storage
             .stream()
-            .filter(d -> dashboardId.equals(d.getId()))
+            .filter(d -> dashboardId.equals(d.getId()) && environmentId.equals(d.getEnvironmentId()))
             .findFirst();
     }
 
