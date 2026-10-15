@@ -17,6 +17,8 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,6 +27,7 @@ import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -51,7 +54,10 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -113,6 +119,8 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         fakePlanEntity = new PlanEntity();
         fakePlanEntity.setId("planId");
         fakePlanEntity.setName("planName");
+        fakePlanEntity.setReferenceId(API_NAME);
+        fakePlanEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
 
         fakeApplicationEntity = new ApplicationEntity();
         fakeApplicationEntity.setId("applicationId");
@@ -219,6 +227,39 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400);
 
         verifyNoMoreInteractions(acceptSubscriptionUseCase, subscriptionService);
+    }
+
+    @Test
+    public void should_not_create_subscription_when_plan_belongs_to_another_api() {
+        fakePlanEntity.setReferenceId("another-api");
+        when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), any())).thenReturn(
+            fakeSubscriptionEntity
+        );
+
+        Response response = envTarget().queryParam("application", APP_NAME).queryParam("plan", PLAN_NAME).request().post(null);
+
+        MAPIAssertions.assertThat(response).hasStatus(NOT_FOUND_404);
+        verify(subscriptionService, never()).create(any(), any(), any());
+    }
+
+    @Test
+    public void should_not_create_subscription_when_user_cannot_subscribe_the_application() {
+        when(
+            permissionService.hasPermission(
+                any(),
+                eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                eq(APP_NAME),
+                eq(RolePermissionAction.CREATE)
+            )
+        ).thenReturn(false);
+        when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), any())).thenReturn(
+            fakeSubscriptionEntity
+        );
+
+        Response response = envTarget().queryParam("application", APP_NAME).queryParam("plan", PLAN_NAME).request().post(null);
+
+        MAPIAssertions.assertThat(response).hasStatus(FORBIDDEN_403);
+        verify(subscriptionService, never()).create(any(), any(), any());
     }
 
     @Test
