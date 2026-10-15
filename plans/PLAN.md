@@ -28,7 +28,7 @@ todos:
     status: completed
   - id: STORY-08
     content: "Carry API ownership into the contents of an imported folder."
-    status: pending
+    status: completed
   - id: STORY-09
     content: "Do not seed a second starter page when the API already has documentation."
     status: pending
@@ -704,7 +704,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 **Note:** an API cannot be given two standalone listings through the current rules, so today the refusal is only reached with data older than the uniqueness rule, or once an environment has several portals. It is built now so that it is in place before then. No count is added to the query service: the rule reads the listings from the validation context.
 
 #### STORY-08 — Carry API ownership into the contents of an imported folder
-**Status:** Half done. An import under the API path stores the folder and everything in it as owned by the API, with an owner set explicitly ([#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698), under PORTAL-231). An import through the portal editor still has to take the owner from the parent it lands under: STORY-03 ([#20955](https://github.com/gravitee-io/gravitee-api-management/pull/20955)) does not cover the import path.
+**Status:** Done. An import under the API path stores the folder and everything in it as owned by the API ([#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698), under PORTAL-231). An import through the portal editor now runs its root through the same owner assignment as a create, and its response shows the parent the way the tree does (under [PORTAL-269](https://gravitee.atlassian.net/browse/PORTAL-269), as [#21182](https://github.com/gravitee-io/gravitee-api-management/pull/21182)). Folders the editor imported before are moved by STORY-19.
 **Why:** linking an external folder creates the folder and then a page per file. Two creation paths bypass owner assignment entirely, so only the outer folder would belong to the API and everything inside would belong to the portal.
 **Acceptance criteria:**
 - Importing a folder into an API's documentation leaves **every** descendant owned by the API, not just the root.
@@ -989,7 +989,7 @@ Decided earlier, when PORTAL-231 was written, and now reflected in the stories:
 |---|---|---|
 | A bare name in the git fetcher's `repository` is skipped by the address check | [#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698) | For the git fetcher that value is a relative local path, not a repository name. Accepted for now; see the next row. |
 | The Management API guesses from field names which configuration values a fetcher connects to | [PORTAL-240](https://gravitee.atlassian.net/browse/PORTAL-240), not started | Extend the fetcher interface so each plugin validates and sanitises its own configuration. That would close the row above, let scp-style git addresses be judged by their host instead of always being refused, and remove the name matching from both the portal check and `PageServiceImpl.validateSafeSource`. It touches `gravitee-fetcher-api` and the five fetcher plugins. |
-| Inherited ownership on import | STORY-08 | The portal editor's import path, which STORY-03 does not cover. |
+| Inherited ownership on import | STORY-08 | Done ([#21182](https://github.com/gravitee-io/gravitee-api-management/pull/21182)). |
 | A page's viewer configuration cannot be changed with API permission | not in any story | `PATCH …/configuration` stays environment-scoped. Decide whether STORY-33 needs it. |
 | Documentation of an API that is deleted later stays, and its list then answers 404 | STORY-37 | The item operations still reach it, so it can be removed one item at a time. |
 
@@ -1655,7 +1655,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 |---|---|---|
 | Bug A detaches items from their API on every edit | **Blocker** | Closed: STORY-01 is merged |
 | Owner assignment placed after validation silently disables a validation rule | High | Closed: STORY-03 assigns the owner in `expand`, before validation (#20955) |
-| An imported folder lands half-owned | High | Closed for an import under the API path ([#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698)); open for an import through the portal editor (STORY-08) |
+| An imported folder lands half-owned | High | Closed: under the API path ([#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698)) and through the portal editor ([#21182](https://github.com/gravitee-io/gravitee-api-management/pull/21182)) |
 | An update sends a short payload and unlinks a sourced page or rejects every link | High | STORY-29's payload builder is tested for both failures first, and every update goes through it |
 | zone.js turns out to be required and patches globals across Gamma | Medium | STORY-20 settles it before anything depends on it |
 | Create response misleads the editor about where the page is | Medium | Closed: STORY-04 ([#21063](https://github.com/gravitee-io/gravitee-api-management/pull/21063)) returns the created item the way the tree does |
