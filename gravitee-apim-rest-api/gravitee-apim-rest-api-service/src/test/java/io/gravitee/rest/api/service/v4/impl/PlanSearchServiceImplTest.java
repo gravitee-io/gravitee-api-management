@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -166,6 +167,25 @@ public class PlanSearchServiceImplTest {
 
             planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID);
         });
+    }
+
+    @Test
+    public void shouldNotFindByIdBecausePlanBelongsToAnotherEnvironment() throws TechnicalException {
+        plan.setEnvironmentId("another-environment");
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+
+        assertThrows(PlanNotFoundException.class, () -> planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID));
+        verifyNoInteractions(genericPlanMapper);
+    }
+
+    @Test
+    public void shouldFindByIdWhenPlanBelongsToCurrentEnvironment() throws TechnicalException {
+        plan.setEnvironmentId(GraviteeContext.getExecutionContext().getEnvironmentId());
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        PlanEntity planEntity = new PlanEntity();
+        when(genericPlanMapper.toGenericPlanWithFlow(api, plan)).thenReturn(planEntity);
+
+        assertSame(planEntity, planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID));
     }
 
     @Test
