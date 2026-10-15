@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.integration.tests.http;
+package io.gravitee.apim.gateway.integration.tests.http;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
@@ -51,7 +51,7 @@ import org.junit.jupiter.api.extension.ParameterContext;
 /**
  * An HTTP/2 client cancels one request by resetting its stream (RST_STREAM) and keeps the connection open for its
  * other requests. The gateway must treat that reset like a client close and release the upstream pool slot, exactly
- * as {@link ClientAbortPropagationV4IntegrationTest} checks for HTTP/1.1 clients closing their connection.
+ * as {@code ClientAbortPropagationV4IntegrationTest} checks for HTTP/1.1 clients closing their connection.
  * <p>
  * The backend pool is capped at one connection so a slot held by an abandoned request shows up as probe latency.
  */
