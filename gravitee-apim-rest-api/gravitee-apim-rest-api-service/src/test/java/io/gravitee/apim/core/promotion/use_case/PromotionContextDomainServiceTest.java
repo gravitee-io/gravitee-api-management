@@ -27,7 +27,9 @@ import inmemory.InMemoryAlternative;
 import inmemory.PromotionCrudServiceInMemory;
 import inmemory.PromotionQueryServiceInMemory;
 import io.gravitee.apim.core.environment.model.Environment;
+import io.gravitee.apim.core.exception.DbEntityNotFoundException;
 import io.gravitee.apim.core.promotion.domain_service.PromotionContextDomainService;
+import io.gravitee.apim.core.promotion.exception.PromotionNotAwaitingValidationException;
 import io.gravitee.apim.core.promotion.model.Promotion;
 import io.gravitee.apim.core.promotion.model.PromotionStatus;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -44,6 +46,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class PromotionContextDomainServiceTest {
@@ -54,6 +58,7 @@ class PromotionContextDomainServiceTest {
     private static final String DEFAULT_ENV_ID = "DEFAULT";
     private static final String TARGET_ENV_ID = "TARGET-ENV-ID";
     private static final String TARGET_ENV_COCKPIT_ID = "TARGET-ENV-COCKPIT-ID";
+    private static final String ORGANIZATION_ID = "ORGANIZATION-ID";
     private final PromotionCrudServiceInMemory promotionCrudService = new PromotionCrudServiceInMemory();
     private final PromotionQueryServiceInMemory promotionQueryService = new PromotionQueryServiceInMemory(promotionCrudService);
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
@@ -73,7 +78,7 @@ class PromotionContextDomainServiceTest {
         environmentCrudService.initWith(
             List.of(
                 Environment.builder().id(DEFAULT_ENV_ID).build(),
-                Environment.builder().id(TARGET_ENV_ID).cockpitId(TARGET_ENV_COCKPIT_ID).build()
+                Environment.builder().id(TARGET_ENV_ID).cockpitId(TARGET_ENV_COCKPIT_ID).organizationId(ORGANIZATION_ID).build()
             )
         );
     }
@@ -89,6 +94,7 @@ class PromotionContextDomainServiceTest {
     void should_find_promotion_with_api() {
         Promotion promotion = Promotion.builder()
             .id(PROMOTION_ID)
+            .status(PromotionStatus.TO_BE_VALIDATED)
             .apiId(API_ID)
             .targetEnvCockpitId(TARGET_ENV_COCKPIT_ID)
             .apiDefinition(
@@ -105,7 +111,7 @@ class PromotionContextDomainServiceTest {
             .build();
         promotionCrudService.initWith(List.of(promotion));
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result).isNotNull();
         assertThat(result.promotion()).isEqualTo(promotion);
@@ -126,7 +132,7 @@ class PromotionContextDomainServiceTest {
             .build();
         apiQueryServiceInMemory.initWith(List.of(targetApi));
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isEqualTo(targetApi);
     }
@@ -146,7 +152,7 @@ class PromotionContextDomainServiceTest {
             )
         );
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isNull();
     }
@@ -170,7 +176,7 @@ class PromotionContextDomainServiceTest {
             .build();
         apiQueryServiceInMemory.initWith(List.of(targetApi));
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isEqualTo(targetApi);
     }
@@ -200,7 +206,7 @@ class PromotionContextDomainServiceTest {
             .build();
         apiQueryServiceInMemory.initWith(List.of(apiMatchingCrossId, apiFromLastPromotion));
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isEqualTo(apiMatchingCrossId);
     }
@@ -237,7 +243,7 @@ class PromotionContextDomainServiceTest {
             .build();
         apiQueryServiceInMemory.initWith(List.of(olderApi, newerApi));
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isEqualTo(newerApi);
     }
@@ -254,7 +260,7 @@ class PromotionContextDomainServiceTest {
             .build();
         promotionCrudService.initWith(List.of(promotion, lastAccepted));
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isNull();
     }
@@ -275,7 +281,7 @@ class PromotionContextDomainServiceTest {
             )
         );
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isNull();
     }
@@ -289,7 +295,7 @@ class PromotionContextDomainServiceTest {
             List.of(ApiFixtures.aProxyApiV4().toBuilder().id("api-with-no-env").crossId("different-cross-id").environmentId(null).build())
         );
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isNull();
     }
@@ -318,7 +324,7 @@ class PromotionContextDomainServiceTest {
             )
         );
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isNull();
     }
@@ -333,7 +339,7 @@ class PromotionContextDomainServiceTest {
         promotionCrudService.initWith(List.of(promotion, otherApiPromotion));
         apiQueryServiceInMemory.initWith(List.of(aTargetApi("other-api-target", "different-cross-id")));
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isNull();
     }
@@ -348,7 +354,7 @@ class PromotionContextDomainServiceTest {
         promotionCrudService.initWith(List.of(promotion, otherEnvPromotion));
         apiQueryServiceInMemory.initWith(List.of(aTargetApi("other-env-target", "different-cross-id")));
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isNull();
     }
@@ -361,20 +367,64 @@ class PromotionContextDomainServiceTest {
         // aV4Promotion() declares no listener, so the context path fallback has nothing to match on either.
         apiQueryServiceInMemory.initWith(List.of(aTargetApi("already-promoted-api", "different-cross-id")));
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isNull();
     }
 
-    @Test
-    void should_not_use_the_promotion_being_processed_as_history() {
-        Promotion promotion = aV4Promotion().toBuilder().status(PromotionStatus.ACCEPTED).targetApiId("self-target-api").build();
+    @ParameterizedTest
+    @EnumSource(value = PromotionStatus.class, names = "TO_BE_VALIDATED", mode = EnumSource.Mode.EXCLUDE)
+    void should_refuse_a_promotion_that_is_not_awaiting_validation(PromotionStatus status) {
+        Promotion promotion = aV4Promotion().toBuilder().status(status).targetApiId("self-target-api").build();
         promotionCrudService.initWith(List.of(promotion));
-        apiQueryServiceInMemory.initWith(List.of(aTargetApi("self-target-api", "different-cross-id")));
+        apiQueryServiceInMemory.initWith(List.of(aTargetApi("self-target-api", CROSS_ID)));
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true));
 
-        assertThat(result.existingPromotedApi()).isNull();
+        assertThat(throwable).isInstanceOf(PromotionNotAwaitingValidationException.class);
+    }
+
+    @Test
+    void should_refuse_a_promotion_without_status() {
+        Promotion promotion = aV4Promotion().toBuilder().status(null).build();
+        promotionCrudService.initWith(List.of(promotion));
+
+        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, false));
+
+        assertThat(throwable).isInstanceOf(PromotionNotAwaitingValidationException.class);
+    }
+
+    @Test
+    void should_not_find_a_promotion_targeting_an_environment_of_another_organization() {
+        Promotion promotion = aV4Promotion();
+        promotionCrudService.initWith(List.of(promotion));
+
+        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), "ANOTHER-ORGANIZATION-ID", true));
+
+        assertThat(throwable).isInstanceOf(DbEntityNotFoundException.class).hasMessage("Promotion with id promotion-id cannot be found");
+    }
+
+    @Test
+    void should_not_find_an_already_processed_promotion_of_another_organization() {
+        // The organization check comes first: the status of another organization's promotion must not leak either.
+        Promotion promotion = aV4Promotion().toBuilder().status(PromotionStatus.ACCEPTED).build();
+        promotionCrudService.initWith(List.of(promotion));
+
+        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), "ANOTHER-ORGANIZATION-ID", true));
+
+        assertThat(throwable).isInstanceOf(DbEntityNotFoundException.class);
+    }
+
+    @Test
+    void should_not_find_a_promotion_targeting_an_environment_without_organization() {
+        environmentCrudService.reset();
+        environmentCrudService.initWith(List.of(Environment.builder().id(TARGET_ENV_ID).cockpitId(TARGET_ENV_COCKPIT_ID).build()));
+        Promotion promotion = aV4Promotion();
+        promotionCrudService.initWith(List.of(promotion));
+
+        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true));
+
+        assertThat(throwable).isInstanceOf(DbEntityNotFoundException.class);
     }
 
     @Test
@@ -386,7 +436,7 @@ class PromotionContextDomainServiceTest {
         promotionCrudService.initWith(List.of(promotion, olderAccepted, newerAccepted));
         apiQueryServiceInMemory.initWith(List.of(aTargetApi("older-promoted-api", "older-cross-id")));
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         // Documented behaviour: the most recent accepted promotion is authoritative. If its API is gone the
         // promotion creates a new API; we do not silently pick an older API that may have been replaced on purpose.
@@ -404,7 +454,7 @@ class PromotionContextDomainServiceTest {
             )
         );
 
-        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), true));
+        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true));
 
         assertThat(throwable).isInstanceOf(IllegalStateException.class).hasMessageContaining("different definition version");
     }
@@ -422,7 +472,7 @@ class PromotionContextDomainServiceTest {
             .build();
         apiQueryServiceInMemory.initWith(List.of(v2TargetApi));
 
-        var result = service.getPromotionContext(promotion.getId(), false);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, false);
 
         assertThat(result.existingPromotedApi()).isEqualTo(v2TargetApi);
     }
@@ -436,7 +486,7 @@ class PromotionContextDomainServiceTest {
         var datedApi = aTargetApi("dated-target-api", "cross-dated");
         apiQueryServiceInMemory.initWith(List.of(aTargetApi("no-date-target-api", "cross-no-date"), datedApi));
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isEqualTo(datedApi);
     }
@@ -451,7 +501,7 @@ class PromotionContextDomainServiceTest {
         promotionCrudService.initWith(List.of(promotion, lastAccepted));
         apiQueryServiceInMemory.initWith(List.of(aTargetApi("already-promoted-api", "different-cross-id")));
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isNull();
     }
@@ -470,7 +520,7 @@ class PromotionContextDomainServiceTest {
         var apiServingThePath = anApiServingTheContextPath("already-promoted-api", "diverged-cross-id", TARGET_ENV_ID);
         apiQueryServiceInMemory.initWith(List.of(apiServingThePath));
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isEqualTo(apiServingThePath);
     }
@@ -482,7 +532,7 @@ class PromotionContextDomainServiceTest {
         promotionCrudService.initWith(List.of(promotion, legacyAccepted));
         apiQueryServiceInMemory.initWith(List.of(anApiServingTheContextPath("already-promoted-api", "diverged-cross-id", TARGET_ENV_ID)));
 
-        var result = service.getPromotionContext(promotion.getId(), false);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, false);
 
         assertThat(result.existingPromotedApi()).isNull();
     }
@@ -494,7 +544,7 @@ class PromotionContextDomainServiceTest {
         promotionCrudService.initWith(List.of(promotion));
         apiQueryServiceInMemory.initWith(List.of(anApiServingTheContextPath("unrelated-api", "unrelated-cross-id", TARGET_ENV_ID)));
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isNull();
     }
@@ -510,7 +560,7 @@ class PromotionContextDomainServiceTest {
             List.of(anApiServingTheContextPath("unrelated-nested-api", "unrelated-cross-id", TARGET_ENV_ID, "/orders/v2"))
         );
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isNull();
     }
@@ -528,7 +578,7 @@ class PromotionContextDomainServiceTest {
             )
         );
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isNull();
     }
@@ -540,7 +590,7 @@ class PromotionContextDomainServiceTest {
         promotionCrudService.initWith(List.of(promotion, legacyAccepted));
         apiQueryServiceInMemory.initWith(List.of(anApiServingTheContextPath("api-in-other-env", "diverged-cross-id", DEFAULT_ENV_ID)));
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isNull();
     }
@@ -555,7 +605,7 @@ class PromotionContextDomainServiceTest {
             List.of(apiFromHistory, anApiServingTheContextPath("api-on-the-path", "cross-path", TARGET_ENV_ID))
         );
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isEqualTo(apiFromHistory);
     }
@@ -570,7 +620,7 @@ class PromotionContextDomainServiceTest {
             List.of(apiWithMatchingCrossId, anApiServingTheContextPath("api-on-the-path", "cross-path", TARGET_ENV_ID))
         );
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.existingPromotedApi()).isEqualTo(apiWithMatchingCrossId);
     }
@@ -591,7 +641,7 @@ class PromotionContextDomainServiceTest {
         );
         apiQueryServiceInMemory.initWith(List.of(v2ApiOnThePath));
 
-        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), true));
+        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true));
 
         // The operator needs to know the conflict is on the context path, not on the crossId.
         assertThat(throwable)
@@ -609,7 +659,7 @@ class PromotionContextDomainServiceTest {
         promotionCrudService.initWith(List.of(promotion, lastAccepted));
         apiQueryServiceInMemory.initWith(List.of(anApiServingTheContextPath("already-promoted-api", "diverged-cross-id", TARGET_ENV_ID)));
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result.expectedDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
         assertThat(result.existingPromotedApi()).isNull();
@@ -686,6 +736,7 @@ class PromotionContextDomainServiceTest {
     private static Promotion aV4Promotion() {
         return Promotion.builder()
             .id(PROMOTION_ID)
+            .status(PromotionStatus.TO_BE_VALIDATED)
             .apiId(API_ID)
             .targetEnvCockpitId(TARGET_ENV_COCKPIT_ID)
             .apiDefinition(
@@ -707,13 +758,14 @@ class PromotionContextDomainServiceTest {
     void should_find_promotion_with_api_v2() {
         Promotion promotion = Promotion.builder()
             .id(PROMOTION_ID)
+            .status(PromotionStatus.TO_BE_VALIDATED)
             .apiId(API_ID)
             .targetEnvCockpitId(TARGET_ENV_COCKPIT_ID)
             .apiDefinition(IOUtils.toString(new FileInputStream("src/test/resources/export/legacy-v2-export.json"), StandardCharsets.UTF_8))
             .build();
         promotionCrudService.initWith(List.of(promotion));
 
-        var result = service.getPromotionContext(promotion.getId(), true);
+        var result = service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(result).isNotNull();
         assertThat(result.promotion()).isEqualTo(promotion);
@@ -724,6 +776,7 @@ class PromotionContextDomainServiceTest {
     void should_throw_exception_definition_version_not_exist() {
         Promotion promotion = Promotion.builder()
             .id(PROMOTION_ID)
+            .status(PromotionStatus.TO_BE_VALIDATED)
             .apiId(API_ID)
             .targetEnvCockpitId(TARGET_ENV_COCKPIT_ID)
             .apiDefinition(
@@ -739,7 +792,7 @@ class PromotionContextDomainServiceTest {
             .build();
         promotionCrudService.initWith(List.of(promotion));
 
-        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), true));
+        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true));
         assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
         assertThat(throwable).hasMessage("An error occurred while try to parse promotion definition version promotion-id");
     }
@@ -748,13 +801,14 @@ class PromotionContextDomainServiceTest {
     void should_throw_exception_when_crossId_not_found() {
         Promotion promotion = Promotion.builder()
             .id(PROMOTION_ID)
+            .status(PromotionStatus.TO_BE_VALIDATED)
             .apiId(API_ID)
             .targetEnvCockpitId(TARGET_ENV_COCKPIT_ID)
             .apiDefinition("{}")
             .build();
         promotionCrudService.initWith(List.of(promotion));
 
-        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), true));
+        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true));
         assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
         assertThat(throwable).hasMessage("An error occurred while trying to extract crossId from promotion promotion-id");
     }
@@ -763,13 +817,14 @@ class PromotionContextDomainServiceTest {
     void should_throw_exception_when_definition_version_not_found() {
         Promotion promotion = Promotion.builder()
             .id(PROMOTION_ID)
+            .status(PromotionStatus.TO_BE_VALIDATED)
             .apiId(API_ID)
             .targetEnvCockpitId(TARGET_ENV_COCKPIT_ID)
             .apiDefinition("{\"crossId\": \"api-cross-id\"}")
             .build();
         promotionCrudService.initWith(List.of(promotion));
 
-        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), true));
+        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true));
         assertThat(throwable).isInstanceOf(IllegalStateException.class);
         assertThat(throwable).hasMessage("Could not determine definition version for promotion promotion-id");
     }
@@ -780,6 +835,7 @@ class PromotionContextDomainServiceTest {
         String v2CrossId = "26133db6-9861-4dd7-933d-b698619dd7e6";
         Promotion promotion = Promotion.builder()
             .id(PROMOTION_ID)
+            .status(PromotionStatus.TO_BE_VALIDATED)
             .apiId(API_ID)
             .apiDefinition(IOUtils.toString(new FileInputStream("src/test/resources/export/legacy-v2-export.json"), StandardCharsets.UTF_8))
             .targetEnvCockpitId(TARGET_ENV_COCKPIT_ID)
@@ -789,7 +845,7 @@ class PromotionContextDomainServiceTest {
             List.of(ApiFixtures.aProxyApiV4().toBuilder().id("target-v4-api").crossId(v2CrossId).environmentId(TARGET_ENV_ID).build())
         );
 
-        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), true));
+        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true));
         assertThat(throwable).isInstanceOf(IllegalStateException.class);
         assertThat(throwable).hasMessage(
             "An API with the same crossId already exists with a different definition version (API target-v4-api)"
@@ -800,6 +856,7 @@ class PromotionContextDomainServiceTest {
     void should_throw_exception_when_source_api_is_migrated() {
         Promotion promotion = Promotion.builder()
             .id(PROMOTION_ID)
+            .status(PromotionStatus.TO_BE_VALIDATED)
             .apiId(API_ID)
             .apiDefinition(
                 """
@@ -819,10 +876,13 @@ class PromotionContextDomainServiceTest {
             List.of(ApiFixtures.aProxyApiV2().toBuilder().id("target-v2-api").crossId(CROSS_ID).environmentId("TARGET-ENV-ID").build())
         );
         environmentCrudService.initWith(
-            List.of(Environment.builder().id("DEFAULT").build(), Environment.builder().id("TARGET-ENV-ID").cockpitId("TARGET-ENV").build())
+            List.of(
+                Environment.builder().id("DEFAULT").build(),
+                Environment.builder().id("TARGET-ENV-ID").cockpitId("TARGET-ENV").organizationId(ORGANIZATION_ID).build()
+            )
         );
 
-        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), true));
+        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true));
         assertThat(throwable).isInstanceOf(IllegalStateException.class);
         assertThat(throwable).hasMessage(
             "An API with the same crossId already exists with a different definition version (API target-v2-api)"
@@ -833,6 +893,7 @@ class PromotionContextDomainServiceTest {
     void should_allow_promotion_rejection_when_versions_missmatch() {
         Promotion promotion = Promotion.builder()
             .id(PROMOTION_ID)
+            .status(PromotionStatus.TO_BE_VALIDATED)
             .apiId(API_ID)
             .apiDefinition(
                 """
@@ -853,9 +914,12 @@ class PromotionContextDomainServiceTest {
             List.of(ApiFixtures.aProxyApiV2().toBuilder().id("target-v2-api").crossId(CROSS_ID).environmentId("TARGET-ENV-ID").build())
         );
         environmentCrudService.initWith(
-            List.of(Environment.builder().id("DEFAULT").build(), Environment.builder().id("TARGET-ENV-ID").cockpitId("TARGET-ENV").build())
+            List.of(
+                Environment.builder().id("DEFAULT").build(),
+                Environment.builder().id("TARGET-ENV-ID").cockpitId("TARGET-ENV").organizationId(ORGANIZATION_ID).build()
+            )
         );
 
-        assertThat(service.getPromotionContext(promotion.getId(), false)).isNotNull();
+        assertThat(service.getPromotionContext(promotion.getId(), ORGANIZATION_ID, false)).isNotNull();
     }
 }
