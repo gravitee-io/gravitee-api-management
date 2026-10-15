@@ -223,15 +223,10 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
             final Dashboard existing = dashboardRepository
                 .findByReferenceAndId(referenceType.name(), referenceId, dashboardEntity.getId())
                 .orElseThrow(() -> new DashboardNotFoundException(dashboardEntity.getId()));
-            final Dashboard dashboard = convert(dashboardEntity);
+            final Dashboard dashboard = convert(existing, dashboardEntity);
             final DashboardEntity savedDashboard;
             if (dashboard.getOrder() != existing.getOrder()) {
-                savedDashboard = reorderAndSaveDashboards(
-                    dashboardEntity.getReferenceType(),
-                    dashboardEntity.getReferenceId(),
-                    dashboard,
-                    false
-                );
+                savedDashboard = reorderAndSaveDashboards(referenceType, referenceId, dashboard, false);
             } else {
                 savedDashboard = convert(dashboardRepository.update(dashboard));
             }
@@ -364,11 +359,12 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
         return dashboard;
     }
 
-    private Dashboard convert(final UpdateDashboardEntity dashboardEntity) {
+    private Dashboard convert(final Dashboard existing, final UpdateDashboardEntity dashboardEntity) {
         final Dashboard dashboard = new Dashboard();
         dashboard.setId(dashboardEntity.getId());
-        dashboard.setReferenceId(dashboardEntity.getReferenceId());
-        dashboard.setReferenceType(dashboardEntity.getReferenceType().name());
+        // The reference of the body is ignored: a dashboard stays in the environment it was found in.
+        dashboard.setReferenceId(existing.getReferenceId());
+        dashboard.setReferenceType(existing.getReferenceType());
         dashboard.setType(dashboardEntity.getType().name());
         dashboard.setName(dashboardEntity.getName());
         dashboard.setQueryFilter(dashboardEntity.getQueryFilter());
