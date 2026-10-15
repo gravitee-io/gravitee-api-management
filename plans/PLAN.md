@@ -124,7 +124,7 @@ todos:
     status: completed
   - id: STORY-37
     content: "DEFERRABLE — Clean up an API's documentation when the API is deleted."
-    status: pending
+    status: completed
   - id: STORY-38
     content: "Make the legacy documentation migration script write each API's documentation as API-owned on 4.13, selected by an apimVersion setting checked against the server."
     status: pending
@@ -156,7 +156,7 @@ isProject: false
 
 **One hard blocker.** STORY-01 fixes a bug that ships today: saving a page in the classic editor silently detaches it from its API. It bites only GitOps-created documentation at the moment, but once all documentation belongs to the API it happens on nearly every edit. Nothing else in Phase 2 onward should start before it lands.
 
-**Still open:** three decisions, two of which block a story not done yet — see [Decisions that block stories](#decisions-that-block-stories).
+**Still open:** two decisions, one of which blocks a story not done yet — see [Decisions that block stories](#decisions-that-block-stories).
 
 ---
 
@@ -992,7 +992,7 @@ Decided earlier, when PORTAL-231 was written, and now reflected in the stories:
 | The Management API guesses from field names which configuration values a fetcher connects to | [PORTAL-240](https://gravitee.atlassian.net/browse/PORTAL-240), not started | Extend the fetcher interface so each plugin validates and sanitises its own configuration. That would close the row above, let scp-style git addresses be judged by their host instead of always being refused, and remove the name matching from both the portal check and `PageServiceImpl.validateSafeSource`. It touches `gravitee-fetcher-api` and the five fetcher plugins. |
 | Inherited ownership on import | STORY-08 | Done ([#21182](https://github.com/gravitee-io/gravitee-api-management/pull/21182)). |
 | A page's viewer configuration cannot be changed with API permission | not in any story | `PATCH …/configuration` stays environment-scoped. Decide whether STORY-33 needs it. |
-| Documentation of an API that is deleted later stays, and its list then answers 404 | STORY-37 | The item operations still reach it, so it can be removed one item at a time. |
+| Documentation of an API that is deleted later stays, and its list then answers 404 | STORY-37 | Done ([#21242](https://github.com/gravitee-io/gravitee-api-management/pull/21242)): deleting the API now removes it. |
 
 ---
 
@@ -1451,6 +1451,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 **Note:** the test must be written against the post-STORY-03 behaviour. Before that story it would pass for the wrong reason, because the hand-made folder is not yet visible to the planner.
 
 #### STORY-37 — DEFERRABLE — Clean up an API's documentation when the API is deleted
+**Status:** Done under [PORTAL-273](https://gravitee.atlassian.net/browse/PORTAL-273), as [#21242](https://github.com/gravitee-io/gravitee-api-management/pull/21242), by either route (decision 4). One cleanup removes the API's pages, folders, links and their content before the API record is deleted, and keeps content shared with other items, listing rows and other owners' documentation.
 **Why:** today the GitOps delete path removes navigation items but orphans the page text, and the console delete path cleans nothing at all. After this change, documentation written in Gamma leaks on console delete.
 **Acceptance criteria:**
 - Deleting an API removes its documentation and the stored page text, by either route.
@@ -1458,7 +1459,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 **Files:**
 - *edit* `CORE/portal_page/domain_service/ApiDocumentationSyncDomainService.java` — the cleanup routine: find pages and links by owner the way folders already are, and delete the stored page content, which no path currently does
 - *edit* whichever service performs the Management API's own API deletion — it calls no portal cleanup at all today, which is the larger half of this story
-**Size:** M · **Depends on:** STORY-03 · **Blocked by:** decision 4
+**Size:** M · **Depends on:** STORY-03
 **Subtasks:**
 1. Find pages and links by owner, and delete their stored content. Improves the GitOps path only.
 2. Call the cleanup from the Management API's delete path. This is the part that matters for Gamma users.
@@ -1626,7 +1627,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | 1 | Title, position, ordering and visibility become properties of the API rather than of one portal, so editing them in one portal edits them everywhere. Accept, or constrain? | 31, 32 (wording) |
 | 2 | ~~Should documentation written in Gamma start visible or hidden?~~ **Settled: hidden.** Items created through the API-scoped path are always unpublished, whatever the request says, and publishing the API publishes everything it owns, so an admin who publishes the entry does see the documentation | — |
 | 3 | ~~What happens when the portal has no top-level sections at all?~~ **Settled: the publish dialog still opens, with the section picker empty and a short explanation, so the user sees that choosing a location is the step that blocks. Publishing stays disabled; Gamma never creates a section.** | — |
-| 4 | Does deleting an API from the console clean up its documentation in this release? | 37 |
+| 4 | ~~Does deleting an API from the console clean up its documentation in this release?~~ **Settled: yes**, by either route | — |
 | 5 | ~~Should an API whose only documentation is an empty folder still get a starter page?~~ **Settled: yes.** Only a page or a link counts as documentation | — |
 | 6 | ~~May the migration delete a duplicate starter page that still matches the template?~~ **Settled: no.** Starter pages are migrated like any other page and all kept; a segment clash gives the migrated one a suffix. The realistic duplicate is a template "Overview" seeded under the listing next to an "Overview" the API already had, which the portal already shows side by side | — |
 | 7 | Confirm Documentation stays hidden for federated APIs | 23 |
@@ -1668,7 +1669,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | zone.js turns out to be required and patches globals across Gamma | Medium | STORY-20 settles it before anything depends on it |
 | Create response misleads the editor about where the page is | Medium | Closed: STORY-04 ([#21063](https://github.com/gravitee-io/gravitee-api-management/pull/21063)) returns the created item the way the tree does |
 | Publishing impossible when no top-level section exists | Medium | Accepted: the publish dialog explains it, a portal administrator adds a section (decision 3), and STORY-35 adds a default one |
-| Deleting an API from the console leaks documentation and page text | Medium | STORY-37, or an accepted known issue |
+| Deleting an API from the console leaks documentation and page text | Medium | Closed: STORY-37 ([#21242](https://github.com/gravitee-io/gravitee-api-management/pull/21242)) |
 | The migration cannot be reversed | Medium | In-place updates, unchanged ids, logging, run-twice test (STORY-19) |
 | Items with an external source lose read-only protection after migration | Medium | Read-only is decided by the source and the stored parent chain, not by ownership, and the migration keeps that chain below each root. STORY-19 tests it |
 | Two "Overview" pages side by side after the migration | Low (accepted) | Decision 6: both kept, as the portal already shows them; the migrated one's URL may get a suffix |
