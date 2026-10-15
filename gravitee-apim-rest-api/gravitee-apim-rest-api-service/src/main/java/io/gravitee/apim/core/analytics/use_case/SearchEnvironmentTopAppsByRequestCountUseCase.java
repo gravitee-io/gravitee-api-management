@@ -16,20 +16,16 @@
 package io.gravitee.apim.core.analytics.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics.domain_service.EnvironmentAnalyticsApisDomainService;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.ApiFieldFilter;
-import io.gravitee.apim.core.api.model.ApiSearchCriteria;
-import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.application.query_service.ApplicationQueryService;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.Builder;
@@ -42,34 +38,31 @@ import lombok.RequiredArgsConstructor;
 public class SearchEnvironmentTopAppsByRequestCountUseCase {
 
     private final AnalyticsQueryService analyticsQueryService;
-    private final ApiQueryService apiQueryService;
+    private final EnvironmentAnalyticsApisDomainService environmentAnalyticsApisDomainService;
     private final ApplicationQueryService applicationQueryService;
 
     public Output execute(Input input) {
         var envId = input.executionContext().getEnvironmentId();
-        var apis = getAllApisForEnv(envId);
-        var apisIds = apis.keySet().stream().toList();
+        var apisIds = environmentAnalyticsApisDomainService
+            .findReadableApis(input.executionContext(), input.userId())
+            .stream()
+            .map(Api::getId)
+            .toList();
 
-        log.debug("Searching top Apps hits with all APIs for env: {}", envId);
+        log.debug("Searching top Apps hits with {} APIs for env: {}", apisIds.size(), envId);
+        if (apisIds.isEmpty()) {
+            return noTopHitsApps();
+        }
 
         return analyticsQueryService
             .searchTopHitsApps(input.executionContext(), input.parameters().withApiIds(apisIds))
             .map(topHitsApps -> sortByCountAndUpdateTopHitsWithAppNames(envId, topHitsApps))
             .map(Output::new)
-            .orElse(new Output(TopHitsApps.builder().data(List.of()).build()));
+            .orElseGet(SearchEnvironmentTopAppsByRequestCountUseCase::noTopHitsApps);
     }
 
-    private Map<String, Api> getAllApisForEnv(String envId) {
-        return apiQueryService
-            .search(
-                ApiSearchCriteria.builder()
-                    .environmentId(envId)
-                    .definitionVersion(List.of(DefinitionVersion.V4, DefinitionVersion.V2))
-                    .build(),
-                null,
-                ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
-            )
-            .collect(Collectors.toMap(Api::getId, value -> value));
+    private static Output noTopHitsApps() {
+        return new Output(TopHitsApps.builder().data(List.of()).build());
     }
 
     private TopHitsApps sortByCountAndUpdateTopHitsWithAppNames(String envId, TopHitsApps topHitsApps) {
@@ -95,7 +88,7 @@ public class SearchEnvironmentTopAppsByRequestCountUseCase {
     }
 
     @Builder
-    public record Input(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {}
+    public record Input(ExecutionContext executionContext, AnalyticsQueryParameters parameters, String userId) {}
 
     public record Output(TopHitsApps topHitsApps) {}
 }

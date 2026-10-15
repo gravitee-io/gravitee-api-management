@@ -16,12 +16,10 @@
 package io.gravitee.apim.core.analytics.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics.domain_service.EnvironmentAnalyticsApisDomainService;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.ApiFieldFilter;
-import io.gravitee.apim.core.api.model.ApiSearchCriteria;
-import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.analytics.TopFailedApis;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -40,33 +38,30 @@ import lombok.RequiredArgsConstructor;
 public class SearchEnvironmentTopFailedApisUseCase {
 
     private final AnalyticsQueryService analyticsQueryService;
-    private final ApiQueryService apiQueryService;
+    private final EnvironmentAnalyticsApisDomainService environmentAnalyticsApisDomainService;
 
     public Output execute(Input input) {
         var envId = input.executionContext().getEnvironmentId();
-        var apis = getAllApisForEnv(envId);
+        var apis = environmentAnalyticsApisDomainService
+            .findReadableApis(input.executionContext(), input.userId())
+            .stream()
+            .collect(Collectors.toMap(Api::getId, value -> value));
         var apiIds = apis.keySet().stream().toList();
 
         log.debug("Searching top failed API, found: {} APIs for env: {}", apiIds.size(), envId);
+        if (apiIds.isEmpty()) {
+            return noTopFailedApis();
+        }
 
         return analyticsQueryService
             .searchTopFailedApis(input.executionContext(), input.parameters().withApiIds(apiIds))
             .map(topHitsApis -> sortByCountAndUpdateTopHitsWithApiNames(apis, topHitsApis))
             .map(SearchEnvironmentTopFailedApisUseCase.Output::new)
-            .orElse(new SearchEnvironmentTopFailedApisUseCase.Output(TopFailedApis.builder().data(List.of()).build()));
+            .orElseGet(SearchEnvironmentTopFailedApisUseCase::noTopFailedApis);
     }
 
-    private Map<String, Api> getAllApisForEnv(String envId) {
-        return apiQueryService
-            .search(
-                ApiSearchCriteria.builder()
-                    .environmentId(envId)
-                    .definitionVersion(List.of(DefinitionVersion.V4, DefinitionVersion.V2))
-                    .build(),
-                null,
-                ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
-            )
-            .collect(Collectors.toMap(Api::getId, value -> value));
+    private static Output noTopFailedApis() {
+        return new Output(TopFailedApis.builder().data(List.of()).build());
     }
 
     private TopFailedApis sortByCountAndUpdateTopHitsWithApiNames(Map<String, Api> apis, TopFailedApis topFailedApis) {
@@ -74,6 +69,7 @@ public class SearchEnvironmentTopFailedApisUseCase {
             .getData()
             .stream()
             .sorted(Comparator.comparingLong(TopFailedApis.TopFailedApi::failedCalls).reversed())
+            .filter(topFailedApi -> apis.containsKey(topFailedApi.id()))
             .map(topFailedApi -> {
                 var api = apis.get(topFailedApi.id());
                 return TopFailedApis.TopFailedApi.builder()
@@ -89,7 +85,7 @@ public class SearchEnvironmentTopFailedApisUseCase {
     }
 
     @Builder
-    public record Input(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {}
+    public record Input(ExecutionContext executionContext, AnalyticsQueryParameters parameters, String userId) {}
 
     public record Output(TopFailedApis topFailedApis) {}
 }

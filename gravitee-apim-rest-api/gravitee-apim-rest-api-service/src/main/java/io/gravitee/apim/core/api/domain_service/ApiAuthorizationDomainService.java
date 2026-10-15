@@ -28,4 +28,10 @@ public interface ApiAuthorizationDomainService {
         Sortable sortable,
         boolean manageOnly
     );
+
+    /**
+     * The APIs the user is a member of, directly or through a group, whatever their role. Unlike {@link #findIdsByUser}, it never
+     * adds the public APIs or the APIs the user's applications subscribe to.
+     */
+    Set<String> findMemberApiIds(ExecutionContext executionContext, String userId);
 }

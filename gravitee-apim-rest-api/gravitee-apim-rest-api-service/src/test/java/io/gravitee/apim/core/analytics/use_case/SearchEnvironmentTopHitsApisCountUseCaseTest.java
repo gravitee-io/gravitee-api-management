@@ -17,14 +17,23 @@ package io.gravitee.apim.core.analytics.use_case;
 
 import static assertions.CoreAssertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
+import inmemory.ApiAuthorizationDomainServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
+import io.gravitee.apim.core.analytics.domain_service.EnvironmentAnalyticsApisDomainService;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
@@ -37,24 +46,32 @@ class SearchEnvironmentTopHitsApisCountUseCaseTest {
 
     public static final String ENV_ID = "environment-id";
     public static final String ORG_ID = "org-id";
+    private static final String USER_ID = "user-id";
     private static final long FROM = 1728981738L;
     private static final long TO = 1729068138L;
     private final ExecutionContext executionContext = new ExecutionContext(ORG_ID, ENV_ID);
 
     private FakeAnalyticsQueryService analyticsQueryService;
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
+    private final ApiAuthorizationDomainServiceInMemory apiAuthorizationDomainService = new ApiAuthorizationDomainServiceInMemory();
+    private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
     private SearchEnvironmentTopHitsApisCountUseCase cut;
 
     @BeforeEach
     void setUp() {
         analyticsQueryService = mock(FakeAnalyticsQueryService.class);
-        cut = new SearchEnvironmentTopHitsApisCountUseCase(analyticsQueryService, apiQueryService);
+        cut = new SearchEnvironmentTopHitsApisCountUseCase(
+            analyticsQueryService,
+            new EnvironmentAnalyticsApisDomainService(apiQueryService, apiAuthorizationDomainService, permissionDomainService)
+        );
+        givenUserReadsThePlatform(true);
     }
 
     @AfterEach
     void tearDown() {
         analyticsQueryService.reset();
         apiQueryService.reset();
+        apiAuthorizationDomainService.reset();
     }
 
     @Test
@@ -69,6 +86,7 @@ class SearchEnvironmentTopHitsApisCountUseCaseTest {
         var input = SearchEnvironmentTopHitsApisCountUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .userId(USER_ID)
             .build();
 
         when(analyticsQueryService.searchTopHitsApis(any(), any())).thenReturn(
@@ -125,6 +143,7 @@ class SearchEnvironmentTopHitsApisCountUseCaseTest {
         var input = SearchEnvironmentTopHitsApisCountUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .userId(USER_ID)
             .build();
 
         when(analyticsQueryService.searchTopHitsApis(any(), any())).thenReturn(
@@ -162,6 +181,7 @@ class SearchEnvironmentTopHitsApisCountUseCaseTest {
         var input = SearchEnvironmentTopHitsApisCountUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .userId(USER_ID)
             .build();
 
         when(analyticsQueryService.searchTopHitsApis(any(), any())).thenReturn(
@@ -189,6 +209,7 @@ class SearchEnvironmentTopHitsApisCountUseCaseTest {
         var input = SearchEnvironmentTopHitsApisCountUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .userId(USER_ID)
             .build();
 
         when(analyticsQueryService.searchTopHitsApis(any(), any())).thenReturn(Optional.empty());
@@ -196,5 +217,55 @@ class SearchEnvironmentTopHitsApisCountUseCaseTest {
         var result = cut.execute(input).topHitsApis();
 
         assertThat(result).extracting(TopHitsApis::getData).isEqualTo(List.of());
+    }
+
+    @Test
+    void should_get_top_hits_only_for_the_apis_whose_analytics_the_user_can_read() {
+        givenUserReadsThePlatform(false);
+        var readable = ApiFixtures.aProxyApiV4().toBuilder().id("readable").name("Readable").build();
+        apiQueryService.initWith(List.of(readable, ApiFixtures.aProxyApiV4().toBuilder().id("unreadable").build()));
+        givenUserCanReadAnalyticsOf(readable);
+        when(analyticsQueryService.searchTopHitsApis(any(), any())).thenReturn(
+            Optional.of(TopHitsApis.builder().data(List.of(TopHitsApis.TopHitApi.builder().id("readable").count(3L).build())).build())
+        );
+
+        var result = cut.execute(anInput()).topHitsApis();
+
+        verify(analyticsQueryService).searchTopHitsApis(any(), argThat(parameters -> parameters.getApiIds().equals(List.of("readable"))));
+        assertThat(result.getData()).extracting(TopHitsApis.TopHitApi::name).containsExactly("Readable");
+    }
+
+    @Test
+    void should_return_no_top_hit_without_searching_analytics_when_the_user_can_read_no_api() {
+        givenUserReadsThePlatform(false);
+        apiQueryService.initWith(List.of(ApiFixtures.aProxyApiV4()));
+
+        var result = cut.execute(anInput()).topHitsApis();
+
+        assertThat(result.getData()).isEmpty();
+        verifyNoInteractions(analyticsQueryService);
+    }
+
+    private SearchEnvironmentTopHitsApisCountUseCase.Input anInput() {
+        return SearchEnvironmentTopHitsApisCountUseCase.Input.builder()
+            .executionContext(executionContext)
+            .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .userId(USER_ID)
+            .build();
+    }
+
+    private void givenUserReadsThePlatform(boolean readsPlatform) {
+        when(
+            permissionDomainService.hasPermission(ORG_ID, USER_ID, RolePermission.ENVIRONMENT_PLATFORM, ENV_ID, RolePermissionAction.READ)
+        ).thenReturn(readsPlatform);
+    }
+
+    private void givenUserCanReadAnalyticsOf(Api... apis) {
+        apiAuthorizationDomainService.initWith(List.of(apis));
+        for (Api api : apis) {
+            when(
+                permissionDomainService.hasPermission(ORG_ID, USER_ID, RolePermission.API_ANALYTICS, api.getId(), RolePermissionAction.READ)
+            ).thenReturn(true);
+        }
     }
 }
