@@ -20,7 +20,7 @@ import { ModuleUpdating } from './ModuleUpdating';
 import { ContentSkeleton } from '../../../shared/components/ContentSkeleton';
 import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
 import { useEnvironmentStore } from '../../environment/environment.store';
-import { getModuleLabel } from '../modules.labels';
+import { getModuleLabel } from '../modules.catalog';
 import { loadRemoteModule, retryModuleNow } from '../modules.remotes';
 import { useModulesStore } from '../modules.store';
 import type { GammaModule } from '../modules.types';
