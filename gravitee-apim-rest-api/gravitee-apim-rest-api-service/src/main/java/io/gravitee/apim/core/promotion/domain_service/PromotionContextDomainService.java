@@ -26,7 +26,10 @@ import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
+import io.gravitee.apim.core.environment.model.Environment;
+import io.gravitee.apim.core.exception.DbEntityNotFoundException;
 import io.gravitee.apim.core.promotion.crud_service.PromotionCrudService;
+import io.gravitee.apim.core.promotion.exception.PromotionNotAwaitingValidationException;
 import io.gravitee.apim.core.promotion.model.Promotion;
 import io.gravitee.apim.core.promotion.model.PromotionStatus;
 import io.gravitee.apim.core.promotion.query_service.PromotionQueryService;
@@ -76,6 +79,17 @@ public class PromotionContextDomainService {
         String targetEnvId
     ) {}
 
+    /**
+     * Target environment of a promotion that belongs to {@code organizationId}.
+     *
+     * <p>Resolved before the promotion status and the target API, so a caller with no right on that environment can be
+     * refused without learning either.
+     */
+    public String targetEnvironmentId(String promotionId, String organizationId) {
+        var promotion = promotionCrudService.getById(promotionId);
+        return targetEnvironment(promotion, organizationId).getId();
+    }
+
     /*
      * Validates the promotion before applying it.
      *
@@ -85,10 +99,13 @@ public class PromotionContextDomainService {
      * Once all V2 APIs are migrated and V2 no longer supported, this validation step can be removed,
      * and the promotion can be applied directly through the corresponding UseCase.
      */
-    public PromotionContext getPromotionContext(String promotionId, boolean isAccepted) {
+    public PromotionContext getPromotionContext(String promotionId, String organizationId, boolean isAccepted) {
         var promotion = promotionCrudService.getById(promotionId);
+        var environment = targetEnvironment(promotion, organizationId);
+        if (promotion.getStatus() != PromotionStatus.TO_BE_VALIDATED) {
+            throw new PromotionNotAwaitingValidationException(promotionId, String.valueOf(promotion.getStatus()));
+        }
         var crossId = extractCrossIdFromDefinition(promotion);
-        var environment = environmentCrudService.getByCockpitId(promotion.getTargetEnvCockpitId());
         var targetEnvId = environment.getId();
         var expectedDefinitionVersion = getPromotionDefinitionVersion(promotion);
         var resolved = resolveTargetApi(promotion, crossId, targetEnvId, expectedDefinitionVersion, isAccepted);
@@ -101,6 +118,15 @@ public class PromotionContextDomainService {
         }
 
         return new PromotionContext(promotion, expectedDefinitionVersion, resolved.map(ResolvedApi::api).orElse(null), targetEnvId);
+    }
+
+    private Environment targetEnvironment(Promotion promotion, String organizationId) {
+        var environment = environmentCrudService.getByCockpitId(promotion.getTargetEnvCockpitId());
+        if (!Objects.equals(environment.getOrganizationId(), organizationId)) {
+            // Same answer as an unknown id, so promotion ids of other organizations cannot be probed.
+            throw new DbEntityNotFoundException(Promotion.class, promotion.getId());
+        }
+        return environment;
     }
 
     /** How the API already living in the target environment was identified. */
