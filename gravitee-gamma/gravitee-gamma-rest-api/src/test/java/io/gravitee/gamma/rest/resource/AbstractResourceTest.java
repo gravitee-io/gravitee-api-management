@@ -15,11 +15,14 @@
  */
 package io.gravitee.gamma.rest.resource;
 
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gamma.rest.JerseySpringTest;
 import io.gravitee.gamma.rest.spring.ResourceContextConfiguration;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -48,6 +51,12 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @BeforeEach
     public void setUp() {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+    }
+
+    /** Replaces the default grant-everything stub: the caller holds {@code permission[READ]} on {@code referenceId} and nothing else. */
+    protected void givenOnlyReadPermission(RolePermission permission, String referenceId) {
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
+        when(permissionService.hasPermission(any(), eq(permission), eq(referenceId), eq(RolePermissionAction.READ))).thenReturn(true);
     }
 
     @AfterEach

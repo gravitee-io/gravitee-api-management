@@ -59,12 +59,12 @@ public class SearchTracesUseCase {
     public record Input(
         String organizationId,
         String environmentId,
-        // Required — the explorer always scopes to one API, never to "every API I can see". Per-API
-        // auth scope is enforced by the caller picking from APIs they can see (mandatory API picker
-        // before any search); pinning to one apiId keeps each query bounded to a single
-        // resource-attribute term, portable across backends (works on Tempo too, which doesn't
-        // efficiently OR over hundreds of api-ids). Module isn't carried separately because every
-        // apiId belongs to exactly one module — the apiId alone is sufficient to scope.
+        // Required — the explorer always scopes to one API, never to "every API I can see". The
+        // resource checks API_LOG[READ] on it before calling; pinning to one apiId keeps each
+        // query bounded to a single resource-attribute term, portable across backends (works on
+        // Tempo too, which doesn't efficiently OR over hundreds of api-ids). Module isn't carried
+        // separately because every apiId belongs to exactly one module — the apiId alone is
+        // sufficient to scope.
         String apiId,
         // Abstract filters from the UI — translated to attribute filters by SearchTraceFilterTranslator.
         // Empty / null means "no filters beyond the required scope envelope".

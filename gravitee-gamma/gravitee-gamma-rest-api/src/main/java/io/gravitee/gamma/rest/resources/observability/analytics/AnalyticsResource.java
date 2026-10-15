@@ -21,6 +21,7 @@ import io.gravitee.gamma.rest.core.observability.analytics.use_case.ComputeObser
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.ComputeObservabilityMeasuresUseCase;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.ComputeObservabilityTimeSeriesUseCase;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
+import io.gravitee.gamma.rest.resources.observability.ObservabilityPermissions;
 import io.gravitee.gamma.rest.resources.observability.analytics.dto.AnalyticsFacetsRequestDto;
 import io.gravitee.gamma.rest.resources.observability.analytics.dto.AnalyticsMeasuresRequestDto;
 import io.gravitee.gamma.rest.resources.observability.analytics.dto.AnalyticsTimeSeriesRequestDto;
@@ -29,12 +30,8 @@ import io.gravitee.gamma.rest.resources.observability.analytics.dto.MetricQueryD
 import io.gravitee.gamma.rest.resources.observability.analytics.dto.NumberRangeDto;
 import io.gravitee.gamma.rest.resources.observability.dto.RequestEntries;
 import io.gravitee.gamma.rest.resources.observability.logs.dto.FilterConditionDto;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.PermissionService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -71,7 +68,7 @@ public class AnalyticsResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public JsonNode computeMeasures(AnalyticsMeasuresRequestDto request) {
-        checkReadObservabilityPermission();
+        ObservabilityPermissions.checkEnvironmentRead(permissionService);
 
         var ctx = GraviteeContext.getExecutionContext();
         var output = computeMeasuresUseCase.execute(
@@ -92,7 +89,7 @@ public class AnalyticsResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public JsonNode computeFacets(AnalyticsFacetsRequestDto request) {
-        checkReadObservabilityPermission();
+        ObservabilityPermissions.checkEnvironmentRead(permissionService);
 
         var ctx = GraviteeContext.getExecutionContext();
         var output = computeFacetsUseCase.execute(
@@ -116,7 +113,7 @@ public class AnalyticsResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public JsonNode computeTimeSeries(AnalyticsTimeSeriesRequestDto request) {
-        checkReadObservabilityPermission();
+        ObservabilityPermissions.checkEnvironmentRead(permissionService);
 
         var ctx = GraviteeContext.getExecutionContext();
         var output = computeTimeSeriesUseCase.execute(
@@ -156,21 +153,5 @@ public class AnalyticsResource {
         List<NumberRangeDto> dtos
     ) {
         return RequestEntries.map(dtos, "ranges", NumberRangeDto::toCore);
-    }
-
-    private void checkReadObservabilityPermission() {
-        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        String environmentId = executionContext.getEnvironmentId();
-        boolean allowed =
-            permissionService.hasPermission(
-                executionContext,
-                RolePermission.ENVIRONMENT_DASHBOARD,
-                environmentId,
-                RolePermissionAction.READ
-            ) ||
-            permissionService.hasPermission(executionContext, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.READ);
-        if (!allowed) {
-            throw new ForbiddenAccessException();
-        }
     }
 }
