@@ -234,10 +234,7 @@ public class ApiPlansResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
 
-        if (
-            GenericPlanEntity.ReferenceType.API.equals(planEntity.getReferenceType()) &&
-            !java.util.Objects.equals(apiId, planEntity.getReferenceId())
-        ) {
+        if (planDoesNotBelongToApi(planEntity)) {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
@@ -253,10 +250,7 @@ public class ApiPlansResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
 
-        if (
-            GenericPlanEntity.ReferenceType.API.equals(planEntity.getReferenceType()) &&
-            !java.util.Objects.equals(apiId, planEntity.getReferenceId())
-        ) {
+        if (planDoesNotBelongToApi(planEntity)) {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
@@ -323,10 +317,7 @@ public class ApiPlansResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
 
-        if (
-            GenericPlanEntity.ReferenceType.API.equals(planEntity.getReferenceType()) &&
-            !java.util.Objects.equals(apiId, planEntity.getReferenceId())
-        ) {
+        if (planDoesNotBelongToApi(planEntity)) {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
@@ -343,10 +334,7 @@ public class ApiPlansResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
 
-        if (
-            GenericPlanEntity.ReferenceType.API.equals(planEntity.getReferenceType()) &&
-            !java.util.Objects.equals(apiId, planEntity.getReferenceId())
-        ) {
+        if (planDoesNotBelongToApi(planEntity)) {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
@@ -361,10 +349,7 @@ public class ApiPlansResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
 
-        if (
-            GenericPlanEntity.ReferenceType.API.equals(planEntity.getReferenceType()) &&
-            !java.util.Objects.equals(apiId, planEntity.getReferenceId())
-        ) {
+        if (planDoesNotBelongToApi(planEntity)) {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
@@ -383,10 +368,7 @@ public class ApiPlansResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
 
-        if (
-            GenericPlanEntity.ReferenceType.API.equals(planEntity.getReferenceType()) &&
-            !java.util.Objects.equals(apiId, planEntity.getReferenceId())
-        ) {
+        if (planDoesNotBelongToApi(planEntity)) {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
@@ -469,5 +451,12 @@ public class ApiPlansResource extends AbstractResource {
                 }
             });
         }
+    }
+
+    private boolean planDoesNotBelongToApi(GenericPlanEntity planEntity) {
+        return (
+            !GenericPlanEntity.ReferenceType.API.equals(planEntity.getReferenceType()) ||
+            !java.util.Objects.equals(apiId, planEntity.getReferenceId())
+        );
     }
 }
