@@ -42,6 +42,8 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.validator.CustomApiKey;
 import io.swagger.v3.oas.annotations.Operation;
@@ -160,6 +162,8 @@ public class ApiSubscriptionsResource extends AbstractResource {
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Subscription.class))
     )
     @ApiResponse(responseCode = "400", description = "Bad custom API Key format or custom API Key definition disabled")
+    @ApiResponse(responseCode = "403", description = "Not allowed to subscribe the application")
+    @ApiResponse(responseCode = "404", description = "Plan not found for this API")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.CREATE) })
     public Response createSubscriptionToApi(
@@ -175,6 +179,13 @@ public class ApiSubscriptionsResource extends AbstractResource {
             !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)
         ) {
             return Response.status(Response.Status.BAD_REQUEST).entity("You are not allowed to provide a custom API Key").build();
+        }
+
+        if (!api.equals(planSearchService.findById(executionContext, plan).getReferenceId())) {
+            throw new PlanNotFoundException(plan);
+        }
+        if (!hasPermission(executionContext, RolePermission.APPLICATION_SUBSCRIPTION, application, RolePermissionAction.CREATE)) {
+            throw new ForbiddenAccessException();
         }
 
         NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(plan, application);
