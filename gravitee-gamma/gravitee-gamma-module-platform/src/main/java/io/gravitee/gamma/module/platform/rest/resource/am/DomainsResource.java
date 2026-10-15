@@ -18,6 +18,10 @@ package io.gravitee.gamma.module.platform.rest.resource.am;
 import io.gravitee.gamma.module.platform.core.am.use_case.ListDomainsUseCase;
 import io.gravitee.gamma.module.platform.rest.resource.dto.am.AmDtos.DomainResponse;
 import io.gravitee.gamma.module.platform.rest.resource.mapper.am.AmDtoMapper;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -41,6 +45,7 @@ public class DomainsResource {
     private ResourceContext resourceContext;
 
     @GET
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AM_CONFIGURATION, acls = { RolePermissionAction.READ }) })
     public List<DomainResponse> list(@PathParam("orgId") String orgId, @PathParam("amEnvId") String amEnvId, @QueryParam("q") String q) {
         return AmCalls.run(() ->
             listDomainsUseCase.execute(new ListDomainsUseCase.Input(orgId, amEnvId, q)).domains().stream().map(AmDtoMapper::toDto).toList()
