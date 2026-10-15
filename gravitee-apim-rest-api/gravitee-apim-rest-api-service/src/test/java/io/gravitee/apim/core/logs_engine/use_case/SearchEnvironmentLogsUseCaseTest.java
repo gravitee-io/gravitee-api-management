@@ -24,6 +24,7 @@ import static org.mockito.Mockito.*;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.repository.ConnectionLogFixtures;
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
@@ -723,7 +724,7 @@ class SearchEnvironmentLogsUseCaseTest {
         void should_reject_a_path_filter_with_the_in_operator() {
             // The engine holds a single path pattern. This used to return early and leave the search
             // unfiltered, which is the APIM-14817 failure mode.
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -874,7 +875,7 @@ class SearchEnvironmentLogsUseCaseTest {
             when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
                 new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(25, List.of(LOG1))
             );
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -966,7 +967,7 @@ class SearchEnvironmentLogsUseCaseTest {
 
         @Test
         void should_reject_unknown_status_code_group() {
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1013,7 +1014,7 @@ class SearchEnvironmentLogsUseCaseTest {
 
         @Test
         void should_reject_an_inverted_http_status_range() {
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1122,7 +1123,7 @@ class SearchEnvironmentLogsUseCaseTest {
 
         @Test
         void should_reject_numeric_filter_with_unsupported_operator() {
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1146,7 +1147,7 @@ class SearchEnvironmentLogsUseCaseTest {
 
         @Test
         void should_throw_validation_exception_when_response_time_filter_value_is_null() {
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1171,7 +1172,7 @@ class SearchEnvironmentLogsUseCaseTest {
 
         @Test
         void should_throw_validation_exception_when_time_range_from_is_after_to() {
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1210,7 +1211,7 @@ class SearchEnvironmentLogsUseCaseTest {
 
         @Test
         void should_throw_validation_exception_when_response_time_gte_is_negative() {
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1235,7 +1236,7 @@ class SearchEnvironmentLogsUseCaseTest {
 
         @Test
         void should_throw_validation_exception_when_response_time_lte_is_negative() {
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1260,7 +1261,7 @@ class SearchEnvironmentLogsUseCaseTest {
 
         @Test
         void should_throw_validation_exception_when_response_time_gte_is_greater_than_lte() {
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1309,7 +1310,7 @@ class SearchEnvironmentLogsUseCaseTest {
         @ParameterizedTest
         @MethodSource("nonProxyApiProvider")
         void should_exclude_non_proxy_api_ids_from_filters(Api nonProxyApi) {
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1345,7 +1346,7 @@ class SearchEnvironmentLogsUseCaseTest {
         @ParameterizedTest
         @MethodSource("proxyLikeApiProvider")
         void should_include_llm_and_mcp_proxy_api_ids_in_filters(Api proxyLikeApi) {
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1383,7 +1384,7 @@ class SearchEnvironmentLogsUseCaseTest {
         void should_return_empty_when_only_non_proxy_apis_exist() {
             var messageApi = ApiFixtures.aMessageApiV4().toBuilder().id("message-api").build();
             var nativeApi = ApiFixtures.aNativeApi().toBuilder().id("native-api").build();
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1455,7 +1456,7 @@ class SearchEnvironmentLogsUseCaseTest {
 
         @Test
         void should_return_empty_response_when_service_returns_no_logs() {
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1521,7 +1522,7 @@ class SearchEnvironmentLogsUseCaseTest {
                 )
             );
 
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1575,7 +1576,7 @@ class SearchEnvironmentLogsUseCaseTest {
         void should_cap_gateway_response_time_to_integer_max() {
             var log = BaseConnectionLog.builder().timestamp(OffsetDateTime.now().toString()).gatewayResponseTime(Long.MAX_VALUE).build();
 
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1609,7 +1610,7 @@ class SearchEnvironmentLogsUseCaseTest {
                 .additionalMetrics(null)
                 .build();
 
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1639,7 +1640,7 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_calculate_pagination_metadata_correctly() {
             // Case 1: Total 11, PerPage 10 -> 2 pages
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1682,7 +1683,7 @@ class SearchEnvironmentLogsUseCaseTest {
                 .applicationId("app-1")
                 .build();
 
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1723,7 +1724,7 @@ class SearchEnvironmentLogsUseCaseTest {
                 .applicationId(null)
                 .build();
 
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1753,7 +1754,7 @@ class SearchEnvironmentLogsUseCaseTest {
                 .gateway("gw-1")
                 .build();
 
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1790,7 +1791,7 @@ class SearchEnvironmentLogsUseCaseTest {
                 .gateway(null)
                 .build();
 
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1819,7 +1820,7 @@ class SearchEnvironmentLogsUseCaseTest {
                 .gateway("gw-unknown")
                 .build();
 
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1847,7 +1848,7 @@ class SearchEnvironmentLogsUseCaseTest {
 
         @Test
         void should_delegate_to_log_names_post_processor() {
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1877,7 +1878,7 @@ class SearchEnvironmentLogsUseCaseTest {
                 .apiProductId(productId)
                 .build();
 
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1911,7 +1912,7 @@ class SearchEnvironmentLogsUseCaseTest {
                 .apiProductId(null)
                 .build();
 
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1942,7 +1943,7 @@ class SearchEnvironmentLogsUseCaseTest {
                 .apiProductId(unknownProductId)
                 .build();
 
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -1981,7 +1982,7 @@ class SearchEnvironmentLogsUseCaseTest {
 
         @BeforeEach
         void stubTwoApiKinds() {
-            when(userContextLoader.loadApis(any())).thenReturn(
+            when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
                 new UserContext(
                     AUDIT_INFO,
                     Optional.empty(),
@@ -2119,7 +2120,7 @@ class SearchEnvironmentLogsUseCaseTest {
         when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
             new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(LOG1))
         );
-        when(userContextLoader.loadApis(any())).thenReturn(
+        when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
             new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
         );
         when(planCrudService.findByIds(any())).thenReturn(List.of());

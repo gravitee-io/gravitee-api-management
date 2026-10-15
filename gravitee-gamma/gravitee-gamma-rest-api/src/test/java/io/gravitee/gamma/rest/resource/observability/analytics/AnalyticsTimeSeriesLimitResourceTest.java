@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.resource.observability.analytics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -25,6 +26,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.model.FacetBucketResponse;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
@@ -119,7 +121,7 @@ class AnalyticsTimeSeriesLimitResourceTest extends AbstractResourceTest {
         env.setId(ENVIRONMENT);
         env.setOrganizationId(ORGANIZATION);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(env);
-        when(userContextLoader.loadApis(any())).thenAnswer(invocation ->
+        when(userContextLoader.loadApis(any(), eq(ApiDataKind.AGGREGATES))).thenAnswer(invocation ->
             ((UserContext) invocation.getArgument(0)).withApis(
                 List.of(
                     Api.builder().id("api-1").name("API 1").type(ApiType.LLM_PROXY).build(),
