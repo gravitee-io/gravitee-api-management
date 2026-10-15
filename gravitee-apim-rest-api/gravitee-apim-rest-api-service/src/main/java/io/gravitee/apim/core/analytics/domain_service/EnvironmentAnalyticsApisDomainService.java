@@ -35,7 +35,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -68,7 +67,10 @@ public class EnvironmentAnalyticsApisDomainService {
         return findReadableApis(executionContext, userId, isAdmin, kind, null);
     }
 
-    /** Same scoping as {@link #findReadableApis(ExecutionContext, String, boolean, ApiDataKind)}, narrowed to one API. */
+    /**
+     * Same scoping as {@link #findReadableApis(ExecutionContext, String, boolean, ApiDataKind)}, narrowed to one API: the API of
+     * the environment is fetched, then the permission is checked on that API alone, which resolves direct and group roles itself.
+     */
     public Optional<Api> findReadableApi(
         ExecutionContext executionContext,
         String userId,
@@ -76,10 +78,12 @@ public class EnvironmentAnalyticsApisDomainService {
         ApiDataKind kind,
         String apiId
     ) {
-        if (!canReadEveryApi(executionContext, userId, isAdmin, kind) && !isReadableMemberApi(executionContext, userId, kind, apiId)) {
-            return Optional.empty();
-        }
-        return search(criteria(executionContext, null, List.of(apiId))).stream().findFirst();
+        return search(criteria(executionContext, null, List.of(apiId)))
+            .stream()
+            .findFirst()
+            .filter(
+                api -> canReadEveryApi(executionContext, userId, isAdmin, kind) || canRead(executionContext, userId, kind, api.getId())
+            );
     }
 
     private List<Api> findReadableApis(
@@ -93,7 +97,7 @@ public class EnvironmentAnalyticsApisDomainService {
             return search(criteria(executionContext, definitionVersions, null));
         }
 
-        var memberApiIds = findMemberApiIds(executionContext, userId);
+        var memberApiIds = apiAuthorizationDomainService.findMemberApiIds(executionContext, userId);
         // An empty id list does not restrict the search: it would widen the scope to the whole environment.
         if (memberApiIds.isEmpty()) {
             return List.of();
@@ -122,10 +126,6 @@ public class EnvironmentAnalyticsApisDomainService {
             .build();
     }
 
-    private Set<String> findMemberApiIds(ExecutionContext executionContext, String userId) {
-        return apiAuthorizationDomainService.findMemberApiIds(executionContext, userId);
-    }
-
     private boolean canReadEveryApi(ExecutionContext executionContext, String userId, boolean isAdmin, ApiDataKind kind) {
         return (
             isAdmin ||
@@ -138,10 +138,6 @@ public class EnvironmentAnalyticsApisDomainService {
                     RolePermissionAction.READ
                 ))
         );
-    }
-
-    private boolean isReadableMemberApi(ExecutionContext executionContext, String userId, ApiDataKind kind, String apiId) {
-        return findMemberApiIds(executionContext, userId).contains(apiId) && canRead(executionContext, userId, kind, apiId);
     }
 
     private boolean canRead(ExecutionContext executionContext, String userId, ApiDataKind kind, String apiId) {
