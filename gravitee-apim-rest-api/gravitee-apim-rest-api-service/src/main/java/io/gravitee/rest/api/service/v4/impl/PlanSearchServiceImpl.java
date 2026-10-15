@@ -81,10 +81,17 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     public GenericPlanEntity findById(final ExecutionContext executionContext, final String plan) {
         try {
             logger.debug("Find plan by id : {}", plan);
-            return planRepository
-                .findById(plan)
-                .map(this::mapToGeneric)
-                .orElseThrow(() -> new PlanNotFoundException(plan));
+            final Plan found = planRepository.findById(plan).orElseThrow(() -> new PlanNotFoundException(plan));
+            final Api api = apiRepository.findById(found.getApi()).orElseThrow(() -> new ApiNotFoundException(found.getApi()));
+
+            // Plans stored without an environment (CRD import, federation, rollback) take the one of their API.
+            if (found.getEnvironmentId() == null) {
+                found.setEnvironmentId(api.getEnvironmentId());
+            }
+            if (!belongsToEnvironment(executionContext, found)) {
+                throw new PlanNotFoundException(plan);
+            }
+            return genericPlanMapper.toGenericPlan(api, found);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(String.format("An error occurs while trying to find a plan by id: %s", plan), ex);
         }
@@ -181,6 +188,11 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to check if a plan exists", e);
         }
+    }
+
+    // An organization-level context carries no environment: there is nothing to compare, so any plan is accepted.
+    private boolean belongsToEnvironment(final ExecutionContext executionContext, final Plan plan) {
+        return executionContext.getEnvironmentId() == null || executionContext.getEnvironmentId().equals(plan.getEnvironmentId());
     }
 
     private GenericPlanEntity mapToGeneric(final Plan plan) {
