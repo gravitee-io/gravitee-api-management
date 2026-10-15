@@ -1632,7 +1632,7 @@ paths:
             description: |-
                 Create a new subscription on a given API.
 
-                User must have the API_SUBSCRIPTION[CREATE] permission.
+                User must have the API_SUBSCRIPTION[CREATE] permission on the API and the APPLICATION_SUBSCRIPTION[CREATE] permission on the application.
             operationId: createApiSubscription
             requestBody:
                 content:
