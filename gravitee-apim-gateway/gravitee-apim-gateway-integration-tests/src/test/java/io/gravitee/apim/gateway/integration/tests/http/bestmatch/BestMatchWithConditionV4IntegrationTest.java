@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.integration.tests.http.bestmatch;
+package io.gravitee.apim.gateway.integration.tests.http.bestmatch;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.absent;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
@@ -24,6 +24,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.gateway.integration.tests.fake.AddHeadersPolicy;
+import io.gravitee.apim.gateway.integration.tests.fake.AddHeadersPolicyConfiguration;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
@@ -35,8 +37,6 @@ import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.gravitee.policy.transformheaders.TransformHeadersPolicy;
-import io.gravitee.policy.transformheaders.configuration.TransformHeadersPolicyConfiguration;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
@@ -80,7 +80,7 @@ class BestMatchWithConditionV4IntegrationTest extends AbstractGatewayTest {
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
         policies.putIfAbsent(
             "transform-headers",
-            PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
+            PolicyBuilder.build("transform-headers", AddHeadersPolicy.class, AddHeadersPolicyConfiguration.class)
         );
     }
 
