@@ -59,6 +59,7 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
@@ -269,6 +270,16 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
         if (!apiId.equals(planSearchService.findById(executionContext, createSubscription.getPlanId()).getReferenceId())) {
             throw new PlanNotFoundException(createSubscription.getPlanId());
+        }
+        if (
+            !hasPermission(
+                executionContext,
+                RolePermission.APPLICATION_SUBSCRIPTION,
+                createSubscription.getApplicationId(),
+                RolePermissionAction.CREATE
+            )
+        ) {
+            throw new ForbiddenAccessException();
         }
 
         final NewSubscriptionEntity newSubscriptionEntity = subscriptionMapper.map(createSubscription);
