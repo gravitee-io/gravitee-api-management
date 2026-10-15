@@ -23,6 +23,7 @@ export * from './job-test-definition';
 export * from './job-test-gamma';
 export * from './job-test-gamma-ui';
 export * from './job-test-gateway';
+export * from './job-test-gateway-integration';
 export * from './job-test-kafka-explorer';
 export * from './job-test-integration';
 export * from './job-test-plugin';
