@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.integration.tests.properties;
+package io.gravitee.apim.gateway.integration.tests.properties;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -22,6 +22,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.gateway.integration.tests.fake.AddHeadersPolicy;
+import io.gravitee.apim.gateway.integration.tests.fake.AddHeadersPolicyConfiguration;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
@@ -35,8 +37,6 @@ import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.gravitee.policy.transformheaders.TransformHeadersPolicy;
-import io.gravitee.policy.transformheaders.configuration.TransformHeadersPolicyConfiguration;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxTestContext;
@@ -94,7 +94,7 @@ class EncryptedApiPropertiesIntegrationTest extends AbstractGatewayTest {
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
         policies.put(
             "transform-headers",
-            PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
+            PolicyBuilder.build("transform-headers", AddHeadersPolicy.class, AddHeadersPolicyConfiguration.class)
         );
     }
 
