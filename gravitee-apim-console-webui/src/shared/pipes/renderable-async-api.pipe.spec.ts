@@ -28,7 +28,7 @@ describe('RenderableAsyncApiPipe', () => {
     expect(message.payload.description).toContain('```xml\n<xs:schema/>\n```');
   });
 
-  it.each([undefined, null, ''])('should return %p unchanged', content => {
+  it.each([undefined, null, ''])('should return %p unchanged', (content) => {
     expect(pipe.transform(content)).toBe(content);
   });
 });

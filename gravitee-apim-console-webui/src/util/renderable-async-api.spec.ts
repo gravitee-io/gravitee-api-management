@@ -22,7 +22,7 @@ const XSD = `<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 const indent = (text: string, spaces: number) =>
   text
     .split('\n')
-    .map(line => ' '.repeat(spaces) + line)
+    .map((line) => ' '.repeat(spaces) + line)
     .join('\n');
 
 const ASYNCAPI_3_XSD = `asyncapi: 3.0.0
@@ -266,7 +266,7 @@ describe('toRenderableAsyncApi', () => {
     expect(toRenderableAsyncApi(content)).toBe(content);
   });
 
-  it.each(['application/xml;version=1.0', 'text/xml'])('should recognise %s as an XML Schema format', schemaFormat => {
+  it.each(['application/xml;version=1.0', 'text/xml'])('should recognise %s as an XML Schema format', (schemaFormat) => {
     const content = ASYNCAPI_3_XSD.replace('schemaFormat: application/xml', `schemaFormat: ${schemaFormat}`);
 
     const payload = JSON.parse(toRenderableAsyncApi(content)).components.messages.OrderCreated.payload;
