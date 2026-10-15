@@ -128,7 +128,7 @@
     <gravitee-policy-data-logging-masking.version>4.0.0</gravitee-policy-data-logging-masking.version>
     <gravitee-policy-dynamic-routing.version>3.0.0</gravitee-policy-dynamic-routing.version>
     <gravitee-policy-generate-http-signature.version>2.0.0</gravitee-policy-generate-http-signature.version>
-    <gravitee-policy-generate-jwt.version>1.9.0-alpha.3</gravitee-policy-generate-jwt.version>
+    <gravitee-policy-generate-jwt.version>2.1.0</gravitee-policy-generate-jwt.version>
     <gravitee-policy-generate-wssecurity.version>1.0.2</gravitee-policy-generate-wssecurity.version>
     <gravitee-policy-geoip-filtering.version>3.0.0</gravitee-policy-geoip-filtering.version>
     <gravitee-policy-groovy.version>5.1.1</gravitee-policy-groovy.version>
@@ -253,7 +253,7 @@
     <gravitee-reactor-mcp-proxy.version>4.11.7</gravitee-reactor-mcp-proxy.version>
     <gravitee-reactor-llm-proxy.version>5.0.0-alpha.14</gravitee-reactor-llm-proxy.version>
     <gravitee-reactor-a2a-proxy.version>2.1.2</gravitee-reactor-a2a-proxy.version>
-    <gravitee-reactor-authz.version>3.0.1</gravitee-reactor-authz.version>
+    <gravitee-reactor-authz.version>3.0.2</gravitee-reactor-authz.version>
     <gravitee-reactor-edge.version>2.0.0-alpha.5</gravitee-reactor-edge.version>
     <gravitee-resource-ai-vector-store-redis.version>2.0.0</gravitee-resource-ai-vector-store-redis.version>
     <gravitee-resource-ai-vector-store-aws-s3.version>1.0.0</gravitee-resource-ai-vector-store-aws-s3.version>
@@ -285,15 +285,15 @@
     <gravitee-resource-ai-model-token-classification.version>2.0.0</gravitee-resource-ai-model-token-classification.version>
 
     <!-- Gamma plugins -->
-    <gravitee-gamma-module-aim.version>5.0.0-alpha.104</gravitee-gamma-module-aim.version>
-    <gravitee-gamma-module-authz.version>3.6.0</gravitee-gamma-module-authz.version>
+    <gravitee-gamma-module-aim.version>5.0.2</gravitee-gamma-module-aim.version>
+    <gravitee-gamma-module-authz.version>3.6.1</gravitee-gamma-module-authz.version>
     <gravitee-gamma-module-edge.version>3.0.0-alpha.2</gravitee-gamma-module-edge.version>
     <gravitee-gamma-module-esm.version>1.5.0</gravitee-gamma-module-esm.version>
 
     <!-- Authz plugins -->
-    <gravitee-service-authz-pdp.version>4.2.1</gravitee-service-authz-pdp.version>
-    <gravitee-policy-authz-pep.version>3.0.1</gravitee-policy-authz-pep.version>
-    <gravitee-policy-authz-pdp-authzen.version>4.0.0</gravitee-policy-authz-pdp-authzen.version>
+    <gravitee-service-authz-pdp.version>4.2.2</gravitee-service-authz-pdp.version>
+    <gravitee-policy-authz-pep.version>3.0.2</gravitee-policy-authz-pep.version>
+    <gravitee-policy-authz-pdp-authzen.version>4.0.1</gravitee-policy-authz-pdp-authzen.version>
     </properties>
 
     <dependencyManagement>
