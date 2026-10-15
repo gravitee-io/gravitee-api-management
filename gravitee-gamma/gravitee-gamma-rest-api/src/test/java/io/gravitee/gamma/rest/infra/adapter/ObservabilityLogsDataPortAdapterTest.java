@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
@@ -1237,7 +1238,9 @@ class ObservabilityLogsDataPortAdapterTest {
 
         @Test
         void should_not_read_a_decision_for_an_api_the_caller_cannot_access() {
-            when(userContextLoader.loadApi(any(), eq("api-1"))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(userContextLoader.loadApi(any(), eq("api-1"), eq(ApiDataKind.PER_REQUEST))).thenAnswer(invocation ->
+                invocation.getArgument(0)
+            );
 
             var decision = adapter.getDecision(ORG, ENV, "api-1", "evt-1");
 
@@ -1256,8 +1259,8 @@ class ObservabilityLogsDataPortAdapterTest {
             adapter.getDecision(ORG, ENV, "api-1", "evt-1");
 
             // Opening one decision must not pay for every api in the environment.
-            verify(userContextLoader).loadApi(any(), eq("api-1"));
-            verify(userContextLoader, never()).loadApis(any());
+            verify(userContextLoader).loadApi(any(), eq("api-1"), eq(ApiDataKind.PER_REQUEST));
+            verify(userContextLoader, never()).loadApis(any(), any());
         }
 
         @Test
@@ -1284,7 +1287,7 @@ class ObservabilityLogsDataPortAdapterTest {
         }
 
         private void grantAccessToApi1() {
-            when(userContextLoader.loadApi(any(), eq("api-1"))).thenAnswer(invocation ->
+            when(userContextLoader.loadApi(any(), eq("api-1"), eq(ApiDataKind.PER_REQUEST))).thenAnswer(invocation ->
                 ((UserContext) invocation.getArgument(0)).withApis(
                     List.of(Api.builder().id("api-1").name("API 1").type(ApiType.AUTHZ).build())
                 )

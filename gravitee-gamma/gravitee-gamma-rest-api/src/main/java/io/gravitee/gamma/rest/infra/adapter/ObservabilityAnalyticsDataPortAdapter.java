@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
@@ -96,7 +97,7 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     @Override
     public List<AccessibleApi> loadAccessibleApis(String organizationId, String environmentId) {
         var auditInfo = currentAuditInfo(organizationId, environmentId);
-        var userContext = userContextLoader.loadApis(new UserContext(auditInfo));
+        var userContext = userContextLoader.loadApis(new UserContext(auditInfo), ApiDataKind.AGGREGATES);
         return userContext
             .apis()
             .orElseGet(Collections::emptyList)
