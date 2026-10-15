@@ -71,7 +71,7 @@ describe('authStore', () => {
             expect(useAuthStore.getState().user).toBeNull();
             expect(useAuthStore.getState().initialized).toBe(true);
             expect(useAuthStore.getState().sessionCheckFailed).toBe(true);
-            expect(error).toHaveBeenCalledWith('[Auth] Could not check the session.', expect.any(Error));
+            expect(error).not.toHaveBeenCalled();
         });
 
         it('should forget it as soon as a sign-in starts, whatever its outcome', async () => {

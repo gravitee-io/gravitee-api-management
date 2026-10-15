@@ -106,9 +106,7 @@ export const useAuthStore = create<AuthState>()(
                     const user = await managementApi.get<CurrentUser>('/user');
                     set({ user, loading: false, initialized: true });
                 } catch (error) {
-                    const sessionCheckFailed = isPlatformUnavailable(error);
-                    if (sessionCheckFailed) console.error('[Auth] Could not check the session.', error);
-                    set({ user: null, loading: false, initialized: true, sessionCheckFailed });
+                    set({ user: null, loading: false, initialized: true, sessionCheckFailed: isPlatformUnavailable(error) });
                 }
             },
 
