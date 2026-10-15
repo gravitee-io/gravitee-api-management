@@ -49,21 +49,21 @@ class DashboardDomainServiceTest {
     }
 
     @Nested
-    class FindById {
+    class FindByIdAndEnvironmentId {
 
         @Test
         void should_return_dashboard_when_found() {
-            var dashboard = Dashboard.builder().id(DASHBOARD_ID).name("Test").build();
+            var dashboard = Dashboard.builder().id(DASHBOARD_ID).environmentId("env-1").name("Test").build();
             dashboardCrudServiceInMemory.initWith(List.of(dashboard));
 
-            var result = domainService.findById(DASHBOARD_ID);
+            var result = domainService.findByIdAndEnvironmentId(DASHBOARD_ID, "env-1");
 
             assertThat(result).contains(dashboard);
         }
 
         @Test
         void should_return_empty_when_not_found() {
-            var result = domainService.findById(DASHBOARD_ID);
+            var result = domainService.findByIdAndEnvironmentId(DASHBOARD_ID, "env-1");
 
             assertThat(result).isEmpty();
         }

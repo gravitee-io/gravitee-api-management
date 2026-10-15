@@ -31,13 +31,13 @@ public class GetDashboardUseCase {
 
     private final DashboardDomainService dashboardDomainService;
 
-    public record Input(String dashboardId) {}
+    public record Input(String environmentId, String dashboardId) {}
 
     public record Output(Dashboard dashboard) {}
 
     public Output execute(Input input) {
         var dashboard = dashboardDomainService
-            .findById(input.dashboardId())
+            .findByIdAndEnvironmentId(input.dashboardId(), input.environmentId())
             .orElseThrow(() -> new DashboardNotFoundException(input.dashboardId()));
 
         return new Output(dashboard);

@@ -144,6 +144,19 @@ class UpdateDashboardUseCaseTest {
                 useCase.execute(new UpdateDashboardUseCase.Input(DASHBOARD_ID, updatedDashboard, auditInfo()))
             ).isInstanceOf(DashboardNotFoundException.class);
         }
+
+        @Test
+        void should_throw_and_change_nothing_when_dashboard_belongs_to_another_environment() {
+            var foreign = Dashboard.builder().id(DASHBOARD_ID).environmentId("other-env").name("Foreign").widgets(List.of()).build();
+            dashboardCrudServiceInMemory.initWith(List.of(foreign));
+            var updatedDashboard = Dashboard.builder().name("Updated").widgets(List.of()).build();
+
+            assertThatThrownBy(() ->
+                useCase.execute(new UpdateDashboardUseCase.Input(DASHBOARD_ID, updatedDashboard, auditInfo()))
+            ).isInstanceOf(DashboardNotFoundException.class);
+            assertThat(dashboardCrudServiceInMemory.storage()).containsExactly(foreign);
+            assertThat(auditCrudServiceInMemory.storage()).isEmpty();
+        }
     }
 
     @Nested
