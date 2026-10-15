@@ -37,11 +37,13 @@ on `gravitee.api.id` server-side gives module-correct results without a redundan
 filter. `module` stays on the filter-discovery endpoints because their entire purpose is "which
 filters does this module's contributor expose?" — different from query scoping.
 
-**Why `apiId` is required, not optional.** Per-user authorization is at the per-API level (users
-see APIs they created or were granted access to). The backend cannot enumerate a user's accessible
-APIs into a wide OR-filter at search time because that pattern doesn't work for Tempo (which
-doesn't efficiently OR over hundreds of api-ids). Instead the API picker is on the UI side — the
-user picks one of their visible APIs from a mandatory dropdown before any search runs. On the
+**Why `apiId` is required, not optional.** Per-user authorization is at the per-API level: search
+and detail require `API_LOG:READ` on `apiId`, checked before any trace-store query, and answer
+`404` without it (the same answer as for an unknown API). The backend cannot enumerate a user's
+accessible APIs into a wide OR-filter at search time because that pattern doesn't work for Tempo
+(which doesn't efficiently OR over hundreds of api-ids), so the UI asks the user to pick one API
+before any search runs. The filter discovery endpoints (`/filters/...`) need no
+permission: they serve static catalogs (enum values only). On the
 detail endpoint `apiId` is an additional security defense: a known trace id from API_B can't be
 fetched via API_A's scope, because the server-side resource-attribute filter rejects spans from
 the wrong API and the endpoint returns 404 (collapsing "doesn't exist" and "wrong scope" so
@@ -172,6 +174,7 @@ Example response:
   - `tracing.filter.unsupported_operator` — the operator is listed for the filter but the
     translator doesn't handle it yet. Today the MVP only translates `EQ`; the follow-up PR
     adds `IN` / range / etc.
+- **404 Not Found** — the API doesn't exist, or the caller lacks `API_LOG:READ` on it.
 
 ---
 
@@ -404,7 +407,8 @@ interface PayloadLog {
 ### Errors
 
 - **400** if `apiId` is missing.
-- **404** if the trace doesn't exist OR exists but in a different `apiId` scope (collapsed).
+- **404** if the trace doesn't exist, exists but in a different `apiId` scope, or the caller lacks
+  `API_LOG:READ` on `apiId` (collapsed).
 
 ---
 

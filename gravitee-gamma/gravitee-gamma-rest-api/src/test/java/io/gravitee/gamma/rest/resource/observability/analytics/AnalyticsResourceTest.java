@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.resource.observability.analytics;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -41,6 +42,7 @@ import io.gravitee.gamma.rest.resource.AbstractResourceTest;
 import io.gravitee.gamma.rest.resource.observability.analytics.AnalyticsResourceTest.AnalyticsTestConfiguration;
 import io.gravitee.gamma.rest.spring.ResourceContextConfiguration;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
@@ -49,12 +51,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.context.annotation.Bean;
@@ -69,6 +74,7 @@ import org.springframework.test.context.ContextConfiguration;
 class AnalyticsResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "fake-env";
+    private static final String OTHER_ENVIRONMENT = "other-env";
     private static final Map<String, String> TIME_RANGE = Map.of("from", "2026-06-10T00:00:00Z", "to", "2026-06-11T00:00:00Z");
     private static final List<Map<String, Object>> REQUEST_COUNT = List.of(Map.of("name", "HTTP_REQUESTS", "measures", List.of("COUNT")));
 
@@ -407,6 +413,53 @@ class AnalyticsResourceTest extends AbstractResourceTest {
             );
             verifyNoInteractions(analyticsDataPort);
         }
+    }
+
+    @Nested
+    class Authorization {
+
+        @ParameterizedTest
+        @MethodSource("io.gravitee.gamma.rest.resource.observability.analytics.AnalyticsResourceTest#wellFormedRequests")
+        void should_answer_403_without_querying_when_caller_only_holds_environment_api_read(String path, Map<String, Object> body) {
+            givenOnlyReadPermission(RolePermission.ENVIRONMENT_API, ENVIRONMENT);
+
+            var response = post(path, body);
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
+            verifyNoInteractions(analyticsDataPort);
+        }
+
+        @ParameterizedTest
+        @MethodSource("io.gravitee.gamma.rest.resource.observability.analytics.AnalyticsResourceTest#wellFormedRequests")
+        void should_answer_403_when_environment_platform_read_is_held_on_another_environment(String path, Map<String, Object> body) {
+            givenOnlyReadPermission(RolePermission.ENVIRONMENT_PLATFORM, OTHER_ENVIRONMENT);
+
+            var response = post(path, body);
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
+            verifyNoInteractions(analyticsDataPort);
+        }
+
+        @ParameterizedTest
+        @MethodSource("io.gravitee.gamma.rest.resource.observability.analytics.AnalyticsResourceTest#wellFormedRequests")
+        void should_answer_200_when_caller_holds_environment_platform_read(String path, Map<String, Object> body) {
+            givenOnlyReadPermission(RolePermission.ENVIRONMENT_PLATFORM, ENVIRONMENT);
+
+            var response = post(path, body);
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+    }
+
+    static Stream<Arguments> wellFormedRequests() {
+        return Stream.of(
+            arguments("measures", Map.of("timeRange", TIME_RANGE, "metrics", REQUEST_COUNT)),
+            arguments("facets", Map.of("timeRange", TIME_RANGE, "metrics", REQUEST_COUNT, "by", List.of("HTTP_STATUS"))),
+            arguments(
+                "time-series",
+                Map.of("timeRange", TIME_RANGE, "interval", 3_600_000, "metrics", REQUEST_COUNT, "by", List.of("HTTP_STATUS"))
+            )
+        );
     }
 
     private Response post(String path, Map<String, ?> body) {

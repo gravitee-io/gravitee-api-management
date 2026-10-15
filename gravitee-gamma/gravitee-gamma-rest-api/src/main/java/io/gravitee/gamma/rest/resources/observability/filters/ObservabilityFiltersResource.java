@@ -21,18 +21,14 @@ import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.use_case.GetObservabilityFilterDefinitionsUseCase;
 import io.gravitee.gamma.rest.core.observability.filter.use_case.GetObservabilityFilterValuesUseCase;
 import io.gravitee.gamma.rest.core.observability.filter.use_case.ResolveObservabilityFilterLabelsUseCase;
+import io.gravitee.gamma.rest.resources.observability.ObservabilityPermissions;
 import io.gravitee.gamma.rest.resources.observability.filters.dto.FilterSpecDto;
 import io.gravitee.gamma.rest.resources.observability.filters.dto.FilterSpecsResponseDto;
 import io.gravitee.gamma.rest.resources.observability.filters.dto.FilterValueDto;
 import io.gravitee.gamma.rest.resources.observability.filters.dto.ResolveFilterLabelsRequestDto;
 import io.gravitee.gamma.rest.resources.observability.filters.dto.ResolveFilterLabelsResponseDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.PaginatedResponseDto;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.PermissionService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
@@ -65,10 +61,9 @@ import java.util.function.Function;
  * </ul>
  *
  * <h2>Authorization</h2>
- * Coarse env-level metadata guard only (no per-row data scoping): the caller must be able to read
- * dashboards or APIs in the current environment, otherwise {@code 403}. Gamma resources do not
- * extend the apim management {@code AbstractResource}, so the guard is implemented here against the
- * injected {@link PermissionService} and the {@link GraviteeContext} execution context.
+ * {@code /definition} is a static catalog and needs no permission. {@code /{filterName}/values} and
+ * {@code /resolve} read data, so they are behind {@link ObservabilityPermissions#checkEnvironmentRead},
+ * otherwise {@code 403}.
  *
  * @author GraviteeSource Team
  */
@@ -93,7 +88,6 @@ public class ObservabilityFiltersResource {
         @QueryParam("signal") List<String> signals,
         @QueryParam("apiType") List<String> apiTypes
     ) {
-        checkReadObservabilityPermission();
         var output = getFilterDefinitionsUseCase.execute(
             new GetObservabilityFilterDefinitionsUseCase.Input(
                 parse(signals, Signal.class, Signal::valueOf, "signal"),
@@ -115,7 +109,7 @@ public class ObservabilityFiltersResource {
         @QueryParam("perPage") Integer perPage,
         @QueryParam("apiType") List<String> apiTypes
     ) {
-        checkReadObservabilityPermission();
+        ObservabilityPermissions.checkEnvironmentRead(permissionService);
         var output = getFilterValuesUseCase.execute(
             new GetObservabilityFilterValuesUseCase.Input(
                 filterName,
@@ -136,7 +130,7 @@ public class ObservabilityFiltersResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public ResolveFilterLabelsResponseDto resolveFilterLabels(ResolveFilterLabelsRequestDto request) {
-        checkReadObservabilityPermission();
+        ObservabilityPermissions.checkEnvironmentRead(permissionService);
         List<ResolveObservabilityFilterLabelsUseCase.Entry> entries = request == null || request.entries() == null
             ? List.of()
             : request
@@ -168,21 +162,5 @@ public class ObservabilityFiltersResource {
             }
         }
         return result;
-    }
-
-    private void checkReadObservabilityPermission() {
-        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        String environmentId = executionContext.getEnvironmentId();
-        boolean allowed =
-            permissionService.hasPermission(
-                executionContext,
-                RolePermission.ENVIRONMENT_DASHBOARD,
-                environmentId,
-                RolePermissionAction.READ
-            ) ||
-            permissionService.hasPermission(executionContext, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.READ);
-        if (!allowed) {
-            throw new ForbiddenAccessException();
-        }
     }
 }

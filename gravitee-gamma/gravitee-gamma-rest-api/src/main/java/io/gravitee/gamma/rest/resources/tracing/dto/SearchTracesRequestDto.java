@@ -24,8 +24,8 @@ import java.util.List;
  * ({@code ?page=&perPage=}) — same convention as the apim management v2 {@code /logs/search}
  * endpoint.
  *
- * <p>{@code apiId} is required: per-API auth scope is enforced by the caller picking from APIs they
- * can see, and pinning to one apiId keeps each query bounded to a single resource-attribute term
+ * <p>{@code apiId} is required: the resource checks {@code API_LOG[READ]} on it, and pinning to one
+ * apiId keeps each query bounded to a single resource-attribute term
  * regardless of how many APIs the caller has access to. Module isn't carried on the wire — every
  * apiId belongs to exactly one module, so the API id alone is sufficient to scope the query.
  */
