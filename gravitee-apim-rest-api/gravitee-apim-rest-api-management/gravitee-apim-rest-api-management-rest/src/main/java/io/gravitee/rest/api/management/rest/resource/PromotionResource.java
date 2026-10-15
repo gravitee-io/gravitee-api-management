@@ -52,10 +52,15 @@ public class PromotionResource extends AbstractResource {
     @Parameter(name = "promotion", required = true, description = "The ID of the promotion")
     private String promotion;
 
+    @Deprecated
     @POST
     @Path("/_process")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Process an API promotion by accepting or rejecting it")
+    @Operation(
+        summary = "Process an API promotion by accepting or rejecting it",
+        deprecated = true,
+        description = "Use the Management API v2 process endpoint."
+    )
     @ApiResponse(
         responseCode = "200",
         description = "Processed promotion",
