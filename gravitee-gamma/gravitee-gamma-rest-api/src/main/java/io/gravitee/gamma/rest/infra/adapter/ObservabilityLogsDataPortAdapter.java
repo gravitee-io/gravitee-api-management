@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.infra.adapter;
 
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
@@ -102,7 +103,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
     @Override
     public List<AccessibleApi> loadAccessibleApis(String organizationId, String environmentId) {
         var auditInfo = currentAuditInfo(organizationId, environmentId);
-        var userContext = userContextLoader.loadApis(new UserContext(auditInfo));
+        var userContext = userContextLoader.loadApis(new UserContext(auditInfo), ApiDataKind.PER_REQUEST);
 
         return userContext
             .apis()
@@ -113,6 +114,22 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
     }
 
     @Override
+<<<<<<< HEAD
+=======
+    public Optional<AccessibleApi> loadAccessibleApi(String organizationId, String environmentId, String apiId) {
+        var auditInfo = currentAuditInfo(organizationId, environmentId);
+        var userContext = userContextLoader.loadApi(new UserContext(auditInfo), apiId, ApiDataKind.PER_REQUEST);
+
+        return userContext
+            .apis()
+            .orElseGet(Collections::emptyList)
+            .stream()
+            .findFirst()
+            .map(api -> new AccessibleApi(api.getId(), api.getName(), ApiTypeAdapter.toObservability(api.getType())));
+    }
+
+    @Override
+>>>>>>> 9292cf4 (fix(observability): scope analytics and logs to readable APIs)
     public LogsPage searchLogs(String organizationId, String environmentId, LogsSearchQuery query) {
         var executionContext = new ExecutionContext(organizationId, environmentId);
         var pageable = new PageableImpl(query.page(), query.perPage());

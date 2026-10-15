@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
@@ -513,4 +514,548 @@ class ObservabilityLogsDataPortAdapterTest {
         verify(connectionLogsCrudService).searchApiConnectionLogs(any(), captor.capture(), any(), any());
         return captor.getValue();
     }
+<<<<<<< HEAD
+=======
+
+    /**
+     * The two projections the connection indices cannot supply on their own: the entrypoint travels on
+     * the connection document but was previously dropped by the mapping, and the api type is not on
+     * the document at all — it is read by id from the API definition, scoped to the environment.
+     */
+    @Nested
+    class Projections {
+
+        @Test
+        void should_carry_the_connection_entrypoint_onto_the_log_row() {
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
+                new SearchLogsResponse<>(
+                    1,
+                    List.of(BaseConnectionLog.builder().apiId("api-1").requestId("req-1").entrypointId("sse").build())
+                )
+            );
+
+            var page = adapter.searchLogs(ORG, ENV, queryWith());
+
+            assertThat(page.data()).singleElement().extracting(LogEntry::entrypointId).isEqualTo("sse");
+        }
+
+        @Test
+        void should_resolve_the_api_type_onto_the_log_detail() {
+            when(apiCrudService.findById("api-1")).thenReturn(
+                Optional.of(Api.builder().id("api-1").name("API 1").environmentId(ENV).type(ApiType.MESSAGE).build())
+            );
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(
+                Optional.of(io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder().apiId("api-1").requestId("req-1").build())
+            );
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.apiType()).isEqualTo("MESSAGE");
+        }
+
+        /**
+         * The by-id read has no scope of its own, so the environment filter is the only thing keeping
+         * an API of another environment from reporting its type here.
+         */
+        @Test
+        void should_not_resolve_the_api_type_of_another_environment() {
+            when(apiCrudService.findById("api-1")).thenReturn(
+                Optional.of(Api.builder().id("api-1").name("API 1").environmentId("other-env").type(ApiType.MESSAGE).build())
+            );
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(
+                Optional.of(io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder().apiId("api-1").requestId("req-1").build())
+            );
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.apiType()).isNull();
+        }
+    }
+
+    /**
+     * The detail carries the same descriptive fields as the log search rows, read from the same sources,
+     * so a direct link to a detail shows what the row it came from shows.
+     */
+    @Nested
+    class DetailMatchesTheSearchRow {
+
+        private static final String PRODUCT_ID = "product-1";
+
+        @BeforeEach
+        void stubApiLookup() {
+            when(apiCrudService.findById("api-1")).thenReturn(
+                Optional.of(Api.builder().id("api-1").name("Payments MCP").environmentId(ENV).type(ApiType.MCP_PROXY).build())
+            );
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+        }
+
+        private void stubMetrics(io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail metrics) {
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(Optional.of(metrics));
+        }
+
+        private io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.ApiMetricsDetailBuilder metrics() {
+            return io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder().apiId("api-1").requestId("req-1");
+        }
+
+        @Test
+        void should_carry_the_api_name_the_entrypoint_and_the_mcp_method() {
+            stubMetrics(
+                metrics()
+                    .entrypointId("mcp-proxy")
+                    .additionalMetrics(Map.of(ConnectionLogAdapter.MCP_PROXY_METHOD_KEY, "tools/list"))
+                    .build()
+            );
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.apiName()).isEqualTo("Payments MCP");
+            assertThat(detail.entrypointId()).isEqualTo("mcp-proxy");
+            assertThat(detail.mcpMethod()).isEqualTo("tools/list");
+        }
+
+        @Test
+        void should_resolve_the_api_product_name_within_the_environment() {
+            when(apiProductQueryService.findByEnvironmentIdAndIdIn(ENV, Set.of(PRODUCT_ID))).thenReturn(
+                Set.of(ApiProduct.builder().id(PRODUCT_ID).environmentId(ENV).name("Payments bundle").build())
+            );
+            stubMetrics(metrics().apiProductId(PRODUCT_ID).build());
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.apiProductId()).isEqualTo(PRODUCT_ID);
+            assertThat(detail.apiProductName()).isEqualTo("Payments bundle");
+        }
+
+        @Test
+        void should_label_a_request_outside_any_api_product_as_standalone() {
+            stubMetrics(metrics().build());
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.apiProductName()).isEqualTo("Standalone API");
+            verifyNoInteractions(apiProductQueryService);
+        }
+
+        @Test
+        void should_leave_the_mcp_method_null_outside_an_mcp_request() {
+            stubMetrics(metrics().additionalMetrics(Map.of("keyword_llm-proxy_model", "gpt-4o-mini")).build());
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.mcpMethod()).isNull();
+        }
+    }
+
+    @Nested
+    class DetailCredential {
+
+        /**
+         * The detail resolves the api type through a by-id read, so every detail test goes through it.
+         * These cases are about the credential, not about the api type: answer empty so the type stays
+         * null and the assertions below stay about what they name.
+         */
+        @BeforeEach
+        void stubApiLookup() {
+            when(apiCrudService.findById("api-1")).thenReturn(Optional.empty());
+        }
+
+        /**
+         * Scope. securityType/securityToken are root document fields carried by every API type, so an HTTP
+         * document reaches this mapping too. The pair is added for native Kafka connections and nothing
+         * renders it elsewhere, so it stops here — widening it is a separate decision.
+         *
+         * <p>The sibling below covers the other, independent condition: the token is the credential itself
+         * on an API-key plan, and that is what the allow-list guards, native or not.
+         */
+        @Test
+        void should_not_expose_the_security_credential_on_a_non_native_document() {
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(
+                Optional.of(
+                    io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder()
+                        .apiId("api-1")
+                        .requestId("req-1")
+                        .securityType("API_KEY")
+                        .securityToken("f4c1a0de-live-api-key")
+                        .build()
+                )
+            );
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            // Out of scope, so neither field is emitted — this PR adds the pair for native connections and
+            // no screen renders it elsewhere. The token would additionally be withheld by the allow-list.
+            assertThat(detail.securityType()).isNull();
+            assertThat(detail.securityToken()).isNull();
+        }
+
+        /**
+         * The case the previous "is this a native document" guard let through: a native Kafka API may carry
+         * an API-key plan (nothing in PlanValidatorDomainService forbids it), and the invariant that made the
+         * token safe there — the reactor never writing the key — lives in another repository, so no test here
+         * would catch its regression. Keying on the credential type fails closed instead.
+         */
+        @Test
+        void should_not_expose_the_token_of_an_api_key_plan_even_on_a_native_document() {
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(
+                Optional.of(
+                    io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder()
+                        .apiId("api-1")
+                        .requestId("req-1")
+                        .securityType("API_KEY")
+                        .securityToken("f4c1a0de-live-api-key")
+                        .additionalMetrics(Map.of(NativeApiMetricKeys.CONNECTION_STATUS, "CONNECTED"))
+                        .build()
+                )
+            );
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            // The type stays: knowing the connection authenticated with an API key is not a leak.
+            assertThat(detail.securityType()).isEqualTo("API_KEY");
+            assertThat(detail.securityToken()).isNull();
+        }
+
+        @Test
+        void should_expose_the_security_credential_on_a_native_connection_document() {
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(
+                Optional.of(
+                    io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder()
+                        .apiId("api-1")
+                        .requestId("req-1")
+                        .securityType("JWT")
+                        .securityToken("oauth-client-1")
+                        .additionalMetrics(Map.of(NativeApiMetricKeys.CONNECTION_STATUS, "CONNECTED"))
+                        .build()
+                )
+            );
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.securityType()).isEqualTo("JWT");
+            assertThat(detail.securityToken()).isEqualTo("oauth-client-1");
+        }
+    }
+
+    @Nested
+    class AuthzDecisions {
+
+        @Test
+        void should_read_decisions_instead_of_connection_logs() {
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(
+                new SearchLogsResponse<>(
+                    3,
+                    List.of(
+                        AuthzDecisionLog.builder()
+                            .eventId("evt-1")
+                            .apiId("api-1")
+                            .timestamp(1_000L)
+                            .requestId("req-1")
+                            .gatewayId("gateway-1")
+                            .status("success")
+                            .caller("pep")
+                            .targetPdpId("pdp-a")
+                            .policyGeneration("42")
+                            .decision("FORBID")
+                            .outcome("DENY")
+                            .enforced("DENY")
+                            .matchedRules(List.of(new AuthzDecisionLog.MatchedRule("p1", "orders", "2026-09-23T10:00:00Z", "FORBID")))
+                            .reasons(List.of("blocked"))
+                            .subjectType("User")
+                            .subjectId("alice")
+                            .action("read")
+                            .resourceType("Doc")
+                            .resourceId("d1")
+                            .batchId("batch-1")
+                            .batchIndex(1)
+                            .batchSize(2)
+                            .durationNanos(4_200L)
+                            .errorType("TimeoutException")
+                            .build()
+                    )
+                )
+            );
+
+            var page = adapter.searchLogs(ORG, ENV, decisionQuery());
+
+            assertThat(page.totalCount()).isEqualTo(3);
+            var entry = page.data().getFirst();
+            assertThat(entry.apiName()).isEqualTo("API 1");
+            assertThat(entry.timestamp()).isEqualTo(Instant.ofEpochMilli(1_000L));
+            assertThat(entry.authz())
+                .isNotNull()
+                .isEqualTo(
+                    AuthzDecision.builder()
+                        .eventId("evt-1")
+                        .decision("FORBID")
+                        .outcome("DENY")
+                        .enforced("DENY")
+                        .status("success")
+                        .caller("pep")
+                        .targetPdpId("pdp-a")
+                        .policyGeneration("42")
+                        .matchedRules(List.of(new AuthzDecision.MatchedRule("p1", "orders", "2026-09-23T10:00:00Z", "FORBID")))
+                        .reasons(List.of("blocked"))
+                        .subjectType("User")
+                        .subjectId("alice")
+                        .action("read")
+                        .resourceType("Doc")
+                        .resourceId("d1")
+                        .batchId("batch-1")
+                        .batchIndex(1)
+                        .batchSize(2)
+                        .durationNanos(4_200L)
+                        .errorType("TimeoutException")
+                        .build()
+                );
+            assertThat(entry.additionalMetrics()).isNull();
+            verifyNoInteractions(connectionLogsCrudService);
+        }
+
+        @Test
+        void should_leave_absent_decision_details_null() {
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(
+                new SearchLogsResponse<>(1, List.of(AuthzDecisionLog.builder().eventId("evt-1").apiId("api-1").build()))
+            );
+
+            var entry = adapter.searchLogs(ORG, ENV, decisionQuery()).data().getFirst();
+
+            assertThat(entry.timestamp()).isNull();
+            assertThat(entry.authz().eventId()).isEqualTo("evt-1");
+            assertThat(entry.authz().decision()).isNull();
+            assertThat(entry.authz().subjectId()).isNull();
+            assertThat(entry.authz().batchIndex()).isNull();
+        }
+
+        @Test
+        void should_translate_the_decision_condition_into_a_repository_filter() {
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(new SearchLogsResponse<>(0, List.of()));
+
+            adapter.searchLogs(
+                ORG,
+                ENV,
+                decisionQueryWith(new FilterCondition("AUTHZ_DECISION", FilterOperator.IN, List.of("PERMIT", "FORBID")))
+            );
+
+            var captor = ArgumentCaptor.forClass(AuthzDecisionLogFilters.class);
+            verify(authzDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
+            assertThat(captor.getValue().decisions()).containsExactly("PERMIT", "FORBID");
+            assertThat(captor.getValue().apiIds()).containsExactly("api-1");
+        }
+
+        @Test
+        void should_route_every_decision_condition_to_its_own_repository_field() {
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(new SearchLogsResponse<>(0, List.of()));
+
+            adapter.searchLogs(
+                ORG,
+                ENV,
+                decisionQueryWith(
+                    new FilterCondition("AUTHZ_STATUS", FilterOperator.EQ, List.of("error")),
+                    new FilterCondition("AUTHZ_INDETERMINATE_CAUSE", FilterOperator.EQ, List.of("NOT_READY")),
+                    new FilterCondition("AUTHZ_ERROR_TYPE", FilterOperator.IN, List.of("evaluation_timeout")),
+                    new FilterCondition("AUTHZ_PDP", FilterOperator.EQ, List.of("pdp-a")),
+                    new FilterCondition("AUTHZ_MATCHED_POLICY", FilterOperator.EQ, List.of("forbid-delete")),
+                    new FilterCondition("AUTHZ_POLICY_VERSION", FilterOperator.EQ, List.of("9")),
+                    new FilterCondition("REQUEST_ID", FilterOperator.EQ, List.of("req-1")),
+                    new FilterCondition("AUTHZ_REASON", FilterOperator.CONTAINS, List.of("forbid"))
+                )
+            );
+
+            var captor = ArgumentCaptor.forClass(AuthzDecisionLogFilters.class);
+            verify(authzDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
+            var filters = captor.getValue();
+            // Distinct values per field: swapping two mappings would otherwise still satisfy the assertions.
+            assertThat(filters.statuses()).containsExactly("error");
+            assertThat(filters.indeterminateCauses()).containsExactly("NOT_READY");
+            assertThat(filters.errorTypes()).containsExactly("evaluation_timeout");
+            assertThat(filters.targetPdpIds()).containsExactly("pdp-a");
+            assertThat(filters.matchedPolicyNames()).containsExactly("forbid-delete");
+            assertThat(filters.policyGenerations()).containsExactly("9");
+            assertThat(filters.requestIds()).containsExactly("req-1");
+            assertThat(filters.reasonContains()).isEqualTo("forbid");
+        }
+
+        @Test
+        void should_pass_the_engine_generation_through_as_the_keyword_it_is_stored_as() {
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(new SearchLogsResponse<>(0, List.of()));
+
+            adapter.searchLogs(ORG, ENV, decisionQueryWith(new FilterCondition("AUTHZ_POLICY_VERSION", FilterOperator.EQ, List.of("v9"))));
+
+            var captor = ArgumentCaptor.forClass(AuthzDecisionLogFilters.class);
+            verify(authzDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
+            assertThat(captor.getValue().policyGenerations()).containsExactly("v9");
+        }
+
+        @Test
+        void should_skip_a_blank_reason_value_rather_than_dropping_the_whole_clause() {
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(new SearchLogsResponse<>(0, List.of()));
+
+            // The validator only refuses a condition whose values are all blank, so a leading blank would
+            // otherwise silently return the unfiltered set under an active filter chip.
+            adapter.searchLogs(
+                ORG,
+                ENV,
+                decisionQueryWith(new FilterCondition("AUTHZ_REASON", FilterOperator.CONTAINS, Arrays.asList("", "forbid")))
+            );
+
+            var captor = ArgumentCaptor.forClass(AuthzDecisionLogFilters.class);
+            verify(authzDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
+            assertThat(captor.getValue().reasonContains()).isEqualTo("forbid");
+        }
+
+        @Test
+        void should_leave_the_decision_filter_empty_when_none_is_requested() {
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(new SearchLogsResponse<>(0, List.of()));
+
+            adapter.searchLogs(ORG, ENV, decisionQuery());
+
+            var captor = ArgumentCaptor.forClass(AuthzDecisionLogFilters.class);
+            verify(authzDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
+            assertThat(captor.getValue().decisions()).isEmpty();
+        }
+
+        @Test
+        void should_not_read_a_decision_for_an_api_the_caller_cannot_access() {
+            when(userContextLoader.loadApi(any(), eq("api-1"), eq(ApiDataKind.PER_REQUEST))).thenAnswer(invocation ->
+                invocation.getArgument(0)
+            );
+
+            var decision = adapter.getDecision(ORG, ENV, "api-1", "evt-1");
+
+            assertThat(decision).isEmpty();
+            // The scoping has to happen before the store is touched, otherwise the guard is decorative.
+            verifyNoInteractions(authzDecisionLogsCrudService);
+        }
+
+        @Test
+        void should_resolve_the_api_by_id_rather_than_loading_the_whole_environment() {
+            grantAccessToApi1();
+            when(authzDecisionLogsCrudService.findDecisionLog(any(), eq("api-1"), eq("evt-1"))).thenReturn(
+                Optional.of(AuthzDecisionLog.builder().eventId("evt-1").apiId("api-1").build())
+            );
+
+            adapter.getDecision(ORG, ENV, "api-1", "evt-1");
+
+            // Opening one decision must not pay for every api in the environment.
+            verify(userContextLoader).loadApi(any(), eq("api-1"), eq(ApiDataKind.PER_REQUEST));
+            verify(userContextLoader, never()).loadApis(any(), any());
+        }
+
+        @Test
+        void should_read_the_decision_of_an_accessible_api_and_enrich_it_with_the_api_identity() {
+            grantAccessToApi1();
+            when(authzDecisionLogsCrudService.findDecisionLog(any(), eq("api-1"), eq("evt-1"))).thenReturn(
+                Optional.of(AuthzDecisionLog.builder().eventId("evt-1").apiId("api-1").requestId("req-1").decision("PERMIT").build())
+            );
+
+            var decision = adapter.getDecision(ORG, ENV, "api-1", "evt-1");
+
+            assertThat(decision).isPresent();
+            assertThat(decision.get().requestId()).isEqualTo("req-1");
+            assertThat(decision.get().apiName()).isEqualTo("API 1");
+            assertThat(decision.get().apiType()).isEqualTo("AUTHZ");
+        }
+
+        @Test
+        void should_report_no_decision_when_the_accessible_api_has_no_such_event() {
+            grantAccessToApi1();
+            when(authzDecisionLogsCrudService.findDecisionLog(any(), eq("api-1"), eq("gone"))).thenReturn(Optional.empty());
+
+            assertThat(adapter.getDecision(ORG, ENV, "api-1", "gone")).isEmpty();
+        }
+
+        private void grantAccessToApi1() {
+            when(userContextLoader.loadApi(any(), eq("api-1"), eq(ApiDataKind.PER_REQUEST))).thenAnswer(invocation ->
+                ((UserContext) invocation.getArgument(0)).withApis(
+                    List.of(Api.builder().id("api-1").name("API 1").type(ApiType.AUTHZ).build())
+                )
+            );
+        }
+
+        private LogsSearchQuery decisionQuery() {
+            return decisionQueryWith();
+        }
+
+        private LogsSearchQuery decisionQueryWith(FilterCondition... conditions) {
+            return LogsSearchQuery.builder()
+                .apiIds(Set.of("api-1"))
+                .apisById(Map.of("api-1", new ApiReference("API 1", "HTTP_PROXY")))
+                .conditions(List.of(conditions))
+                .page(1)
+                .perPage(20)
+                .recordType(RecordType.AUTHZ_DECISION)
+                .build();
+        }
+    }
+
+    @Nested
+    class SearchMessages {
+
+        @Test
+        void should_map_both_legs_of_a_message() {
+            var message = AggregatedMessageLog.builder()
+                .requestId("req-1")
+                .apiId("api-1")
+                .timestamp("2026-08-24T13:14:59.395Z")
+                .clientIdentifier("client-1")
+                .correlationId("corr-1")
+                .operation(MessageOperation.PUBLISH)
+                .entrypoint(
+                    AggregatedMessageLog.Message.builder()
+                        .id("msg-1")
+                        .connectorId("http-post")
+                        .payload("{\"order\":200}")
+                        .isError(false)
+                        .headers(Map.of("content-type", List.of("application/json")))
+                        .build()
+                )
+                .endpoint(AggregatedMessageLog.Message.builder().id("msg-1").connectorId("kafka").payload("{\"order\":200}").build())
+                .build();
+            when(aggregatedMessageLogCrudService.searchApiAggregatedMessageLog(any(), eq("api-1"), eq("req-1"), any())).thenReturn(
+                new SearchLogsResponse<>(1L, List.of(message))
+            );
+
+            var page = adapter.searchMessages("org-1", "env-1", "api-1", "req-1", 1, 20);
+
+            assertThat(page.totalCount()).isEqualTo(1);
+            var mapped = page.data().getFirst();
+            assertThat(mapped.operation()).isEqualTo("PUBLISH");
+            assertThat(mapped.timestamp()).isEqualTo("2026-08-24T13:14:59.395Z");
+            assertThat(mapped.entrypoint().connectorId()).isEqualTo("http-post");
+            assertThat(mapped.entrypoint().headers()).containsKey("content-type");
+            assertThat(mapped.endpoint().connectorId()).isEqualTo("kafka");
+        }
+
+        @Test
+        void should_return_an_empty_page_when_the_api_records_no_message_logs() {
+            when(aggregatedMessageLogCrudService.searchApiAggregatedMessageLog(any(), eq("api-1"), eq("req-1"), any())).thenReturn(
+                new SearchLogsResponse<>(0L, List.of())
+            );
+
+            assertThat(adapter.searchMessages("org-1", "env-1", "api-1", "req-1", 1, 20)).isEqualTo(MessageLogsPage.EMPTY);
+        }
+
+        /**
+         * A page past the end is not a connection that recorded nothing: the total has to survive the
+         * empty page, or the client cannot tell the two apart and has no count to paginate back with.
+         * The sibling above cannot catch this — its total is already zero.
+         */
+        @Test
+        void should_keep_the_total_on_a_page_past_the_end() {
+            when(aggregatedMessageLogCrudService.searchApiAggregatedMessageLog(any(), eq("api-1"), eq("req-1"), any())).thenReturn(
+                new SearchLogsResponse<>(30L, List.of())
+            );
+
+            var page = adapter.searchMessages("org-1", "env-1", "api-1", "req-1", 3, 20);
+
+            assertThat(page.data()).isEmpty();
+            assertThat(page.totalCount()).isEqualTo(30);
+        }
+    }
+>>>>>>> 9292cf4 (fix(observability): scope analytics and logs to readable APIs)
 }
