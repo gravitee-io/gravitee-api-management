@@ -38,9 +38,7 @@ public class DeletePortalNavigationItemUseCase {
             throw new PortalNavigationItemNotFoundException(input.navigationItemId().json());
         }
 
-        if (existing.getSource() != null) {
-            throw InvalidPortalNavigationItemDataException.sourcedItemCannotBeDeleted(existing.getId().json());
-        }
+        // What is below a synced item is managed by it, and goes only with it.
         if (sourcedItemsDomainService.findSourcedAncestor(input.environmentId(), existing).isPresent()) {
             throw InvalidPortalNavigationItemDataException.childOfSourcedItemIsReadOnly(existing.getId().json());
         }

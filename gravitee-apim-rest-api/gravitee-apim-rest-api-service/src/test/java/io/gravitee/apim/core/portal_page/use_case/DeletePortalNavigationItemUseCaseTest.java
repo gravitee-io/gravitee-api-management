@@ -246,7 +246,7 @@ public class DeletePortalNavigationItemUseCaseTest {
     }
 
     @Test
-    void should_reject_delete_of_sourced_item() {
+    void should_delete_a_sourced_page_without_removing_its_source_first() {
         var sourcedPage = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "page11", null)
             .toBuilder()
             .source(aSource())
@@ -255,20 +255,38 @@ public class DeletePortalNavigationItemUseCaseTest {
         portalNavigationItemsCrudService.initWith(List.of(sourcedPage));
         portalNavigationItemsQueryService.initWith(List.of(sourcedPage));
 
-        var error = org.junit.jupiter.api.Assertions.assertThrows(
-            io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException.class,
-            () ->
-                deletePortalNavigationItemUseCase.execute(
-                    new DeletePortalNavigationItemUseCase.Input(
-                        PortalNavigationItemFixtures.ORG_ID,
-                        PortalNavigationItemFixtures.ENV_ID,
-                        sourcedPage.getId()
-                    )
-                )
+        deletePortalNavigationItemUseCase.execute(
+            new DeletePortalNavigationItemUseCase.Input(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                sourcedPage.getId()
+            )
         );
 
-        assertThat(error).hasMessageContaining("cannot be deleted");
-        assertThat(portalNavigationItemsCrudService.storage()).hasSize(1);
+        assertThat(portalNavigationItemsCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_delete_an_imported_folder_with_everything_it_holds() {
+        var importedFolder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemFixtures.FOLDER_ID, "Imported Folder")
+            .toBuilder()
+            .source(aSource().toBuilder().subtreeImport(true).build())
+            .build();
+        importedFolder.markAsRoot();
+        var child = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "Child Page", importedFolder.getId());
+        child.updateParent(importedFolder);
+        portalNavigationItemsCrudService.initWith(List.of(importedFolder, child));
+        portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
+
+        deletePortalNavigationItemUseCase.execute(
+            new DeletePortalNavigationItemUseCase.Input(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                importedFolder.getId()
+            )
+        );
+
+        assertThat(portalNavigationItemsCrudService.storage()).isEmpty();
     }
 
     @Test
