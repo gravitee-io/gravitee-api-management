@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.spring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.analytics.domain_service.EnvironmentAnalyticsApisDomainService;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
@@ -40,10 +41,8 @@ import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.resource.api.RemoteApiDefinitionParser;
 import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
 import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
-import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -106,8 +105,8 @@ public class RestManagementConfiguration {
     }
 
     @Bean
-    public UserContextLoader userContextLoader(ApiAuthorizationService apiAuthorizationService, @Lazy ApiRepository apiRepository) {
-        return new UserContextLoaderImpl(apiAuthorizationService, apiRepository);
+    public UserContextLoader userContextLoader(EnvironmentAnalyticsApisDomainService environmentAnalyticsApisDomainService) {
+        return new UserContextLoaderImpl(environmentAnalyticsApisDomainService);
     }
 
     @Bean
@@ -120,11 +119,7 @@ public class RestManagementConfiguration {
     }
 
     @Bean
-    public ManagementContextLoader managementContextLoader(
-        ApiAuthorizationService apiAuthorizationService,
-        @Lazy ApiRepository apiRepository,
-        PermissionService permissionService
-    ) {
-        return new ManagementContextLoader(apiAuthorizationService, apiRepository, permissionService);
+    public ManagementContextLoader managementContextLoader(EnvironmentAnalyticsApisDomainService environmentAnalyticsApisDomainService) {
+        return new ManagementContextLoader(environmentAnalyticsApisDomainService);
     }
 }

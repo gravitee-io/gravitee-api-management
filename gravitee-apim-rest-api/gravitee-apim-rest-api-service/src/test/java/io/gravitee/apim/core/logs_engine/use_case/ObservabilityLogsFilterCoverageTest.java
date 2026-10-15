@@ -17,6 +17,7 @@ package io.gravitee.apim.core.logs_engine.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -25,6 +26,7 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.repository.ConnectionLogFixtures;
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
@@ -134,7 +136,7 @@ class ObservabilityLogsFilterCoverageTest {
         when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
             new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(LOG))
         );
-        when(userContextLoader.loadApis(any())).thenReturn(
+        when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenReturn(
             new UserContext(
                 AUDIT_INFO,
                 Optional.empty(),
