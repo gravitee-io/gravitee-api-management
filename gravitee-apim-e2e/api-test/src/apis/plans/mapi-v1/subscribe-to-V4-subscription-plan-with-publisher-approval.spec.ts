@@ -29,7 +29,7 @@ import { verifyWiremockRequest } from '@gravitee/utils/wiremock';
 import { faker } from '@faker-js/faker';
 import { sleep } from '@gravitee/utils/apim-http';
 import { describeIfV4EmulationEngine } from '@lib/jest-utils';
-import { Api, APIPlansApi, APIsApi, Plan, PlanMode, PlanValidation } from '@gravitee/management-v2-webclient-sdk/src/lib';
+import { Api, APIPlansApi, APIsApi, Plan, PlanMode, PlanValidation, UpdateApi } from '@gravitee/management-v2-webclient-sdk/src/lib';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -76,6 +76,17 @@ describeIfV4EmulationEngine('V4 subscription plan subscription and approval work
           },
         ],
       }),
+    });
+
+    // the portal only lets users subscribe to a public API published to the catalog
+    await apisResource.updateApi({
+      envId,
+      apiId: api.id,
+      updateApi: {
+        ...api,
+        lifecycleState: 'PUBLISHED',
+        visibility: 'PUBLIC',
+      } as UpdateApi,
     });
 
     // create a subscription plan
