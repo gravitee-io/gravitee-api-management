@@ -65,11 +65,7 @@ class ApiDocumentSearcherFilterTest {
             }
             writer.commit();
 
-            var query = QueryBuilder.create(ApiEntity.class)
-                .setQuery("common")
-                .setFilters(Map.of("api", allowedApiIds))
-                .setTypoTolerance(false)
-                .build();
+            var query = QueryBuilder.create(ApiEntity.class).setQuery("common").setFilters(Map.of("api", allowedApiIds)).build();
 
             return new ApiDocumentSearcher(writer).search(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID), query).getDocuments();
         }

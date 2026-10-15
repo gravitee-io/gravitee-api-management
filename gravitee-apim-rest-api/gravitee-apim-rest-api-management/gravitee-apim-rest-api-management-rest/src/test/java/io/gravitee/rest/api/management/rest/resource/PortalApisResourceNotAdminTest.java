@@ -35,8 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 
 public class PortalApisResourceNotAdminTest extends AbstractResourceTest {
 
@@ -52,7 +52,7 @@ public class PortalApisResourceNotAdminTest extends AbstractResourceTest {
         resourceConfig.register(NotAdminAuthenticationFilter.class);
     }
 
-    @BeforeEach
+    @Before
     public void resetMocks() {
         reset(apiService);
     }
