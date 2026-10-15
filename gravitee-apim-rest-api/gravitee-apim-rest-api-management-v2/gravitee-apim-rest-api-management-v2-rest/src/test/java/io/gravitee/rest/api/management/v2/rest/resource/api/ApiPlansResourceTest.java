@@ -1064,7 +1064,13 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             apiCrudServiceInMemory.initWith(List.of(fixtures.core.model.ApiFixtures.aNativeApi().toBuilder().id(API).build()));
             when(groupService.findAllByEnvironment(anyString())).thenReturn(mockExcludedGroups());
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(
-                PlanFixtures.aNativePlanEntityV4().toBuilder().id(PLAN).apiId(API).build()
+                PlanFixtures.aNativePlanEntityV4()
+                    .toBuilder()
+                    .id(PLAN)
+                    .apiId(API)
+                    .referenceId(API)
+                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                    .build()
             );
             when(updatePlanUseCase.execute(any())).thenAnswer(invocation -> {
                 UpdatePlanUseCase.Input input = invocation.getArgument(0);
@@ -1112,7 +1118,13 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         @Test
         public void should_return_bad_request_when_setting_definition_to_v2_on_v4_plan() {
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(
-                PlanFixtures.aPlanEntityV2().toBuilder().id(PLAN).api(API).build()
+                PlanFixtures.aPlanEntityV2()
+                    .toBuilder()
+                    .id(PLAN)
+                    .api(API)
+                    .referenceId(API)
+                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                    .build()
             );
 
             final UpdatePlanV4 updatePlanV4 = PlanFixtures.anUpdatePlanV4();
@@ -1430,7 +1442,13 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_plan_when_v4_plan_closed() {
-            final PlanEntity planEntity = PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).apiId(API).build();
+            final PlanEntity planEntity = PlanFixtures.aPlanEntityV4()
+                .toBuilder()
+                .id(PLAN)
+                .apiId(API)
+                .referenceId(API)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .build();
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
             when(planServiceV4.close(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(
                 planEntity.toBuilder().status(PlanStatus.CLOSED).build()
@@ -1446,7 +1464,13 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_plan_when_v4_native_plan_closed() {
-            var planEntity = PlanFixtures.aNativePlanEntityV4().toBuilder().id(PLAN).apiId(API).build();
+            var planEntity = PlanFixtures.aNativePlanEntityV4()
+                .toBuilder()
+                .id(PLAN)
+                .apiId(API)
+                .referenceId(API)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .build();
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
             when(planServiceV4.close(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(
                 planEntity.toBuilder().status(PlanStatus.CLOSED).build()
@@ -1462,7 +1486,13 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_plan_when_v2_plan_closed() {
-            final io.gravitee.rest.api.model.PlanEntity planEntity = PlanFixtures.aPlanEntityV2().toBuilder().id(PLAN).api(API).build();
+            final io.gravitee.rest.api.model.PlanEntity planEntity = PlanFixtures.aPlanEntityV2()
+                .toBuilder()
+                .id(PLAN)
+                .api(API)
+                .referenceId(API)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .build();
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
             when(planServiceV4.close(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(
                 planEntity.toBuilder().status(io.gravitee.rest.api.model.PlanStatus.CLOSED).build()
@@ -1543,7 +1573,13 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_deprecate_v4_plan() {
-            final PlanEntity planEntity = PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).apiId(API).build();
+            final PlanEntity planEntity = PlanFixtures.aPlanEntityV4()
+                .toBuilder()
+                .id(PLAN)
+                .apiId(API)
+                .referenceId(API)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .build();
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
             when(planServiceV4.deprecate(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(
                 planEntity.toBuilder().status(PlanStatus.DEPRECATED).build()
@@ -1560,7 +1596,13 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_deprecate_v4_native_plan() {
-            var planEntity = PlanFixtures.aNativePlanEntityV4().toBuilder().id(PLAN).apiId(API).build();
+            var planEntity = PlanFixtures.aNativePlanEntityV4()
+                .toBuilder()
+                .id(PLAN)
+                .apiId(API)
+                .referenceId(API)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .build();
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
             when(planServiceV4.deprecate(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(
                 planEntity.toBuilder().status(PlanStatus.DEPRECATED).build()
@@ -1577,7 +1619,13 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_deprecate_v2_plan() {
-            final io.gravitee.rest.api.model.PlanEntity planEntity = PlanFixtures.aPlanEntityV2().toBuilder().id(PLAN).api(API).build();
+            final io.gravitee.rest.api.model.PlanEntity planEntity = PlanFixtures.aPlanEntityV2()
+                .toBuilder()
+                .id(PLAN)
+                .api(API)
+                .referenceId(API)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .build();
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
             when(planServiceV2.deprecate(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(
                 planEntity.toBuilder().status(io.gravitee.rest.api.model.PlanStatus.DEPRECATED).build()
@@ -1720,6 +1768,61 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .asEntity(PlanV2.class)
                 .extracting(PlanV2::getId, PlanV2::getStatus)
                 .containsExactly(PLAN, io.gravitee.rest.api.management.v2.rest.model.PlanStatus.PUBLISHED);
+        }
+    }
+
+    @Nested
+    class ApiProductPlans {
+
+        @BeforeEach
+        void setUp() {
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(
+                PlanFixtures.aPlanEntityV4()
+                    .toBuilder()
+                    .id(PLAN)
+                    .referenceId("AN-API-PRODUCT")
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .build()
+            );
+        }
+
+        @Test
+        public void should_return_404_when_getting_an_api_product_plan() {
+            assertNotFound(rootTarget(PLAN).request().get());
+        }
+
+        @Test
+        public void should_return_404_when_updating_an_api_product_plan() {
+            assertNotFound(rootTarget(PLAN).request().put(Entity.json(PlanFixtures.anUpdatePlanV4())));
+        }
+
+        @Test
+        public void should_return_404_when_deleting_an_api_product_plan() {
+            assertNotFound(rootTarget(PLAN).request().delete());
+        }
+
+        @Test
+        public void should_return_404_when_closing_an_api_product_plan() {
+            assertNotFound(rootTarget(PLAN).path("_close").request().post(Entity.json(null)));
+        }
+
+        @Test
+        public void should_return_404_when_publishing_an_api_product_plan() {
+            assertNotFound(rootTarget(PLAN).path("_publish").request().post(Entity.json(null)));
+        }
+
+        @Test
+        public void should_return_404_when_deprecating_an_api_product_plan() {
+            assertNotFound(rootTarget(PLAN).path("_deprecate").request().post(Entity.json(null)));
+        }
+
+        private void assertNotFound(Response response) {
+            assertThat(response)
+                .hasStatus(NOT_FOUND_404)
+                .asError()
+                .hasHttpStatus(NOT_FOUND_404)
+                .hasMessage("Plan [" + PLAN + "] cannot be found.");
+            verifyNoInteractions(planServiceV4, planServiceV2);
         }
     }
 }
