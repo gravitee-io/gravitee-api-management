@@ -22,6 +22,7 @@ import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
 import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
 import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
+import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { PortalApplicationFaker } from '@gravitee/fixtures/portal/PortalApplicationFaker';
 import { GetSubscriptionByIdIncludeEnum, SubscriptionApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/SubscriptionApi';
@@ -63,6 +64,7 @@ describe('Subscribe using shared API-Key and use it', () => {
       envId,
       orgId,
       body: ApisFaker.apiImport({
+        visibility: Visibility.PUBLIC,
         plans: [PlansFaker.plan({ security: PlanSecurityType.API_KEY, status: PlanStatus.PUBLISHED })],
       }),
     });
@@ -71,6 +73,7 @@ describe('Subscribe using shared API-Key and use it', () => {
       envId,
       orgId,
       body: ApisFaker.apiImport({
+        visibility: Visibility.PUBLIC,
         plans: [PlansFaker.plan({ security: PlanSecurityType.API_KEY, status: PlanStatus.PUBLISHED })],
       }),
     });
