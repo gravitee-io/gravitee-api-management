@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.integration.tests.http.flows;
+package io.gravitee.apim.gateway.integration.tests.http.flows;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -24,6 +24,8 @@ import static io.gravitee.apim.gateway.tests.sdk.utils.HttpClientUtils.extractHe
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
+import io.gravitee.apim.gateway.integration.tests.fake.AddHeadersPolicy;
+import io.gravitee.apim.gateway.integration.tests.fake.AddHeadersPolicyConfiguration;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
@@ -34,8 +36,6 @@ import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.gravitee.policy.transformheaders.TransformHeadersPolicy;
-import io.gravitee.policy.transformheaders.configuration.TransformHeadersPolicyConfiguration;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
@@ -58,7 +58,7 @@ class FlowPhaseExecutionV3IntegrationTest {
 
     public static final String RESPONSE_FROM_BACKEND = "response from backend";
     public static final String PARAMETERS_PROVIDERS_CLASS =
-        "io.gravitee.apim.integration.tests.http.flows.FlowPhaseExecutionParameterProviders#";
+        "io.gravitee.apim.gateway.integration.tests.http.flows.FlowPhaseExecutionParameterProviders#";
 
     /**
      * Inherit from this class to have the required configuration to run each tests of this class
@@ -69,7 +69,7 @@ class FlowPhaseExecutionV3IntegrationTest {
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             policies.putIfAbsent(
                 "transform-headers",
-                PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
+                PolicyBuilder.build("transform-headers", AddHeadersPolicy.class, AddHeadersPolicyConfiguration.class)
             );
         }
     }
