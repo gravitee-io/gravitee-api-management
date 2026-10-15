@@ -19,10 +19,12 @@ import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationRequest;
 import java.util.List;
+import java.util.Locale;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -31,7 +33,7 @@ public interface ClientRegistrationMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE, ignoreByDefault = true)
     @Mapping(source = "name", target = "clientName")
-    @Mapping(source = "settings.oauth.applicationType", target = "applicationType")
+    @Mapping(source = "settings.oauth.applicationType", target = "applicationType", qualifiedByName = "registrationApplicationType")
     @Mapping(source = "settings.oauth.clientUri", target = "clientUri")
     @Mapping(source = "settings.oauth.grantTypes", target = "grantTypes")
     @Mapping(source = "settings.oauth.logoUri", target = "logoUri")
@@ -44,13 +46,22 @@ public interface ClientRegistrationMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE, ignoreByDefault = true)
     @Mapping(source = "name", target = "clientName")
-    @Mapping(source = "settings.oauth.applicationType", target = "applicationType")
+    @Mapping(source = "settings.oauth.applicationType", target = "applicationType", qualifiedByName = "registrationApplicationType")
     @Mapping(source = "settings.oauth.clientUri", target = "clientUri")
     @Mapping(source = "settings.oauth.grantTypes", target = "grantTypes")
     @Mapping(source = "settings.oauth.logoUri", target = "logoUri")
     @Mapping(source = "settings.oauth.redirectUris", target = "redirectUris")
     @Mapping(source = "settings.oauth.responseTypes", target = "responseTypes")
     void toClientRegistrationRequest(@MappingTarget ClientRegistrationRequest target, UpdateApplicationEntity application);
+
+    /**
+     * OpenID Connect Dynamic Client Registration 1.0 §2 defines application_type as lowercase
+     * ({@code web}, {@code native}). {@code browser} is an Access Management extension. Providers match the value case-sensitively.
+     */
+    @Named("registrationApplicationType")
+    default String registrationApplicationType(String applicationType) {
+        return applicationType == null ? null : applicationType.toLowerCase(Locale.ROOT);
+    }
 
     @BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE)
     void mergeClientRegistrationRequest(@MappingTarget ClientRegistrationRequest target, ClientRegistrationRequest source);
