@@ -98,9 +98,25 @@ public class ManagementContextLoader implements AnalyticsQueryContextLoader {
         return new AnalyticsQueryContext(auditInfo, executionContext, authorizedApiIds, apiNamesById, Map.of(), apiIdsByType);
     }
 
-    /** Users with the environment-level API READ permission (e.g. API_PUBLISHER) are scoped to all environment APIs. */
+    /**
+     * Users with environment-wide platform or dashboard read (e.g. API_PUBLISHER) are scoped to all environment APIs.
+     * {@code ENVIRONMENT_API[READ]} is not enough: the default USER role holds it to list APIs, not to observe them all.
+     */
     private boolean canReadEnvironmentApis(ExecutionContext executionContext, String environmentId) {
-        return permissionService.hasPermission(executionContext, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.READ);
+        return (
+            permissionService.hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_PLATFORM,
+                environmentId,
+                RolePermissionAction.READ
+            ) ||
+            permissionService.hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_DASHBOARD,
+                environmentId,
+                RolePermissionAction.READ
+            )
+        );
     }
 
     private static Map<String, String> mapApiIdsToNames(Collection<Api> apis) {

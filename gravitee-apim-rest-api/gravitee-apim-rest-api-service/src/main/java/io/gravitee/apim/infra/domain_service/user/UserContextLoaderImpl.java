@@ -54,10 +54,24 @@ public class UserContextLoaderImpl implements UserContextLoader {
     /**
      * Read access an environment role grants over every API, which {@code findApiIdsByUserId} cannot see: it
      * resolves memberships only. Asked first, exactly as the platform's analytics context loader does, so the
-     * two agree on what a user may observe.
+     * two agree on what a user may observe. {@code ENVIRONMENT_API[READ]} is not enough: the default USER role
+     * holds it to list APIs, not to observe the traffic of every one of them.
      */
     private boolean canReadEnvironmentApis(ExecutionContext executionContext, String environmentId) {
-        return permissionService.hasPermission(executionContext, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.READ);
+        return (
+            permissionService.hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_PLATFORM,
+                environmentId,
+                RolePermissionAction.READ
+            ) ||
+            permissionService.hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_DASHBOARD,
+                environmentId,
+                RolePermissionAction.READ
+            )
+        );
     }
 
     private boolean isAdmin() {
