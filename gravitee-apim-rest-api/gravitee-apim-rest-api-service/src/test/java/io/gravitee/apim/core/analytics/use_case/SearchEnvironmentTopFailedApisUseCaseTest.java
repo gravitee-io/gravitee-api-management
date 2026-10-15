@@ -17,14 +17,23 @@ package io.gravitee.apim.core.analytics.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
+import inmemory.ApiAuthorizationDomainServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
+import io.gravitee.apim.core.analytics.domain_service.EnvironmentAnalyticsApisDomainService;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.analytics.TopFailedApis;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
@@ -37,24 +46,32 @@ class SearchEnvironmentTopFailedApisUseCaseTest {
 
     public static final String ENV_ID = "environment-id";
     public static final String ORG_ID = "org-id";
+    private static final String USER_ID = "user-id";
     private static final long FROM = 1728981738L;
     private static final long TO = 1729068138L;
     private final ExecutionContext executionContext = new ExecutionContext(ORG_ID, ENV_ID);
 
     private FakeAnalyticsQueryService analyticsQueryService;
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
+    private final ApiAuthorizationDomainServiceInMemory apiAuthorizationDomainService = new ApiAuthorizationDomainServiceInMemory();
+    private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
     private SearchEnvironmentTopFailedApisUseCase cut;
 
     @BeforeEach
     void setUp() {
         analyticsQueryService = mock(FakeAnalyticsQueryService.class);
-        cut = new SearchEnvironmentTopFailedApisUseCase(analyticsQueryService, apiQueryService);
+        cut = new SearchEnvironmentTopFailedApisUseCase(
+            analyticsQueryService,
+            new EnvironmentAnalyticsApisDomainService(apiQueryService, apiAuthorizationDomainService, permissionDomainService)
+        );
+        givenUserReadsThePlatform(true);
     }
 
     @AfterEach
     void tearDown() {
         analyticsQueryService.reset();
         apiQueryService.reset();
+        apiAuthorizationDomainService.reset();
     }
 
     @Test
@@ -69,6 +86,7 @@ class SearchEnvironmentTopFailedApisUseCaseTest {
         var input = SearchEnvironmentTopFailedApisUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .userId(USER_ID)
             .build();
 
         when(analyticsQueryService.searchTopFailedApis(any(), any())).thenReturn(
@@ -128,6 +146,7 @@ class SearchEnvironmentTopFailedApisUseCaseTest {
         var input = SearchEnvironmentTopFailedApisUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .userId(USER_ID)
             .build();
 
         when(analyticsQueryService.searchTopFailedApis(any(), any())).thenReturn(
@@ -170,6 +189,7 @@ class SearchEnvironmentTopFailedApisUseCaseTest {
         var input = SearchEnvironmentTopFailedApisUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .userId(USER_ID)
             .build();
 
         when(analyticsQueryService.searchTopFailedApis(any(), any())).thenReturn(
@@ -197,6 +217,7 @@ class SearchEnvironmentTopFailedApisUseCaseTest {
         var input = SearchEnvironmentTopFailedApisUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .userId(USER_ID)
             .build();
 
         when(analyticsQueryService.searchTopFailedApis(any(), any())).thenReturn(Optional.empty());
@@ -204,5 +225,59 @@ class SearchEnvironmentTopFailedApisUseCaseTest {
         var result = cut.execute(input).topFailedApis();
 
         assertThat(result).extracting(TopFailedApis::getData).isEqualTo(List.of());
+    }
+
+    @Test
+    void should_get_top_failed_apis_only_for_the_apis_whose_analytics_the_user_can_read() {
+        givenUserReadsThePlatform(false);
+        var readable = ApiFixtures.aProxyApiV4().toBuilder().id("readable").name("Readable").build();
+        apiQueryService.initWith(List.of(readable, ApiFixtures.aProxyApiV4().toBuilder().id("unreadable").build()));
+        givenUserCanReadAnalyticsOf(readable);
+        when(analyticsQueryService.searchTopFailedApis(any(), any())).thenReturn(
+            Optional.of(
+                TopFailedApis.builder()
+                    .data(List.of(TopFailedApis.TopFailedApi.builder().id("readable").failedCalls(2L).failedCallsRatio(0.5).build()))
+                    .build()
+            )
+        );
+
+        var result = cut.execute(anInput()).topFailedApis();
+
+        verify(analyticsQueryService).searchTopFailedApis(any(), argThat(parameters -> parameters.getApiIds().equals(List.of("readable"))));
+        assertThat(result.getData()).extracting(TopFailedApis.TopFailedApi::name).containsExactly("Readable");
+    }
+
+    @Test
+    void should_return_no_failed_api_without_searching_analytics_when_the_user_can_read_no_api() {
+        givenUserReadsThePlatform(false);
+        apiQueryService.initWith(List.of(ApiFixtures.aProxyApiV4()));
+
+        var result = cut.execute(anInput()).topFailedApis();
+
+        assertThat(result.getData()).isEmpty();
+        verifyNoInteractions(analyticsQueryService);
+    }
+
+    private SearchEnvironmentTopFailedApisUseCase.Input anInput() {
+        return SearchEnvironmentTopFailedApisUseCase.Input.builder()
+            .executionContext(executionContext)
+            .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .userId(USER_ID)
+            .build();
+    }
+
+    private void givenUserReadsThePlatform(boolean readsPlatform) {
+        when(
+            permissionDomainService.hasPermission(ORG_ID, USER_ID, RolePermission.ENVIRONMENT_PLATFORM, ENV_ID, RolePermissionAction.READ)
+        ).thenReturn(readsPlatform);
+    }
+
+    private void givenUserCanReadAnalyticsOf(Api... apis) {
+        apiAuthorizationDomainService.initWith(List.of(apis));
+        for (Api api : apis) {
+            when(
+                permissionDomainService.hasPermission(ORG_ID, USER_ID, RolePermission.API_ANALYTICS, api.getId(), RolePermissionAction.READ)
+            ).thenReturn(true);
+        }
     }
 }

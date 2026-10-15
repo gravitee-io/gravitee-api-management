@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import java.util.List;
+import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,5 +82,15 @@ class ApiAuthorizationDomainServiceLegacyWrapperTest {
         );
 
         Assertions.assertThat(throwable).isInstanceOf(RuntimeException.class);
+    }
+
+    @Test
+    void should_find_member_apis_whatever_the_role_and_without_public_or_subscribed_apis() {
+        var executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
+        when(apiAuthorizationService.findApiIdsByUserId(executionContext, "user-id", null, false)).thenReturn(Set.of(API_ID));
+
+        var apiIds = service.findMemberApiIds(executionContext, "user-id");
+
+        Assertions.assertThat(apiIds).containsExactly(API_ID);
     }
 }
