@@ -180,7 +180,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("You are not allowed to provide a custom API Key").build();
         }
 
-        if (!api.equals(planSearchService.findById(executionContext, plan).getReferenceId())) {
+        if (!api.equals(planSearchService.findById(executionContext, plan).getApiId())) {
             throw new PlanNotFoundException(plan);
         }
         if (!hasPermission(executionContext, RolePermission.APPLICATION_SUBSCRIPTION, application, RolePermissionAction.CREATE)) {
