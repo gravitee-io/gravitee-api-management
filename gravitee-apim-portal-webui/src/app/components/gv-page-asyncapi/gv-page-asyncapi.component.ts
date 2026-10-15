@@ -17,6 +17,7 @@ import { Component, OnInit } from '@angular/core';
 
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { PageService } from '../../services/page.service';
+import { toRenderableAsyncApi } from '../../utils/renderable-async-api';
 
 import '@asyncapi/web-component/lib/asyncapi-web-component';
 
@@ -28,11 +29,13 @@ import '@asyncapi/web-component/lib/asyncapi-web-component';
 })
 export class GvPageAsyncApiComponent implements OnInit {
   page: Page;
+  schema: string;
 
   constructor(private pageService: PageService) {}
 
   ngOnInit() {
     this.page = this.pageService.getCurrentPage();
+    this.schema = toRenderableAsyncApi(this.page.content);
   }
 
   openMedia(link: string) {

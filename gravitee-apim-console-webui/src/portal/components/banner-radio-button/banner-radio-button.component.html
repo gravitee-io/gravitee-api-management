@@ -15,6 +15,7 @@
     limitations under the License.
 
 -->
+<<<<<<< HEAD:gravitee-apim-console-webui/src/portal/components/banner-radio-button/banner-radio-button.component.html
 <div (click)="onBannerOptionSelected()" class="banner-radio-button__container" [class.selected]="selected">
   <div>
     <h3>
@@ -22,6 +23,24 @@
     </h3>
     <div>
       {{ subtitle }}
+=======
+<div class="content__editor">
+  <div class="content__editor__cell">
+    <gio-monaco-editor
+      [(ngModel)]="_value"
+      [languageConfig]="{ language: 'yaml' }"
+      (ngModelChange)="_onChange($event)"
+      [disableMiniMap]="true"
+      [disabled]="disabled"
+    ></gio-monaco-editor>
+  </div>
+  @if (showPreview()) {
+    <div class="content__editor__cell">
+      <asyncapi-component
+        [schema]="_value | renderableAsyncApi"
+        cssImportPath="assets/style/asyncapi-console-preview.css"
+      ></asyncapi-component>
+>>>>>>> 68c224e (fix(portal): render AsyncAPI pages whose payload is an XML Schema (APIM-15495) (#21243)):gravitee-apim-console-webui/src/portal/components/asyncapi-editor/asyncapi-editor.component.html
     </div>
   </div>
 
