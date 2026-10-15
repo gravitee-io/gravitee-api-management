@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource.analytics;
 
-import io.gravitee.apim.core.dashboard.exception.DashboardNotFoundException;
 import io.gravitee.apim.core.dashboard.use_case.GetDashboardUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.portal.rest.mapper.PortalAnalyticsDashboardMapper;
@@ -27,15 +26,10 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
-import java.util.Objects;
 
 /**
  * {@code GET /portal/environments/{envId}/analytics/dashboards/{dashboardId}} using
  * {@link GetDashboardUseCase}. The analytics-enabled gate is applied upstream by {@link PortalAnalyticsResource}.
- *
- * <p>Adds an explicit environment boundary check on top of the shared use case: the core use case looks up by id
- * only, so without this guard a dashboard belonging to another environment could leak if its id were known. The
- * mismatch is reported as {@code 404} (not {@code 403}) to avoid disclosing that the id exists elsewhere.</p>
  *
  * @author GraviteeSource Team
  */
@@ -48,12 +42,8 @@ public class PortalAnalyticsDashboardResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getDashboard(@PathParam("dashboardId") String dashboardId) {
-        var executionContext = GraviteeContext.getExecutionContext();
-        var dashboard = getDashboardUseCase.execute(new GetDashboardUseCase.Input(dashboardId)).dashboard();
-
-        if (!Objects.equals(dashboard.getEnvironmentId(), executionContext.getEnvironmentId())) {
-            throw new DashboardNotFoundException(dashboardId);
-        }
+        var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
+        var dashboard = getDashboardUseCase.execute(new GetDashboardUseCase.Input(environmentId, dashboardId)).dashboard();
 
         return Response.ok(PortalAnalyticsDashboardMapper.INSTANCE.toDto(dashboard)).build();
     }
