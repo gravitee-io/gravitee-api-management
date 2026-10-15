@@ -116,6 +116,9 @@ todos:
   - id: STORY-34-BIS
     content: "Change or remove the external source of a page or an imported folder, as the portal editor's edit dialog does."
     status: completed
+  - id: STORY-34-TER
+    content: "Delete a synced item without removing its source first, in Gamma and the portal editor alike."
+    status: pending
   - id: STORY-35
     content: "Default 'APIs' section in the portal, for new and existing environments."
     status: completed
@@ -1391,7 +1394,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 5. Manual refresh and the last-result display.
 
 #### STORY-34 Bis — Change or remove the external source of an item
-**Status:** Done under [PORTAL-280](https://gravitee.atlassian.net/browse/PORTAL-280), as [#21251](https://github.com/gravitee-io/gravitee-api-management/pull/21251). Masked secrets are kept as stored for the same address and asked for again when the address changes. Delete is shown disabled on a synced item, saying to remove its source first.
+**Status:** Done under [PORTAL-280](https://gravitee.atlassian.net/browse/PORTAL-280), as [#21251](https://github.com/gravitee-io/gravitee-api-management/pull/21251). Masked secrets are kept as stored for the same address and asked for again when the address changes. Delete is shown disabled on a synced item, saying to remove its source first, until STORY-34 Ter deletes it directly.
 **Why:** STORY-34 links a page or a folder to a source, but nothing in Gamma changes that source afterwards: a moved repository, a new branch, a rotated token or a different schedule means deleting the item and linking it again. Deleting is not even possible: the server refuses to delete an item that has a source (`sourcedItemCannotBeDeleted`), so a sourced item created in Gamma cannot be deleted from Gamma at all. The portal editor lets the source be changed and removed from its edit dialog, and so does the classic console for a v2 API's pages.
 **Acceptance criteria:**
 - The edit dialog of a page with a source shows its source, its fetcher's settings and its schedule, filled in from the item, and saving them changes the source. A page without a source can be linked from the same dialog, as the portal editor allows.
@@ -1413,6 +1416,23 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 2. Changing or removing the source of a page.
 3. Changing or removing the source of an imported folder.
 4. Deleting a sourced item.
+
+#### STORY-34 Ter — Delete a synced item without removing its source first
+**Why:** after the review of PORTAL-268, a synced item has to be deletable as it is: making the user remove its source first, as STORY-34 Bis and the portal editor do, is a detour nobody wants, and the classic console already deletes a page with a source directly. The server refuses that deletion today (`sourcedItemCannotBeDeleted`), so the rule changes in the server, Gamma and the portal editor together, for the two screens never to disagree.
+**Acceptance criteria:**
+- An item synced from its own source — a page or an imported folder — can be deleted directly, without removing its source first; an imported folder is deleted with everything it holds.
+- An item below a synced item cannot be deleted: that item manages it, and the server keeps refusing it.
+- The same rules hold in Gamma's documentation screen and in the portal editor, both offering Delete on a synced item and neither below one.
+**Files:**
+- *edit* `CORE/portal_page/use_case/DeletePortalNavigationItemUseCase.java` — drop the refusal of an item with its own source, keep the one below a synced item
+- *edit* `GAMMA/features/apis/utils/documentationTree.ts` and `GAMMA/features/apis/components/detail/documentation/DocumentationTree.tsx` — Delete offered on an item with its own source
+- *edit* `EDITOR/navigation-items/portal-navigation-items.component.ts` — no longer block deleting an item with its own source
+**Size:** S · **Depends on:** STORY-34 Bis
+**Note:** security-sensitive: changes a server-side rule on deleting navigation items, for the API-scoped and the environment-scoped endpoints alike.
+**Subtasks:**
+1. The server deletes an item with its own source, an imported folder with what it holds.
+2. Gamma offers Delete on a synced item.
+3. The portal editor offers Delete on a synced item.
 
 ---
 
@@ -1537,6 +1557,7 @@ flowchart LR
         S33B["33 Bis Viewer settings"]
         S34["34 External source"]
         S34B["34 Bis Change or remove a source"]
+        S34T["34 Ter Delete a synced item"]
     end
     subgraph P7 ["Phase 7 · Supporting"]
         S35["35 APIs section"]
@@ -1584,6 +1605,7 @@ flowchart LR
     S17 --> S34
     S34 --> S34B
     S29 --> S34B
+    S34B --> S34T
 ```
 
 ### Stories with nothing upstream
@@ -1612,9 +1634,9 @@ The longest backend chain is **01 → 03 → 05 → 06** ≈ 8. It only becomes 
 |---|---|---|
 | **A — ownership core** | 01 → 03 → 04, 05 → 06, 07, 08, 09, 02, 10, 36 | One owner. Stories 01, 02, 05, 06 all land in the same file, so they cannot be split further without constant conflicts |
 | **B — Gamma backend and data** | 11 → 12 → 12 Bis, 13, 14, 15, 16, 17, 35, 19, 38, (37) | Independently testable from day one; 12 does not wait on track A because the explicit-owner rule needs no pipeline change |
-| **C — frontend** | 20 → 21 → 22, 23, 24 → 25 → 26, 27, 28, 29, 30, 31, 33, 33 Bis, 34, 34 Bis, 32 | Build against the contract's stand-in. 32 last. 33 Bis carries its own small backend operation |
+| **C — frontend** | 20 → 21 → 22, 23, 24 → 25 → 26, 27, 28, 29, 30, 31, 33, 33 Bis, 34, 34 Bis, 34 Ter, 32 | Build against the contract's stand-in. 32 last. 33 Bis carries its own small backend operation |
 
-Track C is roughly half the total work, so with four people the split is two on backend and two on frontend — the frontend divides cleanly (21/22/26/33/33 Bis/34/34 Bis against 24/25/27/28/29/30/31/32), while the backend cannot, because of the shared file in track A.
+Track C is roughly half the total work, so with four people the split is two on backend and two on frontend — the frontend divides cleanly (21/22/26/33/33 Bis/34/34 Bis/34 Ter against 24/25/27/28/29/30/31/32), while the backend cannot, because of the shared file in track A.
 
 **Sizing caveat:** these sizes assume familiarity with this codebase. The ownership stories in track A depend on a model that is not stated anywhere in the code — [How portal navigation works today](#how-portal-navigation-works-today) is the onboarding document for it — and mistakes there are invisible rather than loud: it is possible to write code that passes its own tests and silently disables a validation rule. For someone new to this area, expect those stories to take roughly 1.7× and the mechanical ones 1.25×. Sequencing track B's smaller stories before track A is the cheapest way to build that model with low blast radius.
 
@@ -1689,12 +1711,12 @@ Track C is roughly half the total work, so with four people the split is two on 
 | A console page inside an automation-managed folder is deleted with its content when the config drops that folder | Accepted | Not caused by this work; release-note it |
 | A product's own documentation dies with its listing row, unlike an API's | Low (accepted) | Documented asymmetry |
 | Schema-driven fetcher forms in React | Medium | Raw editor fallback (STORY-34) |
-| A sourced item linked in Gamma can be neither changed nor deleted there, as the server refuses to delete an item with a source | High | Closed: STORY-34 Bis ([#21251](https://github.com/gravitee-io/gravitee-api-management/pull/21251)) |
+| A sourced item linked in Gamma can be neither changed nor deleted there, as the server refuses to delete an item with a source | High | Closed: STORY-34 Bis ([#21251](https://github.com/gravitee-io/gravitee-api-management/pull/21251)); deleting directly, without removing the source first: STORY-34 Ter |
 | A Gamma user cannot choose the OpenAPI viewer or its options, so pages written in Gamma stay on Redoc with no "Try it" | Medium | STORY-33 Bis |
 | Angular runtime shipped into Gamma for one widget | Low | Lazy-load on the documentation screen only (STORY-22) |
 | Gamma's theme does not reach inside the preview | Low (accepted) | Already true in the classic console |
 
-**Security-sensitive** — call out in the PR descriptions for STORY-12, STORY-12 Bis, STORY-13, STORY-16 and STORY-33 Bis: new authorization paths, publishing moved from environment-level to API-level permission, and the body-target check. STORY-19 rewrites persisted ownership fields. STORY-34 Bis writes fetcher settings back, which can hold credentials the server returns masked.
+**Security-sensitive** — call out in the PR descriptions for STORY-12, STORY-12 Bis, STORY-13, STORY-16 and STORY-33 Bis: new authorization paths, publishing moved from environment-level to API-level permission, and the body-target check. STORY-19 rewrites persisted ownership fields. STORY-34 Bis writes fetcher settings back, which can hold credentials the server returns masked. STORY-34 Ter changes the server's rule on deleting a synced item, for the API-scoped and the environment-scoped endpoints alike.
 
 ## Follow-ups
 
