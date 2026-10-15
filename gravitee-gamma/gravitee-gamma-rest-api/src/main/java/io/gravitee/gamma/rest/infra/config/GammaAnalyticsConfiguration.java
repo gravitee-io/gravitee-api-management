@@ -18,8 +18,10 @@ package io.gravitee.gamma.rest.infra.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics.domain_service.AiWorkspaceAnalyticsApisDomainService;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
+import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeFacetsUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeTimeSeriesUseCase;
@@ -56,6 +58,8 @@ public class GammaAnalyticsConfiguration {
         AnalyticsQueryValidator analyticsQueryValidator,
         UnitEnrichmentPostProcessor unitEnrichmentPostProcessor,
         UserContextLoader userContextLoader,
+        AiWorkspaceAnalyticsApisDomainService workspaceApis,
+        AnalyticsQueryContextProvider queryContextProvider,
         ObjectMapper objectMapper
     ) {
         return new ObservabilityAnalyticsDataPortAdapter(
@@ -65,6 +69,8 @@ public class GammaAnalyticsConfiguration {
             analyticsQueryValidator,
             unitEnrichmentPostProcessor,
             userContextLoader,
+            workspaceApis,
+            queryContextProvider,
             objectMapper
         );
     }

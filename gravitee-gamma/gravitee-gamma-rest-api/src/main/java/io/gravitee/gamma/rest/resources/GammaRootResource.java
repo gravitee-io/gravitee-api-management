@@ -41,7 +41,7 @@ public class GammaRootResource {
 
     /**
      * Every resource under the shared {@code /observability/*} namespace (traces, filters, logs,
-     * analytics, dashboards) — mounted outside the per-module namespace so every gamma module's UI
+     * analytics, dashboards, capabilities) — mounted outside the per-module namespace so every gamma module's UI
      * can call them. See {@link GammaObservabilityResource} for the sub-routes.
      */
     @Path("/organizations/{orgId}/environments/{envId}/observability")

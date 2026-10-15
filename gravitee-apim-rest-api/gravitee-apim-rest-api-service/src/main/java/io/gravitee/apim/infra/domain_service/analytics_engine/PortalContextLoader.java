@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.domain_service.analytics_engine;
 
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.api.model.Api;
@@ -65,8 +66,9 @@ public class PortalContextLoader implements AnalyticsQueryContextLoader {
             .anyMatch(a -> ENVIRONMENT_ADMIN.equalsIgnoreCase(a.getAuthority()) || ORGANIZATION_ADMIN.equalsIgnoreCase(a.getAuthority()));
     }
 
+    /** The portal scopes by visibility, not by management permission: the kind of data changes nothing. */
     @Override
-    public AnalyticsQueryContext load(AuditInfo auditInfo) {
+    public AnalyticsQueryContext load(AuditInfo auditInfo, ApiDataKind kind) {
         var organizationId = auditInfo.organizationId();
         var environmentId = auditInfo.environmentId();
         var userId = auditInfo.actor().userId();

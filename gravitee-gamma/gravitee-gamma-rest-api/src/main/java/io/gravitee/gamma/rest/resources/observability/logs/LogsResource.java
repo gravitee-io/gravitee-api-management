@@ -63,8 +63,9 @@ import java.util.List;
  *
  * <h2>Authorization</h2>
  * <ul>
- *   <li><b>Search:</b> env-level guard of {@link ObservabilityPermissions#checkEnvironmentRead}.
- *       Row-level scoping handled by {@code AccessibleApiScopeDomainService}.</li>
+ *   <li><b>Search:</b> no environment-level guard: the rows are the APIs where the caller holds
+ *       {@code API_LOG[READ]}, narrowed by {@code AccessibleApiScopeDomainService}; none gives an
+ *       empty page.</li>
  *   <li><b>Detail:</b> {@code API_LOG[READ]} on the given {@code apiId}, with 404 collapse.</li>
  * </ul>
  *
@@ -96,8 +97,6 @@ public class LogsResource {
         @QueryParam("perPage") Integer perPage,
         SearchLogsRequestDto request
     ) {
-        ObservabilityPermissions.checkEnvironmentRead(permissionService);
-
         List<FilterCondition> filters = RequestEntries.map(
             request != null ? request.filters() : null,
             "filters",

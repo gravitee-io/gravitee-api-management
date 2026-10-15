@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.core.observability.analytics.use_case;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.gamma.rest.core.observability.analytics.model.DataKind;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
@@ -25,6 +26,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
+import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.EntrypointScopeProvider;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import io.gravitee.gamma.rest.core.observability.logs.model.TrafficScope;
@@ -37,8 +39,10 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 
 /**
@@ -60,6 +64,7 @@ public class AnalyticsRequestPipeline {
     private static final String API = "API";
     private static final String API_TYPE = "API_TYPE";
     private static final String RECORD_TYPE = "RECORD_TYPE";
+    private static final String API_PRODUCT = "API_PRODUCT";
     private static final Set<String> SCOPE_ONLY = Set.of(API, API_TYPE, RECORD_TYPE);
 
     /** The metrics served from authorization decision records; pinned to the engine's routing by a test. */
@@ -172,12 +177,37 @@ public class AnalyticsRequestPipeline {
         }
     }
 
+    /**
+     * The data a request reads: the calls themselves when a condition or a facet uses a field identifying a caller,
+     * or when it asks for authorization decision records; aggregates otherwise.
+     */
+    public DataKind dataKindOf(List<FilterCondition> rawFilters, List<List<FilterCondition>> metricConditions, List<String> facets) {
+        var filters = rawFilters != null ? rawFilters : List.<FilterCondition>of();
+        var identifying = StaticFilters.identifying();
+        var perRequest =
+            filters
+                .stream()
+                .filter(condition -> RECORD_TYPE.equals(condition.name()))
+                .anyMatch(condition -> selects(condition, RecordType.AUTHZ_DECISION)) ||
+            Stream.concat(filters.stream(), metricConditions.stream().flatMap(List::stream)).anyMatch(condition ->
+                identifying.contains(condition.name())
+            ) ||
+            (facets != null && facets.stream().anyMatch(identifying::contains));
+        return perRequest ? DataKind.PER_REQUEST : DataKind.AGGREGATES;
+    }
+
+    /**
+     * @param dataKind the data the request reads, from {@link #dataKindOf}: it decides which APIs the caller reads
+     * @param metricNames the metrics the request computes, which decide whether a workspace condition is applied
+     */
     public PreparedRequest prepare(
         String organizationId,
         String environmentId,
         List<FilterCondition> rawFilters,
         Instant from,
         Instant to,
+        DataKind dataKind,
+        List<String> metricNames,
         ObservabilityAnalyticsDataPort analyticsDataPort
     ) {
         var conditions = rawFilters != null ? rawFilters : List.<FilterCondition>of();
@@ -185,7 +215,15 @@ public class AnalyticsRequestPipeline {
         filterValidator.validate(conditions, Signal.ANALYTICS);
         validateTimeRange(from, to);
 
-        var accessibleApis = analyticsDataPort.loadAccessibleApis(organizationId, environmentId);
+        var accessibleApis = withWorkspaceApis(
+            analyticsDataPort.loadAccessibleApis(organizationId, environmentId, dataKind),
+            conditions,
+            dataKind,
+            metricNames,
+            organizationId,
+            environmentId,
+            analyticsDataPort
+        );
         var readable = accessibleApiScope.computeScope(accessibleApis, ApiType.ALL, null).apiIds();
         var readableApis = accessibleApis
             .stream()
@@ -196,6 +234,44 @@ public class AnalyticsRequestPipeline {
             Collectors.toMap(kind -> kind, kind -> entrypointScopeProvider.entrypointsAdding(Set.of(kind)))
         );
         return new PreparedRequest(from, to, List.copyOf(conditions), readableApis, entrypointsAddingKind);
+    }
+
+    /**
+     * A query narrowed to one AI workspace (a single {@code API_PRODUCT} equal to it) also counts the workspace's APIs its
+     * reader reads no other way: the condition stays in the query, so only the calls made through that workspace are
+     * counted, never those another workspace sharing an API makes. Aggregates only, and only for metrics the engine
+     * narrows by that condition: a search path that ignores it would count every call of the workspace's APIs.
+     */
+    private static List<AccessibleApi> withWorkspaceApis(
+        List<AccessibleApi> readable,
+        List<FilterCondition> conditions,
+        DataKind dataKind,
+        List<String> metricNames,
+        String organizationId,
+        String environmentId,
+        ObservabilityAnalyticsDataPort analyticsDataPort
+    ) {
+        var workspace = dataKind == DataKind.AGGREGATES ? singleWorkspace(conditions) : Optional.<String>empty();
+        if (workspace.isEmpty() || !analyticsDataPort.narrowsByApiProduct(metricNames)) {
+            return readable;
+        }
+        var apis = new LinkedHashMap<String, AccessibleApi>();
+        readable.forEach(api -> apis.put(api.id(), api));
+        analyticsDataPort.loadWorkspaceApis(organizationId, environmentId, workspace.get()).forEach(api -> apis.putIfAbsent(api.id(), api));
+        return List.copyOf(apis.values());
+    }
+
+    private static Optional<String> singleWorkspace(List<FilterCondition> conditions) {
+        var onApiProducts = conditions
+            .stream()
+            .filter(condition -> API_PRODUCT.equals(condition.name()))
+            .toList();
+        if (onApiProducts.size() != 1) {
+            return Optional.empty();
+        }
+        var condition = onApiProducts.getFirst();
+        var values = condition.values() != null ? condition.values() : List.<String>of();
+        return condition.operator() == FilterOperator.EQ && values.size() == 1 ? Optional.ofNullable(values.getFirst()) : Optional.empty();
     }
 
     /**

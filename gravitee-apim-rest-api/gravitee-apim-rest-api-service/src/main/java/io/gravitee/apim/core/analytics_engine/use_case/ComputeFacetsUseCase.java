@@ -34,6 +34,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -80,16 +81,36 @@ public class ComputeFacetsUseCase {
 
     public ComputeFacetsUseCase.Output execute(Input input) {
         validator.validateFacetsRequest(input.request);
+        return compute(contextLoader.load(input.auditInfo, input.scope(), input.request.dataKind()), input.request);
+    }
 
-        var analyticsContext = contextLoader.load(input.auditInfo, input.scope());
+    /**
+     * Runs a query already authorized by the caller.
+     * {@code authorizedApiIds} is the only API set applied. Portal navigation and management permissions are not consulted.
+     */
+    public ComputeFacetsUseCase.Output executeForApis(AuditInfo auditInfo, FacetsRequest request, Set<String> authorizedApiIds) {
+        validator.validateFacetsRequest(request);
+        return compute(
+            new AnalyticsQueryContext(
+                auditInfo,
+                new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId()),
+                authorizedApiIds,
+                Map.of(),
+                Map.of(),
+                Map.of()
+            ),
+            request
+        );
+    }
 
-        var queryContext = queryContextProvider.resolve(input.request);
+    private ComputeFacetsUseCase.Output compute(AnalyticsQueryContext analyticsContext, FacetsRequest request) {
+        var queryContext = queryContextProvider.resolve(request);
 
         var responses = executeQueries(analyticsContext.executionContext(), analyticsContext, queryContext);
 
         var response = FacetsResponse.merge(responses);
 
-        var mappedResponse = bucketNamesPostprocessor.mapBucketNames(analyticsContext, input.request.facets(), response);
+        var mappedResponse = bucketNamesPostprocessor.mapBucketNames(analyticsContext, request.facets(), response);
 
         var enriched = unitEnrichmentPostProcessor.enrichUnits(mappedResponse);
 

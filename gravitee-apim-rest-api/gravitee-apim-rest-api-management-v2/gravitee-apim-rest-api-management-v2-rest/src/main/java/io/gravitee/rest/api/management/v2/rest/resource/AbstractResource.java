@@ -153,6 +153,7 @@ public abstract class AbstractResource {
         return true;
     }
 
+    /** Dashboard definitions only: analytics and filter endpoints answer from the rows the caller reads. */
     protected boolean canReadDashboards() {
         var executionContext = GraviteeContext.getExecutionContext();
         return (
