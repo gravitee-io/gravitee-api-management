@@ -119,6 +119,7 @@ import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionAcceptedException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionRevisionException;
 import io.gravitee.rest.api.service.exceptions.PlanMtlsAlreadySubscribedException;
+import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableException;
 import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableWithSharedApiKeyException;
 import io.gravitee.rest.api.service.exceptions.PlanNotYetPublishedException;
@@ -534,6 +535,25 @@ public class SubscriptionServiceTest {
             // Run
             subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
         });
+    }
+
+    @Test
+    public void should_not_create_when_plan_belongs_to_another_environment() throws Exception {
+        // Stub
+        planEntity.setEnvironmentId("another-environment");
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
+        when(subscriptionRepository.create(any())).thenAnswer(returnsFirstArg());
+        SecurityContextHolder.setContext(generateSecurityContext());
+
+        // Run
+        assertThrows(PlanNotFoundException.class, () ->
+            subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID))
+        );
+
+        // Verify
+        verify(subscriptionRepository, never()).create(any());
     }
 
     @Test
@@ -3369,6 +3389,7 @@ public class SubscriptionServiceTest {
                 .status(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED)
                 .referenceId(API_ID)
                 .referenceType(GenericPlanEntity.ReferenceType.API)
+                .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
                 .build()
         );
         when(applicationService.findById(any(), any())).thenReturn(
