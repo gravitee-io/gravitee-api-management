@@ -247,13 +247,13 @@ describe('allowedChanges', () => {
         });
     });
 
-    it('allows only the access and the publication of an item with its own source to change', () => {
+    it('allows an item with its own source to change its access and publication, and to be deleted', () => {
         expect(allowedChanges('OWN_SOURCE')).toEqual({
             content: false,
             title: false,
             access: true,
             publication: true,
-            delete: false,
+            delete: true,
             addInside: false,
         });
     });
