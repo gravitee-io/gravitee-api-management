@@ -64,7 +64,7 @@ public class DashboardResource extends AbstractResource {
             throw new ForbiddenAccessException();
         }
 
-        var output = getDashboardUseCase.execute(new GetDashboardUseCase.Input(dashboardId));
+        var output = getDashboardUseCase.execute(new GetDashboardUseCase.Input(getAuditInfo().environmentId(), dashboardId));
 
         return Response.ok(DashboardMapper.INSTANCE.map(output.dashboard())).build();
     }

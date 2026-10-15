@@ -93,17 +93,15 @@ public class PortalAnalyticsDashboardResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    @DisplayName("404 when dashboard belongs to another environment (prevents cross-env leak)")
-    void notFoundWhenWrongEnvironment() {
+    @DisplayName("looks the dashboard up in the current environment (prevents cross-env leak)")
+    void looksUpInCurrentEnvironment() {
         when(getDashboardUseCase.execute(any())).thenReturn(
-            new GetDashboardUseCase.Output(
-                PortalAnalyticsDashboardFixtures.aDashboard("dashboard-1", "Dashboard 1").toBuilder().environmentId("OTHER").build()
-            )
+            new GetDashboardUseCase.Output(PortalAnalyticsDashboardFixtures.aDashboard("dashboard-1", "Dashboard 1"))
         );
 
-        final var response = target().path("dashboard-1").request().get();
+        target().path("dashboard-1").request().get();
 
-        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+        verify(getDashboardUseCase).execute(new GetDashboardUseCase.Input("DEFAULT", "dashboard-1"));
     }
 
     @Test

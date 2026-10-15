@@ -26,11 +26,17 @@ import java.util.Optional;
 public interface DashboardCrudService {
     Dashboard create(Dashboard dashboard);
 
-    Optional<Dashboard> findById(String id);
+    /**
+     * A dashboard of another environment resolves to empty, like a missing one, so callers answer 404 and never
+     * disclose that the id exists elsewhere.
+     */
+    Optional<Dashboard> findByIdAndEnvironmentId(String id, String environmentId);
 
     List<Dashboard> findByEnvironmentId(String environmentId);
 
+    /** Unscoped: resolve the dashboard with {@link #findByIdAndEnvironmentId} first. */
     Dashboard update(Dashboard dashboard);
 
+    /** Unscoped: resolve the dashboard with {@link #findByIdAndEnvironmentId} first. */
     void delete(String id);
 }

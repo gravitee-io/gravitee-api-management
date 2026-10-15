@@ -44,8 +44,8 @@ public class DashboardDomainService {
     private final DashboardCrudService dashboardCrudService;
     private final AnalyticsQueryValidator analyticsQueryValidator;
 
-    public Optional<Dashboard> findById(String dashboardId) {
-        return dashboardCrudService.findById(dashboardId);
+    public Optional<Dashboard> findByIdAndEnvironmentId(String dashboardId, String environmentId) {
+        return dashboardCrudService.findByIdAndEnvironmentId(dashboardId, environmentId);
     }
 
     public List<Dashboard> findByEnvironmentId(String environmentId) {
