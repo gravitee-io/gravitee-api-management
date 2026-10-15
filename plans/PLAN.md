@@ -115,7 +115,7 @@ todos:
     status: completed
   - id: STORY-34-BIS
     content: "Change or remove the external source of a page or an imported folder, as the portal editor's edit dialog does."
-    status: pending
+    status: completed
   - id: STORY-35
     content: "Default 'APIs' section in the portal, for new and existing environments."
     status: pending
@@ -1391,6 +1391,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 5. Manual refresh and the last-result display.
 
 #### STORY-34 Bis — Change or remove the external source of an item
+**Status:** Done under [PORTAL-280](https://gravitee.atlassian.net/browse/PORTAL-280), as [#21251](https://github.com/gravitee-io/gravitee-api-management/pull/21251). Masked secrets are kept as stored for the same address and asked for again when the address changes. Delete is shown disabled on a synced item, saying to remove its source first.
 **Why:** STORY-34 links a page or a folder to a source, but nothing in Gamma changes that source afterwards: a moved repository, a new branch, a rotated token or a different schedule means deleting the item and linking it again. Deleting is not even possible: the server refuses to delete an item that has a source (`sourcedItemCannotBeDeleted`), so a sourced item created in Gamma cannot be deleted from Gamma at all. The portal editor lets the source be changed and removed from its edit dialog, and so does the classic console for a v2 API's pages.
 **Acceptance criteria:**
 - The edit dialog of a page with a source shows its source, its fetcher's settings and its schedule, filled in from the item, and saving them changes the source. A page without a source can be linked from the same dialog, as the portal editor allows.
@@ -1685,7 +1686,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | A console page inside an automation-managed folder is deleted with its content when the config drops that folder | Accepted | Not caused by this work; release-note it |
 | A product's own documentation dies with its listing row, unlike an API's | Low (accepted) | Documented asymmetry |
 | Schema-driven fetcher forms in React | Medium | Raw editor fallback (STORY-34) |
-| A sourced item linked in Gamma can be neither changed nor deleted there, as the server refuses to delete an item with a source | High | STORY-34 Bis |
+| A sourced item linked in Gamma can be neither changed nor deleted there, as the server refuses to delete an item with a source | High | Closed: STORY-34 Bis ([#21251](https://github.com/gravitee-io/gravitee-api-management/pull/21251)) |
 | A Gamma user cannot choose the OpenAPI viewer or its options, so pages written in Gamma stay on Redoc with no "Try it" | Medium | STORY-33 Bis |
 | Angular runtime shipped into Gamma for one widget | Low | Lazy-load on the documentation screen only (STORY-22) |
 | Gamma's theme does not reach inside the preview | Low (accepted) | Already true in the classic console |
