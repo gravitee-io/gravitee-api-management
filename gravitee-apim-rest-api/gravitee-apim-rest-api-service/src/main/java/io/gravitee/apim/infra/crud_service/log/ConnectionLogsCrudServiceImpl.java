@@ -35,6 +35,7 @@ import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -242,24 +243,34 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
 
     @Override
     public List<String> searchApiConnectionLogErrorKeys(ExecutionContext executionContext, String apiId, Long from, Long to) {
-        return searchConnectionLogErrorKeys(executionContext, apiId, from, to);
+        return searchConnectionLogErrorKeys(executionContext, List.of(apiId), from, to, "api " + apiId);
     }
 
     @Override
-    public List<String> searchEnvironmentConnectionLogErrorKeys(ExecutionContext executionContext, Long from, Long to) {
-        return searchConnectionLogErrorKeys(executionContext, null, from, to);
+    public List<String> searchEnvironmentConnectionLogErrorKeys(
+        ExecutionContext executionContext,
+        Collection<String> apiIds,
+        Long from,
+        Long to
+    ) {
+        return searchConnectionLogErrorKeys(executionContext, apiIds, from, to, "environment " + executionContext.getEnvironmentId());
     }
 
-    private List<String> searchConnectionLogErrorKeys(ExecutionContext executionContext, String apiId, Long from, Long to) {
+    private List<String> searchConnectionLogErrorKeys(
+        ExecutionContext executionContext,
+        Collection<String> apiIds,
+        Long from,
+        Long to,
+        String context
+    ) {
         try {
             return metricsRepository.searchConnectionLogErrorKeys(
                 new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-                apiId,
+                apiIds,
                 from,
                 to
             );
         } catch (AnalyticsException e) {
-            var context = apiId != null ? "api " + apiId : "environment " + executionContext.getEnvironmentId();
             throw new TechnicalManagementException("Error while searching error keys for " + context, e);
         }
     }
