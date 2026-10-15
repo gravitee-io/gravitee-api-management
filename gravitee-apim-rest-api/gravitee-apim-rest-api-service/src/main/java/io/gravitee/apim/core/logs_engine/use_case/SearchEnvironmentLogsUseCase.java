@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.logs_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
@@ -111,7 +112,7 @@ public class SearchEnvironmentLogsUseCase {
         var executionContext = new ExecutionContext(input.auditInfo.organizationId(), input.auditInfo.environmentId());
         var pageable = buildPageable(input.request);
 
-        var userContext = userContextLoader.loadApis(new UserContext(input.auditInfo));
+        var userContext = userContextLoader.loadApis(new UserContext(input.auditInfo), ApiDataKind.PER_REQUEST);
 
         var searchFilters = buildFilters(userContext, input.request);
 

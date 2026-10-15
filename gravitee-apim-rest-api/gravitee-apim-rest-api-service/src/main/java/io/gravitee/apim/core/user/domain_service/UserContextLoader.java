@@ -15,11 +15,13 @@
  */
 package io.gravitee.apim.core.user.domain_service;
 
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.user.model.UserContext;
 
 /**
  * @author GraviteeSource Team
  */
 public interface UserContextLoader {
-    UserContext loadApis(UserContext context);
+    /** The APIs the user may read data of this kind from. Yields no api, and never every api, when they can read none. */
+    UserContext loadApis(UserContext context, ApiDataKind kind);
 }
