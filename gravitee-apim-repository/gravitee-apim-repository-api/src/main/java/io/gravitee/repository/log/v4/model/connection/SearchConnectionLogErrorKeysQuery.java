@@ -15,10 +15,13 @@
  */
 package io.gravitee.repository.log.v4.model.connection;
 
+import java.util.Collection;
+import java.util.Objects;
+
 /**
- * Query model for searching distinct error keys from connection logs for a given API.
+ * Query model for searching distinct error keys from the connection logs of the given APIs.
  *
- * <p>{@code apiId} is optional. If null or blank, error keys are searched across all APIs in the environment.
+ * <p>{@code apiIds} is required: an empty collection matches no log, it never widens the search to every API.
  * {@code maxBuckets} controls how many distinct error
  * keys Elasticsearch will return from the terms aggregation — callers should use a
  * value appropriate to their use case. The default is {@link #DEFAULT_MAX_BUCKETS}.
@@ -26,17 +29,18 @@ package io.gravitee.repository.log.v4.model.connection;
  * <p>Error key types are categorical (e.g. {@code ASSIGN_CONTENT_ERROR}, {@code TIMEOUT})
  * so the number of distinct values is expected to be small in practice.
  */
-public record SearchConnectionLogErrorKeysQuery(String apiId, Long from, Long to, int maxBuckets) {
+public record SearchConnectionLogErrorKeysQuery(Collection<String> apiIds, Long from, Long to, int maxBuckets) {
     public static final int DEFAULT_MAX_BUCKETS = 100;
 
     /**
      * Convenience factory using the default bucket cap.
      */
-    public static SearchConnectionLogErrorKeysQuery of(String apiId, Long from, Long to) {
-        return new SearchConnectionLogErrorKeysQuery(apiId, from, to, DEFAULT_MAX_BUCKETS);
+    public static SearchConnectionLogErrorKeysQuery of(Collection<String> apiIds, Long from, Long to) {
+        return new SearchConnectionLogErrorKeysQuery(apiIds, from, to, DEFAULT_MAX_BUCKETS);
     }
 
     public SearchConnectionLogErrorKeysQuery {
+        Objects.requireNonNull(apiIds, "apiIds must not be null");
         if (maxBuckets <= 0) {
             throw new IllegalArgumentException("maxBuckets must be positive");
         }

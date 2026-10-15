@@ -16,8 +16,10 @@
 package io.gravitee.repository.elasticsearch.v4.log.adapter.connection;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.repository.log.v4.model.connection.SearchConnectionLogErrorKeysQuery;
+import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -32,8 +34,7 @@ class SearchConnectionLogErrorKeysQueryAdapterTest {
     @Test
     void should_build_elasticsearch_query() {
         // Given
-        String apiId = "my-api-id";
-        SearchConnectionLogErrorKeysQuery query = SearchConnectionLogErrorKeysQuery.of(apiId, 1000L, 2000L);
+        SearchConnectionLogErrorKeysQuery query = SearchConnectionLogErrorKeysQuery.of(List.of("api-1", "api-2"), 1000L, 2000L);
 
         // When
         String result = SearchConnectionLogErrorKeysQueryAdapter.adapt(query);
@@ -49,8 +50,8 @@ class SearchConnectionLogErrorKeysQueryAdapterTest {
                     {
                       "bool": {
                         "should": [
-                          { "term": { "api": "my-api-id" } },
-                          { "term": { "api-id": "my-api-id" } }
+                          { "terms": { "api": ["api-1", "api-2"] } },
+                          { "terms": { "api-id": ["api-1", "api-2"] } }
                         ]
                       }
                     },
@@ -81,8 +82,7 @@ class SearchConnectionLogErrorKeysQueryAdapterTest {
     @Test
     void should_build_query_with_custom_max_buckets() {
         // Given
-        String apiId = "my-api-id";
-        SearchConnectionLogErrorKeysQuery query = new SearchConnectionLogErrorKeysQuery(apiId, null, null, 50);
+        SearchConnectionLogErrorKeysQuery query = new SearchConnectionLogErrorKeysQuery(List.of("my-api-id"), null, null, 50);
 
         // When
         String result = SearchConnectionLogErrorKeysQueryAdapter.adapt(query);
@@ -92,12 +92,16 @@ class SearchConnectionLogErrorKeysQueryAdapterTest {
     }
 
     @Test
-    void should_build_elasticsearch_query_without_api_id() {
-        SearchConnectionLogErrorKeysQuery query = new SearchConnectionLogErrorKeysQuery(null, 1000L, 2000L, 20);
+    void should_match_no_document_when_no_api_id_is_given() {
+        SearchConnectionLogErrorKeysQuery query = new SearchConnectionLogErrorKeysQuery(List.of(), 1000L, 2000L, 20);
         String result = SearchConnectionLogErrorKeysQueryAdapter.adapt(query);
 
-        assertThatJson(result).node("query.bool.must").isArray().hasSize(1);
-        assertThatJson(result).node("query.bool.must[0].range.@timestamp.gte").isEqualTo(1000L);
-        assertThatJson(result).node("aggs.error_keys.terms.field").isEqualTo("error-key");
+        assertThatJson(result).node("query.bool.must").isArray().hasSize(2);
+        assertThatJson(result).node("query.bool.must[0].bool.should").isEqualTo("[{\"terms\":{\"api\":[]}},{\"terms\":{\"api-id\":[]}}]");
+    }
+
+    @Test
+    void should_reject_a_query_without_api_ids() {
+        assertThatThrownBy(() -> SearchConnectionLogErrorKeysQuery.of(null, 1000L, 2000L)).isInstanceOf(NullPointerException.class);
     }
 }

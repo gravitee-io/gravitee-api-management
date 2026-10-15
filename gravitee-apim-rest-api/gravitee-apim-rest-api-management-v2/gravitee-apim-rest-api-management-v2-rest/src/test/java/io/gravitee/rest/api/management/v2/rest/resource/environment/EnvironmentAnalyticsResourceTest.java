@@ -18,6 +18,9 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import fakes.FakeAnalyticsQueryService;
@@ -41,6 +44,8 @@ import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.model.v4.analytics.TopFailedApis;
@@ -96,12 +101,23 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
+        // Every API of the environment is readable: the scoping rules are pinned by EnvironmentAnalyticsResourceScopeTest.
+        when(
+            permissionService.hasPermission(
+                any(),
+                eq(USER_NAME),
+                eq(RolePermission.ENVIRONMENT_PLATFORM),
+                eq(ENVIRONMENT),
+                eq(RolePermissionAction.READ)
+            )
+        ).thenReturn(true);
     }
 
     @AfterEach
     void teardown() {
         Stream.of(apiQueryService, applicationQueryService, connectionLogsCrudService).forEach(InMemoryAlternative::reset);
         analyticsQueryService.reset();
+        reset(permissionService);
     }
 
     @Nested
@@ -497,13 +513,17 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         @Test
         void should_return_200_with_error_keys() {
             // Given
+            var api = ApiFixtures.aProxyApiV4();
+            apiQueryService.initWith(List.of(api));
             connectionLogsCrudService.initWith(
                 List.of(
                     BaseConnectionLog.builder()
+                        .apiId(api.getId())
                         .errorKey("GATEWAY_CLIENT_CONNECTION_ERROR")
                         .timestamp(Instant.ofEpochMilli(FROM + 1000).toString())
                         .build(),
                     BaseConnectionLog.builder()
+                        .apiId(api.getId())
                         .errorKey("NO_ENDPOINT_FOUND")
                         .timestamp(Instant.ofEpochMilli(FROM + 2000).toString())
                         .build()

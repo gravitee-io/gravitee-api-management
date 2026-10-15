@@ -157,7 +157,7 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
 
     @Override
     public List<String> searchApiConnectionLogErrorKeys(ExecutionContext executionContext, String apiId, Long from, Long to) {
-        var logsFilters = SearchLogsFilters.builder().apiIds(apiId != null ? Set.of(apiId) : null).from(from).to(to).build();
+        var logsFilters = SearchLogsFilters.builder().apiIds(Set.of(apiId)).from(from).to(to).build();
         var predicate = getBaseConnectionLogPredicate(logsFilters);
         return connectionLogs
             .storage()
@@ -171,8 +171,18 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
     }
 
     @Override
-    public List<String> searchEnvironmentConnectionLogErrorKeys(ExecutionContext executionContext, Long from, Long to) {
-        return searchApiConnectionLogErrorKeys(executionContext, null, from, to);
+    public List<String> searchEnvironmentConnectionLogErrorKeys(
+        ExecutionContext executionContext,
+        Collection<String> apiIds,
+        Long from,
+        Long to
+    ) {
+        return apiIds
+            .stream()
+            .flatMap(apiId -> searchApiConnectionLogErrorKeys(executionContext, apiId, from, to).stream())
+            .distinct()
+            .sorted()
+            .toList();
     }
 
     @Override

@@ -17,17 +17,26 @@ package io.gravitee.apim.core.analytics.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
+import inmemory.ApiAuthorizationDomainServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.ApplicationQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
+import io.gravitee.apim.core.analytics.domain_service.EnvironmentAnalyticsApisDomainService;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
@@ -42,25 +51,33 @@ class SearchEnvironmentTopAppsByRequestCountUseCaseTest {
 
     public static final String ENV_ID = "environment-id";
     public static final String ORG_ID = "org-id";
+    private static final String USER_ID = "user-id";
     private static final long FROM = 1728981738L;
     private static final long TO = 1729068138L;
     private final ExecutionContext executionContext = new ExecutionContext(ORG_ID, ENV_ID);
 
     private FakeAnalyticsQueryService analyticsQueryService;
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
+    private final ApiAuthorizationDomainServiceInMemory apiAuthorizationDomainService = new ApiAuthorizationDomainServiceInMemory();
+    private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
     private final ApplicationQueryServiceInMemory applicationQueryService = new ApplicationQueryServiceInMemory();
     private SearchEnvironmentTopAppsByRequestCountUseCase cut;
 
     @BeforeEach
     void setUp() {
         analyticsQueryService = mock(FakeAnalyticsQueryService.class);
-        cut = new SearchEnvironmentTopAppsByRequestCountUseCase(analyticsQueryService, apiQueryService, applicationQueryService);
+        cut = new SearchEnvironmentTopAppsByRequestCountUseCase(
+            analyticsQueryService,
+            new EnvironmentAnalyticsApisDomainService(apiQueryService, apiAuthorizationDomainService, permissionDomainService),
+            applicationQueryService
+        );
+        givenUserReadsThePlatform(true);
     }
 
     @AfterEach
     void tearDown() {
         analyticsQueryService.reset();
-        Stream.of(apiQueryService, applicationQueryService).forEach(InMemoryAlternative::reset);
+        Stream.of(apiQueryService, apiAuthorizationDomainService, applicationQueryService).forEach(InMemoryAlternative::reset);
     }
 
     @Test
@@ -81,6 +98,7 @@ class SearchEnvironmentTopAppsByRequestCountUseCaseTest {
         var input = SearchEnvironmentTopAppsByRequestCountUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .userId(USER_ID)
             .build();
 
         when(analyticsQueryService.searchTopHitsApps(any(), any())).thenReturn(
@@ -126,6 +144,7 @@ class SearchEnvironmentTopAppsByRequestCountUseCaseTest {
         var input = SearchEnvironmentTopAppsByRequestCountUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .userId(USER_ID)
             .build();
 
         when(analyticsQueryService.searchTopHitsApps(any(), any())).thenReturn(
@@ -160,6 +179,7 @@ class SearchEnvironmentTopAppsByRequestCountUseCaseTest {
         var input = SearchEnvironmentTopAppsByRequestCountUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .userId(USER_ID)
             .build();
 
         when(analyticsQueryService.searchTopHitsApps(any(), any())).thenReturn(
@@ -186,6 +206,7 @@ class SearchEnvironmentTopAppsByRequestCountUseCaseTest {
         var input = SearchEnvironmentTopAppsByRequestCountUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .userId(USER_ID)
             .build();
 
         when(analyticsQueryService.searchTopHitsApps(any(), any())).thenReturn(Optional.empty());
@@ -193,5 +214,52 @@ class SearchEnvironmentTopAppsByRequestCountUseCaseTest {
         var result = cut.execute(input).topHitsApps();
 
         assertThat(result).extracting(TopHitsApps::getData).isEqualTo(List.of());
+    }
+
+    @Test
+    void should_get_top_apps_only_for_the_apis_whose_analytics_the_user_can_read() {
+        givenUserReadsThePlatform(false);
+        var readable = ApiFixtures.aProxyApiV4().toBuilder().id("readable").build();
+        apiQueryService.initWith(List.of(readable, ApiFixtures.aProxyApiV4().toBuilder().id("unreadable").build()));
+        givenUserCanReadAnalyticsOf(readable);
+        when(analyticsQueryService.searchTopHitsApps(any(), any())).thenReturn(Optional.empty());
+
+        cut.execute(anInput());
+
+        verify(analyticsQueryService).searchTopHitsApps(any(), argThat(parameters -> parameters.getApiIds().equals(List.of("readable"))));
+    }
+
+    @Test
+    void should_return_no_top_app_without_searching_analytics_when_the_user_can_read_no_api() {
+        givenUserReadsThePlatform(false);
+        apiQueryService.initWith(List.of(ApiFixtures.aProxyApiV4()));
+
+        var result = cut.execute(anInput()).topHitsApps();
+
+        assertThat(result.getData()).isEmpty();
+        verifyNoInteractions(analyticsQueryService);
+    }
+
+    private SearchEnvironmentTopAppsByRequestCountUseCase.Input anInput() {
+        return SearchEnvironmentTopAppsByRequestCountUseCase.Input.builder()
+            .executionContext(executionContext)
+            .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+            .userId(USER_ID)
+            .build();
+    }
+
+    private void givenUserReadsThePlatform(boolean readsPlatform) {
+        when(
+            permissionDomainService.hasPermission(ORG_ID, USER_ID, RolePermission.ENVIRONMENT_PLATFORM, ENV_ID, RolePermissionAction.READ)
+        ).thenReturn(readsPlatform);
+    }
+
+    private void givenUserCanReadAnalyticsOf(Api... apis) {
+        apiAuthorizationDomainService.initWith(List.of(apis));
+        for (Api api : apis) {
+            when(
+                permissionDomainService.hasPermission(ORG_ID, USER_ID, RolePermission.API_ANALYTICS, api.getId(), RolePermissionAction.READ)
+            ).thenReturn(true);
+        }
     }
 }

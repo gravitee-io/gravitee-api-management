@@ -47,4 +47,9 @@ public class ApiAuthorizationDomainServiceLegacyWrapper implements ApiAuthorizat
             manageOnly
         );
     }
+
+    @Override
+    public Set<String> findMemberApiIds(ExecutionContext executionContext, String userId) {
+        return this.delegate.findApiIdsByUserId(executionContext, userId, null, false);
+    }
 }
