@@ -15,7 +15,29 @@
     limitations under the License.
 
 -->
+<<<<<<< HEAD:gravitee-apim-console-webui/src/portal/api/portal-api.component.html
 
 <portal-header title="API" subtitle="Customize the look of the new Developer Portal" />
 
 <router-outlet></router-outlet>
+=======
+<div class="content__editor">
+  <div class="content__editor__cell">
+    <gio-monaco-editor
+      [(ngModel)]="_value"
+      [languageConfig]="{ language: 'yaml' }"
+      (ngModelChange)="_onChange($event)"
+      [disableMiniMap]="true"
+      [disabled]="disabled"
+    ></gio-monaco-editor>
+  </div>
+  @if (showPreview()) {
+    <div class="content__editor__cell">
+      <asyncapi-component
+        [schema]="_value | renderableAsyncApi"
+        cssImportPath="assets/style/asyncapi-console-preview.css"
+      ></asyncapi-component>
+    </div>
+  }
+</div>
+>>>>>>> 68c224e (fix(portal): render AsyncAPI pages whose payload is an XML Schema (APIM-15495) (#21243)):gravitee-apim-console-webui/src/portal/components/asyncapi-editor/asyncapi-editor.component.html
