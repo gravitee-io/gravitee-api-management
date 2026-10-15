@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CORE_SCHEMA, loadAll, mergeTag } from 'js-yaml';
+import { DEFAULT_SCHEMA, loadAll } from 'js-yaml';
 import { isObject } from 'lodash';
 
 type JsonNode = Record<string, unknown> & { asyncapi?: unknown; schemaFormat?: unknown; schema?: unknown; payload?: unknown };
@@ -22,8 +22,8 @@ type JsonNode = Record<string, unknown> & { asyncapi?: unknown; schemaFormat?: u
 const XML_SCHEMA_FORMAT = /^(?:application|text)\/(?:[\w.-]+\+)?(?:xml|xsd)$/i;
 
 // A rewritten document is handed to the viewer as JSON, where an unresolved `<<` key would be a
-// plain property.
-const ASYNCAPI_YAML_SCHEMA = CORE_SCHEMA.withTags(mergeTag);
+// plain property: js-yaml 4 resolves merge keys in its DEFAULT_SCHEMA only.
+const ASYNCAPI_YAML_SCHEMA = DEFAULT_SCHEMA;
 
 // JSON.stringify writes a value shared through YAML aliases once per reference: a document that would expand past
 // this size (one per node, plus one per 64 characters of text or key), or that loops back, would stall the page once
@@ -59,7 +59,7 @@ export function toRenderableAsyncApi<T extends string | null | undefined>(conten
 }
 
 function readAsyncApiDocument(content: string): JsonNode | undefined {
-  const documents = loadAll(content, { schema: ASYNCAPI_YAML_SCHEMA });
+  const documents = loadAll(content, null, { schema: ASYNCAPI_YAML_SCHEMA });
   const [document] = documents;
   return documents.length === 1 && isNode(document) && 'asyncapi' in document ? document : undefined;
 }
@@ -127,7 +127,7 @@ function isXmlSchemaFormat(schemaFormat: unknown): schemaFormat is string {
 
 function quoteXmlSchema(schemaFormat: string, schema: unknown): JsonNode {
   const source = typeof schema === 'string' ? schema.trim() : JSON.stringify(schema, null, 2);
-  const longestBacktickRun = Math.max(0, ...(source.match(/`+/g) ?? []).map(run => run.length));
+  const longestBacktickRun = Math.max(0, ...(source.match(/`+/g) ?? []).map((run) => run.length));
   const fence = '`'.repeat(Math.max(3, longestBacktickRun + 1));
   return {
     type: 'string',
