@@ -116,7 +116,14 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
     @Override
     @AfterEach
     public void tearDown() {
-        Mockito.reset(subscriptionService, applicationService, planSearchService, parameterService, apiKeyService);
+        Mockito.reset(
+            subscriptionService,
+            applicationService,
+            planSearchService,
+            parameterService,
+            apiKeyService,
+            acceptSubscriptionUseCase
+        );
         GraviteeContext.cleanContext();
 
         super.tearDown();
@@ -279,7 +286,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             )
                 .when(subscriptionService)
                 .create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), any());
-            when(acceptSubscriptionUseCase.execute(any())).thenReturn(
+            doReturn(
                 new AcceptSubscriptionUseCase.Output(
                     fixtures.core.model.SubscriptionFixtures.aSubscription()
                         .toBuilder()
@@ -289,7 +296,9 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                         .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED)
                         .build()
                 )
-            );
+            )
+                .when(acceptSubscriptionUseCase)
+                .execute(any());
 
             final Response response = target.request().post(Entity.json(createSubscription));
             assertThat(response)
