@@ -18,10 +18,12 @@ import { CommonModule } from '@angular/common';
 
 import { GioAsyncApiComponent } from './gio-async-api.component';
 
+import { RenderableAsyncApiPipe } from '../../../shared/pipes/renderable-async-api.pipe';
+
 @NgModule({
   declarations: [GioAsyncApiComponent],
   exports: [GioAsyncApiComponent],
-  imports: [CommonModule],
+  imports: [CommonModule, RenderableAsyncApiPipe],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class GioAsyncApiModule {}
