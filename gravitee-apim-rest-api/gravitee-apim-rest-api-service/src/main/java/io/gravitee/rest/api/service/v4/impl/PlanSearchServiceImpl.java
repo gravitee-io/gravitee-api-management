@@ -95,6 +95,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
             log.debug("Find plan by id : {}", plan);
             return planRepository
                 .findById(plan)
+                .filter(found -> belongsToEnvironment(executionContext, found))
                 .map(this::mapToGeneric)
                 .orElseThrow(() -> new PlanNotFoundException(plan));
         } catch (TechnicalException ex) {
@@ -238,6 +239,16 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to check if a plan exists", e);
         }
+    }
+
+    // An organization-level context carries no environment, and plans created before environments were
+    // stored on them have none either: neither side can be compared, so both are accepted.
+    private boolean belongsToEnvironment(final ExecutionContext executionContext, final Plan plan) {
+        return (
+            executionContext.getEnvironmentId() == null ||
+            plan.getEnvironmentId() == null ||
+            executionContext.getEnvironmentId().equals(plan.getEnvironmentId())
+        );
     }
 
     private GenericPlanEntity mapToGeneric(final Plan plan) {
