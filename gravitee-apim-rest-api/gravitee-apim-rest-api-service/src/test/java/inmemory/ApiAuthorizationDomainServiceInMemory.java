@@ -55,4 +55,9 @@ public class ApiAuthorizationDomainServiceInMemory implements ApiAuthorizationDo
     ) {
         return storage.stream().map(Api::getId).collect(Collectors.toSet());
     }
+
+    @Override
+    public Set<String> findMemberApiIds(ExecutionContext executionContext, String userId) {
+        return storage.stream().map(Api::getId).collect(Collectors.toSet());
+    }
 }

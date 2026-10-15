@@ -930,7 +930,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
 
         @Test
         void should_return_empty_list_when_no_logs_for_api() {
-            var result = metricsV4Repository.searchConnectionLogErrorKeys(queryContext, "non-existing-api-id", null, null);
+            var result = metricsV4Repository.searchConnectionLogErrorKeys(queryContext, List.of("non-existing-api-id"), null, null);
 
             assertThat(result).isEmpty();
         }
@@ -940,7 +940,12 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
             var from = timeProvider.getNow().minus(1, ChronoUnit.DAYS).toEpochMilli();
             var to = timeProvider.getNow().plus(1, ChronoUnit.DAYS).toEpochMilli();
 
-            var result = metricsV4Repository.searchConnectionLogErrorKeys(queryContext, "f1608475-dd77-4603-a084-75dd775603e9", from, to);
+            var result = metricsV4Repository.searchConnectionLogErrorKeys(
+                queryContext,
+                List.of("f1608475-dd77-4603-a084-75dd775603e9"),
+                from,
+                to
+            );
 
             assertThat(result)
                 .hasSize(2)
@@ -950,7 +955,37 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
 
         @Test
         void should_not_return_error_keys_from_other_apis() {
-            var result = metricsV4Repository.searchConnectionLogErrorKeys(queryContext, "4a6895d5-a1bc-4041-a895-d5a1bce041ae", null, null);
+            var result = metricsV4Repository.searchConnectionLogErrorKeys(
+                queryContext,
+                List.of("4a6895d5-a1bc-4041-a895-d5a1bce041ae"),
+                null,
+                null
+            );
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_return_distinct_error_keys_of_every_given_api() {
+            var from = timeProvider.getNow().minus(1, ChronoUnit.DAYS).toEpochMilli();
+            var to = timeProvider.getNow().plus(1, ChronoUnit.DAYS).toEpochMilli();
+
+            var result = metricsV4Repository.searchConnectionLogErrorKeys(
+                queryContext,
+                List.of("4a6895d5-a1bc-4041-a895-d5a1bce041ae", "f1608475-dd77-4603-a084-75dd775603e9"),
+                from,
+                to
+            );
+
+            assertThat(result).containsExactlyInAnyOrder("GATEWAY_CLIENT_CONNECTION_ERROR", "NO_ENDPOINT_FOUND");
+        }
+
+        @Test
+        void should_return_no_error_key_when_no_api_is_given() {
+            var from = timeProvider.getNow().minus(1, ChronoUnit.DAYS).toEpochMilli();
+            var to = timeProvider.getNow().plus(1, ChronoUnit.DAYS).toEpochMilli();
+
+            var result = metricsV4Repository.searchConnectionLogErrorKeys(queryContext, List.of(), from, to);
 
             assertThat(result).isEmpty();
         }
