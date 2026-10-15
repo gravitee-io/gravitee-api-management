@@ -33,6 +33,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
@@ -517,18 +518,11 @@ public class SubscriptionServiceTest {
         subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
     }
 
-<<<<<<< HEAD
-    @Test(expected = PlanNotSubscribableWithSharedApiKeyException.class)
-=======
     @Test
     public void should_not_create_when_plan_belongs_to_another_environment() throws Exception {
         // Stub
         planEntity.setEnvironmentId("another-environment");
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
-        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
-        when(subscriptionRepository.create(any())).thenAnswer(returnsFirstArg());
-        SecurityContextHolder.setContext(generateSecurityContext());
 
         // Run
         assertThrows(PlanNotFoundException.class, () ->
@@ -539,8 +533,7 @@ public class SubscriptionServiceTest {
         verify(subscriptionRepository, never()).create(any());
     }
 
-    @Test
->>>>>>> 23f215f (fix(rest-api): reject a subscription to a plan that belongs to another environment)
+    @Test(expected = PlanNotSubscribableWithSharedApiKeyException.class)
     public void shouldNotCreateBecauseSharedModeAndExistingApiKeyPlanSubscription() throws Exception {
         final String existingApiKeyPlanId = "existing-api-key-plan";
 
