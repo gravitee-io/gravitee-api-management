@@ -100,7 +100,7 @@ todos:
     status: completed
   - id: STORY-31
     content: "Show or hide an individual page, folder or link."
-    status: pending
+    status: completed
   - id: STORY-32
     content: "Reorder and move documentation by dragging."
     status: pending
@@ -1283,6 +1283,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 3. The no-sections-available state, per decision 3.
 
 #### STORY-31 — Show or hide an individual page, folder or link
+**Status:** Done under [PORTAL-274](https://gravitee.atlassian.net/browse/PORTAL-274), as [#21195](https://github.com/gravitee-io/gravitee-api-management/pull/21195). Publish and Unpublish on each row, confirmed in a dialog. Unpublishing a folder unpublishes its contents; publishing one offers to publish them, checked by default. Publish is disabled while the API or the item's folder is unpublished, and items inside a synced folder cannot be changed.
 **Why:** whole-API publishing is too coarse once an API is live — an author needs to hold back one unfinished page without hiding the rest. Without it, selective visibility sends the user back to the classic portal editor, which a console meant to replace it should not do.
 **Acceptance criteria:**
 - A per-item toggle, disabled with an explanation while the whole API is unpublished.
