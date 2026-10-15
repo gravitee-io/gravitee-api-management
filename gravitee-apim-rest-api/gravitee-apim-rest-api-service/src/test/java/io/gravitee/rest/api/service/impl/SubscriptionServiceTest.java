@@ -112,6 +112,7 @@ import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionAcceptedException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionRevisionException;
 import io.gravitee.rest.api.service.exceptions.PlanMtlsAlreadySubscribedException;
+import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableException;
 import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableWithSharedApiKeyException;
 import io.gravitee.rest.api.service.exceptions.PlanNotYetPublishedException;
@@ -479,7 +480,30 @@ public class SubscriptionServiceTest {
         subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
     }
 
+<<<<<<< HEAD
     @Test(expected = PlanNotSubscribableWithSharedApiKeyException.class)
+=======
+    @Test
+    public void should_not_create_when_plan_belongs_to_another_environment() throws Exception {
+        // Stub
+        planEntity.setEnvironmentId("another-environment");
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
+        when(subscriptionRepository.create(any())).thenAnswer(returnsFirstArg());
+        SecurityContextHolder.setContext(generateSecurityContext());
+
+        // Run
+        assertThrows(PlanNotFoundException.class, () ->
+            subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID))
+        );
+
+        // Verify
+        verify(subscriptionRepository, never()).create(any());
+    }
+
+    @Test
+>>>>>>> 23f215f (fix(rest-api): reject a subscription to a plan that belongs to another environment)
     public void shouldNotCreateBecauseSharedModeAndExistingApiKeyPlanSubscription() throws Exception {
         final String existingApiKeyPlanId = "existing-api-key-plan";
 
@@ -2569,7 +2593,16 @@ public class SubscriptionServiceTest {
     @Test
     public void should_clean_subscription_request_on_notifier_trigger() throws TechnicalException {
         when(planSearchService.findById(any(), any())).thenReturn(
+<<<<<<< HEAD
             BasePlanEntity.builder().status(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED).build()
+=======
+            BasePlanEntity.builder()
+                .status(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED)
+                .referenceId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
+                .build()
+>>>>>>> 23f215f (fix(rest-api): reject a subscription to a plan that belongs to another environment)
         );
         when(applicationService.findById(any(), any())).thenReturn(
             ApplicationEntity.builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).build()
