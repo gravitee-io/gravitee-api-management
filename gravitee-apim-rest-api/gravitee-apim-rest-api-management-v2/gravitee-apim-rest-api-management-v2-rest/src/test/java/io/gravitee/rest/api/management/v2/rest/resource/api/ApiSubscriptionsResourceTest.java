@@ -19,6 +19,7 @@ import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -26,6 +27,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -42,12 +44,14 @@ import io.gravitee.rest.api.management.v2.rest.model.Subscription;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
+import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -125,6 +129,27 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
     @Nested
     class Create {
+
+        @BeforeEach
+        void setUp() {
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(
+                PlanEntity.builder().id(PLAN).referenceId(API).referenceType(GenericPlanEntity.ReferenceType.API).build()
+            );
+        }
+
+        @Test
+        public void should_return_404_when_plan_belongs_to_another_api() {
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(
+                PlanEntity.builder().id(PLAN).referenceId("another-api").referenceType(GenericPlanEntity.ReferenceType.API).build()
+            );
+
+            final Response response = target
+                .request()
+                .post(Entity.json(SubscriptionFixtures.aCreateSubscription().applicationId(APPLICATION).planId(PLAN).customApiKey(null)));
+
+            assertThat(response).hasStatus(NOT_FOUND_404);
+            verify(subscriptionService, never()).create(any(), any(), any());
+        }
 
         @Test
         public void should_create_subscription() {
