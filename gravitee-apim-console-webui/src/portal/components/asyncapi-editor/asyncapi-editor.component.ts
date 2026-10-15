@@ -17,6 +17,8 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA, input } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { GioMonacoEditorModule } from '@gravitee/ui-particles-angular';
 
+import { RenderableAsyncApiPipe } from '../../../shared/pipes/renderable-async-api.pipe';
+
 @Component({
   selector: 'asyncapi-editor',
   standalone: true,
@@ -30,7 +32,7 @@ import { GioMonacoEditorModule } from '@gravitee/ui-particles-angular';
       multi: true,
     },
   ],
-  imports: [FormsModule, GioMonacoEditorModule],
+  imports: [FormsModule, GioMonacoEditorModule, RenderableAsyncApiPipe],
 })
 export class AsyncApiEditorComponent implements ControlValueAccessor {
   showPreview = input(true);
