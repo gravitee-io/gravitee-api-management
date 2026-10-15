@@ -271,7 +271,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
         final Collection<Dashboard> dashboards = dashboardRepository.findByReferenceAndType(
             dashboardReferenceType.name(),
             referenceId,
-            dashboardToReorder.getReferenceType()
+            dashboardToReorder.getType()
         );
         final Dashboard[] dashboardsToReorder = dashboards
             .stream()
@@ -284,17 +284,10 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
         }
         try {
             for (int i = 0; i < dashboardsToReorder.length; i++) {
-                if (deleted) {
-                    if (dashboardsToReorder[i].getOrder() > dashboardToReorder.getOrder()) {
-                        dashboardsToReorder[i].setOrder(dashboardsToReorder[i].getOrder() - 1);
-                        dashboardRepository.update(dashboardsToReorder[i]);
-                    }
-                } else {
-                    int newOrder = (i + 1) < dashboardToReorder.getOrder() ? (i + 1) : (i + 2);
-                    if (dashboardsToReorder[i].getOrder() != newOrder) {
-                        dashboardsToReorder[i].setOrder(newOrder);
-                        dashboardRepository.update(dashboardsToReorder[i]);
-                    }
+                int newOrder = (deleted || (i + 1) < dashboardToReorder.getOrder()) ? (i + 1) : (i + 2);
+                if (dashboardsToReorder[i].getOrder() != newOrder) {
+                    dashboardsToReorder[i].setOrder(newOrder);
+                    dashboardRepository.update(dashboardsToReorder[i]);
                 }
             }
             if (deleted) {
