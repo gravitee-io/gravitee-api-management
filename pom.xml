@@ -55,7 +55,7 @@
     <gravitee-cockpit-api.version>4.0.0</gravitee-cockpit-api.version>
     <gravitee-cloud-initializer.version>3.2.0</gravitee-cloud-initializer.version>
     <logback-ecs-encoder.version>1.8.0</logback-ecs-encoder.version>
-    <gravitee-common.version>5.2.0</gravitee-common.version>
+    <gravitee-common.version>5.2.1</gravitee-common.version>
     <gravitee-common-elasticsearch.version>7.2.0</gravitee-common-elasticsearch.version>
     <gravitee-common-mcp.version>2.2.1</gravitee-common-mcp.version>
     <gravitee-connector-api.version>2.0.0</gravitee-connector-api.version>
