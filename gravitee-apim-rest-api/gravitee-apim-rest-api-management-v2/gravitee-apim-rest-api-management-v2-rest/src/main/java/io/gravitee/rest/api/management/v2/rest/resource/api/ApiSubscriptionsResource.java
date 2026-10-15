@@ -60,6 +60,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
+import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -264,6 +265,10 @@ public class ApiSubscriptionsResource extends AbstractResource {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(subscriptionInvalid("You are not allowed to provide a custom API Key"))
                 .build();
+        }
+
+        if (!apiId.equals(planSearchService.findById(executionContext, createSubscription.getPlanId()).getReferenceId())) {
+            throw new PlanNotFoundException(createSubscription.getPlanId());
         }
 
         final NewSubscriptionEntity newSubscriptionEntity = subscriptionMapper.map(createSubscription);
