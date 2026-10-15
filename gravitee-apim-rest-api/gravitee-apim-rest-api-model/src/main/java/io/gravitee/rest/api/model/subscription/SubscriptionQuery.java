@@ -125,6 +125,16 @@ public class SubscriptionQuery {
         return apis == null || apis.contains(api);
     }
 
+    public boolean matchesReference(String subscriptionReferenceId, String subscriptionReferenceType) {
+        return (
+            (referenceId == null || referenceId.equals(subscriptionReferenceId)) &&
+            (referenceType == null || referenceType.name().equals(subscriptionReferenceType)) &&
+            (referenceTypes == null ||
+                referenceTypes.isEmpty() ||
+                referenceTypes.stream().anyMatch(type -> type.name().equals(subscriptionReferenceType)))
+        );
+    }
+
     public boolean matchesPlan(String plan) {
         return plans == null || plans.contains(plan);
     }
