@@ -43,4 +43,8 @@ export class AsyncApiEditorHarness extends ComponentHarness {
   async getPreview() {
     return this.getPreviewOptional();
   }
+
+  async getPreviewSchema(): Promise<string | undefined> {
+    return this.getPreviewOptional().then(preview => preview?.getProperty<string>('schema'));
+  }
 }

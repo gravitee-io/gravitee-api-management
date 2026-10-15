@@ -94,6 +94,48 @@ describe('AsyncApiEditorComponent', () => {
     expect(await asyncApiEditor.isMonacoEditorDisabled()).toBe(true);
   });
 
+  describe('preview content', () => {
+    const avroContent = `asyncapi: 3.0.0
+info: { title: Users, version: 1.0.0 }
+channels:
+  userSignedUp:
+    messages:
+      UserSignedUp:
+        payload:
+          schemaFormat: application/vnd.apache.avro;version=1.9.0
+          schema: { type: record, name: UserSignedUp, fields: [{ name: userId, type: string }] }
+`;
+    const xsdContent = `asyncapi: 3.0.0
+info: { title: Orders, version: 1.0.0 }
+channels:
+  orderCreated:
+    messages:
+      OrderCreated:
+        payload:
+          schemaFormat: application/xml
+          schema: '<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"/>'
+`;
+
+    it('should preview an Avro payload as written', async () => {
+      host.contentControl.setValue(avroContent);
+      fixture.detectChanges();
+
+      const asyncApiEditor = await loader.getHarness(AsyncApiEditorHarness);
+      expect(await asyncApiEditor.getPreviewSchema()).toEqual(avroContent);
+    });
+
+    it('should preview an XML Schema payload as its quoted schema', async () => {
+      host.contentControl.setValue(xsdContent);
+      fixture.detectChanges();
+
+      const asyncApiEditor = await loader.getHarness(AsyncApiEditorHarness);
+      const payload = JSON.parse(await asyncApiEditor.getPreviewSchema()).channels.orderCreated.messages.OrderCreated.payload;
+      expect(payload.schemaFormat).toBeUndefined();
+      expect(payload.type).toEqual('string');
+      expect(payload.description).toContain('<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"/>');
+    });
+  });
+
   describe('showPreview input', () => {
     it('should render asyncapi-component when showPreview is true (default)', async () => {
       const asyncApiEditor = await loader.getHarness(AsyncApiEditorHarness);
