@@ -91,7 +91,7 @@ todos:
     status: completed
   - id: STORY-28
     content: "Create a link."
-    status: pending
+    status: completed
   - id: STORY-29
     content: "Edit a page's title and access."
     status: completed
@@ -1235,6 +1235,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 **Size:** M · **Depends on:** STORY-25, STORY-26 (the menu and the shared fields)
 
 #### STORY-28 — Create a link
+**Status:** Done under [PORTAL-265](https://gravitee.atlassian.net/browse/PORTAL-265), as [#21177](https://github.com/gravitee-io/gravitee-api-management/pull/21177). One `LinkDialog` adds a link or edits its title, URL and access; the URL is checked as the portal editor does, required and parseable. A stored address opens in a new tab only when it is http or https.
 **Why:** API documentation often needs to point at material that lives elsewhere — a status page, a changelog, a support portal — without copying it. Links can already be created through GitOps and the classic editor, so leaving them out of Gamma would make it the only place that cannot.
 **Acceptance criteria:** title and address; invalid addresses rejected with a clear message; appears in the tree; clicking it opens an inline edit form rather than the content editor.
 **Files:**
