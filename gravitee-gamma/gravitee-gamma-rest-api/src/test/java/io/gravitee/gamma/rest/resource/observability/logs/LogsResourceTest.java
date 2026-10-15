@@ -72,6 +72,7 @@ import org.springframework.test.context.ContextConfiguration;
 class LogsResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "fake-env";
+    private static final String OTHER_ENVIRONMENT = "other-env";
 
     @Inject
     private SearchObservabilityLogsUseCase searchLogsUseCase;
@@ -252,6 +253,46 @@ class LogsResourceTest extends AbstractResourceTest {
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
             verifyNoInteractions(searchLogsUseCase);
+        }
+
+        @Test
+        void should_return_403_when_caller_only_holds_environment_api_read() {
+            givenOnlyReadPermission(RolePermission.ENVIRONMENT_API, ENVIRONMENT);
+
+            Response response = rootTarget("search").request().post(Entity.entity(Map.of(), MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
+            verifyNoInteractions(searchLogsUseCase);
+        }
+
+        @Test
+        void should_return_403_when_environment_platform_read_is_held_on_another_environment() {
+            givenOnlyReadPermission(RolePermission.ENVIRONMENT_PLATFORM, OTHER_ENVIRONMENT);
+
+            Response response = rootTarget("search").request().post(Entity.entity(Map.of(), MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
+            verifyNoInteractions(searchLogsUseCase);
+        }
+
+        @Test
+        void should_return_403_when_caller_only_holds_environment_dashboard_read() {
+            givenOnlyReadPermission(RolePermission.ENVIRONMENT_DASHBOARD, ENVIRONMENT);
+
+            Response response = rootTarget("search").request().post(Entity.entity(Map.of(), MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
+            verifyNoInteractions(searchLogsUseCase);
+        }
+
+        @Test
+        void should_search_when_caller_holds_environment_platform_read() {
+            givenOnlyReadPermission(RolePermission.ENVIRONMENT_PLATFORM, ENVIRONMENT);
+            when(searchLogsUseCase.execute(any())).thenReturn(new SearchObservabilityLogsUseCase.Output(new LogsPage(List.of(), 0), 1, 20));
+
+            Response response = rootTarget("search").request().post(Entity.entity(Map.of(), MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         }
     }
 

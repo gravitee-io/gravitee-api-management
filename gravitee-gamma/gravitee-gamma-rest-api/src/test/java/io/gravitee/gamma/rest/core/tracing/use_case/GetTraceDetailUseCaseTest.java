@@ -40,6 +40,7 @@ class GetTraceDetailUseCaseTest {
 
     private static final String ORG = "org-1";
     private static final String ENV = "env-1";
+    private static final String OTHER_ENV = "env-2";
     private static final String API_ID = "api-1";
     private static final String TRACE_ID = "trace-abc";
 
@@ -66,6 +67,22 @@ class GetTraceDetailUseCaseTest {
         Map<String, String> expected = Map.of(TraceScopeFilters.ENV_ID_KEY, ENV, TraceScopeFilters.API_ID_KEY, API_ID);
         assertThat(tracingPort.getLastResourceAttributeFilters()).isEqualTo(expected);
         assertThat(otelLogPort.lastAttributeFilters()).isEqualTo(expected);
+    }
+
+    @Test
+    void should_return_empty_when_the_trace_of_the_api_was_recorded_in_another_environment() {
+        Span root = span("root", null, "GET /pets", Instant.parse("2026-05-26T15:00:00Z"));
+        tracingPort.givenTrace(
+            ORG,
+            OTHER_ENV,
+            Map.of(TraceScopeFilters.ENV_ID_KEY, OTHER_ENV, TraceScopeFilters.API_ID_KEY, API_ID),
+            new Trace(TRACE_ID, root.startTime(), 1_000L, "gateway", root.operationName(), SpanStatus.UNSET, 0),
+            List.of(root)
+        );
+
+        GetTraceDetailUseCase.Output output = useCase.execute(input());
+
+        assertThat(output.trace()).isEmpty();
     }
 
     @Test
