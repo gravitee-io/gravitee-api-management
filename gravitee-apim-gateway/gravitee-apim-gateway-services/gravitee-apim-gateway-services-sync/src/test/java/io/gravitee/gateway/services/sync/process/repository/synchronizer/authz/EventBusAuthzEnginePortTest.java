@@ -137,6 +137,40 @@ class EventBusAuthzEnginePortTest {
     }
 
     @Test
+    void every_staging_op_names_its_environment_so_the_shared_default_address_can_be_partitioned() {
+        ConcurrentLinkedQueue<JsonObject> onDefault = new ConcurrentLinkedQueue<>();
+        MessageConsumer<JsonObject> defaultEngine = vertx
+            .eventBus()
+            .<JsonObject>consumer(EventBusAuthzEnginePort.DEFAULT_ADDRESS, msg -> {
+                onDefault.add(msg.body());
+                msg.reply(new JsonObject().put("commitGeneration", 1L));
+            });
+        try {
+            Set<String> defaultScope = Set.of(EventBusAuthzEnginePort.DEFAULT_SCOPE);
+            port.addOrUpdateEntity(ENV, "User::\"alice\"", Map.of(), List.of(), defaultScope, 1L).blockingAwait();
+            port.addOrUpdatePolicy(ENV, "p1", "p1", "permit(principal, action, resource);", defaultScope, 1L, null).blockingAwait();
+            port.addOrUpdateSchema(ENV, "s1", "s1", "entity User;", defaultScope, 1L).blockingAwait();
+            port.removeEntity(ENV, "User::\"alice\"", defaultScope).blockingAwait();
+            port.removePolicy(ENV, "p1", defaultScope).blockingAwait();
+            port.removeSchema(ENV, "s1", defaultScope).blockingAwait();
+
+            assertThat(onDefault)
+                .extracting(b -> b.getString("op"))
+                .containsExactly(
+                    "addOrUpdateEntity",
+                    "addOrUpdatePolicy",
+                    "addOrUpdateSchema",
+                    "removeEntity",
+                    "removePolicy",
+                    "removeSchema"
+                );
+            assertThat(onDefault).allSatisfy(b -> assertThat(b.getString("environmentId")).isEqualTo(ENV));
+        } finally {
+            defaultEngine.unregister();
+        }
+    }
+
+    @Test
     void tag_scoped_default_routes_to_the_default_engine_on_a_matching_node(VertxTestContext ctx) {
         EventBusAuthzEnginePort tagPort = new EventBusAuthzEnginePort(
             io.vertx.rxjava3.core.Vertx.newInstance(vertx),

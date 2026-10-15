@@ -50,6 +50,7 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
     static final String OP_ADD_OR_UPDATE_SCHEMA = "addOrUpdateSchema";
     static final String OP_REMOVE_SCHEMA = "removeSchema";
     static final String OP_COMMIT = "commit";
+    static final String ENVIRONMENT_ID = "environmentId";
 
     // Vertx default reply timeout is 30s — long enough to wedge a sync cycle when the PDP service
     // is unhealthy. 5s is short enough to fail fast and long enough for normal in-process replies.
@@ -161,7 +162,7 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
         Set<String> targetPdpIds,
         long updatedAt
     ) {
-        // The PDP consumer reads docId and schemaText and nothing else; name stays on the deployable
+        // The PDP reads docId and schemaText (and the environmentId routeGated adds); name stays on the deployable
         // for gateway-side logging.
         JsonObject command = new JsonObject().put("op", OP_ADD_OR_UPDATE_SCHEMA).put("docId", docId).put("schemaText", schemaText);
         Set<String> scopes = expandWildcardWithoutBootstrap(environmentId, targetPdpIds);
@@ -266,6 +267,7 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
         if (scopes.isEmpty()) {
             return Completable.complete();
         }
+        command.put(ENVIRONMENT_ID, environmentId);
         List<Completable> sends = new ArrayList<>();
         for (String scope : scopes) {
             if (!hostedScopes.serves(environmentId, scope)) {
@@ -296,6 +298,7 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
         if (scopes.isEmpty()) {
             return Completable.complete();
         }
+        command.put(ENVIRONMENT_ID, environmentId);
         List<Completable> sends = new ArrayList<>();
         for (String scope : scopes) {
             if (!hostedScopes.serves(environmentId, scope)) {
