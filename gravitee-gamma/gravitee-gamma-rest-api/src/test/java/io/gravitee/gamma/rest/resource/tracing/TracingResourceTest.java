@@ -46,6 +46,7 @@ import io.gravitee.gamma.rest.resource.AbstractResourceTest;
 import io.gravitee.gamma.rest.resource.tracing.TracingResourceTest.TracingTestConfiguration;
 import io.gravitee.gamma.rest.spring.ResourceContextConfiguration;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
@@ -69,7 +70,10 @@ import org.springframework.test.context.ContextConfiguration;
 class TracingResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "fake-env";
+    private static final String OTHER_ENVIRONMENT = "other-env";
     private static final String API_ID = "api-1";
+    private static final String OTHER_API_ID = "api-2";
+    private static final String OTHER_ENVIRONMENT_API_ID = "api-of-other-env";
     private static final String MODULE = "aim";
     private static final String TRACE_ID = "trace-abc";
     private static final Instant SAMPLE_INSTANT = Instant.parse("2026-05-26T15:14:46.277Z");
@@ -202,6 +206,39 @@ class TracingResourceTest extends AbstractResourceTest {
             assertThat(captor.getValue().perPage()).isEqualTo(50);
         }
 
+        @Test
+        void should_return_404_without_searching_when_caller_cannot_read_the_api_logs() {
+            givenOnlyReadPermission(RolePermission.API_LOG, OTHER_API_ID);
+
+            Response response = postSearch(Map.of("apiId", API_ID));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+            Mockito.verifyNoInteractions(searchTracesUseCase);
+        }
+
+        @Test
+        void should_search_when_caller_can_read_the_api_logs() {
+            givenOnlyReadPermission(RolePermission.API_LOG, API_ID);
+            when(searchTracesUseCase.execute(any())).thenReturn(new SearchTracesUseCase.Output(new Page<>(List.of(), 0, 0, 0)));
+
+            Response response = postSearch(Map.of("apiId", API_ID));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        @Test
+        void should_scope_the_search_to_the_environment_of_the_url_when_the_api_belongs_to_another_one() {
+            givenOnlyReadPermission(RolePermission.API_LOG, OTHER_ENVIRONMENT_API_ID);
+            when(searchTracesUseCase.execute(any())).thenReturn(new SearchTracesUseCase.Output(new Page<>(List.of(), 0, 0, 0)));
+
+            postSearch(Map.of("apiId", OTHER_ENVIRONMENT_API_ID));
+
+            ArgumentCaptor<SearchTracesUseCase.Input> captor = ArgumentCaptor.forClass(SearchTracesUseCase.Input.class);
+            Mockito.verify(searchTracesUseCase).execute(captor.capture());
+            assertThat(captor.getValue().environmentId()).isEqualTo(ENVIRONMENT);
+            assertThat(captor.getValue().apiId()).isEqualTo(OTHER_ENVIRONMENT_API_ID);
+        }
+
         private Response postSearch(Map<String, Object> body) {
             return rootTarget("search").request().post(Entity.entity(body, MediaType.APPLICATION_JSON_TYPE));
         }
@@ -275,6 +312,43 @@ class TracingResourceTest extends AbstractResourceTest {
             assertThat(spanNode.get("kind").asText()).isEqualTo("server");
         }
 
+        @Test
+        void should_return_404_without_reading_the_trace_when_caller_cannot_read_the_api_logs() {
+            givenOnlyReadPermission(RolePermission.API_LOG, OTHER_API_ID);
+
+            Response response = detailRequest().request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+            Mockito.verifyNoInteractions(getTraceDetailUseCase);
+        }
+
+        @Test
+        void should_read_the_trace_when_caller_can_read_the_api_logs() {
+            givenOnlyReadPermission(RolePermission.API_LOG, API_ID);
+            when(getTraceDetailUseCase.execute(any())).thenReturn(
+                new GetTraceDetailUseCase.Output(
+                    Optional.of(new TraceDetail(TRACE_ID, SAMPLE_INSTANT, 0L, "gateway", "GET /pets", SpanStatus.OK, 0, List.of()))
+                )
+            );
+
+            Response response = detailRequest().request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        @Test
+        void should_scope_the_detail_to_the_environment_of_the_url_when_the_api_belongs_to_another_one() {
+            givenOnlyReadPermission(RolePermission.API_LOG, OTHER_ENVIRONMENT_API_ID);
+            when(getTraceDetailUseCase.execute(any())).thenReturn(new GetTraceDetailUseCase.Output(Optional.empty()));
+
+            rootTarget(TRACE_ID).queryParam("apiId", OTHER_ENVIRONMENT_API_ID).request().get();
+
+            ArgumentCaptor<GetTraceDetailUseCase.Input> captor = ArgumentCaptor.forClass(GetTraceDetailUseCase.Input.class);
+            Mockito.verify(getTraceDetailUseCase).execute(captor.capture());
+            assertThat(captor.getValue().environmentId()).isEqualTo(ENVIRONMENT);
+            assertThat(captor.getValue().apiId()).isEqualTo(OTHER_ENVIRONMENT_API_ID);
+        }
+
         private WebTarget detailRequest() {
             return rootTarget(TRACE_ID).queryParam("apiId", API_ID);
         }
@@ -338,6 +412,16 @@ class TracingResourceTest extends AbstractResourceTest {
             );
             Mockito.verify(getTraceFilterDefinitionsUseCase).execute(captor.capture());
             assertThat(captor.getValue().moduleId()).isNull();
+        }
+
+        @Test
+        void should_return_the_catalog_to_a_caller_without_any_permission() {
+            when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
+            when(getTraceFilterDefinitionsUseCase.execute(any())).thenReturn(new GetTraceFilterDefinitionsUseCase.Output(List.of()));
+
+            Response response = rootTarget("filters/definition").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         }
     }
 
@@ -412,6 +496,18 @@ class TracingResourceTest extends AbstractResourceTest {
 
             // NotFoundDomainException → 404 via apim's NotFoundDomainExceptionMapper.
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        void should_return_the_catalog_to_a_caller_without_any_permission() {
+            when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
+            when(getTraceFilterValuesUseCase.execute(any())).thenReturn(
+                new GetTraceFilterValuesUseCase.Output(new TraceFilterValuesPage(List.of(), 0L))
+            );
+
+            Response response = rootTarget("filters/HTTP_METHOD/values").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         }
     }
 

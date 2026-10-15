@@ -61,8 +61,17 @@ class GetTraceFilterValuesUseCaseTest {
         null
     );
 
+    private static final TraceFilterSpec KEYWORD_FILTER = new TraceFilterSpec(
+        "LLM_MODEL",
+        "LLM model",
+        FilterType.KEYWORD,
+        List.of(FilterOperator.EQ),
+        null,
+        null
+    );
+
     private final GetTraceFilterValuesUseCase useCase = useCaseWith(
-        contributor(null, List.of(ENUM_HTTP_METHOD, NUMBER_FILTER, STRING_FILTER))
+        contributor(null, List.of(ENUM_HTTP_METHOD, NUMBER_FILTER, STRING_FILTER, KEYWORD_FILTER))
     );
 
     @Test
@@ -122,6 +131,19 @@ class GetTraceFilterValuesUseCaseTest {
             .isInstanceOf(UnsupportedFilterException.class)
             .hasMessageContaining("STRING")
             .hasMessageContaining("HTTP_ROUTE");
+    }
+
+    /**
+     * The values endpoint checks no permission: safe while every listed value is a static enum.
+     * Values read from traces would have to be scoped to the APIs the caller can read, so KEYWORD
+     * listing stays refused until it is.
+     */
+    @Test
+    void should_reject_KEYWORD_filter_until_its_values_are_scoped_to_the_readable_apis() {
+        assertThatThrownBy(() -> useCase.execute(new GetTraceFilterValuesUseCase.Input(null, "LLM_MODEL", null, null, null)))
+            .isInstanceOf(UnsupportedFilterException.class)
+            .hasMessageContaining("KEYWORD")
+            .hasMessageContaining("LLM_MODEL");
     }
 
     @Test
