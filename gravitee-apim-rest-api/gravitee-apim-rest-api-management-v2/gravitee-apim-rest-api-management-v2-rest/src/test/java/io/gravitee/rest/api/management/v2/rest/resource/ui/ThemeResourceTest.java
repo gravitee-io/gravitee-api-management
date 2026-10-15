@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.ui;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.common.http.HttpStatusCode.METHOD_NOT_ALLOWED_405;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -88,6 +89,13 @@ public class ThemeResourceTest extends AbstractResourceTest {
         GraviteeContext.cleanContext();
         themeQueryService.reset();
         themeCrudService.reset();
+    }
+
+    @Test
+    void should_return_405_when_getting_theme_by_id() {
+        try (Response response = rootTarget().request().get()) {
+            MAPIAssertions.assertThat(response).hasStatus(METHOD_NOT_ALLOWED_405);
+        }
     }
 
     @Nested
