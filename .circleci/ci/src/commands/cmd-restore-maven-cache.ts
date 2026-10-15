@@ -30,8 +30,13 @@ export class RestoreMavenJobCacheCommand {
       `${config.cache.prefix}-<< parameters.jobName >>-{{ .Branch }}`,
     ];
 
-    if (environment.baseBranch !== environment.branch) {
-      keys.push(`${config.cache.prefix}-<< parameters.jobName >>-${environment.baseBranch}`);
+    // `baseBranch` is a git ref (`origin/4.13.x`) while the cache is saved under `{{ .Branch }}`
+    // (`4.13.x`). Keys match by prefix, so the trailing dash only excludes names that continue
+    // without one (`4.13.xyz`): `4.13.x-foo` still matches.
+    const baseBranch = environment.baseBranch.replace(/^origin\//, '');
+
+    if (baseBranch !== environment.branch) {
+      keys.push(`${config.cache.prefix}-<< parameters.jobName >>-${baseBranch}-`);
     }
 
     return new reusable.ReusableCommand(
