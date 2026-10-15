@@ -47,7 +47,7 @@ public class UpdateDashboardUseCase {
 
     public Output execute(Input input) {
         var existing = dashboardDomainService
-            .findById(input.dashboardId())
+            .findByIdAndEnvironmentId(input.dashboardId(), input.auditInfo().environmentId())
             .orElseThrow(() -> new DashboardNotFoundException(input.dashboardId()));
 
         var updated = existing
