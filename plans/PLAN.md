@@ -64,7 +64,7 @@ todos:
     status: completed
   - id: STORY-19
     content: "Move existing editor-created API documentation to API ownership. One-time, no rollback."
-    status: pending
+    status: completed
   - id: STORY-20
     content: "Confirm the Angular Markdown viewer runs without zone.js inside a React host. Spike — gates STORY-21."
     status: completed
@@ -1014,6 +1014,7 @@ Decided earlier, when PORTAL-231 was written, and now reflected in the stories:
 None of them changes STORY-19's design if wrong; each only changes how much the migration does.
 
 #### STORY-19 — Move existing editor-created API documentation to API ownership
+**Status:** Done under [PORTAL-277](https://gravitee.atlassian.net/browse/PORTAL-277), as [#21244](https://github.com/gravitee-io/gravitee-api-management/pull/21244). Beyond the criteria: a moved top item takes the most restrictive published flag and visibility of its listing row and everything above it, since the portal stops checking that chain once the item is the API's own; an item managed by Portal automation keeps the whole top item it sits in where it is; an API with nothing under its listing is not touched. A run interrupted during the positions step may leave the API's top items in a different order, still one contiguous list; owners, parents, roots and segments converge either way.
 **Why:** without it, the editor writes API-owned items while older items stay under listing rows. The two groups form separate sibling sets, so items rendered side by side can share a position and a URL name with nothing complaining. This includes folders the portal editor imported from an external source: since STORY-08 a new import under a listing is stored as API-owned documentation, while older imports stay portal-owned children of the listing row, missing from Gamma's documentation screen.
 **Acceptance criteria:**
 - Runs once on start-up; relabels ownership and parentage in place; never creates, deletes or re-identifies a row.
