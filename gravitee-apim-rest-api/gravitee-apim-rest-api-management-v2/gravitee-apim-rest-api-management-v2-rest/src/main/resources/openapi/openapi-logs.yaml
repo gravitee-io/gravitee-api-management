@@ -149,6 +149,10 @@ paths:
       summary: Get environment error keys
       description: |
         Get the list of error keys found in the connection logs for the environment.
+
+        The result covers every API of the environment for a user with the ENVIRONMENT_PLATFORM[READ] permission, organization
+        administrators included; otherwise only the APIs the user is a member of, directly or through a group, with the
+        API_ANALYTICS[READ] permission. A user who can read no API gets an empty result.
       tags:
         - logs
       parameters:

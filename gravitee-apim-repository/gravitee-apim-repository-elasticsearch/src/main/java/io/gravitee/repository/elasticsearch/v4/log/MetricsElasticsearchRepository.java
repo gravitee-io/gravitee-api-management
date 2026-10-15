@@ -39,6 +39,7 @@ import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.connection.*;
 import io.gravitee.repository.log.v4.model.message.MessageMetrics;
 import io.gravitee.repository.log.v4.model.message.MessageMetricsQuery;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import lombok.CustomLog;
@@ -85,7 +86,7 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
     }
 
     @Override
-    public List<String> searchConnectionLogErrorKeys(QueryContext queryContext, String apiId, Long from, Long to) {
+    public List<String> searchConnectionLogErrorKeys(QueryContext queryContext, Collection<String> apiIds, Long from, Long to) {
         var indexes = getQueryIndexesFromDefinitionVersions(
             Type.REQUEST,
             Type.V4_METRICS,
@@ -93,7 +94,7 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
             queryContext,
             List.of(DefinitionVersion.V2, DefinitionVersion.V4)
         );
-        var query = SearchConnectionLogErrorKeysQuery.of(apiId, from, to);
+        var query = SearchConnectionLogErrorKeysQuery.of(apiIds, from, to);
         var searchRequest = SearchConnectionLogErrorKeysQueryAdapter.adapt(query);
         var searchResponse = this.client.search(indexes, null, searchRequest);
         return searchResponse.map(SearchConnectionLogErrorKeysResponseAdapter::adapt).blockingGet();

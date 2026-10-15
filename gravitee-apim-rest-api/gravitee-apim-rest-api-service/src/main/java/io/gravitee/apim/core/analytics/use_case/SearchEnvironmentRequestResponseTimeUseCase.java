@@ -15,23 +15,13 @@
  */
 package io.gravitee.apim.core.analytics.use_case;
 
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.toList;
-
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics.domain_service.EnvironmentAnalyticsApisDomainService;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
-import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.ApiFieldFilter;
-import io.gravitee.apim.core.api.model.ApiSearchCriteria;
-import io.gravitee.apim.core.api.query_service.ApiQueryService;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,15 +32,18 @@ import lombok.CustomLog;
 @AllArgsConstructor
 public class SearchEnvironmentRequestResponseTimeUseCase {
 
-    private final ApiQueryService apiQueryService;
+    private final EnvironmentAnalyticsApisDomainService environmentAnalyticsApisDomainService;
     private final AnalyticsQueryService analyticsQueryService;
 
     public Output execute(Input input) {
         var envId = input.executionContext().getEnvironmentId();
-        var v4Apis = getAllV4ApisIdsForEnv(envId);
+        var v4Apis = environmentAnalyticsApisDomainService.findReadableApiIdsByDefinitionVersion(input.executionContext(), input.userId());
         var apisId = v4Apis.values().stream().flatMap(Collection::stream).toList();
 
         log.debug("Searching Request Response Time, found: {} v4 APIs for env: {}", v4Apis.size(), envId);
+        if (apisId.isEmpty()) {
+            return new Output(noRequest());
+        }
 
         var requestResponseTime = analyticsQueryService.searchRequestResponseTime(
             input.executionContext(),
@@ -60,25 +53,18 @@ public class SearchEnvironmentRequestResponseTimeUseCase {
         return new Output(requestResponseTime);
     }
 
-    private Map<DefinitionVersion, List<String>> getAllV4ApisIdsForEnv(String envId) {
-        return apiQueryService
-            .search(
-                ApiSearchCriteria.builder()
-                    .environmentId(envId)
-                    .definitionVersion(List.of(DefinitionVersion.V4, DefinitionVersion.V2))
-                    .build(),
-                null,
-                ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
-            )
-            .collect(groupingBy(this::getDefinitionVersion, mapping(Api::getId, toList())));
-    }
-
-    private DefinitionVersion getDefinitionVersion(Api api) {
-        return api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
+    private static RequestResponseTime noRequest() {
+        return RequestResponseTime.builder()
+            .requestsPerSecond(0d)
+            .requestsTotal(0L)
+            .responseMinTime(0d)
+            .responseMaxTime(0d)
+            .responseAvgTime(0d)
+            .build();
     }
 
     @Builder
-    public record Input(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {}
+    public record Input(ExecutionContext executionContext, AnalyticsQueryParameters parameters, String userId) {}
 
     public record Output(Optional<RequestResponseTime> requestResponseTime) {
         Output(RequestResponseTime requestResponseTime) {

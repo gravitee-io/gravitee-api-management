@@ -15,25 +15,15 @@
  */
 package io.gravitee.apim.core.analytics.use_case;
 
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.toList;
-
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics.domain_service.EnvironmentAnalyticsApisDomainService;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
-import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.ApiFieldFilter;
-import io.gravitee.apim.core.api.model.ApiSearchCriteria;
-import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.utils.DurationUtils;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
 import java.util.Map;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
@@ -44,12 +34,20 @@ import lombok.RequiredArgsConstructor;
 public class SearchEnvironmentResponseStatusOverTimeUseCase {
 
     private final AnalyticsQueryService analyticsQueryService;
-    private final ApiQueryService apiQueryService;
+    private final EnvironmentAnalyticsApisDomainService environmentAnalyticsApisDomainService;
 
     public Output execute(ExecutionContext executionContext, Input input) {
         Duration interval = DurationUtils.buildIntervalFromTimePeriod(input.from(), input.to());
-        var apiIdsByDefinitionVersion = apisIdsForEnv(input.environmentId);
+        var apiIdsByDefinitionVersion = environmentAnalyticsApisDomainService.findReadableApiIdsByDefinitionVersion(
+            executionContext,
+            input.userId()
+        );
         var apiIds = apiIdsByDefinitionVersion.values().stream().flatMap(Collection::stream).toList();
+        if (apiIds.isEmpty()) {
+            return new Output(
+                new ResponseStatusOvertime(new ResponseStatusOvertime.TimeRange(input.from(), input.to(), interval), Map.of())
+            );
+        }
 
         var result = analyticsQueryService.searchResponseStatusOvertime(
             executionContext,
@@ -65,24 +63,7 @@ public class SearchEnvironmentResponseStatusOverTimeUseCase {
         return new Output(result);
     }
 
-    private Map<DefinitionVersion, List<String>> apisIdsForEnv(String envId) {
-        return apiQueryService
-            .search(
-                ApiSearchCriteria.builder()
-                    .environmentId(envId)
-                    .definitionVersion(EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2))
-                    .build(),
-                null,
-                ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
-            )
-            .collect(groupingBy(SearchEnvironmentResponseStatusOverTimeUseCase::getDefinitionVersion, mapping(Api::getId, toList())));
-    }
-
-    private static DefinitionVersion getDefinitionVersion(Api api) {
-        return api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
-    }
-
-    public record Input(String environmentId, Instant from, Instant to) {}
+    public record Input(Instant from, Instant to, String userId) {}
 
     public record Output(ResponseStatusOvertime responseStatusOvertime) {}
 }
