@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { AM_MODULE_ID } from './modules.catalog';
+
 export interface GammaModuleResponse {
     id: string;
     name: string;
@@ -35,6 +37,15 @@ export type UiGammaModuleResponse = GammaModuleResponse & { mfManifest: NonNulla
 /** Type guard keeping only modules that ship a UI; backend-only modules are filtered out. */
 export function hasUi(raw: GammaModuleResponse): raw is UiGammaModuleResponse {
     return raw.mfManifest !== null && raw.mfManifest !== undefined;
+}
+
+/** A module with no UI that still gets a tile, because its tile opens another console. */
+export function isExternalModule(raw: GammaModuleResponse): boolean {
+    return raw.id === AM_MODULE_ID && !hasUi(raw);
+}
+
+export function parseExternalModule(raw: GammaModuleResponse): GammaModule {
+    return { id: raw.id, name: raw.name, version: raw.version, remoteName: '', exposedModule: '' };
 }
 
 export function parseModule(raw: UiGammaModuleResponse): GammaModule {
