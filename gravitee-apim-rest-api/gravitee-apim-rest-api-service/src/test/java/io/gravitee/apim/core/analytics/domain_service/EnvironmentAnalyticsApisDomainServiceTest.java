@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -36,6 +37,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -56,7 +58,7 @@ class EnvironmentAnalyticsApisDomainServiceTest {
     private static final Api OTHER_ENV = ApiFixtures.aProxyApiV4().toBuilder().id("other-env").environmentId(OTHER_ENV_ID).build();
 
     private final ApiQueryServiceInMemory apiQueryService = spy(new ApiQueryServiceInMemory());
-    private final ApiAuthorizationDomainServiceInMemory apiAuthorizationDomainService = new ApiAuthorizationDomainServiceInMemory();
+    private final ApiAuthorizationDomainServiceInMemory apiAuthorizationDomainService = spy(new ApiAuthorizationDomainServiceInMemory());
     private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
 
     private EnvironmentAnalyticsApisDomainService cut;
@@ -197,9 +199,8 @@ class EnvironmentAnalyticsApisDomainServiceTest {
             }
 
             @Test
-            void should_not_find_the_requests_of_a_single_api_it_is_not_a_member_of() {
+            void should_not_find_the_requests_of_a_single_api_it_does_not_hold_the_log_permission_of() {
                 assertThat(cut.findReadableApi(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.PER_REQUEST, "proxy-v4")).isEmpty();
-                verify(apiQueryService, never()).search(any(), any(), any());
             }
 
             @Test
@@ -256,13 +257,52 @@ class EnvironmentAnalyticsApisDomainServiceTest {
             }
 
             @Test
-            void should_not_find_a_single_member_api_whose_permission_it_does_not_hold_without_searching() {
+            void should_not_find_a_single_member_api_whose_permission_it_does_not_hold() {
                 givenUserIsMemberOf(PROXY_V4);
                 givenUserCanReadAnalyticsOf(PROXY_V4);
 
                 assertThat(cut.findReadableApi(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.PER_REQUEST, "proxy-v4")).isEmpty();
-                verify(apiQueryService, never()).search(any(), any(), any());
             }
+
+            /** Checking one API must cost one permission lookup, not the enumeration of everything the user is a member of. */
+            @Test
+            void should_check_a_single_api_without_loading_the_membership_of_the_user() {
+                givenUserCanReadLogsOf(PROXY_V4);
+
+                assertThat(cut.findReadableApi(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.PER_REQUEST, "proxy-v4")).isPresent();
+
+                verify(apiAuthorizationDomainService, never()).findMemberApiIds(any(), any());
+                verify(permissionDomainService, times(1)).hasPermission(any(), any(), eq(RolePermission.API_LOG), any(), any());
+            }
+
+            @Test
+            void should_not_find_an_unknown_api_or_one_of_another_environment_whatever_the_user_may_read() {
+                givenUserCanReadLogsOf(OTHER_ENV);
+
+                assertThat(cut.findReadableApi(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.PER_REQUEST, "unknown")).isEmpty();
+                assertThat(cut.findReadableApi(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.PER_REQUEST, "other-env")).isEmpty();
+                verify(permissionDomainService, never()).hasPermission(any(), any(), eq(RolePermission.API_LOG), any(), any());
+            }
+        }
+
+        /**
+         * The cost grows linearly with the memberships: one search for all the member ids and one permission lookup per member API,
+         * never one search per API nor a lookup of the whole membership for each API.
+         */
+        @Test
+        void should_search_once_and_check_each_member_api_once_for_a_user_with_many_memberships() {
+            var memberApis = IntStream.range(0, 500)
+                .mapToObj(i -> ApiFixtures.aProxyApiV4().toBuilder().id("member-" + i).environmentId(ENV_ID).build())
+                .toArray(Api[]::new);
+            apiQueryService.initWith(List.of(memberApis));
+            givenUserIsMemberOf(memberApis);
+            givenUserCanReadLogsOf(memberApis);
+
+            var apis = cut.findReadableApis(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.PER_REQUEST);
+
+            assertThat(apis).hasSize(500);
+            verify(apiQueryService, times(1)).search(any(), any(), any());
+            verify(permissionDomainService, times(500)).hasPermission(any(), any(), eq(RolePermission.API_LOG), any(), any());
         }
 
         @Test
