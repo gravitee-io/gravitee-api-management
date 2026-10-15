@@ -19,9 +19,16 @@ import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.common.SortableImpl;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionEntityStatus;
 import io.gravitee.rest.api.model.promotion.PromotionQuery;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -56,6 +63,9 @@ public class PromotionsResource extends AbstractResource {
     @Inject
     private PromotionService promotionService;
 
+    @Inject
+    private EnvironmentService environmentService;
+
     @Path("{promotion}")
     public PromotionResource getPolicyResource() {
         return resourceContext.getResource(PromotionResource.class);
@@ -73,11 +83,15 @@ public class PromotionsResource extends AbstractResource {
             array = @ArraySchema(schema = @Schema(implementation = PromotionEntity.class))
         )
     )
+    @ApiResponse(responseCode = "403", description = "Insufficient rights to read the API")
+    @ApiResponse(responseCode = "404", description = "API not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response searchPromotions(
         @Parameter(name = "statuses", required = true) @NotNull @QueryParam("statuses") List<String> statuses,
         @Parameter(name = "apiId", required = true) @NotNull @QueryParam("apiId") String apiId
     ) {
+        checkCanReadApi(GraviteeContext.getExecutionContext(), apiId);
+
         PromotionQuery promotionQuery = new PromotionQuery();
         promotionQuery.setStatuses(statuses.stream().map(PromotionEntityStatus::valueOf).collect(toList()));
         promotionQuery.setApiId(apiId);
@@ -87,5 +101,20 @@ public class PromotionsResource extends AbstractResource {
             .getContent();
 
         return Response.ok().entity(promotions).build();
+    }
+
+    /**
+     * Promotions carry the full definition of the API, so reading them needs the same right as reading the API. The
+     * organization check comes first because an organization admin passes every permission check.
+     */
+    private void checkCanReadApi(ExecutionContext executionContext, String apiId) {
+        var api = apiSearchService.findRepositoryApiById(executionContext, apiId);
+        var environment = environmentService.findById(api.getEnvironmentId());
+        if (!executionContext.getOrganizationId().equals(environment.getOrganizationId())) {
+            throw new ApiNotFoundException(apiId);
+        }
+        if (!hasPermission(new ExecutionContext(environment), RolePermission.API_DEFINITION, apiId, RolePermissionAction.READ)) {
+            throw new ForbiddenAccessException();
+        }
     }
 }
