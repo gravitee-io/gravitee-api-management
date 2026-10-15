@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import fixtures.core.model.ApiFixtures;
+import fixtures.core.model.GroupFixtures;
 import fixtures.core.model.PromotionFixtures;
 import initializers.ImportDefinitionCreateDomainServiceTestInitializer;
 import inmemory.ApiCrudServiceInMemory;
@@ -161,6 +162,18 @@ class ProcessPromotionUseCaseTest {
 
         verify(cockpitPromotionServiceProvider).process(eq(PROMOTION.getId()), eq(true));
         assertThat(result.promotion()).isEqualTo(PROMOTION);
+    }
+
+    @Test
+    void should_reject_v2_api_promotion() {
+        var rejected = PROMOTION.toBuilder().status(PromotionStatus.REJECTED).build();
+        when(cockpitPromotionServiceProvider.process(PROMOTION.getId(), false)).thenReturn(rejected);
+
+        var result = useCase.execute(new ProcessPromotionUseCase.Input(PROMOTION, false, API_V2.getDefinitionVersion()));
+
+        verify(cockpitPromotionServiceProvider).process(eq(PROMOTION.getId()), eq(false));
+        assertThat(result.promotion().getStatus()).isEqualTo(PromotionStatus.REJECTED);
+        assertThat(apiCrudServiceInMemory.storage()).isEmpty();
     }
 
     @Test
@@ -321,6 +334,48 @@ class ProcessPromotionUseCaseTest {
                 assertThat(api.getApiLifecycleState()).isEqualTo(Api.ApiLifecycleState.CREATED);
                 assertThat(api.getLifecycleState()).isEqualTo(Api.LifecycleState.STOPPED);
             });
+    }
+
+    @Test
+    void should_attach_an_existing_group_matched_by_name_when_creating_the_promoted_api() {
+        promotionCrudService.initWith(List.of(PROMOTION));
+        environmentCrudService.initWith(List.of(ENVIRONMENT));
+        importDefinitionCreateDomainService.groupQueryService.initWith(
+            List.of(GroupFixtures.aGroup("group-1").toBuilder().name("Helios").environmentId(ENVIRONMENT_ID).build())
+        );
+        importDefinitionCreateDomainService.parametersQueryService.initWith(
+            List.of(
+                new Parameter(
+                    Key.API_PRIMARY_OWNER_MODE.key(),
+                    ENVIRONMENT_ID,
+                    ParameterReferenceType.ENVIRONMENT,
+                    ApiPrimaryOwnerMode.USER.name()
+                ),
+                new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
+            )
+        );
+        importDefinitionCreateDomainService.userCrudService.initWith(List.of(BASE_USER_ENTITY));
+        when(
+            importDefinitionCreateDomainService.validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())
+        ).thenAnswer(invocation -> invocation.getArgument(0));
+        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
+
+        var result = useCase.execute(
+            new ProcessPromotionUseCase.Input(
+                PROMOTION,
+                DefinitionVersion.V4,
+                true,
+                null,
+                ImportDefinition.builder().apiExport(ApiExport.builder().crossId(CROSS_ID).groups(Set.of("Helios")).build()).build(),
+                AUDIT
+            )
+        );
+
+        assertThat(result.promotion().getStatus()).isEqualTo(PromotionStatus.ACCEPTED);
+        assertThat(apiCrudServiceInMemory.get(UUID).getGroups()).contains("group-1");
+        assertThat(importDefinitionCreateDomainService.groupQueryService.storage())
+            .extracting(group -> group.getName())
+            .containsExactly("Helios");
     }
 
     @Test
@@ -726,7 +781,7 @@ class ProcessPromotionUseCaseTest {
 
         when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
 
-        var context = promotionContextDomainService.getPromotionContext(promotion.getId(), true);
+        var context = promotionContextDomainService.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(context.existingPromotedApi())
             .as("the API already serving the promoted context path must be resolved as the promotion target")
@@ -769,7 +824,7 @@ class ProcessPromotionUseCaseTest {
             )
         );
 
-        var context = promotionContextDomainService.getPromotionContext(promotion.getId(), true);
+        var context = promotionContextDomainService.getPromotionContext(promotion.getId(), ORGANIZATION_ID, true);
 
         assertThat(context.existingPromotedApi()).isNull();
     }
