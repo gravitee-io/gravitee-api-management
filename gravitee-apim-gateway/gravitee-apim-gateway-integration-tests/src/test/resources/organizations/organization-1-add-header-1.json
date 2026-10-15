@@ -1,0 +1,32 @@
+{
+  "id" : "organization-1",
+  "hrids" : [ "organization-1" ],
+  "name" : "organization-1",
+  "description" : "organization-1",
+  "flowMode" : "DEFAULT",
+  "flows" : [ {
+    "name" : "",
+    "path-operator" : {
+      "path" : "/",
+      "operator" : "STARTS_WITH"
+    },
+    "condition" : "",
+    "pre" : [ {
+      "name" : "Add Request Header",
+      "description" : "",
+      "enabled" : true,
+      "policy" : "add-header-1",
+      "configuration" : {}
+    } ],
+    "post" : [
+      {
+        "name" : "Add Response Header",
+        "description" : "",
+        "enabled" : true,
+        "policy" : "add-header-1",
+        "configuration" : {}
+      }
+    ],
+    "enabled" : true
+  } ]
+}
