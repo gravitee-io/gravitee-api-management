@@ -17,8 +17,7 @@
 -->
 
 <div class="gv-page-container asyncapi">
-  <asyncapi-component *ngIf="page.content" [schema]="page.content" cssImportPath="assets/styles/asyncapi-component.css">
-  </asyncapi-component>
+  <asyncapi-component *ngIf="schema" [schema]="schema" cssImportPath="assets/styles/asyncapi-component.css"> </asyncapi-component>
 </div>
 <div *ngIf="page && page.media && page.media.length > 0" class="gv-page-container asyncapi">
   <ul class="attached-resources">

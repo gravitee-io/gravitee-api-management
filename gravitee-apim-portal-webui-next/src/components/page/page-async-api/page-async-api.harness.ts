@@ -21,4 +21,8 @@ export class PageAsyncApiHarness extends ComponentHarness {
   public schemaIsShown(): boolean {
     return !!document.getElementById('#async-api');
   }
+
+  public async getSchema(): Promise<string> {
+    return this.locatorFor('asyncapi-component')().then(viewer => viewer.getProperty<string>('schema'));
+  }
 }
