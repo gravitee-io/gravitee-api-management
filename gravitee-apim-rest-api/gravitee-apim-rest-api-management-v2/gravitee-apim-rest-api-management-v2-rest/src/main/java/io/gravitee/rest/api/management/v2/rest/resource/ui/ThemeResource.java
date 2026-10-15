@@ -29,7 +29,6 @@ import io.gravitee.rest.api.service.exceptions.ThemeUpdateInvalidException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -42,11 +41,6 @@ public class ThemeResource extends AbstractResource {
 
     @Inject
     private UpdateThemeUseCase updateThemeUseCase;
-
-    @GET
-    public Response hehe(@PathParam("themeId") String themeId) {
-        return Response.ok(themeId + " hello").build();
-    }
 
     @PUT
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = { RolePermissionAction.UPDATE }) })
