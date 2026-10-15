@@ -25,7 +25,7 @@ todos:
     status: completed
   - id: STORY-07
     content: "Refuse moving an item out of an API that is listed in more than one place."
-    status: pending
+    status: completed
   - id: STORY-08
     content: "Carry API ownership into the contents of an imported folder."
     status: pending
@@ -690,6 +690,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 **Note:** the sibling lookup only consults the owner when the item has no stored parent, so all of this bites at the top of a tree — which is exactly the move-in/move-out case. Test it there.
 
 #### STORY-07 — Refuse moving an item out of an API listed in more than one place
+**Status:** Done under [PORTAL-263](https://gravitee.atlassian.net/browse/PORTAL-263), as [#21174](https://github.com/gravitee-io/gravitee-api-management/pull/21174). The refusal sits in `OwnerChangeRule`, next to the two STORY-05 added, and the validator also loads the environment's items when an update changes the owner.
 **Why:** there is no way to express which portal the caller meant, so the move would silently remove the item from every other portal listing that API.
 **Acceptance criteria:**
 - Moving an item out of an API with more than one standalone listing row is rejected with a clear error, whether the item would go to the portal or to another API (decision 9).
