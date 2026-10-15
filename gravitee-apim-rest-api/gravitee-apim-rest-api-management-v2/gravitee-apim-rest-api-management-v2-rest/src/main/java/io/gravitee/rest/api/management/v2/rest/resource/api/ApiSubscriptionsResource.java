@@ -264,7 +264,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
                 .build();
         }
 
-        if (!apiId.equals(planSearchService.findById(executionContext, createSubscription.getPlanId()).getReferenceId())) {
+        if (!apiId.equals(planSearchService.findById(executionContext, createSubscription.getPlanId()).getApiId())) {
             throw new PlanNotFoundException(createSubscription.getPlanId());
         }
         if (
