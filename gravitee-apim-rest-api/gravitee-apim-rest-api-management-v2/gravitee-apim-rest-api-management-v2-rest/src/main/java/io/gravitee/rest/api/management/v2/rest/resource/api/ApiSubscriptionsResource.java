@@ -359,6 +359,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
     @Path("/spec/_import")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions(
+        { @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }) }
+    )
     public Response importSubscriptionSpec(@Valid SubscriptionCRDSpec spec) {
         return Response.ok(
             importSubscriptionCRDUseCase.execute(new ImportSubscriptionCRDUseCase.Input(getAuditInfo(), apiId, spec)).status()
@@ -367,6 +370,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
     @DELETE
     @Path("/spec/{id}")
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.DELETE }) })
     public Response deleteSubscriptionSpec(@PathParam("id") String id) {
         deleteSubscriptionSpecUseCase.execute(new DeleteSubscriptionSpecUseCase.Input(getAuditInfo(), apiId, id));
         return Response.noContent().build();
