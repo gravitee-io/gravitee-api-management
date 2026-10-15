@@ -395,7 +395,8 @@ public class ApiPlansResource extends AbstractResource {
 
     private boolean planDoesNotBelongToApi(GenericPlanEntity planEntity) {
         return (
-            GenericPlanEntity.ReferenceType.API.equals(planEntity.getReferenceType()) && !Objects.equals(apiId, planEntity.getReferenceId())
+            !GenericPlanEntity.ReferenceType.API.equals(planEntity.getReferenceType()) ||
+            !Objects.equals(apiId, planEntity.getReferenceId())
         );
     }
 
