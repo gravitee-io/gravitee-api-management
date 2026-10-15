@@ -22,6 +22,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -95,6 +96,7 @@ public class PlanSearchServiceImplTest {
 
         api = new Api();
         api.setId(API_ID);
+        api.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
         api.setDefinitionVersion(DefinitionVersion.V4);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
@@ -144,6 +146,52 @@ public class PlanSearchServiceImplTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.empty());
 
         planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+    }
+
+    @Test(expected = PlanNotFoundException.class)
+    public void shouldNotFindByIdBecausePlanBelongsToAnotherEnvironment() throws TechnicalException {
+        plan.setEnvironmentId("another-environment");
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+
+        try {
+            planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        } finally {
+            verifyNoInteractions(genericPlanMapper);
+        }
+    }
+
+    @Test
+    public void shouldFindByIdWhenPlanBelongsToCurrentEnvironment() throws TechnicalException {
+        plan.setEnvironmentId(GraviteeContext.getExecutionContext().getEnvironmentId());
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        PlanEntity planEntity = new PlanEntity();
+        when(genericPlanMapper.toGenericPlan(api, plan)).thenReturn(planEntity);
+
+        assertSame(planEntity, planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID));
+    }
+
+    @Test(expected = PlanNotFoundException.class)
+    public void shouldNotFindByIdBecausePlanWithoutEnvironmentBelongsToAnApiOfAnotherEnvironment() throws TechnicalException {
+        api.setEnvironmentId("another-environment");
+        plan.setEnvironmentId(null);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+
+        try {
+            planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        } finally {
+            verifyNoInteractions(genericPlanMapper);
+        }
+    }
+
+    @Test
+    public void shouldFindByIdWhenPlanWithoutEnvironmentBelongsToAnApiOfTheCurrentEnvironment() throws TechnicalException {
+        plan.setEnvironmentId(null);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        PlanEntity planEntity = new PlanEntity();
+        when(genericPlanMapper.toGenericPlan(api, plan)).thenReturn(planEntity);
+
+        assertSame(planEntity, planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID));
+        assertEquals(GraviteeContext.getDefaultEnvironment(), plan.getEnvironmentId());
     }
 
     @Test(expected = TechnicalManagementException.class)
