@@ -281,6 +281,8 @@
     "resolutions": {
         "nwsapi": "2.2.25",
         "@angular-builders/custom-webpack/@angular-devkit/build-angular": "20.3.14",
-        "@angular-builders/custom-webpack/webpack": "5.107.2"
+        "@angular-builders/custom-webpack/webpack": "5.107.2",
+        "swagger-ui/react": "18.3.1",
+        "swagger-ui/react-dom": "18.3.1"
     }
 }
