@@ -116,6 +116,7 @@ import io.gravitee.rest.api.service.exceptions.PlanAlreadySubscribedException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionAcceptedException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionRevisionException;
 import io.gravitee.rest.api.service.exceptions.PlanMtlsAlreadySubscribedException;
+import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableException;
 import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableWithSharedApiKeyException;
 import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableWithoutClientCertificateException;
@@ -125,7 +126,6 @@ import io.gravitee.rest.api.service.exceptions.PlanRestrictedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionConsumerStatusNotUpdatableException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionFailureCustomerStatusRequiredException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionFailureException;
-import io.gravitee.rest.api.service.exceptions.SubscriptionMismatchEnvironmentException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotPausableException;
@@ -501,6 +501,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             log.debug("Create a new subscription for plan {} and application {}", plan, application);
 
             GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, plan);
+            if (!executionContext.getEnvironmentId().equals(genericPlanEntity.getEnvironmentId())) {
+                throw new PlanNotFoundException(plan);
+            }
 
             subscriptionValidationService.validateAndSanitize(genericPlanEntity, newSubscriptionEntity);
 
@@ -562,12 +565,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 throw new ApplicationArchivedException(applicationEntity.getName());
             }
 
-            if (
-                !executionContext.getEnvironmentId().equals(applicationEntity.getEnvironmentId()) &&
-                !executionContext.getEnvironmentId().equals(genericPlanEntity.getEnvironmentId())
-            ) {
-                throw new SubscriptionMismatchEnvironmentException(applicationEntity.getId(), genericPlanEntity.getId());
-            }
             // Check existing subscriptions
 
             SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder = SubscriptionCriteria.builder().applications(
