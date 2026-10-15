@@ -1917,6 +1917,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     .filter(
                         subscription ->
                             query.matchesApi(subscription.getReferenceId()) &&
+                            query.matchesReference(subscription.getReferenceId(), subscription.getReferenceType()) &&
                             query.matchesApplication(subscription.getApplication()) &&
                             query.matchesPlan(subscription.getPlan()) &&
                             query.matchesStatus(subscription.getStatus())
