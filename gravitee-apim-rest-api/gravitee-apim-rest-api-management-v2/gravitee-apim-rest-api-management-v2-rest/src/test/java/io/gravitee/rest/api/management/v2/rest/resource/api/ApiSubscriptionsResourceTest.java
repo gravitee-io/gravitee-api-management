@@ -159,6 +159,18 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        public void should_return_403_when_user_cannot_subscribe_the_application() {
+            shouldReturn403(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.CREATE, () ->
+                target
+                    .request()
+                    .post(
+                        Entity.json(SubscriptionFixtures.aCreateSubscription().applicationId(APPLICATION).planId(PLAN).customApiKey(null))
+                    )
+            );
+            verify(subscriptionService, never()).create(any(), any(), any());
+        }
+
+        @Test
         public void should_create_subscription() {
             final CreateSubscription createSubscription = SubscriptionFixtures.aCreateSubscription()
                 .applicationId(APPLICATION)
