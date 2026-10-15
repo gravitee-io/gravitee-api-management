@@ -118,7 +118,7 @@ todos:
     status: completed
   - id: STORY-35
     content: "Default 'APIs' section in the portal, for new and existing environments."
-    status: pending
+    status: completed
   - id: STORY-36
     content: "Pin the folder-name conflict behaviour in a test and a release note. No code change."
     status: pending
@@ -1419,6 +1419,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 ### PHASE 7 — Supporting work
 
 #### STORY-35 — Default "APIs" section in the portal
+**Status:** Done under [PORTAL-271](https://gravitee.atlassian.net/browse/PORTAL-271), as [#21184](https://github.com/gravitee-io/gravitee-api-management/pull/21184). A published, portal-owned "APIs" folder: between Guides and Docs in a new environment, and at the end of the menu in an existing one, added once by an upgrader at order 727 wherever no portal folder has that exact title. Existing portals therefore show a new, empty "APIs" entry until an API is published into it; the release note is still owed.
 **Why:** gives Gamma's publish dialog an obvious default, and new environments a sensible starting structure.
 **Acceptance criteria:**
 - New environments get an "APIs" section at the top level of the main navigation.
