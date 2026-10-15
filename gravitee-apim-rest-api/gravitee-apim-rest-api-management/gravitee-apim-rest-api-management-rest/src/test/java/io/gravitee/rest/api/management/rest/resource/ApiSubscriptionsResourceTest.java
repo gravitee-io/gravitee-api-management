@@ -58,7 +58,6 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -120,8 +119,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         fakePlanEntity = new PlanEntity();
         fakePlanEntity.setId("planId");
         fakePlanEntity.setName("planName");
-        fakePlanEntity.setReferenceId(API_NAME);
-        fakePlanEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
+        fakePlanEntity.setApi(API_NAME);
 
         fakeApplicationEntity = new ApplicationEntity();
         fakeApplicationEntity.setId("applicationId");
@@ -231,7 +229,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_not_create_subscription_when_plan_belongs_to_another_api() {
-        fakePlanEntity.setReferenceId("another-api");
+        fakePlanEntity.setApi("another-api");
 
         Response response = envTarget().queryParam("application", APP_NAME).queryParam("plan", PLAN_NAME).request().post(null);
 

@@ -51,7 +51,6 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -140,14 +139,14 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         @BeforeEach
         void setUp() {
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(
-                PlanEntity.builder().id(PLAN).referenceId(API).referenceType(GenericPlanEntity.ReferenceType.API).build()
+                PlanEntity.builder().id(PLAN).api(API).build()
             );
         }
 
         @Test
         public void should_return_404_when_plan_belongs_to_another_api() {
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(
-                PlanEntity.builder().id(PLAN).referenceId("another-api").referenceType(GenericPlanEntity.ReferenceType.API).build()
+                PlanEntity.builder().id(PLAN).api("another-api").build()
             );
 
             final Response response = target
