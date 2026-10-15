@@ -245,6 +245,8 @@ describe('Subscribe to OAuth plan and use it', () => {
       api: createdApi.id,
       updateApiEntity: {
         ...UpdateApiEntityFromJSON(ApiEntityToJSON(createdApi)),
+        // createdApi predates the publication, keep the API published so that it can be subscribed to from the portal
+        lifecycle_state: ApiLifecycleState.PUBLISHED,
         resources: [
           {
             name: OAUTH2_RESOURCE_NAME,
