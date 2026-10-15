@@ -18,6 +18,10 @@ package io.gravitee.gamma.module.platform.rest.resource.am;
 import io.gravitee.gamma.module.platform.core.am.use_case.ListEnvironmentsUseCase;
 import io.gravitee.gamma.module.platform.rest.resource.dto.am.AmDtos.EnvironmentResponse;
 import io.gravitee.gamma.module.platform.rest.resource.mapper.am.AmDtoMapper;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -40,6 +44,7 @@ public class EnvironmentsResource {
     private ResourceContext resourceContext;
 
     @GET
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AM_CONFIGURATION, acls = { RolePermissionAction.READ }) })
     public List<EnvironmentResponse> list(@PathParam("orgId") String orgId) {
         return AmCalls.run(() ->
             listEnvironmentsUseCase
