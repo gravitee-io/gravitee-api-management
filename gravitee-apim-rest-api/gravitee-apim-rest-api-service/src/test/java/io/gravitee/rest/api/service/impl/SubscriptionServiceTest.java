@@ -2211,6 +2211,91 @@ public class SubscriptionServiceTest {
     }
 
     @Test
+    public void search_pageable_with_apikey_should_only_return_subscriptions_of_the_requested_api_product() throws TechnicalException {
+        SubscriptionQuery query = SubscriptionQuery.builder()
+            .apiKey("searched-api-key")
+            .referenceId("api-product-1")
+            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+            .build();
+
+        when(apiKeyService.findByKey(GraviteeContext.getExecutionContext(), "searched-api-key")).thenReturn(
+            List.of(
+                buildTestApiKeyForSubscription("subscription-1"),
+                buildTestApiKeyForSubscription("subscription-2"),
+                buildTestApiKeyForSubscription("subscription-3"),
+                buildTestApiKeyForSubscription("subscription-4")
+            )
+        );
+
+        Subscription onRequestedProduct = buildTestSubscription(
+            "sub1",
+            "api-product-1",
+            ACCEPTED,
+            null,
+            null,
+            null,
+            SubscriptionReferenceType.API_PRODUCT
+        );
+        Subscription onAnotherProduct = buildTestSubscription(
+            "sub2",
+            "api-product-2",
+            ACCEPTED,
+            null,
+            null,
+            null,
+            SubscriptionReferenceType.API_PRODUCT
+        );
+        Subscription onAnApi = buildTestSubscription("sub3", "api-id-1", ACCEPTED);
+        Subscription onAnApiWithTheProductId = buildTestSubscription("sub4", "api-product-1", ACCEPTED);
+        when(subscriptionRepository.findByIdIn(List.of("subscription-1"))).thenReturn(List.of(onRequestedProduct));
+        when(subscriptionRepository.findByIdIn(List.of("subscription-2"))).thenReturn(List.of(onAnotherProduct));
+        when(subscriptionRepository.findByIdIn(List.of("subscription-3"))).thenReturn(List.of(onAnApi));
+        when(subscriptionRepository.findByIdIn(List.of("subscription-4"))).thenReturn(List.of(onAnApiWithTheProductId));
+
+        Page<SubscriptionEntity> page = subscriptionService.search(
+            GraviteeContext.getExecutionContext(),
+            query,
+            Mockito.mock(Pageable.class)
+        );
+
+        assertEquals(1, page.getTotalElements());
+        assertEquals("sub1", page.getContent().get(0).getId());
+    }
+
+    @Test
+    public void search_pageable_with_apikey_should_only_return_subscriptions_of_the_requested_reference_types() throws TechnicalException {
+        SubscriptionQuery query = SubscriptionQuery.builder()
+            .apiKey("searched-api-key")
+            .referenceTypes(Set.of(GenericPlanEntity.ReferenceType.API_PRODUCT))
+            .build();
+
+        when(apiKeyService.findByKey(GraviteeContext.getExecutionContext(), "searched-api-key")).thenReturn(
+            List.of(buildTestApiKeyForSubscription("subscription-1"), buildTestApiKeyForSubscription("subscription-2"))
+        );
+        Subscription onAProduct = buildTestSubscription(
+            "sub1",
+            "api-product-1",
+            ACCEPTED,
+            null,
+            null,
+            null,
+            SubscriptionReferenceType.API_PRODUCT
+        );
+        Subscription onAnApi = buildTestSubscription("sub2", "api-id-1", ACCEPTED);
+        when(subscriptionRepository.findByIdIn(List.of("subscription-1"))).thenReturn(List.of(onAProduct));
+        when(subscriptionRepository.findByIdIn(List.of("subscription-2"))).thenReturn(List.of(onAnApi));
+
+        Page<SubscriptionEntity> page = subscriptionService.search(
+            GraviteeContext.getExecutionContext(),
+            query,
+            Mockito.mock(Pageable.class)
+        );
+
+        assertEquals(1, page.getTotalElements());
+        assertEquals("sub1", page.getContent().get(0).getId());
+    }
+
+    @Test
     public void shouldGetMetadataWithNoSubscriptions() {
         SubscriptionMetadataQuery query = new SubscriptionMetadataQuery("DEFAULT", "DEFAULT", List.of());
         Metadata metadata = subscriptionService.getMetadata(GraviteeContext.getExecutionContext(), query);
