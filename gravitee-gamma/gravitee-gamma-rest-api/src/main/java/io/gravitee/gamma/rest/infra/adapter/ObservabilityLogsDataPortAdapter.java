@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.infra.adapter;
 
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
@@ -131,7 +132,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
     @Override
     public List<AccessibleApi> loadAccessibleApis(String organizationId, String environmentId) {
         var auditInfo = currentAuditInfo(organizationId, environmentId);
-        var userContext = userContextLoader.loadApis(new UserContext(auditInfo));
+        var userContext = userContextLoader.loadApis(new UserContext(auditInfo), ApiDataKind.PER_REQUEST);
 
         return userContext
             .apis()
@@ -144,7 +145,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
     @Override
     public Optional<AccessibleApi> loadAccessibleApi(String organizationId, String environmentId, String apiId) {
         var auditInfo = currentAuditInfo(organizationId, environmentId);
-        var userContext = userContextLoader.loadApi(new UserContext(auditInfo), apiId);
+        var userContext = userContextLoader.loadApi(new UserContext(auditInfo), apiId, ApiDataKind.PER_REQUEST);
 
         return userContext
             .apis()
