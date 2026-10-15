@@ -26,6 +26,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.model.FacetBucketResponse;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
@@ -122,7 +123,7 @@ class ObservabilityAnalyticsDataPortAdapterTest {
 
     @Test
     void should_map_an_authz_api_to_the_authz_gamma_api_type() {
-        when(userContextLoader.loadApis(any())).thenAnswer(invocation ->
+        when(userContextLoader.loadApis(any(), eq(ApiDataKind.AGGREGATES))).thenAnswer(invocation ->
             ((UserContext) invocation.getArgument(0)).withApis(
                 List.of(Api.builder().id("api-1").name("Authz API").type(io.gravitee.definition.model.v4.ApiType.AUTHZ).build())
             )

@@ -15,18 +15,20 @@
  */
 package io.gravitee.apim.core.user.domain_service;
 
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.user.model.UserContext;
 
 /**
  * @author GraviteeSource Team
  */
 public interface UserContextLoader {
-    UserContext loadApis(UserContext context);
+    /** The APIs the user may read data of this kind from. Yields no api, and never every api, when they can read none. */
+    UserContext loadApis(UserContext context, ApiDataKind kind);
 
     /**
      * Same scoping as {@link #loadApis}, narrowed to one api. A caller that needs a single api by id
-     * should not pay for the whole environment: this keeps the membership check and fetches one row.
+     * should not pay for the whole environment: this checks the one api and fetches one row.
      * Yields no api when the caller cannot see it, which is indistinguishable from it not existing.
      */
-    UserContext loadApi(UserContext context, String apiId);
+    UserContext loadApi(UserContext context, String apiId, ApiDataKind kind);
 }

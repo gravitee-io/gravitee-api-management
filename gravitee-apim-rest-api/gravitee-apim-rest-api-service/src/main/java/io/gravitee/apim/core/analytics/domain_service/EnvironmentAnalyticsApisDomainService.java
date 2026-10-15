@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.api.domain_service.ApiAuthorizationDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
@@ -30,14 +31,18 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 /**
- * The V2 and V4 APIs of an environment whose analytics a user may read, in aggregate. Holding ENVIRONMENT_PLATFORM[READ] on the
- * environment, as an organization admin does, opens every API of it; otherwise only the APIs the user is a member of, directly or
- * through a group, with API_ANALYTICS[READ] are readable, so the aggregates never show more than the per-API analytics allow.
+ * The APIs of an environment a user may read, by kind of data. Aggregates are opened by the API analytics permission on each API
+ * the user is a member of, directly or through a group, or for the whole environment by ENVIRONMENT_PLATFORM[READ] on it. The
+ * requests themselves are opened by the API log permission on each member API only: the platform permission never widens them.
+ * An organization admin reads every API. No other permission, ENVIRONMENT_API[READ] included, opens any data.
  */
 @DomainService
 @RequiredArgsConstructor
@@ -47,22 +52,55 @@ public class EnvironmentAnalyticsApisDomainService {
     private final ApiAuthorizationDomainService apiAuthorizationDomainService;
     private final PermissionDomainService permissionDomainService;
 
+    /** The V2 and V4 APIs whose aggregates the user may read, for the callers that only deal with those. */
     public List<Api> findReadableApis(ExecutionContext executionContext, String userId) {
-        var criteria = ApiSearchCriteria.builder()
-            .environmentId(executionContext.getEnvironmentId())
-            .definitionVersion(List.of(DefinitionVersion.V4, DefinitionVersion.V2));
-        if (canReadEveryApi(executionContext, userId)) {
-            return search(criteria.build());
+        return findReadableApis(
+            executionContext,
+            userId,
+            false,
+            ApiDataKind.AGGREGATES,
+            List.of(DefinitionVersion.V4, DefinitionVersion.V2)
+        );
+    }
+
+    /** The APIs of every type and definition version whose data of this kind the user may read. */
+    public List<Api> findReadableApis(ExecutionContext executionContext, String userId, boolean isAdmin, ApiDataKind kind) {
+        return findReadableApis(executionContext, userId, isAdmin, kind, null);
+    }
+
+    /** Same scoping as {@link #findReadableApis(ExecutionContext, String, boolean, ApiDataKind)}, narrowed to one API. */
+    public Optional<Api> findReadableApi(
+        ExecutionContext executionContext,
+        String userId,
+        boolean isAdmin,
+        ApiDataKind kind,
+        String apiId
+    ) {
+        if (!canReadEveryApi(executionContext, userId, isAdmin, kind) && !isReadableMemberApi(executionContext, userId, kind, apiId)) {
+            return Optional.empty();
+        }
+        return search(criteria(executionContext, null, List.of(apiId))).stream().findFirst();
+    }
+
+    private List<Api> findReadableApis(
+        ExecutionContext executionContext,
+        String userId,
+        boolean isAdmin,
+        ApiDataKind kind,
+        Collection<DefinitionVersion> definitionVersions
+    ) {
+        if (canReadEveryApi(executionContext, userId, isAdmin, kind)) {
+            return search(criteria(executionContext, definitionVersions, null));
         }
 
-        var memberApiIds = apiAuthorizationDomainService.findMemberApiIds(executionContext, userId);
+        var memberApiIds = findMemberApiIds(executionContext, userId);
         // An empty id list does not restrict the search: it would widen the scope to the whole environment.
         if (memberApiIds.isEmpty()) {
             return List.of();
         }
-        return search(criteria.ids(List.copyOf(memberApiIds)).build())
+        return search(criteria(executionContext, definitionVersions, List.copyOf(memberApiIds)))
             .stream()
-            .filter(api -> canReadAnalytics(executionContext, userId, api.getId()))
+            .filter(api -> canRead(executionContext, userId, kind, api.getId()))
             .toList();
     }
 
@@ -72,21 +110,45 @@ public class EnvironmentAnalyticsApisDomainService {
             .collect(groupingBy(EnvironmentAnalyticsApisDomainService::definitionVersion, mapping(Api::getId, toList())));
     }
 
-    private boolean canReadEveryApi(ExecutionContext executionContext, String userId) {
-        return permissionDomainService.hasPermission(
-            executionContext.getOrganizationId(),
-            userId,
-            RolePermission.ENVIRONMENT_PLATFORM,
-            executionContext.getEnvironmentId(),
-            RolePermissionAction.READ
+    private static ApiSearchCriteria criteria(
+        ExecutionContext executionContext,
+        Collection<DefinitionVersion> definitionVersions,
+        List<String> apiIds
+    ) {
+        return ApiSearchCriteria.builder()
+            .environmentId(executionContext.getEnvironmentId())
+            .definitionVersion(definitionVersions)
+            .ids(apiIds)
+            .build();
+    }
+
+    private Set<String> findMemberApiIds(ExecutionContext executionContext, String userId) {
+        return apiAuthorizationDomainService.findMemberApiIds(executionContext, userId);
+    }
+
+    private boolean canReadEveryApi(ExecutionContext executionContext, String userId, boolean isAdmin, ApiDataKind kind) {
+        return (
+            isAdmin ||
+            (kind.isOpenedByPlatformPermission() &&
+                permissionDomainService.hasPermission(
+                    executionContext.getOrganizationId(),
+                    userId,
+                    RolePermission.ENVIRONMENT_PLATFORM,
+                    executionContext.getEnvironmentId(),
+                    RolePermissionAction.READ
+                ))
         );
     }
 
-    private boolean canReadAnalytics(ExecutionContext executionContext, String userId, String apiId) {
+    private boolean isReadableMemberApi(ExecutionContext executionContext, String userId, ApiDataKind kind, String apiId) {
+        return findMemberApiIds(executionContext, userId).contains(apiId) && canRead(executionContext, userId, kind, apiId);
+    }
+
+    private boolean canRead(ExecutionContext executionContext, String userId, ApiDataKind kind, String apiId) {
         return permissionDomainService.hasPermission(
             executionContext.getOrganizationId(),
             userId,
-            RolePermission.API_ANALYTICS,
+            kind.getApiPermission(),
             apiId,
             RolePermissionAction.READ
         );

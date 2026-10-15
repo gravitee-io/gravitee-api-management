@@ -22,11 +22,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiAuthorizationDomainServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -144,6 +146,135 @@ class EnvironmentAnalyticsApisDomainServiceTest {
         }
     }
 
+    @Nested
+    class ByKindOfData {
+
+        @Nested
+        class OrganizationAdmin {
+
+            @Test
+            void should_read_every_api_of_the_environment_of_any_type_for_both_kinds_without_any_permission_check() {
+                for (var kind : ApiDataKind.values()) {
+                    var apis = cut.findReadableApis(EXECUTION_CONTEXT, USER_ID, true, kind);
+
+                    assertThat(apis).extracting(Api::getId).containsExactlyInAnyOrder("proxy-v4", "message-v4", "proxy-v2", "federated");
+                }
+                verifyNoInteractions(permissionDomainService);
+            }
+        }
+
+        @Nested
+        class PlatformReader {
+
+            @BeforeEach
+            void setUp() {
+                givenUserReadsThePlatformOf(ENV_ID);
+            }
+
+            @Test
+            void should_read_the_aggregates_of_every_api_of_the_environment_whatever_its_type() {
+                var apis = cut.findReadableApis(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.AGGREGATES);
+
+                assertThat(apis).extracting(Api::getId).containsExactlyInAnyOrder("proxy-v4", "message-v4", "proxy-v2", "federated");
+            }
+
+            @Test
+            void should_never_read_the_requests_of_an_api_the_user_is_not_a_member_of() {
+                var apis = cut.findReadableApis(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.PER_REQUEST);
+
+                assertThat(apis).isEmpty();
+                verify(apiQueryService, never()).search(any(), any(), any());
+            }
+
+            @Test
+            void should_read_the_requests_of_the_member_apis_whose_log_permission_it_holds_only() {
+                givenUserIsMemberOf(PROXY_V4, MESSAGE_V4);
+                givenUserCanReadLogsOf(PROXY_V4);
+
+                var apis = cut.findReadableApis(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.PER_REQUEST);
+
+                assertThat(apis).extracting(Api::getId).containsExactly("proxy-v4");
+            }
+
+            @Test
+            void should_not_find_the_requests_of_a_single_api_it_is_not_a_member_of() {
+                assertThat(cut.findReadableApi(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.PER_REQUEST, "proxy-v4")).isEmpty();
+                verify(apiQueryService, never()).search(any(), any(), any());
+            }
+
+            @Test
+            void should_find_the_aggregates_of_a_single_api_without_being_a_member_of_it() {
+                assertThat(cut.findReadableApi(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.AGGREGATES, "federated"))
+                    .get()
+                    .extracting(Api::getId)
+                    .isEqualTo("federated");
+            }
+        }
+
+        @Nested
+        class Member {
+
+            @Test
+            void should_read_the_aggregates_but_not_the_requests_with_the_analytics_permission_only() {
+                givenUserIsMemberOf(PROXY_V4, FEDERATED);
+                givenUserCanReadAnalyticsOf(PROXY_V4, FEDERATED);
+
+                assertThat(cut.findReadableApis(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.AGGREGATES))
+                    .extracting(Api::getId)
+                    .containsExactlyInAnyOrder("proxy-v4", "federated");
+                assertThat(cut.findReadableApis(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.PER_REQUEST)).isEmpty();
+            }
+
+            @Test
+            void should_read_the_requests_but_not_the_aggregates_with_the_log_permission_only() {
+                givenUserIsMemberOf(PROXY_V4, FEDERATED);
+                givenUserCanReadLogsOf(PROXY_V4, FEDERATED);
+
+                assertThat(cut.findReadableApis(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.PER_REQUEST))
+                    .extracting(Api::getId)
+                    .containsExactlyInAnyOrder("proxy-v4", "federated");
+                assertThat(cut.findReadableApis(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.AGGREGATES)).isEmpty();
+            }
+
+            @Test
+            void should_not_widen_the_aggregates_with_the_platform_permission_of_another_environment() {
+                givenUserReadsThePlatformOf(OTHER_ENV_ID);
+                givenUserIsMemberOf(PROXY_V4);
+                givenUserCanReadAnalyticsOf(PROXY_V4);
+
+                var apis = cut.findReadableApis(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.AGGREGATES);
+
+                assertThat(apis).extracting(Api::getId).containsExactly("proxy-v4");
+            }
+
+            @Test
+            void should_find_a_single_member_api_whose_permission_it_holds() {
+                givenUserIsMemberOf(PROXY_V4);
+                givenUserCanReadLogsOf(PROXY_V4);
+
+                assertThat(cut.findReadableApi(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.PER_REQUEST, "proxy-v4")).isPresent();
+            }
+
+            @Test
+            void should_not_find_a_single_member_api_whose_permission_it_does_not_hold_without_searching() {
+                givenUserIsMemberOf(PROXY_V4);
+                givenUserCanReadAnalyticsOf(PROXY_V4);
+
+                assertThat(cut.findReadableApi(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.PER_REQUEST, "proxy-v4")).isEmpty();
+                verify(apiQueryService, never()).search(any(), any(), any());
+            }
+        }
+
+        @Test
+        void should_read_nothing_without_searching_when_the_user_is_a_member_of_no_api() {
+            for (var kind : ApiDataKind.values()) {
+                assertThat(cut.findReadableApis(EXECUTION_CONTEXT, USER_ID, false, kind)).isEmpty();
+            }
+            // The repositories drop an empty id filter, so searching with no member id would return the whole environment.
+            verify(apiQueryService, never()).search(any(), any(), any());
+        }
+    }
+
     @Test
     void should_return_no_api_without_searching_when_the_user_reads_neither_the_platform_nor_any_api() {
         var apis = cut.findReadableApis(EXECUTION_CONTEXT, USER_ID);
@@ -179,6 +310,14 @@ class EnvironmentAnalyticsApisDomainServiceTest {
 
     private void givenUserIsMemberOf(Api... apis) {
         apiAuthorizationDomainService.initWith(List.of(apis));
+    }
+
+    private void givenUserCanReadLogsOf(Api... apis) {
+        for (Api api : apis) {
+            when(
+                permissionDomainService.hasPermission(ORG_ID, USER_ID, RolePermission.API_LOG, api.getId(), RolePermissionAction.READ)
+            ).thenReturn(true);
+        }
     }
 
     private void givenUserCanReadAnalyticsOf(Api... apis) {

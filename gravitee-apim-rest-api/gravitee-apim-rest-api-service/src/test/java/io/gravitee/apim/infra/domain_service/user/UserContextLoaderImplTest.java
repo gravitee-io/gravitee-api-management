@@ -16,40 +16,30 @@
 package io.gravitee.apim.infra.domain_service.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.analytics.domain_service.EnvironmentAnalyticsApisDomainService;
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.user.model.UserContext;
-import io.gravitee.apim.infra.domain_service.analytics_engine.mapper.ApiMapper;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.service.PermissionService;
-import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -60,175 +50,71 @@ import org.springframework.security.core.context.SecurityContextImpl;
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class UserContextLoaderImplTest {
 
-    @Mock
-    private ApiAuthorizationService apiAuthorizationService;
+    private static final String USER_ID = "user-id";
+    private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext("DEFAULT", "DEFAULT");
+
+    private static final Api API_1 = Api.builder().id("id1").name("api1").build();
+    private static final Api API_2 = Api.builder().id("id2").name("api2").build();
 
     @Mock
-    private ApiRepository apiRepository;
-
-    @Mock
-    private PermissionService permissionService;
+    private EnvironmentAnalyticsApisDomainService readableApis;
 
     @Mock
     private Authentication authentication;
 
     private UserContextLoaderImpl userContextLoader;
 
-    // Test data
-    private static final Api API_1 = Api.builder().id("id1").name("api1").build();
-    private static final Api API_2 = Api.builder().id("id2").name("api2").build();
-    private static final Api API_3 = Api.builder().id("id3").name("api3").build();
-
-    private static final String ADMIN_USER_ID = UUID.randomUUID().toString();
-    private static final List<Api> ALL_APIS = List.of(API_1, API_2, API_3);
-
-    private static final String NON_ADMIN_USER_ID = UUID.randomUUID().toString();
-    private static final List<Api> NON_ADMIN_APIS = List.of(API_2);
-    private static final Set<String> NON_ADMIN_API_IDS = NON_ADMIN_APIS.stream().map(Api::getId).collect(Collectors.toSet());
-    private AuditInfo auditInfo;
+    private final UserContext userContext = new UserContext(
+        AuditInfo.builder().organizationId("DEFAULT").environmentId("DEFAULT").actor(AuditActor.builder().userId(USER_ID).build()).build()
+    );
 
     @BeforeEach
     void setUp() {
-        userContextLoader = new UserContextLoaderImpl(apiAuthorizationService, apiRepository, permissionService);
+        userContextLoader = new UserContextLoaderImpl(readableApis);
     }
 
-    private AuditInfo auditInfo(String userId) {
-        var actor = AuditActor.builder().userId(userId).build();
-        return AuditInfo.builder().organizationId("DEFAULT").environmentId("DEFAULT").actor(actor).build();
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
-    /**
-     * Read access granted by an environment role rather than by API memberships. The membership lookup knows
-     * nothing about it, so consulting it alone answered "no API" for a user entitled to every one of them, and
-     * both Gamma signals came back empty with no error. The platform's own analytics context loader has always
-     * asked this question first; this loader has to agree with it, or the two disagree on the same user.
-     */
-    @Nested
-    class NonAdminWithEnvironmentApiReadPermission {
-
-        @BeforeEach
-        void setup() {
-            setUpSecurityContext("ORGANIZATION:USER");
-            auditInfo = auditInfo(NON_ADMIN_USER_ID);
-            when(
-                permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_API), eq("DEFAULT"), eq(RolePermissionAction.READ))
-            ).thenReturn(true);
-        }
-
-        @Test
-        void should_load_every_environment_api_without_asking_for_memberships() {
-            when(apiRepository.search(any(), any())).thenReturn(ALL_APIS);
-
-            var context = userContextLoader.loadApis(new UserContext(auditInfo));
-
-            assertThat(context.apis().orElseThrow())
-                .extracting(io.gravitee.apim.core.api.model.Api::getId)
-                .containsExactlyInAnyOrder("id1", "id2", "id3");
-            verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
-        }
-    }
-
-    private void setUpSecurityContext(String role) {
+    private void givenAuthenticatedWith(String role) {
         SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
-
-        var grantedAuthority = new GrantedAuthority() {
-            @Override
-            public String getAuthority() {
-                return role;
-            }
-        };
-
-        Collection<? extends GrantedAuthority> authorities = new ArrayList<>(List.of(grantedAuthority));
-
+        Collection<? extends GrantedAuthority> authorities = new ArrayList<>(List.of((GrantedAuthority) () -> role));
         doReturn(authorities).when(authentication).getAuthorities();
     }
 
     @Nested
-    class AdminUser {
+    class LoadApis {
 
-        @BeforeEach
-        void setup() {
-            setUpSecurityContext("ORGANIZATION:ADMIN");
-            auditInfo = auditInfo(ADMIN_USER_ID);
+        @Test
+        void should_load_the_apis_read_as_an_admin() {
+            givenAuthenticatedWith("ORGANIZATION:ADMIN");
+            when(readableApis.findReadableApis(EXECUTION_CONTEXT, USER_ID, true, ApiDataKind.PER_REQUEST)).thenReturn(
+                List.of(API_1, API_2)
+            );
+
+            var context = userContextLoader.loadApis(userContext, ApiDataKind.PER_REQUEST);
+
+            assertThat(context.apis()).hasValue(List.of(API_1, API_2));
+            assertThat(context.apiNameById()).hasValue(Map.of("id1", "api1", "id2", "api2"));
         }
 
         @Test
-        void should_load_context_with_all_apis() {
-            // Given
-            when(apiRepository.search(any(), any())).thenReturn(ALL_APIS);
+        void should_load_the_apis_the_user_may_read_data_of_the_asked_kind_from() {
+            givenAuthenticatedWith("ORGANIZATION:USER");
+            when(readableApis.findReadableApis(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.AGGREGATES)).thenReturn(List.of(API_2));
+            when(readableApis.findReadableApis(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.PER_REQUEST)).thenReturn(List.of());
 
-            // When
-            var context = userContextLoader.loadApis(new UserContext(auditInfo));
+            var aggregates = userContextLoader.loadApis(userContext, ApiDataKind.AGGREGATES);
+            var requests = userContextLoader.loadApis(userContext, ApiDataKind.PER_REQUEST);
 
-            // Then
-            assertThat(context.apis()).isPresent().hasValue(ApiMapper.INSTANCE.map(ALL_APIS));
-            assertThat(context.apiNameById())
-                .isPresent()
-                .hasValue(Map.of(API_1.getId(), API_1.getName(), API_2.getId(), API_2.getName(), API_3.getId(), API_3.getName()));
-            verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
-        }
-
-        @Test
-        void should_return_empty_list_when_repository_is_empty() {
-            // Given
-            when(apiRepository.search(new ApiCriteria.Builder().build(), null)).thenReturn(Collections.emptyList());
-
-            // When
-            var context = userContextLoader.loadApis(new UserContext(auditInfo));
-
-            // Then
-            assertThat(context.apis()).hasValue(Collections.emptyList());
-            assertThat(context.apiNameById()).hasValue(Collections.emptyMap());
-            verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
-        }
-    }
-
-    @Nested
-    class NonAdminUser {
-
-        @BeforeEach
-        void setup() {
-            setUpSecurityContext("ORGANIZATION:USER");
-            auditInfo = auditInfo(NON_ADMIN_USER_ID);
-        }
-
-        @Test
-        void should_load_context_with_authorized_apis() {
-            // Given
-            when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean())).thenReturn(NON_ADMIN_API_IDS);
-            when(apiRepository.search(any(), any())).thenReturn(NON_ADMIN_APIS);
-
-            // When
-            var context = userContextLoader.loadApis(new UserContext(auditInfo));
-
-            // Then
-            var userIdCaptor = ArgumentCaptor.forClass(String.class);
-            verify(apiAuthorizationService).findApiIdsByUserId(any(), userIdCaptor.capture(), any(), eq(true));
-            assertThat(userIdCaptor.getValue()).isEqualTo(NON_ADMIN_USER_ID);
-
-            assertThat(context.apis()).isPresent().hasValue(ApiMapper.INSTANCE.map(NON_ADMIN_APIS));
-            assertThat(context.apiNameById()).isPresent().hasValue(Map.of(API_2.getId(), API_2.getName()));
-        }
-
-        @Test
-        void should_return_empty_list_when_no_apis_are_authorized() {
-            // Given
-            when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean())).thenReturn(Collections.emptySet());
-
-            // When
-            var context = userContextLoader.loadApis(new UserContext(auditInfo));
-
-            // Then
-            var userIdCaptor = ArgumentCaptor.forClass(String.class);
-            verify(apiAuthorizationService).findApiIdsByUserId(any(), userIdCaptor.capture(), any(), eq(true));
-            assertThat(userIdCaptor.getValue()).isEqualTo(NON_ADMIN_USER_ID);
-
-            assertThat(context.apis()).hasValue(Collections.emptyList());
-            assertThat(context.apiNameById()).hasValue(Collections.emptyMap());
-            verify(apiRepository, never()).search(any(), any());
+            assertThat(aggregates.apis()).hasValue(List.of(API_2));
+            assertThat(aggregates.apiNameById()).hasValue(Map.of("id2", "api2"));
+            assertThat(requests.apis()).hasValue(List.of());
+            assertThat(requests.apiNameById()).hasValue(Map.of());
         }
     }
 
@@ -236,67 +122,42 @@ class UserContextLoaderImplTest {
     class LoadOneApi {
 
         @Test
-        void should_narrow_the_query_to_the_single_api_for_an_admin() {
-            setUpSecurityContext("ORGANIZATION:ADMIN");
-            auditInfo = auditInfo(ADMIN_USER_ID);
-            when(apiRepository.search(any(), any())).thenReturn(List.of(API_2));
+        void should_load_the_api_when_the_user_may_read_it() {
+            givenAuthenticatedWith("ORGANIZATION:USER");
+            when(readableApis.findReadableApi(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.PER_REQUEST, "id2")).thenReturn(
+                Optional.of(API_2)
+            );
 
-            var context = userContextLoader.loadApi(new UserContext(auditInfo), API_2.getId());
+            var context = userContextLoader.loadApi(userContext, "id2", ApiDataKind.PER_REQUEST);
 
-            var criteria = ArgumentCaptor.forClass(ApiCriteria.class);
-            verify(apiRepository).search(criteria.capture(), any());
-            assertThat(criteria.getValue().getIds()).containsExactly(API_2.getId());
-            assertThat(criteria.getValue().getEnvironmentId()).isEqualTo("DEFAULT");
-            assertThat(context.apis()).hasValue(ApiMapper.INSTANCE.map(List.of(API_2)));
-            verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
+            assertThat(context.apis()).hasValue(List.of(API_2));
+            assertThat(context.apiNameById()).hasValue(Map.of("id2", "api2"));
+        }
+
+        /** Indistinguishable from an API that does not exist, so a caller cannot probe for ids. */
+        @Test
+        void should_yield_nothing_when_the_user_may_not_read_the_api() {
+            givenAuthenticatedWith("ORGANIZATION:USER");
+            when(readableApis.findReadableApi(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.PER_REQUEST, "id1")).thenReturn(
+                Optional.empty()
+            );
+
+            var context = userContextLoader.loadApi(userContext, "id1", ApiDataKind.PER_REQUEST);
+
+            assertThat(context.apis()).hasValue(List.of());
+            assertThat(context.apiNameById()).hasValue(Map.of());
         }
 
         @Test
-        void should_keep_the_membership_check_for_a_non_admin() {
-            setUpSecurityContext("ORGANIZATION:USER");
-            auditInfo = auditInfo(NON_ADMIN_USER_ID);
-            when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean())).thenReturn(NON_ADMIN_API_IDS);
-            when(apiRepository.search(any(), any())).thenReturn(List.of(API_2));
+        void should_load_any_api_as_an_admin() {
+            givenAuthenticatedWith("ORGANIZATION:ADMIN");
+            when(readableApis.findReadableApi(EXECUTION_CONTEXT, USER_ID, true, ApiDataKind.PER_REQUEST, "id1")).thenReturn(
+                Optional.of(API_1)
+            );
 
-            var context = userContextLoader.loadApi(new UserContext(auditInfo), API_2.getId());
+            var context = userContextLoader.loadApi(userContext, "id1", ApiDataKind.PER_REQUEST);
 
-            verify(apiAuthorizationService).findApiIdsByUserId(any(), eq(NON_ADMIN_USER_ID), any(), eq(true));
-            assertThat(context.apis()).hasValue(ApiMapper.INSTANCE.map(List.of(API_2)));
-        }
-
-        @Test
-        void should_yield_nothing_when_a_non_admin_is_not_a_member_of_the_api() {
-            setUpSecurityContext("ORGANIZATION:USER");
-            auditInfo = auditInfo(NON_ADMIN_USER_ID);
-            when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean())).thenReturn(NON_ADMIN_API_IDS);
-
-            // API_1 exists in the environment but this user is not a member: narrowing the query by id
-            // must not become "anything in the environment".
-            var context = userContextLoader.loadApi(new UserContext(auditInfo), API_1.getId());
-
-            assertThat(context.apis()).hasValue(Collections.emptyList());
-            assertThat(context.apiNameById()).hasValue(Collections.emptyMap());
-            verify(apiRepository, never()).search(any(), any());
-        }
-
-        /**
-         * The single-api lookup gates the decision detail, and the listing that leads to it uses
-         * {@code loadApis}. Reading the environment permission in one and not the other let a reader list rows
-         * and then meet a 404 on every one of them.
-         */
-        @Test
-        void should_serve_a_reader_whose_access_comes_from_the_environment_role() {
-            setUpSecurityContext("ORGANIZATION:USER");
-            auditInfo = auditInfo(NON_ADMIN_USER_ID);
-            when(
-                permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_API), eq("DEFAULT"), eq(RolePermissionAction.READ))
-            ).thenReturn(true);
-            when(apiRepository.search(any(), any())).thenReturn(List.of(API_1));
-
-            var context = userContextLoader.loadApi(new UserContext(auditInfo), API_1.getId());
-
-            assertThat(context.apis()).hasValue(ApiMapper.INSTANCE.map(List.of(API_1)));
-            verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
+            assertThat(context.apis()).hasValue(List.of(API_1));
         }
     }
 }
