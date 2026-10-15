@@ -58,6 +58,9 @@ paths:
       description: |-
         Get v2 and v4 API analytics response status counts. Response statuses are grouped by endpoint and status code hundreds.
 
+        The result covers every API of the environment for a user with the ENVIRONMENT_PLATFORM[READ] permission, organization
+        administrators included; otherwise only the APIs the user is a member of, directly or through a group, with the
+        API_ANALYTICS[READ] permission. A user who can read no API gets an empty result.
       operationId: getDashboardResponseStatusCodes
       responses:
         "200":
@@ -71,10 +74,13 @@ paths:
         - $ref: "#/components/parameters/to"
       tags:
         - Environment Analytics
-      summary: Get all v4 APIs with hits count per API sorted by mostly requested
+      summary: Get v2 and v4 APIs with hits count per API sorted by mostly requested
       description: |-
-        Get v4 API analytics top hits counts. All APIs are sorted starting from the most requested ones.
+        Get v2 and v4 API analytics top hits counts. APIs are sorted starting from the most requested ones.
 
+        The result covers every API of the environment for a user with the ENVIRONMENT_PLATFORM[READ] permission, organization
+        administrators included; otherwise only the APIs the user is a member of, directly or through a group, with the
+        API_ANALYTICS[READ] permission. A user who can read no API gets an empty result.
       operationId: getDashboardTopHits
       responses:
         "200":
@@ -93,6 +99,9 @@ paths:
         Get analytics for v2 & v4 APIs regarding number of requests, requests per second and response max, min and average times for 
         specified time range. Analytics contains data only for HTTP GET, HTTP POST and HTTP PROXY entrypoints.
 
+        The result covers every API of the environment for a user with the ENVIRONMENT_PLATFORM[READ] permission, organization
+        administrators included; otherwise only the APIs the user is a member of, directly or through a group, with the
+        API_ANALYTICS[READ] permission. A user who can read no API gets an empty result.
       operationId: getDashboardRequestResponseTime
       responses:
         "200":
@@ -110,7 +119,9 @@ paths:
       description: |-
         Get Environment Analytics average response time over time
         
-        User must have the API_ANALYTICS[READ] permission.
+        The result covers every API of the environment for a user with the ENVIRONMENT_PLATFORM[READ] permission, organization
+        administrators included; otherwise only the APIs the user is a member of, directly or through a group, with the
+        API_ANALYTICS[READ] permission. A user who can read no API gets an empty result.
       operationId: getEnvironmentResponseTimeOverTime
       responses:
         "200":
@@ -126,7 +137,9 @@ paths:
       description: |-
         Get Environment analytics response status counts over time.
         
-        User must have the API_ANALYTICS[READ] permission.
+        The result covers every API of the environment for a user with the ENVIRONMENT_PLATFORM[READ] permission, organization
+        administrators included; otherwise only the APIs the user is a member of, directly or through a group, with the
+        API_ANALYTICS[READ] permission. A user who can read no API gets an empty result.
       operationId: getEnvironmentResponseStatusOvertime
       responses:
         "200":
@@ -144,7 +157,9 @@ paths:
       description: |-
         Get Environment Analytics for top applications by the request count
         
-        User must have the API_ANALYTICS[READ] permission.
+        The result covers every API of the environment for a user with the ENVIRONMENT_PLATFORM[READ] permission, organization
+        administrators included; otherwise only the APIs the user is a member of, directly or through a group, with the
+        API_ANALYTICS[READ] permission. A user who can read no API gets an empty result.
       operationId: getEnvironmentTopAppByRequestCount
       responses:
         "200":
@@ -162,7 +177,9 @@ paths:
       description: |-
         Get Environment Analytics for top failed v2 and v4 APIs 
         
-        User must have the API_ANALYTICS[READ] permission.
+        The result covers every API of the environment for a user with the ENVIRONMENT_PLATFORM[READ] permission, organization
+        administrators included; otherwise only the APIs the user is a member of, directly or through a group, with the
+        API_ANALYTICS[READ] permission. A user who can read no API gets an empty result.
       operationId: getEnvironmentTopFailedApis
       responses:
         "200":

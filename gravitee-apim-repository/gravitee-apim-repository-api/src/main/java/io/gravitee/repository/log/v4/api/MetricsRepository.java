@@ -27,6 +27,7 @@ import io.gravitee.repository.log.v4.model.connection.NativeApiMetrics;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetricsQuery;
 import io.gravitee.repository.log.v4.model.message.MessageMetrics;
 import io.gravitee.repository.log.v4.model.message.MessageMetricsQuery;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,7 +41,8 @@ public interface MetricsRepository {
     LogResponse<Metrics> searchMetrics(QueryContext queryContext, MetricsQuery query, List<DefinitionVersion> definitionVersions)
         throws AnalyticsException;
 
-    List<String> searchConnectionLogErrorKeys(QueryContext queryContext, String apiId, Long from, Long to) throws AnalyticsException;
+    List<String> searchConnectionLogErrorKeys(QueryContext queryContext, Collection<String> apiIds, Long from, Long to)
+        throws AnalyticsException;
 
     Optional<NativeApiMetrics> findNativeApiMetrics(QueryContext queryContext, String apiId, String requestId, Long from, Long to)
         throws AnalyticsException;

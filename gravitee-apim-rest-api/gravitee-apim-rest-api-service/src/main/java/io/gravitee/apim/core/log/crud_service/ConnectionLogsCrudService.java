@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -70,7 +71,7 @@ public interface ConnectionLogsCrudService {
     List<String> searchApiConnectionLogErrorKeys(ExecutionContext executionContext, String apiId, Long from, Long to);
 
     /**
-     * Returns distinct error keys found in connection logs for the given environment
+     * Returns distinct error keys found in connection logs for the given APIs of the environment
      */
-    List<String> searchEnvironmentConnectionLogErrorKeys(ExecutionContext executionContext, Long from, Long to);
+    List<String> searchEnvironmentConnectionLogErrorKeys(ExecutionContext executionContext, Collection<String> apiIds, Long from, Long to);
 }

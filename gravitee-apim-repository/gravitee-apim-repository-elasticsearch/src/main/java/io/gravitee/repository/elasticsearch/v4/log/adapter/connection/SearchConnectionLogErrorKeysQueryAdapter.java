@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.v4.log.adapter.connection;
 import io.gravitee.repository.log.v4.model.connection.SearchConnectionLogErrorKeysQuery;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.Collection;
 import java.util.List;
 
 public class SearchConnectionLogErrorKeysQueryAdapter {
@@ -29,30 +30,25 @@ public class SearchConnectionLogErrorKeysQueryAdapter {
             "size",
             0,
             "query",
-            buildQuery(query.apiId(), query.from(), query.to()),
+            buildQuery(query.apiIds(), query.from(), query.to()),
             "aggs",
             buildAggregation(query.maxBuckets())
         ).encode();
     }
 
-    private static JsonObject buildQuery(String apiId, Long from, Long to) {
+    private static JsonObject buildQuery(Collection<String> apiIds, Long from, Long to) {
         var mustClauses = new JsonArray();
-        if (apiId != null && !apiId.isBlank()) {
-            mustClauses.add(buildApiIdFilter(apiId));
-        }
+        mustClauses.add(buildApiIdsFilter(apiIds));
         mustClauses.add(buildTimestampRangeFilter(from, to));
         return JsonObject.of("bool", JsonObject.of("must", mustClauses));
     }
 
-    /**
-     * Matches the API ID against both the V2 {@code api} field and the V4 {@code api-id} field.
-     * Follows the same {@code bool/should} pattern used throughout this adapter package.
-     */
-    private static JsonObject buildApiIdFilter(String apiId) {
+    private static JsonObject buildApiIdsFilter(Collection<String> apiIds) {
+        var ids = new JsonArray(List.copyOf(apiIds));
         return buildShould(
             List.of(
-                JsonObject.of("term", JsonObject.of(RequestV2MetricsV4Fields.API_ID.v2Request(), apiId)),
-                JsonObject.of("term", JsonObject.of(RequestV2MetricsV4Fields.API_ID.v4Metrics(), apiId))
+                JsonObject.of("terms", JsonObject.of(RequestV2MetricsV4Fields.API_ID.v2Request(), ids)),
+                JsonObject.of("terms", JsonObject.of(RequestV2MetricsV4Fields.API_ID.v4Metrics(), ids))
             )
         );
     }
