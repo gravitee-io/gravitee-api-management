@@ -315,6 +315,23 @@ public class ApiPlansResource_PatchApiPlanTest extends AbstractResourceTest {
     }
 
     @Test
+    void should_return_404_when_plan_is_an_api_product_plan() {
+        var planEntity = BasePlanEntity.builder()
+            .id(PLAN)
+            .referenceId("AN-API-PRODUCT")
+            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+            .build();
+        when(planSearchService.findById(any(), eq(PLAN))).thenReturn(planEntity);
+
+        var response = rootTarget()
+            .path(PLAN)
+            .request()
+            .method("PATCH", Entity.entity("{\"name\":\"Product Plan Patch\"}", MERGE_PATCH_TYPE));
+
+        assertThat(response).hasStatus(NOT_FOUND_404);
+    }
+
+    @Test
     void should_return_404_not_412_when_plan_belongs_to_different_api_and_if_match_is_present() {
         planCrudServiceInMemory.reset();
         planCrudServiceInMemory.initWith(
