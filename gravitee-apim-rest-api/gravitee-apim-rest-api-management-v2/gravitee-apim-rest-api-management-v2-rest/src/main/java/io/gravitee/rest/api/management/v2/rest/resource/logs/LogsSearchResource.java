@@ -24,6 +24,10 @@ import io.gravitee.rest.api.management.v2.rest.model.logs.engine.SearchLogsRespo
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationLinks;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -51,6 +55,12 @@ public class LogsSearchResource extends AbstractResource {
     @Path("/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ),
+            @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.READ),
+        }
+    )
     public SearchLogsResponse searchLogs(
         @QueryParam(PAGE_QUERY_PARAM_NAME) @Valid @DefaultValue("1") @Min(1) int page,
         @QueryParam(PER_PAGE_QUERY_PARAM_NAME) @Valid @DefaultValue("10") @Min(1) @Max(100) int perPage,
