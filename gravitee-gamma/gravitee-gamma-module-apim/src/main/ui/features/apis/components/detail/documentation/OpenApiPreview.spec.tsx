@@ -74,6 +74,31 @@ const BROKEN = 'openapi: 3.0.3\ninfo:\n  title: Payments\n   version: 1.0.0\n';
 const SWAGGER: PortalPageOpenApiConfiguration = { viewer: 'SWAGGER' };
 const REDOC: PortalPageOpenApiConfiguration = { viewer: 'REDOC' };
 
+// Swagger UI applies its plugins itself; these read what the given plugins would make it do.
+type PluginOverrides = {
+    statePlugins?: { spec?: { wrapSelectors?: { allowTryItOutFor?: (original: () => boolean) => () => boolean } } };
+    wrapComponents?: { authorizeBtn?: (original: () => string) => () => string | null };
+};
+
+function pluginsOf(options: SwaggerUIOptions): PluginOverrides[] {
+    return ((options.plugins ?? []) as unknown[]).map(plugin => (typeof plugin === 'function' ? plugin() : plugin) as PluginOverrides);
+}
+
+function offersTryItOut(options: SwaggerUIOptions): boolean {
+    return pluginsOf(options).reduce<() => boolean>(
+        (selector, plugin) => plugin.statePlugins?.spec?.wrapSelectors?.allowTryItOutFor?.(selector) ?? selector,
+        () => true,
+    )();
+}
+
+function showsAuthorize(options: SwaggerUIOptions): boolean {
+    const button = pluginsOf(options).reduce<() => string | null>(
+        (component, plugin) => plugin.wrapComponents?.authorizeBtn?.(component as () => string) ?? component,
+        () => 'Authorize',
+    );
+    return button() !== null;
+}
+
 function wait(ms: number) {
     act(() => {
         jest.advanceTimersByTime(ms);
@@ -181,6 +206,35 @@ describe('OpenApiPreview', () => {
                     maxDisplayedTags: undefined,
                 }),
             );
+        });
+
+        it.each([
+            ['offers', true],
+            ['does not offer', false],
+        ] as const)('%s Try it out and Authorize as the configuration says', async (_, tryIt) => {
+            render(<OpenApiPreview content={PETSTORE} configuration={{ viewer: 'SWAGGER', tryIt }} />);
+            await screen.findByRole('heading', { name: 'Swagger UI: Petstore' });
+
+            const options = swaggerUi.mock.calls[0][0];
+            expect(offersTryItOut(options)).toBe(tryIt);
+            expect(showsAuthorize(options)).toBe(tryIt);
+        });
+
+        it('does not offer Try it out to a page without a configuration, as the portal', async () => {
+            render(<OpenApiPreview content={PETSTORE} />);
+            await screen.findByRole('heading', { name: 'Swagger UI: Petstore' });
+
+            expect(offersTryItOut(swaggerUi.mock.calls[0][0])).toBe(false);
+        });
+
+        it.each([
+            [true, false],
+            [false, undefined],
+        ] as const)('styles response bodies unless the configuration disables it (%s)', async (disableSyntaxHighlight, syntaxHighlight) => {
+            render(<OpenApiPreview content={PETSTORE} configuration={{ viewer: 'SWAGGER', disableSyntaxHighlight }} />);
+            await screen.findByRole('heading', { name: 'Swagger UI: Petstore' });
+
+            expect(swaggerUi.mock.calls[0][0].syntaxHighlight).toBe(syntaxHighlight);
         });
 
         it.each([

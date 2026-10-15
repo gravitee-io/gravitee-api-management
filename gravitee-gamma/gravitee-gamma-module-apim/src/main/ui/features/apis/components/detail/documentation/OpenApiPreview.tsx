@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { SwaggerUIOptions } from 'swagger-ui';
+import type { SwaggerUIOptions, SwaggerUIPlugin } from 'swagger-ui';
 
 import { PreviewLoadError, PreviewLoading, SpecPreviewFrame } from './SpecPreviewFrame';
 import { loadRedoc, loadSwaggerUi, type RedocLibrary, type SwaggerUiInstance } from './specViewers';
@@ -55,8 +55,7 @@ export function OpenApiPreview({ content, configuration }: OpenApiPreviewProps) 
                 configuration?.viewer === 'REDOC' ? (
                     <RedocViewer specDocument={document} serverUrl={configuration.tryItURL} />
                 ) : (
-                    // Swagger UI takes its options once: a new configuration gets a new viewer.
-                    <SwaggerUiViewer key={JSON.stringify(configuration ?? {})} specDocument={document} configuration={configuration} />
+                    <SwaggerUiViewer specDocument={document} configuration={configuration} />
                 )
             }
         </SpecPreviewFrame>
@@ -67,7 +66,8 @@ function SwaggerUiViewer({
     specDocument,
     configuration,
 }: Readonly<{ specDocument: SpecDocument; configuration?: PortalPageSwaggerConfiguration }>) {
-    // A refetched page content brings an equal configuration as a new object, which must not build Swagger UI again.
+    // Swagger UI takes its options once, so a changed configuration builds a new one; a refetched page content brings
+    // an equal configuration as a new object, which must not.
     const serverUrl = swaggerServerUrl(configuration);
     const configurationKey = JSON.stringify(configuration ?? null);
     const spec = useMemo(() => withServer(specDocument, serverUrl), [specDocument, serverUrl]);
@@ -181,7 +181,7 @@ function withServer(specDocument: SpecDocument, serverUrl?: string): SpecDocumen
     return serverUrl ? { ...specDocument, servers: [{ url: serverUrl }] } : specDocument;
 }
 
-/** The options the portal editor's Swagger UI preview reads from the configuration, with its defaults. */
+/** The options the portal reads from the configuration, with the portal editor's defaults. */
 function swaggerOptions(configuration?: PortalPageSwaggerConfiguration): SwaggerUIOptions {
     const maxDisplayedTags = configuration?.maxDisplayedTags;
     return {
@@ -191,5 +191,12 @@ function swaggerOptions(configuration?: PortalPageSwaggerConfiguration): Swagger
         showExtensions: configuration?.showExtensions ?? false,
         showCommonExtensions: configuration?.showCommonExtensions ?? false,
         maxDisplayedTags: maxDisplayedTags !== undefined && maxDisplayedTags >= 0 ? maxDisplayedTags : undefined,
+        // The author previewing the page is signed in: Try it follows tryIt alone, as for a signed-in portal visitor.
+        plugins: configuration?.tryIt ? [] : [WITHOUT_TRY_IT_OUT, WITHOUT_AUTHORIZE],
+        ...(configuration?.disableSyntaxHighlight ? { syntaxHighlight: false } : {}),
     };
 }
+
+// The portal's plugins that take Try it out and Authorize away when Try it is off.
+const WITHOUT_TRY_IT_OUT: SwaggerUIPlugin = () => ({ statePlugins: { spec: { wrapSelectors: { allowTryItOutFor: () => () => false } } } });
+const WITHOUT_AUTHORIZE: SwaggerUIPlugin = () => ({ wrapComponents: { authorizeBtn: () => () => null } });
