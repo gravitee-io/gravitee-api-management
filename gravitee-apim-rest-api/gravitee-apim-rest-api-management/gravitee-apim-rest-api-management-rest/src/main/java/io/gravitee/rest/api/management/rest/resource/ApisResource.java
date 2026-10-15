@@ -97,6 +97,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
@@ -549,7 +550,11 @@ public class ApisResource extends AbstractResource {
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (!isAdmin()) {
-            filters.put("api", apiAuthorizationService.findIdsByUser(executionContext, getAuthenticatedUser(), manageOnly));
+            Set<String> userApiIds = apiAuthorizationService.findIdsByUser(executionContext, getAuthenticatedUser(), manageOnly);
+            if (userApiIds.isEmpty()) {
+                return new PagedResult<>(List.of(), 0, 0, 0);
+            }
+            filters.put("api", userApiIds);
         }
 
         final boolean isRatingServiceEnabled = ratingService.isEnabled(executionContext);

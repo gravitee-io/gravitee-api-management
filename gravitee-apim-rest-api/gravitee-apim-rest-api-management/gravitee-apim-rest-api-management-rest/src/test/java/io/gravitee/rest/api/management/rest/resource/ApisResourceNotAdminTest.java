@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -25,7 +26,6 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -74,9 +74,9 @@ public class ApisResourceNotAdminTest extends AbstractResourceTest {
 
     @Test
     public void get_should_search_apis_with_order() throws TechnicalException {
-        when(
-            apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), isA(ApiQuery.class), eq(true))
-        ).thenReturn(Set.of("api1", "api2", "api15"));
+        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(true))).thenReturn(
+            Set.of("api1", "api2", "api15")
+        );
 
         List<ApiEntity> resultApis = List.of(mockApi("api1"), mockApi("api2"), mockApi("api15"));
         Page<ApiEntity> apisPage = new Page<>(resultApis, 7, 3, 54);
@@ -121,6 +121,30 @@ public class ApisResourceNotAdminTest extends AbstractResourceTest {
             .post(null);
 
         assertEquals(OK_200, response.getStatus());
+    }
+
+    @Test
+    public void paged_search_should_return_no_api_when_the_user_can_access_none() {
+        reset(apiService, apiAuthorizationService);
+        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(true))).thenReturn(Set.of());
+
+        final Response response = envTarget().path("_search/_paged").queryParam("q", "*").request().post(null);
+
+        assertEquals(OK_200, response.getStatus());
+        assertThat((Collection<?>) response.readEntity(Map.class).get("data")).isEmpty();
+        verify(apiService, never()).search(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void search_should_return_no_api_when_the_user_can_access_none() {
+        reset(apiService, apiAuthorizationService);
+        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(true))).thenReturn(Set.of());
+
+        final Response response = envTarget().path("_search").queryParam("q", "*").request().post(null);
+
+        assertEquals(OK_200, response.getStatus());
+        assertThat(response.readEntity(List.class)).isEmpty();
+        verify(apiService, never()).search(any(), any(), any(), any(), any());
     }
 
     private ApiEntity mockApi(String apiId) {
