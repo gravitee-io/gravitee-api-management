@@ -177,8 +177,8 @@ export interface AllowedChanges {
 
 /**
  * What the server lets change on an item in this state, before permissions — its SourcedItemReadOnlyRule: an item
- * with its own source only changes its access and whether it is published, and nothing below a synced folder changes
- * at all.
+ * with its own source only changes its access and whether it is published, or is deleted with what it holds, and
+ * nothing below a synced folder changes at all.
  */
 export function allowedChanges(state: SyncState): AllowedChanges {
     const notSynced = state === 'NOT_SYNCED';
@@ -188,7 +188,7 @@ export function allowedChanges(state: SyncState): AllowedChanges {
         title: notSynced,
         access: ownedByItself,
         publication: ownedByItself,
-        delete: notSynced,
+        delete: ownedByItself,
         addInside: notSynced,
     };
 }

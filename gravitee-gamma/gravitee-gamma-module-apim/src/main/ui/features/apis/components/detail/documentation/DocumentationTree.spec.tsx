@@ -259,28 +259,16 @@ describe('DocumentationTree', () => {
         expect(screen.getByRole('button', { name: 'Actions for Status page' })).toBeInTheDocument();
     });
 
-    it('does not point to Edit details for removing a source when the user cannot edit', async () => {
-        const user = userEvent.setup();
-        renderTree({ canEdit: false });
-
-        await user.click(screen.getByRole('button', { name: 'Actions for Reference' }));
-        await user.hover(screen.getByRole('menuitem', { name: 'Delete' }));
-
-        expect(await screen.findByRole('tooltip')).toHaveTextContent(/^Remove its external source first\.$/);
-    });
-
-    it('says to remove the source of a synced item before deleting it, as the server refuses to delete it', async () => {
+    it('offers to delete a synced item directly, the server deleting what it holds with it', async () => {
         const user = userEvent.setup();
         const { onDelete } = renderTree();
 
         await user.click(screen.getByRole('button', { name: 'Actions for Reference' }));
         const deleteItem = screen.getByRole('menuitem', { name: 'Delete' });
-        expect(deleteItem).toHaveAttribute('aria-disabled', 'true');
-        await user.hover(deleteItem);
-        expect(await screen.findByRole('tooltip')).toHaveTextContent('Remove its external source first, from Edit details.');
+        expect(deleteItem).not.toHaveAttribute('aria-disabled');
 
         await user.click(deleteItem);
-        expect(onDelete).not.toHaveBeenCalled();
+        expect(onDelete).toHaveBeenCalledWith(expect.objectContaining({ item: REFERENCE }));
     });
 
     it('offers no delete without the permission', async () => {
