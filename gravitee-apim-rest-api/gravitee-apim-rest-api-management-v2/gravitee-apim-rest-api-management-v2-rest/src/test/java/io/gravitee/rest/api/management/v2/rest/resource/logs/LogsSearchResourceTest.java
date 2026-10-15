@@ -17,9 +17,11 @@ package io.gravitee.rest.api.management.v2.rest.resource.logs;
 
 import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PlanFixtures;
@@ -47,6 +49,8 @@ import io.gravitee.rest.api.management.v2.rest.model.logs.engine.TimeRange;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import jakarta.inject.Inject;
@@ -159,6 +163,40 @@ class LogsSearchResourceTest extends AbstractResourceTest {
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/logs";
+    }
+
+    @Nested
+    class AccessControl {
+
+        private final SearchLogsRequest request = new SearchLogsRequest().timeRange(
+            new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+        );
+
+        @Test
+        void should_return_403_without_platform_or_dashboard_read() {
+            denyEnvironmentRead(RolePermission.ENVIRONMENT_PLATFORM);
+            denyEnvironmentRead(RolePermission.ENVIRONMENT_DASHBOARD);
+
+            var response = searchTarget.request().post(Entity.json(request));
+
+            assertThat(response).hasStatus(FORBIDDEN_403);
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = RolePermission.class, names = { "ENVIRONMENT_PLATFORM", "ENVIRONMENT_DASHBOARD" })
+        void should_search_with_platform_or_dashboard_read(RolePermission granted) {
+            denyEnvironmentRead(
+                granted == RolePermission.ENVIRONMENT_PLATFORM ? RolePermission.ENVIRONMENT_DASHBOARD : RolePermission.ENVIRONMENT_PLATFORM
+            );
+
+            var response = searchTarget.request().post(Entity.json(request));
+
+            assertThat(response).hasStatus(OK_200);
+        }
+
+        private void denyEnvironmentRead(RolePermission permission) {
+            when(permissionService.hasPermission(any(), eq(permission), eq(ENVIRONMENT), eq(RolePermissionAction.READ))).thenReturn(false);
+        }
     }
 
     @Nested

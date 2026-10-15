@@ -45,6 +45,8 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -103,23 +105,22 @@ class UserContextLoaderImplTest {
     /**
      * Read access granted by an environment role rather than by API memberships. The membership lookup knows
      * nothing about it, so consulting it alone answered "no API" for a user entitled to every one of them, and
-     * both Gamma signals came back empty with no error. The platform's own analytics context loader has always
-     * asked this question first; this loader has to agree with it, or the two disagree on the same user.
+     * both Gamma signals came back empty with no error. The platform's own analytics context loader asks the
+     * same question; this loader has to agree with it, or the two disagree on the same user.
      */
     @Nested
-    class NonAdminWithEnvironmentApiReadPermission {
+    class NonAdminWithEnvironmentWideRead {
 
         @BeforeEach
         void setup() {
             setUpSecurityContext("ORGANIZATION:USER");
             auditInfo = auditInfo(NON_ADMIN_USER_ID);
-            when(
-                permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_API), eq("DEFAULT"), eq(RolePermissionAction.READ))
-            ).thenReturn(true);
         }
 
-        @Test
-        void should_load_every_environment_api_without_asking_for_memberships() {
+        @ParameterizedTest
+        @EnumSource(value = RolePermission.class, names = { "ENVIRONMENT_PLATFORM", "ENVIRONMENT_DASHBOARD" })
+        void should_load_every_environment_api_without_asking_for_memberships(RolePermission environmentWideRead) {
+            givenEnvironmentReadPermission(environmentWideRead);
             when(apiRepository.search(any(), any())).thenReturn(ALL_APIS);
 
             var context = userContextLoader.loadApis(new UserContext(auditInfo));
@@ -129,6 +130,12 @@ class UserContextLoaderImplTest {
                 .containsExactlyInAnyOrder("id1", "id2", "id3");
             verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
         }
+    }
+
+    private void givenEnvironmentReadPermission(RolePermission granted) {
+        when(permissionService.hasPermission(any(), any(), eq("DEFAULT"), eq(RolePermissionAction.READ))).thenAnswer(invocation ->
+            granted.equals(invocation.getArgument(1))
+        );
     }
 
     private void setUpSecurityContext(String role) {
@@ -186,6 +193,7 @@ class UserContextLoaderImplTest {
         }
     }
 
+    /** The default environment USER role holds {@code ENVIRONMENT_API[READ]}: a "can list" gate, not "can observe all". */
     @Nested
     class NonAdminUser {
 
@@ -193,6 +201,7 @@ class UserContextLoaderImplTest {
         void setup() {
             setUpSecurityContext("ORGANIZATION:USER");
             auditInfo = auditInfo(NON_ADMIN_USER_ID);
+            givenEnvironmentReadPermission(RolePermission.ENVIRONMENT_API);
         }
 
         @Test
@@ -255,6 +264,7 @@ class UserContextLoaderImplTest {
         void should_keep_the_membership_check_for_a_non_admin() {
             setUpSecurityContext("ORGANIZATION:USER");
             auditInfo = auditInfo(NON_ADMIN_USER_ID);
+            givenEnvironmentReadPermission(RolePermission.ENVIRONMENT_API);
             when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean())).thenReturn(NON_ADMIN_API_IDS);
             when(apiRepository.search(any(), any())).thenReturn(List.of(API_2));
 
@@ -268,6 +278,7 @@ class UserContextLoaderImplTest {
         void should_yield_nothing_when_a_non_admin_is_not_a_member_of_the_api() {
             setUpSecurityContext("ORGANIZATION:USER");
             auditInfo = auditInfo(NON_ADMIN_USER_ID);
+            givenEnvironmentReadPermission(RolePermission.ENVIRONMENT_API);
             when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean())).thenReturn(NON_ADMIN_API_IDS);
 
             // API_1 exists in the environment but this user is not a member: narrowing the query by id
@@ -284,13 +295,12 @@ class UserContextLoaderImplTest {
          * {@code loadApis}. Reading the environment permission in one and not the other let a reader list rows
          * and then meet a 404 on every one of them.
          */
-        @Test
-        void should_serve_a_reader_whose_access_comes_from_the_environment_role() {
+        @ParameterizedTest
+        @EnumSource(value = RolePermission.class, names = { "ENVIRONMENT_PLATFORM", "ENVIRONMENT_DASHBOARD" })
+        void should_serve_a_reader_whose_access_comes_from_the_environment_role(RolePermission environmentWideRead) {
             setUpSecurityContext("ORGANIZATION:USER");
             auditInfo = auditInfo(NON_ADMIN_USER_ID);
-            when(
-                permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_API), eq("DEFAULT"), eq(RolePermissionAction.READ))
-            ).thenReturn(true);
+            givenEnvironmentReadPermission(environmentWideRead);
             when(apiRepository.search(any(), any())).thenReturn(List.of(API_1));
 
             var context = userContextLoader.loadApi(new UserContext(auditInfo), API_1.getId());

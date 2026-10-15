@@ -43,6 +43,8 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
@@ -91,6 +93,12 @@ class ManagementContextLoaderTest {
     private AuditInfo auditInfo(String userId) {
         var actor = AuditActor.builder().userId(userId).build();
         return AuditInfo.builder().organizationId("DEFAULT").environmentId("DEFAULT").actor(actor).build();
+    }
+
+    private void givenEnvironmentReadPermission(RolePermission granted) {
+        when(permissionService.hasPermission(any(), any(), eq("DEFAULT"), eq(RolePermissionAction.READ))).thenAnswer(invocation ->
+            granted.equals(invocation.getArgument(1))
+        );
     }
 
     private void setUpSecurityContext(String role) {
@@ -171,6 +179,7 @@ class ManagementContextLoaderTest {
         }
     }
 
+    /** The default environment USER role holds {@code ENVIRONMENT_API[READ]}: a "can list" gate, not "can observe all". */
     @Nested
     class NonAdminUser {
 
@@ -178,9 +187,7 @@ class ManagementContextLoaderTest {
         void setup() {
             setUpSecurityContext("ORGANIZATION:USER");
             auditInfo = auditInfo(NON_ADMIN_USER_ID);
-            when(
-                permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_API), eq("DEFAULT"), eq(RolePermissionAction.READ))
-            ).thenReturn(false);
+            givenEnvironmentReadPermission(RolePermission.ENVIRONMENT_API);
         }
 
         @Test
@@ -217,19 +224,18 @@ class ManagementContextLoaderTest {
     }
 
     @Nested
-    class NonAdminUserWithEnvironmentApiReadPermission {
+    class NonAdminUserWithEnvironmentWideRead {
 
         @BeforeEach
         void setup() {
             setUpSecurityContext("ORGANIZATION:USER");
             auditInfo = auditInfo(NON_ADMIN_USER_ID);
-            when(
-                permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_API), eq("DEFAULT"), eq(RolePermissionAction.READ))
-            ).thenReturn(true);
         }
 
-        @Test
-        void should_load_context_with_all_environment_apis() {
+        @ParameterizedTest
+        @EnumSource(value = RolePermission.class, names = { "ENVIRONMENT_PLATFORM", "ENVIRONMENT_DASHBOARD" })
+        void should_load_context_with_all_environment_apis(RolePermission environmentWideRead) {
+            givenEnvironmentReadPermission(environmentWideRead);
             when(apiRepository.search(any(), any())).thenReturn(ALL_APIS);
 
             var context = contextLoader.load(auditInfo);
@@ -244,8 +250,10 @@ class ManagementContextLoaderTest {
             verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
         }
 
-        @Test
-        void should_return_empty_when_environment_has_no_api() {
+        @ParameterizedTest
+        @EnumSource(value = RolePermission.class, names = { "ENVIRONMENT_PLATFORM", "ENVIRONMENT_DASHBOARD" })
+        void should_return_empty_when_environment_has_no_api(RolePermission environmentWideRead) {
+            givenEnvironmentReadPermission(environmentWideRead);
             when(apiRepository.search(any(), any())).thenReturn(Collections.emptyList());
 
             var context = contextLoader.load(auditInfo);
