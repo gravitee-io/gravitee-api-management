@@ -24,6 +24,7 @@ import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
 import io.gravitee.repository.log.v4.model.message.MessageMetrics;
 import io.gravitee.repository.log.v4.model.message.MessageMetricsQuery;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class NoOpMetricsRepository implements MetricsRepository {
@@ -39,7 +40,7 @@ public class NoOpMetricsRepository implements MetricsRepository {
     }
 
     @Override
-    public List<String> searchConnectionLogErrorKeys(QueryContext queryContext, String apiId, Long from, Long to) {
+    public List<String> searchConnectionLogErrorKeys(QueryContext queryContext, Collection<String> apiIds, Long from, Long to) {
         return new ArrayList<>();
     }
 }
