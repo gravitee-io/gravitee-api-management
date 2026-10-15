@@ -360,7 +360,7 @@ class DashboardServiceTest {
         );
 
         assertThat(dashboardEntity.getReferenceId()).isEqualTo("REF_ID");
-        verify(dashboardRepository).findByReferenceAndType(eq(ENVIRONMENT.name()), eq("REF_ID"), any());
+        verify(dashboardRepository).findByReferenceAndType(ENVIRONMENT.name(), "REF_ID", PLATFORM.name());
         verify(dashboardRepository, never()).findByReferenceAndType(any(), eq("OTHER_ENV"), any());
         verify(dashboardRepository, never()).update(argThat(argument -> "OTHER_ENV".equals(argument.getReferenceId())));
     }
@@ -383,6 +383,77 @@ class DashboardServiceTest {
                     auditLogData.getNewValue().equals(dashboard)
             )
         );
+    }
+
+    @Test
+    void should_swap_a_dashboard_moved_up_with_the_one_above() throws TechnicalException {
+        final Dashboard first = aStoredDashboard(1).toBuilder().id("first").build();
+        final Dashboard second = aStoredDashboard(2).toBuilder().id("second").build();
+        final Dashboard moved = aStoredDashboard(3);
+        when(dashboardRepository.findByReferenceAndId(ENVIRONMENT.name(), "REF_ID", DASHBOARD_ID)).thenReturn(of(moved));
+        when(dashboardRepository.findByReferenceAndType(ENVIRONMENT.name(), "REF_ID", PLATFORM.name())).thenReturn(
+            List.of(first, second, moved)
+        );
+        when(dashboardRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        final DashboardEntity dashboardEntity = dashboardService.update(
+            GraviteeContext.getExecutionContext(),
+            ENVIRONMENT,
+            "REF_ID",
+            anUpdateWithReference("REF_ID", 2)
+        );
+
+        assertThat(dashboardEntity.getOrder()).isEqualTo(2);
+        final ArgumentCaptor<Dashboard> updated = ArgumentCaptor.forClass(Dashboard.class);
+        verify(dashboardRepository, times(2)).update(updated.capture());
+        assertThat(updated.getAllValues())
+            .extracting(Dashboard::getId, Dashboard::getOrder)
+            .containsExactlyInAnyOrder(Tuple.tuple("second", 3), Tuple.tuple(DASHBOARD_ID, 2));
+    }
+
+    @Test
+    void should_move_a_dashboard_ordered_past_the_last_one_to_the_last_position() throws TechnicalException {
+        final Dashboard moved = aStoredDashboard(1);
+        final Dashboard second = aStoredDashboard(2).toBuilder().id("second").build();
+        final Dashboard third = aStoredDashboard(3).toBuilder().id("third").build();
+        when(dashboardRepository.findByReferenceAndId(ENVIRONMENT.name(), "REF_ID", DASHBOARD_ID)).thenReturn(of(moved));
+        when(dashboardRepository.findByReferenceAndType(ENVIRONMENT.name(), "REF_ID", PLATFORM.name())).thenReturn(
+            List.of(moved, second, third)
+        );
+        when(dashboardRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        final DashboardEntity dashboardEntity = dashboardService.update(
+            GraviteeContext.getExecutionContext(),
+            ENVIRONMENT,
+            "REF_ID",
+            anUpdateWithReference("REF_ID", 9)
+        );
+
+        assertThat(dashboardEntity.getOrder()).isEqualTo(3);
+        final ArgumentCaptor<Dashboard> updated = ArgumentCaptor.forClass(Dashboard.class);
+        verify(dashboardRepository, times(3)).update(updated.capture());
+        assertThat(updated.getAllValues())
+            .extracting(Dashboard::getId, Dashboard::getOrder)
+            .containsExactlyInAnyOrder(Tuple.tuple("second", 1), Tuple.tuple("third", 2), Tuple.tuple(DASHBOARD_ID, 3));
+    }
+
+    @Test
+    void should_renumber_the_remaining_dashboards_of_the_same_type_from_one_on_delete() throws TechnicalException {
+        final Dashboard first = aStoredDashboard(1).toBuilder().id("first").build();
+        final Dashboard third = aStoredDashboard(4).toBuilder().id("third").build();
+        final Dashboard fourth = aStoredDashboard(5).toBuilder().id("fourth").build();
+        when(dashboardRepository.findByReferenceAndId(ENVIRONMENT.name(), "REF_ID", DASHBOARD_ID)).thenReturn(of(aStoredDashboard(2)));
+        when(dashboardRepository.findByReferenceAndType(ENVIRONMENT.name(), "REF_ID", PLATFORM.name())).thenReturn(
+            List.of(first, third, fourth)
+        );
+
+        dashboardService.delete(GraviteeContext.getExecutionContext(), ENVIRONMENT, "REF_ID", DASHBOARD_ID);
+
+        final ArgumentCaptor<Dashboard> updated = ArgumentCaptor.forClass(Dashboard.class);
+        verify(dashboardRepository, times(2)).update(updated.capture());
+        assertThat(updated.getAllValues())
+            .extracting(Dashboard::getId, Dashboard::getOrder)
+            .containsExactlyInAnyOrder(Tuple.tuple("third", 2), Tuple.tuple("fourth", 3));
     }
 
     @SneakyThrows
