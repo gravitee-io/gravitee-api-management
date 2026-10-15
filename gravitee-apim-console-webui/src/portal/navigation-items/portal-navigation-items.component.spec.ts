@@ -4946,12 +4946,20 @@ describe('PortalNavigationItemsComponent', () => {
         expect(await rootLoader.getHarnessOrNull(SectionEditorDialogHarness)).toBeNull();
       });
 
-      it('blocks deleting the sourced folder itself with an explanation', async () => {
+      it('blocks deleting a child of a sourced folder with an explanation', async () => {
+        await harness.deleteNodeById('page-1');
+        fixture.detectChanges();
+
+        expect(snackBarErrorSpy).toHaveBeenCalledWith(expect.stringContaining('managed by the external source of folder "Docs Folder"'));
+        expect(await rootLoader.getHarnessOrNull(GioConfirmAndValidateDialogHarness)).toBeNull();
+      });
+
+      it('offers to delete the sourced folder itself, without removing its source first', async () => {
         await harness.deleteNodeById('folder-1');
         fixture.detectChanges();
 
-        expect(snackBarErrorSpy).toHaveBeenCalledWith(expect.stringContaining('remove the source before deleting it'));
-        expect(await rootLoader.getHarnessOrNull(GioConfirmAndValidateDialogHarness)).toBeNull();
+        expect(snackBarErrorSpy).not.toHaveBeenCalled();
+        expect(await rootLoader.getHarnessOrNull(GioConfirmAndValidateDialogHarness)).not.toBeNull();
       });
     });
 
