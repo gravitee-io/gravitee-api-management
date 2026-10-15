@@ -46,6 +46,7 @@ class ImportSubscriptionCRDUseCaseTest {
     private static final String ENVIRONMENT_ID = "env-id";
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-id");
     private static final String SUBSCRIPTION_ID = "subscription-id";
+    private static final String PATH_API_ID = "path-api-id";
 
     private static final SubscriptionCRDSpec SPEC = SubscriptionCRDSpec.builder()
         .id(SUBSCRIPTION_ID)
@@ -67,12 +68,12 @@ class ImportSubscriptionCRDUseCaseTest {
     );
 
     @Test
-    void should_import_with_sanitized_input() {
+    void should_import_with_sanitized_input_on_the_path_api() {
         var sanitizedSpec = SPEC.toBuilder().apiKeys(List.of(ApiKeyCRDSpec.builder().key("another-custom-key").build())).build();
         when(validateSubscriptionCRDDomainService.validateAndSanitize(any(ValidateSubscriptionCRDDomainService.Input.class))).thenReturn(
             Validator.Result.ofValue(new ValidateSubscriptionCRDDomainService.Input(AUDIT_INFO, sanitizedSpec))
         );
-        when(subscriptionCRDDomainService.createOrUpdate(AUDIT_INFO, sanitizedSpec)).thenReturn(
+        when(subscriptionCRDDomainService.createOrUpdate(AUDIT_INFO, PATH_API_ID, sanitizedSpec)).thenReturn(
             SubscriptionEntity.builder()
                 .id(SUBSCRIPTION_ID)
                 .status(SubscriptionEntity.Status.ACCEPTED)
@@ -81,9 +82,9 @@ class ImportSubscriptionCRDUseCaseTest {
                 .build()
         );
 
-        var output = cut.execute(new ImportSubscriptionCRDUseCase.Input(AUDIT_INFO, SPEC));
+        var output = cut.execute(new ImportSubscriptionCRDUseCase.Input(AUDIT_INFO, PATH_API_ID, SPEC));
 
-        verify(subscriptionCRDDomainService).createOrUpdate(AUDIT_INFO, sanitizedSpec);
+        verify(subscriptionCRDDomainService).createOrUpdate(AUDIT_INFO, PATH_API_ID, sanitizedSpec);
         assertThat(output.status().getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED.name());
     }
 
@@ -93,7 +94,7 @@ class ImportSubscriptionCRDUseCaseTest {
             Validator.Result.ofErrors(List.of(Validator.Error.severe("apiKeys is only allowed for API_KEY plans")))
         );
 
-        assertThatThrownBy(() -> cut.execute(new ImportSubscriptionCRDUseCase.Input(AUDIT_INFO, SPEC)))
+        assertThatThrownBy(() -> cut.execute(new ImportSubscriptionCRDUseCase.Input(AUDIT_INFO, PATH_API_ID, SPEC)))
             .isInstanceOf(ValidationDomainException.class)
             .hasMessageContaining("Unable to import because of errors")
             .hasMessageContaining("apiKeys is only allowed for API_KEY plans");
