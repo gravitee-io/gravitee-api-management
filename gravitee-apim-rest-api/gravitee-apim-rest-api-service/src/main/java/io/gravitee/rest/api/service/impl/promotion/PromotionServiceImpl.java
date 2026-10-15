@@ -59,6 +59,7 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.BridgeOperationException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.PromotionAlreadyInProgressException;
+import io.gravitee.rest.api.service.exceptions.PromotionNotAwaitingValidationException;
 import io.gravitee.rest.api.service.exceptions.PromotionNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
@@ -69,6 +70,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -316,7 +318,20 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                 .orElseThrow(() -> new PromotionNotFoundException(promotionId));
 
             EnvironmentEntity environment = environmentService.findByCockpitId(promotion.getTargetEnvCockpitId());
+            if (!Objects.equals(environment.getOrganizationId(), executionContext.getOrganizationId())) {
+                throw new PromotionNotFoundException(promotionId);
+            }
+            if (promotion.getStatus() != PromotionStatus.TO_BE_VALIDATED) {
+                throw new PromotionNotAwaitingValidationException(promotionId);
+            }
             ExecutionContext targetExecutionContext = new ExecutionContext(executionContext.getOrganizationId(), environment.getId());
+            if (
+                !accepted &&
+                !permissionService.hasPermission(targetExecutionContext, ENVIRONMENT_API, environment.getId(), CREATE) &&
+                !permissionService.hasPermission(targetExecutionContext, ENVIRONMENT_API, environment.getId(), UPDATE)
+            ) {
+                throw new ForbiddenAccessException();
+            }
 
             promotion.setStatus(accepted ? PromotionStatus.ACCEPTED : PromotionStatus.REJECTED);
 
