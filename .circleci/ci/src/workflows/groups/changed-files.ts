@@ -134,6 +134,11 @@ export function shouldTestGateway(changedFiles: string[]): boolean {
   );
 }
 
+export function shouldTestGatewayIntegration(changedFiles: string[]): boolean {
+  // The suites run the engine against the plugins of this repository, so a change to either is in scope.
+  return shouldTestGateway(changedFiles) || changedFiles.some((file) => file.includes('gravitee-apim-plugin'));
+}
+
 export function shouldTestReporter(changedFiles: string[]): boolean {
   const mavenProjectsIdentifiers = ['gravitee-apim-reporter'];
   return (

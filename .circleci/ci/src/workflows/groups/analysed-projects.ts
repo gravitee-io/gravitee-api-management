@@ -18,6 +18,7 @@ import {
   TestDefinitionJob,
   TestGammaJob,
   TestGammaUiJob,
+  TestGatewayIntegrationJob,
   TestGatewayJob,
   TestIntegrationJob,
   TestKafkaExplorerJob,
@@ -36,6 +37,7 @@ import {
   shouldTestDefinition,
   shouldTestGamma,
   shouldTestGateway,
+  shouldTestGatewayIntegration,
   shouldTestIntegrationTests,
   shouldTestPlugin,
   shouldTestReporter,
@@ -86,6 +88,11 @@ export const BACKEND_SUITES: Suite[] = [
     createSuite: TestGatewayJob.create,
     predicate: shouldTestGateway,
     sonar: { project: 'gravitee-apim-gateway', cacheType: 'backend' },
+  },
+  {
+    suiteName: 'Test gateway integration',
+    createSuite: TestGatewayIntegrationJob.create,
+    predicate: shouldTestGatewayIntegration,
   },
   {
     suiteName: 'Test rest-api',
