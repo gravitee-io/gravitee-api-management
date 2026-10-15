@@ -112,6 +112,7 @@ import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionAcceptedException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionRevisionException;
 import io.gravitee.rest.api.service.exceptions.PlanMtlsAlreadySubscribedException;
+import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableException;
 import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableWithSharedApiKeyException;
 import io.gravitee.rest.api.service.exceptions.PlanNotYetPublishedException;
@@ -451,6 +452,22 @@ public class SubscriptionServiceTest {
 
         // Run
         subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+    }
+
+    @Test(expected = PlanNotFoundException.class)
+    public void shouldNotCreateBecausePlanBelongsToAnotherEnvironment() throws Exception {
+        // Stub
+        planEntity.setStatus(PlanStatus.PUBLISHED);
+        planEntity.setEnvironmentId("another-environment");
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+
+        // Run
+        try {
+            subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+        } finally {
+            // Verify
+            verify(subscriptionRepository, never()).create(any());
+        }
     }
 
     @Test(expected = PlanAlreadyClosedException.class)
