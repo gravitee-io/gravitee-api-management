@@ -63,7 +63,7 @@ class EventBusAuthzEnginePortSchemaTest {
     }
 
     @Test
-    void the_add_command_carries_only_docId_and_schemaText() {
+    void the_add_command_carries_only_docId_schemaText_and_environmentId() {
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-a");
 
         portServingAll().addOrUpdateSchema("env-1", "s1", "fleet schema", SCHEMA_TEXT, Set.of("api-a"), 1L).blockingAwait();
@@ -73,19 +73,19 @@ class EventBusAuthzEnginePortSchemaTest {
         assertThat(command.getString("docId")).isEqualTo("s1");
         assertThat(command.getString("schemaText")).isEqualTo(SCHEMA_TEXT);
         assertThat(command.fieldNames())
-            .as("the PDP consumer reads only docId and schemaText, so name must not go on the bus")
-            .containsExactlyInAnyOrder("op", "docId", "schemaText");
+            .as("the PDP reads only docId, schemaText and environmentId, so name must not go on the bus")
+            .containsExactlyInAnyOrder("op", "docId", "schemaText", "environmentId");
     }
 
     @Test
-    void the_remove_command_carries_only_docId() {
+    void the_remove_command_carries_only_docId_and_environmentId() {
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-a");
 
         portServingAll().removeSchema("env-1", "s1", Set.of("api-a")).blockingAwait();
 
         JsonObject command = commands.poll();
         assertThat(command.getString("op")).isEqualTo("removeSchema");
-        assertThat(command.fieldNames()).containsExactlyInAnyOrder("op", "docId");
+        assertThat(command.fieldNames()).containsExactlyInAnyOrder("op", "docId", "environmentId");
     }
 
     @Test
