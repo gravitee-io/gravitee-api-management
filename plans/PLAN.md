@@ -121,7 +121,7 @@ todos:
     status: completed
   - id: STORY-36
     content: "Pin the folder-name conflict behaviour in a test and a release note. No code change."
-    status: pending
+    status: completed
   - id: STORY-37
     content: "DEFERRABLE — Clean up an API's documentation when the API is deleted."
     status: pending
@@ -1437,6 +1437,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 2. Existing environments, via the new upgrader.
 
 #### STORY-36 — Pin the folder-name conflict behaviour
+**Status:** Done under [PORTAL-272](https://gravitee.atlassian.net/browse/PORTAL-272), as [#21190](https://github.com/gravitee-io/gravitee-api-management/pull/21190): eight tests beside the listing-sync tests, with the folder created the way the consoles create it. Testing found that a GitOps dry-run (`?dryRun=true`) does not report the conflict at all; only the apply does. The release note is still owed.
 **Why:** this behaviour changes as a side effect of PHASE 2, from silently producing two same-named folders to failing the GitOps apply. Failing is the better outcome and the safeguard is deliberate, so the behaviour is documented rather than changed.
 **Acceptance criteria:**
 - A test asserting that a hand-made folder at a path a config file declares causes that apply to fail, naming the path.
@@ -1683,7 +1684,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | Republishing the API re-shows items that were hidden individually | Low (accepted) | STORY-31 warns about it; choosing what to publish can come later |
 | Publishing from Gamma can move a listing row an admin placed in the portal editor | Low (accepted) | Limited to the caller's own API and to allowed sections; `ApiItemUpdateRule` still applies (STORY-16) |
 | The sortable tree is the largest frontend item | Medium | STORY-32 last, cuttable |
-| A hand-made folder blocks a GitOps apply | Accepted | STORY-36 pins and documents it |
+| A hand-made folder blocks a GitOps apply | Accepted | STORY-36 pins it; the CRD dry-run does not report it, only the apply does |
 | A console page inside an automation-managed folder is deleted with its content when the config drops that folder | Accepted | Not caused by this work; release-note it |
 | A product's own documentation dies with its listing row, unlike an API's | Low (accepted) | Documented asymmetry |
 | Schema-driven fetcher forms in React | Medium | Raw editor fallback (STORY-34) |
