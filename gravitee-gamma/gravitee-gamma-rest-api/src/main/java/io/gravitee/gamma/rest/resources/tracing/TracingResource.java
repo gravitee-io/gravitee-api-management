@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.resources.tracing;
 
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gamma.rest.core.tracing.exception.MissingTracingScopeException;
@@ -24,6 +25,7 @@ import io.gravitee.gamma.rest.core.tracing.use_case.GetTraceDetailUseCase;
 import io.gravitee.gamma.rest.core.tracing.use_case.GetTraceFilterDefinitionsUseCase;
 import io.gravitee.gamma.rest.core.tracing.use_case.GetTraceFilterValuesUseCase;
 import io.gravitee.gamma.rest.core.tracing.use_case.SearchTracesUseCase;
+import io.gravitee.gamma.rest.resources.observability.ObservabilityPermissions;
 import io.gravitee.gamma.rest.resources.tracing.dto.FilterConditionDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.PaginatedResponseDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.SearchTracesRequestDto;
@@ -32,6 +34,7 @@ import io.gravitee.gamma.rest.resources.tracing.dto.TraceFilterSpecDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.TraceFilterSpecsResponseDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.TraceFilterValueDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.TraceSummaryDto;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -58,9 +61,8 @@ import java.util.List;
  *       management v2 {@code /logs/search} endpoint. Response is the shared paginated envelope
  *       {@code { data, pagination: { totalCount, page, pageCount } }}.</li>
  *   <li>{@code GET /{traceId}?apiId=} — fetch one trace's full span tree. {@code apiId} is required
- *       as a security defense: a user with access to API_A can't fetch traces from API_B by knowing
- *       their id — the resource-attribute filter on {@code gravitee.api.id} rejects them, returning
- *       404 (collapsing "doesn't exist" and "wrong scope" so cross-API existence can't be probed).</li>
+ *       as a security defense: the resource-attribute filter on {@code gravitee.api.id} keeps a trace
+ *       id of API_B from being read through API_A, returning 404.</li>
  *   <li>{@code GET /filters/definition?module=} — self-describing filter spec list. {@code module}
  *       is optional; supplied to pull in module-specific contributor filters alongside the
  *       cross-module ones.</li>
@@ -68,9 +70,16 @@ import java.util.List;
  *       for one filter; same envelope as {@code /search}.</li>
  * </ul>
  *
+ * <h2>Authorization</h2>
+ * <ul>
+ *   <li><b>Search and detail:</b> {@code API_LOG[READ]} on the given {@code apiId}, checked before any
+ *       trace-store query. A denial is a 404, so it cannot be told apart from a missing API or trace.</li>
+ *   <li><b>Filter definitions and values:</b> no permission. They are static catalogs (enum values
+ *       only) and carry no traffic data.</li>
+ * </ul>
+ *
  * <h2>Required {@code apiId} on search + detail (not module)</h2>
- * Per-API auth scope is enforced by the caller picking from APIs they can see (a global trace
- * explorer page presents a mandatory API picker before the search runs). Module isn't carried on the
+ * Module isn't carried on the
  * wire for search + detail because every {@code apiId} belongs to exactly one module (an API's type
  * defines its module — LLM_PROXY → AIM, HTTP_PROXY → APIM, etc.), so api-id alone is sufficient to
  * scope. The filter-discovery endpoints still take {@code module} because their entire purpose is
@@ -102,6 +111,9 @@ public class TracingResource {
     @Inject
     private GetTraceFilterValuesUseCase getTraceFilterValuesUseCase;
 
+    @Inject
+    private PermissionService permissionService;
+
     @POST
     @Path("/search")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -116,6 +128,9 @@ public class TracingResource {
             throw new MissingTracingScopeException("apiId");
         }
         requireParam("apiId", request.apiId());
+        if (!ObservabilityPermissions.canReadApiLogs(permissionService, request.apiId())) {
+            throw new ApiNotFoundException(request.apiId());
+        }
 
         List<FilterCondition> filters = request.filters() == null
             ? List.of()
@@ -173,6 +188,8 @@ public class TracingResource {
         @QueryParam("page") @DefaultValue("1") int page,
         @QueryParam("perPage") @DefaultValue("10") int perPage
     ) {
+        // No permission while the values are static enum lists; values read from traces must be
+        // scoped to the APIs the caller can read (see GetTraceFilterValuesUseCase).
         var output = getTraceFilterValuesUseCase.execute(new GetTraceFilterValuesUseCase.Input(module, filterName, query, page, perPage));
         List<TraceFilterValueDto> data = output.page().data().stream().map(TraceFilterValueDto::from).toList();
         return PaginatedResponseDto.of(data, output.page().totalElements(), page, perPage);
@@ -183,6 +200,9 @@ public class TracingResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getTrace(@PathParam("traceId") String traceId, @QueryParam("apiId") String apiId) {
         requireParam("apiId", apiId);
+        if (!ObservabilityPermissions.canReadApiLogs(permissionService, apiId)) {
+            throw new TraceNotFoundException(traceId, apiId);
+        }
         var ctx = GraviteeContext.getExecutionContext();
         var output = getTraceDetailUseCase.execute(
             new GetTraceDetailUseCase.Input(ctx.getOrganizationId(), ctx.getEnvironmentId(), apiId, traceId)

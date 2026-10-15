@@ -82,7 +82,8 @@ public class GetTraceFilterValuesUseCase {
             case ENUM -> new Output(handleEnum(spec, input));
             case KEYWORD -> throw UnsupportedFilterException.valueListingNotSupported(spec.name(), spec.type().name());
             // No keyword filter exists in the slim cut — once one lands (e.g. AIM's LLM_MODEL) the
-            // case above gets a real handler that queries the tracing repository for distinct values.
+            // case above gets a real handler that queries the tracing repository for distinct values,
+            // scoped to the APIs the caller can read: the resource checks no permission on this endpoint.
             case NUMBER, STRING, BOOLEAN -> throw UnsupportedFilterException.valueListingNotSupported(spec.name(), spec.type().name());
         };
     }

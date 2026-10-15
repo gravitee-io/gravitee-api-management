@@ -152,15 +152,6 @@ paths:
                             example:
                                 httpStatus: 400
                                 message: "Unknown signal value 'INVALID'"
-                "403":
-                    description: The caller cannot read observability metadata in this environment.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-                            example:
-                                httpStatus: 403
-                                message: "Insufficient permissions to access observability metadata."
 
     /organizations/{orgId}/environments/{envId}/observability/filters/{filterName}/values:
         parameters:
@@ -297,7 +288,7 @@ paths:
                                 message: "Filter type NUMBER does not support value listing."
                                 technicalCode: "filter.values.unsupported"
                 "403":
-                    description: The caller cannot read observability metadata in this environment.
+                    description: The caller cannot read observability metadata in this environment (missing `ENVIRONMENT_PLATFORM:READ` permission).
                     content:
                         application/json:
                             schema:
@@ -375,7 +366,7 @@ paths:
                                 httpStatus: 400
                                 message: "Request exceeds the maximum of 10 entries."
                 "403":
-                    description: The caller cannot read observability metadata in this environment.
+                    description: The caller cannot read observability metadata in this environment (missing `ENVIRONMENT_PLATFORM:READ` permission).
                     content:
                         application/json:
                             schema:
@@ -736,7 +727,7 @@ paths:
                                         httpStatus: 400
                                         message: "Invalid time range: 'from' must be before 'to'."
                 "403":
-                    description: The caller cannot read observability data in this environment (missing `ENVIRONMENT_DASHBOARD:READ` or `ENVIRONMENT_API:READ` permission).
+                    description: The caller cannot read observability data in this environment (missing `ENVIRONMENT_PLATFORM:READ` permission).
                     content:
                         application/json:
                             schema:

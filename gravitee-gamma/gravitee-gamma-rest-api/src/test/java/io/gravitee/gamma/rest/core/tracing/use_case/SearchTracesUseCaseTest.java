@@ -39,6 +39,7 @@ class SearchTracesUseCaseTest {
 
     private static final String ORG = "org-1";
     private static final String ENV = "env-1";
+    private static final String OTHER_ENV = "env-2";
     private static final String API_ID = "api-1";
     private static final String OTHER_API = "api-2";
 
@@ -68,6 +69,22 @@ class SearchTracesUseCaseTest {
             .containsEntry(TraceScopeFilters.ENV_ID_KEY, ENV)
             .containsEntry(TraceScopeFilters.API_ID_KEY, API_ID)
             .doesNotContainKey("gravitee.module");
+    }
+
+    @Test
+    void should_not_return_traces_of_the_api_recorded_in_another_environment() {
+        Instant withinDefaultWindow = Instant.now().minus(Duration.ofHours(1));
+        tracingPort.givenTrace(
+            ORG,
+            OTHER_ENV,
+            Map.of(TraceScopeFilters.ENV_ID_KEY, OTHER_ENV, TraceScopeFilters.API_ID_KEY, API_ID),
+            new Trace("t-other-env", withinDefaultWindow, 1_000L, "gateway", "GET /pets", SpanStatus.OK, 1),
+            null
+        );
+
+        SearchTracesUseCase.Output output = useCase.execute(input(API_ID, List.of(), null, null, null, null));
+
+        assertThat(output.traces().getContent()).isEmpty();
     }
 
     @Test

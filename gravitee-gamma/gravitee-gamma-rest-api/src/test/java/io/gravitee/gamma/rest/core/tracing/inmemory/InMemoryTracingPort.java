@@ -58,7 +58,18 @@ public class InMemoryTracingPort implements TracingPort {
     @Getter
     private Integer lastPerPage;
 
-    public record TraceFixture(String orgId, String envId, Map<String, String> scope, Trace trace) {}
+    public record TraceFixture(String orgId, String envId, Map<String, String> scope, Trace trace) {
+        boolean matches(String orgId, String envId, Map<String, String> resourceAttributeFilters) {
+            return (
+                Objects.equals(this.orgId, orgId) &&
+                Objects.equals(this.envId, envId) &&
+                resourceAttributeFilters
+                    .entrySet()
+                    .stream()
+                    .allMatch(e -> Objects.equals(scope.get(e.getKey()), e.getValue()))
+            );
+        }
+    }
 
     public void givenTrace(String orgId, String envId, Map<String, String> scope, Trace trace, List<Span> spans) {
         traces.add(new TraceFixture(orgId, envId, scope, trace));
@@ -98,13 +109,7 @@ public class InMemoryTracingPort implements TracingPort {
 
         List<Trace> matching = traces
             .stream()
-            .filter(t -> Objects.equals(t.orgId(), orgId) && Objects.equals(t.envId(), envId))
-            .filter(t ->
-                resourceAttributeFilters
-                    .entrySet()
-                    .stream()
-                    .allMatch(e -> Objects.equals(t.scope().get(e.getKey()), e.getValue()))
-            )
+            .filter(t -> t.matches(orgId, envId, resourceAttributeFilters))
             .filter(t -> (start == null || !t.trace().startTime().isBefore(start)))
             .filter(t -> (end == null || !t.trace().startTime().isAfter(end)))
             .map(TraceFixture::trace)
@@ -119,6 +124,9 @@ public class InMemoryTracingPort implements TracingPort {
     @Override
     public Optional<List<Span>> getTraceSpans(String orgId, String envId, String traceId, Map<String, String> resourceAttributeFilters) {
         this.lastResourceAttributeFilters = resourceAttributeFilters;
-        return Optional.ofNullable(spansByTraceId.get(traceId));
+        boolean inScope = traces
+            .stream()
+            .anyMatch(t -> t.trace().traceId().equals(traceId) && t.matches(orgId, envId, resourceAttributeFilters));
+        return inScope ? Optional.ofNullable(spansByTraceId.get(traceId)) : Optional.empty();
     }
 }
