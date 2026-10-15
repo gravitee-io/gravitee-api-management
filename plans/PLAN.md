@@ -112,7 +112,7 @@ todos:
     status: pending
   - id: STORY-34
     content: "Link an external source for a page or a whole folder."
-    status: pending
+    status: completed
   - id: STORY-34-BIS
     content: "Change or remove the external source of a page or an imported folder, as the portal editor's edit dialog does."
     status: pending
@@ -1369,6 +1369,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 4. The Configure action, and the preview following the saved configuration.
 
 #### STORY-34 — Link an external source
+**Status:** Done under [PORTAL-268](https://gravitee.atlassian.net/browse/PORTAL-268), in five pull requests: the installed fetchers ([#21206](https://github.com/gravitee-io/gravitee-api-management/pull/21206)), their settings form from the schema ([#21222](https://github.com/gravitee-io/gravitee-api-management/pull/21222)), a page created from a source ([#21232](https://github.com/gravitee-io/gravitee-api-management/pull/21232)), a refresh on demand ([#21241](https://github.com/gravitee-io/gravitee-api-management/pull/21241)) and a folder imported from a repository ([#21245](https://github.com/gravitee-io/gravitee-api-management/pull/21245)).
 **Why:** many teams keep their documentation in a repository next to the code and do not want to copy it by hand. Linking a source — a single page or a whole folder — keeps the portal in step with that repository automatically, which is one of the five capabilities the feature promises.
 **Acceptance criteria:**
 - Choose a fetcher from the available list; its settings render from the schema the server provides, with a raw editor fallback for schemas that cannot be rendered.
