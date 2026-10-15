@@ -16,14 +16,9 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-<<<<<<< HEAD
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
-=======
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.argThat;
->>>>>>> 0f066b9 (fix(management): return no API from searches when the user can access none)
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
