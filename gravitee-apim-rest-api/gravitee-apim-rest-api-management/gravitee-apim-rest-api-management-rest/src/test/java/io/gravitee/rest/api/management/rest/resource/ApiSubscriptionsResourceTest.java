@@ -234,9 +234,6 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
     @Test
     public void should_not_create_subscription_when_plan_belongs_to_another_api() {
         fakePlanEntity.setReferenceId("another-api");
-        when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), any())).thenReturn(
-            fakeSubscriptionEntity
-        );
 
         Response response = envTarget().queryParam("application", APP_NAME).queryParam("plan", PLAN_NAME).request().post(null);
 
@@ -254,9 +251,6 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 eq(RolePermissionAction.CREATE)
             )
         ).thenReturn(false);
-        when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), any())).thenReturn(
-            fakeSubscriptionEntity
-        );
 
         Response response = envTarget().queryParam("application", APP_NAME).queryParam("plan", PLAN_NAME).request().post(null);
 
