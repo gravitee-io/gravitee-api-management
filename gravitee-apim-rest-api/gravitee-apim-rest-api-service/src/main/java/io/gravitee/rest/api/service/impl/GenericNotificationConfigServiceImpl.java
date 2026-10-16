@@ -29,6 +29,7 @@ import io.gravitee.rest.api.service.exceptions.NotificationConfigNotFoundExcepti
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
@@ -74,13 +75,18 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
             if (entity.getId() == null || entity.getId().isEmpty()) {
                 throw new NotificationConfigNotFoundException();
             }
-            Optional<GenericNotificationConfig> optionalConfig = genericNotificationConfigRepository.findById(entity.getId());
-            if (!optionalConfig.isPresent()) {
-                throw new NotificationConfigNotFoundException();
-            }
+            GenericNotificationConfig existingConfig = genericNotificationConfigRepository
+                .findById(entity.getId())
+                .filter(config -> belongsTo(config, entity.getReferenceType(), entity.getReferenceId()))
+                .orElseThrow(NotificationConfigNotFoundException::new);
 
             GenericNotificationConfig notificationConfig = convert(entity);
-            notificationConfig.setCreatedAt(optionalConfig.get().getCreatedAt());
+            // Reference and organization are immutable on update; keep the stored values rather than
+            // trusting the request body.
+            notificationConfig.setReferenceType(existingConfig.getReferenceType());
+            notificationConfig.setReferenceId(existingConfig.getReferenceId());
+            notificationConfig.setOrganizationId(existingConfig.getOrganizationId());
+            notificationConfig.setCreatedAt(existingConfig.getCreatedAt());
             notificationConfig.setUpdatedAt(new Date());
             return convert(genericNotificationConfigRepository.update(notificationConfig));
         } catch (TechnicalException te) {
@@ -89,12 +95,29 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
     }
 
     @Override
-    public void delete(String id) {
+    public void delete(String id, NotificationReferenceType referenceType, String referenceId) {
         try {
+            boolean ownedByReference = genericNotificationConfigRepository
+                .findById(id)
+                .filter(config -> belongsTo(config, referenceType.name(), referenceId))
+                .isPresent();
+            if (!ownedByReference) {
+                throw new NotificationConfigNotFoundException();
+            }
             genericNotificationConfigRepository.delete(id);
         } catch (TechnicalException te) {
             throw new TechnicalManagementException("An error occurs while trying to delete the generic notification " + id, te);
         }
+    }
+
+    // Resources validate the requested reference against the request path, so a configuration stored under
+    // another reference is not the caller's to modify or delete.
+    private static boolean belongsTo(GenericNotificationConfig config, String referenceType, String referenceId) {
+        return (
+            config.getReferenceType() != null &&
+            config.getReferenceType().name().equals(referenceType) &&
+            Objects.equals(config.getReferenceId(), referenceId)
+        );
     }
 
     @Override

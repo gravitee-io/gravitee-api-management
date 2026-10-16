@@ -147,7 +147,7 @@ public class ApiProductNotificationSettingsResource extends AbstractResource {
     @Operation(summary = "Delete API Product notification settings")
     @Permissions({ @Permission(value = API_PRODUCT_NOTIFICATION, acls = DELETE) })
     public Response deleteApiProductNotificationSettings(@PathParam("notificationId") String notificationId) {
-        genericNotificationConfigService.delete(notificationId);
+        genericNotificationConfigService.delete(notificationId, NotificationReferenceType.API_PRODUCT, apiProductId);
         return Response.noContent().build();
     }
 
