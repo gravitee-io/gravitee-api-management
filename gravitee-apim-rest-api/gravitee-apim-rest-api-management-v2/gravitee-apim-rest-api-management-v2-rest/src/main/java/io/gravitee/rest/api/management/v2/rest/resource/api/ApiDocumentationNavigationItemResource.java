@@ -169,13 +169,20 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
         @PathParam("apiId") String apiId,
         @PathParam("navId") String navigationItemId
     ) {
+        final var executionContext = GraviteeContext.getExecutionContext();
         var page = apiOwnedNavigationDomainService.requireOwnedPage(
-            GraviteeContext.getCurrentEnvironment(),
+            executionContext.getEnvironmentId(),
             apiId,
             PortalNavigationItemId.of(navigationItemId)
         );
 
-        var output = getPortalPageContentUseCase.execute(new GetPortalPageContentUseCase.Input(page.getPortalPageContentId()));
+        var output = getPortalPageContentUseCase.execute(
+            new GetPortalPageContentUseCase.Input(
+                executionContext.getOrganizationId(),
+                executionContext.getEnvironmentId(),
+                page.getPortalPageContentId()
+            )
+        );
         return PortalPageContentMapper.INSTANCE.map(output.content());
     }
 
