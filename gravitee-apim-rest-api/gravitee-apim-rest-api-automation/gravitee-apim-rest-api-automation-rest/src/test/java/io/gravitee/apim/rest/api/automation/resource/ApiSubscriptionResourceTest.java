@@ -16,8 +16,11 @@
 package io.gravitee.apim.rest.api.automation.resource;
 
 import static io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED;
+import static io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.CLOSED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -39,6 +42,7 @@ import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import java.time.Instant;
@@ -74,6 +78,9 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
     static final String API_HRID = "api-hrid";
     static final String APPLICATION_HRID = "application-hrid";
     static final String PLAN_HRID = "plan-hrid";
+    static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(ORGANIZATION, ENVIRONMENT);
+    static final String API_ID = HRIDToUUID.api().context(EXECUTION_CONTEXT).hrid(API_HRID).id();
+    static final String HASHED_SUBSCRIPTION_ID = HRIDToUUID.subscription().context(EXECUTION_CONTEXT).api(API_HRID).subscription(HRID).id();
 
     @AfterEach
     void tearDown() {
@@ -81,7 +88,41 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
         apiCrudService.reset();
         applicationCrudService.reset();
         planCrudService.reset();
-        reset(importSubscriptionCRDUseCase);
+        reset(importSubscriptionCRDUseCase, apiSearchServiceV4);
+    }
+
+    private void givenASubscriptionOfApi(String apiId) {
+        subscriptionCrudService.initWith(
+            List.of(
+                SubscriptionFixtures.aSubscription()
+                    .toBuilder()
+                    .id(HASHED_SUBSCRIPTION_ID)
+                    .referenceId(apiId)
+                    .applicationId(APPLICATION_HRID)
+                    .planId(PLAN_HRID)
+                    .status(ACCEPTED)
+                    .build()
+            )
+        );
+        applicationCrudService.initWith(
+            List.of(ApplicationModelFixtures.anApplicationEntity().toBuilder().id(APPLICATION_HRID).hrid(APPLICATION_HRID).build())
+        );
+        planCrudService.initWith(List.of(PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_HRID).hrid(PLAN_HRID).build()));
+    }
+
+    private void givenTheApiIn(String environmentId) {
+        apiCrudService.initWith(
+            List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).hrid(API_HRID).environmentId(environmentId).build())
+        );
+    }
+
+    private void givenTheApiIsOutsideTheEnvironment() {
+        when(
+            apiSearchServiceV4.findRepositoryApiById(
+                argThat(executionContext -> ENVIRONMENT.equals(executionContext.getEnvironmentId())),
+                eq(API_ID)
+            )
+        ).thenThrow(new ApiNotFoundException(API_ID));
     }
 
     @Nested
@@ -203,6 +244,44 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
             expectNotFound("unknown");
         }
 
+        @Test
+        void should_return_a_404_status_code_for_a_legacy_api_uuid_sent_without_hridContainsApiUUID() {
+            subscriptionCrudService.initWith(
+                List.of(
+                    SubscriptionFixtures.aSubscription()
+                        .toBuilder()
+                        .id(SUBSCRIPTION_ID)
+                        .referenceId(API_HRID)
+                        .applicationId(APPLICATION_HRID)
+                        .planId(PLAN_HRID)
+                        .build()
+                )
+            );
+            applicationCrudService.initWith(
+                List.of(ApplicationModelFixtures.anApplicationEntity().toBuilder().id(APPLICATION_HRID).hrid(APPLICATION_HRID).build())
+            );
+            planCrudService.initWith(List.of(PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_HRID).hrid(PLAN_HRID).build()));
+
+            try (var response = rootTarget().queryParam("hridContainsUUID", true).path(SUBSCRIPTION_ID).request().get()) {
+                assertThat(response.getStatus()).isEqualTo(404);
+            }
+        }
+
+        @Test
+        void should_return_a_404_status_code_for_a_subscription_of_another_api() {
+            givenASubscriptionOfApi("another-api");
+
+            expectNotFound(HRID);
+        }
+
+        @Test
+        void should_return_a_404_status_code_for_an_api_outside_the_environment() {
+            givenASubscriptionOfApi(API_ID);
+            givenTheApiIsOutsideTheEnvironment();
+
+            expectNotFound(HRID);
+        }
+
         private void expectNotFound(String hrid) {
             try (var response = rootTarget().path(hrid).request().get()) {
                 assertThat(response.getStatus()).isEqualTo(404);
@@ -217,6 +296,7 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
             try (
                 var response = rootTarget()
                     .queryParam("hridContainsUUID", legacy)
+                    .queryParam("hridContainsApiUUID", legacy)
                     .path(hrid)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
@@ -287,6 +367,8 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_a_404_status_code_with_unknown_hrid() {
+            givenTheApiIn(ENVIRONMENT);
+
             expectNotFound("unknown");
         }
 
@@ -311,6 +393,24 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
                 assertThat(response.getStatus()).isEqualTo(404);
             }
             assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getStatus()).isEqualTo(ACCEPTED);
+        }
+
+        @Test
+        void should_return_a_404_status_code_and_not_close_a_subscription_of_another_api() {
+            givenASubscriptionOfApi("another-api");
+            givenTheApiIn(ENVIRONMENT);
+
+            expectNotFound(HRID);
+            assertThat(subscriptionCrudService.get(HASHED_SUBSCRIPTION_ID).getStatus()).isNotEqualTo(CLOSED);
+        }
+
+        @Test
+        void should_return_a_404_status_code_and_not_close_a_subscription_of_an_api_outside_the_environment() {
+            givenASubscriptionOfApi(API_ID);
+            givenTheApiIsOutsideTheEnvironment();
+
+            expectNotFound(HRID);
+            assertThat(subscriptionCrudService.get(HASHED_SUBSCRIPTION_ID).getStatus()).isNotEqualTo(CLOSED);
         }
 
         private void expectNoContent(String hrid) {
@@ -388,6 +488,15 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
 
             apiCrudService.initWith(
                 List.of(ApiFixtures.aProxyApiV4().toBuilder().id(apiId).hrid(API_HRID).environmentId(ENVIRONMENT).build())
+            );
+            planCrudService.initWith(
+                List.of(
+                    PlanFixtures.aPlanHttpV4()
+                        .toBuilder()
+                        .id(HRIDToUUID.plan().context(EXECUTION_CONTEXT).api(API_HRID).plan("plan_hrid").id())
+                        .referenceId(apiId)
+                        .build()
+                )
             );
             // PUT: create/update subscription
             try (
