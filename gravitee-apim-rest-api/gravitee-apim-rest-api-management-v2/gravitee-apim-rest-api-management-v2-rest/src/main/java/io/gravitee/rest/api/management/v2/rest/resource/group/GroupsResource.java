@@ -22,6 +22,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
 import io.gravitee.apim.core.group.use_case.SearchGroupsUseCase;
 import io.gravitee.apim.core.group.use_case.ValidateGroupCRDUseCase;
@@ -77,6 +78,9 @@ public class GroupsResource extends AbstractResource {
 
     @Inject
     private ImportGroupCRDUseCase importGroupCRD;
+
+    @Inject
+    private GroupQueryService groupQueryService;
 
     private static final GroupMapper MAPPER = GroupMapper.INSTANCE;
 
@@ -184,6 +188,9 @@ public class GroupsResource extends AbstractResource {
     public Response importGroupCRD(@Valid GroupCRDSpec spec, @QueryParam("dryRun") boolean dryRun) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
+        var groupCRDSpec = GroupCRDMapper.INSTANCE.toCore(spec);
+
+        authorizeImport(groupCRDSpec, executionContext.getEnvironmentId());
 
         var input = new ImportGroupCRDUseCase.Input(
             AuditInfo.builder()
@@ -197,12 +204,24 @@ public class GroupsResource extends AbstractResource {
                         .build()
                 )
                 .build(),
-            GroupCRDMapper.INSTANCE.toCore(spec)
+            groupCRDSpec
         );
 
         var output = dryRun ? validateGroupCRD.execute(input) : importGroupCRD.execute(input);
 
         return Response.ok(output.status()).build();
+    }
+
+    private void authorizeImport(io.gravitee.apim.core.group.model.crd.GroupCRDSpec spec, String environmentId) {
+        requireCreateOrUpdate(
+            RolePermission.ENVIRONMENT_GROUP,
+            RolePermission.ENVIRONMENT_GROUP,
+            spec
+                .canonicalId()
+                .flatMap(id -> groupQueryService.findByIdAndEnvironmentId(id, environmentId))
+                .map(Group::getId)
+                .orElse(null)
+        );
     }
 
     private List<GroupEntity> groupsVisibleToCaller(ExecutionContext executionContext) {
