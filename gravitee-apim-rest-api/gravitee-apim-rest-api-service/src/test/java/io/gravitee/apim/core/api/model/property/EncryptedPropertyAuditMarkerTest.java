@@ -112,7 +112,7 @@ class EncryptedPropertyAuditMarkerTest {
     }
 
     @Test
-    void should_not_mark_apis_without_v4_properties() {
+    void should_not_mark_a_v2_api_without_encrypted_properties() {
         var withoutProperties = ApiDefinitionFixtures.anApiV4();
         withoutProperties.setProperties(null);
 
