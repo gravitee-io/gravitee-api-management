@@ -17,7 +17,9 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
@@ -45,6 +47,7 @@ public class MonitoringResourceTest extends AbstractResourceTest {
     @Test
     public void shouldReturnMonitoringData_whenCloudNotEnabled() {
         InstanceEntity mockInstance = new InstanceEntity();
+        mockInstance.setId("456");
         mockInstance.setEnvironments(Set.of("DEFAULT"));
         MonitoringData mockMonitoringData = new MonitoringData();
         when(instanceService.findByEvent(any(), any())).thenReturn(mockInstance);
@@ -52,6 +55,37 @@ public class MonitoringResourceTest extends AbstractResourceTest {
         when(environmentService.findOrganizationIdsByEnvironments(any())).thenReturn(new HashSet<>(Collections.singleton("DEFAULT")));
 
         Response response = envTarget().request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        assertEquals(mockMonitoringData, response.readEntity(MonitoringData.class));
+    }
+
+    @Test
+    public void shouldNotReturnMonitoringData_whenGatewayDoesNotBelongToInstance() {
+        InstanceEntity mockInstance = new InstanceEntity();
+        mockInstance.setId("another-gateway");
+        mockInstance.setEnvironments(Set.of("DEFAULT"));
+        when(instanceService.findByEvent(any(), any())).thenReturn(mockInstance);
+        when(environmentService.findOrganizationIdsByEnvironments(any())).thenReturn(new HashSet<>(Collections.singleton("DEFAULT")));
+
+        Response response = envTarget().request().get();
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+        verify(monitoringService, never()).findMonitoring(any(), any());
+    }
+
+    @Test
+    public void shouldReturnMonitoringData_whenInstanceHasNoEnvironment() {
+        // A gateway on default config publishes an empty environments set and is visible from every
+        // environment; it must stay reachable as long as the gateway id matches the resolved instance.
+        InstanceEntity mockInstance = new InstanceEntity();
+        mockInstance.setId("456");
+        mockInstance.setEnvironments(Collections.emptySet());
+        MonitoringData mockMonitoringData = new MonitoringData();
+        when(instanceService.findByEvent(any(), any())).thenReturn(mockInstance);
+        when(monitoringService.findMonitoring(any(), any())).thenReturn(mockMonitoringData);
+
+        Response response = envTarget().request().get();
+
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         assertEquals(mockMonitoringData, response.readEntity(MonitoringData.class));
     }
