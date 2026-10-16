@@ -33,6 +33,10 @@
         Tests that exercise a plugin released from another repository stay in gravitee-apim-distribution-integration-tests.
     </description>
 
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>io.gravitee.apim.gateway</groupId>
