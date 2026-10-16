@@ -188,7 +188,8 @@ public class HttpConnector implements ProxyConnector {
                 .flatMap(httpClientRequest -> {
                     observableHttpClientRequest.httpClientRequest(httpClientRequest.getDelegate());
                     return sendEndpointRequestChunks(httpClientRequest, request);
-                });
+                })
+                .doOnError(throwable -> closeFailedUpstreamConnection(ctx, pendingUpstreamRequest, absoluteUri));
 
             return retryOnceOnConnectionClosedByPeer(ctx, absoluteUri, request, endpointExchange, cancelled)
                 .doOnSuccess(endpointResponse -> {
@@ -339,13 +340,49 @@ public class HttpConnector implements ProxyConnector {
         if (upstreamRequest != null) {
             try {
                 ctx.withLogger(log).debug("Downstream request has been disposed, releasing upstream request to [{}]", absoluteUri);
-                // Reset closes the upstream connection/stream so its pool slot is released right away instead of
-                // being held until the request timeout; no-op if the request already completed.
-                upstreamRequest.reset();
+                if (isHttp2(upstreamRequest)) {
+                    // Releases only this stream; the connection stays shared with the other streams.
+                    upstreamRequest.reset();
+                } else {
+                    // On the connection's own event loop an HTTP/1.x reset recycles the lease inline, so the pool can
+                    // hand the connection to the next waiter before any later close runs and that request fails.
+                    // Closing evicts the connection first. The cost is a new TCP/TLS handshake for the next request.
+                    upstreamRequest.getDelegate().connection().close();
+                }
             } catch (Exception e) {
                 ctx.withLogger(log).debug("Can't properly reset endpoint request to backend [{}]", absoluteUri, e);
             }
         }
+    }
+
+    private void closeFailedUpstreamConnection(
+        final HttpExecutionContext ctx,
+        final AtomicReference<HttpClientRequest> pendingUpstreamRequest,
+        final String absoluteUri
+    ) {
+        final HttpClientRequest upstreamRequest = pendingUpstreamRequest.getAndSet(null);
+        if (upstreamRequest != null) {
+            try {
+                closeConnectionUnlessHttp2(upstreamRequest);
+            } catch (Exception e) {
+                ctx.withLogger(log).debug("Can't properly close the connection to backend [{}] after a failed request", absoluteUri, e);
+            }
+        }
+    }
+
+    /**
+     * An HTTP/1.x connection whose request head was never written, or failed to be, is not closed by a reset: Vert.x
+     * keeps it in the pool although its outbound queue no longer drains, and the next request on it fails. Closing it
+     * makes the pool evict it. An HTTP/2 connection is shared with other streams and is left alone.
+     */
+    private static void closeConnectionUnlessHttp2(final HttpClientRequest upstreamRequest) {
+        if (!isHttp2(upstreamRequest)) {
+            upstreamRequest.getDelegate().connection().close();
+        }
+    }
+
+    private static boolean isHttp2(final HttpClientRequest upstreamRequest) {
+        return upstreamRequest.getDelegate().version() == HttpVersion.HTTP_2;
     }
 
     private Single<HttpClientResponse> sendEndpointRequestChunks(HttpClientRequest httpClientRequest, HttpRequest request) {
