@@ -15,19 +15,24 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.application;
 
+import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.application.use_case.ImportApplicationCRDUseCase;
 import io.gravitee.apim.core.application.use_case.ValidateApplicationCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApplicationMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApplicationCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.PUT;
@@ -35,6 +40,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -51,31 +57,60 @@ public class ApplicationsResource extends AbstractResource {
     @Inject
     private ValidateApplicationCRDUseCase validateCRDUseCase;
 
+    @Inject
+    private ApplicationCrudService applicationCrudService;
+
     @PUT
     @Path("/_import/crd")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.CREATE) })
     public Response createApplicationWithCRD(@Valid ApplicationCRDSpec crd, @QueryParam("dryRun") boolean dryRun) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        var input = new ImportApplicationCRDUseCase.Input(
-            AuditInfo.builder()
-                .organizationId(executionContext.getOrganizationId())
-                .environmentId(executionContext.getEnvironmentId())
-                .actor(
-                    AuditActor.builder()
-                        .userId(userDetails.getUsername())
-                        .userSource(userDetails.getSource())
-                        .userSourceId(userDetails.getSourceId())
-                        .build()
-                )
-                .build(),
-            ApplicationMapper.INSTANCE.map(crd)
-        );
+        var auditInfo = AuditInfo.builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(
+                AuditActor.builder()
+                    .userId(userDetails.getUsername())
+                    .userSource(userDetails.getSource())
+                    .userSourceId(userDetails.getSourceId())
+                    .build()
+            )
+            .build();
+        var spec = ApplicationMapper.INSTANCE.map(crd);
+
+        authorizeImport(spec.targetId(auditInfo), executionContext.getEnvironmentId());
+
+        var input = new ImportApplicationCRDUseCase.Input(auditInfo, spec);
 
         return dryRun
             ? Response.ok(validateCRDUseCase.execute(input).status()).build()
             : Response.ok(importApplicationCRDUseCase.execute(input).status()).build();
+    }
+
+    private void authorizeImport(String applicationId, String environmentId) {
+        var existing = findApplication(applicationId, environmentId);
+        // Reviving an archived application wipes its members and makes the caller its owner: the Console reserves that to admins
+        if (existing.filter(application -> ApplicationStatus.ARCHIVED.name().equals(application.getStatus())).isPresent() && !isAdmin()) {
+            throw new ForbiddenAccessException();
+        }
+        requireCreateOrUpdate(
+            RolePermission.ENVIRONMENT_APPLICATION,
+            RolePermission.APPLICATION_DEFINITION,
+            existing.map(BaseApplicationEntity::getId).orElse(null)
+        );
+    }
+
+    private Optional<BaseApplicationEntity> findApplication(String applicationId, String environmentId) {
+        if (applicationId == null) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(applicationCrudService.findById(applicationId, environmentId));
+        } catch (ApplicationNotFoundException e) {
+            return Optional.empty();
+        }
     }
 }
