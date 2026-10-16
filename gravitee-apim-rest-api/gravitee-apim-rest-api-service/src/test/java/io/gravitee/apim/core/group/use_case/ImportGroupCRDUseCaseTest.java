@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.group.use_case;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.*;
 import static org.mockito.Mockito.when;
 
@@ -33,6 +34,8 @@ import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -124,6 +127,43 @@ public class ImportGroupCRDUseCaseTest {
         assertSoftly(soft -> {
             soft.assertThat(membersService.getGroupApiRole(GROUP_ID)).isEqualTo("OWNER");
             soft.assertThat(membersService.getGroupApplicationRole(GROUP_ID)).isEqualTo("USER");
+        });
+    }
+
+    @Test
+    void should_reject_a_group_of_another_environment_without_writing_it() {
+        var existing = io.gravitee.apim.core.group.model.Group.builder()
+            .id(GROUP_ID)
+            .environmentId("other-environment-id")
+            .name("other-environment-group")
+            .build();
+        groupQueryService.initWith(List.of(existing));
+        groupCrudService.storage().put(GROUP_ID, existing);
+        when(roleService.findByScopeAndName(io.gravitee.rest.api.model.permissions.RoleScope.API, "USER", ORGANIZATION_ID)).thenReturn(
+            Optional.of(RoleEntity.builder().name("USER").build())
+        );
+        var spec = GroupCRDSpec.builder()
+            .id(GROUP_ID)
+            .name("kubernetes-spec")
+            .apiRole("USER")
+            .members(
+                Set.of(
+                    GroupCRDSpec.Member.builder()
+                        .source("memory")
+                        .sourceId("api1")
+                        .roles(Map.of(RoleScope.API, "USER", RoleScope.APPLICATION, "USER", RoleScope.INTEGRATION, "USER"))
+                        .build()
+                )
+            );
+
+        assertThatThrownBy(() -> cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, spec.build()))).isInstanceOf(
+            GroupNotFoundException.class
+        );
+
+        assertSoftly(soft -> {
+            soft.assertThat(groupCrudService.storage().get(GROUP_ID)).isEqualTo(existing);
+            soft.assertThat(membersService.getGroupMembers(GROUP_ID)).isNullOrEmpty();
+            soft.assertThat(membersService.getGroupApiRole(GROUP_ID)).isNull();
         });
     }
 }
