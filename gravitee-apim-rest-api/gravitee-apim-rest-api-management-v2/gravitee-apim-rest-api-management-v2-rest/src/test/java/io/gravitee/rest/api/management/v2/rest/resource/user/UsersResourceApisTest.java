@@ -18,11 +18,16 @@ package io.gravitee.rest.api.management.v2.rest.resource.user;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.user.model.UserApi;
-import io.gravitee.apim.core.user.use_case.GetUserApisUseCase;
+import inmemory.ApiQueryServiceInMemory;
+import inmemory.EnvironmentCrudServiceInMemory;
+import inmemory.InMemoryAlternative;
+import inmemory.MembershipQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.environment.model.Environment;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.v2.rest.model.UserApisResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -30,12 +35,23 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 class UsersResourceApisTest extends AbstractResourceTest {
 
     private static final String USER_ID = "user-1";
+
+    @Autowired
+    MembershipQueryServiceInMemory membershipQueryService;
+
+    @Autowired
+    ApiQueryServiceInMemory apiQueryService;
+
+    @Autowired
+    EnvironmentCrudServiceInMemory environmentCrudService;
 
     @Override
     protected String contextPath() {
@@ -45,7 +61,30 @@ class UsersResourceApisTest extends AbstractResourceTest {
     @AfterEach
     public void tearDown() {
         super.tearDown();
-        reset(getUserApisUseCase);
+        Stream.of(membershipQueryService, apiQueryService, environmentCrudService).forEach(InMemoryAlternative::reset);
+    }
+
+    private void givenUserWithApi() {
+        givenExistingUsers(List.of(BaseUserEntity.builder().id(USER_ID).organizationId(ORGANIZATION).build()));
+        membershipQueryService.initWith(
+            List.of(
+                Membership.builder()
+                    .id("m1")
+                    .memberId(USER_ID)
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.API)
+                    .referenceId("api-1")
+                    .build()
+            )
+        );
+        apiQueryService.initWith(
+            List.of(
+                Api.builder().id("api-1").name("My API").version("1.0").visibility(Api.Visibility.PUBLIC).environmentId("env-1").build()
+            )
+        );
+        environmentCrudService.initWith(
+            List.of(Environment.builder().id("env-1").name("Development").organizationId(ORGANIZATION).build())
+        );
     }
 
     @Test
@@ -61,18 +100,7 @@ class UsersResourceApisTest extends AbstractResourceTest {
 
     @Test
     void should_return_200_with_paginated_response() {
-        var apis = List.of(
-            UserApi.builder()
-                .id("api-1")
-                .name("My API")
-                .version("1.0")
-                .visibility("PUBLIC")
-                .environmentId("env-1")
-                .environmentName("Development")
-                .build()
-        );
-
-        when(getUserApisUseCase.execute(any())).thenReturn(new GetUserApisUseCase.Output(apis, 1));
+        givenUserWithApi();
 
         final Response response = rootTarget().request().get();
 
@@ -92,16 +120,19 @@ class UsersResourceApisTest extends AbstractResourceTest {
 
     @Test
     void should_pass_environment_id_query_param() {
-        when(getUserApisUseCase.execute(any())).thenReturn(new GetUserApisUseCase.Output(List.of(), 0));
+        givenUserWithApi();
 
         final Response response = rootTarget().queryParam("environmentId", "env-1").request().get();
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        var body = response.readEntity(UserApisResponse.class);
+        assertThat(body.getData()).hasSize(1);
+        assertThat(body.getData().get(0).getId()).isEqualTo("api-1");
     }
 
     @Test
     void should_return_empty_list_when_no_results() {
-        when(getUserApisUseCase.execute(any())).thenReturn(new GetUserApisUseCase.Output(List.of(), 0));
+        givenExistingUsers(List.of(BaseUserEntity.builder().id(USER_ID).organizationId(ORGANIZATION).build()));
 
         final Response response = rootTarget().request().get();
 
