@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -83,7 +84,9 @@ public class WebNotifierServiceImpl implements WebNotifierService {
             key -> buildHttpClient(key.ssl(), key.proxy())
         );
 
-        final int port = requestUri.getPort() != -1 ? requestUri.getPort() : (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
+        final int port = requestUri.getPort() != -1
+            ? requestUri.getPort()
+            : (HTTPS_SCHEME.equalsIgnoreCase(requestUri.getScheme()) ? 443 : 80);
 
         RequestOptions options = new RequestOptions()
             .setMethod(io.vertx.core.http.HttpMethod.valueOf(method.name()))
@@ -155,7 +158,9 @@ public class WebNotifierServiceImpl implements WebNotifierService {
             .setTrustAll(true)
             .setKeepAlive(false)
             .setTcpKeepAlive(false)
-            .setConnectTimeout(httpClientTimeout());
+            .setConnectTimeout(httpClientTimeout())
+            .setIdleTimeout(httpClientTimeout())
+            .setIdleTimeoutUnit(TimeUnit.MILLISECONDS);
 
         final PoolOptions poolOptions = new PoolOptions().setHttp1MaxSize(MAX_CONNECTIONS);
 
@@ -231,5 +236,10 @@ public class WebNotifierServiceImpl implements WebNotifierService {
         return configuration.getProperty("httpClient.proxy.https.password");
     }
 
+    /**
+     * Clients are shared by every organization of the node, which is only acceptable because everything that is not
+     * in this key (proxy settings, timeouts, trust) is the same for the whole node. A setting that can differ per
+     * organization has to become part of the key.
+     */
     private record ClientKey(boolean ssl, boolean proxy) {}
 }
