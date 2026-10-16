@@ -89,6 +89,7 @@ public class ApiProductNotificationSettingsResource extends AbstractResource {
             throw new ForbiddenAccessException();
         }
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        config.setOrganizationId(executionContext.getOrganizationId());
         if (
             config.getConfigType().equals(NotificationConfigType.GENERIC) &&
             hasPermission(executionContext, API_PRODUCT_NOTIFICATION, apiProductId, CREATE)
