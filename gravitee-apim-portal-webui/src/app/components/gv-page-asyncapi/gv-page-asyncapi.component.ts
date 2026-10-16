@@ -18,6 +18,7 @@ import { NgIf, NgFor } from '@angular/common';
 
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { PageService } from '../../services/page.service';
+import { toRenderableAsyncApi } from '../../utils/renderable-async-api';
 
 import '@asyncapi/web-component/lib/asyncapi-web-component';
 
@@ -32,9 +33,11 @@ export class GvPageAsyncApiComponent implements OnInit {
   private pageService = inject(PageService);
 
   page: Page;
+  schema: string;
 
   ngOnInit() {
     this.page = this.pageService.getCurrentPage();
+    this.schema = toRenderableAsyncApi(this.page.content);
   }
 
   openMedia(link: string) {

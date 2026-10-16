@@ -14,8 +14,15 @@
  * limitations under the License.
  */
 
+import { toRenderableAsyncApi } from '../../../util/renderable-async-api';
+
 class PageAsyncApiComponentController implements ng.IComponentController {
   pageContent: any;
+  schema: string;
+
+  $onChanges() {
+    this.schema = toRenderableAsyncApi(this.pageContent);
+  }
 }
 
 export const PageAsyncApiComponent: ng.IComponentOptions = {
