@@ -114,6 +114,7 @@ public class PlanSearchServiceImplTest {
 
         api = new Api();
         api.setId(API_ID);
+        api.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
         api.setDefinitionVersion(DefinitionVersion.V4);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
@@ -186,6 +187,64 @@ public class PlanSearchServiceImplTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         PlanEntity planEntity = new PlanEntity();
         when(genericPlanMapper.toGenericPlanWithFlow(api, plan)).thenReturn(planEntity);
+
+        assertSame(planEntity, planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID));
+    }
+
+    @Test(expected = PlanNotFoundException.class)
+    public void shouldNotFindByIdWhenPlanWithoutEnvironmentBelongsToAnApiOfAnotherEnvironment() throws TechnicalException {
+        api.setEnvironmentId("another-environment");
+        plan.setEnvironmentId(null);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+
+        try {
+            planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        } finally {
+            verifyNoInteractions(genericPlanMapper);
+        }
+    }
+
+    @Test
+    public void shouldFindByIdWhenPlanWithoutEnvironmentBelongsToAnApiOfTheCurrentEnvironment() throws TechnicalException {
+        plan.setEnvironmentId(null);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        PlanEntity planEntity = new PlanEntity();
+        when(genericPlanMapper.toGenericPlanWithFlow(api, plan)).thenReturn(planEntity);
+
+        assertSame(planEntity, planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID));
+        assertEquals(GraviteeContext.getDefaultEnvironment(), plan.getEnvironmentId());
+    }
+
+    @Test(expected = PlanNotFoundException.class)
+    public void shouldNotFindByIdWhenPlanWithoutEnvironmentBelongsToAnApiProductOfAnotherEnvironment() throws TechnicalException {
+        plan.setReferenceType(Plan.PlanReferenceType.API_PRODUCT);
+        plan.setReferenceId(API_PRODUCT_ID);
+        plan.setEnvironmentId(null);
+        ApiProduct apiProduct = new ApiProduct();
+        apiProduct.setId(API_PRODUCT_ID);
+        apiProduct.setEnvironmentId("another-environment");
+        when(apiProductRepository.findById(API_PRODUCT_ID)).thenReturn(Optional.of(apiProduct));
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+
+        try {
+            planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        } finally {
+            verifyNoInteractions(genericPlanMapper);
+        }
+    }
+
+    @Test
+    public void shouldFindByIdWhenPlanWithoutEnvironmentBelongsToAnApiProductOfTheCurrentEnvironment() throws TechnicalException {
+        plan.setReferenceType(Plan.PlanReferenceType.API_PRODUCT);
+        plan.setReferenceId(API_PRODUCT_ID);
+        plan.setEnvironmentId(null);
+        ApiProduct apiProduct = new ApiProduct();
+        apiProduct.setId(API_PRODUCT_ID);
+        apiProduct.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
+        when(apiProductRepository.findById(API_PRODUCT_ID)).thenReturn(Optional.of(apiProduct));
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        PlanEntity planEntity = new PlanEntity();
+        when(genericPlanMapper.toGenericApiProductPlan(plan)).thenReturn(planEntity);
 
         assertSame(planEntity, planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID));
     }
