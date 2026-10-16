@@ -165,6 +165,7 @@ import io.gravitee.rest.api.service.CustomUserFieldService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.FetcherService;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.IdentityService;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.InvitationService;
@@ -329,6 +330,11 @@ public class ResourceContextConfiguration {
     @Bean
     public PermissionService permissionService() {
         return mock(PermissionService.class);
+    }
+
+    @Bean
+    public IdentityService identityService() {
+        return mock(IdentityService.class);
     }
 
     @Bean
