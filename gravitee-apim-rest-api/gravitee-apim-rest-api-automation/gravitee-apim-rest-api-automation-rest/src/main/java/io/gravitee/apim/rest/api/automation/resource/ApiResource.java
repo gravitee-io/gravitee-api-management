@@ -23,6 +23,7 @@ import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationSyncDomainService;
 import io.gravitee.apim.rest.api.automation.exception.HRIDNotFoundException;
+import io.gravitee.apim.rest.api.automation.helpers.ApiIdResolver;
 import io.gravitee.apim.rest.api.automation.helpers.HRIDHelper;
 import io.gravitee.apim.rest.api.automation.helpers.SharedPolicyGroupIdHelper;
 import io.gravitee.apim.rest.api.automation.mapper.ApiMapper;
@@ -34,8 +35,8 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.HRIDToUUID;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -44,7 +45,7 @@ import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
@@ -73,6 +74,9 @@ public class ApiResource extends AbstractResource {
     protected io.gravitee.rest.api.service.v4.ApiService apiServiceV4;
 
     @Inject
+    private ApiSearchService apiSearchService;
+
+    @Inject
     private GroupQueryService groupQueryService;
 
     @Inject
@@ -99,15 +103,14 @@ public class ApiResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = { RolePermissionAction.READ }) })
     public Response getApiByHRID(
         @PathParam("apiHrid") String apiHrid,
-        @QueryParam("hridContainsUUID") boolean hridContainsUUID,
-        @HeaderParam(HRIDHelper.HEADER_X_GRAVITEE_SET_HRID) boolean setHRIDFromName
+        @HeaderParam(HRIDHelper.HEADER_X_GRAVITEE_SET_HRID) boolean setHRIDFromName,
+        @Context ContainerRequestContext requestContext
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        hridContainsUUID = hridContainsUUID || setHRIDFromName;
         var input = new ExportApiCRDUseCase.Input(
-            hridContainsUUID ? apiHrid : HRIDToUUID.api().context(executionContext).hrid(apiHrid).id(),
+            ApiIdResolver.authorizedApiId(requestContext),
             IDExportStrategy.ALL,
             buildAuditInfo(executionContext, userDetails),
             true
@@ -157,13 +160,15 @@ public class ApiResource extends AbstractResource {
 
     @DELETE
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE) })
-    public Response deleteApi(@PathParam("apiHrid") String apiHrid, @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
+    public Response deleteApi(@PathParam("apiHrid") String apiHrid, @Context ContainerRequestContext requestContext) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
-        var apiId = hridContainsUUID ? apiHrid : HRIDToUUID.api().context(executionContext).hrid(apiHrid).id();
+        var apiId = ApiIdResolver.authorizedApiId(requestContext);
 
         try {
-            apiServiceV4.delete(GraviteeContext.getExecutionContext(), apiId, true);
+            // Act only on an API of the caller's environment
+            apiSearchService.findRepositoryApiById(executionContext, apiId);
+            apiServiceV4.delete(executionContext, apiId, true);
             apiDocumentationSyncDomainService.cleanupForApi(buildAuditInfo(executionContext, userDetails), apiId);
         } catch (ApiNotFoundException e) {
             log.warn("API not found for HRID: {}, operation: deleteApi", apiHrid, e);
