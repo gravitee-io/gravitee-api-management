@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static assertions.MAPIAssertions.assertThat;
+import static fixtures.core.model.ApiFixtures.aProxyApiV4;
 import static fixtures.core.model.ApiFixtures.aTcpApiV4;
 import static io.gravitee.apim.core.member.model.SystemRole.PRIMARY_OWNER;
 import static io.gravitee.common.http.HttpStatusCode.ACCEPTED_202;
@@ -76,6 +77,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
@@ -803,6 +805,47 @@ class ApisResourceTest extends AbstractResourceTest {
 
                 soft.assertThat(apiCrudService.storage()).isEmpty();
             });
+        }
+
+        @Test
+        void should_return_403_and_leave_the_api_unchanged_when_the_caller_cannot_update_it() {
+            var existing = givenExistingApi();
+
+            shouldReturn403(RolePermission.API_DEFINITION, existing.getId(), RolePermissionAction.UPDATE, () ->
+                target.queryParam("dryRun", false).request().put(Entity.json(readJSON("/crd/with-unknown-category.json")))
+            );
+            Assertions.assertThat(apiCrudService.get(existing.getId()).getName()).isEqualTo("existing-name");
+        }
+
+        @Test
+        void should_return_403_on_dry_run_when_the_caller_cannot_update_the_api() {
+            var existing = givenExistingApi();
+
+            shouldReturn403(RolePermission.API_DEFINITION, existing.getId(), RolePermissionAction.UPDATE, () ->
+                target.queryParam("dryRun", true).request().put(Entity.json(readJSON("/crd/with-unknown-category.json")))
+            );
+        }
+
+        @Test
+        void should_validate_an_update_with_update_on_the_api() {
+            var existing = givenExistingApi();
+
+            var crdStatus = doImport("/crd/with-unknown-category.json", true);
+
+            Assertions.assertThat(crdStatus.getId()).isEqualTo(existing.getId());
+        }
+
+        private Api givenExistingApi() {
+            // The id and cross id of /crd/with-unknown-category.json
+            var api = aProxyApiV4()
+                .toBuilder()
+                .id("63cb34e5-e5cb-40cf-94ca-4687e7813473")
+                .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
+                .environmentId(ENVIRONMENT)
+                .name("existing-name")
+                .build();
+            apiCrudService.initWith(List.of(api));
+            return api;
         }
 
         private ApiCRDStatus doImport(String crdResource, boolean dryRun) {
