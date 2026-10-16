@@ -76,7 +76,10 @@ public class GroupResource extends AbstractResource {
     public Response getGroupByHRID(@PathParam("hrid") String hrid, @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
         var executionContext = GraviteeContext.getExecutionContext();
         var groupId = hridContainsUUID ? hrid : HRIDToUUID.group().context(executionContext).hrid(hrid).id();
-        var group = groupQueryService.findById(groupId).orElseThrow(() -> new HRIDNotFoundException(hrid));
+        var group = groupQueryService
+            .findById(groupId)
+            .filter(g -> executionContext.getEnvironmentId().equalsIgnoreCase(g.getEnvironmentId()))
+            .orElseThrow(() -> new HRIDNotFoundException(hrid));
 
         Set<MemberEntity> memberEntities = membershipService.getMembersByReference(
             executionContext,

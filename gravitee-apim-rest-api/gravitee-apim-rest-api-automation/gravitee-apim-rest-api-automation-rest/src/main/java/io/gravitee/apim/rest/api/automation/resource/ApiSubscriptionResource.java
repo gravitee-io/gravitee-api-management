@@ -23,6 +23,7 @@ import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.use_case.DeleteSubscriptionSpecUseCase;
 import io.gravitee.apim.rest.api.automation.exception.HRIDNotFoundException;
+import io.gravitee.apim.rest.api.automation.helpers.ApiIdResolver;
 import io.gravitee.apim.rest.api.automation.mapper.SubscriptionMapper;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionConsumerConfiguration;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionState;
@@ -32,9 +33,12 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -42,6 +46,8 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import lombok.CustomLog;
 
@@ -64,6 +70,9 @@ public class ApiSubscriptionResource extends AbstractResource {
     @Inject
     private PlanCrudService planCrudService;
 
+    @Inject
+    private ApiSearchService apiSearchService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -71,7 +80,8 @@ public class ApiSubscriptionResource extends AbstractResource {
     public Response getSubscriptionByHRID(
         @PathParam("apiHrid") String apiHrid,
         @PathParam("hrid") String hrid,
-        @QueryParam("hridContainsUUID") boolean hridContainsUUID
+        @QueryParam("hridContainsUUID") boolean hridContainsUUID,
+        @Context ContainerRequestContext requestContext
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
@@ -79,10 +89,12 @@ public class ApiSubscriptionResource extends AbstractResource {
                 ? hrid
                 : HRIDToUUID.subscription().context(executionContext).api(apiHrid).subscription(hrid).id();
             SubscriptionEntity subscriptionEntity = subscriptionCrudService.get(subscriptionId);
-
-            if (hridContainsUUID && !subscriptionEntity.getReferenceId().equals(apiHrid)) {
-                throw new SubscriptionNotFoundException(apiHrid);
-            }
+            mustBeASubscriptionOfTheApiInTheEnvironment(
+                executionContext,
+                apiHrid,
+                ApiIdResolver.authorizedApiId(requestContext),
+                subscriptionEntity
+            );
 
             SubscriptionState subscriptionState = new SubscriptionState(
                 subscriptionId,
@@ -125,18 +137,19 @@ public class ApiSubscriptionResource extends AbstractResource {
         @PathParam("apiHrid") String apiHrid,
         @PathParam("hrid") String hrid,
         @QueryParam("hridContainsUUID") boolean hridContainsUUID,
-        @QueryParam("hridContainsApiUUID") boolean hridContainsApiUUID
+        @Context ContainerRequestContext requestContext
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
             String subscriptionId = hridContainsUUID
                 ? hrid
                 : HRIDToUUID.subscription().context(executionContext).api(apiHrid).subscription(hrid).id();
-            SubscriptionEntity subscriptionEntity = subscriptionCrudService.get(subscriptionId);
-
-            if (hridContainsApiUUID && !subscriptionEntity.getReferenceId().equals(apiHrid)) {
-                throw new SubscriptionNotFoundException(apiHrid);
-            }
+            mustBeASubscriptionOfTheApiInTheEnvironment(
+                executionContext,
+                apiHrid,
+                ApiIdResolver.authorizedApiId(requestContext),
+                subscriptionCrudService.get(subscriptionId)
+            );
 
             var userDetails = getAuthenticatedUserDetails();
 
@@ -148,5 +161,23 @@ public class ApiSubscriptionResource extends AbstractResource {
             throw new HRIDNotFoundException(hrid);
         }
         return Response.noContent().build();
+    }
+
+    private void mustBeASubscriptionOfTheApiInTheEnvironment(
+        ExecutionContext executionContext,
+        String apiHrid,
+        String apiId,
+        SubscriptionEntity subscriptionEntity
+    ) {
+        // Act only on a subscription of an API of the caller's environment
+        try {
+            apiSearchService.findRepositoryApiById(executionContext, apiId);
+        } catch (ApiNotFoundException e) {
+            log.debug("API not found for hrid: {}, operation: get or delete subscription", apiHrid);
+            throw new HRIDNotFoundException(apiHrid);
+        }
+        if (!subscriptionEntity.getReferenceId().equals(apiId)) {
+            throw new SubscriptionNotFoundException(subscriptionEntity.getId());
+        }
     }
 }
