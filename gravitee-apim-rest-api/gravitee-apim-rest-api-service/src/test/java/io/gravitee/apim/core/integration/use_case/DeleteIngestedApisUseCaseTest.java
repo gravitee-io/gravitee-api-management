@@ -60,6 +60,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
+import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.DeleteApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
@@ -177,7 +178,8 @@ class DeleteIngestedApisUseCaseTest {
             auditDomainService,
             updateApiDocumentationService,
             planQueryService,
-            indexer
+            indexer,
+            new ApiDocumentationDomainService(pageQueryService, planQueryService)
         );
         var apiMetadataDomainService = new ApiMetadataDomainService(
             metadataCrudServiceInMemory,

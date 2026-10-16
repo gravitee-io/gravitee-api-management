@@ -31,8 +31,10 @@ import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.DeleteApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.exception.ApiPageNotAssociatedException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -78,7 +80,8 @@ class ApiDeleteDocumentationPageUseCaseTest {
                 auditDomainService,
                 new UpdateApiDocumentationDomainService(pageCrudService, pageRevisionCrudService, auditDomainService, indexer),
                 planQueryService,
-                indexer
+                indexer,
+                new ApiDocumentationDomainService(pageQueryService, planQueryService)
             ),
             apiCrudService
         );
@@ -96,6 +99,26 @@ class ApiDeleteDocumentationPageUseCaseTest {
         assertThatThrownBy(() -> cut.execute(new ApiDeleteDocumentationPageUseCase.Input(API.getId(), PAGE_ID, AUDIT_INFO))).isInstanceOf(
             ApiNotFoundException.class
         );
+    }
+
+    @Test
+    void should_reject_page_owned_by_another_api() {
+        var page = Page.builder()
+            .id(PAGE_ID)
+            .referenceId("another-api")
+            .referenceType(Page.ReferenceType.API)
+            .type(Page.Type.MARKDOWN)
+            .build();
+        pageCrudService.initWith(List.of(page));
+        pageQueryService.initWith(List.of(page));
+        apiCrudService.initWith(List.of(API));
+
+        assertThatThrownBy(() -> cut.execute(new ApiDeleteDocumentationPageUseCase.Input(API.getId(), PAGE_ID, AUDIT_INFO))).isInstanceOf(
+            ApiPageNotAssociatedException.class
+        );
+
+        assertThat(pageCrudService.findById(PAGE_ID)).contains(page);
+        assertThat(auditCrudService.storage()).isEmpty();
     }
 
     @Test
