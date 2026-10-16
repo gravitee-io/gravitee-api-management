@@ -33,6 +33,8 @@ import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.inject.Inject;
@@ -244,6 +246,13 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
                     assertThat(result.getData()).extracting(EnvironmentApiScore::getId).containsExactlyInAnyOrder("api1", "api2")
                 );
         }
+
+        @Test
+        void should_return_403_without_environment_api_read() {
+            shouldReturn403(RolePermission.ENVIRONMENT_API, ENVIRONMENT, RolePermissionAction.READ, () ->
+                scoringApisTarget.request().get()
+            );
+        }
     }
 
     @Nested
@@ -268,6 +277,13 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(EnvironmentScoringOverview.class)
                 .isEqualTo(new EnvironmentScoringOverview().id(ENVIRONMENT).score(0.84).errors(3).warnings(3).infos(3).hints(3));
+        }
+
+        @Test
+        void should_return_403_without_environment_api_read() {
+            shouldReturn403(RolePermission.ENVIRONMENT_API, ENVIRONMENT, RolePermissionAction.READ, () ->
+                scoringOverviewTarget.request().get()
+            );
         }
     }
 

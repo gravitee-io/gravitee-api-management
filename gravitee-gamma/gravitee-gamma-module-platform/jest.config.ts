@@ -16,6 +16,10 @@
 export default {
     displayName: 'gravitee-gamma-module-platform',
     testEnvironment: 'jest-fixed-jsdom',
+    // V8 keeps the jsdom heap of earlier files in the worker. Past the cgroup limit the kernel
+    // SIGKILLs that worker, and Jest reports whichever file it was running. Recycle at the same
+    // ceiling the Console suite already uses.
+    workerIdleMemoryLimit: '1024MB',
     setupFilesAfterEnv: ['<rootDir>/src/main/ui/test-setup.ts'],
     transformIgnorePatterns: ['/node_modules/(?!(until-async|@gravitee/graphene-core|@gravitee/graphene-policy-studio)/)'],
     moduleNameMapper: {

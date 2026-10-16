@@ -18,6 +18,10 @@ import { fileURLToPath } from 'node:url';
 export default {
     displayName: 'gravitee-gamma-module-portals',
     testEnvironment: 'jest-fixed-jsdom',
+    // V8 keeps the jsdom heap of earlier files in the worker. Past the cgroup limit the kernel
+    // SIGKILLs that worker, and Jest reports whichever file it was running. Recycle at the same
+    // ceiling the Console suite already uses.
+    workerIdleMemoryLimit: '1024MB',
     transformIgnorePatterns: ['/node_modules/(?!(until-async|@gravitee/graphene-core)/)'],
     moduleNameMapper: {
         '^react$': '<rootDir>/../../node_modules/react/index.js',
