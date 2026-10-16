@@ -775,7 +775,10 @@ class SearchEnvironmentLogsUseCaseTest {
         static Stream<Arguments> unsupportedStringFilterOperators() {
             return Stream.of(
                 Arguments.of(FilterName.URI, Operator.CONTAINS),
+<<<<<<< HEAD
                 Arguments.of(FilterName.API, Operator.STARTS_WITH),
+=======
+>>>>>>> d362894 (fix(logs): reject a filter operator the logs search does not support)
                 Arguments.of(FilterName.API, Operator.CONTAINS),
                 Arguments.of(FilterName.API, Operator.IN)
             );
