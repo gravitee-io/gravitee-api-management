@@ -155,7 +155,7 @@ public class ApiNotificationSettingsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = API_NOTIFICATION, acls = DELETE) })
     public Response deleteApiNotificationSettings(@PathParam("notificationId") String notificationId) {
-        genericNotificationConfigService.delete(notificationId);
+        genericNotificationConfigService.delete(notificationId, NotificationReferenceType.API, api);
         return Response.noContent().build();
     }
 
