@@ -540,8 +540,17 @@ jobs:
       - run:
           name: Maven deploy to the Azure feed (snapshots)
           command: |-
-            mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true -T 8 -s .gravitee.settings.xml -U -P gio-artifactory-snapshot -DaltDeploymentRepository=azure-artifacts-gravitee-snapshots::https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee-snapshots/maven/v1 \
+            mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true -Dskip.ui.build=true -T 8 -s .gravitee.settings.xml -U -P gio-artifactory-snapshot -DaltDeploymentRepository=azure-artifacts-gravitee-snapshots::https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee-snapshots/maven/v1 \
               -DaltSnapshotDeploymentRepository=azure-artifacts-gravitee-snapshots::https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee-snapshots/maven/v1
+          environment:
+            MAVEN_OPTS: -Xmx2048m
+      - run:
+          name: Maven deploy the Gamma modules with their UI to the Azure feed (snapshots)
+          command: |-
+            mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true -Dgamma-modules -T 1 -s .gravitee.settings.xml -nsu -P gio-artifactory-snapshot -DaltDeploymentRepository=azure-artifacts-gravitee-snapshots::https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee-snapshots/maven/v1 \
+              -DaltSnapshotDeploymentRepository=azure-artifacts-gravitee-snapshots::https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee-snapshots/maven/v1
+          environment:
+            MAVEN_OPTS: -Xmx2048m
       - cmd-notify-on-failure
       - cmd-save-maven-job-cache:
           jobName: job-publish-snapshot
