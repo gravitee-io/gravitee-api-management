@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -78,6 +79,22 @@ public class AlertService_ApplyDefaultsTest extends AlertServiceTest {
         when(alertTriggerRepository.findById(alert.getId())).thenReturn(Optional.of(alertTrigger));
 
         alertService.applyDefaults(executionContext, alert.getId(), alert.getReferenceType());
+    }
+
+    @Test
+    public void must_throw_AlertNotFoundException_when_template_belongs_to_another_environment()
+        throws TechnicalException, JsonProcessingException {
+        final NewAlertTriggerEntity alert = getNewAlertTriggerEntity(true);
+        final AlertTrigger alertTrigger = getAlertTriggerFromNew(alert, "ANOTHER_ENVIRONMENT");
+
+        when(alertTriggerRepository.findById(alert.getId())).thenReturn(Optional.of(alertTrigger));
+
+        assertThrows(AlertNotFoundException.class, () ->
+            alertService.applyDefaults(executionContext, alert.getId(), AlertReferenceType.API)
+        );
+
+        verify(apiRepository, never()).searchIds(anyList(), any(Pageable.class), any());
+        verify(alertTriggerRepository, never()).create(any());
     }
 
     @Test
