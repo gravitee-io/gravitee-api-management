@@ -3271,11 +3271,18 @@ paths:
             summary: Delete API documentation page
             description: |-
                 Delete API documentation page.
+                The page must belong to the API specified in the path.
                 A FOLDER will be deleted only if it is empty.
             operationId: deleteDocumentationPage
             responses:
                 "204":
                     description: API Documentation page deleted
+                "404":
+                    description: API or page not found, or the page does not belong to the specified API.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
                 default:
                     $ref: "#/components/responses/Error"
 

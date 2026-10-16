@@ -46,6 +46,7 @@ public class DeleteApiDocumentationDomainService {
     private final PlanQueryService planQueryService;
     private final UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
     private final Indexer indexer;
+    private final ApiDocumentationDomainService apiDocumentationDomainService;
 
     public DeleteApiDocumentationDomainService(
         PageCrudService pageCrudService,
@@ -53,7 +54,8 @@ public class DeleteApiDocumentationDomainService {
         AuditDomainService auditDomainService,
         UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
         PlanQueryService planQueryService,
-        Indexer indexer
+        Indexer indexer,
+        ApiDocumentationDomainService apiDocumentationDomainService
     ) {
         this.pageCrudService = pageCrudService;
         this.pageQueryService = pageQueryService;
@@ -61,12 +63,14 @@ public class DeleteApiDocumentationDomainService {
         this.updateApiDocumentationDomainService = updateApiDocumentationDomainService;
         this.planQueryService = planQueryService;
         this.indexer = indexer;
+        this.apiDocumentationDomainService = apiDocumentationDomainService;
     }
 
     public void delete(Api api, String pageId, AuditInfo auditInfo) {
         final Page pageToDelete = this.pageCrudService.get(pageId);
 
         throwIfNotApiPage(pageToDelete);
+        apiDocumentationDomainService.validatePageAssociatedToApi(pageToDelete, api.getId());
         throwIfPageUsedAsGeneralCondition(api, pageToDelete);
         throwIfDeletingNonEmptyFolder(api, pageToDelete);
 
