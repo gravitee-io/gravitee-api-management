@@ -16,14 +16,21 @@
 package io.gravitee.apim.core.user.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.ApplicationQueryServiceInMemory;
 import inmemory.EnvironmentCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.MembershipQueryServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.environment.domain_service.ValidateEnvironmentInOrganizationDomainService;
 import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.user.domain_service.ValidateUserInOrganizationDomainService;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
+import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
+import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
@@ -32,21 +39,33 @@ import org.junit.jupiter.api.Test;
 
 class GetUserApplicationsUseCaseTest {
 
+    private static final String ORGANIZATION_ID = "org-1";
+    private static final String OTHER_ORGANIZATION_ID = "org-2";
     private static final String USER_ID = "user-1";
 
     MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
     ApplicationQueryServiceInMemory applicationQueryService = new ApplicationQueryServiceInMemory();
     EnvironmentCrudServiceInMemory environmentCrudService = new EnvironmentCrudServiceInMemory();
+    UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     GetUserApplicationsUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        useCase = new GetUserApplicationsUseCase(membershipQueryService, applicationQueryService, environmentCrudService);
+        userCrudService.initWith(List.of(BaseUserEntity.builder().id(USER_ID).organizationId(ORGANIZATION_ID).build()));
+        useCase = new GetUserApplicationsUseCase(
+            new ValidateUserInOrganizationDomainService(userCrudService),
+            new ValidateEnvironmentInOrganizationDomainService(environmentCrudService),
+            membershipQueryService,
+            applicationQueryService,
+            environmentCrudService
+        );
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(membershipQueryService, applicationQueryService, environmentCrudService).forEach(InMemoryAlternative::reset);
+        Stream.of(membershipQueryService, applicationQueryService, environmentCrudService, userCrudService).forEach(
+            InMemoryAlternative::reset
+        );
     }
 
     @Test
@@ -67,9 +86,11 @@ class GetUserApplicationsUseCaseTest {
         app.setName("My Application");
         app.setEnvironmentId("env-1");
         applicationQueryService.initWith(List.of(app));
-        environmentCrudService.initWith(List.of(Environment.builder().id("env-1").name("Development").build()));
+        environmentCrudService.initWith(
+            List.of(Environment.builder().id("env-1").name("Development").organizationId(ORGANIZATION_ID).build())
+        );
 
-        var output = useCase.execute(new GetUserApplicationsUseCase.Input(USER_ID, null, 1, 10));
+        var output = useCase.execute(new GetUserApplicationsUseCase.Input(USER_ID, ORGANIZATION_ID, null, 1, 10));
 
         assertThat(output.data()).hasSize(1);
         assertThat(output.totalCount()).isEqualTo(1);
@@ -111,10 +132,13 @@ class GetUserApplicationsUseCaseTest {
         app2.setEnvironmentId("env-2");
         applicationQueryService.initWith(List.of(app1, app2));
         environmentCrudService.initWith(
-            List.of(Environment.builder().id("env-1").name("Dev").build(), Environment.builder().id("env-2").name("Prod").build())
+            List.of(
+                Environment.builder().id("env-1").name("Dev").organizationId(ORGANIZATION_ID).build(),
+                Environment.builder().id("env-2").name("Prod").organizationId(ORGANIZATION_ID).build()
+            )
         );
 
-        var output = useCase.execute(new GetUserApplicationsUseCase.Input(USER_ID, "env-1", 1, 10));
+        var output = useCase.execute(new GetUserApplicationsUseCase.Input(USER_ID, ORGANIZATION_ID, "env-1", 1, 10));
 
         assertThat(output.data()).hasSize(1);
         assertThat(output.totalCount()).isEqualTo(1);
@@ -123,7 +147,7 @@ class GetUserApplicationsUseCaseTest {
 
     @Test
     void should_return_empty_page_when_user_has_no_memberships() {
-        var output = useCase.execute(new GetUserApplicationsUseCase.Input(USER_ID, null, 1, 10));
+        var output = useCase.execute(new GetUserApplicationsUseCase.Input(USER_ID, ORGANIZATION_ID, null, 1, 10));
 
         assertThat(output.data()).isEmpty();
         assertThat(output.totalCount()).isZero();
@@ -169,12 +193,47 @@ class GetUserApplicationsUseCaseTest {
         app3.setName("App 3");
         app3.setEnvironmentId("env-1");
         applicationQueryService.initWith(List.of(app1, app2, app3));
-        environmentCrudService.initWith(List.of(Environment.builder().id("env-1").name("Dev").build()));
+        environmentCrudService.initWith(List.of(Environment.builder().id("env-1").name("Dev").organizationId(ORGANIZATION_ID).build()));
 
-        var output = useCase.execute(new GetUserApplicationsUseCase.Input(USER_ID, null, 2, 2));
+        var output = useCase.execute(new GetUserApplicationsUseCase.Input(USER_ID, ORGANIZATION_ID, null, 2, 2));
 
         assertThat(output.data()).hasSize(1);
         assertThat(output.totalCount()).isEqualTo(3);
         assertThat(output.data().get(0).getId()).isEqualTo("app-3");
+    }
+
+    @Test
+    void should_throw_when_user_belongs_to_another_organization() {
+        membershipQueryService.initWith(
+            List.of(
+                Membership.builder()
+                    .id("m1")
+                    .memberId(USER_ID)
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.APPLICATION)
+                    .referenceId("app-1")
+                    .build()
+            )
+        );
+        var app = new BaseApplicationEntity();
+        app.setId("app-1");
+        app.setName("App 1");
+        app.setEnvironmentId("env-1");
+        applicationQueryService.initWith(List.of(app));
+
+        assertThatThrownBy(() ->
+            useCase.execute(new GetUserApplicationsUseCase.Input(USER_ID, OTHER_ORGANIZATION_ID, null, 1, 10))
+        ).isInstanceOf(UserNotFoundException.class);
+    }
+
+    @Test
+    void should_throw_when_environment_belongs_to_another_organization() {
+        environmentCrudService.initWith(
+            List.of(Environment.builder().id("env-other").name("Other").organizationId(OTHER_ORGANIZATION_ID).build())
+        );
+
+        assertThatThrownBy(() ->
+            useCase.execute(new GetUserApplicationsUseCase.Input(USER_ID, ORGANIZATION_ID, "env-other", 1, 10))
+        ).isInstanceOf(EnvironmentNotFoundException.class);
     }
 }
