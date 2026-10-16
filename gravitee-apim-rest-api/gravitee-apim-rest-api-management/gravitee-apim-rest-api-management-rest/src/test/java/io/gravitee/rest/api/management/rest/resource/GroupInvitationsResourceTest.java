@@ -18,21 +18,26 @@ package io.gravitee.rest.api.management.rest.resource;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.InvitationEntity;
 import io.gravitee.rest.api.model.InvitationReferenceType;
 import io.gravitee.rest.api.model.NewInvitationEntity;
+import io.gravitee.rest.api.model.UpdateInvitationEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.InvitationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +62,13 @@ public class GroupInvitationsResourceTest extends AbstractResourceTest {
         group.setMaxInvitation(5);
 
         when(groupService.findById(GraviteeContext.getExecutionContext(), "b72c4ad7-10aa-4331-ac4a-d710aad331ab")).thenReturn(group);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        // groupService and invitationService are shared mocks; clear stubs and recorded interactions so they
+        // do not leak into the next test's setup or its verifyNoInteractions checks.
+        reset(groupService, invitationService);
     }
 
     @Test
@@ -175,5 +187,45 @@ public class GroupInvitationsResourceTest extends AbstractResourceTest {
         assertEquals(200, response.getStatus());
         InvitationEntity invitation = response.readEntity(new GenericType<>() {});
         assertEquals("e98ede5e-ee8d-4469-8ede-5eee8d14693a", invitation.getId());
+    }
+
+    @Test
+    public void should_return_404_and_do_nothing_when_listing_invitations_of_group_in_another_environment() {
+        when(groupService.findById(GraviteeContext.getExecutionContext(), "b72c4ad7-10aa-4331-ac4a-d710aad331ab")).thenThrow(
+            new GroupNotFoundException("b72c4ad7-10aa-4331-ac4a-d710aad331ab")
+        );
+
+        final Response response = envTarget().request().get();
+
+        assertEquals(404, response.getStatus());
+        verifyNoInteractions(invitationService);
+    }
+
+    @Test
+    public void should_return_404_and_do_nothing_when_updating_an_invitation_of_group_in_another_environment() {
+        when(groupService.findById(GraviteeContext.getExecutionContext(), "b72c4ad7-10aa-4331-ac4a-d710aad331ab")).thenThrow(
+            new GroupNotFoundException("b72c4ad7-10aa-4331-ac4a-d710aad331ab")
+        );
+        UpdateInvitationEntity updateInvitation = new UpdateInvitationEntity();
+        updateInvitation.setReferenceType(InvitationReferenceType.GROUP);
+        updateInvitation.setReferenceId("b72c4ad7-10aa-4331-ac4a-d710aad331ab");
+        updateInvitation.setEmail("test@test.com");
+
+        final Response response = envTarget("e98ede5e-ee8d-4469-8ede-5eee8d14693a").request().put(Entity.json(updateInvitation));
+
+        assertEquals(404, response.getStatus());
+        verifyNoInteractions(invitationService);
+    }
+
+    @Test
+    public void should_return_404_and_do_nothing_when_deleting_an_invitation_of_group_in_another_environment() {
+        when(groupService.findById(GraviteeContext.getExecutionContext(), "b72c4ad7-10aa-4331-ac4a-d710aad331ab")).thenThrow(
+            new GroupNotFoundException("b72c4ad7-10aa-4331-ac4a-d710aad331ab")
+        );
+
+        final Response response = envTarget("e98ede5e-ee8d-4469-8ede-5eee8d14693a").request().delete();
+
+        assertEquals(404, response.getStatus());
+        verifyNoInteractions(invitationService);
     }
 }
