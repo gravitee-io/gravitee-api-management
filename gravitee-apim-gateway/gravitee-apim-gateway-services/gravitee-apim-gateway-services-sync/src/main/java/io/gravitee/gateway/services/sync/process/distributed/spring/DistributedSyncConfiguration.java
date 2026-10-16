@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.distributed.spring;
 import static io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_BULK_ITEMS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointMapper;
@@ -403,7 +404,8 @@ public class DistributedSyncConfiguration {
         ) final long tombstoneRetentionMs,
         @Value(
             "${services.sync.distributed.tombstones.purgeInterval:" + DistributedSyncSettings.DEFAULT_TOMBSTONE_PURGE_INTERVAL_MS + "}"
-        ) final long tombstonePurgeIntervalMs
+        ) final long tombstonePurgeIntervalMs,
+        final GatewayConfiguration gatewayConfiguration
     ) {
         return new DefaultDistributedSyncService(
             node,
@@ -425,7 +427,24 @@ public class DistributedSyncConfiguration {
             apiProductMapper,
             credentialMapper,
             distributedSyncMetrics,
-            new DistributedSyncSettings(tombstoneRetentionMs, tombstonePurgeIntervalMs)
+            new DistributedSyncSettings(
+                tombstoneRetentionMs,
+                tombstonePurgeIntervalMs,
+                topology(gatewayConfiguration),
+                DistributedSyncSettings.DEFAULT_PRIMARY_STALE_AFTER_MS
+            )
         );
+    }
+
+    static String topology(final GatewayConfiguration gatewayConfiguration) {
+        StringBuilder sb = new StringBuilder("s:");
+        gatewayConfiguration.shardingTags().ifPresentOrElse(tags -> sb.append(String.join(",", tags)), () -> sb.append("*"));
+        sb.append(";t:");
+        gatewayConfiguration.tenant().ifPresentOrElse(sb::append, () -> sb.append("*"));
+        sb.append(";o:");
+        gatewayConfiguration.organizations().ifPresentOrElse(orgs -> sb.append(String.join(",", orgs)), () -> sb.append("*"));
+        sb.append(";e:");
+        gatewayConfiguration.environments().ifPresentOrElse(envs -> sb.append(String.join(",", envs)), () -> sb.append("*"));
+        return sb.toString();
     }
 }

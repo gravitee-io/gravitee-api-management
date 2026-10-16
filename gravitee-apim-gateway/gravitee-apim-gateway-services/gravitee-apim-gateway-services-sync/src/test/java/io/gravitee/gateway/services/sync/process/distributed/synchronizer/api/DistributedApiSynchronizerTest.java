@@ -40,6 +40,7 @@ import io.gravitee.gateway.services.sync.process.distributed.fetcher.Distributed
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
+import io.gravitee.gateway.services.sync.process.distributed.model.DistributedSyncException;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.AbstractDistributedSynchronizer;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
@@ -245,6 +246,28 @@ class DistributedApiSynchronizerTest {
             cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli()).test().await().assertComplete();
 
             assertThat(cut.consumeHoldRequest()).isFalse();
+        }
+
+        @Test
+        void should_fail_the_cycle_when_an_event_uses_a_newer_payload_schema() throws InterruptedException {
+            event.setSchemaVersion(99);
+
+            cut
+                .synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli())
+                .test()
+                .await()
+                .assertError(
+                    throwable ->
+                        throwable instanceof DistributedSyncException &&
+                        throwable.getMessage() != null &&
+                        throwable.getMessage().contains("schema v99")
+                );
+        }
+
+        @Test
+        void should_accept_an_event_without_a_schema_version() throws InterruptedException {
+            event.setSchemaVersion(null);
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli()).test().await().assertComplete();
         }
 
         @Test

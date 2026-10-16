@@ -19,22 +19,73 @@ import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.redis.common.RedisConnectionFactory;
 import io.gravitee.repository.redis.vertx.RedisClient;
 import io.vertx.core.Vertx;
+import java.util.List;
 import java.util.Map;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class RedisDistributedSyncRepositoryConfiguration {
 
     protected static final String REDIS_KEY_SEPARATOR = ":";
 
     @Bean("redisDistributedSyncClient")
     public RedisClient redisRedisClient(Environment environment, Vertx vertx) {
-        return new RedisConnectionFactory(environment, vertx, Scope.DISTRIBUTED_SYNC.getName(), Map.of()).createRedisClient();
+        assertSupportedTopology(environment);
+        RedisClient redisClient = new RedisConnectionFactory(
+            environment,
+            vertx,
+            Scope.DISTRIBUTED_SYNC.getName(),
+            Map.of()
+        ).createRedisClient();
+        warnOnEvictingPolicy(redisClient);
+        return redisClient;
+    }
+
+    /**
+     * Distributed sync relies on SCAN and on a RediSearch index, which in an OSS Redis Cluster only cover the shard a
+     * command lands on: secondaries would silently get a partial catalog. Only deployments providing a cluster-wide
+     * search (e.g. Redis Enterprise) can opt in.
+     */
+    static void assertSupportedTopology(final Environment environment) {
+        String prefix = Scope.DISTRIBUTED_SYNC.getName() + ".redis.";
+        boolean clusterMode = StringUtils.hasText(environment.getProperty(prefix + "cluster.nodes[0].host"));
+        boolean allowed = environment.getProperty(prefix + "cluster.allowDistributedSync", Boolean.class, false);
+        if (clusterMode && !allowed) {
+            throw new IllegalStateException(
+                "Distributed sync does not support Redis Cluster: searches and scans only cover one shard. Use a standalone or " +
+                    "Sentinel Redis, or set '" +
+                    prefix +
+                    "cluster.allowDistributedSync=true' if your Redis provides a cluster-wide search."
+            );
+        }
+    }
+
+    /**
+     * Distributed events have no expiry: a policy evicting any key may silently drop part of the catalog.
+     */
+    private static void warnOnEvictingPolicy(final RedisClient redisClient) {
+        redisClient
+            .redisApi()
+            .flatMap(redisAPI -> redisAPI.config(List.of("GET", "maxmemory-policy")))
+            .onSuccess(response -> {
+                String policy = String.valueOf(response);
+                if (policy.contains("allkeys")) {
+                    log.warn(
+                        "Redis used for distributed sync has an evicting maxmemory-policy ({}): distributed events may be evicted and " +
+                            "secondary gateways would miss them. Use 'noeviction' or a 'volatile-*' policy.",
+                        policy
+                    );
+                }
+            })
+            .onFailure(throwable -> log.debug("Unable to read the Redis maxmemory-policy", throwable));
     }
 
     @Bean
