@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_UPDATED;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -27,9 +28,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.DictionaryType;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
@@ -39,6 +42,7 @@ import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -112,6 +116,29 @@ public class DictionaryServiceImpl_StartTest {
                 auditLogData ->
                     auditLogData.getEvent().equals(DICTIONARY_UPDATED) &&
                     auditLogData.getCreatedAt().equals(updatedDictionary.getUpdatedAt())
+            )
+        );
+    }
+
+    @Test
+    public void should_not_mark_the_audit_as_encrypted_when_starting_a_dictionary_holding_an_encrypted_property()
+        throws TechnicalException {
+        Dictionary dictionaryInDb = new Dictionary();
+        dictionaryInDb.setId("dictionaryId");
+        dictionaryInDb.setName("dictionary");
+        dictionaryInDb.setType(DictionaryType.MANUAL);
+        dictionaryInDb.setState(LifecycleState.STOPPED);
+        dictionaryInDb.setEnvironmentId(ENVIRONMENT_ID);
+        dictionaryInDb.setProperties(Map.of("secret", new DictionaryProperty("cipher", true)));
+        when(dictionaryRepository.findById("dictionaryId")).thenReturn(Optional.of(dictionaryInDb));
+        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        dictionaryService.start(GraviteeContext.getExecutionContext(), "dictionaryId");
+
+        verify(auditService).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                auditLogData -> auditLogData.getEvent().equals(DICTIONARY_UPDATED) && !auditLogData.getProperties().containsKey(ENCRYPTED)
             )
         );
     }

@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import fixtures.definition.ApiDefinitionFixtures;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.definition.model.ApiDefinition;
+import io.gravitee.definition.model.Properties;
+import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.property.Property;
 import java.util.Arrays;
 import java.util.List;
@@ -29,19 +31,39 @@ import org.junit.jupiter.api.Test;
 class EncryptedPropertyAuditMarkerTest {
 
     private static final Map<AuditProperties, String> BASE = Map.of(AuditProperties.API, "api-id");
+    private static final Map<AuditProperties, String> MARKED = Map.of(AuditProperties.API, "api-id", AuditProperties.ENCRYPTED, "true");
 
     @Test
-    void should_mark_when_the_new_api_holds_an_encrypted_property() {
-        var marked = EncryptedPropertyAuditMarker.mark(BASE, httpApi(), httpApi(encrypted("secret")));
-
-        assertThat(marked).containsExactlyInAnyOrderEntriesOf(Map.of(AuditProperties.API, "api-id", AuditProperties.ENCRYPTED, "true"));
+    void should_mark_when_an_encrypted_property_is_added() {
+        assertThat(EncryptedPropertyAuditMarker.mark(BASE, httpApi(), httpApi(encrypted("secret")))).isEqualTo(MARKED);
     }
 
     @Test
-    void should_mark_when_only_the_old_api_held_an_encrypted_property() {
-        var marked = EncryptedPropertyAuditMarker.mark(BASE, httpApi(encrypted("secret")), httpApi());
+    void should_mark_when_an_encrypted_property_is_removed() {
+        assertThat(EncryptedPropertyAuditMarker.mark(BASE, httpApi(encrypted("secret")), httpApi())).isEqualTo(MARKED);
+    }
 
-        assertThat(marked).containsEntry(AuditProperties.ENCRYPTED, "true");
+    @Test
+    void should_mark_when_an_encrypted_property_is_renamed() {
+        assertThat(EncryptedPropertyAuditMarker.mark(BASE, httpApi(encrypted("old-key")), httpApi(encrypted("new-key")))).isEqualTo(MARKED);
+    }
+
+    @Test
+    void should_mark_when_an_encrypted_value_is_renewed() {
+        var marked = EncryptedPropertyAuditMarker.mark(
+            BASE,
+            httpApi(encrypted("secret", "old-ciphertext")),
+            httpApi(encrypted("secret", "new-ciphertext"))
+        );
+
+        assertThat(marked).isEqualTo(MARKED);
+    }
+
+    @Test
+    void should_mark_when_a_plain_property_becomes_encrypted() {
+        assertThat(EncryptedPropertyAuditMarker.mark(BASE, httpApi(plain("secret", "value")), httpApi(encrypted("secret")))).isEqualTo(
+            MARKED
+        );
     }
 
     @Test
@@ -57,14 +79,40 @@ class EncryptedPropertyAuditMarkerTest {
     }
 
     @Test
-    void should_not_mark_when_no_property_is_encrypted() {
-        var marked = EncryptedPropertyAuditMarker.mark(BASE, httpApi(plain("p")), nativeApi(plain("p")));
+    void should_not_mark_plain_property_changes_beside_an_unchanged_encrypted_property() {
+        var marked = EncryptedPropertyAuditMarker.mark(
+            BASE,
+            httpApi(encrypted("secret"), plain("edited", "v1"), plain("removed", "v1")),
+            httpApi(encrypted("secret"), plain("edited", "v2"), plain("plain-c", "plain-c"))
+        );
 
         assertThat(marked).isEqualTo(BASE);
     }
 
     @Test
-    void should_not_mark_apis_without_v4_properties() {
+    void should_not_mark_a_change_that_leaves_the_properties_untouched() {
+        var renamed = httpApi(encrypted("secret"));
+        renamed.setName("renamed");
+
+        assertThat(EncryptedPropertyAuditMarker.mark(BASE, httpApi(encrypted("secret")), renamed)).isEqualTo(BASE);
+    }
+
+    @Test
+    void should_not_mark_a_dynamic_toggle_of_an_unchanged_encrypted_property() {
+        var dynamic = Property.builder().key("secret").value("ciphertext").encrypted(true).dynamic(true).build();
+
+        assertThat(EncryptedPropertyAuditMarker.mark(BASE, httpApi(encrypted("secret")), httpApi(dynamic))).isEqualTo(BASE);
+    }
+
+    @Test
+    void should_not_mark_when_no_property_is_encrypted() {
+        var marked = EncryptedPropertyAuditMarker.mark(BASE, httpApi(plain("p", "value")), nativeApi(plain("p", "value")));
+
+        assertThat(marked).isEqualTo(BASE);
+    }
+
+    @Test
+    void should_not_mark_a_v2_api_without_encrypted_properties() {
         var withoutProperties = ApiDefinitionFixtures.anApiV4();
         withoutProperties.setProperties(null);
 
@@ -72,19 +120,59 @@ class EncryptedPropertyAuditMarkerTest {
     }
 
     @Test
-    void should_involve_an_encrypted_property_when_the_old_or_the_new_properties_hold_one() {
-        assertThat(EncryptedPropertyAuditMarker.involvesEncryptedProperty(null, List.of(encrypted("secret")))).isTrue();
-        assertThat(EncryptedPropertyAuditMarker.involvesEncryptedProperty(List.of(encrypted("secret")), null)).isTrue();
-        assertThat(EncryptedPropertyAuditMarker.involvesEncryptedProperty(List.of(plain("p")), List.of(plain("p")))).isFalse();
+    void should_not_mark_a_migration_that_carries_the_encrypted_properties_over() {
+        assertThat(EncryptedPropertyAuditMarker.mark(BASE, v2Api("secret", "ciphertext"), httpApi(encrypted("secret")))).isEqualTo(BASE);
     }
 
     @Test
-    void should_ignore_null_properties_when_looking_for_an_encrypted_one() {
-        assertThat(EncryptedPropertyAuditMarker.involvesEncryptedProperty(null, null)).isFalse();
-        assertThat(EncryptedPropertyAuditMarker.involvesEncryptedProperty(Arrays.asList(null, encrypted("secret")), null)).isTrue();
+    void should_mark_a_migration_that_changes_an_encrypted_value() {
+        var marked = EncryptedPropertyAuditMarker.mark(
+            BASE,
+            v2Api("secret", "old-ciphertext"),
+            httpApi(encrypted("secret", "new-ciphertext"))
+        );
+
+        assertThat(marked).isEqualTo(MARKED);
     }
 
-    private static ApiDefinition httpApi(Property... properties) {
+    @Test
+    void should_detect_a_changed_encrypted_property_between_property_lists() {
+        assertThat(EncryptedPropertyAuditMarker.changesEncryptedProperty(null, List.of(encrypted("secret")))).isTrue();
+        assertThat(EncryptedPropertyAuditMarker.changesEncryptedProperty(List.of(encrypted("secret")), null)).isTrue();
+        assertThat(EncryptedPropertyAuditMarker.changesEncryptedProperty(List.of(plain("p", "v1")), List.of(plain("p", "v2")))).isFalse();
+        assertThat(
+            EncryptedPropertyAuditMarker.changesEncryptedProperty(
+                List.of(encrypted("secret")),
+                List.of(encrypted("secret"), plain("plain-c", "plain-c"))
+            )
+        ).isFalse();
+    }
+
+    @Test
+    void should_ignore_null_properties_when_comparing() {
+        assertThat(EncryptedPropertyAuditMarker.changesEncryptedProperty(null, null)).isFalse();
+        assertThat(
+            EncryptedPropertyAuditMarker.changesEncryptedProperty(Arrays.asList(null, encrypted("secret")), List.of(encrypted("secret")))
+        ).isFalse();
+        assertThat(EncryptedPropertyAuditMarker.changesEncryptedProperty(Arrays.asList(null, encrypted("secret")), null)).isTrue();
+    }
+
+    @Test
+    void should_compare_an_encrypted_property_without_value() {
+        var withoutValue = Property.builder().key("secret").encrypted(true).build();
+
+        assertThat(EncryptedPropertyAuditMarker.changesEncryptedProperty(List.of(withoutValue), List.of(withoutValue))).isFalse();
+        assertThat(EncryptedPropertyAuditMarker.changesEncryptedProperty(List.of(withoutValue), List.of(encrypted("secret")))).isTrue();
+    }
+
+    @Test
+    void should_tell_whether_properties_hold_an_encrypted_one() {
+        assertThat(EncryptedPropertyAuditMarker.holdsEncryptedProperty(null)).isFalse();
+        assertThat(EncryptedPropertyAuditMarker.holdsEncryptedProperty(List.of(plain("p", "value")))).isFalse();
+        assertThat(EncryptedPropertyAuditMarker.holdsEncryptedProperty(Arrays.asList(null, encrypted("secret")))).isTrue();
+    }
+
+    private static Api httpApi(Property... properties) {
         var definition = ApiDefinitionFixtures.anApiV4();
         definition.setProperties(List.of(properties));
         return definition;
@@ -96,11 +184,21 @@ class EncryptedPropertyAuditMarkerTest {
         return definition;
     }
 
-    private static Property encrypted(String key) {
-        return Property.builder().key(key).value("ciphertext").encrypted(true).build();
+    private static ApiDefinition v2Api(String key, String ciphertext) {
+        var definition = ApiDefinitionFixtures.anApiV2();
+        definition.setProperties(new Properties(List.of(new io.gravitee.definition.model.Property(key, ciphertext, true))));
+        return definition;
     }
 
-    private static Property plain(String key) {
-        return Property.builder().key(key).value("value").build();
+    private static Property encrypted(String key) {
+        return encrypted(key, "ciphertext");
+    }
+
+    private static Property encrypted(String key, String ciphertext) {
+        return Property.builder().key(key).value(ciphertext).encrypted(true).build();
+    }
+
+    private static Property plain(String key, String value) {
+        return Property.builder().key(key).value(value).build();
     }
 }

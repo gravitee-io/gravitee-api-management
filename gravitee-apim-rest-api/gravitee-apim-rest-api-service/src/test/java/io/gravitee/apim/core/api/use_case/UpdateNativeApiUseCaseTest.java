@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
+import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -437,6 +438,38 @@ public class UpdateNativeApiUseCaseTest {
             )
         );
 
+        assertThat(auditCrudService.storage().getFirst().getProperties()).doesNotContainKey("ENCRYPTED");
+    }
+
+    @Test
+    void should_not_mark_the_audit_when_a_plain_property_is_added_beside_an_unchanged_encrypted_one() {
+        var existingApi = ApiFixtures.aNativeApi();
+        existingApi
+            .getApiDefinitionNativeV4()
+            .setProperties(List.of(Property.builder().key("secret").value("ciphertext").encrypted(true).build()));
+        apiCrudService.initWith(List.of(existingApi));
+        givenValidationKeepsTheUpdatedApi();
+        var apiToUpdate = anUpdateNativeApi()
+            .toBuilder()
+            .id(existingApi.getId())
+            .properties(
+                List.of(
+                    EncryptableProperty.builder().key("secret").value(ENCRYPTED_VALUE_MASK).encrypted(true).build(),
+                    EncryptableProperty.builder().key("plain-c").value("plain-c").build()
+                )
+            )
+            .build();
+
+        cut.execute(
+            new UpdateNativeApiUseCase.Input(
+                apiToUpdate,
+                AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist")
+            )
+        );
+
+        assertThat(apiCrudService.get(existingApi.getId()).getApiDefinitionNativeV4().getProperties()).contains(
+            Property.builder().key("secret").value("ciphertext").encrypted(true).build()
+        );
         assertThat(auditCrudService.storage().getFirst().getProperties()).doesNotContainKey("ENCRYPTED");
     }
 

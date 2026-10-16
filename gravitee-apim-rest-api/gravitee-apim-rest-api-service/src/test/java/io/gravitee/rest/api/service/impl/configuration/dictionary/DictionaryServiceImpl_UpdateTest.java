@@ -642,6 +642,25 @@ public class DictionaryServiceImpl_UpdateTest {
     }
 
     @Test
+    public void should_not_mark_audit_as_encrypted_when_only_plain_properties_change_beside_an_unchanged_encrypted_one()
+        throws TechnicalException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("cipher", true));
+        stored.put("edited", new DictionaryProperty("v1", false));
+        stored.put("removed", new DictionaryProperty("v1", false));
+        given_stored_dictionary(stored);
+
+        dictionaryService.update(
+            GraviteeContext.getExecutionContext(),
+            DICTIONARY_ID,
+            anUpdate(Map.of("secret", ENCRYPTED_VALUE_MASK, "edited", "v2", "plain-c", "plain-c"), null)
+        );
+
+        verify(dictionaryRepository).update(argThat(dict -> dict.getProperties().get("secret").value().equals("cipher")));
+        verify(auditService).createAuditLog(any(), argThat(data -> !data.getProperties().containsKey(ENCRYPTED)));
+    }
+
+    @Test
     public void should_reject_property_options_when_the_update_omits_the_properties() throws TechnicalException {
         Map<String, DictionaryProperty> stored = new HashMap<>();
         stored.put("secret", new DictionaryProperty("cipher", true));

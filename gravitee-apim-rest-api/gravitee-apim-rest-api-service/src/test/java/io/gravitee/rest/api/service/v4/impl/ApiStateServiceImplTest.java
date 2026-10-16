@@ -31,12 +31,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
@@ -71,6 +73,7 @@ import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -491,6 +494,59 @@ public class ApiStateServiceImplTest {
             argThat(argApi -> argApi.getId().equals(API_ID))
         );
         verify(searchEngineService, times(1)).index(eq(executionContext), argThat(argApi -> argApi.getId().equals(API_ID)), eq(false));
+    }
+
+    @Test
+    public void should_not_mark_the_audit_when_starting_an_api_holding_an_encrypted_property() throws Exception {
+        when(apiValidationService.canDeploy(executionContext, API_ID)).thenReturn(true);
+        api.setApiLifecycleState(ApiLifecycleState.CREATED);
+        givenDefinitionHoldingAnEncryptedProperty();
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(eventService.search(eq(executionContext), any(EventQuery.class))).thenReturn(singleton(aPublishApiEvent()));
+        updatedApi.setLifecycleState(LifecycleState.STARTED);
+        when(apiRepository.update(any())).thenReturn(updatedApi);
+
+        apiStateService.start(executionContext, API_ID, USER_NAME);
+
+        verify(auditService).createApiAuditLog(
+            eq(executionContext),
+            argThat(data -> data.getEvent().equals(Api.AuditEvent.API_UPDATED) && data.getProperties().isEmpty()),
+            eq(API_ID)
+        );
+    }
+
+    @Test
+    public void should_not_mark_the_audit_when_stopping_an_api_holding_an_encrypted_property() throws Exception {
+        api.setApiLifecycleState(ApiLifecycleState.CREATED);
+        api.setLifecycleState(LifecycleState.STARTED);
+        givenDefinitionHoldingAnEncryptedProperty();
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(eventService.search(eq(executionContext), any(EventQuery.class))).thenReturn(singleton(aPublishApiEvent()));
+        updatedApi.setLifecycleState(LifecycleState.STOPPED);
+        when(apiRepository.update(any())).thenReturn(updatedApi);
+
+        apiStateService.stop(executionContext, API_ID, USER_NAME);
+
+        verify(auditService).createApiAuditLog(
+            eq(executionContext),
+            argThat(data -> data.getEvent().equals(Api.AuditEvent.API_UPDATED) && data.getProperties().isEmpty()),
+            eq(API_ID)
+        );
+    }
+
+    private void givenDefinitionHoldingAnEncryptedProperty() throws JsonProcessingException {
+        var definition = new io.gravitee.definition.model.v4.Api();
+        definition.setId(API_ID);
+        definition.setProperties(List.of(Property.builder().key("secret").value("ciphertext").encrypted(true).build()));
+        api.setDefinition(objectMapper.writeValueAsString(definition));
+        updatedApi.setDefinition(api.getDefinition());
+    }
+
+    private static EventEntity aPublishApiEvent() {
+        final EventEntity event = new EventEntity();
+        event.setType(PUBLISH_API);
+        event.setPayload("{ \"id\": \"" + API_ID + "\"}");
+        return event;
     }
 
     @Test
