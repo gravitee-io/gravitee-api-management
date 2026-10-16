@@ -1050,9 +1050,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             logger.debug("Pause subscription {}", subscriptionId);
 
-            Subscription subscription = subscriptionRepository
-                .findById(subscriptionId)
-                .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
+            Subscription subscription = findSubscriptionInEnvironment(executionContext, subscriptionId);
 
             if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
                 Subscription previousSubscription = new Subscription(subscription);
@@ -1136,9 +1134,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             logger.debug("Resume failed subscription by {} by consumer", subscriptionId);
 
-            Subscription subscription = subscriptionRepository
-                .findById(subscriptionId)
-                .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
+            Subscription subscription = findSubscriptionInEnvironment(executionContext, subscriptionId);
 
             Subscription.ConsumerStatus consumerStatus = subscription.getConsumerStatus();
 
@@ -1159,7 +1155,18 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         }
     }
 
+<<<<<<< HEAD
     private SubscriptionEntity resumeSubscription(ExecutionContext executionContext, Subscription subscription, String apiId)
+=======
+    private Subscription findSubscriptionInEnvironment(ExecutionContext executionContext, String subscriptionId) throws TechnicalException {
+        return subscriptionRepository
+            .findById(subscriptionId)
+            .filter(subscription -> executionContext.getEnvironmentId().equals(subscription.getEnvironmentId()))
+            .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
+    }
+
+    private SubscriptionEntity resumeSubscription(ExecutionContext executionContext, Subscription subscription, String referenceId)
+>>>>>>> 6b605eb (fix(rest-api): only change a subscription's status in its own environment)
         throws TechnicalException {
         Subscription previousSubscription = new Subscription(subscription);
         final Date now = new Date();
@@ -1228,9 +1235,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             logger.debug("Resume subscription {}", subscriptionId);
 
-            Subscription subscription = subscriptionRepository
-                .findById(subscriptionId)
-                .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
+            Subscription subscription = findSubscriptionInEnvironment(executionContext, subscriptionId);
 
             if (subscription.getStatus() == Subscription.Status.PAUSED) {
                 Subscription previousSubscription = new Subscription(subscription);
