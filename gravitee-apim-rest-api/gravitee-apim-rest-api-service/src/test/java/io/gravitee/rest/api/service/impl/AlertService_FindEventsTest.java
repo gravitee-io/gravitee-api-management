@@ -42,13 +42,17 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class AlertService_FindEventsTest extends AlertServiceTest {
 
     @Test
-    public void must_search_alert_event_entity_by_event_types() {
+    public void must_search_alert_event_entity_by_event_types() throws TechnicalException {
         AlertEvent entity = newAlertEvent();
 
+        final String alertId = UUID.randomUUID().toString();
+        when(alertTriggerRepository.findById(alertId)).thenReturn(Optional.of(scopedAlertTrigger(alertId)));
         when(alertEventRepository.search(any(), any())).thenReturn(new Page<>(List.of(entity), 0, 1, 1));
 
         final Page<AlertEventEntity> page = alertService.findEvents(
-            UUID.randomUUID().toString(),
+            alertId,
+            AlertReferenceType.ENVIRONMENT,
+            "DEFAULT",
             new AlertEventQuery.Builder().pageNumber(0).pageSize(1).type(EventType.ALERT_NOTIFICATION).build()
         );
 
@@ -59,11 +63,15 @@ public class AlertService_FindEventsTest extends AlertServiceTest {
     }
 
     @Test
-    public void must_search_alert_event_entity_by_event_type_and_return_empty() {
+    public void must_search_alert_event_entity_by_event_type_and_return_empty() throws TechnicalException {
+        final String alertId = UUID.randomUUID().toString();
+        when(alertTriggerRepository.findById(alertId)).thenReturn(Optional.of(scopedAlertTrigger(alertId)));
         when(alertEventRepository.search(any(), any())).thenReturn(new Page<>(List.of(), 0, 0, 0));
 
         final Page<AlertEventEntity> page = alertService.findEvents(
-            UUID.randomUUID().toString(),
+            alertId,
+            AlertReferenceType.ENVIRONMENT,
+            "DEFAULT",
             new AlertEventQuery.Builder().pageNumber(0).pageSize(1).type(EventType.ALERT_NOTIFICATION).build()
         );
 
@@ -76,12 +84,8 @@ public class AlertService_FindEventsTest extends AlertServiceTest {
     @Test
     public void must_search_events_when_alert_belongs_to_the_reference() throws TechnicalException {
         final String alertId = UUID.randomUUID().toString();
-        final AlertTrigger alertTrigger = new AlertTrigger();
-        alertTrigger.setId(alertId);
-        alertTrigger.setReferenceType(AlertReferenceType.ENVIRONMENT.name());
-        alertTrigger.setReferenceId("DEFAULT");
 
-        when(alertTriggerRepository.findById(alertId)).thenReturn(Optional.of(alertTrigger));
+        when(alertTriggerRepository.findById(alertId)).thenReturn(Optional.of(scopedAlertTrigger(alertId)));
         when(alertEventRepository.search(any(), any())).thenReturn(new Page<>(List.of(newAlertEvent()), 0, 1, 1));
 
         final Page<AlertEventEntity> page = alertService.findEvents(
@@ -132,5 +136,13 @@ public class AlertService_FindEventsTest extends AlertServiceTest {
         );
 
         verify(alertEventRepository, never()).search(any(), any());
+    }
+
+    private static AlertTrigger scopedAlertTrigger(String alertId) {
+        AlertTrigger alertTrigger = new AlertTrigger();
+        alertTrigger.setId(alertId);
+        alertTrigger.setReferenceType(AlertReferenceType.ENVIRONMENT.name());
+        alertTrigger.setReferenceId("DEFAULT");
+        return alertTrigger;
     }
 }
