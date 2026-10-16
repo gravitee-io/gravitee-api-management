@@ -18,7 +18,9 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
+import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateSharedPolicyGroupCRDDomainService;
+import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRDStatus;
 import io.gravitee.apim.core.shared_policy_group.use_case.ImportSharedPolicyGroupCRDCRDUseCase;
 import io.gravitee.apim.rest.api.automation.helpers.CrdIdHelper;
@@ -56,6 +58,9 @@ public class SharedPolicyGroupsResource extends AbstractResource {
     @Inject
     private ValidateSharedPolicyGroupCRDDomainService validateSharedPolicyGroupCRDDomainService;
 
+    @Inject
+    private SharedPolicyGroupCrudService sharedPolicyGroupCrudService;
+
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -83,6 +88,8 @@ public class SharedPolicyGroupsResource extends AbstractResource {
             CrdIdHelper.generateSharedPolicyGroupIds(sharedPolicyGroupCRD, auditInfo);
         }
 
+        authorizeImport(sharedPolicyGroupCRD.getCrossId(), executionContext.getEnvironmentId());
+
         if (dryRun) {
             var statusBuilder = SharedPolicyGroupCRDStatus.builder();
             validateSharedPolicyGroupCRDDomainService
@@ -109,5 +116,14 @@ public class SharedPolicyGroupsResource extends AbstractResource {
     @Path("/{hrid}")
     public SharedPolicyGroupResource getSharedPolicyGroupResource() {
         return resourceContext.getResource(SharedPolicyGroupResource.class);
+    }
+
+    // The import updates the shared policy group found by cross id, whichever id the spec carries
+    private void authorizeImport(String crossId, String environmentId) {
+        requireCreateOrUpdate(
+            RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+            RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+            sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(environmentId, crossId).map(SharedPolicyGroup::getId).orElse(null)
+        );
     }
 }
