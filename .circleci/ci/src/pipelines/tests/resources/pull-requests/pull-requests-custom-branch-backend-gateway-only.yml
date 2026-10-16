@@ -433,7 +433,7 @@ jobs:
       - cmd-azure-artifacts-token
       - run:
           name: Run gateway integration tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -nsu -pl gravitee-apim-gateway/gravitee-apim-gateway-integration-tests -Dskip.validation=true -Dgravitee.archrules.skip=true -T 8
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -nsu -pl gravitee-apim-gateway/gravitee-apim-gateway-integration-tests -Dskip.validation=true -Dgravitee.archrules.skip=true -Dsurefire.rerunFailingTestsCount=3 -Dsurefire.exitTimeout=300 -T 8
       - run:
           name: Save test results
           command: |-
