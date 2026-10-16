@@ -145,6 +145,11 @@ public interface MembershipService {
         String memberId,
         MembershipReferenceType referenceType
     );
+
+    /**
+     * The distinct roles a member holds across all its memberships, whatever the references.
+     */
+    Set<String> getRoleIdsByMember(MembershipMemberType memberType, String memberId);
     Set<MembershipEntity> getMembershipsByMemberAndReferenceAndRole(
         MembershipMemberType memberType,
         String memberId,
