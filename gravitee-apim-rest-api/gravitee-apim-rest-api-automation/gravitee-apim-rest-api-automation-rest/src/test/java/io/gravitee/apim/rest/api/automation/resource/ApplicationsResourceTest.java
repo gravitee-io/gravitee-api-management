@@ -50,10 +50,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 class ApplicationsResourceTest extends AbstractResourceTest {
 
-    private static final String NON_ADMIN_HEADER = "X-Test-Non-Admin";
+    private static final String ORGANIZATION_ADMIN_HEADER = "X-Test-Organization-Admin";
 
     @Inject
     private ImportApplicationCRDUseCase importApplicationCRDUseCase;
@@ -64,11 +67,12 @@ class ApplicationsResourceTest extends AbstractResourceTest {
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
         super.decorate(resourceConfig);
-        // The default AuthenticationFilter answers true to every role check, which makes each caller an organization admin
+        // The default AuthenticationFilter authenticates a caller without authorities, so not an organization admin
         resourceConfig.register(
             (ContainerRequestFilter) requestContext -> {
-                if (requestContext.getHeaderString(NON_ADMIN_HEADER) != null) {
-                    requestContext.setSecurityContext(nonAdmin(requestContext.getSecurityContext()));
+                if (requestContext.getHeaderString(ORGANIZATION_ADMIN_HEADER) != null) {
+                    requestContext.setSecurityContext(asOrganizationAdmin(requestContext.getSecurityContext()));
+                    requestContext.getSecurityContext().getUserPrincipal();
                 }
             },
             6
@@ -238,7 +242,7 @@ class ApplicationsResourceTest extends AbstractResourceTest {
         void should_return_403_when_a_non_admin_imports_an_archived_application() {
             givenApplication(ApplicationStatus.ARCHIVED);
 
-            assertThat(put(false, true)).isEqualTo(403);
+            assertThat(put(false, false)).isEqualTo(403);
             verify(importApplicationCRDUseCase, never()).execute(any());
         }
 
@@ -246,7 +250,7 @@ class ApplicationsResourceTest extends AbstractResourceTest {
         void should_let_an_admin_import_an_archived_application() {
             givenApplication(ApplicationStatus.ARCHIVED);
 
-            assertThat(put(false, false)).isEqualTo(200);
+            assertThat(put(false, true)).isEqualTo(200);
             verify(importApplicationCRDUseCase).execute(any());
         }
 
@@ -258,14 +262,14 @@ class ApplicationsResourceTest extends AbstractResourceTest {
             applicationCrudService.initWith(List.of(application));
         }
 
-        private int put(boolean dryRun, boolean nonAdmin) {
+        private int put(boolean dryRun, boolean organizationAdmin) {
             var request = rootTarget()
                 .queryParam("dryRun", dryRun)
                 .queryParam("hridContainsUUID", true)
                 .request()
                 .accept(MediaType.APPLICATION_JSON_TYPE);
-            if (nonAdmin) {
-                request = request.header(NON_ADMIN_HEADER, true);
+            if (organizationAdmin) {
+                request = request.header(ORGANIZATION_ADMIN_HEADER, true);
             }
             try (var response = request.put(Entity.json(readJSON("application-with-uuid.json")))) {
                 return response.getStatus();
@@ -300,16 +304,23 @@ class ApplicationsResourceTest extends AbstractResourceTest {
         }
     }
 
-    private static SecurityContext nonAdmin(SecurityContext authenticated) {
+    private static SecurityContext asOrganizationAdmin(SecurityContext authenticated) {
         return new SecurityContext() {
             @Override
             public Principal getUserPrincipal() {
-                return authenticated.getUserPrincipal();
+                var user = (UsernamePasswordAuthenticationToken) authenticated.getUserPrincipal();
+                var admin = new UsernamePasswordAuthenticationToken(
+                    user.getPrincipal(),
+                    user.getCredentials(),
+                    List.of(new SimpleGrantedAuthority("ORGANIZATION:ADMIN"))
+                );
+                SecurityContextHolder.getContext().setAuthentication(admin);
+                return admin;
             }
 
             @Override
             public boolean isUserInRole(String role) {
-                return false;
+                return authenticated.isUserInRole(role);
             }
 
             @Override
