@@ -27,9 +27,11 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.internal.VertxInternal;
 import java.lang.reflect.Field;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -112,6 +114,25 @@ class HttpClientServiceImplTest {
         }
 
         assertThat(registeredHttpClients()).isEqualTo(afterFirstCall);
+    }
+
+    @Test
+    void should_release_the_connection_to_a_server_that_never_answers() throws Exception {
+        HttpServer silentServer = await(
+            vertx
+                .createHttpServer()
+                .requestHandler(req -> {})
+                .listen(0, "localhost")
+        );
+        Configuration shortTimeout = mock(Configuration.class);
+        when(shortTimeout.getProperty(any(String.class), any(), any(Integer.class))).thenReturn(500);
+        HttpClient client = new HttpClientServiceImpl(shortTimeout, vertx).createHttpClient("http", false);
+
+        Future<?> call = client
+            .request(new RequestOptions().setHost("localhost").setPort(silentServer.actualPort()).setURI("/"))
+            .compose(request -> request.send());
+
+        assertThatThrownBy(() -> await(call)).isInstanceOf(ExecutionException.class);
     }
 
     /**
