@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.application;
 
 import static io.gravitee.apim.core.member.model.SystemRole.PRIMARY_OWNER;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -50,6 +51,7 @@ import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.impl.configuration.application.ApplicationTypeServiceImpl;
 import java.time.Clock;
 import java.time.Instant;
@@ -271,6 +273,23 @@ class ImportApplicationCRDUseCaseTest {
             useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd));
 
             verify(mtlsSubscriptionSyncDomainService).updateActiveMTLSSubscriptions(APP_ID);
+        }
+
+        @Test
+        void should_write_nothing_when_the_members_update_is_refused() {
+            membersDomainService.denyApplicationMembersUpdate(APP_ID);
+            var crd = anApplicationCRD();
+            crd.setDescription("new_app_description");
+            crd.setMembers(applicationMembers());
+
+            assertThatThrownBy(() -> useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd))).isInstanceOf(
+                ForbiddenAccessException.class
+            );
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(importApplicationCRDDomainService.storage()).extracting("description").containsExactly(APP_DESCRIPTION);
+                soft.assertThat(membersDomainService.getApplicationMembers(APP_ID)).isEmpty();
+            });
         }
 
         @Test

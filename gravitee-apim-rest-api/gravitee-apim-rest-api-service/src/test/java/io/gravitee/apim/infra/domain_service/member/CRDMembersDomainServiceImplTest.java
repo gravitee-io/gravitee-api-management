@@ -15,6 +15,9 @@
  */
 package io.gravitee.apim.infra.domain_service.member;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -26,10 +29,14 @@ import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import java.util.List;
 import java.util.Optional;
@@ -64,11 +71,14 @@ class CRDMembersDomainServiceImplTest {
     @Mock
     RoleService roleService;
 
+    @Mock
+    PermissionService permissionService;
+
     CRDMembersDomainService cut;
 
     @BeforeEach
     void setUp() {
-        cut = new CRDMembersDomainServiceImpl(membershipService, roleService);
+        cut = new CRDMembersDomainServiceImpl(membershipService, roleService, permissionService);
     }
 
     @Nested
@@ -398,6 +408,33 @@ class CRDMembersDomainServiceImplTest {
             when(roleService.findDefaultRoleByScopes(AUDIT_INFO.organizationId(), RoleScope.APPLICATION)).thenReturn(
                 List.of(RoleEntity.builder().id("default-app-role").build())
             );
+            lenient()
+                .when(
+                    permissionService.hasPermission(
+                        any(ExecutionContext.class),
+                        eq(AUDIT_INFO.actor().userId()),
+                        eq(RolePermission.APPLICATION_MEMBER),
+                        eq(APPLICATION_ID),
+                        eq(RolePermissionAction.UPDATE)
+                    )
+                )
+                .thenReturn(true);
+        }
+
+        @Test
+        void should_transfer_ownership_to_the_caller_with_the_member_permission() {
+            when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.APPLICATION)).thenReturn(
+                RoleEntity.builder().id("po-role-id").build()
+            );
+
+            cut.updateApplicationMembers(AUDIT_INFO, APPLICATION_ID, Set.of());
+
+            verify(membershipService).transferApplicationOwnership(
+                eq(new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId())),
+                eq(APPLICATION_ID),
+                eq(new MembershipService.MembershipMember(AUDIT_INFO.actor().userId(), null, MembershipMemberType.USER)),
+                eq(List.of())
+            );
         }
 
         @Test
@@ -659,6 +696,89 @@ class CRDMembersDomainServiceImplTest {
                 MembershipMemberType.USER,
                 "id-3"
             );
+        }
+    }
+
+    @Nested
+    class ApplicationWithoutMemberPermission {
+
+        private static final String APPLICATION_ID = "app-id";
+        private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(
+            AUDIT_INFO.organizationId(),
+            AUDIT_INFO.environmentId()
+        );
+
+        @BeforeEach
+        void setUp() {
+            when(
+                permissionService.hasPermission(
+                    any(ExecutionContext.class),
+                    eq(AUDIT_INFO.actor().userId()),
+                    eq(RolePermission.APPLICATION_MEMBER),
+                    eq(APPLICATION_ID),
+                    eq(RolePermissionAction.UPDATE)
+                )
+            ).thenReturn(false);
+            when(roleService.findDefaultRoleByScopes(AUDIT_INFO.organizationId(), RoleScope.APPLICATION)).thenReturn(
+                List.of(RoleEntity.builder().id("default-app-role").build())
+            );
+            when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.APPLICATION)).thenReturn(
+                RoleEntity.builder().id("po-role-id").build()
+            );
+            when(
+                membershipService.getMembersByReference(EXECUTION_CONTEXT, MembershipReferenceType.APPLICATION, APPLICATION_ID)
+            ).thenReturn(
+                Set.of(
+                    MemberEntity.builder().id("po-id").roles(List.of(RoleEntity.builder().id("po-role-id").build())).build(),
+                    MemberEntity.builder().id("id-1").roles(List.of(RoleEntity.builder().id("role-1").build())).build()
+                )
+            );
+            lenient()
+                .when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId()))
+                .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
+        }
+
+        @Test
+        void should_keep_members_and_primary_owner_when_the_spec_restates_the_members() {
+            var members = Set.of(MemberCRD.builder().role("role-1").id("id-1").sourceId("source-id-1").source("test").build());
+
+            cut.checkApplicationMembersUpdate(AUDIT_INFO, APPLICATION_ID, members);
+            cut.updateApplicationMembers(AUDIT_INFO, APPLICATION_ID, members);
+
+            verifyNoMembershipWrite();
+        }
+
+        @Test
+        void should_reject_a_member_change() {
+            var members = Set.of(MemberCRD.builder().role("role-1").id("id-2").sourceId("source-id-2").source("test").build());
+
+            assertThatThrownBy(() -> cut.checkApplicationMembersUpdate(AUDIT_INFO, APPLICATION_ID, members)).isInstanceOf(
+                ForbiddenAccessException.class
+            );
+            assertThatThrownBy(() -> cut.updateApplicationMembers(AUDIT_INFO, APPLICATION_ID, members)).isInstanceOf(
+                ForbiddenAccessException.class
+            );
+            verifyNoMembershipWrite();
+        }
+
+        @Test
+        void should_reject_a_spec_that_names_the_primary_owner() {
+            var members = Set.of(
+                MemberCRD.builder().role("role-1").id("id-1").sourceId("source-id-1").source("test").build(),
+                MemberCRD.builder().role("role-1").id("po-id").sourceId("source-po").source("test").build()
+            );
+
+            assertThatThrownBy(() -> cut.checkApplicationMembersUpdate(AUDIT_INFO, APPLICATION_ID, members)).isInstanceOf(
+                ForbiddenAccessException.class
+            );
+            verifyNoMembershipWrite();
+        }
+
+        private void verifyNoMembershipWrite() {
+            verify(membershipService, never()).addRoleToMemberOnReference(any(), any(), any(), any(), any(), any());
+            verify(membershipService, never()).removeRole(any(), any(), any(), any(), any());
+            verify(membershipService, never()).deleteReferenceMember(any(), any(), any(), any(), any());
+            verify(membershipService, never()).transferApplicationOwnership(any(), any(), any(), any());
         }
     }
 
