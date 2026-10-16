@@ -28,8 +28,14 @@ final class EncryptedPropertyAuditProperties {
     private EncryptedPropertyAuditProperties() {}
 
     static Map<Audit.AuditProperties, String> of(List<? extends Property> oldProperties, List<? extends Property> newProperties) {
-        return EncryptedPropertyAuditMarker.involvesEncryptedProperty(oldProperties, newProperties)
-            ? Map.of(ENCRYPTED, Boolean.TRUE.toString())
-            : Map.of();
+        return marked(EncryptedPropertyAuditMarker.changesEncryptedProperty(oldProperties, newProperties));
+    }
+
+    static Map<Audit.AuditProperties, String> ofHeld(List<? extends Property> properties) {
+        return marked(EncryptedPropertyAuditMarker.holdsEncryptedProperty(properties));
+    }
+
+    private static Map<Audit.AuditProperties, String> marked(boolean encrypted) {
+        return encrypted ? Map.of(ENCRYPTED, Boolean.TRUE.toString()) : Map.of();
     }
 }

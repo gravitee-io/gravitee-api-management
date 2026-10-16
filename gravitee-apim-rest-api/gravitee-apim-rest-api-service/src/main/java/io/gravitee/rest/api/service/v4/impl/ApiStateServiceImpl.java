@@ -260,7 +260,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         Api.AuditEvent event
     ) {
         List<Property> properties = v4Properties(deployedApi);
-        Map<Audit.AuditProperties, String> encryptedMarker = EncryptedPropertyAuditProperties.of(null, properties);
+        Map<Audit.AuditProperties, String> encryptedMarker = EncryptedPropertyAuditProperties.ofHeld(properties);
         if (encryptedMarker.isEmpty()) {
             return;
         }

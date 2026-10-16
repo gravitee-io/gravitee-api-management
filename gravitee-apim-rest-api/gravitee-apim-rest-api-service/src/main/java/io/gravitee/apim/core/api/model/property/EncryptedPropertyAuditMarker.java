@@ -16,10 +16,13 @@
 package io.gravitee.apim.core.api.model.property;
 
 import io.gravitee.apim.core.audit.model.AuditProperties;
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ApiDefinition;
+import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.property.Property;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -33,7 +36,7 @@ public final class EncryptedPropertyAuditMarker {
         ApiDefinition oldDefinition,
         ApiDefinition newDefinition
     ) {
-        if (!involvesEncryptedProperty(v4Properties(oldDefinition), v4Properties(newDefinition))) {
+        if (ciphertextByKey(oldDefinition).equals(ciphertextByKey(newDefinition))) {
             return auditProperties;
         }
         Map<AuditProperties, String> marked = new EnumMap<>(AuditProperties.class);
@@ -42,15 +45,49 @@ public final class EncryptedPropertyAuditMarker {
         return marked;
     }
 
-    public static boolean involvesEncryptedProperty(List<? extends Property> oldProperties, List<? extends Property> newProperties) {
-        return holdsEncryptedProperty(oldProperties) || holdsEncryptedProperty(newProperties);
+    public static boolean changesEncryptedProperty(List<? extends Property> oldProperties, List<? extends Property> newProperties) {
+        return !ciphertextByKey(oldProperties).equals(ciphertextByKey(newProperties));
     }
 
-    private static boolean holdsEncryptedProperty(List<? extends Property> properties) {
+    public static boolean holdsEncryptedProperty(List<? extends Property> properties) {
         return properties != null && properties.stream().filter(Objects::nonNull).anyMatch(Property::isEncrypted);
     }
 
-    private static List<Property> v4Properties(ApiDefinition definition) {
-        return definition instanceof AbstractApi v4Definition ? v4Definition.getProperties() : null;
+    private static Map<String, String> ciphertextByKey(ApiDefinition definition) {
+        return switch (definition) {
+            case AbstractApi v4Definition -> ciphertextByKey(v4Definition.getProperties());
+            case Api v2Definition -> ciphertextByKey(v2Definition.getProperties());
+            case null, default -> Map.of();
+        };
+    }
+
+    private static Map<String, String> ciphertextByKey(List<? extends Property> v4Properties) {
+        if (v4Properties == null) {
+            return Map.of();
+        }
+        return v4Properties
+            .stream()
+            .filter(Objects::nonNull)
+            .filter(Property::isEncrypted)
+            .collect(
+                HashMap::new,
+                (ciphertextByKey, property) -> ciphertextByKey.put(property.getKey(), property.getValue()),
+                HashMap::putAll
+            );
+    }
+
+    private static Map<String, String> ciphertextByKey(Properties v2Properties) {
+        if (v2Properties == null) {
+            return Map.of();
+        }
+        return v2Properties
+            .getProperties()
+            .stream()
+            .filter(property -> property != null && property.isEncrypted())
+            .collect(
+                HashMap::new,
+                (ciphertextByKey, property) -> ciphertextByKey.put(property.getKey(), property.getValue()),
+                HashMap::putAll
+            );
     }
 }
