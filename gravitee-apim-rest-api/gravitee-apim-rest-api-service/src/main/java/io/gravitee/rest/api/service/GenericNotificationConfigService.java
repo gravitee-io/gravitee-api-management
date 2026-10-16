@@ -27,7 +27,7 @@ import java.util.List;
 public interface GenericNotificationConfigService {
     GenericNotificationConfigEntity create(GenericNotificationConfigEntity entity);
     GenericNotificationConfigEntity update(GenericNotificationConfigEntity entity);
-    void delete(String id);
+    void delete(String id, NotificationReferenceType referenceType, String referenceId);
     void deleteReference(NotificationReferenceType referenceType, String referenceId);
     GenericNotificationConfigEntity findById(String id);
     List<GenericNotificationConfigEntity> findByReference(NotificationReferenceType referenceType, String referenceId);
