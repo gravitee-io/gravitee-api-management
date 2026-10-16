@@ -1546,6 +1546,21 @@ describe('GroupComponent', () => {
     });
   });
 
+  describe('Group not managed by the user', () => {
+    it('should go back to the group list without loading the APIs and applications of the group', async () => {
+      await init(GROUP.id);
+      const navigateSpy = jest.spyOn(router, 'navigate');
+
+      expectGetGroup({ ...GROUP, manageable: false });
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+
+      expect(navigateSpy).toHaveBeenCalledWith(['..'], expect.anything());
+      httpTestingController.expectNone(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/memberships?type=api`);
+      httpTestingController.expectNone(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/memberships?type=application`);
+    });
+  });
+
   describe('Group Applications', () => {
     beforeEach(async () => {
       await init(GROUP.id);
