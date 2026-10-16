@@ -61,8 +61,13 @@ public class PortalPageContentsResource extends AbstractResource {
         @PathParam("portalPageContentId") String portalPageContentId
     ) {
         try {
+            final var executionContext = getExecutionContext();
             var result = getPortalPageContentUseCase.execute(
-                new GetPortalPageContentUseCase.Input(PortalPageContentId.of(portalPageContentId))
+                new GetPortalPageContentUseCase.Input(
+                    executionContext.getOrganizationId(),
+                    executionContext.getEnvironmentId(),
+                    PortalPageContentId.of(portalPageContentId)
+                )
             );
 
             return PortalPageContentMapper.INSTANCE.map(result.content());

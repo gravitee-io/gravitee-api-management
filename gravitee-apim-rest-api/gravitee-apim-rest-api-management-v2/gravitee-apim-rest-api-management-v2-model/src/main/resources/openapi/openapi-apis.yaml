@@ -3719,7 +3719,7 @@ paths:
             summary: Get the content of a portal documentation page owned by an API
             description: |-
                 Get the content of a page owned by the API. The content is reached through the page: no content
-                id is taken from the caller.
+                id is taken from the caller. The content must belong to the current organization and environment.
 
                 User must have the API_DOCUMENTATION[READ] permission.
             operationId: getApiPortalNavigationPageContent
@@ -3733,7 +3733,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                 "404":
-                    description: The page does not exist or is not owned by the API
+                    description: The page does not exist, is not owned by the API, or its content does not exist in the current organization and environment
                     content:
                         application/json:
                             schema:

@@ -923,7 +923,9 @@ paths:
       tags:
         - Portal Pages
       summary: Get portal page content
-      description: User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
+      description: |-
+        Get portal page content belonging to the current organization and environment.
+        User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
       operationId: getPortalPageContent
       parameters:
         - name: portalPageContentId
@@ -935,6 +937,12 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/PortalPageContentResponse"
+        "404":
+          description: The content does not exist in the current organization and environment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
     put:
