@@ -82,6 +82,27 @@ public class ApiSubscriptionsResource_ResumeTest extends AbstractApiSubscription
     }
 
     @Test
+    public void should_return_404_if_subscription_associated_to_an_api_product() {
+        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
+            .toBuilder()
+            .id(SUBSCRIPTION)
+            .referenceId(API)
+            .referenceType("API_PRODUCT")
+            .build();
+
+        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
+
+        final Response response = rootTarget().request().post(Entity.json(null));
+        assertEquals(NOT_FOUND_404, response.getStatus());
+
+        var error = response.readEntity(Error.class);
+        assertEquals(NOT_FOUND_404, (int) error.getHttpStatus());
+        assertEquals("Subscription [" + SUBSCRIPTION + "] cannot be found.", error.getMessage());
+
+        verify(subscriptionService, never()).resume(any(), any());
+    }
+
+    @Test
     public void should_return_403_if_incorrect_permissions() {
         when(
             permissionService.hasPermission(
