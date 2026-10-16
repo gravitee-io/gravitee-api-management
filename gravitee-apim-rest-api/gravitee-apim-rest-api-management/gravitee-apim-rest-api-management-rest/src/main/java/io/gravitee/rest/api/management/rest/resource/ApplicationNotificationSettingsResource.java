@@ -82,6 +82,7 @@ public class ApplicationNotificationSettingsResource extends AbstractResource {
             throw new ForbiddenAccessException();
         }
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        config.setOrganizationId(executionContext.getOrganizationId());
         if (
             config.getConfigType().equals(NotificationConfigType.GENERIC) &&
             hasPermission(executionContext, APPLICATION_NOTIFICATION, application, CREATE)
