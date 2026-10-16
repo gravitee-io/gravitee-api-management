@@ -17,15 +17,26 @@ package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import io.gravitee.repository.management.api.GenericNotificationConfigRepository;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
+import io.gravitee.rest.api.service.exceptions.NotificationConfigNotFoundException;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -33,6 +44,9 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.WARN)
 public class GenericNotificationConfigServiceImplTest {
+
+    @Mock
+    private GenericNotificationConfigRepository genericNotificationConfigRepository;
 
     @InjectMocks
     private GenericNotificationConfigServiceImpl service;
@@ -91,5 +105,97 @@ public class GenericNotificationConfigServiceImplTest {
             () -> assertThat(notifConfig.getHooks()).containsAll(List.of("USER_REGISTRATION_REQUEST", "USER_REGISTERED")),
             () -> assertThat(notifConfig.getOrganizationId()).isEqualTo("org1")
         );
+    }
+
+    @Test
+    public void update_shouldThrowWhenStoredConfigBelongsToAnotherReference() throws Exception {
+        GenericNotificationConfig stored = GenericNotificationConfig.builder()
+            .id("nc1")
+            .name("victim")
+            .referenceType(NotificationReferenceType.API)
+            .referenceId("api-A")
+            .notifier("notifier1")
+            .organizationId("orgA")
+            .createdAt(new Date())
+            .build();
+        when(genericNotificationConfigRepository.findById("nc1")).thenReturn(Optional.of(stored));
+
+        GenericNotificationConfigEntity entity = GenericNotificationConfigEntity.builder()
+            .id("nc1")
+            .name("hijacked")
+            .referenceType("API")
+            .referenceId("api-B")
+            .notifier("notifier1")
+            .build();
+
+        assertThrows(NotificationConfigNotFoundException.class, () -> service.update(entity));
+        verify(genericNotificationConfigRepository, never()).update(any());
+    }
+
+    @Test
+    public void update_shouldKeepReferenceAndOrganizationFromStoredRecord() throws Exception {
+        Date created = new Date(1000L);
+        GenericNotificationConfig stored = GenericNotificationConfig.builder()
+            .id("nc1")
+            .name("old")
+            .referenceType(NotificationReferenceType.API)
+            .referenceId("api-A")
+            .notifier("notifier1")
+            .organizationId("orgA")
+            .createdAt(created)
+            .build();
+        when(genericNotificationConfigRepository.findById("nc1")).thenReturn(Optional.of(stored));
+        when(genericNotificationConfigRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        GenericNotificationConfigEntity entity = GenericNotificationConfigEntity.builder()
+            .id("nc1")
+            .name("renamed")
+            .referenceType("API")
+            .referenceId("api-A")
+            .notifier("notifier2")
+            .config("new-config")
+            .organizationId("evil-org")
+            .build();
+
+        service.update(entity);
+
+        ArgumentCaptor<GenericNotificationConfig> captor = ArgumentCaptor.forClass(GenericNotificationConfig.class);
+        verify(genericNotificationConfigRepository).update(captor.capture());
+        GenericNotificationConfig saved = captor.getValue();
+        assertAll(
+            () -> assertThat(saved.getReferenceType()).isEqualTo(NotificationReferenceType.API),
+            () -> assertThat(saved.getReferenceId()).isEqualTo("api-A"),
+            () -> assertThat(saved.getOrganizationId()).isEqualTo("orgA"),
+            () -> assertThat(saved.getName()).isEqualTo("renamed"),
+            () -> assertThat(saved.getConfig()).isEqualTo("new-config"),
+            () -> assertThat(saved.getCreatedAt()).isEqualTo(created)
+        );
+    }
+
+    @Test
+    public void delete_shouldThrowWhenConfigBelongsToAnotherReference() throws Exception {
+        GenericNotificationConfig stored = GenericNotificationConfig.builder()
+            .id("nc1")
+            .referenceType(NotificationReferenceType.API)
+            .referenceId("api-A")
+            .build();
+        when(genericNotificationConfigRepository.findById("nc1")).thenReturn(Optional.of(stored));
+
+        assertThrows(NotificationConfigNotFoundException.class, () -> service.delete("nc1", NotificationReferenceType.API, "api-B"));
+        verify(genericNotificationConfigRepository, never()).delete(any());
+    }
+
+    @Test
+    public void delete_shouldDeleteWhenReferenceMatches() throws Exception {
+        GenericNotificationConfig stored = GenericNotificationConfig.builder()
+            .id("nc1")
+            .referenceType(NotificationReferenceType.API)
+            .referenceId("api-A")
+            .build();
+        when(genericNotificationConfigRepository.findById("nc1")).thenReturn(Optional.of(stored));
+
+        service.delete("nc1", NotificationReferenceType.API, "api-A");
+
+        verify(genericNotificationConfigRepository).delete("nc1");
     }
 }
