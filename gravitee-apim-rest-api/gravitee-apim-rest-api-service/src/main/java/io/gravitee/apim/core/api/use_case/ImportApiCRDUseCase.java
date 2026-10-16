@@ -65,6 +65,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Date;
 import java.util.HashMap;
@@ -234,7 +235,7 @@ public class ImportApiCRDUseCase {
 
             portalListingSyncDomainService.syncApiFolders(input.auditInfo, createdApi.getId(), List.of());
 
-            membersDomainService.updateApiMembers(input.auditInfo, createdApi.getId(), input.spec().getMembers());
+            membersDomainService.createApiMembers(input.auditInfo, createdApi.getId(), input.spec().getMembers());
 
             apiMetadataDomainService.importApiMetadata(createdApi.getId(), input.spec.getMetadata(), input.auditInfo);
 
@@ -266,6 +267,7 @@ public class ImportApiCRDUseCase {
 
     private ApiCRDStatus update(Input input, Api existingApi) {
         try {
+            membersDomainService.checkApiMembersUpdate(input.auditInfo, existingApi.getId(), input.spec().getMembers());
             List<NavigationPath> previousNavigation = existingApi.getPortalNavigation() != null
                 ? existingApi.getPortalNavigation()
                 : List.of();
@@ -336,6 +338,8 @@ public class ImportApiCRDUseCase {
                 .state(api.getLifecycleState().name())
                 .plans(planKeyIdMapping)
                 .build();
+        } catch (AbstractManagementException e) {
+            throw e;
         } catch (Exception e) {
             throw new TechnicalManagementException(e);
         }
