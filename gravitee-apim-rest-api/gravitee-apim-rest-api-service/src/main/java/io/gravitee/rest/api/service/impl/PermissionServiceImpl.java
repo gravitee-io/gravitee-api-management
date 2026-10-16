@@ -25,6 +25,7 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -107,6 +108,49 @@ public class PermissionServiceImpl extends AbstractService implements Permission
         }
         UserEntity user = userService.findByIdWithRoles(executionContext, userId);
         return hasOrganizationManagementRole(user) || hasEnvironmentManagementRole(user) || hasApiManagementRole(executionContext, user);
+    }
+
+    @Override
+    public boolean canManageMembers(final ExecutionContext executionContext, String userId) {
+        if (isOrganizationAdmin()) {
+            LOGGER.debug("User [{}] can manage members because of its ORGANIZATION ADMIN role", userId);
+            return true;
+        }
+        Set<String> roleIds = membershipService
+            .getMembershipsByMember(MembershipMemberType.USER, userId)
+            .stream()
+            .map(MembershipEntity::getRoleId)
+            .collect(Collectors.toSet());
+        if (roleIds.isEmpty()) {
+            return false;
+        }
+        return roleService.findByIds(roleIds).values().stream().anyMatch(this::grantsMemberManagement);
+    }
+
+    // Roles are checked where they are held, whatever reference they apply to: a group role is the one its members
+    // inherit on the APIs, applications, integrations and clusters the group is attached to.
+    private boolean grantsMemberManagement(RoleEntity role) {
+        Map<String, char[]> permissions = role.getPermissions();
+        return switch (role.getScope()) {
+            case ORGANIZATION -> grants(permissions, OrganizationPermission.USER, RolePermissionAction.READ, RolePermissionAction.UPDATE) ||
+            grants(permissions, OrganizationPermission.ROLE, RolePermissionAction.UPDATE);
+            case ENVIRONMENT -> grants(permissions, EnvironmentPermission.GROUP, RolePermissionAction.UPDATE);
+            case API -> grants(permissions, ApiPermission.MEMBER, RolePermissionAction.UPDATE);
+            case APPLICATION -> grants(permissions, ApplicationPermission.MEMBER, RolePermissionAction.UPDATE);
+            case INTEGRATION -> grants(permissions, IntegrationPermission.MEMBER, RolePermissionAction.UPDATE);
+            case CLUSTER -> grants(permissions, ClusterPermission.MEMBER, RolePermissionAction.UPDATE);
+            case GROUP -> grants(permissions, GroupPermission.MEMBER, RolePermissionAction.UPDATE);
+            default -> false;
+        };
+    }
+
+    private static boolean grants(Map<String, char[]> permissions, Permission permission, RolePermissionAction... acls) {
+        char[] granted = permissions == null ? null : permissions.get(permission.getName());
+        if (granted == null) {
+            return false;
+        }
+        String grantedActions = new String(granted);
+        return Arrays.stream(acls).anyMatch(acl -> grantedActions.indexOf(acl.getId()) >= 0);
     }
 
     public static boolean isOrganizationAdmin() {
