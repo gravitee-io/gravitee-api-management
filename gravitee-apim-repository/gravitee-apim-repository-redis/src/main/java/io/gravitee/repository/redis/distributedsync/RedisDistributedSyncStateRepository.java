@@ -19,11 +19,13 @@ import static io.gravitee.repository.redis.distributedsync.RedisDistributedSyncR
 
 import io.gravitee.repository.distributedsync.api.DistributedSyncStateRepository;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
+import io.gravitee.repository.distributedsync.model.DistributedSyncStatus;
 import io.gravitee.repository.redis.vertx.RedisClient;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.redis.client.Response;
 import io.vertx.redis.client.ResponseType;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.CustomLog;
 
@@ -84,35 +86,73 @@ public class RedisDistributedSyncStateRepository implements DistributedSyncState
                 if (toResponse != null) {
                     distributedSyncStateBuilder.to(toResponse.toLong());
                 }
+                Response statusResponse = item.get(DistributedSyncState.Fields.status);
+                if (statusResponse != null) {
+                    distributedSyncStateBuilder.status(parseStatus(statusResponse.toString()));
+                }
+                Response resyncIdResponse = item.get(DistributedSyncState.Fields.resyncId);
+                if (resyncIdResponse != null) {
+                    distributedSyncStateBuilder.resyncId(resyncIdResponse.toLong());
+                }
+                Response heartbeatResponse = item.get(DistributedSyncState.Fields.heartbeatAt);
+                if (heartbeatResponse != null) {
+                    distributedSyncStateBuilder.heartbeatAt(heartbeatResponse.toLong());
+                }
+                Response tombstoneHorizonResponse = item.get(DistributedSyncState.Fields.tombstoneHorizon);
+                if (tombstoneHorizonResponse != null) {
+                    distributedSyncStateBuilder.tombstoneHorizon(tombstoneHorizonResponse.toLong());
+                }
                 return distributedSyncStateBuilder.build();
             });
     }
 
+    /**
+     * A status written by a newer gateway is read as {@code null} (i.e. active) rather than failing the read.
+     */
+    private static DistributedSyncStatus parseStatus(final String value) {
+        for (DistributedSyncStatus status : DistributedSyncStatus.values()) {
+            if (status.name().equals(value)) {
+                return status;
+            }
+        }
+        return null;
+    }
+
     @Override
     public Completable createOrUpdate(final DistributedSyncState distributedSyncState) {
-        return Completable.defer(() ->
-            Completable.fromCompletionStage(
+        return Completable.defer(() -> {
+            List<String> args = new ArrayList<>(
+                List.of(
+                    REDIS_KEY_PREFIX + distributedSyncState.getClusterId(),
+                    DistributedSyncState.Fields.clusterId,
+                    distributedSyncState.getClusterId(),
+                    DistributedSyncState.Fields.nodeId,
+                    distributedSyncState.getNodeId(),
+                    DistributedSyncState.Fields.nodeVersion,
+                    distributedSyncState.getNodeVersion(),
+                    DistributedSyncState.Fields.from,
+                    String.valueOf(distributedSyncState.getFrom()),
+                    DistributedSyncState.Fields.to,
+                    String.valueOf(distributedSyncState.getTo())
+                )
+            );
+            addIfPresent(args, DistributedSyncState.Fields.status, distributedSyncState.getStatus());
+            addIfPresent(args, DistributedSyncState.Fields.resyncId, distributedSyncState.getResyncId());
+            addIfPresent(args, DistributedSyncState.Fields.heartbeatAt, distributedSyncState.getHeartbeatAt());
+            addIfPresent(args, DistributedSyncState.Fields.tombstoneHorizon, distributedSyncState.getTombstoneHorizon());
+            return Completable.fromCompletionStage(
                 redisClient
                     .redisApi()
-                    .flatMap(redisAPI ->
-                        redisAPI.hset(
-                            List.of(
-                                REDIS_KEY_PREFIX + distributedSyncState.getClusterId(),
-                                DistributedSyncState.Fields.clusterId,
-                                distributedSyncState.getClusterId(),
-                                DistributedSyncState.Fields.nodeId,
-                                distributedSyncState.getNodeId(),
-                                DistributedSyncState.Fields.nodeVersion,
-                                distributedSyncState.getNodeVersion(),
-                                DistributedSyncState.Fields.from,
-                                String.valueOf(distributedSyncState.getFrom()),
-                                DistributedSyncState.Fields.to,
-                                String.valueOf(distributedSyncState.getTo())
-                            )
-                        )
-                    )
+                    .flatMap(redisAPI -> redisAPI.hset(args))
                     .toCompletionStage()
-            )
-        );
+            );
+        });
+    }
+
+    private static void addIfPresent(final List<String> args, final String field, final Object value) {
+        if (value != null) {
+            args.add(field);
+            args.add(value instanceof Enum<?> e ? e.name() : String.valueOf(value));
+        }
     }
 }

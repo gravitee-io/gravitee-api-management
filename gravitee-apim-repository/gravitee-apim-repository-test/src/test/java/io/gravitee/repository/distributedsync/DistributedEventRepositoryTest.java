@@ -396,6 +396,75 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void should_mark_deploy_events_not_rewritten_since_a_date_as_undeployed() throws InterruptedException {
+        Date rebuildStart = new Date();
+        distributedEventRepository
+            .createOrUpdateAtWriteTime(
+                DistributedEvent.builder()
+                    .clusterId(TEST_CLUSTER_ID)
+                    .id("1")
+                    .payload("payload")
+                    .type(DistributedEventType.API)
+                    .syncAction(DistributedSyncAction.DEPLOY)
+                    .build()
+            )
+            .blockingAwait();
+
+        distributedEventRepository
+            .undeployNotUpdatedSince(
+                TEST_CLUSTER_ID,
+                Set.of(
+                    DistributedEventType.API,
+                    DistributedEventType.API_KEY,
+                    DistributedEventType.SUBSCRIPTION,
+                    DistributedEventType.DICTIONARY
+                ),
+                rebuildStart
+            )
+            .test()
+            .await()
+            .assertValue(3L);
+
+        var events = distributedEventRepository
+            .search(DistributedEventCriteria.builder().clusterId(TEST_CLUSTER_ID).build(), -1L, -1L)
+            .toList()
+            .blockingGet();
+        assertThat(events)
+            .filteredOn(event -> event.getSyncAction() == DistributedSyncAction.DEPLOY)
+            .extracting(DistributedEvent::getId)
+            .containsExactlyInAnyOrder("1", "DEFAULT");
+        assertThat(events)
+            .filteredOn(event -> Set.of("3", "4", "5").contains(event.getId()))
+            .allSatisfy(event -> {
+                assertThat(event.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
+                assertThat(event.getUpdatedAt()).isAfterOrEqualTo(rebuildStart);
+                assertThat(event.getPayload()).isEqualTo("payload");
+            });
+    }
+
+    @Test
+    public void should_delete_undeploy_events_older_than_a_date() throws InterruptedException {
+        distributedEventRepository
+            .deleteUndeployedBefore(TEST_CLUSTER_ID, Date.from(Instant.parse("2024-01-01T00:00:00.000Z")))
+            .test()
+            .await()
+            .assertValue(1L);
+
+        var ids = distributedEventRepository
+            .search(DistributedEventCriteria.builder().clusterId(TEST_CLUSTER_ID).build(), -1L, -1L)
+            .map(DistributedEvent::getId)
+            .toList()
+            .blockingGet();
+        assertThat(ids).containsExactlyInAnyOrder("1", "3", "4", "5", "DEFAULT");
+    }
+
+    @Test
+    public void should_report_a_fully_indexed_catalog_and_keep_it_searchable() throws InterruptedException {
+        distributedEventRepository.ensureSearchable().test().await().assertComplete();
+        distributedEventRepository.fullyIndexed().test().await().assertValue(true);
+    }
+
+    @Test
     public void should_update_all_related_to_api() throws InterruptedException {
         Date updateAt = new Date();
         var testObserver = distributedEventRepository

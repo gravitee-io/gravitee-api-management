@@ -31,6 +31,8 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
@@ -92,6 +94,8 @@ class DistributedApiSynchronizerTest {
             new ApiMapper(objectMapper, new SubscriptionMapper(objectMapper), new ApiKeyMapper(objectMapper))
         );
         when(eventsFetcher.bulkItems()).thenReturn(1);
+        lenient().when(eventsFetcher.fetchAuthoritative(any(), any())).thenReturn(Flowable.empty());
+        lenient().when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
         lenient().when(deployerFactory.createApiDeployer()).thenReturn(apiDeployer);
         lenient().when(apiDeployer.deploy(any())).thenReturn(Completable.complete());
         lenient().when(apiDeployer.doAfterDeployment(any())).thenReturn(Completable.complete());
@@ -357,6 +361,59 @@ class DistributedApiSynchronizerTest {
 
             long now = Instant.now().toEpochMilli();
             cut.synchronize(now, now).test().await().assertComplete();
+        }
+    }
+
+    @Nested
+    class ReconciliationTest {
+
+        @Test
+        void should_undeploy_an_api_present_locally_but_missing_from_the_catalog_after_a_full_sync() throws Exception {
+            ApiManager apiManager = mock(ApiManager.class);
+            when(deployerFactory.apiManager()).thenReturn(apiManager);
+            ReactableApi<?> ghost = mock(ReactableApi.class);
+            when(ghost.getId()).thenReturn("ghost-api");
+            when(apiManager.apis()).thenReturn(List.of(ghost));
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
+            when(eventsFetcher.fetchAuthoritative(any(), any())).thenReturn(Flowable.empty());
+
+            cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
+
+            verify(apiDeployer).undeploy(argThat(deployable -> "ghost-api".equals(deployable.id())));
+        }
+
+        @Test
+        void should_not_undeploy_an_api_present_in_the_catalog_after_a_full_sync() throws Exception {
+            ApiManager apiManager = mock(ApiManager.class);
+            when(deployerFactory.apiManager()).thenReturn(apiManager);
+            ReactableApi<?> live = mock(ReactableApi.class);
+            when(live.getId()).thenReturn("live-api");
+            when(apiManager.apis()).thenReturn(List.of(live));
+            DistributedEvent event = DistributedEvent.builder()
+                .id("live-api")
+                .type(DistributedEventType.API)
+                .syncAction(DistributedSyncAction.DEPLOY)
+                .build();
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(event));
+            when(eventsFetcher.fetchAuthoritative(any(), any())).thenReturn(Flowable.just(event));
+
+            cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
+
+            verify(apiDeployer, never()).undeploy(any());
+        }
+
+        @Test
+        void should_not_reconcile_on_an_incremental_sync() throws Exception {
+            ApiManager apiManager = mock(ApiManager.class);
+            lenient().when(deployerFactory.apiManager()).thenReturn(apiManager);
+            lenient().when(apiManager.apis()).thenReturn(List.of(mock(ReactableApi.class)));
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
+
+            long now = Instant.now().toEpochMilli();
+            cut.synchronize(now, now).test().await().assertComplete();
+
+            verify(eventsFetcher, never()).fetchAuthoritative(any(), any());
+            verify(apiDeployer, never()).undeploy(any());
         }
     }
 }
