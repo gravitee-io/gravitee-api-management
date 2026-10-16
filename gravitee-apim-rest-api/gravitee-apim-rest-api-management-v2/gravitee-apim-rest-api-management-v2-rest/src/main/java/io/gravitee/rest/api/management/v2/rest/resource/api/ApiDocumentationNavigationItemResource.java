@@ -16,7 +16,11 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
+import io.gravitee.apim.core.portal_page.exception.InvalidUrlFormatException;
+import io.gravitee.apim.core.portal_page.model.OpenApiConfiguration;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.RedocConfiguration;
+import io.gravitee.apim.core.portal_page.model.SwaggerUiConfiguration;
 import io.gravitee.apim.core.portal_page.use_case.DeletePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.FetchPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetApiPortalNavigationItemUseCase;
@@ -54,6 +58,8 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public class ApiDocumentationNavigationItemResource extends AbstractResource {
 
@@ -207,6 +213,8 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
         @PathParam("navId") String navigationItemId,
         @Valid @NotNull final PortalPageOpenApiConfiguration configuration
     ) {
+        var viewerSettings = PortalPageContentMapper.INSTANCE.mapToConfiguration(configuration);
+        requireHttpTryItUrl(viewerSettings);
         var environmentId = GraviteeContext.getCurrentEnvironment();
         var page = apiOwnedNavigationDomainService.requireOwnedPage(environmentId, apiId, PortalNavigationItemId.of(navigationItemId));
 
@@ -215,9 +223,33 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
                 GraviteeContext.getCurrentOrganization(),
                 environmentId,
                 page.getPortalPageContentId().json(),
-                PortalPageContentMapper.INSTANCE.mapToConfiguration(configuration)
+                viewerSettings
             )
         );
         return PortalPageContentMapper.INSTANCE.map(output.portalPageContent());
+    }
+
+    /**
+     * This path opens the base URL to API users, so it only takes what the dialogs allow: empty, or an http(s) URL. The
+     * environment-level endpoint is left as it was, relative URLs included.
+     */
+    private static void requireHttpTryItUrl(OpenApiConfiguration viewerSettings) {
+        var tryItUrl = switch (viewerSettings) {
+            case SwaggerUiConfiguration swagger -> swagger.tryItUrl();
+            case RedocConfiguration redoc -> redoc.tryItUrl();
+        };
+        if (!tryItUrl.isEmpty() && !isHttpUrl(tryItUrl)) {
+            throw new InvalidUrlFormatException();
+        }
+    }
+
+    private static boolean isHttpUrl(String url) {
+        try {
+            var uri = new URI(url);
+            var isHttpScheme = "http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme());
+            return isHttpScheme && uri.getRawAuthority() != null;
+        } catch (URISyntaxException e) {
+            return false;
+        }
     }
 }

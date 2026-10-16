@@ -55,6 +55,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -166,11 +168,14 @@ class ApiDocumentationNavigationItemResource_PatchContentConfigurationTest exten
         assertThat(storedContentOf(page).getViewerSettings()).isEqualTo(new RedocConfiguration("https://redoc.example.com"));
     }
 
-    @Test
-    void should_return_400_for_a_base_url_that_is_not_http() {
+    @ParameterizedTest
+    @ValueSource(
+        strings = { "javascript:alert(1)", "ftp://files.example.com", "/petstore/v1", "not a url", "https://api example.com", "https://" }
+    )
+    void should_return_400_for_a_base_url_that_is_not_http(String tryItUrl) {
         var page = anOpenApiPageOwnedBy(API_ID);
 
-        Response response = configure(page.getId(), Map.of("viewer", "REDOC", "tryItURL", "javascript:alert(1)"));
+        Response response = configure(page.getId(), Map.of("viewer", "REDOC", "tryItURL", tryItUrl));
 
         assertThat(response).hasStatus(BAD_REQUEST_400);
         assertThat(storedContentOf(page).getViewerSettings()).isEqualTo(ORIGINAL_CONFIGURATION);
