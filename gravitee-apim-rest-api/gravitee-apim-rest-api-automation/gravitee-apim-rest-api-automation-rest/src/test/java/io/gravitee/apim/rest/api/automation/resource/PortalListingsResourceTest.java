@@ -15,26 +15,38 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_PORTAL;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import inmemory.PortalListingCrudServiceInMemory;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_listing.model.PortalListing;
 import io.gravitee.apim.core.portal_listing.model.PortalListingId;
 import io.gravitee.apim.core.portal_listing.use_case.CreateOrUpdatePortalListingUseCase;
 import io.gravitee.apim.core.portal_listing.use_case.ValidatePortalListingUseCase;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.rest.api.automation.model.PortalListingState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -47,6 +59,9 @@ class PortalListingsResourceTest extends AbstractResourceTest {
 
     @Inject
     private ValidatePortalListingUseCase validatePortalListingUseCase;
+
+    @Inject
+    private PortalListingCrudServiceInMemory portalListingCrudService;
 
     @AfterEach
     void tearDown() {
@@ -177,6 +192,88 @@ class PortalListingsResourceTest extends AbstractResourceTest {
                     .put(Entity.json(readJSON("portal-listing.json")))
             ) {
                 assertThat(response.getStatus()).isEqualTo(400);
+            }
+        }
+    }
+
+    @Nested
+    class Authorization {
+
+        private final ExecutionContext executionContext = new ExecutionContext(ORGANIZATION, ENVIRONMENT);
+        private final PortalId portalId = PortalId.of(HRIDToUUID.portal().context(executionContext).hrid(PORTAL_HRID).id());
+        private final PortalListingId listingId = PortalListingId.of(
+            HRIDToUUID.portalListing().context(executionContext).portal(PORTAL_HRID).hrid("default-listing").id()
+        );
+
+        @BeforeEach
+        void setUp() {
+            var output = new CreateOrUpdatePortalListingUseCase.Output(listingId, List.of());
+            when(createOrUpdatePortalListingUseCase.execute(any())).thenReturn(output);
+            when(validatePortalListingUseCase.execute(any())).thenReturn(output);
+        }
+
+        @AfterEach
+        void tearDown() {
+            portalListingCrudService.reset();
+            reset(permissionService);
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_update_the_existing_listing() {
+            portalListingCrudService.initWith(List.of(PortalListing.of(listingId, ENVIRONMENT, ORGANIZATION, portalId, List.of())));
+            deny(UPDATE);
+
+            assertThat(put(false)).isEqualTo(403);
+            verify(createOrUpdatePortalListingUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_403_on_dry_run_when_the_caller_cannot_update_the_existing_listing() {
+            portalListingCrudService.initWith(List.of(PortalListing.of(listingId, ENVIRONMENT, ORGANIZATION, portalId, List.of())));
+            deny(UPDATE);
+
+            assertThat(put(true)).isEqualTo(403);
+            verify(validatePortalListingUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_update_the_existing_listing_with_update_and_no_create() {
+            portalListingCrudService.initWith(List.of(PortalListing.of(listingId, ENVIRONMENT, ORGANIZATION, portalId, List.of())));
+            deny(CREATE);
+
+            assertThat(put(false)).isEqualTo(200);
+            verify(createOrUpdatePortalListingUseCase).execute(any());
+        }
+
+        @Test
+        void should_create_a_new_listing_with_create_and_no_update() {
+            deny(UPDATE);
+
+            assertThat(put(false)).isEqualTo(200);
+            verify(createOrUpdatePortalListingUseCase).execute(any());
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_create_a_new_listing() {
+            deny(CREATE);
+
+            assertThat(put(false)).isEqualTo(403);
+            verify(createOrUpdatePortalListingUseCase, never()).execute(any());
+        }
+
+        private void deny(RolePermissionAction action) {
+            when(permissionService.hasPermission(any(), eq(ENVIRONMENT_PORTAL), eq(ENVIRONMENT), eq(action))).thenReturn(false);
+        }
+
+        private int put(boolean dryRun) {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("portal-listing.json")))
+            ) {
+                return response.getStatus();
             }
         }
     }

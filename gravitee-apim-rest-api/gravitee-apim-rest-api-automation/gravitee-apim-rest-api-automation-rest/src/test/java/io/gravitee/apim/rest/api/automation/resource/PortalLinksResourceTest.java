@@ -15,13 +15,19 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_PORTAL;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
@@ -34,6 +40,7 @@ import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.rest.api.automation.model.PortalLinkSpec;
 import io.gravitee.apim.rest.api.automation.model.PortalLinkState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
@@ -41,6 +48,7 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -63,6 +71,9 @@ class PortalLinksResourceTest extends AbstractResourceTest {
 
     @Inject
     private ValidatePortalLinkUseCase validatePortalLinkUseCase;
+
+    @Inject
+    private PortalNavigationItemsCrudServiceInMemory portalNavigationItemsCrudService;
 
     @AfterEach
     void tearDown() {
@@ -224,5 +235,82 @@ class PortalLinksResourceTest extends AbstractResourceTest {
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
             .build();
+    }
+
+    @Nested
+    class Authorization {
+
+        @BeforeEach
+        void setUp() {
+            when(createOrUpdatePortalLinkUseCase.execute(any())).thenReturn(
+                new CreateOrUpdatePortalLinkUseCase.Output(aPersistedLink("External Docs"), List.of())
+            );
+            when(validatePortalLinkUseCase.execute(any())).thenReturn(new CreateOrUpdatePortalLinkUseCase.Output(null, List.of()));
+        }
+
+        @AfterEach
+        void tearDown() {
+            portalNavigationItemsCrudService.reset();
+            reset(permissionService);
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_update_the_existing_link() {
+            portalNavigationItemsCrudService.initWith(List.of(aPersistedLink("Existing")));
+            deny(UPDATE);
+
+            assertThat(put(false)).isEqualTo(403);
+            verify(createOrUpdatePortalLinkUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_403_on_dry_run_when_the_caller_cannot_update_the_existing_link() {
+            portalNavigationItemsCrudService.initWith(List.of(aPersistedLink("Existing")));
+            deny(UPDATE);
+
+            assertThat(put(true)).isEqualTo(403);
+            verify(validatePortalLinkUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_update_the_existing_link_with_update_and_no_create() {
+            portalNavigationItemsCrudService.initWith(List.of(aPersistedLink("Existing")));
+            deny(CREATE);
+
+            assertThat(put(false)).isEqualTo(200);
+            verify(createOrUpdatePortalLinkUseCase).execute(any());
+        }
+
+        @Test
+        void should_create_a_new_link_with_create_and_no_update() {
+            deny(UPDATE);
+
+            assertThat(put(false)).isEqualTo(200);
+            verify(createOrUpdatePortalLinkUseCase).execute(any());
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_create_a_new_link() {
+            deny(CREATE);
+
+            assertThat(put(false)).isEqualTo(403);
+            verify(createOrUpdatePortalLinkUseCase, never()).execute(any());
+        }
+
+        private void deny(RolePermissionAction action) {
+            when(permissionService.hasPermission(any(), eq(ENVIRONMENT_PORTAL), eq(ENVIRONMENT), eq(action))).thenReturn(false);
+        }
+
+        private int put(boolean dryRun) {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("portal-link.json")))
+            ) {
+                return response.getStatus();
+            }
+        }
     }
 }

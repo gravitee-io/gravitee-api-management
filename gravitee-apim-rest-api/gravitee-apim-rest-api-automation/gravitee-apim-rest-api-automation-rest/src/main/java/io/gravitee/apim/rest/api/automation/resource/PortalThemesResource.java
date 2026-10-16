@@ -18,7 +18,9 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
+import io.gravitee.apim.core.theme.crud_service.ThemeCrudService;
 import io.gravitee.apim.core.theme.domain_service.ValidateThemeDomainService;
+import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.use_case.CreateOrUpdatePortalThemeUseCase;
 import io.gravitee.apim.core.theme.use_case.ValidatePortalThemeUseCase;
 import io.gravitee.apim.rest.api.automation.mapper.PortalThemeMapper;
@@ -27,6 +29,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -50,6 +53,9 @@ public class PortalThemesResource extends AbstractResource {
     @Inject
     private ValidatePortalThemeUseCase validatePortalThemeUseCase;
 
+    @Inject
+    private ThemeCrudService themeCrudService;
+
     @Path("/{hrid}")
     public PortalThemeResource getPortalThemeResource() {
         return resourceContext.getResource(PortalThemeResource.class);
@@ -61,6 +67,14 @@ public class PortalThemesResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = { CREATE, UPDATE }) })
     public Response createOrUpdate(@Valid @NotNull PortalThemeSpec spec, @QueryParam("dryRun") boolean dryRun) {
         var auditInfo = getAuditInfo();
+        requireCreateOrUpdate(
+            RolePermission.ENVIRONMENT_THEME,
+            RolePermission.ENVIRONMENT_THEME,
+            themeCrudService
+                .findByIdAndEnvironmentId(HRIDToUUID.portalTheme().context(auditInfo).hrid(spec.getHrid()).id(), auditInfo.environmentId())
+                .map(Theme::getId)
+                .orElse(null)
+        );
         var input = new ValidateThemeDomainService.Input(
             auditInfo,
             spec.getHrid(),

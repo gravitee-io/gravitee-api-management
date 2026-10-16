@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_listing.crud_service.PortalListingCrudService;
 import io.gravitee.apim.core.portal_listing.model.PortalListingId;
 import io.gravitee.apim.core.portal_listing.use_case.CreateOrUpdatePortalListingUseCase;
 import io.gravitee.apim.core.portal_listing.use_case.ValidatePortalListingUseCase;
@@ -56,6 +57,9 @@ public class PortalListingsResource extends AbstractResource {
     @Inject
     private ValidatePortalListingUseCase validatePortalListingUseCase;
 
+    @Inject
+    private PortalListingCrudService portalListingCrudService;
+
     @Path("/{listingHrid}")
     public PortalListingResource getPortalListingResource() {
         return resourceContext.getResource(PortalListingResource.class);
@@ -74,6 +78,14 @@ public class PortalListingsResource extends AbstractResource {
         var apis = PortalListingMapper.INSTANCE.toDomainApis(spec.getApis());
         var portalId = PortalId.of(HRIDToUUID.portal().context(auditInfo).hrid(portalHrid).id());
         var listingId = PortalListingId.of(HRIDToUUID.portalListing().context(auditInfo).portal(portalHrid).hrid(spec.getHrid()).id());
+        requireCreateOrUpdate(
+            RolePermission.ENVIRONMENT_PORTAL,
+            RolePermission.ENVIRONMENT_PORTAL,
+            portalListingCrudService
+                .findByIdAndEnvironmentId(listingId, auditInfo.environmentId())
+                .map(listing -> listing.getId().toString())
+                .orElse(null)
+        );
 
         var input = new CreateOrUpdatePortalListingUseCase.Input(auditInfo, listingId, portalId, apis);
         var output = dryRun ? validatePortalListingUseCase.execute(input) : createOrUpdatePortalListingUseCase.execute(input);
