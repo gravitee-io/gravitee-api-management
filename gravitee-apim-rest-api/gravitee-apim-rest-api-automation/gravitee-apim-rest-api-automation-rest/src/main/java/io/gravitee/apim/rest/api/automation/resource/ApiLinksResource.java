@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.use_case.CreateOrUpdateApiLinkUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ValidateApiLinkUseCase;
 import io.gravitee.apim.core.validation.Validator;
@@ -56,6 +57,9 @@ public class ApiLinksResource extends AbstractResource {
     @Inject
     private ValidateApiLinkUseCase validateApiLinkUseCase;
 
+    @Inject
+    private PortalNavigationItemsQueryService portalNavigationItemsQueryService;
+
     @Path("/{linkHrid}")
     public ApiLinkResource getApiLinkResource() {
         return resourceContext.getResource(ApiLinkResource.class);
@@ -73,6 +77,11 @@ public class ApiLinksResource extends AbstractResource {
         var auditInfo = getAuditInfo();
         var apiId = HRIDToUUID.api().context(auditInfo).hrid(apiHrid).id();
         var linkId = PortalNavigationItemId.forApiLink(auditInfo, apiId, spec.getHrid());
+        requireCreateOrUpdate(
+            RolePermission.API_DOCUMENTATION,
+            apiId,
+            portalNavigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), linkId) != null
+        );
 
         var input = new CreateOrUpdateApiLinkUseCase.Input(
             auditInfo,
