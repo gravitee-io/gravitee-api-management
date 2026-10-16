@@ -265,6 +265,7 @@ export class GroupComponent implements OnInit {
 
   private initializeGroup() {
     this.group$ = this.fetchGroup().pipe(
+      switchMap((group: Group) => (this.mode === 'edit' && !group.manageable ? this.backToGroups() : of(group))),
       tap((group: Group) => {
         this.group.next(group);
         this.initializeForm(group);
@@ -282,6 +283,11 @@ export class GroupComponent implements OnInit {
         this.initializeInvitations();
         break;
     }
+  }
+
+  private backToGroups(): Observable<never> {
+    this.router.navigate(['..'], { relativeTo: this.route });
+    return EMPTY;
   }
 
   private fetchGroup(): Observable<Group> {
