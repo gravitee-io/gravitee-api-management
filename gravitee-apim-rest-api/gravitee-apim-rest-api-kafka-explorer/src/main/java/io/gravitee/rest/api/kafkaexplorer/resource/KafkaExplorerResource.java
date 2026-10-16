@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.kafkaexplorer.resource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.cluster.model.Cluster;
+import io.gravitee.apim.core.exception.DbEntityNotFoundException;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.TechnicalCode;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.BrowseMessagesUseCase;
@@ -487,19 +489,11 @@ public class KafkaExplorerResource {
         }
     }
 
-    /**
-     * The environment-level permission lets any publisher reach the explorer: the caller must also be
-     * allowed to read the target cluster. A denied cluster answers like a missing one.
-     */
+    // the environment permission is held by every publisher; a denied cluster looks like a missing one
     private void requireClusterAccess(String clusterId) {
         var executionContext = GraviteeContext.getExecutionContext();
         if (!permissionService.hasPermission(executionContext, RolePermission.CLUSTER_DEFINITION, clusterId, RolePermissionAction.READ)) {
-            throw new WebApplicationException(
-                Response.status(Response.Status.NOT_FOUND)
-                    .entity(new KafkaExplorerError().message("Cluster [" + clusterId + "] not found").technicalCode("NOT_FOUND"))
-                    .type(MediaType.APPLICATION_JSON_TYPE)
-                    .build()
-            );
+            throw new DbEntityNotFoundException(Cluster.class, clusterId);
         }
     }
 
