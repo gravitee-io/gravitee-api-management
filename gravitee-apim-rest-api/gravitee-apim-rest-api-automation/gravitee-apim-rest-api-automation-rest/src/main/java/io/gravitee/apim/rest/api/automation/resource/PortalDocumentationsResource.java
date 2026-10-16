@@ -20,6 +20,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE
 
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.portal_page.use_case.CreateOrUpdatePortalDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ValidatePortalDocumentationUseCase;
 import io.gravitee.apim.rest.api.automation.mapper.PortalDocumentationMapper;
@@ -56,6 +57,9 @@ public class PortalDocumentationsResource extends AbstractResource {
     @Inject
     private ValidatePortalDocumentationUseCase validatePortalDocumentationUseCase;
 
+    @Inject
+    private PortalPageContentQueryService portalPageContentQueryService;
+
     @Path("/{docHrid}")
     public PortalDocumentationResource getPortalDocumentationResource() {
         return resourceContext.getResource(PortalDocumentationResource.class);
@@ -74,6 +78,14 @@ public class PortalDocumentationsResource extends AbstractResource {
         var portalId = PortalId.of(HRIDToUUID.portal().context(auditInfo).hrid(portalHrid).id());
         var documentationId = PortalPageContentId.of(
             HRIDToUUID.portalDocumentation().context(auditInfo).portal(portalHrid).hrid(spec.getHrid()).id()
+        );
+        requireCreateOrUpdate(
+            RolePermission.ENVIRONMENT_PORTAL,
+            RolePermission.ENVIRONMENT_PORTAL,
+            portalPageContentQueryService
+                .findById(documentationId)
+                .map(content -> content.getId().toString())
+                .orElse(null)
         );
 
         var input = new CreateOrUpdatePortalDocumentationUseCase.Input(

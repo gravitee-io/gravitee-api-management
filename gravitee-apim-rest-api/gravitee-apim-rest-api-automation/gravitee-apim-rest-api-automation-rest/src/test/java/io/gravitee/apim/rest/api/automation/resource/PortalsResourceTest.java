@@ -15,13 +15,20 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_PORTAL;
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_THEME;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import inmemory.PortalCrudServiceInMemory;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
@@ -32,12 +39,17 @@ import io.gravitee.apim.core.portal.use_case.ValidatePortalUseCase;
 import io.gravitee.apim.rest.api.automation.model.PortalNavigationPath;
 import io.gravitee.apim.rest.api.automation.model.PortalState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -49,6 +61,9 @@ class PortalsResourceTest extends AbstractResourceTest {
 
     @Inject
     private ValidatePortalUseCase validatePortalUseCase;
+
+    @Inject
+    private PortalCrudServiceInMemory portalCrudService;
 
     @AfterEach
     void tearDown() {
@@ -253,6 +268,154 @@ class PortalsResourceTest extends AbstractResourceTest {
                 assertThat(state.getNavigation()).extracting(PortalNavigationPath::getPath).containsExactly("/x");
                 assertThat(state.getStructure()).isNotNull();
                 assertThat(state.getStructure().getTopNavbar()).extracting(PortalNavigationPath::getPath).containsExactly("/x");
+            }
+        }
+    }
+
+    @Nested
+    class Authorization {
+
+        private final ExecutionContext executionContext = new ExecutionContext(ORGANIZATION, ENVIRONMENT);
+        private final PortalId portalId = PortalId.of(HRIDToUUID.portal().context(executionContext).hrid("default-portal").id());
+        private final String themeId = HRIDToUUID.portalTheme().context(executionContext).hrid("default-theme").id();
+
+        @BeforeEach
+        void setUp() {
+            var output = new CreateOrUpdatePortalUseCase.Output(
+                Portal.of(portalId, ENVIRONMENT, ORGANIZATION, "Default Portal"),
+                PortalNavigationStructure.empty(),
+                null,
+                List.of()
+            );
+            when(createOrUpdatePortalUseCase.execute(any())).thenReturn(output);
+            when(validatePortalUseCase.execute(any())).thenReturn(output);
+        }
+
+        @AfterEach
+        void tearDown() {
+            portalCrudService.reset();
+            reset(permissionService);
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_update_the_existing_portal() {
+            givenPortal(null);
+            deny(ENVIRONMENT_PORTAL, UPDATE);
+
+            assertThat(put(readJSON("portal.json"), false)).isEqualTo(403);
+            verify(createOrUpdatePortalUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_403_on_dry_run_when_the_caller_cannot_update_the_existing_portal() {
+            givenPortal(null);
+            deny(ENVIRONMENT_PORTAL, UPDATE);
+
+            assertThat(put(readJSON("portal.json"), true)).isEqualTo(403);
+            verify(validatePortalUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_update_the_existing_portal_with_update_and_no_create() {
+            givenPortal(null);
+            deny(ENVIRONMENT_PORTAL, CREATE);
+
+            assertThat(put(readJSON("portal.json"), false)).isEqualTo(200);
+            verify(createOrUpdatePortalUseCase).execute(any());
+        }
+
+        @Test
+        void should_create_a_new_portal_with_create_and_no_update() {
+            deny(ENVIRONMENT_PORTAL, UPDATE);
+
+            assertThat(put(readJSON("portal.json"), false)).isEqualTo(200);
+            verify(createOrUpdatePortalUseCase).execute(any());
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_create_a_new_portal() {
+            deny(ENVIRONMENT_PORTAL, CREATE);
+
+            assertThat(put(readJSON("portal.json"), false)).isEqualTo(403);
+            verify(createOrUpdatePortalUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_update_themes_and_the_import_activates_one() {
+            givenPortal(null);
+            deny(ENVIRONMENT_THEME, UPDATE);
+
+            assertThat(put(portalWithActiveTheme("default-theme"), false)).isEqualTo(403);
+            verify(createOrUpdatePortalUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_403_on_dry_run_when_the_caller_cannot_update_themes_and_the_import_activates_one() {
+            givenPortal(null);
+            deny(ENVIRONMENT_THEME, UPDATE);
+
+            assertThat(put(portalWithActiveTheme("default-theme"), true)).isEqualTo(403);
+            verify(validatePortalUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_update_themes_and_a_new_portal_activates_one() {
+            deny(ENVIRONMENT_THEME, UPDATE);
+
+            assertThat(put(portalWithActiveTheme("default-theme"), false)).isEqualTo(403);
+            verify(createOrUpdatePortalUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_update_themes_and_the_import_deactivates_the_active_one() {
+            givenPortal(themeId);
+            deny(ENVIRONMENT_THEME, UPDATE);
+
+            assertThat(put(readJSON("portal.json"), false)).isEqualTo(403);
+            verify(createOrUpdatePortalUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_update_the_portal_without_theme_rights_when_the_active_theme_is_unchanged() {
+            givenPortal(themeId);
+            deny(ENVIRONMENT_THEME, UPDATE);
+
+            assertThat(put(portalWithActiveTheme("default-theme"), false)).isEqualTo(200);
+            verify(createOrUpdatePortalUseCase).execute(any());
+        }
+
+        @Test
+        void should_update_the_portal_without_theme_rights_when_no_theme_is_involved() {
+            givenPortal(null);
+            deny(ENVIRONMENT_THEME, UPDATE);
+
+            assertThat(put(readJSON("portal.json"), false)).isEqualTo(200);
+            verify(createOrUpdatePortalUseCase).execute(any());
+        }
+
+        private void givenPortal(String activeThemeId) {
+            portalCrudService.initWith(
+                List.of(Portal.of(portalId, ENVIRONMENT, ORGANIZATION, "Default Portal").withActiveThemeId(activeThemeId))
+            );
+        }
+
+        private void deny(RolePermission permission, RolePermissionAction action) {
+            when(permissionService.hasPermission(any(), eq(permission), eq(ENVIRONMENT), eq(action))).thenReturn(false);
+        }
+
+        private String portalWithActiveTheme(String themeHrid) {
+            return "{\"hrid\": \"default-portal\", \"name\": \"Default Portal\", \"activeThemeHrid\": \"" + themeHrid + "\"}";
+        }
+
+        private int put(String spec, boolean dryRun) {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(spec))
+            ) {
+                return response.getStatus();
             }
         }
     }
