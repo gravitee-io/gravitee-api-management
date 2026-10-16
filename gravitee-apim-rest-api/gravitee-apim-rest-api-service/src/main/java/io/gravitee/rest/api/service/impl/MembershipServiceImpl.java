@@ -1294,6 +1294,15 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
+    public Set<String> getRoleIdsByMember(MembershipMemberType memberType, String memberId) {
+        try {
+            return membershipRepository.findRoleIdsByMemberIdAndMemberType(memberId, convert(memberType));
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurs while trying to get the roles held by " + memberId, ex);
+        }
+    }
+
+    @Override
     public Set<MembershipEntity> getMembershipsByMemberAndReference(
         MembershipMemberType memberType,
         String memberId,
