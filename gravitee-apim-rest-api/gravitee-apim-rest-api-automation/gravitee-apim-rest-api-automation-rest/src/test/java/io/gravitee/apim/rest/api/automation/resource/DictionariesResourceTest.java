@@ -15,15 +15,21 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_DICTIONARY;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.dictionary.domain_service.DictionaryAutomationDomainService;
 import io.gravitee.apim.core.dictionary.domain_service.ValidateDictionaryDomainService;
 import io.gravitee.apim.core.dictionary.use_case.CreateOrUpdateDictionaryUseCase;
 import io.gravitee.apim.rest.api.automation.model.DictionaryState;
@@ -33,15 +39,20 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryPropertyOptions;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryType;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -54,6 +65,9 @@ class DictionariesResourceTest extends AbstractResourceTest {
 
     @Inject
     private ValidateDictionaryDomainService validateDictionaryDomainService;
+
+    @Inject
+    private DictionaryAutomationDomainService dictionaryAutomationDomainService;
 
     @AfterEach
     void tearDown() {
@@ -337,6 +351,94 @@ class DictionariesResourceTest extends AbstractResourceTest {
             ) {
                 assertThat(response.getStatus()).isEqualTo(400);
                 verifyNoInteractions(createOrUpdateDictionaryUseCase);
+            }
+        }
+    }
+
+    @Nested
+    class Authorization {
+
+        private final String dictionaryId = HRIDToUUID.dictionary()
+            .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+            .hrid("my-dict")
+            .id();
+
+        @BeforeEach
+        void setUp() {
+            when(dictionaryAutomationDomainService.findById(any(), any())).thenReturn(Optional.empty());
+            when(createOrUpdateDictionaryUseCase.execute(any())).thenReturn(
+                new CreateOrUpdateDictionaryUseCase.Output(
+                    DictionaryEntity.builder().id(dictionaryId).key("my-dict").type(DictionaryType.MANUAL).build()
+                )
+            );
+        }
+
+        @AfterEach
+        void tearDown() {
+            reset(permissionService, dictionaryAutomationDomainService);
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_update_the_existing_dictionary() {
+            givenDictionary();
+            denyDictionaryPermission(UPDATE);
+
+            assertThat(put(false)).isEqualTo(403);
+            verify(createOrUpdateDictionaryUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_403_on_dry_run_when_the_caller_cannot_update_the_existing_dictionary() {
+            givenDictionary();
+            denyDictionaryPermission(UPDATE);
+
+            assertThat(put(true)).isEqualTo(403);
+        }
+
+        @Test
+        void should_update_the_existing_dictionary_with_update_and_no_create() {
+            givenDictionary();
+            denyDictionaryPermission(CREATE);
+
+            assertThat(put(false)).isEqualTo(200);
+            verify(createOrUpdateDictionaryUseCase).execute(any());
+        }
+
+        @Test
+        void should_create_a_new_dictionary_with_create_and_no_update() {
+            denyDictionaryPermission(UPDATE);
+
+            assertThat(put(false)).isEqualTo(200);
+            verify(createOrUpdateDictionaryUseCase).execute(any());
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_create_a_new_dictionary() {
+            denyDictionaryPermission(CREATE);
+
+            assertThat(put(false)).isEqualTo(403);
+            verify(createOrUpdateDictionaryUseCase, never()).execute(any());
+        }
+
+        private void givenDictionary() {
+            when(dictionaryAutomationDomainService.findById(any(), eq(dictionaryId))).thenReturn(
+                Optional.of(DictionaryEntity.builder().id(dictionaryId).build())
+            );
+        }
+
+        private void denyDictionaryPermission(RolePermissionAction action) {
+            when(permissionService.hasPermission(any(), eq(ENVIRONMENT_DICTIONARY), eq(ENVIRONMENT), eq(action))).thenReturn(false);
+        }
+
+        private int put(boolean dryRun) {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("manual-dictionary.json")))
+            ) {
+                return response.getStatus();
             }
         }
     }
