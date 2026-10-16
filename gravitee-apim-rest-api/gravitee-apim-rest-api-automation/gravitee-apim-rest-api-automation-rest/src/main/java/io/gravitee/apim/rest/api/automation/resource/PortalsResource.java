@@ -18,6 +18,8 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.use_case.CreateOrUpdatePortalUseCase;
@@ -55,6 +57,9 @@ public class PortalsResource extends AbstractResource {
     @Inject
     private ValidatePortalUseCase validatePortalUseCase;
 
+    @Inject
+    private PortalCrudService portalCrudService;
+
     @Path("/{hrid}")
     public PortalResource getPortalResource() {
         return resourceContext.getResource(PortalResource.class);
@@ -73,6 +78,7 @@ public class PortalsResource extends AbstractResource {
             spec.getName()
         );
         var navigation = PortalMapper.INSTANCE.toCoreNavigation(spec.getNavigation());
+        authorizeImport(auditInfo, portal.getId());
 
         var input = new CreateOrUpdatePortalUseCase.Input(auditInfo, portal, navigation);
         var output = dryRun ? validatePortalUseCase.execute(input) : createOrUpdatePortalUseCase.execute(input);
@@ -80,5 +86,16 @@ public class PortalsResource extends AbstractResource {
         return Response.ok(
             PortalMapper.INSTANCE.toPortalState(output.portal(), spec.getHrid(), output.navigation(), output.errors())
         ).build();
+    }
+
+    private void authorizeImport(AuditInfo auditInfo, PortalId portalId) {
+        requireCreateOrUpdate(
+            RolePermission.ENVIRONMENT_PORTAL,
+            RolePermission.ENVIRONMENT_PORTAL,
+            portalCrudService
+                .findByIdAndEnvironmentId(portalId, auditInfo.environmentId())
+                .map(p -> p.getId().toString())
+                .orElse(null)
+        );
     }
 }
