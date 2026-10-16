@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.group.use_case;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.*;
 import static org.mockito.Mockito.when;
@@ -165,5 +166,23 @@ public class ImportGroupCRDUseCaseTest {
             soft.assertThat(membersService.getGroupMembers(GROUP_ID)).isNullOrEmpty();
             soft.assertThat(membersService.getGroupApiRole(GROUP_ID)).isNull();
         });
+    }
+
+    @Test
+    void should_reject_a_group_of_another_environment_named_by_another_form_of_its_id() {
+        var existing = io.gravitee.apim.core.group.model.Group.builder()
+            .id(GROUP_ID)
+            .environmentId("other-environment-id")
+            .name("other-environment-group")
+            .build();
+        groupQueryService.initWith(List.of(existing));
+        groupCrudService.storage().put(GROUP_ID, existing);
+        var spec = GroupCRDSpec.builder().id(GROUP_ID.toUpperCase()).name("kubernetes-spec").members(Set.of());
+
+        assertThatThrownBy(() -> cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, spec.build()))).isInstanceOf(
+            GroupNotFoundException.class
+        );
+
+        assertThat(groupCrudService.storage().get(GROUP_ID)).isEqualTo(existing);
     }
 }
