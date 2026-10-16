@@ -123,7 +123,8 @@ export function DictionaryPropertiesTable({
 
     const totalCount = properties.length;
     const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-    const paginatedData = useMemo(() => paginateProperties(properties, page, pageSize), [properties, page, pageSize]);
+    const currentPage = Math.min(page, totalPages);
+    const paginatedData = useMemo(() => paginateProperties(properties, currentPage, pageSize), [properties, currentPage, pageSize]);
 
     const columns = useMemo(() => buildColumns({ canEdit, isMutating, onEdit, onDelete }), [canEdit, isMutating, onEdit, onDelete]);
 
@@ -145,7 +146,7 @@ export function DictionaryPropertiesTable({
             data={paginatedData}
             serverSide
             pagination={{
-                page,
+                page: currentPage,
                 pageSize,
                 totalCount,
                 pageSizeOptions: [...TABLE_PAGE_SIZE_OPTIONS],
