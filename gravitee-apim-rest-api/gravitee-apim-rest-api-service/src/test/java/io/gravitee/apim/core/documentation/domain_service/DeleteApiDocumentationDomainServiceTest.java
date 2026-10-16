@@ -35,6 +35,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.PageAuditEvent;
 import io.gravitee.apim.core.documentation.exception.ApiFolderNotEmptyException;
 import io.gravitee.apim.core.documentation.exception.ApiPageInvalidReferenceTypeException;
+import io.gravitee.apim.core.documentation.exception.ApiPageNotAssociatedException;
 import io.gravitee.apim.core.documentation.exception.ApiPageUsedAsGeneralConditionException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.search.model.IndexablePage;
@@ -51,6 +52,9 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class DeleteApiDocumentationDomainServiceTest {
@@ -87,7 +91,8 @@ class DeleteApiDocumentationDomainServiceTest {
             new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
             updateApiDocumentationDomainService,
             planQueryService,
-            indexer
+            indexer,
+            new ApiDocumentationDomainService(pageQueryService, planQueryService)
         );
     }
 
@@ -112,10 +117,44 @@ class DeleteApiDocumentationDomainServiceTest {
             assertThatThrownBy(() -> cut.delete(API, PAGE_ID, AUDIT_INFO)).isInstanceOf(ApiPageInvalidReferenceTypeException.class);
         }
 
+        @ParameterizedTest
+        @NullSource
+        @ValueSource(strings = "another-api")
+        void should_reject_page_not_associated_to_api_without_side_effects(String referenceId) {
+            var page = Page.builder()
+                .id(PAGE_ID)
+                .referenceId(referenceId)
+                .referenceType(Page.ReferenceType.API)
+                .type(Page.Type.MARKDOWN)
+                .updatedAt(new Date(0))
+                .order(1)
+                .build();
+            var sibling = page.toBuilder().id("sibling-page").order(2).build();
+            var pages = List.of(page, sibling);
+            pageCrudService.initWith(pages);
+            pageQueryService.initWith(pages);
+            indexer.initWith(List.of(new IndexablePage(page), new IndexablePage(sibling)));
+            var indexedPages = List.copyOf(indexer.storage());
+
+            assertThatThrownBy(() -> cut.delete(API, PAGE_ID, AUDIT_INFO)).isInstanceOf(ApiPageNotAssociatedException.class);
+
+            assertThat(pageCrudService.storage()).usingRecursiveComparison().isEqualTo(pages);
+            assertThat(indexer.storage()).containsExactlyElementsOf(indexedPages);
+            assertThat(auditCrudService.storage()).isEmpty();
+            assertThat(pageRevisionCrudService.storage()).isEmpty();
+        }
+
         @Test
         void should_throw_if_page_used_as_general_condition() {
             pageCrudService.initWith(
-                List.of(Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.API).type(Page.Type.MARKDOWN).build())
+                List.of(
+                    Page.builder()
+                        .id(PAGE_ID)
+                        .referenceId(API.getId())
+                        .referenceType(Page.ReferenceType.API)
+                        .type(Page.Type.MARKDOWN)
+                        .build()
+                )
             );
             planQueryService.initWith(
                 List.of(
