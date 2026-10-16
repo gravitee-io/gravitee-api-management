@@ -20,11 +20,13 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.group.crud_service.GroupCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
+import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.model.crd.GroupCRDSpec;
 import io.gravitee.apim.core.group.model.crd.GroupCRDStatus;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -59,7 +61,7 @@ public class ImportGroupCRDUseCase {
     public Output execute(Input input) {
         return queryService
             .findById(input.spec.getId())
-            .map(existing -> this.update(input))
+            .map(existing -> this.update(input, existing))
             .orElseGet(() -> this.create(input));
     }
 
@@ -89,7 +91,7 @@ public class ImportGroupCRDUseCase {
         return new Output(new GroupCRDStatus(input.spec.getId(), input.spec.getMembers().size(), errors));
     }
 
-    private Output update(Input input) {
+    private Output update(Input input, Group existing) {
         var validationResult = validationService.validateAndSanitize(new ValidateGroupCRDDomainService.Input(input.auditInfo, input.spec));
 
         validationResult
@@ -100,7 +102,16 @@ public class ImportGroupCRDUseCase {
 
         var errors = validationResult.errors().map(GroupCRDStatus.Errors::fromErrorList).orElse(GroupCRDStatus.Errors.EMPTY);
 
+        inEnvironment(existing, input.auditInfo.environmentId());
+
         crudService.update(input.spec.toGroup(input.auditInfo.environmentId()));
         return updateGroupDefaultRoles(input, errors);
+    }
+
+    // The id is unique across environments: a group of another environment can be neither updated nor created again
+    private static void inEnvironment(Group existing, String environmentId) {
+        if (!environmentId.equals(existing.getEnvironmentId())) {
+            throw new GroupNotFoundException(existing.getId());
+        }
     }
 }
