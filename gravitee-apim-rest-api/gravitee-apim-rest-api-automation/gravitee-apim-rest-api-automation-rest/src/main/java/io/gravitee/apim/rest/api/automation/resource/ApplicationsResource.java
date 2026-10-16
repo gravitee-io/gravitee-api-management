@@ -18,6 +18,7 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
+import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDSpec;
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDStatus;
 import io.gravitee.apim.core.application.use_case.ImportApplicationCRDUseCase;
@@ -27,10 +28,14 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.rest.api.automation.mapper.ApplicationMapper;
 import io.gravitee.apim.rest.api.automation.model.ApplicationSpec;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -42,6 +47,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.util.Optional;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -54,6 +60,9 @@ public class ApplicationsResource extends AbstractResource {
 
     @Inject
     private ValidateApplicationCRDUseCase validateApplicationCRDUseCase;
+
+    @Inject
+    private ApplicationCrudService applicationCrudService;
 
     @Context
     private ResourceContext resourceContext;
@@ -96,6 +105,8 @@ public class ApplicationsResource extends AbstractResource {
             applicationCRDSpec.setId(spec.getHrid());
         }
 
+        authorizeImport(applicationCRDSpec.targetId(auditInfo), executionContext.getEnvironmentId());
+
         if (dryRun) {
             ApplicationCRDStatus status = validateApplicationCRDUseCase
                 .execute(new ImportApplicationCRDUseCase.Input(auditInfo, applicationCRDSpec))
@@ -108,5 +119,29 @@ public class ApplicationsResource extends AbstractResource {
             .status();
 
         return Response.ok(ApplicationMapper.INSTANCE.applicationSpecAndStatusToApplicationState(spec, status)).build();
+    }
+
+    private void authorizeImport(String applicationId, String environmentId) {
+        var existing = findApplication(applicationId, environmentId);
+        // Reviving an archived application wipes its members and makes the caller its owner: the Console reserves that to admins
+        if (existing.filter(application -> ApplicationStatus.ARCHIVED.name().equals(application.getStatus())).isPresent() && !isAdmin()) {
+            throw new ForbiddenAccessException();
+        }
+        requireCreateOrUpdate(
+            RolePermission.ENVIRONMENT_APPLICATION,
+            RolePermission.APPLICATION_DEFINITION,
+            existing.map(BaseApplicationEntity::getId).orElse(null)
+        );
+    }
+
+    private Optional<BaseApplicationEntity> findApplication(String applicationId, String environmentId) {
+        if (applicationId == null) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(applicationCrudService.findById(applicationId, environmentId));
+        } catch (ApplicationNotFoundException e) {
+            return Optional.empty();
+        }
     }
 }
