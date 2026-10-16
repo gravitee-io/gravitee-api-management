@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import lombok.CustomLog;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
@@ -77,6 +78,8 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
     private static final Set<String> REQUIRED_HTTP_PROPERTIES = Set.of(HTTP_URL_PROPERTY);
 
     private static final Set<String> OPTIONAL_HTTP_PROPERTIES = Set.of(FETCH_CRON_PROPERTY, "autoFetch", "useSystemProxy");
+
+    private static final long REQUEST_TIMEOUT_MS = 10_000;
 
     private final ObjectMapper objectMapper;
     private final Vertx vertx;
@@ -152,7 +155,7 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
     }
 
     private boolean canAccessResource(Map<String, Object> config) {
-        final RequestOptions reqOptions = getGithubRequestOptions(config);
+        final RequestOptions reqOptions = getGithubRequestOptions(config).setTimeout(REQUEST_TIMEOUT_MS);
         // TODO: we could fallback to bearer auth here is the username is null
         if (config.get(GITHUB_PERSONAL_ACCESS_TOKEN) != null && config.get(GITHUB_USERNAME) != null) {
             String auth = config.get(GITHUB_USERNAME) + ":" + config.get(GITHUB_PERSONAL_ACCESS_TOKEN);
@@ -162,6 +165,7 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
         return httpClient()
             .rxRequest(reqOptions)
             .flatMap(req -> req.rxSend().flatMap(resp -> Single.just(resp.statusCode() == 200)))
+            .timeout(REQUEST_TIMEOUT_MS, TimeUnit.MILLISECONDS)
             .blockingGet();
     }
 
