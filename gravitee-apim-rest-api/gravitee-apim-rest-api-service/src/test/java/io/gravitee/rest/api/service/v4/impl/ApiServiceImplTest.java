@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static io.gravitee.definition.model.DefinitionContext.MODE_FULLY_MANAGED;
 import static io.gravitee.definition.model.DefinitionContext.ORIGIN_KUBERNETES;
 import static io.gravitee.definition.model.DefinitionContext.ORIGIN_MANAGEMENT;
@@ -1314,6 +1315,35 @@ public class ApiServiceImplTest {
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
 
+        verify(auditService).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(data -> data.getEvent().equals(API_UPDATED) && !data.getProperties().containsKey(ENCRYPTED)),
+            eq(API_ID)
+        );
+    }
+
+    @Test
+    public void should_not_mark_the_update_audit_when_the_mask_is_sent_back_beside_a_new_plain_property() throws Exception {
+        prepareUpdate();
+        givenStoredProperties(List.of(new Property("secret-key", "ciphertext", true, false)));
+        PropertiesService realPropertiesService = new PropertiesServiceImpl(dataEncryptor);
+        when(propertiesService.encryptProperties(any(), any())).thenAnswer(invocation ->
+            realPropertiesService.encryptProperties(invocation.getArgument(0), invocation.getArgument(1))
+        );
+        updateApiEntity.setProperties(
+            List.of(
+                new PropertyEntity("secret-key", ENCRYPTED_VALUE_MASK, false, true),
+                new PropertyEntity("plain-c", "plain-c", false, false)
+            )
+        );
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        verify(apiRepository).update(
+            argThat(
+                persisted -> persisted.getDefinition().contains("ciphertext") && !persisted.getDefinition().contains(ENCRYPTED_VALUE_MASK)
+            )
+        );
         verify(auditService).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
             argThat(data -> data.getEvent().equals(API_UPDATED) && !data.getProperties().containsKey(ENCRYPTED)),
