@@ -19,8 +19,10 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -36,6 +38,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.IdBuilder;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -47,6 +50,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.util.Optional;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -61,6 +65,9 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private ValidateApiCRDDomainService validateApiCRDDomainService;
+
+    @Inject
+    private ApiQueryService apiQueryService;
 
     @Context
     private ResourceContext resourceContext;
@@ -106,6 +113,8 @@ public class ApisResource extends AbstractResource {
             apiCRDSpec.setId(spec.getHrid());
         }
 
+        authorizeImport(apiCrossIdOf(apiCRDSpec, audit), audit.environmentId());
+
         if (dryRun) {
             var statusBuilder = ApiCRDStatus.builder();
             validateApiCRDDomainService
@@ -126,6 +135,20 @@ public class ApisResource extends AbstractResource {
 
         SharedPolicyGroupIdHelper.removeSharedPolicyGroupId(spec);
         return Response.ok(ApiMapper.INSTANCE.apiV4SpecAndStatusToApiV4State(spec, apiCRDStatus)).build();
+    }
+
+    // Without a cross id the import validator derives it from the hrid: authorize against the API it will write
+    private static String apiCrossIdOf(ApiCRDSpec spec, AuditInfo auditInfo) {
+        if (spec.getCrossId() != null || spec.getHrid() == null) {
+            return spec.getCrossId();
+        }
+        return IdBuilder.builder(auditInfo, spec.getHrid()).buildCrossId();
+    }
+
+    private void authorizeImport(String crossId, String environmentId) {
+        // The same lookup as the import: authorize against the API it would update
+        var existing = crossId == null ? Optional.<Api>empty() : apiQueryService.findByEnvironmentIdAndCrossId(environmentId, crossId);
+        requireCreateOrUpdate(RolePermission.ENVIRONMENT_API, RolePermission.API_DEFINITION, existing.map(Api::getId).orElse(null));
     }
 
     private void checkPlanAndPagesUnicity(@Valid @NotNull LegacyAPIV4Spec spec) {
