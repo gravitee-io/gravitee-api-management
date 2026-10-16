@@ -16,6 +16,15 @@
 package io.gravitee.apim.rest.api.automation.resource;
 
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.rest.security.CreateOrUpdateAuthorization;
+import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
@@ -23,6 +32,32 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author GraviteeSource Team
  */
 public abstract class AbstractResource {
+
+    private static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
+
+    @Context
+    private SecurityContext securityContext;
+
+    @Inject
+    private PermissionService permissionService;
+
+    /**
+     * @param existingId the id of the object the import targets, or {@code null} when it does not exist yet
+     * @see CreateOrUpdateAuthorization#require
+     */
+    protected void requireCreateOrUpdate(RolePermission createPermission, RolePermission updatePermission, String existingId) {
+        CreateOrUpdateAuthorization.require(
+            permissionService,
+            GraviteeContext.getExecutionContext(),
+            createPermission,
+            updatePermission,
+            existingId
+        );
+    }
+
+    protected boolean isAdmin() {
+        return securityContext.isUserInRole(ORGANIZATION_ADMIN);
+    }
 
     protected UserDetails getAuthenticatedUserDetails() {
         return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
