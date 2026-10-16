@@ -16,8 +16,11 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import io.gravitee.apim.core.open_api.OpenApi;
+import io.gravitee.apim.core.portal_page.exception.InvalidUrlFormatException;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
+import java.net.URI;
+import java.net.URISyntaxException;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -76,14 +79,36 @@ public final class OpenApiPageContent extends PortalPageContent<OpenApi> {
 
     @Override
     public void update(@Nonnull UpdatePortalPageContent updatePortalPageContent) {
+        var configuration = updatePortalPageContent.getConfiguration();
+        if (configuration != null) {
+            validateTryItUrl(configuration);
+        }
         this.content = OpenApi.of(updatePortalPageContent.getContent());
-        if (updatePortalPageContent.getConfiguration() != null) {
-            this.viewerSettings = updatePortalPageContent.getConfiguration();
+        if (configuration != null) {
+            this.viewerSettings = configuration;
         }
     }
 
     public void updateViewerSettings(@Nonnull OpenApiConfiguration viewerSettings) {
+        validateTryItUrl(viewerSettings);
         this.viewerSettings = viewerSettings;
+    }
+
+    /** The portal makes the base URL the document's server, which Swagger UI calls to try the API: only http(s) can serve. */
+    private static void validateTryItUrl(OpenApiConfiguration viewerSettings) {
+        var tryItUrl = viewerSettings.tryItUrl();
+        if (tryItUrl != null && !tryItUrl.isEmpty() && !isHttpUrl(tryItUrl)) {
+            throw new InvalidUrlFormatException();
+        }
+    }
+
+    private static boolean isHttpUrl(String url) {
+        try {
+            var uri = new URI(url);
+            return ("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme())) && uri.getRawAuthority() != null;
+        } catch (URISyntaxException e) {
+            return false;
+        }
     }
 
     @Override

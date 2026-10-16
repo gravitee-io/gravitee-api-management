@@ -18,6 +18,8 @@ package io.gravitee.apim.core.portal_page.model;
 public sealed interface OpenApiConfiguration permits SwaggerUiConfiguration, RedocConfiguration {
     Viewer viewer();
 
+    String tryItUrl();
+
     enum Viewer {
         SWAGGER,
         REDOC,

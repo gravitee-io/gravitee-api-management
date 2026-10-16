@@ -167,6 +167,16 @@ class ApiDocumentationNavigationItemResource_PatchContentConfigurationTest exten
     }
 
     @Test
+    void should_return_400_for_a_base_url_that_is_not_http() {
+        var page = anOpenApiPageOwnedBy(API_ID);
+
+        Response response = configure(page.getId(), Map.of("viewer", "REDOC", "tryItURL", "javascript:alert(1)"));
+
+        assertThat(response).hasStatus(BAD_REQUEST_400);
+        assertThat(storedContentOf(page).getViewerSettings()).isEqualTo(ORIGINAL_CONFIGURATION);
+    }
+
+    @Test
     void should_not_touch_the_content() {
         var page = anOpenApiPageOwnedBy(API_ID);
 
