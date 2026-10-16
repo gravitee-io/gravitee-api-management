@@ -163,6 +163,30 @@ class GroupResourceTest extends AbstractResourceTest {
             }
         }
 
+        @Test
+        void should_get_group_whose_environment_id_differs_only_in_case() {
+            groupQueryServiceInMemory.initWith(
+                List.of(Group.builder().id(GUID).name("Legacy Group").environmentId(ENVIRONMENT.toUpperCase()).build())
+            );
+            givenNoMembers();
+
+            try (var response = rootTarget().path(GUID).queryParam("hridContainsUUID", true).request().get()) {
+                assertThat(response.getStatus()).isEqualTo(200);
+            }
+        }
+
+        @Test
+        void should_return_a_404_status_code_and_read_no_member_for_a_group_of_another_environment() {
+            groupQueryServiceInMemory.initWith(
+                List.of(Group.builder().id(GUID).name("Other Group").environmentId("another-environment").build())
+            );
+
+            try (var response = rootTarget().path(GUID).queryParam("hridContainsUUID", true).request().get()) {
+                assertThat(response.getStatus()).isEqualTo(404);
+            }
+            verifyNoInteractions(membershipService, userService);
+        }
+
         private void givenNoMembers() {
             when(membershipService.getMembersByReference(any(), eq(MembershipReferenceType.GROUP), any())).thenReturn(Set.of());
         }

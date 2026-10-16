@@ -417,6 +417,9 @@ paths:
         - $ref: "#/components/parameters/orgIdParam"
         - $ref: "#/components/parameters/envIdParam"
         - $ref: "#/components/parameters/apiHridParam"
+        - $ref: "#/components/parameters/hridContainsUUIDQueryParam"
+        - $ref: "#/components/parameters/hridContainsApiUUIDQueryParam"
+        - $ref: "#/components/parameters/hridContainsAppUUIDQueryParam"
       requestBody:
         description: Subscription specification
         content:
@@ -437,6 +440,8 @@ paths:
           $ref: "#/components/responses/Unauthenticated"
         "403":
           $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
         default:
           $ref: "#/components/responses/Error"
 
@@ -457,6 +462,8 @@ paths:
         - $ref: "#/components/parameters/envIdParam"
         - $ref: "#/components/parameters/apiHridParam"
         - $ref: "#/components/parameters/hridParam"
+        - $ref: "#/components/parameters/hridContainsUUIDQueryParam"
+        - $ref: "#/components/parameters/hridContainsApiUUIDQueryParam"
       responses:
         "200":
           description: API subscription successfully retrieved
@@ -483,6 +490,8 @@ paths:
         - $ref: "#/components/parameters/envIdParam"
         - $ref: "#/components/parameters/apiHridParam"
         - $ref: "#/components/parameters/hridParam"
+        - $ref: "#/components/parameters/hridContainsUUIDQueryParam"
+        - $ref: "#/components/parameters/hridContainsApiUUIDQueryParam"
       responses:
         "204":
           description: Subscription successfully deleted
@@ -3512,6 +3521,26 @@ components:
         When true, the HRID path or spec value is treated as an existing UUID rather than
         a human-readable identifier. This is to support backward compatibility for resources
         created before migration to the automation API and should not be used for new resources.
+      schema:
+        type: boolean
+        default: false
+    hridContainsApiUUIDQueryParam:
+      name: hridContainsApiUUID
+      in: query
+      description: |
+        When true, the apiHrid path value (and, on create or update, the spec's planHrid) is treated as an
+        existing UUID rather than a human-readable identifier. This is to support backward compatibility for
+        resources created before migration to the automation API and should not be used for new resources.
+      schema:
+        type: boolean
+        default: false
+    hridContainsAppUUIDQueryParam:
+      name: hridContainsAppUUID
+      in: query
+      description: |
+        When true, the spec's applicationHrid is treated as an existing UUID rather than a human-readable
+        identifier. This is to support backward compatibility for resources created before migration to the
+        automation API and should not be used for new resources.
       schema:
         type: boolean
         default: false
