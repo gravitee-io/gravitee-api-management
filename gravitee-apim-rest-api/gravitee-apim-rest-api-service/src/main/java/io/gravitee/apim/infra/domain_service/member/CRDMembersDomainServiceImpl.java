@@ -65,26 +65,38 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
     private final PermissionService permissionService;
 
     @Override
+    public void createApiMembers(AuditInfo auditInfo, String apiId, Set<MemberCRD> members) {
+        replaceMembers(auditInfo, apiId, RoleScope.API, MembershipReferenceType.API, members);
+    }
+
+    @Override
     public void updateApiMembers(AuditInfo auditInfo, String apiId, Set<MemberCRD> members) {
-        updateMembers(auditInfo, apiId, RoleScope.API, MembershipReferenceType.API, members);
-        deleteOrphans(auditInfo, apiId, RoleScope.API, MembershipReferenceType.API, members);
-        transferOwnerShip(auditInfo, apiId, RoleScope.API, MembershipReferenceType.API);
+        if (!canManageMembers(auditInfo, RolePermission.API_MEMBER, apiId)) {
+            // checkApiMembersUpdate already rejected any member change: there is nothing to write, and the owner stays
+            return;
+        }
+        replaceMembers(auditInfo, apiId, RoleScope.API, MembershipReferenceType.API, members);
+    }
+
+    @Override
+    public void checkApiMembersUpdate(AuditInfo auditInfo, String apiId, Set<MemberCRD> members) {
+        if (!canManageMembers(auditInfo, RolePermission.API_MEMBER, apiId)) {
+            requireUnchangedMembers(auditInfo, apiId, RoleScope.API, MembershipReferenceType.API, members);
+        }
     }
 
     @Override
     public void updateApplicationMembers(AuditInfo auditInfo, String applicationId, Set<MemberCRD> members) {
-        if (!canManageApplicationMembers(auditInfo, applicationId)) {
+        if (!canManageMembers(auditInfo, RolePermission.APPLICATION_MEMBER, applicationId)) {
             // checkApplicationMembersUpdate already rejected any member change: there is nothing to write, and the owner stays
             return;
         }
-        updateMembers(auditInfo, applicationId, RoleScope.APPLICATION, MembershipReferenceType.APPLICATION, members);
-        deleteOrphans(auditInfo, applicationId, RoleScope.APPLICATION, MembershipReferenceType.APPLICATION, members);
-        transferOwnerShip(auditInfo, applicationId, RoleScope.APPLICATION, MembershipReferenceType.APPLICATION);
+        replaceMembers(auditInfo, applicationId, RoleScope.APPLICATION, MembershipReferenceType.APPLICATION, members);
     }
 
     @Override
     public void checkApplicationMembersUpdate(AuditInfo auditInfo, String applicationId, Set<MemberCRD> members) {
-        if (!canManageApplicationMembers(auditInfo, applicationId)) {
+        if (!canManageMembers(auditInfo, RolePermission.APPLICATION_MEMBER, applicationId)) {
             requireUnchangedMembers(auditInfo, applicationId, RoleScope.APPLICATION, MembershipReferenceType.APPLICATION, members);
         }
     }
@@ -194,12 +206,24 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
         log.debug("Members successfully created for {} [{}]", referenceType, referenceId);
     }
 
-    private boolean canManageApplicationMembers(AuditInfo auditInfo, String applicationId) {
+    private void replaceMembers(
+        AuditInfo auditInfo,
+        String referenceId,
+        RoleScope roleScope,
+        MembershipReferenceType referenceType,
+        Set<MemberCRD> members
+    ) {
+        updateMembers(auditInfo, referenceId, roleScope, referenceType, members);
+        deleteOrphans(auditInfo, referenceId, roleScope, referenceType, members);
+        transferOwnerShip(auditInfo, referenceId, roleScope, referenceType);
+    }
+
+    private boolean canManageMembers(AuditInfo auditInfo, RolePermission memberPermission, String referenceId) {
         return permissionService.hasPermission(
             new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId()),
             auditInfo.actor().userId(),
-            RolePermission.APPLICATION_MEMBER,
-            applicationId,
+            memberPermission,
+            referenceId,
             RolePermissionAction.UPDATE
         );
     }

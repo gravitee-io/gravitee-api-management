@@ -37,10 +37,27 @@ public class CRDMembersDomainServiceInMemory implements CRDMembersDomainService 
     private final HashMap<String, String> groupApplicationRoles = new HashMap<>();
     private final HashMap<String, String> groupApiProductRoles = new HashMap<>();
     private final Set<String> applicationsDenyingMembersUpdate = new HashSet<>();
+    private final Set<String> apisDenyingMembersUpdate = new HashSet<>();
+
+    @Override
+    public void createApiMembers(AuditInfo auditInfo, String apiId, Set<MemberCRD> members) {
+        apiMembers.put(apiId, members);
+    }
 
     @Override
     public void updateApiMembers(AuditInfo auditInfo, String apiId, Set<MemberCRD> members) {
         apiMembers.put(apiId, members);
+    }
+
+    @Override
+    public void checkApiMembersUpdate(AuditInfo auditInfo, String apiId, Set<MemberCRD> members) {
+        if (apisDenyingMembersUpdate.contains(apiId)) {
+            throw new ForbiddenAccessException();
+        }
+    }
+
+    public void denyApiMembersUpdate(String apiId) {
+        apisDenyingMembersUpdate.add(apiId);
     }
 
     @Override
@@ -91,6 +108,7 @@ public class CRDMembersDomainServiceInMemory implements CRDMembersDomainService 
         groupApplicationRoles.clear();
         groupApiProductRoles.clear();
         applicationsDenyingMembersUpdate.clear();
+        apisDenyingMembersUpdate.clear();
     }
 
     public Set<MemberCRD> getApiMembers(String id) {
