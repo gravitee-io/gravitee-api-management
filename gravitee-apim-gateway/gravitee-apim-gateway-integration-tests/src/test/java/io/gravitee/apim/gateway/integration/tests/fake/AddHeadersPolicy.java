@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Stand-in for the transform-headers policy: edits the headers of the request or of the response, the values being
@@ -104,7 +105,7 @@ public class AddHeadersPolicy implements Policy {
         });
     }
 
-    private Completable evaluate(TemplateEngine engine, Header header, java.util.function.Consumer<String> apply) {
+    private Completable evaluate(TemplateEngine engine, Header header, Consumer<String> apply) {
         return engine.eval(header.value(), String.class).doOnSuccess(apply::accept).ignoreElement();
     }
 
