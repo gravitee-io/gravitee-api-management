@@ -45,6 +45,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -156,6 +157,23 @@ class ApiDocumentationNavigationItemResource_PutContentTest extends AbstractReso
 
         assertThat(response).hasStatus(BAD_REQUEST_400);
         assertThat(storedContentOf(sourcedPage)).isEqualTo(ORIGINAL_CONTENT);
+    }
+
+    @Test
+    void should_return_400_for_a_configuration_whose_base_url_is_not_http() {
+        var page = aPageOwnedBy(API_ID);
+
+        Response response = rootTarget(page.getId().json())
+            .path("content")
+            .request()
+            .put(
+                Entity.json(
+                    Map.of("content", "# New content", "configuration", Map.of("viewer", "REDOC", "tryItURL", "javascript:alert(1)"))
+                )
+            );
+
+        assertThat(response).hasStatus(BAD_REQUEST_400);
+        assertThat(storedContentOf(page)).isEqualTo(ORIGINAL_CONTENT);
     }
 
     @Test

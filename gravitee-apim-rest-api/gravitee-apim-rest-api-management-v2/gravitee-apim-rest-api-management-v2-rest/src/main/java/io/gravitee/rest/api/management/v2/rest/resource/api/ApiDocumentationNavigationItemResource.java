@@ -189,6 +189,10 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
         @PathParam("navId") String navigationItemId,
         @Valid @NotNull final UpdatePortalPageContent updatePortalPageContent
     ) {
+        var update = PortalPageContentMapper.INSTANCE.map(updatePortalPageContent);
+        if (update.getConfiguration() != null) {
+            requireHttpTryItUrl(update.getConfiguration());
+        }
         var environmentId = GraviteeContext.getCurrentEnvironment();
         var page = apiOwnedNavigationDomainService.requireOwnedPage(environmentId, apiId, PortalNavigationItemId.of(navigationItemId));
 
@@ -197,7 +201,7 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
                 GraviteeContext.getCurrentOrganization(),
                 environmentId,
                 page.getPortalPageContentId().json(),
-                PortalPageContentMapper.INSTANCE.map(updatePortalPageContent)
+                update
             )
         );
         return PortalPageContentMapper.INSTANCE.map(output.portalPageContent());
@@ -230,8 +234,8 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
     }
 
     /**
-     * This path opens the base URL to API users, so it only takes what the dialogs allow: empty, or an http(s) URL. The
-     * environment-level endpoint is left as it was, relative URLs included.
+     * The API-scoped content and configuration writes open the base URL to API users, so they only take what the dialogs
+     * allow: empty, or an http(s) URL. The environment-level endpoints are left as they were, relative URLs included.
      */
     private static void requireHttpTryItUrl(OpenApiConfiguration viewerSettings) {
         var tryItUrl = switch (viewerSettings) {
