@@ -97,6 +97,7 @@ public class GroupInvitationsResource extends AbstractResource {
         }
     )
     public List<InvitationEntity> getGroupInvitations() {
+        checkGroupBelongsToCurrentEnvironment();
         return invitationService.findByReference(GROUP, group);
     }
 
@@ -187,6 +188,7 @@ public class GroupInvitationsResource extends AbstractResource {
         @PathParam("invitation") String invitation,
         @Valid @NotNull final UpdateInvitationEntity invitationEntity
     ) {
+        checkGroupBelongsToCurrentEnvironment();
         invitationEntity.setId(invitation);
         invitationEntity.setReferenceType(GROUP);
         invitationEntity.setReferenceId(group);
@@ -207,6 +209,14 @@ public class GroupInvitationsResource extends AbstractResource {
         }
     )
     public void deleteGroupInvitation(@PathParam("invitation") String invitation) {
+        checkGroupBelongsToCurrentEnvironment();
         invitationService.delete(invitation, group);
+    }
+
+    /**
+     * Rejects a group that does not belong to the current environment (404) before any invitation is read or written.
+     */
+    private void checkGroupBelongsToCurrentEnvironment() {
+        groupService.findById(GraviteeContext.getExecutionContext(), group);
     }
 }
