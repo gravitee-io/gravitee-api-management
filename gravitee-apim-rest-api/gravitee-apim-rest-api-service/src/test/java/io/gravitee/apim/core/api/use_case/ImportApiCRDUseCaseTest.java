@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
+import static org.mockito.Mockito.verifyNoInteractions;
 import static fixtures.ApplicationModelFixtures.anApplicationEntity;
 import static fixtures.core.model.ApiFixtures.aNativeApi;
 import static fixtures.core.model.ApiFixtures.aProxyApiV4;
@@ -398,7 +399,8 @@ class ImportApiCRDUseCaseTest {
             new ValidatePagesDomainService(pageSourceValidator, accessControlValidator, validationDomainService),
             new ValidatePlanDomainService(planValidatorDomainService),
             new ValidatePortalNotificationDomainService(new ValidateGroupsDomainService(groupQueryService)),
-            new ValidateHealthCheckScheduleDomainService(new ObjectMapper())
+            new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
+            apiQueryService
         );
 
         planQueryService = new PlanQueryServiceInMemory(planCrudService);
@@ -1146,6 +1148,21 @@ class ImportApiCRDUseCaseTest {
             // TODO fake update API for now until we get rid of Legacy
             when(updateApiDomainService.update(any(), any(), any())).thenAnswer(invocation -> API_PROXY_V4);
             planQueryService.reset();
+        }
+
+        @Test
+        void should_reject_a_body_id_that_differs_from_the_existing_api() {
+            var otherApi = NATIVE_API.toBuilder().id("other-api-id").crossId("other-cross-id").name("other-api").build();
+            apiQueryService.initWith(List.of(NATIVE_API, otherApi));
+
+            var throwable = catchThrowable(() ->
+                useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aNativeApiCRD().id(otherApi.getId()).name("renamed").build()))
+            );
+
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+            assertThat(apiCrudService.get(otherApi.getId()).getName()).isEqualTo("other-api");
+            assertThat(apiCrudService.get(API_ID).getName()).isEqualTo(NATIVE_API.getName());
+            verifyNoInteractions(apiStateDomainService);
         }
 
         @Test
