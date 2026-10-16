@@ -15,13 +15,21 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.API_DEFINITION;
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_API;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.rest.api.automation.helpers.SharedPolicyGroupIdHelper;
 import io.gravitee.apim.rest.api.automation.model.ApiV4State;
@@ -35,6 +43,7 @@ import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -55,10 +64,96 @@ class ApisResourceTest extends AbstractResourceTest {
     @Inject
     private ValidateApiCRDDomainService validateApiCRDDomainService;
 
+    @Inject
+    private ApiQueryService apiQueryService;
+
     @AfterEach
     void tearDown() {
         reset(importApiCRDUseCase);
         reset(validateApiCRDDomainService);
+        reset(apiQueryService);
+        reset(permissionService);
+    }
+
+    @Nested
+    class Authorization {
+
+        private static final String EXISTING_API_ID = "existing-api-id";
+
+        @BeforeEach
+        void setUp() {
+            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class))).thenReturn(
+                new ImportApiCRDUseCase.Output(
+                    ApiCRDStatus.builder().id(EXISTING_API_ID).organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build()
+                )
+            );
+            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
+                Validator.Result.ofValue(call.getArgument(0))
+            );
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_update_the_existing_api() {
+            givenExistingApi();
+            when(permissionService.hasPermission(any(), eq(API_DEFINITION), eq(EXISTING_API_ID), eq(UPDATE))).thenReturn(false);
+
+            assertThat(status(false)).isEqualTo(403);
+            verify(importApiCRDUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_403_on_dry_run_when_the_caller_cannot_update_the_existing_api() {
+            givenExistingApi();
+            when(permissionService.hasPermission(any(), eq(API_DEFINITION), eq(EXISTING_API_ID), eq(UPDATE))).thenReturn(false);
+
+            assertThat(status(true)).isEqualTo(403);
+            verify(validateApiCRDDomainService, never()).validateAndSanitize(any());
+        }
+
+        @Test
+        void should_update_the_existing_api_with_update_on_it_and_no_create_on_the_environment() {
+            givenExistingApi();
+            when(permissionService.hasPermission(any(), eq(ENVIRONMENT_API), eq(ENVIRONMENT), eq(CREATE))).thenReturn(false);
+
+            assertThat(status(false)).isEqualTo(200);
+            verify(importApiCRDUseCase).execute(any());
+        }
+
+        @Test
+        void should_return_403_when_creating_without_create_on_the_environment() {
+            when(permissionService.hasPermission(any(), eq(ENVIRONMENT_API), eq(ENVIRONMENT), eq(CREATE))).thenReturn(false);
+
+            assertThat(status(false)).isEqualTo(403);
+            verify(importApiCRDUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_create_the_api_with_create_on_the_environment() {
+            assertThat(status(false)).isEqualTo(200);
+            verify(importApiCRDUseCase).execute(any());
+        }
+
+        private void givenExistingApi() {
+            var crossId = HRIDToUUID.api()
+                .context(AuditInfo.builder().organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build())
+                .hrid("api-hrid")
+                .crossId();
+            when(apiQueryService.findByEnvironmentIdAndCrossId(ENVIRONMENT, crossId)).thenReturn(
+                Optional.of(Api.builder().id(EXISTING_API_ID).environmentId(ENVIRONMENT).crossId(crossId).build())
+            );
+        }
+
+        private int status(boolean dryRun) {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-with-hrid.json")))
+            ) {
+                return response.getStatus();
+            }
+        }
     }
 
     @Nested
