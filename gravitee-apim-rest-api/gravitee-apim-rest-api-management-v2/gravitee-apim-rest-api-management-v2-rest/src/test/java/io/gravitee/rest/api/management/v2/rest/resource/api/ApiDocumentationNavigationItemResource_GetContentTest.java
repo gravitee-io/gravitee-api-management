@@ -44,6 +44,7 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -56,6 +57,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class ApiDocumentationNavigationItemResource_GetContentTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "environment-id";
+    private static final String ENVIRONMENT_HRID = "environment-hrid";
     private static final String API_ID = "api-id";
     private static final String OTHER_API_ID = "other-api-id";
     private static final String ORIGINAL_CONTENT = "# Original content";
@@ -71,7 +73,7 @@ class ApiDocumentationNavigationItemResource_GetContentTest extends AbstractReso
 
     @Override
     protected String contextPath() {
-        return "/environments/" + ENVIRONMENT + "/apis/" + API_ID + "/portal-navigation-items";
+        return "/environments/" + ENVIRONMENT_HRID + "/apis/" + API_ID + "/portal-navigation-items";
     }
 
     @BeforeEach
@@ -79,12 +81,15 @@ class ApiDocumentationNavigationItemResource_GetContentTest extends AbstractReso
         EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_HRID)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
         // The mock is shared with the other test classes of the Spring context, which do not all reset it
         Mockito.reset(getPortalPageContentUseCase);
+        var useCase = new GetPortalPageContentUseCase(portalPageContentQueryService);
+        when(getPortalPageContentUseCase.execute(any())).thenAnswer(invocation -> useCase.execute(invocation.getArgument(0)));
     }
 
     @AfterEach
@@ -99,16 +104,6 @@ class ApiDocumentationNavigationItemResource_GetContentTest extends AbstractReso
     @Test
     void should_return_the_content_of_a_page_owned_by_the_api() {
         var page = aPageOwnedBy(API_ID);
-        when(getPortalPageContentUseCase.execute(new GetPortalPageContentUseCase.Input(page.getPortalPageContentId()))).thenReturn(
-            new GetPortalPageContentUseCase.Output(
-                PortalPageContentFixtures.aGraviteeMarkdownPageContent(
-                    page.getPortalPageContentId(),
-                    ORGANIZATION,
-                    ENVIRONMENT,
-                    ORIGINAL_CONTENT
-                )
-            )
-        );
 
         Response response = getContentOf(page.getId());
 
@@ -119,6 +114,27 @@ class ApiDocumentationNavigationItemResource_GetContentTest extends AbstractReso
                 assertThat(content.getId()).isEqualTo(page.getPortalPageContentId().json());
                 assertThat(content.getContent()).isEqualTo(ORIGINAL_CONTENT);
             });
+    }
+
+    @Test
+    void should_return_404_when_content_belongs_to_another_environment() {
+        assertContentIsNotAccessible(ORGANIZATION, "other-environment");
+    }
+
+    @Test
+    void should_return_404_when_content_belongs_to_another_organization() {
+        assertContentIsNotAccessible("other-organization", ENVIRONMENT);
+    }
+
+    @Test
+    void should_return_404_when_page_content_does_not_exist() {
+        var page = aPageOwnedBy(API_ID);
+        portalPageContentQueryService.reset();
+
+        try (Response response = getContentOf(page.getId())) {
+            assertThat(response).hasStatus(NOT_FOUND_404);
+            assertThat(response.readEntity(String.class)).doesNotContain(ORIGINAL_CONTENT);
+        }
     }
 
     @Test
@@ -180,16 +196,6 @@ class ApiDocumentationNavigationItemResource_GetContentTest extends AbstractReso
     @Test
     void should_succeed_with_api_documentation_permission_only() {
         var page = aPageOwnedBy(API_ID);
-        when(getPortalPageContentUseCase.execute(any())).thenReturn(
-            new GetPortalPageContentUseCase.Output(
-                PortalPageContentFixtures.aGraviteeMarkdownPageContent(
-                    page.getPortalPageContentId(),
-                    ORGANIZATION,
-                    ENVIRONMENT,
-                    ORIGINAL_CONTENT
-                )
-            )
-        );
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
         when(
             permissionService.hasPermission(
@@ -203,6 +209,22 @@ class ApiDocumentationNavigationItemResource_GetContentTest extends AbstractReso
         Response response = getContentOf(page.getId());
 
         assertThat(response).hasStatus(OK_200);
+    }
+
+    private void assertContentIsNotAccessible(String organizationId, String environmentId) {
+        var page = aPageOwnedBy(API_ID);
+        var content = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
+            page.getPortalPageContentId(),
+            organizationId,
+            environmentId,
+            ORIGINAL_CONTENT
+        );
+        portalPageContentQueryService.initWith(List.of(content));
+
+        try (Response response = getContentOf(page.getId())) {
+            assertThat(response).hasStatus(NOT_FOUND_404);
+            assertThat(response.readEntity(String.class)).doesNotContain(ORIGINAL_CONTENT);
+        }
     }
 
     private Response getContentOf(PortalNavigationItemId id) {
