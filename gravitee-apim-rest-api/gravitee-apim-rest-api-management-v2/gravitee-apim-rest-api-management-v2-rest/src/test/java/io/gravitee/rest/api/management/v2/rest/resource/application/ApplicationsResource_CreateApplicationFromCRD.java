@@ -96,7 +96,7 @@ public class ApplicationsResource_CreateApplicationFromCRD extends AbstractResou
             when(
                 permissionService.hasPermission(
                     GraviteeContext.getExecutionContext(),
-                    RolePermission.ENVIRONMENT_API,
+                    RolePermission.ENVIRONMENT_APPLICATION,
                     ENVIRONMENT_ID,
                     RolePermissionAction.CREATE
                 )
