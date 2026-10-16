@@ -59,8 +59,10 @@ public class ImportGroupCRDUseCase {
     }
 
     public Output execute(Input input) {
-        return queryService
-            .findById(input.spec.getId())
+        // Looked up by the id the import stores: any other form of the same UUID would miss the existing group
+        return input.spec
+            .canonicalId()
+            .flatMap(queryService::findById)
             .map(existing -> this.update(input, existing))
             .orElseGet(() -> this.create(input));
     }

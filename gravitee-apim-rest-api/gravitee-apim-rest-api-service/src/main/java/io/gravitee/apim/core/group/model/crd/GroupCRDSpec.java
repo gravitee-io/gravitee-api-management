@@ -20,7 +20,9 @@ import io.gravitee.apim.core.member.model.RoleScope;
 import io.gravitee.definition.model.Origin;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -66,6 +68,21 @@ public class GroupCRDSpec {
             .emailInvitation(false)
             .disableMembershipNotifications(!notifyMembers)
             .build();
+    }
+
+    /**
+     * The id the group is stored under, or empty when the id is not a UUID. Looking a group up by any other form of the
+     * same UUID would miss it.
+     */
+    public Optional<String> canonicalId() {
+        if (id == null) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(UUID.fromString(id).toString());
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
+        }
     }
 
     @AllArgsConstructor
