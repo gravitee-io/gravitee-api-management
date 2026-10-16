@@ -182,6 +182,7 @@ import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.vertx.rxjava3.core.Vertx;
 import java.time.Clock;
 import java.time.Instant;
@@ -1223,6 +1224,42 @@ class ImportApiCRDUseCaseTest {
                     )
                     .build()
             );
+        }
+
+        @Test
+        void should_write_nothing_when_the_members_update_is_refused() {
+            givenExistingApi();
+            givenExistingPlans(List.of(KEYLESS, API_KEY));
+            var application = givenExistingApplication(anApplicationEntity());
+            givenExistingSubscriptions(
+                aSubscription()
+                    .toBuilder()
+                    .id("sub1")
+                    .apiId(API_ID)
+                    .applicationId(application.getId())
+                    .planId(API_KEY.getId())
+                    .status(SubscriptionEntity.Status.ACCEPTED)
+                    .build()
+            );
+            crdMembersDomainService.denyApiMembersUpdate(API_ID);
+
+            var throwable = catchThrowable(() ->
+                useCase.execute(
+                    new ImportApiCRDUseCase.Input(
+                        AUDIT_INFO,
+                        aCRD().state("STARTED").plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(KEYLESS))).build()
+                    )
+                )
+            );
+
+            assertThat(throwable).isInstanceOf(ForbiddenAccessException.class);
+            verify(updateApiDomainService, never()).update(any(), any(), any());
+            verifyNoInteractions(apiStateDomainService);
+            assertThat(planCrudService.storage()).extracting(Plan::getId).containsExactlyInAnyOrder(KEYLESS.getId(), API_KEY.getId());
+            assertThat(subscriptionCrudService.storage())
+                .extracting(SubscriptionEntity::getId, SubscriptionEntity::getStatus)
+                .containsExactly(tuple("sub1", SubscriptionEntity.Status.ACCEPTED));
+            assertThat(crdMembersDomainService.getApiMembers(API_ID)).isEmpty();
         }
 
         @Test
