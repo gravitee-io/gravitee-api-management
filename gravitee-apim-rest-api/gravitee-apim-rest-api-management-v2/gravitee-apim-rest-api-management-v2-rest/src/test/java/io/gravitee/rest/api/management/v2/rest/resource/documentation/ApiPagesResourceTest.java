@@ -20,6 +20,7 @@ import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -43,7 +44,9 @@ import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.Role;
+import io.gravitee.apim.core.search.model.IndexablePage;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.management.v2.rest.model.AccessControl;
 import io.gravitee.rest.api.management.v2.rest.model.ApiDocumentationPagesResponse;
@@ -74,12 +77,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -1965,6 +1970,92 @@ class ApiPagesResourceTest extends AbstractResourceTest {
     class DeleteDocumentationPage {
 
         private static final String PATH = PAGE_ID;
+
+        @ParameterizedTest
+        @CsvSource(
+            {
+                "my-env, MARKDOWN, false",
+                "another-env, MARKDOWN, false",
+                "my-env, MARKDOWN, true",
+                "another-env, MARKDOWN, true",
+                "my-env, FOLDER, false",
+                "another-env, FOLDER, false",
+            }
+        )
+        void should_return_404_for_foreign_page_without_side_effects(
+            String victimEnvironment,
+            Page.Type pageType,
+            boolean usedAsGeneralConditions
+        ) {
+            var victimApiId = "another-api";
+            apiCrudServiceInMemory.initWith(
+                List.of(
+                    Api.builder().id(API_ID).environmentId(ENVIRONMENT).definitionVersion(DefinitionVersion.V4).build(),
+                    Api.builder().id(victimApiId).environmentId(victimEnvironment).definitionVersion(DefinitionVersion.V4).build()
+                )
+            );
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.API_DOCUMENTATION),
+                    anyString(),
+                    eq(RolePermissionAction.DELETE)
+                )
+            ).thenReturn(false);
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.API_DOCUMENTATION),
+                    eq(API_ID),
+                    eq(RolePermissionAction.DELETE)
+                )
+            ).thenReturn(true);
+
+            var page = Page.builder()
+                .id(PAGE_ID)
+                .name("victim-page")
+                .content("victim-content")
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(victimApiId)
+                .type(pageType)
+                .updatedAt(new Date(0))
+                .order(1)
+                .build();
+            var before = page.toBuilder().id("before-page").type(Page.Type.MARKDOWN).order(0).build();
+            var after = page.toBuilder().id("after-page").type(Page.Type.MARKDOWN).order(2).build();
+            var child = page.toBuilder().id("child-page").type(Page.Type.MARKDOWN).parentId(PAGE_ID).order(0).build();
+            var pages = pageType == Page.Type.FOLDER ? List.of(before, page, after, child) : List.of(before, page, after);
+            givenApiPagesQuery(pages);
+            indexer.initWith(pages.stream().map(IndexablePage::new).collect(Collectors.toList()));
+            var indexedPages = List.copyOf(indexer.storage());
+            if (usedAsGeneralConditions) {
+                planQueryServiceInMemory.initWith(
+                    List.of(
+                        PlanFixtures.aPlanHttpV4()
+                            .toBuilder()
+                            .id("victim-plan")
+                            .referenceId(victimApiId)
+                            .generalConditions(PAGE_ID)
+                            .build()
+                            .setPlanStatus(PlanStatus.PUBLISHED)
+                    )
+                );
+            }
+            var plans = List.copyOf(planQueryServiceInMemory.storage());
+
+            var response = rootTarget().path(PATH).request().delete();
+
+            MAPIAssertions.assertThat(response)
+                .hasStatus(NOT_FOUND_404)
+                .asError()
+                .hasHttpStatus(NOT_FOUND_404)
+                .hasMessage("Page [" + PAGE_ID + "] cannot be found.");
+            assertThat(pageCrudServiceInMemory.storage()).usingRecursiveComparison().isEqualTo(pages);
+            assertThat(planQueryServiceInMemory.storage()).usingRecursiveComparison().isEqualTo(plans);
+            assertThat(indexer.storage()).containsExactlyElementsOf(indexedPages);
+            assertThat(auditCrudService.storage()).isEmpty();
+            assertThat(pageRevisionCrudServiceInMemory.storage()).isEmpty();
+        }
 
         @Test
         void should_return_403_if_incorrect_permissions() {
