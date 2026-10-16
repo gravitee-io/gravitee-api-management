@@ -18,6 +18,9 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
+import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.group.model.crd.GroupCRDSpec;
+import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
 import io.gravitee.apim.core.group.use_case.ValidateGroupCRDUseCase;
 import io.gravitee.apim.rest.api.automation.helpers.CrdIdHelper;
@@ -56,6 +59,9 @@ public class GroupsResource extends AbstractResource {
     @Inject
     private ValidateGroupCRDUseCase validateGroupCRDUseCase;
 
+    @Inject
+    private GroupQueryService groupQueryService;
+
     @Path("/{hrid}")
     public GroupResource getGroupResource() {
         return resourceContext.getResource(GroupResource.class);
@@ -83,6 +89,8 @@ public class GroupsResource extends AbstractResource {
 
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
+        authorizeImport(groupCRDSpec, executionContext.getEnvironmentId());
+
         if (dryRun) {
             var status = validateGroupCRDUseCase.execute(new ImportGroupCRDUseCase.Input(auditInfo, groupCRDSpec)).status();
 
@@ -92,5 +100,17 @@ public class GroupsResource extends AbstractResource {
         var status = importGroupCRDUseCase.execute(new ImportGroupCRDUseCase.Input(auditInfo, groupCRDSpec)).status();
 
         return Response.ok(GroupMapper.INSTANCE.groupSpecAndStatusToGroupState(spec, status, executionContext)).build();
+    }
+
+    private void authorizeImport(GroupCRDSpec spec, String environmentId) {
+        requireCreateOrUpdate(
+            RolePermission.ENVIRONMENT_GROUP,
+            RolePermission.ENVIRONMENT_GROUP,
+            spec
+                .canonicalId()
+                .flatMap(id -> groupQueryService.findByIdAndEnvironmentId(id, environmentId))
+                .map(Group::getId)
+                .orElse(null)
+        );
     }
 }
