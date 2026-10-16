@@ -499,7 +499,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
         Map<Audit.AuditProperties, String> auditProperties = new EnumMap<>(Audit.AuditProperties.class);
         auditProperties.put(DICTIONARY, dictionaryName);
-        if (hasEncryptedProperty(oldValue) || hasEncryptedProperty(newValue)) {
+        if (changesEncryptedProperty(oldValue, newValue)) {
             auditProperties.put(ENCRYPTED, Boolean.TRUE.toString());
         }
 
@@ -563,7 +563,14 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         );
     }
 
+    private static boolean changesEncryptedProperty(Dictionary oldValue, Dictionary newValue) {
+        return !ciphertextByKey(oldValue).equals(ciphertextByKey(newValue));
+    }
+
     private static Map<String, String> ciphertextByKey(Dictionary dictionary) {
+        if (dictionary == null) {
+            return Map.of();
+        }
         return encryptedPropertyKeys(dictionary).collect(
             HashMap::new,
             (ciphertextByKey, key) -> ciphertextByKey.put(key, dictionary.getProperties().get(key).value()),
