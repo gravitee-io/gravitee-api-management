@@ -147,7 +147,11 @@ public class NotificationConfigsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = ENVIRONMENT_NOTIFICATION, acls = DELETE) })
     public Response deleteNotificationSettings(@PathParam("notificationId") String notificationId) {
-        genericNotificationConfigService.delete(notificationId);
+        genericNotificationConfigService.delete(
+            notificationId,
+            NotificationReferenceType.ENVIRONMENT,
+            GraviteeContext.getCurrentEnvironment()
+        );
         return Response.noContent().build();
     }
 
