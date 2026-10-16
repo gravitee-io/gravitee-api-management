@@ -2762,6 +2762,469 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+<<<<<<< HEAD:gravitee-apim-rest-api/gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-rest/src/main/resources/openapi/openapi-apis.yaml
+=======
+    # API Portal Navigation
+    /environments/{envId}/apis/{apiId}/portal-navigation-items:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - API Documentation
+            summary: Get the portal documentation owned by an API
+            description: |-
+                Get every portal navigation page, folder and link owned by the API, at any depth, together with
+                the portals the API is listed in.
+
+                Items carry their stored parent: a top-level item has no parent, even when the API is listed.
+
+                User must have the API_DOCUMENTATION[READ] permission.
+            operationId: getApiPortalNavigationItems
+            responses:
+                "200":
+                    description: The portal documentation owned by the API
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiPortalNavigationItemsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+        post:
+            tags:
+                - API Documentation
+            summary: Create a portal documentation item owned by an API
+            description: |-
+                Create a page, a folder or a link owned by the API.
+
+                The item is always created unpublished, in the top navigation area, and owned by the API of the
+                path, whatever the request body says. Without a parent, it becomes top-level documentation of the API.
+                A parent must itself be owned by the API.
+
+                User must have the API_DOCUMENTATION[CREATE] permission.
+            operationId: createApiPortalNavigationItem
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "./openapi-environments.yaml#/components/schemas/CreatePortalNavigationItem"
+                required: true
+            responses:
+                "201":
+                    description: Portal documentation item created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "./openapi-environments.yaml#/components/schemas/PortalNavigationItem"
+                "400":
+                    description: Invalid payload, or an item type other than PAGE, FOLDER or LINK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The parent does not exist or is not owned by the API
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/{apiId}/portal-navigation-items/_import:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - API Documentation
+            summary: Import a documentation tree owned by an API from a remote repository
+            description: |-
+                Creates a folder bound to a file-listing source, lists the remote files and builds the folder and
+                page hierarchy below it, as the environment-level import does.
+
+                The folder and everything imported below it are owned by the API of the path and created unpublished.
+                A parent must itself be owned by the API.
+
+                User must have the API_DOCUMENTATION[CREATE] permission.
+            operationId: importApiPortalNavigation
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "./openapi-environments.yaml#/components/schemas/ImportPortalNavigationRequest"
+                required: true
+            responses:
+                "200":
+                    description: Import result. A file failing to import does not abort the others; per-file failures are reported in the summary.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "./openapi-environments.yaml#/components/schemas/ImportPortalNavigationResponse"
+                "400":
+                    description: Invalid source configuration, or a source that cannot list files
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The parent does not exist or is not owned by the API
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/{apiId}/portal-navigation-items/_publish:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - API Documentation
+            summary: Publish an API to the portal
+            description: |-
+                Lists the API under the chosen section of the portal's main navigation and publishes every page,
+                folder and link the API owns, including those that were hidden individually.
+
+                The section must be one returned by `_publish-locations`. When the API already has a hidden
+                listing, for example one added in the portal editor, that listing is reused: it is moved to the
+                chosen section if it is elsewhere, and made visible together with what is stored under it. An API
+                whose listing is visible is already published and cannot be published again.
+
+                User must have the API_DOCUMENTATION[UPDATE] permission.
+            operationId: publishApiToPortal
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/PublishApiToPortal"
+                required: true
+            responses:
+                "200":
+                    description: Where the API is now listed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiPortalPublication"
+                "400":
+                    description: The API is already published, or the section is not a publish location
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The section does not exist
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/{apiId}/portal-navigation-items/_unpublish:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - API Documentation
+            summary: Unpublish an API from the portal
+            description: |-
+                Hides every navigation item listing the API in a portal, with what is stored under it, and
+                unpublishes every page, folder and link the API owns. Nothing is deleted: publishing the API again
+                shows the same navigation item.
+
+                A listing under an API product is left untouched. An API with no visible listing is not published,
+                and the request is rejected.
+
+                User must have the API_DOCUMENTATION[UPDATE] permission.
+            operationId: unpublishApiFromPortal
+            responses:
+                "204":
+                    description: The API is no longer visible in the portal
+                "400":
+                    description: The API is not published to the portal
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/{apiId}/portal-navigation-items/_publish-locations:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - API Documentation
+            summary: Get the portal sections an API can be published to
+            description: |-
+                Get the published top-level folders of the portal's main navigation, in display order.
+                Only their id and name are returned, never the portal tree.
+
+                User must have the API_DOCUMENTATION[READ] permission.
+            operationId: getApiPortalPublishLocations
+            responses:
+                "200":
+                    description: The portal sections the API can be published to
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiPortalPublishLocationsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/{apiId}/portal-navigation-items/{navId}:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/portalNavigationItemIdParam"
+        get:
+            tags:
+                - API Documentation
+            summary: Get a portal documentation item owned by an API
+            description: |-
+                Get a page, a folder or a link owned by the API, whether it is published or not.
+
+                User must have the API_DOCUMENTATION[READ] permission.
+            operationId: getApiPortalNavigationItem
+            responses:
+                "200":
+                    description: The portal documentation item
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "./openapi-environments.yaml#/components/schemas/PortalNavigationItem"
+                "404":
+                    description: The item does not exist or is not owned by the API
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
+        put:
+            parameters:
+                - name: propagatePublishToChildren
+                  in: query
+                  required: false
+                  description: When publishing a folder, also publish everything below it. Unpublishing always applies to everything below.
+                  schema:
+                      type: boolean
+                      default: false
+            tags:
+                - API Documentation
+            summary: Update a portal documentation item owned by an API
+            description: |-
+                Edit, rename, reorder, move, show or hide a page, a folder or a link owned by the API.
+                The request replaces the item: fields left out are cleared, including an external source.
+
+                A new parent must itself be owned by the API. The navigation item listing the API in the portal
+                cannot be updated here.
+
+                User must have the API_DOCUMENTATION[UPDATE] permission.
+            operationId: updateApiPortalNavigationItem
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "./openapi-environments.yaml#/components/schemas/UpdatePortalNavigationItem"
+                required: true
+            responses:
+                "200":
+                    description: The updated portal documentation item
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "./openapi-environments.yaml#/components/schemas/PortalNavigationItem"
+                "400":
+                    description: Invalid payload
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The item or its new parent does not exist or is not owned by the API
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
+        delete:
+            tags:
+                - API Documentation
+            summary: Delete a portal documentation item owned by an API
+            description: |-
+                Delete a page, a folder or a link owned by the API. Deleting a folder deletes everything below it.
+
+                The navigation item listing the API in the portal cannot be deleted here: unpublish the API instead.
+
+                User must have the API_DOCUMENTATION[DELETE] permission.
+            operationId: deleteApiPortalNavigationItem
+            responses:
+                "204":
+                    description: Portal documentation item deleted
+                "400":
+                    description: The item is fetched from an external source, or sits below one, and cannot be deleted
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The item does not exist or is not owned by the API
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/{apiId}/portal-navigation-items/{navId}/_fetch:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/portalNavigationItemIdParam"
+        post:
+            tags:
+                - API Documentation
+            summary: Refresh a portal documentation item owned by an API from its external source
+            description: |-
+                Fetch the content of a page from its external source, or refresh every sourced page below a folder,
+                as the environment-level fetch does. Neither the owner nor the published state of an item changes.
+
+                User must have the API_DOCUMENTATION[UPDATE] permission.
+            operationId: fetchApiPortalNavigationItem
+            responses:
+                "200":
+                    description: The refreshed item, or a summary when a folder was refreshed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "./openapi-environments.yaml#/components/schemas/FetchPortalNavigationItemResponse"
+                "400":
+                    description: The item has no external source to fetch from
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The item does not exist or is not owned by the API
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/{apiId}/portal-navigation-items/{navId}/content:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/portalNavigationItemIdParam"
+        get:
+            tags:
+                - API Documentation
+            summary: Get the content of a portal documentation page owned by an API
+            description: |-
+                Get the content of a page owned by the API. The content is reached through the page: no content
+                id is taken from the caller. The content must belong to the current organization and environment.
+
+                User must have the API_DOCUMENTATION[READ] permission.
+            operationId: getApiPortalNavigationPageContent
+            responses:
+                "200":
+                    $ref: "./openapi-environments.yaml#/components/responses/PortalPageContentResponse"
+                "400":
+                    description: The item is a folder or a link, which has no content
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The page does not exist, is not owned by the API, or its content does not exist in the current organization and environment
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
+        put:
+            tags:
+                - API Documentation
+            summary: Update the content of a portal documentation page owned by an API
+            description: |-
+                Save the content of a page owned by the API. The content of a page fetched from an external source,
+                or stored below a folder that is, is read-only.
+
+                User must have the API_DOCUMENTATION[UPDATE] permission.
+            operationId: updateApiPortalNavigationPageContent
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "./openapi-environments.yaml#/components/schemas/UpdatePortalPageContent"
+            responses:
+                "200":
+                    $ref: "./openapi-environments.yaml#/components/responses/PortalPageContentResponse"
+                "400":
+                    description: Invalid content, a read-only content, or an item that is a folder or a link
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The page does not exist or is not owned by the API
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/portal-navigation-items/{navId}/content/configuration:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/portalNavigationItemIdParam"
+        patch:
+            tags:
+                - API Documentation
+            summary: Update the OpenAPI viewer configuration of a portal documentation page owned by an API
+            description: |-
+                Choose how the portal renders an OpenAPI page owned by the API: Swagger UI or Redoc, and their options.
+                The page's content is left unchanged. A page fetched from an external source can be configured.
+
+                User must have the API_DOCUMENTATION[UPDATE] permission.
+            operationId: updateApiPortalNavigationPageContentConfiguration
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "./openapi-environments.yaml#/components/schemas/PortalPageOpenApiConfiguration"
+            responses:
+                "200":
+                    $ref: "./openapi-environments.yaml#/components/responses/PortalPageContentResponse"
+                "400":
+                    description: The item is a folder or a link, which has no content
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The page does not exist, is not owned by the API, or its content is not OpenAPI
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
+
+>>>>>>> a4b671e (fix: enforce tenant isolation for portal page content):gravitee-apim-rest-api/gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-model/src/main/resources/openapi/openapi-apis.yaml
     # API SpecGen
     /environments/{envId}/apis/{apiId}/spec-gen/_state:
         parameters:

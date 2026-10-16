@@ -1,0 +1,4055 @@
+openapi: 3.0.3
+info:
+  title: Gravitee.io APIM - Management API - Environments
+  description: |-
+    This is the OpenAPI specification for our new version of APIM Management API.
+  contact:
+    email: team-apim@graviteesource.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 2.0.0
+
+security:
+  - BasicAuth: [ ]
+  - CookieAuth: [ ]
+
+servers:
+  - url: "/management/v2/environments/{envId}"
+    description: APIM Management API v2 - Default base URL
+    variables:
+      envId:
+        description: The unique ID of your environment
+        default: DEFAULT
+  - url: "/management/v2/organizations/{orgId}/environments/{envId}"
+    description: APIM Management API v2 - Base URL to target specific organizations
+    variables:
+      orgId:
+        description: The unique ID of your organization
+        default: DEFAULT
+      envId:
+        description: The unique ID of your environment
+        default: DEFAULT
+
+tags:
+  - name: SharedPolicyGroups
+    description: Everything about shared policy groups
+  - name: Scoring
+    description: Everything about APIs scoring
+  - name: Clusters
+    description: Everything about clusters
+  - name: Newt Ai
+    description: Everything about Newt Ai
+  - name: Subscription Forms
+    description: Everything about subscription forms for API consumers
+  - name: Portal Categories
+    description: Everything about Portal Next categories used to group APIs on the New Developer Portal
+
+paths:
+  # Environment Analytics
+  /analytics/response-status-ranges:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/from"
+        - $ref: "#/components/parameters/to"
+      tags:
+        - Environment Analytics
+      summary: Get response status counts for v2 and v4 APIs from specified environment
+      description: |-
+        Get v2 and v4 API analytics response status counts. Response statuses are grouped by endpoint and status code hundreds.
+
+        The result covers every API of the environment for a user with the ENVIRONMENT_PLATFORM[READ] permission, organization
+        administrators included; otherwise only the APIs the user is a member of, directly or through a group, with the
+        API_ANALYTICS[READ] permission. A user who can read no API gets an empty result.
+      operationId: getDashboardResponseStatusCodes
+      responses:
+        "200":
+          $ref: "#/components/responses/EnvironmentAnalyticsResponseStatusRangesResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /analytics/top-hits:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/from"
+        - $ref: "#/components/parameters/to"
+      tags:
+        - Environment Analytics
+      summary: Get v2 and v4 APIs with hits count per API sorted by mostly requested
+      description: |-
+        Get v2 and v4 API analytics top hits counts. APIs are sorted starting from the most requested ones.
+
+        The result covers every API of the environment for a user with the ENVIRONMENT_PLATFORM[READ] permission, organization
+        administrators included; otherwise only the APIs the user is a member of, directly or through a group, with the
+        API_ANALYTICS[READ] permission. A user who can read no API gets an empty result.
+      operationId: getDashboardTopHits
+      responses:
+        "200":
+          $ref: "#/components/responses/EnvironmentAnalyticsTopHitsApisResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /analytics/request-response-time:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/from"
+        - $ref: "#/components/parameters/to"
+      tags:
+        - Environment Analytics
+      summary: V4 APIs request and response times analytics
+      description: |-
+        Get analytics for v2 & v4 APIs regarding number of requests, requests per second and response max, min and average times for 
+        specified time range. Analytics contains data only for HTTP GET, HTTP POST and HTTP PROXY entrypoints.
+
+        The result covers every API of the environment for a user with the ENVIRONMENT_PLATFORM[READ] permission, organization
+        administrators included; otherwise only the APIs the user is a member of, directly or through a group, with the
+        API_ANALYTICS[READ] permission. A user who can read no API gets an empty result.
+      operationId: getDashboardRequestResponseTime
+      responses:
+        "200":
+          $ref: "#/components/responses/EnvironmentAnalyticsRequestResponseTimeResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /analytics/response-time-over-time:
+    parameters:
+      - $ref: "#/components/parameters/from"
+      - $ref: "#/components/parameters/to"
+    get:
+      tags:
+        - Environment Analytics
+      summary: Get Environment Analytics average response time over time
+      description: |-
+        Get Environment Analytics average response time over time
+        
+        The result covers every API of the environment for a user with the ENVIRONMENT_PLATFORM[READ] permission, organization
+        administrators included; otherwise only the APIs the user is a member of, directly or through a group, with the
+        API_ANALYTICS[READ] permission. A user who can read no API gets an empty result.
+      operationId: getEnvironmentResponseTimeOverTime
+      responses:
+        "200":
+          $ref: "#/components/responses/EnvironmentAnalyticsOverPeriodResponse"
+  /analytics/response-status-overtime:
+    parameters:
+      - $ref: "#/components/parameters/from"
+      - $ref: "#/components/parameters/to"
+    get:
+      tags:
+        - API Analytics
+      summary: Get Environment Analytics response status counts over time
+      description: |-
+        Get Environment analytics response status counts over time.
+        
+        The result covers every API of the environment for a user with the ENVIRONMENT_PLATFORM[READ] permission, organization
+        administrators included; otherwise only the APIs the user is a member of, directly or through a group, with the
+        API_ANALYTICS[READ] permission. A user who can read no API gets an empty result.
+      operationId: getEnvironmentResponseStatusOvertime
+      responses:
+        "200":
+          $ref: "#/components/responses/EnvironmentAnalyticsResponseStatusOvertimeResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /analytics/top-apps-by-request-count:
+    parameters:
+      - $ref: "#/components/parameters/from"
+      - $ref: "#/components/parameters/to"
+    get:
+      tags:
+        - API Analytics
+      summary: Get Environment Analytics for top applications by the request count
+      description: |-
+        Get Environment Analytics for top applications by the request count
+        
+        The result covers every API of the environment for a user with the ENVIRONMENT_PLATFORM[READ] permission, organization
+        administrators included; otherwise only the APIs the user is a member of, directly or through a group, with the
+        API_ANALYTICS[READ] permission. A user who can read no API gets an empty result.
+      operationId: getEnvironmentTopAppByRequestCount
+      responses:
+        "200":
+          $ref: "#/components/responses/EnvironmentAnalyticsTopAppsByRequestCountResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /analytics/top-failed-apis:
+    parameters:
+      - $ref: "#/components/parameters/from"
+      - $ref: "#/components/parameters/to"
+    get:
+      tags:
+        - API Analytics
+      summary: Get Environment Analytics for top failed v2 and v4 APIs
+      description: |-
+        Get Environment Analytics for top failed v2 and v4 APIs 
+        
+        The result covers every API of the environment for a user with the ENVIRONMENT_PLATFORM[READ] permission, organization
+        administrators included; otherwise only the APIs the user is a member of, directly or through a group, with the
+        API_ANALYTICS[READ] permission. A user who can read no API gets an empty result.
+      operationId: getEnvironmentTopFailedApis
+      responses:
+        "200":
+          $ref: "#/components/responses/EnvironmentAnalyticsTopFailedApisResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  # Shared policy group
+  /shared-policy-groups:
+    post:
+      tags:
+        - SharedPolicyGroups
+      summary: Create a shared policy group
+      operationId: createSharedPolicyGroup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSharedPolicyGroup"
+        required: true
+      responses:
+        "201":
+          description: Shared policy group created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharedPolicyGroup"
+        default:
+          $ref: "#/components/responses/Error"
+    get:
+      tags:
+        - SharedPolicyGroups
+      summary: Search shared policy groups
+      operationId: searchSharedPolicyGroups
+      parameters:
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/perPageParam"
+        - $ref: "#/components/parameters/sharedPolicyGroupSortByParam"
+        - $ref: "#/components/parameters/sharedPolicyGroupSearchParam"
+      responses:
+        "200":
+          $ref: "#/components/responses/SharedPolicyGroupsResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /shared-policy-groups/policy-plugins:
+    get:
+      tags:
+        - SharedPolicyGroups
+      summary: Get all shared policy group for a policy plugin usage
+      operationId: getPolicyPlugins
+      responses:
+        "200":
+          description: Shared policy group found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SharedPolicyGroupPolicyPlugin"
+        default:
+          $ref: "#/components/responses/Error"
+  /shared-policy-groups/{sharedPolicyGroupId}:
+    get:
+      tags:
+        - SharedPolicyGroups
+      summary: Get a shared policy group
+      operationId: getSharedPolicyGroup
+      parameters:
+        - $ref: "#/components/parameters/sharedPolicyGroupId"
+      responses:
+        "200":
+          description: Shared policy group found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharedPolicyGroup"
+        default:
+          $ref: "#/components/responses/Error"
+    put:
+      tags:
+        - SharedPolicyGroups
+      summary: Update a shared policy group
+      operationId: updateSharedPolicyGroup
+      parameters:
+        - $ref: "#/components/parameters/sharedPolicyGroupId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSharedPolicyGroup"
+        required: true
+      responses:
+        "200":
+          description: Shared policy group updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharedPolicyGroup"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      tags:
+        - SharedPolicyGroups
+      summary: Delete a shared policy group
+      operationId: deleteSharedPolicyGroup
+      parameters:
+        - $ref: "#/components/parameters/sharedPolicyGroupId"
+      responses:
+        "204":
+          description: Shared policy group deleted
+        default:
+          $ref: "#/components/responses/Error"
+  /shared-policy-groups/{sharedPolicyGroupId}/histories:
+    get:
+      tags:
+        - SharedPolicyGroups
+      summary: Get the histories of a shared policy group
+      operationId: getSharedPolicyGroupHistories
+      parameters:
+        - $ref: "#/components/parameters/sharedPolicyGroupId"
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/perPageParam"
+        - $ref: "#/components/parameters/sharedPolicyGroupHistoriesSortByParam"
+      responses:
+        "200":
+          $ref: "#/components/responses/SharedPolicyGroupHistoriesResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /shared-policy-groups/{sharedPolicyGroupId}/_deploy:
+    post:
+      tags:
+        - SharedPolicyGroups
+      summary: Deploy a shared policy group
+      operationId: deploySharedPolicyGroup
+      parameters:
+        - $ref: "#/components/parameters/sharedPolicyGroupId"
+      responses:
+        "202":
+          description: Shared policy group deploy request has been accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharedPolicyGroup"
+        default:
+          $ref: "#/components/responses/Error"
+  /shared-policy-groups/{sharedPolicyGroupId}/_undeploy:
+    post:
+      tags:
+        - SharedPolicyGroups
+      summary: Undeploy a shared policy group
+      operationId: undeploySharedPolicyGroup
+      parameters:
+        - $ref: "#/components/parameters/sharedPolicyGroupId"
+      responses:
+        "202":
+          description: Shared policy group undeploy request has been accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharedPolicyGroup"
+        default:
+          $ref: "#/components/responses/Error"
+
+  # Scoring
+  /scoring/apis:
+    get:
+      tags:
+        - Scoring
+      summary: Get the scoring of all APIs
+      operationId: getApisScoring
+      description: |-
+        Returns every API of the environment, including those that have never been evaluated —
+        those come back without a score. Use `apiTypes` to restrict the result to some API types.
+      parameters:
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/perPageParam"
+        - $ref: "#/components/parameters/scoringApiTypesParam"
+      responses:
+        "200":
+          $ref: "#/components/responses/EnvironmentApisScoringResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /scoring/overview:
+    get:
+      tags:
+        - Scoring
+      summary: Get Scoring Environment Overview
+      operationId: getScoringEnvironmentOverview
+      responses:
+        "200":
+          description: Scoring overview of the environment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvironmentScoringOverview"
+        default:
+          $ref: "#/components/responses/Error"
+  /scoring/rulesets:
+    post:
+      tags:
+        - Scoring
+        - Rulesets
+      summary: Create a new ruleset at environment level
+      operationId: createEnvironmentRuleset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportScoringRuleset"
+        required: true
+      responses:
+        "201":
+          description: Ruleset created
+        default:
+          $ref: "#/components/responses/Error"
+    get:
+      tags:
+        - Scoring
+        - Rulesets
+      summary: Get all rulesets at environment level
+      operationId: getEnvironmentRulesets
+      responses:
+        "200":
+          $ref: "#/components/responses/ScoringRulesetsResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /scoring/rulesets/{rulesetId}:
+    delete:
+      tags:
+        - Scoring
+        - Rulesets
+      summary: Delete a ruleset
+      operationId: deleteEnvironmentRuleset
+      parameters:
+        - $ref: "#/components/parameters/rulesetId"
+      responses:
+        "204":
+          description: Ruleset deleted
+        default:
+          $ref: "#/components/responses/Error"
+    get:
+      tags:
+        - Scoring
+        - Rulesets
+      summary: Get a specific ruleset
+      operationId: getEnvironmentRuleset
+      parameters:
+        - $ref: "#/components/parameters/rulesetId"
+      responses:
+        "200":
+          description: Scoring ruleset found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScoringRuleset"
+        default:
+          $ref: "#/components/responses/Error"
+    put:
+      tags:
+        - Scoring
+        - Rulesets
+      summary: Update ruleset
+      operationId: updateEnvironmentRuleset
+      parameters:
+        - $ref: "#/components/parameters/rulesetId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateScoringRuleset"
+        required: true
+      responses:
+        "200":
+          description: Ruleset updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScoringRuleset"
+        default:
+          $ref: "#/components/responses/Error"
+  /scoring/functions:
+    post:
+      tags:
+        - Scoring
+        - Functions
+      summary: Create a new scoring function at environment level
+      operationId: createEnvironmentScoringFunction
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportScoringFunction"
+        required: true
+      responses:
+        "201":
+          description: Scoring functions created
+        default:
+          $ref: "#/components/responses/Error"
+    get:
+      tags:
+        - Scoring
+        - Functions
+      summary: Get all functions at environment level
+      operationId: getEnvironmentScoringFunctions
+      responses:
+        "200":
+          $ref: "#/components/responses/ScoringFunctionsResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /scoring/functions/{scoringFunctionName}:
+    delete:
+      tags:
+        - Scoring
+        - Functions
+      summary: Delete a scoring function
+      operationId: deleteEnvironmentScoringFunction
+      parameters:
+        - $ref: "#/components/parameters/scoringFunctionName"
+      responses:
+        "204":
+          description: Scoring function deleted
+        default:
+          $ref: "#/components/responses/Error"
+
+  # Cluster
+  /clusters:
+    post:
+      tags:
+        - Clusters
+      summary: Create a cluster
+      description: |-
+        User must have the ENVIRONMENT_CLUSTER[CREATE] permission.
+      operationId: createCluster
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCluster"
+        required: true
+      responses:
+        "201":
+          description: Cluster created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cluster"
+        default:
+          $ref: "#/components/responses/Error"
+    get:
+      tags:
+        - Clusters
+      summary: Search clusters
+      description: |-
+        User must have the ENVIRONMENT_CLUSTER[READ] permission.
+      operationId: searchClusters
+      parameters:
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/perPageParam"
+        - $ref: "#/components/parameters/clusterSortByParam"
+        - $ref: "#/components/parameters/clusterSearchParam"
+        - $ref: "#/components/parameters/clusterTypeParam"
+        - $ref: "#/components/parameters/clusterLifecycleStateParam"
+      responses:
+        "200":
+          $ref: "#/components/responses/ClustersResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /clusters/_stats:
+    get:
+      tags:
+        - Clusters
+      summary: Count clusters by lifecycle state
+      description: |-
+        Returns the total number of clusters and the count per lifecycle state (Deployed / Pending /
+        Undeployed) for the environment, optionally scoped to a cluster type — the numbers behind the
+        console cluster stat-strip. User must have the ENVIRONMENT_CLUSTER[READ] permission.
+      operationId: getClusterLifecycleStateStats
+      parameters:
+        - $ref: "#/components/parameters/clusterTypeParam"
+      responses:
+        "200":
+          description: Cluster counts by lifecycle state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClusterLifecycleStateStats"
+        default:
+          $ref: "#/components/responses/Error"
+  /clusters/{clusterId}:
+    parameters:
+      - $ref: "#/components/parameters/clusterId"
+    get:
+      tags:
+        - Clusters
+      summary: Get a cluster
+      description: |-
+        User must have the CLUSTER_DEFINITION[READ] permission.
+      operationId: getCluster
+      responses:
+        "200":
+          description: Cluster found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cluster"
+        default:
+          $ref: "#/components/responses/Error"
+    put:
+      tags:
+        - Clusters
+      summary: Update a cluster
+      description: |-
+        User must have the CLUSTER_DEFINITION[UPDATE] permission.
+
+        Kafka virtual cluster lifecycle: removing all backends is a plain edit. On a deployed
+        virtual cluster the update is accepted (200) and the cluster moves to `lifecycleState`
+        `PENDING`: the gateway keeps serving the previous configuration, and the emptied
+        configuration cannot be deployed until at least one backend is added back (the deploy
+        endpoint rejects virtual clusters without backends).
+      operationId: updateCluster
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCluster"
+        required: true
+      responses:
+        "200":
+          description: Cluster updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cluster"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      tags:
+        - Clusters
+      summary: Delete a cluster
+      description: |-
+        User must have the CLUSTER_DEFINITION[DELETE] permission.
+      operationId: deleteCluster
+      parameters:
+        - $ref: "#/components/parameters/clusterId"
+      responses:
+        "204":
+          description: Cluster deleted
+        default:
+          $ref: "#/components/responses/Error"
+  /clusters/{clusterId}/_deploy:
+    parameters:
+      - $ref: "#/components/parameters/clusterIdParam"
+    post:
+      tags:
+        - Clusters
+      summary: Deploy a cluster
+      description: Deploy the cluster to the gateway. Sets lifecycle state to DEPLOYED and increments version.
+      operationId: deployCluster
+      responses:
+        "200":
+          description: Cluster deployed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cluster"
+        "400":
+          description: A Kafka virtual cluster cannot be deployed without at least one backend.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+  /clusters/{clusterId}/_undeploy:
+    parameters:
+      - $ref: "#/components/parameters/clusterIdParam"
+    post:
+      tags:
+        - Clusters
+      summary: Undeploy a cluster
+      description: |-
+        Undeploy the cluster from the gateway. Sets lifecycle state to UNDEPLOYED.
+
+        A Kafka virtual cluster cannot be undeployed while a started Kafka Native API is bound to it
+        (via a `native-kafka-virtual-cluster` endpoint): the request is rejected with 400 so the
+        started API is never left pointing at an undeployed cluster.
+      operationId: undeployCluster
+      responses:
+        "200":
+          description: Cluster undeployed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cluster"
+        "400":
+          description: |-
+            The Kafka virtual cluster cannot be undeployed because one or more started Kafka Native
+            APIs are bound to it. Stop those APIs first.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+  /clusters/{clusterId}/groups:
+    parameters:
+      - $ref: "#/components/parameters/clusterId"
+    put:
+      tags:
+        - Clusters
+      summary: Update a cluster's groups
+      description: |-
+        User must have the CLUSTER_DEFINITION[UPDATE] permission.
+      operationId: updateClusterGroups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateClusterGroups"
+        required: true
+      responses:
+        "200":
+          description: Cluster groups updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClusterGroups"
+        default:
+          $ref: "#/components/responses/Error"
+  /clusters/{clusterId}/permissions:
+    parameters:
+      - $ref: "#/components/parameters/clusterId"
+    get:
+      tags:
+        - Clusters
+      summary: Get cluster's permissions of current user
+      operationId: getClusterPermissions
+      responses:
+        "200":
+          $ref: "#/components/responses/ClusterPermissionsResponse"
+        default:
+          $ref: "#/components/responses/Error"
+
+  # Cluster members
+  /clusters/{clusterId}/members:
+    parameters:
+      - $ref: "#/components/parameters/clusterId"
+    get:
+      tags:
+        - Clusters
+      summary: Get cluster's members
+      description: |-
+        User must have the CLUSTER_MEMBER[READ] permission.
+      operationId: getClusterMembers
+      responses:
+        "200":
+          $ref: "#/components/responses/MembersResponse"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      tags:
+        - Clusters
+      summary: Add a cluster member
+      description: |-
+        User must have the CLUSTER_MEMBER[CREATE] permission.
+      operationId: addClusterMember
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddMember"
+        required: true
+      responses:
+        "201":
+          description: Member successfully added
+        default:
+          $ref: "#/components/responses/Error"
+  /clusters/{clusterId}/members/{memberId}:
+    parameters:
+      - $ref: "#/components/parameters/clusterId"
+      - $ref: "#/components/parameters/memberId"
+    put:
+      tags:
+        - Clusters
+      summary: Update a cluster's member
+      operationId: updateClusterMember
+      description: |-
+        User must have the CLUSTER_MEMBER[UPDATE] permission.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMember"
+        required: true
+      responses:
+        "200":
+          description: Updated member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Member"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      tags:
+        - Clusters
+      summary: Delete a cluster's member
+      description: |-
+        User must have the CLUSTER_MEMBER[DELETE] permission.
+      operationId: deleteClusterMember
+      responses:
+        "204":
+          description: Member removed
+        default:
+          $ref: "#/components/responses/Error"
+  /clusters/{clusterId}/members/_transfer-ownership:
+    parameters:
+      - $ref: "#/components/parameters/clusterId"
+    post:
+      tags:
+        - Clusters
+      summary: Transfer cluster ownership
+      description: |-
+        Transfer the ownership of the Cluster to a user, a group or an cluster member.
+        
+        Return a 404 HTTP Error if Cluster cannot be found.
+        
+        User must have the CLUSTER_MEMBER[UPDATE] permission.
+      operationId: transferClusterOwnership
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClusterTransferOwnership"
+        required: true
+      responses:
+        "204":
+          description: Ownership has been transferred successfully
+        default:
+          $ref: "#/components/responses/Error"
+
+  # NewAI
+  /newtai/el/_generate:
+    post:
+      tags:
+        - Newt Ai
+      summary: Generate Expression Language
+      description: |-
+        Generate Expression Language.
+      operationId: generateEl
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateExpressionLanguage"
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/GenerateExpressionLanguageResponse"
+        default:
+          $ref: "#/components/responses/Error"
+
+  # Instances
+  /instances/{instanceId}:
+    get:
+      tags:
+        - Instances
+      summary: Get a Gateway instance details
+      operationId: getInstanceById
+      parameters:
+        - $ref: "#/components/parameters/instanceId"
+      responses:
+        "200":
+          $ref: "#/components/responses/InstanceDetailResponse"
+        default:
+          $ref: "#/components/responses/Error"
+
+  # Portal pages
+  /portal-pages:
+    get:
+      tags:
+        - Portal Pages
+      summary: Get portal pages
+      description: User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
+      operationId: getPortalPages
+      parameters:
+        - $ref: '#/components/parameters/contextType'
+        - $ref: '#/components/parameters/expandComponents'
+      responses:
+        "200":
+          $ref: "#/components/responses/PortalPagesResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /portal-pages/{pageId}:
+    patch:
+      tags:
+        - Portal Pages
+      summary: Patch portal page
+      description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+      operationId: patchPortalPage
+      parameters:
+        - name: pageId
+          in: path
+          description: The unique ID of the portal page
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchPortalPage"
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/PortalPageResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /portal-pages/{pageId}/_publish:
+    post:
+      tags:
+        - Portal Pages
+      summary: Publish portal page
+      description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+      operationId: publishPortalPage
+      parameters:
+        - name: pageId
+          in: path
+          description: The unique ID of the portal page
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/PortalPageResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /portal-pages/{pageId}/_unpublish:
+    post:
+      tags:
+        - Portal Pages
+      summary: Unpublish portal page
+      description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+      operationId: unpublishPortalPage
+      parameters:
+        - name: pageId
+          in: path
+          description: The unique ID of the portal page
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/PortalPageResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /portal-page-contents/{portalPageContentId}:
+    get:
+      tags:
+        - Portal Pages
+      summary: Get portal page content
+      description: |-
+        Get portal page content belonging to the current organization and environment.
+        User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
+      operationId: getPortalPageContent
+      parameters:
+        - name: portalPageContentId
+          in: path
+          description: The unique ID of the portal page content
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/PortalPageContentResponse"
+        "404":
+          description: The content does not exist in the current organization and environment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+    put:
+      tags:
+        - Portal Pages
+      summary: Update portal page content
+      description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+      operationId: updatePortalPageContent
+      parameters:
+        - name: portalPageContentId
+          in: path
+          description: The unique ID of the portal page content
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePortalPageContent"
+      responses:
+        "200":
+          $ref: "#/components/responses/PortalPageContentResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /portal-page-contents/{portalPageContentId}/configuration:
+    patch:
+      tags:
+        - Portal Pages
+      summary: Update portal page content OpenAPI viewer configuration
+      description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+      operationId: updatePortalPageContentConfiguration
+      parameters:
+        - name: portalPageContentId
+          in: path
+          description: The unique ID of the portal page content
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PortalPageOpenApiConfiguration"
+      responses:
+        "200":
+          $ref: "#/components/responses/PortalPageContentResponse"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /portal-navigation-items:
+    get:
+      tags:
+        - Portal Navigation Items
+      summary: Get portal navigation items
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
+        Returns the rendered navigation hierarchy. API-owned documentation roots may be displayed under an API navigation item with rendered parentId and rootId values, while retaining their navigation item and page content IDs.
+      operationId: getPortalNavigationItems
+      parameters:
+        - $ref: '#/components/parameters/portalArea'
+        - name: parentId
+          in: query
+          description: The parent ID to filter navigation items
+          required: false
+          schema:
+            type: string
+        - name: loadChildren
+          in: query
+          description: Whether to load children items
+          required: false
+          schema:
+            type: boolean
+            default: true
+        - name: includes
+          in: query
+          description: Additional data to include in the response, returned as a separate `metadata` map rather than inlined onto each item.
+          required: false
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [ apis ]
+      responses:
+        "200":
+          $ref: "#/components/responses/PortalNavigationItemsResponse"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      tags:
+        - Portal Navigation Items
+      summary: Create a portal navigation item
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        PAGE, FOLDER, and LINK items created under a standalone API navigation item or an API-owned documentation folder inherit the API documentation owner.
+        An API navigation item is standalone only when it has no API Product ancestor, including through intermediate folders.
+        An API-owned documentation root created under a standalone API navigation item is returned with the same rendered parentId and rootId values as GET for that selected navigation item. Its navigation item and page content IDs are unchanged. The stored root remains API-owned with no parentId and its own ID as rootId; items created under an API-owned documentation folder retain that folder as their parent.
+      operationId: createPortalNavigationItem
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePortalNavigationItem"
+        required: true
+      responses:
+        "201":
+          description: Portal navigation item created in the selected navigation context. Newly created items are unpublished by default.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalNavigationItem"
+        "400":
+          description: Missing API Product reference, invalid parent, invalid TOP_NAVBAR root placement, or malformed request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Referenced API Product does not exist in the current environment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: The API Product is already represented in the environment navigation tree
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /portal-navigation-items/_bulk:
+    post:
+      tags:
+        - Portal Navigation Items
+      summary: Create portal navigation items in bulk
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        PAGE, FOLDER, and LINK items inherit API documentation ownership from a standalone API navigation item or an API-owned documentation folder, including a parent created in the same request. Parents must precede their children in the request.
+        An API navigation item is standalone only when it has no API Product ancestor, including through intermediate folders.
+        An API-owned documentation root created under a standalone API navigation item is returned with the same rendered parentId and rootId values as GET for that selected navigation item, including when the parent is created in the same request. Its navigation item and page content IDs are unchanged. The stored root remains API-owned with no parentId and its own ID as rootId; items created under an API-owned documentation folder retain that folder as their parent.
+      operationId: createPortalNavigationItemsInBulk
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePortalNavigationItems"
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/PortalNavigationItemsResponse"
+        "400":
+          description: Invalid navigation item payload or hierarchy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: A referenced API Product or parent does not exist in the current environment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: An API Product is already represented in the environment navigation tree
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /portal-navigation-items/_import:
+    post:
+      tags:
+        - Portal Navigation Items
+      summary: Import a documentation tree from a remote repository
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        Creates a FOLDER bound to a file-listing source (e.g. a git repository), lists the remote files
+        and builds the FOLDER/PAGE hierarchy below it. When a `.gravitee.json` manifest is present in the
+        repository the hierarchy follows it, otherwise the remote tree is mirrored. The source is carried
+        by the root folder only: its subtree is read-only, and re-fetching the folder re-runs the import.
+        Unlike `_bulk`, which creates items from an explicit list, `_import` builds that list from the repository.
+        The fetcher configuration must point at the directory to walk (e.g. `/` for the repository root):
+        a configuration without a path lists nothing and the import fails.
+      operationId: importPortalNavigation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportPortalNavigationRequest"
+        required: true
+      responses:
+        "200":
+          description: Import result. A file failing to import does not abort the others; per-file failures are reported in the summary.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportPortalNavigationResponse"
+        "400":
+          description: Invalid target, source configuration, or a source that cannot list files
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /portal-navigation-items/_default-pages:
+    post:
+      tags:
+        - Portal Navigation Items
+      summary: Seed default pages for portal navigation items
+      description: |
+        Seeds a default Overview page for API and API Product navigation items.
+        User must have the ENVIRONMENT_DOCUMENTATION[create] permission.
+      operationId: seedDefaultPages
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SeedDefaultPagesRequest"
+        required: true
+      responses:
+        "204":
+          description: Default pages seeded for supported navigation items
+        default:
+          $ref: "#/components/responses/Error"
+
+  /portal-navigation-items/{navId}:
+    put:
+      tags:
+        - Portal Navigation Items
+      summary: Update a portal navigation item
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        ParentId is the unique identifier of the parent item.
+        * Optional parent ID. If provided, the item is set to that parent.
+        * If omitted, the item is moved to the root level.
+
+        Publication propagation applies only when the `published` value changes on a container navigation item (`FOLDER`, `API`, or `API_PRODUCT`).
+        When publishing a container, descendants are published only if `propagatePublishToChildren=true`.
+        If `propagatePublishToChildren` is omitted or false, only the selected item is published.
+        When unpublishing a container, descendants are always unpublished according to the business rule; `propagatePublishToChildren` is ignored and may be omitted.
+        Descendants include physically nested navigation items and, for APIs outside an API Product, API-owned documentation and its nested items.
+        APIs inside an API Product propagate publication only through their physically nested documentation; matching an API ID does not propagate publication between standalone and product contexts.
+        Traversal continues through intermediate containers that already have the target publication status.
+        Publication propagation does not change documentation ownership, hierarchy, ordering, or visibility.
+      operationId: updatePortalNavigationItem
+      parameters:
+        - name: navId
+          in: path
+          description: The unique ID of the navigation item
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: propagatePublishToChildren
+          in: query
+          description: >
+            Controls whether publishing a container navigation item (`FOLDER`, `API`, or `API_PRODUCT`) is propagated to descendants.
+            Only evaluated when `published` changes to true on a container item.
+            If omitted or false, publishing affects only the selected item.
+            If true, publishing also affects descendants.
+            Ignored for unpublish; container descendants are always unpublished according to the business rule.
+            For APIs outside an API Product, descendants also include API-owned documentation. APIs inside an API Product retain their independent documentation publication lifecycle.
+          required: false
+          schema:
+            type: boolean
+            default: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePortalNavigationItem"
+      responses:
+        "200":
+          description: Updated portal navigation item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalNavigationItem"
+        "400":
+          description: Invalid navigation item move, parent, visibility, or malformed request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Navigation item or target parent does not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: The update would violate navigation hierarchy or API Product uniqueness constraints
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      tags:
+        - Portal Navigation Items
+      summary: Delete a portal navigation item
+      description: User must have the ENVIRONMENT_DOCUMENTATION[delete] permission.
+      operationId: deletePortalNavigationItem
+      parameters:
+        - name: navId
+          in: path
+          description: The unique ID of the navigation item
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Portal navigation item deleted
+        default:
+          $ref: "#/components/responses/Error"
+
+  /portal-navigation-items/{navId}/_fetch:
+    post:
+      tags:
+        - Portal Navigation Items
+      summary: Fetch the content of a portal navigation item from its external source
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        On a PAGE carrying an external source, fetches the page content and returns the updated item.
+        On a FOLDER bound to a file-listing source (created by `_import`), re-runs the import and returns a per-file summary.
+        On any other container item, fetches every PAGE descendant carrying an external source and returns a success/failure summary.
+      operationId: fetchPortalNavigationItem
+      parameters:
+        - name: navId
+          in: path
+          description: The unique ID of the navigation item
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Fetch result. `item` is set when the target is a sourced PAGE, `summary` when the fetch walked a subtree.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FetchPortalNavigationItemResponse"
+        "400":
+          description: The target is a PAGE without a source, or no page below it carries one
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Navigation item does not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  # Portal Categories
+  /portal-categories:
+    get:
+      tags:
+        - Portal Categories
+      summary: Get portal categories
+      description: User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
+      operationId: getPortalCategories
+      responses:
+        "200":
+          description: List of portal categories, sorted alphabetically by title
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PortalCategory"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      tags:
+        - Portal Categories
+      summary: Create a portal category
+      description: User must have the ENVIRONMENT_DOCUMENTATION[create] permission.
+      operationId: createPortalCategory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePortalCategory"
+        required: true
+      responses:
+        "201":
+          description: Portal category created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalCategory"
+        "409":
+          description: A portal category with the same title already exists in this environment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /portal-categories/{categoryId}:
+    put:
+      tags:
+        - Portal Categories
+      summary: Update a portal category
+      description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+      operationId: updatePortalCategory
+      parameters:
+        - name: categoryId
+          in: path
+          description: The unique ID of the portal category
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePortalCategory"
+      responses:
+        "200":
+          description: Updated portal category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalCategory"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      tags:
+        - Portal Categories
+      summary: Delete a portal category
+      description: User must have the ENVIRONMENT_DOCUMENTATION[delete] permission.
+      operationId: deletePortalCategory
+      parameters:
+        - name: categoryId
+          in: path
+          description: The unique ID of the portal category
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Portal category deleted
+        default:
+          $ref: "#/components/responses/Error"
+
+  # Subscription Forms
+  /subscription-forms:
+    get:
+      tags:
+        - Subscription Forms
+      summary: List the subscription forms of the environment
+      description: |-
+        List the catalog of subscription forms of the environment, sorted by name. Each API consumer
+        subscribing in the Developer Portal sees the form mapped to the API, if any.
+
+        User must have the ENVIRONMENT_METADATA[READ] permission.
+      operationId: listSubscriptionForms
+      responses:
+        "200":
+          description: Subscription forms of the environment
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SubscriptionForm"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      tags:
+        - Subscription Forms
+      summary: Create a subscription form
+      description: |-
+        Add a form to the environment catalog. The form is created disabled.
+
+        User must have the ENVIRONMENT_METADATA[CREATE] permission.
+      operationId: createSubscriptionForm
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSubscriptionForm"
+      responses:
+        "201":
+          description: Subscription form created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionForm"
+        "400":
+          description: Invalid name or GMD content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: A subscription form with the same name already exists in this environment, or another form already claims one of the APIs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+  /subscription-forms/_template:
+    get:
+      tags:
+        - Subscription Forms
+      summary: Get the subscription form template
+      description: |-
+        The Gravitee Markdown definition a new subscription form starts from.
+
+        User must have the ENVIRONMENT_METADATA[READ] permission.
+      operationId: getSubscriptionFormTemplate
+      responses:
+        "200":
+          description: The template definition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionFormTemplate"
+        default:
+          $ref: "#/components/responses/Error"
+  /subscription-forms/{subscriptionFormId}:
+    parameters:
+      - name: subscriptionFormId
+        in: path
+        required: true
+        description: The unique ID of the subscription form
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Subscription Forms
+      summary: Get a subscription form
+      description: |-
+        Get one form of the catalog, whether enabled or not, with the option lists of its dynamic fields
+        resolved without API context.
+
+        User must have the ENVIRONMENT_METADATA[READ] permission.
+      operationId: getSubscriptionForm
+      responses:
+        "200":
+          description: Subscription form retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionForm"
+        "404":
+          description: No subscription form exists with this ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+    put:
+      tags:
+        - Subscription Forms
+      summary: Update subscription form
+      description: |-
+        Update the name and definition of a subscription form. The form content is defined using
+        Gravitee Markdown (GMD) syntax with form components.
+
+        Note: This operation does NOT change the enabled state. Use the _enable and _disable endpoints for it.
+
+        User must have the ENVIRONMENT_METADATA[UPDATE] permission.
+      operationId: updateSubscriptionForm
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSubscriptionForm"
+      responses:
+        "200":
+          description: Subscription form saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionForm"
+        "400":
+          description: Invalid name or unsafe GMD content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: No subscription form exists with this ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Another subscription form of this environment already has this name, or already claims one of the APIs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      tags:
+        - Subscription Forms
+      summary: Delete a subscription form
+      description: |-
+        Remove a form from the catalog, with its definition and its API mappings: its APIs no longer have a
+        subscription form.
+
+        User must have the ENVIRONMENT_METADATA[DELETE] permission.
+      operationId: deleteSubscriptionForm
+      responses:
+        "204":
+          description: Subscription form deleted
+        "404":
+          description: No subscription form exists with this ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+  /subscription-forms/{subscriptionFormId}/_enable:
+    post:
+      tags:
+        - Subscription Forms
+      summary: Enable subscription form
+      description: |-
+        Enable the subscription form to make it visible to API consumers in the Developer Portal.
+        When enabled, the form will be displayed during the API subscription process.
+
+        This operation is idempotent - enabling an already enabled form returns success.
+
+        User must have the ENVIRONMENT_METADATA[UPDATE] permission.
+      operationId: enableSubscriptionForm
+      parameters:
+        - name: subscriptionFormId
+          in: path
+          required: true
+          description: The unique ID of the subscription form
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Subscription form enabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionForm"
+        "404":
+          description: No subscription form exists with this ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+  /subscription-forms/{subscriptionFormId}/_disable:
+    post:
+      tags:
+        - Subscription Forms
+      summary: Disable subscription form
+      description: |-
+        Disable the subscription form to hide it from API consumers in the Developer Portal.
+        When disabled, the form will not be displayed during the API subscription process.
+
+        This operation is idempotent - disabling an already disabled form returns success.
+
+        User must have the ENVIRONMENT_METADATA[UPDATE] permission.
+      operationId: disableSubscriptionForm
+      parameters:
+        - name: subscriptionFormId
+          in: path
+          required: true
+          description: The unique ID of the subscription form
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Subscription form disabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionForm"
+        "404":
+          description: No subscription form exists with this ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+components:
+  schemas:
+    # Analytics
+    TopHitApi:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The API ID
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        name:
+          type: string
+          description: The API Name
+          example: Sample API Name
+        count:
+          type: integer
+          format: int64
+          description: The API Hit count
+          example: 675234
+        definitionVersion:
+          type: string
+          description: The API definition version
+          example: v4
+    AnalyticTimeRange:
+      type: object
+      description: A Time range
+      properties:
+        from:
+          type: integer
+          format: int64
+          description: The timestamp starting the time range
+          example: 1621339200000
+        to:
+          type: integer
+          format: int64
+          description: The timestamp ending the time range
+          example: 1621425600000
+        interval:
+          type: integer
+          format: int64
+          description: The interval in milliseconds splitting the data
+          example: 120000
+    TopApp:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The Application ID
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        name:
+          type: string
+          description: The Application Name
+          example: Sample Application Name
+        count:
+          type: integer
+          format: int64
+          description: The Application Hit count
+          example: 675234
+    TopFailedApis:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The Application ID
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        definitionVersion:
+          type: string
+          description: The API definition version
+          example: v4
+        name:
+          type: string
+          description: The Application Name
+          example: Sample Application Name
+        failedCalls:
+          type: integer
+          format: int64
+          description: Number of 5xx calls for the API
+          example: 2137
+        failedCallsRatio:
+          type: number
+          format: double
+          description: Ratio of failed API calls to the total number of calls
+          example: 0.8
+
+    # Shared policy group
+    CreateSharedPolicyGroup:
+      type: object
+      description: Create payload for a shared policy group
+      properties:
+        crossId:
+          type: string
+          description: The unique ID of the shared policy group
+          example: 5e2b3b3b-3b3b-3b3b-3b3b-3b3b3b3b3b3b
+        name:
+          type: string
+          description: The name of the shared policy group
+          example: My Shared Policy Group
+          maxLength: 512
+        description:
+          type: string
+          description: The description of the shared policy group
+          example: This is a shared policy group
+          maxLength: 1024
+        prerequisiteMessage:
+          type: string
+          description: The prerequisite message of the shared policy group. This message is displayed to the user to help understand the prerequisite to use the shared policy group.
+          example: The resource cache "my-cache" is required
+          maxLength: 1024
+        apiType:
+          $ref: "#/components/schemas/ApiType"
+        originContext:
+          $ref: "#/components/schemas/BaseOriginContext"
+        phase:
+          $ref: "#/components/schemas/FlowPhase"
+        steps:
+          type: array
+          description: The list of steps (policies) in the shared policy group
+          items:
+            $ref: "#/components/schemas/StepV4"
+      required: [ "name", "apiType", "phase" ]
+    UpdateSharedPolicyGroup:
+      type: object
+      description: Update payload for a shared policy group
+      properties:
+        crossId:
+          type: string
+          description: The unique ID of the shared policy group
+          example: 5e2b3b3b-3b3b-3b3b-3b3b-3b3b3b3b3b3b
+        name:
+          type: string
+          description: The name of the shared policy group
+          example: My Shared Policy Group
+          maxLength: 512
+        description:
+          type: string
+          description: The description of the shared policy group
+          example: This is a shared policy group
+          maxLength: 1024
+        prerequisiteMessage:
+          type: string
+          description: The prerequisite message of the shared policy group. This message is displayed to the user to help understand the prerequisite to use the shared policy group.
+          example: The resource cache "my-cache" is required
+          maxLength: 1024
+        steps:
+          type: array
+          description: The list of steps (policies) in the shared policy group
+          items:
+            $ref: "#/components/schemas/StepV4"
+    SharedPolicyGroup:
+      type: object
+      description: A shared policy group
+      properties:
+        id:
+          type: string
+          description: The unique ID of the shared policy group
+        crossId:
+          type: string
+          description: The unique ID of the shared policy group
+          example: 5e2b3b3b-3b3b-3b3b-3b3b-3b3b3b3b3b3b
+        name:
+          type: string
+          description: The name of the shared policy group
+          example: My Shared Policy Group
+          maxLength: 512
+        description:
+          type: string
+          description: The description of the shared policy group
+          example: This is a shared policy group
+          maxLength: 1024
+        prerequisiteMessage:
+          type: string
+          description: The prerequisite message of the shared policy group. This message is displayed to the user to help understand the prerequisite to use the shared policy group.
+          example: The resource cache "my-cache" is required
+          maxLength: 1024
+        version:
+          type: number
+          description: The version of the shared policy group
+          example: 1
+        apiType:
+          $ref: "#/components/schemas/ApiType"
+        originContext:
+          $ref: "#/components/schemas/BaseOriginContext"
+        steps:
+          type: array
+          description: The list of steps (policies) in the shared policy group
+          items:
+            $ref: "#/components/schemas/StepV4"
+        phase:
+          $ref: "#/components/schemas/FlowPhase"
+        deployedAt:
+          type: string
+          format: date-time
+          description: The date at which the shared policy group was deployed
+          example: 2020-01-01T00:00:00Z
+        createdAt:
+          type: string
+          format: date-time
+          description: The date at which the shared policy group was created
+          example: 2020-01-01T00:00:00Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date at which the shared policy group was last updated
+          example: 2020-01-01T00:00:00Z
+        lifecycleState:
+          $ref: "#/components/schemas/SharedPolicyGroupLifecycleState"
+    SharedPolicyGroupPolicyPlugin:
+      type: object
+      description: A shared policy group for a policy plugin
+      properties:
+        id:
+          type: string
+          description: The unique ID of the shared policy group
+        policyId:
+          type: string
+          description: The id of shared-policy-group plugin
+        name:
+          type: string
+          description: The name of the shared policy group
+          example: My Shared Policy Group
+          maxLength: 512
+        description:
+          type: string
+          description: The description of the shared policy group
+          example: This is a shared policy group
+          maxLength: 1024
+        prerequisiteMessage:
+          type: string
+          description: The prerequisite message of the shared policy group. This message is displayed to the user to help understand the prerequisite to use the shared policy group.
+          example: The resource cache "my-cache" is required
+          maxLength: 1024
+        apiType:
+          $ref: "#/components/schemas/ApiType"
+        phase:
+          $ref: "#/components/schemas/FlowPhase"
+    SharedPolicyGroupLifecycleState:
+      type: string
+      description: The lifecycle state of a shared policy group
+      example: DEPLOYED
+      enum:
+        - DEPLOYED
+        - UNDEPLOYED
+        - PENDING
+
+    # Cluster
+    ClusterType:
+      type: string
+      enum: [ KAFKA_CLUSTER_STANDALONE, KAFKA_CLUSTER, KAFKA_VIRTUAL_CLUSTER ]
+    ClusterLifecycleStateStats:
+      type: object
+      description: Cluster counts by lifecycle state for the environment (optionally scoped to a type).
+      properties:
+        total:
+          type: integer
+          format: int64
+          description: Total number of clusters.
+        deployed:
+          type: integer
+          format: int64
+          description: Number of clusters in the DEPLOYED state.
+        pending:
+          type: integer
+          format: int64
+          description: Number of clusters in the PENDING state.
+        undeployed:
+          type: integer
+          format: int64
+          description: Number of clusters in the UNDEPLOYED state.
+    CreateCluster:
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/ClusterType"
+        crossId:
+          type: string
+          description: Portable identifier for cross-environment references. Auto-generated from name if not provided.
+        name:
+          type: string
+        description:
+          type: string
+        configuration:
+          type: object
+      required: [ "type", "name", "configuration" ]
+    Cluster:
+      type: object
+      properties:
+        id:
+          type: string
+        crossId:
+          type: string
+          description: Portable identifier for cross-environment references. Immutable after creation.
+        type:
+          $ref: "#/components/schemas/ClusterType"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        name:
+          type: string
+        description:
+          type: string
+        configuration:
+          type: object
+        groups:
+          type: array
+          items:
+            type: string
+        lifecycleState:
+          type: string
+          enum: [ UNDEPLOYED, DEPLOYED, PENDING ]
+          description: Current lifecycle state of the cluster.
+        deployedAt:
+          type: string
+          format: date-time
+          description: Last deployment or undeployment timestamp.
+        version:
+          type: integer
+          description: Deployment version, incremented on each deploy.
+    UpdateCluster:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        configuration:
+          type: object
+    ClusterGroups:
+      type: array
+      items:
+        type: string
+    UpdateClusterGroups:
+      type: array
+      items:
+        type: string
+    ClusterTransferOwnership:
+      type: object
+      properties:
+        newPrimaryOwnerId:
+          type: string
+          description: The new primary owner ID (user's technical identifier). Can be null if userReference is defined.
+        userReference:
+          type: string
+          description: The new primary owner reference (user's reference provided by an identity provider). Can be null if userId is defined.
+        currentPrimaryOwnerNewRole:
+          type: string
+          description: The name of the role that will be assigned to the current primary owner after the transfer.
+
+    # Scoring
+    EnvironmentApiScore:
+      type: object
+      description: The scoring result of an API
+      properties:
+        id:
+          type: string
+          description: API identifier
+        name:
+          type: string
+          description: API name
+        type:
+          $ref: "#/components/schemas/ApiType"
+        pictureUrl:
+          type: string
+          description: The URL to the API's picture
+        score:
+          type: number
+          description: The average score of all assets of API
+          example: 0.74
+        errors:
+          type: integer
+          description: The total number of violated rules with severity ERROR for all assets.
+          example: 10
+        warnings:
+          type: integer
+          description: The total number of violated rules with severity WARN for all assets.
+          example: 20
+        infos:
+          type: integer
+          description: The total number of violated rules with severity INFO for all assets.
+          example: 30
+        hints:
+          type: integer
+          description: The total number of violated rules with severity HINT for all assets.
+          example: 40
+    EnvironmentScoringOverview:
+      type: object
+      description: The scoring overview of an Environment
+      properties:
+        id:
+          type: string
+          description: Environment identifier
+        score:
+          type: number
+          description: The average score of all APIs
+          example: 0.74
+        errors:
+          type: integer
+          description: The total number of violated rules with severity ERROR for all APIs.
+          example: 10
+        warnings:
+          type: integer
+          description: The total number of violated rules with severity WARN for all APIs.
+          example: 20
+        infos:
+          type: integer
+          description: The total number of violated rules with severity INFO for all APIs.
+          example: 30
+        hints:
+          type: integer
+          description: The total number of violated rules with severity HINT for all APIs.
+          example: 40
+    ImportScoringRuleset:
+      type: object
+      description: The scoring ruleset to import
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: The name of ruleset
+        description:
+          type: string
+          description: The description of ruleset
+        payload:
+          type: string
+          minLength: 1
+          description: The ruleset payload
+        format:
+          $ref: "#/components/schemas/ScoringAssetFormat"
+      required:
+        - name
+        - payload
+        - format
+    UpdateScoringRuleset:
+      type: object
+      description: The scoring ruleset to update
+      properties:
+        name:
+          type: string
+          description: The name of ruleset
+        description:
+          type: string
+          description: The description of ruleset
+      required: [ "name" ]
+    ScoringRuleset:
+      type: object
+      description: A scoring ruleset
+      properties:
+        id:
+          type: string
+          description: The id of ruleset
+        name:
+          type: string
+          description: The name of ruleset
+        description:
+          type: string
+          description: The description of ruleset
+        payload:
+          type: string
+          description: The ruleset payload
+        format:
+          $ref: "#/components/schemas/ScoringAssetFormat"
+        createdAt:
+          type: string
+          format: date-time
+          description: The date at which the ruleset was created
+          example: 2020-01-01T00:00:00Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date at which the ruleset was updated
+          example: 2020-01-01T00:00:00Z
+        referenceId:
+          type: string
+          description: The reference Id of ruleset
+        referenceType:
+          $ref: "#/components/schemas/ScoringRulesetReferenceType"
+    ScoringRulesetReferenceType:
+      type: string
+      enum:
+        - ENVIRONMENT
+    ScoringAssetFormat:
+      type: string
+      description: The format of scoring asset
+      enum:
+        - GRAVITEE_FEDERATION
+        - GRAVITEE_MESSAGE
+        - GRAVITEE_PROXY
+        - GRAVITEE_NATIVE
+        - GRAVITEE_V2
+        - OPENAPI
+        - ASYNCAPI
+    ImportScoringFunction:
+      type: object
+      description: The scoring scoring function to import
+      properties:
+        name:
+          $ref: "#/components/schemas/ScoringFunctionName"
+        payload:
+          type: string
+          description: The scoring function payload
+    ScoringFunction:
+      type: object
+      description: A scoring ruleset
+      properties:
+        name:
+          $ref: "#/components/schemas/ScoringFunctionName"
+        payload:
+          type: string
+          description: The ruleset payload
+        createdAt:
+          type: string
+          format: date-time
+          description: The date at which the ruleset was created
+          example: 2020-01-01T00:00:00Z
+        referenceId:
+          type: string
+          description: The reference Id of ruleset
+        referenceType:
+          $ref: "#/components/schemas/ScoringFunctionReferenceType"
+    ScoringFunctionReferenceType:
+      type: string
+      enum:
+        - ENVIRONMENT
+    ScoringFunctionName:
+      type: string
+      pattern: '^[^/]+\.js$'
+      description: The name of ruleset
+
+    ApiType:
+      type: string
+      description: API's type.
+      example: MESSAGE
+      enum:
+        - A2A_PROXY
+        - AUTHZ
+        - EDGE
+        - LLM_PROXY
+        - MCP_PROXY
+        - MESSAGE
+        - PROXY
+        - NATIVE
+    OriginContext:
+      oneOf:
+        - $ref: "#/components/schemas/ManagementOriginContext"
+        - $ref: "#/components/schemas/KubernetesOriginContext"
+        - $ref: "#/components/schemas/IntegrationOriginContext"
+      discriminator:
+        propertyName: origin
+        mapping:
+          MANAGEMENT: "#/components/schemas/ManagementOriginContext"
+          KUBERNETES: "#/components/schemas/KubernetesOriginContext"
+          INTEGRATION: "#/components/schemas/IntegrationOriginContext"
+    BaseOriginContext:
+      type: object
+      properties:
+        origin:
+          type: string
+          description: The origin of the API.
+          example: MANAGEMENT
+          enum:
+            - MANAGEMENT
+            - KUBERNETES
+            - INTEGRATION
+      discriminator:
+        propertyName: origin
+        mapping:
+          MANAGEMENT: "#/components/schemas/ManagementOriginContext"
+          KUBERNETES: "#/components/schemas/KubernetesOriginContext"
+          INTEGRATION: "#/components/schemas/IntegrationOriginContext"
+    ManagementOriginContext:
+      type: object
+      title: "ManagementOriginContext"
+      description: Indicates the API has been created by the Management API
+      allOf:
+        - $ref: "#/components/schemas/BaseOriginContext"
+    KubernetesOriginContext:
+      type: object
+      title: "KubernetesOriginContext"
+      description: Indicates the API has been created by the Gravitee Kubernetes Operator
+      allOf:
+        - $ref: "#/components/schemas/BaseOriginContext"
+        - properties:
+            mode:
+              type: string
+              description: |-
+                The mode of the API.
+                fully_managed: Mode indicating the api is fully managed by the origin and so, only the origin should be able to manage the api.
+              example: FULLY_MANAGED
+              enum:
+                - FULLY_MANAGED
+            syncFrom:
+              type: string
+              description: |-
+                syncFrom stands for where the Gateway should source the API definition from. 
+                If the value is KUBERNETES, then the gateway will sync the definition by listening to changes
+                issued on a kubernetes config map. If the value is MANAGEMENT, then the gateway will sync
+                the definition using the same datastore as APIM. 
+                Defining MANAGEMENT as source for sync is useful e.g. when a single operator should operate
+                on gateways deployed on multiple kubernetes clusters.
+              example: MANAGEMENT
+              enum:
+                - MANAGEMENT
+                - KUBERNETES
+    IntegrationOriginContext:
+      type: object
+      title: "IntegrationOriginContext"
+      description: Indicates the API has been created through an Integration
+      allOf:
+        - $ref: "#/components/schemas/BaseOriginContext"
+        - properties:
+            integrationId:
+              type: string
+              description: |-
+                The id of the integration that created the API.
+              example: b300b445-8bbb-4034-865c-d2113ba5b768
+            provider:
+              type: string
+              description: Provider of this Federated API.
+              example: solace
+            integrationName:
+              type: string
+              description: Name of integration of this Federated API.
+              example: My Solace env
+    FlowPhase:
+      type: string
+      description: The execution phase of a policy.
+      example: REQUEST
+      enum:
+        - ENTRYPOINT_CONNECT
+        - REQUEST
+        - RESPONSE
+        - INTERACT
+        - PUBLISH
+        - SUBSCRIBE
+    BaseStep:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the step
+        description:
+          type: string
+          description: The description of the step
+        enabled:
+          type: boolean
+          description: Is the step enabled or not.
+          default: true
+        policy:
+          type: string
+          description: The policy of the step
+        configuration:
+          type: object
+          description: The configuration of the step
+        condition:
+          type: string
+          description: The condition of the step
+    StepV4:
+      allOf:
+        - $ref: "#/components/schemas/BaseStep"
+        - properties:
+            messageCondition:
+              type: string
+              description: The message condition of the step
+
+    # Members (Shared by api, cluster, integration, ...)
+    Role:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Role's name.
+          example: OWNER
+        scope:
+          $ref: "#/components/schemas/RoleScope"
+    RoleScope:
+      type: string
+      description: Scope of a role.
+      enum:
+        - API
+        - APPLICATION
+        - GROUP
+        - ENVIRONMENT
+        - ORGANIZATION
+        - PLATFORM
+        - INTEGRATION
+        - CLUSTER
+        - API_PRODUCT
+        - AI_CATALOG
+        - EXPLORER
+        - AI_WORKSPACE
+    Member:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Member's uuid.
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        displayName:
+          type: string
+          description: Member's name.
+          example: John Doe
+          minLength: 1
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/Role"
+          description: The list of roles for this Member.
+    AddMember:
+      type: object
+      description: Membership can be created for existing users, or for users provided by external identity provider. Thus, either userId or externalReference are required.
+      properties:
+        userId:
+          type: string
+          description: Technical identifier for existing user.
+        externalReference:
+          type: string
+          description: User's reference for user provided from an identity provider.
+        roleName:
+          type: string
+          description: The name of the role
+          minLength: 1
+      required: [ roleName ]
+    UpdateMember:
+      type: object
+      properties:
+        roleName:
+          type: string
+          description: The name of the role
+          minLength: 1
+      required: [ roleName ]
+
+    Error:
+      type: object
+      properties:
+        httpStatus:
+          type: integer
+          format: int32
+          description: The error code
+          example: 400
+        message:
+          type: string
+          description: The error message
+          example: Bad request
+        technicalCode:
+          type: string
+          description: A technical code to identify the error
+          example: invalid.import.definition
+        parameters:
+          type: object
+          description: A map of parameters to be used in the error message
+          additionalProperties:
+            type: string
+        details:
+          type: array
+          description: A list of details about the error
+          items:
+            type: object
+            properties:
+              message:
+                type: string
+                description: The error message
+                example: Bad request
+              location:
+                type: string
+                description: The json path of the field in error.
+                example: updateApi.properties[0].key
+              invalidValue:
+                description: The invalid value.
+    Pagination:
+      description: Generic object to handle pagination data.
+      type: object
+      properties:
+        page:
+          type: integer
+          description: The current page.
+        perPage:
+          type: integer
+          description: The number of items requested per page.
+        pageCount:
+          type: integer
+          description: The total number of pages.
+        pageItemsCount:
+          type: integer
+          description: The number of items for the current page.
+        totalCount:
+          type: integer
+          format: int64
+          description: The total number of items, or `-1` if the count could not be computed within the configured timeout.
+    Links:
+      description: List of links for pagination
+      properties:
+        self:
+          type: string
+          description: Link to current resource
+        first:
+          type: string
+          description: In a paginated response, link to the first page
+        last:
+          type: string
+          description: In a paginated response, link to the last page
+        previous:
+          type: string
+          description: In a paginated response, link to the previous page. Maybe null if current is the first page
+        next:
+          type: string
+          description: In a paginated response, link to the next page. Maybe null if current is the last page
+    ResponseMetadata:
+      description: Generic object to handle additional information about an entity. Can also be used for pagination data.
+      type: object
+
+    FeedbackRequestId:
+      description: newt AI feedback request id.
+      type: object
+      properties:
+        chatId:
+          type: string
+        userMessageId:
+          type: string
+        agentMessageId:
+          type: string
+    GenerateExpressionLanguage:
+      type: object
+      description: Request an expression language generation
+      required:
+        - message
+        - context
+      properties:
+        message:
+          description: Prompt of generation.
+          type: string
+        context:
+          description: Context to improve the generation.
+          type: object
+          properties:
+            apiId:
+              type: string
+              description: The API identifier if relevant.
+    PatchPortalPage:
+      type: object
+      description: Update portal page payload
+      properties:
+        content:
+          type: string
+          description: The content of the page in Gravitee Markdown format
+    PortalPageWithDetails:
+      type: object
+      description: A portal page with details
+      properties:
+        id:
+          type: string
+          description: The unique ID of the portal page
+        content:
+          type: string
+          description: Page contents
+        type:
+          type: string
+          description: Content type
+          enum:
+            - gravitee_markdown
+        context:
+          type: string
+          description: The portal context (eg. "homepage", "api_list")
+          enum: [ homepage ]
+        published:
+          type: boolean
+          description: Whether the page is published or not
+    PortalArea:
+      type: string
+      description: The portal area (used by portal navigation items)
+      enum: [ HOMEPAGE, TOP_NAVBAR ]
+      example: TOP_NAVBAR
+      default: TOP_NAVBAR
+    PortalVisibility:
+      type: string
+      description: The portal visibility (used by portal navigation items)
+      enum: [ PUBLIC, PRIVATE ]
+      example: PUBLIC
+    PortalNavigationItemType:
+      type: string
+      description: The type of the navigation item
+      example: FOLDER
+      enum: [ PAGE, FOLDER, LINK, API, API_PRODUCT ]
+    BasePortalNavigationItem:
+      type: object
+      description: Base portal navigation item
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique ID of the navigation item
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        organizationId:
+          type: string
+          description: The organization ID
+          example: DEFAULT
+        environmentId:
+          type: string
+          description: The environment ID
+          example: DEFAULT
+        title:
+          type: string
+          description: The title of the navigation item
+        type:
+          $ref: "#/components/schemas/PortalNavigationItemType"
+        area:
+          $ref: "#/components/schemas/PortalArea"
+        parentId:
+          type: string
+          format: uuid
+          description: The parent ID of the navigation item
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        rootId:
+          type: string
+          format: uuid
+          description: The root parent ID of the navigation item hierarchy
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        order:
+          type: integer
+          description: The order of the navigation item (zero-based)
+          example: 2
+        published:
+          type: boolean
+          description: Whether the navigation item is published or not
+          example: true
+        visibility:
+          $ref: "#/components/schemas/PortalVisibility"
+      required: [ id, organizationId, environmentId, title, type, area, order, published, visibility, rootId ]
+      discriminator:
+        propertyName: type
+        mapping:
+          PAGE: "#/components/schemas/PortalNavigationPage"
+          FOLDER: "#/components/schemas/PortalNavigationFolder"
+          LINK: "#/components/schemas/PortalNavigationLink"
+          API: "#/components/schemas/PortalNavigationApi"
+          API_PRODUCT: "#/components/schemas/PortalNavigationApiProduct"
+    PortalNavigationItemSource:
+      type: object
+      description: External source of the item content.
+      properties:
+        type:
+          type: string
+          description: Fetcher plugin id.
+          example: github-fetcher
+        configuration:
+          type: object
+          description: Fetcher configuration.
+        useAutoFetch:
+          type: boolean
+          description: Whether the content is automatically re-fetched on a schedule.
+          default: false
+        fetchCron:
+          type: string
+          description: Cron expression driving the auto-fetch schedule. Only used when useAutoFetch is true.
+          example: "0 */10 * * * *"
+        lastFetchedAt:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Date of the last successful fetch.
+          example: 2026-07-17T00:00:00.000Z
+        lastFetchAttemptAt:
+          type: string
+          format: date-time
+          readOnly: true
+          description: >
+            Date of the last fetch attempt, successful or not. This is the date the auto-fetch schedule
+            is computed from, and it dates lastFetchError when the last attempt failed.
+          example: 2026-07-17T00:00:00.000Z
+        lastFetchError:
+          type: string
+          readOnly: true
+          description: Error message of the last failed fetch. Absent when the last fetch succeeded.
+        subtreeImport:
+          type: boolean
+          readOnly: true
+          default: false
+          description: >
+            Whether the folder carrying this source is managed by the navigation import: fetching it
+            re-runs the import over its subtree. Only ever set by the import endpoint.
+      required: [ type, configuration ]
+    FetchPortalNavigationItemResponse:
+      type: object
+      description: Result of a manual fetch. Exactly one of item or summary is set, depending on the target type.
+      properties:
+        item:
+          $ref: "#/components/schemas/PortalNavigationItem"
+        summary:
+          $ref: "#/components/schemas/PortalNavigationItemsFetchSummary"
+    ImportPortalNavigationRequest:
+      type: object
+      description: Import of a remote documentation tree into a new sourced folder.
+      properties:
+        title:
+          type: string
+          description: Title of the root folder created for the import.
+        parentId:
+          type: string
+          format: uuid
+          description: >
+            The unique ID of the navigation item the root folder is created under. The folder takes the
+            parent's portal area; without a parent it is created at the top level of the top navbar.
+        visibility:
+          $ref: "#/components/schemas/PortalVisibility"
+        source:
+          $ref: "#/components/schemas/PortalNavigationItemSource"
+      required: [ title, source ]
+    ImportPortalNavigationResponse:
+      type: object
+      description: Result of a portal navigation import.
+      properties:
+        rootFolder:
+          $ref: "#/components/schemas/PortalNavigationItem"
+        summary:
+          $ref: "#/components/schemas/PortalNavigationItemsFetchSummary"
+      required: [ rootFolder, summary ]
+    PortalNavigationItemsFetchSummary:
+      type: object
+      description: Per-page success/failure summary of a subtree fetch or of a repository import.
+      properties:
+        succeeded:
+          type: integer
+          description: Number of pages fetched successfully.
+        failed:
+          type: integer
+          description: Number of pages whose fetch failed.
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/PortalNavigationItemFetchResult"
+      required: [ succeeded, failed, results ]
+    PortalNavigationItemFetchResult:
+      type: object
+      properties:
+        navigationItemId:
+          type: string
+          format: uuid
+          description: >
+            The unique ID of the fetched PAGE navigation item. Absent when the failure is not tied to
+            an item: a repository import reports a file it could not import, or a listing that failed
+            before any item was reached.
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        title:
+          type: string
+          description: The title of the fetched PAGE navigation item, or of the file the import failed on.
+        success:
+          type: boolean
+        error:
+          type: string
+          description: Why the fetch failed. Absent when the fetch succeeded.
+      required: [ title, success ]
+    PortalNavigationPage:
+      description: Portal navigation item of type PAGE
+      allOf:
+        - $ref: "#/components/schemas/BasePortalNavigationItem"
+        - properties:
+            portalPageContentId:
+              type: string
+              format: uuid
+              description: The UUID of the portal page content
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+            source:
+              $ref: "#/components/schemas/PortalNavigationItemSource"
+          required: [ portalPageContentId ]
+    PortalNavigationFolder:
+      description: Portal navigation item of type FOLDER
+      allOf:
+        - $ref: "#/components/schemas/BasePortalNavigationItem"
+        - properties:
+            source:
+              $ref: "#/components/schemas/PortalNavigationItemSource"
+    PortalNavigationLink:
+      description: Portal navigation item of type LINK
+      allOf:
+        - $ref: "#/components/schemas/BasePortalNavigationItem"
+        - properties:
+            url:
+              type: string
+              description: The URL for the link
+              example: https://example.com
+          required: [ url ]
+    PortalNavigationApi:
+      description: Portal navigation item of type API
+      allOf:
+        - $ref: "#/components/schemas/BasePortalNavigationItem"
+        - properties:
+            apiId:
+              type: string
+              description: ApiId referenced from the navItem
+              example: 3f2504e0-4f89-41d3-9a0c-0305e82c3301
+            categoryIds:
+              type: array
+              description: The IDs of the Portal Next categories this API navigation item is assigned to
+              items:
+                type: string
+                format: uuid
+              example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
+          required: [ apiId ]
+    PortalNavigationApiProduct:
+      description: Portal navigation item of type API_PRODUCT
+      allOf:
+        - $ref: "#/components/schemas/BasePortalNavigationItem"
+        - properties:
+            apiProductId:
+              type: string
+              format: uuid
+              description: API Product referenced by the navigation item
+              example: 3f2504e0-4f89-41d3-9a0c-0305e82c3301
+            categoryIds:
+              type: array
+              description: The IDs of the Portal Next categories this API Product navigation item is assigned to
+              items:
+                type: string
+                format: uuid
+              example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
+          required: [ apiProductId ]
+    PortalNavigationItem:
+      oneOf:
+        - $ref: "#/components/schemas/PortalNavigationPage"
+        - $ref: "#/components/schemas/PortalNavigationFolder"
+        - $ref: "#/components/schemas/PortalNavigationLink"
+        - $ref: "#/components/schemas/PortalNavigationApi"
+        - $ref: "#/components/schemas/PortalNavigationApiProduct"
+      discriminator:
+        propertyName: type
+        mapping:
+          PAGE: "#/components/schemas/PortalNavigationPage"
+          FOLDER: "#/components/schemas/PortalNavigationFolder"
+          LINK: "#/components/schemas/PortalNavigationLink"
+          API: "#/components/schemas/PortalNavigationApi"
+          API_PRODUCT: "#/components/schemas/PortalNavigationApiProduct"
+    PortalNavigationItemsResponseMetadata:
+      type: object
+      description: Sidecar data resolved for the returned navigation items, present only when requested via the `includes` query parameter.
+      properties:
+        apis:
+          type: object
+          description: Map of navigation item ID to a summary of its resolved Api, present only when `includes=apis` was requested.
+          additionalProperties:
+            $ref: "#/components/schemas/PortalNavigationItemApiSummary"
+    PortalNavigationItemApiSummary:
+      type: object
+      description: A minimal summary of an Api, used to populate the `metadata.apis` map without requiring the full Api schema.
+      properties:
+        id:
+          type: string
+          description: API's uuid.
+        name:
+          type: string
+          description: API's name.
+        apiVersion:
+          type: string
+          description: API's version.
+        contextPath:
+          type: string
+          description: The API's primary access path for display, if any (context path, listener path/host, or similar depending on API type).
+    BaseCreatePortalNavigationItem:
+      type: object
+      description: Base portal navigation item. Newly created items are unpublished by default.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique ID of the navigation item
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        title:
+          type: string
+          description: The title of the navigation item
+        type:
+          $ref: "#/components/schemas/PortalNavigationItemType"
+        area:
+          $ref: "#/components/schemas/PortalArea"
+        order:
+          type: integer
+          minimum: 0
+          description: The order of the navigation item, from 0 to MAX + 1, where MAX is the maximum existing order within the target parent. If not provided or greater than MAX, the new item is appended to the end of the target parent.
+          example: 2
+        parentId:
+          type: string
+          format: uuid
+          description: The parent ID of the navigation item, if not provided item is created at root
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        visibility:
+          $ref: "#/components/schemas/PortalVisibility"
+      discriminator:
+        propertyName: type
+        mapping:
+          FOLDER: "#/components/schemas/CreatePortalNavigationFolder"
+          PAGE: "#/components/schemas/CreatePortalNavigationPage"
+          LINK: "#/components/schemas/CreatePortalNavigationLink"
+          API:  "#/components/schemas/CreatePortalNavigationApi"
+          API_PRODUCT: "#/components/schemas/CreatePortalNavigationApiProduct"
+      required: [ title, type, area, visibility ]
+    CreatePortalNavigationFolder:
+      type: object
+      title: "CreatePortalNavigationFolder"
+      description: Portal navigation folder to create
+      allOf:
+        - $ref: "#/components/schemas/BaseCreatePortalNavigationItem"
+        - properties:
+            source:
+              $ref: "#/components/schemas/PortalNavigationItemSource"
+    CreatePortalNavigationPage:
+      type: object
+      title: "CreatePortalNavigationPage"
+      description: Portal navigation page to create
+      allOf:
+        - $ref: "#/components/schemas/BaseCreatePortalNavigationItem"
+        - properties:
+            portalPageContentId:
+              type: string
+              format: uuid
+              deprecated: true
+              description: Ignored. A new page content is always created for the page.
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+            contentType:
+              $ref: "#/components/schemas/PortalPageContentType"
+              description: The content type for the page. Defaults to GRAVITEE_MARKDOWN if not provided.
+            source:
+              $ref: "#/components/schemas/PortalNavigationItemSource"
+    CreatePortalNavigationLink:
+      type: object
+      title: "CreatePortalNavigationLink"
+      description: Portal navigation link to create
+      allOf:
+        - $ref: "#/components/schemas/BaseCreatePortalNavigationItem"
+        - properties:
+            url:
+              type: string
+              description: The URL for the link
+              example: https://example.com
+          required: [ url ]
+    CreatePortalNavigationApi:
+      type: object
+      title: "CreatePortalNavigationApi"
+      description: Portal navigation Api to create
+      allOf:
+        - $ref: "#/components/schemas/BaseCreatePortalNavigationItem"
+        - properties:
+            apiId:
+              type: string
+              description: The apiId for the navigationItem
+              example: "3f2504e0-4f89-41d3-9a0c-0305e82c3301"
+            categoryIds:
+              type: array
+              description: The IDs of the Portal Next categories this API navigation item is assigned to. Defaults to an empty list if not provided.
+              items:
+                type: string
+                format: uuid
+              example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
+          required: [ apiId ]
+    CreatePortalNavigationApiProduct:
+      type: object
+      title: "CreatePortalNavigationApiProduct"
+      description: Portal navigation API Product item to create. Newly created items are unpublished by default.
+      allOf:
+        - $ref: "#/components/schemas/BaseCreatePortalNavigationItem"
+        - properties:
+            apiProductId:
+              type: string
+              format: uuid
+              description: API Product referenced by the navigation item
+              example: "3f2504e0-4f89-41d3-9a0c-0305e82c3301"
+            categoryIds:
+              type: array
+              description: The IDs of the Portal Next categories this API Product navigation item is assigned to. Defaults to an empty list if not provided.
+              items:
+                type: string
+                format: uuid
+              example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
+          required: [ apiProductId ]
+    CreatePortalNavigationItem:
+      oneOf:
+        - $ref: "#/components/schemas/CreatePortalNavigationPage"
+        - $ref: "#/components/schemas/CreatePortalNavigationFolder"
+        - $ref: "#/components/schemas/CreatePortalNavigationLink"
+        - $ref: "#/components/schemas/CreatePortalNavigationApi"
+        - $ref: "#/components/schemas/CreatePortalNavigationApiProduct"
+
+      discriminator:
+        propertyName: type
+        mapping:
+          PAGE: "#/components/schemas/CreatePortalNavigationPage"
+          FOLDER: "#/components/schemas/CreatePortalNavigationFolder"
+          LINK: "#/components/schemas/CreatePortalNavigationLink"
+          API: "#/components/schemas/CreatePortalNavigationApi"
+          API_PRODUCT: "#/components/schemas/CreatePortalNavigationApiProduct"
+
+    CreatePortalNavigationItems:
+      type: object
+      description: Portal navigation items to create in bulk
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreatePortalNavigationItem"
+      required: [ items ]
+
+    BaseCreatePortalNavigationItems:
+      type: object
+      description: Portal navigation items to create in bulk
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/BaseCreatePortalNavigationItem"
+      required: [ items ]
+
+    SeedDefaultPagesRequest:
+      type: object
+      description: Portal navigation API or API Product item ids that should receive their default Overview page
+      properties:
+        ids:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            format: uuid
+            pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+      required: [ ids ]
+
+    BaseUpdatePortalNavigationItem:
+      type: object
+      description: Base portal navigation item for Update
+      properties:
+        type:
+          $ref: "#/components/schemas/PortalNavigationItemType"
+        title:
+          type: string
+          description: The title of the navigation item
+        order:
+          type: integer
+          minimum: 0
+          description: The order of the navigation item, from 0 to MAX, where MAX is the maximum existing order within the target parent. If greater than MAX, the item is moved to the end of the target parent.
+          example: 2
+        parentId:
+          type: string
+          format: uuid
+          description: >-
+            The parent ID of the navigation item. If omitted, the item is moved to the root level of its existing owner.
+            For API-owned pages, folders, and links, an API navigation item referencing the same API represents that API's
+            documentation root. Sending its ID preserves API ownership and does not physically attach the document to that navigation item.
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        published:
+          type: boolean
+          description: Whether the navigation item is published or not
+          example: true
+        visibility:
+          $ref: "#/components/schemas/PortalVisibility"
+      discriminator:
+        propertyName: type
+        mapping:
+          FOLDER: "#/components/schemas/UpdatePortalNavigationFolder"
+          PAGE: "#/components/schemas/UpdatePortalNavigationPage"
+          LINK: "#/components/schemas/UpdatePortalNavigationLink"
+          API: "#/components/schemas/UpdatePortalNavigationApi"
+          API_PRODUCT: "#/components/schemas/UpdatePortalNavigationApiProduct"
+
+      required: [ type, title, order, published, visibility ]
+    UpdatePortalNavigationFolder:
+      type: object
+      title: "UpdatePortalNavigationFolder"
+      description: Portal navigation folder to update
+      allOf:
+        - $ref: "#/components/schemas/BaseUpdatePortalNavigationItem"
+        - properties:
+            source:
+              $ref: "#/components/schemas/PortalNavigationItemSource"
+    UpdatePortalNavigationPage:
+      type: object
+      title: "UpdatePortalNavigationPage"
+      description: Portal navigation page to update
+      allOf:
+        - $ref: "#/components/schemas/BaseUpdatePortalNavigationItem"
+        - properties:
+            source:
+              $ref: "#/components/schemas/PortalNavigationItemSource"
+    UpdatePortalNavigationLink:
+      type: object
+      title: "UpdatePortalNavigationLink"
+      description: Portal navigation link to update
+      allOf:
+        - $ref: "#/components/schemas/BaseUpdatePortalNavigationItem"
+        - properties:
+            url:
+              type: string
+              description: The URL for the link
+              example: https://example.com
+          required: [ url ]
+    UpdatePortalNavigationApi:
+      type: object
+      title: "UpdatePortalNavigationApi"
+      description: Portal navigation api to update
+      allOf:
+        - $ref: "#/components/schemas/BaseUpdatePortalNavigationItem"
+        - properties:
+            apiId:
+              type: string
+              description: The apiId for the navigationItem
+              example: "3f2504e0-4f89-41d3-9a0c-0305e82c3301"
+            categoryIds:
+              type: array
+              description: The IDs of the Portal Next categories this API navigation item is assigned to. Defaults to an empty list if not provided.
+              items:
+                type: string
+                format: uuid
+              example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
+          required: [ apiId ]
+    UpdatePortalNavigationApiProduct:
+      type: object
+      title: "UpdatePortalNavigationApiProduct"
+      description: Portal navigation API Product item to update. The linked API Product is immutable; an apiProductId property supplied in an update payload is ignored.
+      allOf:
+        - $ref: "#/components/schemas/BaseUpdatePortalNavigationItem"
+        - properties:
+            categoryIds:
+              type: array
+              description: The IDs of the Portal Next categories this API Product navigation item is assigned to. Defaults to an empty list if not provided.
+              items:
+                type: string
+                format: uuid
+              example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
+    UpdatePortalNavigationItem:
+      oneOf:
+        - $ref: "#/components/schemas/UpdatePortalNavigationPage"
+        - $ref: "#/components/schemas/UpdatePortalNavigationFolder"
+        - $ref: "#/components/schemas/UpdatePortalNavigationLink"
+        - $ref: "#/components/schemas/UpdatePortalNavigationApi"
+        - $ref: "#/components/schemas/UpdatePortalNavigationApiProduct"
+      discriminator:
+        propertyName: type
+        mapping:
+          PAGE: "#/components/schemas/UpdatePortalNavigationPage"
+          FOLDER: "#/components/schemas/UpdatePortalNavigationFolder"
+          LINK: "#/components/schemas/UpdatePortalNavigationLink"
+          API: "#/components/schemas/UpdatePortalNavigationApi"
+          API_PRODUCT: "#/components/schemas/UpdatePortalNavigationApiProduct"
+
+    PortalCategory:
+      type: object
+      description: A Portal Next category, used to group APIs on the New Developer Portal
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique ID of the portal category
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        title:
+          type: string
+          description: The title of the portal category
+          example: Weather
+        description:
+          type: string
+          description: The description of the portal category
+          example: APIs related to weather forecasts
+        visible:
+          type: boolean
+          description: Whether the portal category is visible on the portal
+          example: true
+      required: [ id, title ]
+    CreatePortalCategory:
+      type: object
+      description: Portal category to create
+      properties:
+        title:
+          type: string
+          description: The title of the portal category
+          example: Weather
+        description:
+          type: string
+          description: The description of the portal category
+          example: APIs related to weather forecasts
+        visible:
+          type: boolean
+          description: Whether the portal category is visible on the portal
+          default: true
+          example: true
+      required: [ title ]
+    UpdatePortalCategory:
+      type: object
+      description: Portal category to update
+      properties:
+        title:
+          type: string
+          description: The title of the portal category
+          example: Weather
+        description:
+          type: string
+          description: The description of the portal category
+          example: APIs related to weather forecasts
+        visible:
+          type: boolean
+          description: Whether the portal category is visible on the portal
+          default: true
+          example: true
+      required: [ title ]
+
+    PortalPageContentType:
+      type: string
+      description: Type of portal page content
+      enum:
+        - GRAVITEE_MARKDOWN
+        - OPENAPI
+        - ASYNCAPI
+
+    PortalPageOpenApiConfiguration:
+      oneOf:
+        - $ref: "#/components/schemas/PortalPageSwaggerConfiguration"
+        - $ref: "#/components/schemas/PortalPageRedocConfiguration"
+      discriminator:
+        propertyName: viewer
+        mapping:
+          SWAGGER: "#/components/schemas/PortalPageSwaggerConfiguration"
+          REDOC: "#/components/schemas/PortalPageRedocConfiguration"
+
+    BasePortalPageOpenApiConfiguration:
+      type: object
+      description: OpenAPI viewer configuration for a portal page content
+      properties:
+        viewer:
+          type: string
+          description: The type of viewer for OpenAPI specification. Default is 'SWAGGER'
+          enum:
+            - SWAGGER
+            - REDOC
+          default: SWAGGER
+      required: [ viewer ]
+      discriminator:
+        propertyName: viewer
+        mapping:
+          SWAGGER: "#/components/schemas/PortalPageSwaggerConfiguration"
+          REDOC: "#/components/schemas/PortalPageRedocConfiguration"
+
+    PortalPageSwaggerConfiguration:
+      type: object
+      title: "PortalPageSwaggerConfiguration"
+      description: Swagger UI viewer configuration for a portal page content
+      allOf:
+        - $ref: "#/components/schemas/BasePortalPageOpenApiConfiguration"
+        - properties:
+            displayOperationId:
+              type: boolean
+              description: Display the operationId in the operations list.
+              default: false
+            docExpansion:
+              type: string
+              description: |
+                Default expansion setting for the operations and tags.
+                Possible values are:
+                  - list: Expands only the tags
+                  - full: Expands the tags and operations
+                  - none: Expands nothing. Default.
+              enum:
+                - list
+                - full
+                - none
+              default: none
+            enableFiltering:
+              type: boolean
+              description: Add a top bar to filter content.
+              default: false
+            maxDisplayedTags:
+              type: integer
+              description: |
+                Number of max tagged operations displayed.
+                Limits the number of tagged operations displayed to at most this many (negative means show all operations).
+                No limit by default.
+              default: -1
+            showCommonExtensions:
+              type: boolean
+              description: Display common extension fields and values for parameters.
+              default: false
+            showExtensions:
+              type: boolean
+              description: Display vendor extension (X-) fields and values for operations, parameters, and schema.
+              default: false
+            showURL:
+              type: boolean
+              description: Show the URL to download the content.
+              default: false
+            tryIt:
+              type: boolean
+              description: Enable "Try It!" mode in documentation page.
+              default: false
+            disableSyntaxHighlight:
+              type: boolean
+              description: Disable response body styling for large JSON payloads.
+              default: false
+            tryItAnonymous:
+              type: boolean
+              description: Enable "Try It!" mode in documentation page for anonymous users.
+              default: false
+            tryItURL:
+              type: string
+              description: Base URL used to try the API.
+              default: ""
+            usePkce:
+              type: boolean
+              description: Enable use of PKCE with authorization code flows in documentation page.
+              default: false
+            entrypointsAsServers:
+              type: boolean
+              description: Use API entrypoints as OpenAPI servers.
+              default: false
+            contextPathAsServerPath:
+              type: boolean
+              description: Use API context-path as OpenAPI server URL path.
+              default: false
+
+    PortalPageRedocConfiguration:
+      type: object
+      title: "PortalPageRedocConfiguration"
+      description: Redoc viewer configuration for a portal page content
+      allOf:
+        - $ref: "#/components/schemas/BasePortalPageOpenApiConfiguration"
+        - properties:
+            tryItURL:
+              type: string
+              description: Base URL used as OpenAPI server URL for Redoc.
+              default: ""
+
+    PortalPageContent:
+      type: object
+      description: Portal page content
+      properties:
+        id:
+          type: string
+          description: The unique ID of the portal page content
+        type:
+          $ref: "#/components/schemas/PortalPageContentType"
+        content:
+          type: string
+          description: The content of the page
+        configuration:
+          $ref: "#/components/schemas/PortalPageOpenApiConfiguration"
+      required: [ id, type, content ]
+
+    UpdatePortalPageContent:
+      type: object
+      description: Update portal page content
+      properties:
+        content:
+          type: string
+          description: The updated content for the page
+        configuration:
+          $ref: "#/components/schemas/PortalPageOpenApiConfiguration"
+        type:
+          allOf:
+            - $ref: "#/components/schemas/PortalPageContentType"
+          description: >
+            When set and different from the current content type, the content is converted to this type.
+            Used by the file import, where the type is derived from the uploaded file extension.
+      required: [ content ]
+
+    # Subscription Forms
+    SubscriptionForm:
+      type: object
+      description: Subscription form definition used by API consumers when subscribing to APIs
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the subscription form
+          example: 550e8400-e29b-41d4-a716-446655440000
+        name:
+          type: string
+          description: Display name of the form, unique within the environment
+          example: Partner onboarding
+        gmdContent:
+          type: string
+          description: |-
+            Gravitee Markdown (GMD) content defining the form.
+            Supports form components like gmd-input, gmd-textarea, gmd-select, gmd-checkbox, gmd-radio.
+          example: |
+            # Subscription Information
+            
+            <gmd-input name="consumer_company_name" label="Company Name" required="true"/>
+            <gmd-textarea name="consumer_use_case" label="Use Case" required="true"/>
+        enabled:
+          type: boolean
+          description: Whether the form is enabled and visible to API consumers in the Developer Portal
+          example: false
+        apiIds:
+          type: array
+          description: Identifiers of the APIs this form is dedicated to. An API is mapped to at most one form.
+          items:
+            type: string
+          example: [ "6c530064-0b2c-4004-9300-640b2ca00499" ]
+        resolvedOptions:
+          type: object
+          description: |-
+            Resolved option lists for fields that use EL expressions.
+            Keys are field keys; values are the effective option lists (fallback values when no API context is available).
+            Present only when at least one field has dynamic options.
+          additionalProperties:
+            type: array
+            items:
+              type: string
+      required:
+        - id
+        - name
+        - gmdContent
+        - enabled
+        - apiIds
+    SubscriptionFormTemplate:
+      type: object
+      description: The Gravitee Markdown definition a new subscription form starts from
+      properties:
+        gmdContent:
+          type: string
+          description: Gravitee Markdown (GMD) content of the template
+      required:
+        - gmdContent
+    CreateSubscriptionForm:
+      type: object
+      description: Payload for adding a subscription form to the environment catalog
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Display name of the form, unique within the environment
+          example: Partner onboarding
+        gmdContent:
+          type: string
+          minLength: 1
+          description: |-
+            Gravitee Markdown (GMD) content defining the form.
+            Supports form components like gmd-input, gmd-textarea, gmd-select, gmd-checkbox, gmd-radio.
+            
+            Content is validated for security - malicious HTML/scripts will be rejected.
+          example: |
+            # Subscription Information
+            
+            <gmd-input name="consumer_company_name" label="Company Name" required="true"/>
+        apiIds:
+          type: array
+          description: Identifiers of the APIs this form is dedicated to. Each must belong to the environment and to no other form.
+          items:
+            type: string
+      required:
+        - name
+        - gmdContent
+    UpdateSubscriptionForm:
+      type: object
+      description: Payload for updating a subscription form
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Display name of the form, unique within the environment
+          example: Partner onboarding
+        gmdContent:
+          type: string
+          minLength: 1
+          description: |-
+            Gravitee Markdown (GMD) content defining the form.
+            Supports form components like gmd-input, gmd-textarea, gmd-select, gmd-checkbox, gmd-radio.
+            
+            Content is validated for security - malicious HTML/scripts will be rejected.
+          example: |
+            # Subscription Information
+            
+            <gmd-input name="consumer_company_name" label="Company Name" required="true"/>
+            <gmd-textarea name="consumer_use_case" label="Use Case" required="true"/>
+        apiIds:
+          type: array
+          # nullable: without it the generated model defaults an absent list to an empty one, which would unmap
+          # every API; kept null, it is rejected with a 400 by the @NotNull that 'required' still generates.
+          nullable: true
+          description: |-
+            Identifiers of the APIs this form is dedicated to, replacing the current ones like the name and the
+            definition. Required: an empty list unmaps every API. Each must belong to the environment and to no
+            other form.
+          items:
+            type: string
+      required:
+        - name
+        - gmdContent
+        - apiIds
+
+  parameters:
+    pageParam:
+      name: page
+      in: query
+      required: false
+      description: The page number for pagination.
+      schema:
+        type: integer
+        default: 1
+    perPageParam:
+      name: perPage
+      in: query
+      required: false
+      description: |
+        The number of items per page for pagination.
+      schema:
+        type: integer
+        default: 10
+    from:
+      name: from
+      in: query
+      required: false
+      description: |
+        The timestamp in ms from which the logs will be returned.
+      schema:
+        type: integer
+        format: int64
+    to:
+      name: to
+      in: query
+      required: false
+      description: |
+        The timestamp in ms to which the logs will be returned.
+      schema:
+        type: integer
+        format: int64
+
+    # Members (Shared by api, cluster, integration, ...)
+    memberId:
+      name: memberId
+      in: path
+      required: true
+      description: Id of an API member.
+      schema:
+        type: string
+
+    # Shared policy group
+    sharedPolicyGroupId:
+      name: sharedPolicyGroupId
+      in: path
+      description: The unique ID of the shared policy group
+      required: true
+      schema:
+        type: string
+    sharedPolicyGroupSortByParam:
+      name: sortBy
+      in: query
+      required: false
+      description: |-
+        Possibility to sort Shared Policy Group results by field.
+        Can be ascending or descending with minus '-' prefix.
+        By default, no sort is applied.
+      schema:
+        type: string
+        example: name
+        enum:
+          - name
+          - -name
+          - apiType
+          - -apiType
+          - phase
+          - -phase
+          - updatedAt
+          - -updatedAt
+          - deployedAt
+          - -deployedAt
+    sharedPolicyGroupSearchParam:
+      name: q
+      in: query
+      description: |-
+        A search query to filter shared policy groups.
+      schema:
+        type: string
+        example: my shared policy group
+    sharedPolicyGroupHistoriesSortByParam:
+      name: sortBy
+      in: query
+      required: false
+      description: |-
+        Possibility to sort Shared Policy Group history results by field.
+        Can be ascending or descending with minus '-' prefix.
+        By default, no sort is applied.
+      schema:
+        type: string
+        example: name
+        enum:
+          - version
+          - -version
+          - updatedAt
+          - -updatedAt
+          - deployedAt
+          - -deployedAt
+
+    # Scoring
+    rulesetId:
+      name: rulesetId
+      in: path
+      description: The unique ID of ruleset
+      required: true
+      schema:
+        type: string
+    scoringFunctionName:
+      name: scoringFunctionName
+      in: path
+      description: The name of scoring function
+      required: true
+      schema:
+        $ref: "#/components/schemas/ScoringFunctionName"
+
+    # Cluster
+    clusterId:
+      name: clusterId
+      in: path
+      description: The unique ID of the cluster
+      required: true
+      schema:
+        type: string
+    clusterSortByParam:
+      name: sortBy
+      in: query
+      required: false
+      description: |-
+        Possibility to sort Cluster results by field.
+        Can be ascending or descending with minus '-' prefix.
+        By default, it is sorted by name.
+      schema:
+        type: string
+        example: name
+        enum:
+          - name
+          - -name
+          - createdAt
+          - -createdAt
+          - updatedAt
+          - -updatedAt
+    clusterSearchParam:
+      name: q
+      in: query
+      description: |-
+        A search query to filter clusters.
+      schema:
+        type: string
+        example: my cluster
+    scoringApiTypesParam:
+      name: apiTypes
+      in: query
+      required: false
+      description: |-
+        Filter the scored APIs by type. Comma-separate several types
+        (`?apiTypes=MESSAGE,NATIVE`). Omitted, every type is returned.
+      explode: false
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/ApiType"
+    clusterTypeParam:
+      name: type
+      in: query
+      required: false
+      description: |-
+        Filter clusters by type.
+      schema:
+        $ref: "#/components/schemas/ClusterType"
+
+    clusterLifecycleStateParam:
+      name: lifecycleState
+      in: query
+      required: false
+      description: |-
+        Filter clusters by lifecycle state. Comma-separate several states (`?lifecycleState=DEPLOYED,PENDING`).
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          enum: [ UNDEPLOYED, DEPLOYED, PENDING ]
+
+    # Instances
+    instanceId:
+      name: instanceId
+      in: path
+      description: The gateway instance ID
+      required: true
+      schema:
+        type: string
+
+    # Portal Page
+    contextType:
+      name: contextType
+      in: query
+      description: The portal context type (eg. "homepage", "api_list")
+      required: true
+      schema:
+        type: string
+        enum: [ homepage ]
+    expandComponents:
+      name: expands
+      in: query
+      description: >
+        Comma-separated list of fields to expand. Possible value: 'content'
+      required: false
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          enum: [ content ]
+
+    # Portal Navigation
+    portalArea:
+      name: area
+      in: query
+      description: The portal area (eg. "homepage", "top_navbar")
+      required: false
+      schema:
+        $ref: "#/components/schemas/PortalArea"
+
+  responses:
+    SchemaFormResponse:
+      description: Schema form of a plugin
+      content:
+        application/json:
+          schema:
+            type: object
+    Error:
+      description: Generic error response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    # Members (Shared by api, cluster, integration, ...)
+    MembersResponse:
+      description: Page of members
+      content:
+        application/json:
+          schema:
+            title: "MembersResponse"
+            properties:
+              data:
+                description: List of members.
+                type: array
+                items:
+                  $ref: "#/components/schemas/Member"
+              links:
+                $ref: "#/components/schemas/Links"
+              metadata:
+                $ref: "#/components/schemas/ResponseMetadata"
+              pagination:
+                $ref: "#/components/schemas/Pagination"
+
+    # Shared policy group
+    SharedPolicyGroupsResponse:
+      description: Page of shared policy groups
+      content:
+        application/json:
+          schema:
+            title: "SharedPolicyGroupsResponse"
+            properties:
+              data:
+                description: List of SharedPolicyGroup.
+                type: array
+                items:
+                  $ref: "#/components/schemas/SharedPolicyGroup"
+              pagination:
+                $ref: "#/components/schemas/Pagination"
+              links:
+                $ref: "#/components/schemas/Links"
+    SharedPolicyGroupHistoriesResponse:
+      description: Page of shared policy group histories
+      content:
+        application/json:
+          schema:
+            title: "SharedPolicyGroupHistoriesResponse"
+            properties:
+              data:
+                description: List of SharedPolicyGroup.
+                type: array
+                items:
+                  $ref: "#/components/schemas/SharedPolicyGroup"
+              pagination:
+                $ref: "#/components/schemas/Pagination"
+              links:
+                $ref: "#/components/schemas/Links"
+
+    # Cluster
+    ClustersResponse:
+      description: Page of clusters
+      content:
+        application/json:
+          schema:
+            title: "ClustersResponse"
+            properties:
+              data:
+                description: List of Clusters.
+                type: array
+                items:
+                  $ref: "#/components/schemas/Cluster"
+              pagination:
+                $ref: "#/components/schemas/Pagination"
+              links:
+                $ref: "#/components/schemas/Links"
+    ClusterPermissionsResponse:
+      description: Permissions response
+      content:
+        application/json:
+          schema:
+            title: "PermissionsResponse"
+            properties:
+              data:
+                description: Key/Value list of permissions. The key is the permission name and the value is the permission CRUD value.
+                example: { "DEFINITION": "CRUD", "MEMBER": "R" }
+                type: object
+                additionalProperties:
+                  type: string
+
+    # Analytics
+    EnvironmentAnalyticsResponseStatusRangesResponse:
+      description: Analytics for status codes by entrypoint at environment level
+      content:
+        application/json:
+          schema:
+            title: "EnvironmentAnalyticsResponseStatusRangesResponse"
+            description: Environment level API Analytics for status codes by entrypoint.
+            properties:
+              ranges:
+                type: object
+                description: >
+                  Global status ranges. Alongside the `<from>-<to>` range keys, the reserved key
+                  `unknown` holds the requests those ranges cannot classify — typically a request
+                  whose response status was never committed, indexed with status 0.
+                additionalProperties:
+                  description: A map of response status range and counts
+                  type: number
+                example:
+                  100.0-200.0:
+                    value: 5
+                  200.0-300.0:
+                    value: 357
+                  300.0-400.0:
+                    value: 0
+                  400.0-500.0:
+                    value: 0
+                  500.0-600.0:
+                    value: 0
+    EnvironmentAnalyticsTopHitsApisResponse:
+      description: Analytics for v2 and v4 top hits APIs at environment level
+      content:
+        application/json:
+          schema:
+            title: "EnvironmentAnalyticsTopHitsApisResponse"
+            description: Analytics for top hits APIs at environment level
+            properties:
+              data:
+                type: array
+                description: List of top hit results
+                items:
+                  $ref: "#/components/schemas/TopHitApi"
+    EnvironmentAnalyticsRequestResponseTimeResponse:
+      description: Analytics for request response times at environment level
+      content:
+        application/json:
+          schema:
+            title: "EnvironmentAnalyticsRequestResponseTimeResponse"
+            description: Analytics for top hits APIs at environment level
+            properties:
+              requestsPerSecond:
+                type: number
+                format: double
+                description: Number of requests per second
+                example: 0.7
+              requestsTotal:
+                type: number
+                format: int64
+                description: Total number of requests
+                example: 3567
+              responseMinTime:
+                type: number
+                format: double
+                description: Response minimum time in ms
+                example: 32.23
+              responseMaxTime:
+                type: number
+                format: double
+                description: Response maximum time in ms
+                example: 7240.11
+              responseAvgTime:
+                type: number
+                format: double
+                description: Response average time in ms
+                example: 89.2
+    EnvironmentAnalyticsOverPeriodResponse:
+      description: Analytics for number over period
+      content:
+        application/json:
+          schema:
+            title: "EnvironmentAnalyticsOverPeriodResponse"
+            description: Environment Analytics integer data point on a period.
+            properties:
+              timeRange:
+                $ref: "#/components/schemas/AnalyticTimeRange"
+              data:
+                type: array
+                description: Response time average (in milliseconds) over time
+                items:
+                  type: integer
+                  format: int64
+                  minimum: 0
+                  exclusiveMinimum: true
+    EnvironmentAnalyticsResponseStatusOvertimeResponse:
+      description: Analytics for status codes over time
+      content:
+        application/json:
+          schema:
+            title: "EnvironmentAnalyticsResponseStatusOvertimeResponse"
+            description: Environment Analytics for status codes over time.
+            properties:
+              timeRange:
+                $ref: "#/components/schemas/AnalyticTimeRange"
+              data:
+                type: object
+                description: Status count overt time
+                additionalProperties:
+                  description: A map of response status and counts
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+    EnvironmentAnalyticsTopAppsByRequestCountResponse:
+      description: Analytics for v2 and v4 top applications by the request count
+      content:
+        application/json:
+          schema:
+            title: "EnvironmentAnalyticsTopAppsByRequestCountResponse"
+            description: Analytics for top applications by the request count
+            properties:
+              data:
+                type: array
+                description: List of top application results
+                items:
+                  $ref: "#/components/schemas/TopApp"
+    EnvironmentAnalyticsTopFailedApisResponse:
+      description: Analytics for top failed v2 and v4 APIs based on 5xx status calls
+      content:
+        application/json:
+          schema:
+            title: "EnvironmentAnalyticsTopFailedApisResponse"
+            description: Analytics for top failed v2 and v4 APIs based on 5xx status calls
+            properties:
+              data:
+                type: array
+                description: List of top failed APIs results
+                items:
+                  $ref: "#/components/schemas/TopFailedApis"
+
+    # Scoring
+    EnvironmentApisScoringResponse:
+      description: Page of Apis Scoring
+      content:
+        application/json:
+          schema:
+            title: "EnvironmentApisScoringResponse"
+            properties:
+              data:
+                description: List of EnvironmentApiScoreSummary.
+                type: array
+                items:
+                  $ref: "#/components/schemas/EnvironmentApiScore"
+              pagination:
+                $ref: "#/components/schemas/Pagination"
+              links:
+                $ref: "#/components/schemas/Links"
+    ScoringRulesetsResponse:
+      description: Scoring rulesets list
+      content:
+        application/json:
+          schema:
+            title: "ScoringRulesetsResponse"
+            properties:
+              data:
+                description: List of rulesets.
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScoringRuleset"
+    ScoringFunctionsResponse:
+      description: Scoring functions list
+      content:
+        application/json:
+          schema:
+            title: "ScoringFunctionsResponse"
+            properties:
+              data:
+                description: List of rulesets.
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScoringFunction"
+
+    # NewAI
+    GenerateExpressionLanguageResponse:
+      description: Response an expression language generation
+      content:
+        application/json:
+          schema:
+            title: "GenerateExpressionLanguageResponse"
+            properties:
+              message:
+                description: Expression language generated.
+                type: string
+              feedbackRequestId:
+                $ref: '#/components/schemas/FeedbackRequestId'
+
+
+    # Instances
+    InstanceDetailResponse:
+      description: The gateway instance details.
+      content:
+        application/json:
+          schema:
+            title: "InstanceDetailResponse"
+            properties:
+              id:
+                type: string
+                description: Gateway's uuid.
+                example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+              hostname:
+                type: string
+                description: Gateway's hostname.
+                example: my-gateway.example.com
+              ip:
+                type: string
+                description: Gateway's ip.
+                example: 10.0.1.123
+
+    PortalPageResponse:
+      description: A portal page
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PortalPageWithDetails"
+
+    PortalPagesResponse:
+      description: A list of portal pages
+      content:
+        application/json:
+          schema:
+            title: "PortalPagesResponse"
+            properties:
+              pages:
+                type: array
+                description: List of portal pages
+                items:
+                  $ref: "#/components/schemas/PortalPageWithDetails"
+
+    PortalNavigationItemsResponse:
+      description: A list of portal navigation items
+      content:
+        application/json:
+          schema:
+            title: "PortalNavigationItemsResponse"
+            properties:
+              items:
+                type: array
+                description: List of portal navigation items
+                items:
+                  $ref: "#/components/schemas/PortalNavigationItem"
+              metadata:
+                $ref: "#/components/schemas/PortalNavigationItemsResponseMetadata"
+    PortalPageContentResponse:
+      description: Portal page content
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PortalPageContent"
+
+
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: Auth-Graviteeio-APIM
