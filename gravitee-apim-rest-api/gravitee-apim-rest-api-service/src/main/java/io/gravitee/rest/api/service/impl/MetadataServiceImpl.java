@@ -24,7 +24,10 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MetadataRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Metadata;
 import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.rest.api.model.MetadataEntity;
@@ -45,6 +48,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +66,10 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     @Lazy
     @Autowired
     private MetadataRepository metadataRepository;
+
+    @Lazy
+    @Autowired
+    private ApiRepository apiRepository;
 
     @Autowired
     private AuditService auditService;
@@ -201,10 +209,15 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
                         .newValue(null)
                         .build()
                 );
-                // delete all overridden API metadata
+                // Scope the cascade to the current environment: findByKeyAndReferenceType returns API overrides
+                // across all environments and organizations, and deleting them all would breach tenant isolation.
                 final List<Metadata> apiMetadata = metadataRepository.findByKeyAndReferenceType(key, MetadataReferenceType.API);
+                final Set<String> environmentApiIds = resolveEnvironmentApiIds(executionContext, apiMetadata);
 
                 for (final Metadata metadata : apiMetadata) {
+                    if (!environmentApiIds.contains(metadata.getReferenceId())) {
+                        continue;
+                    }
                     metadataRepository.delete(key, metadata.getReferenceId(), metadata.getReferenceType());
                     // Audit
                     auditService.createApiAuditLog(
@@ -223,6 +236,25 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to delete metadata " + key, ex);
         }
+    }
+
+    private Set<String> resolveEnvironmentApiIds(final ExecutionContext executionContext, final List<Metadata> apiMetadata) {
+        if (apiMetadata.isEmpty()) {
+            return Set.of();
+        }
+        // Scope by environment only. Filtering by the candidate API ids instead would build an
+        // "id IN (...)" clause with one bind parameter per id; for a key owned by every API (e.g.
+        // email-support) that can exceed the JDBC limit (SQL Server caps a statement at 2100
+        // parameters) and fail the delete. The caller intersects the resulting ids with the candidates.
+        return Set.copyOf(
+            apiRepository
+                .searchIds(
+                    List.of(new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build()),
+                    new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build(),
+                    null
+                )
+                .getContent()
+        );
     }
 
     @Override
