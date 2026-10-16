@@ -25,7 +25,6 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
 import org.apache.commons.lang3.tuple.Pair;
@@ -118,11 +117,7 @@ public class PermissionServiceImpl extends AbstractService implements Permission
             log.debug("User [{}] can manage members because of its ORGANIZATION ADMIN role", userId);
             return true;
         }
-        Set<String> roleIds = membershipService
-            .getMembershipsByMember(MembershipMemberType.USER, userId)
-            .stream()
-            .map(MembershipEntity::getRoleId)
-            .collect(Collectors.toSet());
+        Set<String> roleIds = membershipService.getRoleIdsByMember(MembershipMemberType.USER, userId);
         if (roleIds.isEmpty()) {
             return false;
         }

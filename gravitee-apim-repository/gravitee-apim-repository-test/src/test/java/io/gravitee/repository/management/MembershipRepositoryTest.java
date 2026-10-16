@@ -336,6 +336,21 @@ public class MembershipRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(memberships).hasSize(2).map(Membership::getId).contains("api1_user_findByIds", "api2_user_findByIds");
     }
 
+    @Test
+    public void shouldFindDistinctRoleIdsByMemberIdAndMemberType() throws TechnicalException {
+        // user_batch holds GROUP_MEMBER on two groups and GROUP_ADMIN on a third one
+        Set<String> roleIds = membershipRepository.findRoleIdsByMemberIdAndMemberType("user_batch", MembershipMemberType.USER);
+
+        assertThat(roleIds).containsExactlyInAnyOrder("GROUP_MEMBER", "GROUP_ADMIN");
+    }
+
+    @Test
+    public void shouldFindNoRoleIdForAMemberWithoutMembership() throws TechnicalException {
+        Set<String> roleIds = membershipRepository.findRoleIdsByMemberIdAndMemberType("unknown", MembershipMemberType.USER);
+
+        assertThat(roleIds).isEmpty();
+    }
+
     public void shouldNotUpdateUnknownMembership() {
         Membership unknownMembership = new Membership();
         unknownMembership.setId("unknown");

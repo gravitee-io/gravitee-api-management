@@ -18,6 +18,8 @@ package io.gravitee.repository.mongodb.management.internal.membership;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 import io.gravitee.repository.mongodb.management.internal.model.MembershipMongo;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
@@ -38,5 +40,13 @@ public class MembershipMongoRepositoryCustomImpl implements MembershipMongoRepos
         query.addCriteria(where("memberType").is(memberType));
         query.addCriteria(where("referenceType").is(referenceType));
         return mongoTemplate.findDistinct(query, "referenceId", MembershipMongo.class, String.class).parallelStream();
+    }
+
+    @Override
+    public Set<String> findRoleIdsByMemberIdAndMemberType(String memberId, String memberType) {
+        Query query = new Query();
+        query.addCriteria(where("memberId").is(memberId));
+        query.addCriteria(where("memberType").is(memberType));
+        return new HashSet<>(mongoTemplate.findDistinct(query, "roleId", MembershipMongo.class, String.class));
     }
 }
