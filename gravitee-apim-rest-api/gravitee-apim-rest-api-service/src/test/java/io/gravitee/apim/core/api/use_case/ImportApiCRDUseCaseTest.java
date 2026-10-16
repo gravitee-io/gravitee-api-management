@@ -36,6 +36,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -1334,6 +1335,21 @@ class ImportApiCRDUseCaseTest {
 
             assertThat(throwable).isInstanceOf(ApiPropertyEncryptedToPlainException.class);
             verify(updateApiDomainService, never()).update(any(), any(), any());
+        }
+
+        @Test
+        void should_reject_a_body_id_that_differs_from_the_existing_api() {
+            var otherApi = NATIVE_API.toBuilder().id("other-api-id").crossId("other-cross-id").name("other-api").build();
+            apiQueryService.initWith(List.of(NATIVE_API, otherApi));
+
+            var throwable = catchThrowable(() ->
+                useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aNativeApiCRD().id(otherApi.getId()).name("renamed").build()))
+            );
+
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+            assertThat(apiCrudService.get(otherApi.getId()).getName()).isEqualTo("other-api");
+            assertThat(apiCrudService.get(API_ID).getName()).isEqualTo(NATIVE_API.getName());
+            verifyNoInteractions(apiStateDomainService);
         }
 
         @Test
