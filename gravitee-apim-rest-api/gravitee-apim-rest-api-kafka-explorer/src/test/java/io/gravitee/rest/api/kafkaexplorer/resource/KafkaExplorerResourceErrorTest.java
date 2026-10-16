@@ -31,6 +31,8 @@ import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeKafkaClusterUs
 import io.gravitee.rest.api.kafkaexplorer.infrastructure.domain_service.KafkaClusterDomainServiceImpl;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeClusterRequest;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.KafkaExplorerError;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -125,6 +127,9 @@ class KafkaExplorerResourceErrorTest {
         var resource = new KafkaExplorerResource();
         injectField(resource, "describeKafkaClusterUseCase", useCase);
         injectField(resource, "objectMapper", new ObjectMapper());
+        var permissionService = mock(PermissionService.class);
+        when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class))).thenReturn(true);
+        injectField(resource, "permissionService", permissionService);
         return resource;
     }
 
