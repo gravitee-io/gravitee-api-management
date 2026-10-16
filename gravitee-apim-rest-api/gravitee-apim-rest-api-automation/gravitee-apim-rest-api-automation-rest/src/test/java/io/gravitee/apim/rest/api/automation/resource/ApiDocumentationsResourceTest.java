@@ -15,13 +15,20 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static fixtures.core.model.PortalPageContentFixtures.aGraviteeMarkdownPageContent;
+import static io.gravitee.rest.api.model.permissions.RolePermission.API_DOCUMENTATION;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.use_case.CreateOrUpdateApiDocumentationUseCase;
@@ -29,12 +36,16 @@ import io.gravitee.apim.core.portal_page.use_case.ValidateApiDocumentationUseCas
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.rest.api.automation.model.DocumentationState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -50,6 +61,9 @@ class ApiDocumentationsResourceTest extends AbstractResourceTest {
 
     @Inject
     private ValidateApiDocumentationUseCase validateApiDocumentationUseCase;
+
+    @Inject
+    private PortalPageContentQueryServiceInMemory portalPageContentQueryService;
 
     @AfterEach
     void tearDown() {
@@ -211,6 +225,110 @@ class ApiDocumentationsResourceTest extends AbstractResourceTest {
                 assertThat(response.getStatus()).isEqualTo(400);
                 verifyNoInteractions(createOrUpdateApiDocumentationUseCase);
                 verifyNoInteractions(validateApiDocumentationUseCase);
+            }
+        }
+    }
+
+    @Nested
+    class Authorization {
+
+        private final ExecutionContext executionContext = new ExecutionContext(ORGANIZATION, ENVIRONMENT);
+        private final String apiId = HRIDToUUID.api().context(executionContext).hrid(API_HRID).id();
+        private final PortalPageContentId documentationId = PortalPageContentId.of(
+            HRIDToUUID.apiDocumentation().context(executionContext).api(API_HRID).hrid("getting-started").id()
+        );
+
+        @BeforeEach
+        void setUp() {
+            var output = new CreateOrUpdateApiDocumentationUseCase.Output(documentationId, List.of());
+            when(createOrUpdateApiDocumentationUseCase.execute(any())).thenReturn(output);
+            when(validateApiDocumentationUseCase.execute(any())).thenReturn(output);
+        }
+
+        @AfterEach
+        void tearDown() {
+            portalPageContentQueryService.reset();
+            reset(permissionService);
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_update_the_existing_documentation() {
+            portalPageContentQueryService.initWith(
+                List.of(aGraviteeMarkdownPageContent(documentationId, ORGANIZATION, ENVIRONMENT, "# Existing"))
+            );
+            deny(UPDATE);
+
+            assertThat(put(false)).isEqualTo(403);
+            verify(createOrUpdateApiDocumentationUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_403_on_dry_run_when_the_caller_cannot_update_the_existing_documentation() {
+            portalPageContentQueryService.initWith(
+                List.of(aGraviteeMarkdownPageContent(documentationId, ORGANIZATION, ENVIRONMENT, "# Existing"))
+            );
+            deny(UPDATE);
+
+            assertThat(put(true)).isEqualTo(403);
+            verify(validateApiDocumentationUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_update_the_existing_documentation_with_update_and_no_create() {
+            portalPageContentQueryService.initWith(
+                List.of(aGraviteeMarkdownPageContent(documentationId, ORGANIZATION, ENVIRONMENT, "# Existing"))
+            );
+            deny(CREATE);
+
+            assertThat(put(false)).isEqualTo(200);
+            verify(createOrUpdateApiDocumentationUseCase).execute(any());
+        }
+
+        @Test
+        void should_create_a_new_documentation_with_create_and_no_update() {
+            deny(UPDATE);
+
+            assertThat(put(false)).isEqualTo(200);
+            verify(createOrUpdateApiDocumentationUseCase).execute(any());
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_create_a_new_documentation() {
+            deny(CREATE);
+
+            assertThat(put(false)).isEqualTo(403);
+            verify(createOrUpdateApiDocumentationUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_authorize_against_the_api_the_import_writes_when_the_api_hrid_is_flagged_as_an_id() {
+            portalPageContentQueryService.initWith(
+                List.of(aGraviteeMarkdownPageContent(documentationId, ORGANIZATION, ENVIRONMENT, "# Existing"))
+            );
+            deny(UPDATE);
+
+            assertThat(put(false, true)).isEqualTo(403);
+            verify(createOrUpdateApiDocumentationUseCase, never()).execute(any());
+        }
+
+        private void deny(RolePermissionAction action) {
+            when(permissionService.hasPermission(any(), eq(API_DOCUMENTATION), eq(apiId), eq(action))).thenReturn(false);
+        }
+
+        private int put(boolean dryRun) {
+            return put(dryRun, false);
+        }
+
+        private int put(boolean dryRun, boolean hridContainsApiUUID) {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .queryParam("hridContainsApiUUID", hridContainsApiUUID)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-documentation.json")))
+            ) {
+                return response.getStatus();
             }
         }
     }
