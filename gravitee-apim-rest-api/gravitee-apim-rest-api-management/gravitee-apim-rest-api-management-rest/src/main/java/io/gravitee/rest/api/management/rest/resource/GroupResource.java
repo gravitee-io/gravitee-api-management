@@ -161,8 +161,7 @@ public class GroupResource extends AbstractResource {
             schema = @Schema(allowableValues = { "api", "application", "api_product" })
         ) @QueryParam("type") String type
     ) {
-        // Check that group belongs to current environment
-        groupService.findById(GraviteeContext.getExecutionContext(), group);
+        checkRights();
 
         if ("api".equalsIgnoreCase(type)) {
             return Response.ok(groupService.getApis(GraviteeContext.getCurrentEnvironment(), group)).build();
