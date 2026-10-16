@@ -397,6 +397,26 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         });
     }
 
+    @Override
+    public Page<AlertEventEntity> findEvents(
+        final String alertId,
+        final AlertReferenceType referenceType,
+        final String referenceId,
+        final AlertEventQuery eventQuery
+    ) {
+        try {
+            alertTriggerRepository
+                .findById(alertId)
+                .filter(trigger -> referenceType.name().equals(trigger.getReferenceType()) && referenceId.equals(trigger.getReferenceId()))
+                .orElseThrow(() -> new AlertNotFoundException(alertId));
+        } catch (TechnicalException te) {
+            final String msg = "An error occurs while trying to find the alert " + alertId;
+            throw new TechnicalManagementException(msg, te);
+        }
+
+        return findEvents(alertId, eventQuery);
+    }
+
     private Set<AlertTriggerEntity> findByEvent(ExecutionContext executionContext, AlertEventType event) {
         try {
             log.debug("findByEvent: {}", event);
@@ -453,6 +473,11 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         try {
             final AlertTriggerEntity alert = alertTriggerRepository
                 .findById(alertId)
+                .filter(
+                    trigger ->
+                        executionContext.getEnvironmentId() != null &&
+                        executionContext.getEnvironmentId().equals(trigger.getEnvironmentId())
+                )
                 .map(alertTriggerConverter::toAlertTriggerEntity)
                 .orElseThrow(() -> new AlertNotFoundException(alertId));
 
