@@ -30,10 +30,15 @@ import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +62,7 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
 
     private final MembershipService membershipService;
     private final RoleService roleService;
+    private final PermissionService permissionService;
 
     private static final List<RoleScope> GROUP_DEFAULT_ROLE_SCOPES = List.of(RoleScope.API, RoleScope.APPLICATION, RoleScope.API_PRODUCT);
 
@@ -69,9 +75,21 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
 
     @Override
     public void updateApplicationMembers(AuditInfo auditInfo, String applicationId, Set<MemberCRD> members) {
+        if (!canManageApplicationMembers(auditInfo, applicationId)) {
+            // Restating the current members is all the caller may do: there is nothing to write, and the owner stays
+            requireUnchangedMembers(auditInfo, applicationId, RoleScope.APPLICATION, MembershipReferenceType.APPLICATION, members);
+            return;
+        }
         updateMembers(auditInfo, applicationId, RoleScope.APPLICATION, MembershipReferenceType.APPLICATION, members);
         deleteOrphans(auditInfo, applicationId, RoleScope.APPLICATION, MembershipReferenceType.APPLICATION, members);
         transferOwnerShip(auditInfo, applicationId, RoleScope.APPLICATION, MembershipReferenceType.APPLICATION);
+    }
+
+    @Override
+    public void checkApplicationMembersUpdate(AuditInfo auditInfo, String applicationId, Set<MemberCRD> members) {
+        if (!canManageApplicationMembers(auditInfo, applicationId)) {
+            requireUnchangedMembers(auditInfo, applicationId, RoleScope.APPLICATION, MembershipReferenceType.APPLICATION, members);
+        }
     }
 
     @Override
@@ -177,16 +195,7 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
         var defaultRole = CollectionUtils.isNotEmpty(defaultRoles) ? defaultRoles.getFirst() : null;
 
         for (var member : members) {
-            if (StringUtils.isEmpty(member.getRole())) {
-                assertDefaultRoleForScope(defaultRole, roleScope);
-                log.warn("There is no role associated with member [{}]. Default role will be applied", member.getSourceId());
-            }
-
-            var memberRoleEntity = StringUtils.isEmpty(member.getRole())
-                ? defaultRole
-                : findRoleEntity(auditInfo.organizationId(), roleScope, member.getRole(), defaultRole);
-
-            Objects.requireNonNull(memberRoleEntity, "Unable to find role for member [" + member.getSourceId() + "]");
+            var memberRoleEntity = findMemberRole(auditInfo.organizationId(), roleScope, member, defaultRole);
 
             membershipService
                 .getRoles(referenceType, referenceId, MembershipMemberType.USER, member.getId())
@@ -208,6 +217,62 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
         }
 
         log.debug("Members successfully created for {} [{}]", referenceType, referenceId);
+    }
+
+    private boolean canManageApplicationMembers(AuditInfo auditInfo, String applicationId) {
+        return permissionService.hasPermission(
+            new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId()),
+            auditInfo.actor().userId(),
+            RolePermission.APPLICATION_MEMBER,
+            applicationId,
+            RolePermissionAction.UPDATE
+        );
+    }
+
+    private void requireUnchangedMembers(
+        AuditInfo auditInfo,
+        String referenceId,
+        RoleScope roleScope,
+        MembershipReferenceType referenceType,
+        Set<MemberCRD> members
+    ) {
+        var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
+        var defaultRoles = roleService.findDefaultRoleByScopes(auditInfo.organizationId(), mapRoleScope(roleScope));
+        var defaultRole = CollectionUtils.isNotEmpty(defaultRoles) ? defaultRoles.getFirst() : null;
+        var poRole = roleService.findPrimaryOwnerRoleByOrganization(auditInfo.organizationId(), mapRoleScope(roleScope));
+
+        Map<String, Set<String>> declaredRoles = members
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    MemberCRD::getId,
+                    member -> Set.of(findMemberRole(auditInfo.organizationId(), roleScope, member, defaultRole).getId()),
+                    CRDMembersDomainServiceImpl::union
+                )
+            );
+
+        // Members other than the primary owner, as deleteOrphans sees them: a spec naming the primary owner is a change
+        Map<String, Set<String>> currentRoles = membershipService
+            .getMembersByReference(executionContext, referenceType, referenceId)
+            .stream()
+            .filter(member -> member.getRoles().stream().noneMatch(poRole::equals))
+            .collect(
+                Collectors.toMap(
+                    MemberEntity::getId,
+                    member -> member.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toSet()),
+                    CRDMembersDomainServiceImpl::union
+                )
+            );
+
+        if (!declaredRoles.equals(currentRoles)) {
+            throw new ForbiddenAccessException();
+        }
+    }
+
+    private static Set<String> union(Set<String> left, Set<String> right) {
+        var roles = new HashSet<>(left);
+        roles.addAll(right);
+        return roles;
     }
 
     private void deleteOrphans(
@@ -261,6 +326,19 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
             case APPLICATION -> membershipService.transferApplicationOwnership(executionContext, referenceId, primaryOwner, List.of());
             default -> throw new TechnicalDomainException(String.format("Unknown role scope [%s]", roleScope));
         }
+    }
+
+    private RoleEntity findMemberRole(String organizationId, RoleScope roleScope, MemberCRD member, RoleEntity defaultRole) {
+        if (StringUtils.isEmpty(member.getRole())) {
+            assertDefaultRoleForScope(defaultRole, roleScope);
+            log.warn("There is no role associated with member [{}]. Default role will be applied", member.getSourceId());
+        }
+
+        var memberRoleEntity = StringUtils.isEmpty(member.getRole())
+            ? defaultRole
+            : findRoleEntity(organizationId, roleScope, member.getRole(), defaultRole);
+
+        return Objects.requireNonNull(memberRoleEntity, "Unable to find role for member [" + member.getSourceId() + "]");
     }
 
     private RoleEntity findRoleEntity(String organizationId, RoleScope roleScope, String roleNameOrId, RoleEntity defaultRole) {
