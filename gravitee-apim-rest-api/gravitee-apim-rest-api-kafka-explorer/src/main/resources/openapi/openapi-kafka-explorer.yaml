@@ -42,6 +42,12 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/KafkaExplorerError"
+                "404":
+                    description: Cluster not found, or not readable by the caller
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
                 "502":
                     description: Connection failure
                     content:
@@ -104,6 +110,12 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/KafkaExplorerError"
+                "404":
+                    description: Cluster not found, or not readable by the caller
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
                 "502":
                     description: Connection failure
                     content:
@@ -138,6 +150,12 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/KafkaExplorerError"
+                "404":
+                    description: Cluster not found, or not readable by the caller
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
                 "502":
                     description: Connection failure
                     content:
@@ -168,6 +186,12 @@ paths:
                                 $ref: "#/components/schemas/DescribeBrokerResponse"
                 "400":
                     description: Invalid parameters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+                "404":
+                    description: Cluster not found, or not readable by the caller
                     content:
                         application/json:
                             schema:
@@ -234,6 +258,12 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/KafkaExplorerError"
+                "404":
+                    description: Cluster not found, or not readable by the caller
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
                 "502":
                     description: Connection failure
                     content:
@@ -273,6 +303,12 @@ paths:
                                 $ref: "#/components/schemas/BrowseMessagesResponse"
                 "400":
                     description: Invalid parameters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+                "404":
+                    description: Cluster not found, or not readable by the caller
                     content:
                         application/json:
                             schema:
@@ -343,6 +379,12 @@ paths:
                         text/event-stream:
                             schema:
                                 type: string
+                "404":
+                    description: Cluster not found, or not readable by the caller
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
 
     /kafka-explorer/describe-consumer-group:
         post:
@@ -367,6 +409,12 @@ paths:
                                 $ref: "#/components/schemas/DescribeConsumerGroupResponse"
                 "400":
                     description: Invalid parameters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+                "404":
+                    description: Cluster not found, or not readable by the caller
                     content:
                         application/json:
                             schema:
