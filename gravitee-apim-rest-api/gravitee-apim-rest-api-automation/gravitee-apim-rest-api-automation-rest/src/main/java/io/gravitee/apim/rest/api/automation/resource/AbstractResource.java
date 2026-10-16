@@ -27,8 +27,7 @@ import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.SecurityContext;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
@@ -38,9 +37,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public abstract class AbstractResource {
 
     private static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
-
-    @Context
-    private SecurityContext securityContext;
 
     @Inject
     private PermissionService permissionService;
@@ -68,8 +64,14 @@ public abstract class AbstractResource {
         );
     }
 
+    // The Automation application registers no SecurityContextFilter: the JAX-RS role check would not see the Gravitee authorities
     protected boolean isAdmin() {
-        return securityContext.isUserInRole(ORGANIZATION_ADMIN);
+        return SecurityContextHolder.getContext()
+            .getAuthentication()
+            .getAuthorities()
+            .stream()
+            .map(GrantedAuthority::getAuthority)
+            .anyMatch(ORGANIZATION_ADMIN::equals);
     }
 
     protected UserDetails getAuthenticatedUserDetails() {
