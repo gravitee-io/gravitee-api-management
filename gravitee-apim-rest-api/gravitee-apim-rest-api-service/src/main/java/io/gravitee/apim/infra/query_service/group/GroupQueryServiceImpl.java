@@ -61,6 +61,11 @@ public class GroupQueryServiceImpl extends AbstractService implements GroupQuery
     }
 
     @Override
+    public Optional<Group> findByIdAndEnvironmentId(String id, String environmentId) {
+        return findById(id).filter(group -> environmentId.equals(group.getEnvironmentId()));
+    }
+
+    @Override
     public Set<Group> findByIds(Set<String> ids) {
         try {
             log.debug("findByIds {}", ids);
