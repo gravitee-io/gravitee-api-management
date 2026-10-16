@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.management.model.NotificationReferenceType;
@@ -116,9 +117,22 @@ public class NotificationConfigsResourceTest {
     }
 
     @Test
+    public void createGenericNotificationSetting_refIdForbiddenAccess() {
+        GenericNotificationConfigEntity config = GenericNotificationConfigEntity.builder()
+            .referenceType(NotificationReferenceType.ENVIRONMENT.name())
+            .referenceId("ANOTHER-ENV")
+            .configType(NotificationConfigType.GENERIC)
+            .build();
+        // Permission granted, so only the referenceId check can reject this.
+        lenient().when(permissionService.hasPermission(any(), eq(ENVIRONMENT_NOTIFICATION), any(), any())).thenReturn(true);
+        assertThrows(ForbiddenAccessException.class, () -> resource.createGenericNotificationSetting(config));
+    }
+
+    @Test
     public void createGenericNotificationSetting_configTypeGeneric() {
         GenericNotificationConfigEntity config = GenericNotificationConfigEntity.builder()
             .referenceType(NotificationReferenceType.ENVIRONMENT.name())
+            .referenceId("DEFAULT")
             .configType(NotificationConfigType.GENERIC)
             .build();
         when(genericNotificationConfigService.create(config)).thenAnswer(i -> i.getArguments()[0]);
