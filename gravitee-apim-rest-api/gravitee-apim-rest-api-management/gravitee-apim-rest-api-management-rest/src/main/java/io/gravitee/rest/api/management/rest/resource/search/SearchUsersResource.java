@@ -17,7 +17,10 @@ package io.gravitee.rest.api.management.rest.resource.search;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.idp.api.identity.SearchableUser;
+import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.service.IdentityService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -40,7 +43,7 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 @Tag(name = "Users")
-public class SearchUsersResource {
+public class SearchUsersResource extends AbstractResource {
 
     @Inject
     private IdentityService identityService;
@@ -48,7 +51,12 @@ public class SearchUsersResource {
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Search for users")
+    @Operation(
+        summary = "Search for users",
+        description = "User must manage members somewhere to use this service: ORGANIZATION_USERS[READ or UPDATE], " +
+            "ORGANIZATION_ROLE[CREATE or UPDATE], ENVIRONMENT_GROUP[CREATE or UPDATE], or MEMBER[CREATE or UPDATE] " +
+            "on an API, an API product, an application, an integration, a cluster or a group"
+    )
     @ApiResponse(
         responseCode = "200",
         description = "List of users",
@@ -58,8 +66,16 @@ public class SearchUsersResource {
         )
     )
     @ApiResponse(responseCode = "400", description = "Bad query parameter")
+    @ApiResponse(responseCode = "403", description = "User does not manage any member")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Collection<SearchableUser> searchUsers(@Parameter(name = "q", required = true) @NotNull @QueryParam("q") String query) {
+        // This search feeds every member-management screen (API, application, group, integration, cluster, organization
+        // role, ownership transfer), whose users are scoped to one resource and rarely hold ORGANIZATION_USERS[READ].
+        // The @Permissions filter can only check a permission against the reference found in the path, and this route
+        // carries none, so the "manages members on at least one reference" rule is evaluated in code instead.
+        if (!permissionService.canManageMembers(GraviteeContext.getExecutionContext(), getAuthenticatedUser())) {
+            throw new ForbiddenAccessException();
+        }
         return identityService
             .search(query)
             .stream()
