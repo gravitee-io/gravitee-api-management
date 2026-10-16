@@ -89,6 +89,22 @@ public class AlertService_ApplyDefaultsTest extends AlertServiceTest {
     }
 
     @Test
+    public void must_throw_AlertNotFoundException_when_template_belongs_to_another_environment()
+        throws TechnicalException, JsonProcessingException {
+        final NewAlertTriggerEntity alert = getNewAlertTriggerEntity(true);
+        final AlertTrigger alertTrigger = getAlertTriggerFromNew(alert, "ANOTHER_ENVIRONMENT");
+
+        when(alertTriggerRepository.findById(alert.getId())).thenReturn(Optional.of(alertTrigger));
+
+        assertThrows(AlertNotFoundException.class, () ->
+            alertService.applyDefaults(executionContext, alert.getId(), AlertReferenceType.API)
+        );
+
+        verify(apiRepository, never()).searchIds(anyList(), any(Pageable.class), any());
+        verify(alertTriggerRepository, never()).create(any());
+    }
+
+    @Test
     public void must_apply_defaults_new_alert_trigger_entity_with_email_notifier_definition()
         throws TechnicalException, JsonProcessingException {
         final NewAlertTriggerEntity alert = getNewAlertTriggerEntity(true);

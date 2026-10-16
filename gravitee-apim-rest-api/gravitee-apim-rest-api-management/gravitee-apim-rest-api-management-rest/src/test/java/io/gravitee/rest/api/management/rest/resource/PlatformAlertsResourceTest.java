@@ -22,11 +22,14 @@ import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionCo
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.rest.resource.param.AlertAnalyticsParam;
 import io.gravitee.rest.api.model.AlertAnalyticsQuery;
+import io.gravitee.rest.api.model.AlertEventQuery;
 import io.gravitee.rest.api.model.alert.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.AlertNotFoundException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
@@ -182,5 +185,31 @@ public class PlatformAlertsResourceTest extends AbstractResourceTest {
 
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
         verify(alertService, times(1)).delete("my-alert", getCurrentEnvironment());
+    }
+
+    @Test
+    public void should_get_alert_events_scoped_to_the_current_environment() {
+        AlertEventEntity event = new AlertEventEntity();
+        event.setMessage("Alert ! Alert !");
+
+        when(alertService.findEvents(eq("my-alert"), eq(ENVIRONMENT), eq(getCurrentEnvironment()), any(AlertEventQuery.class))).thenReturn(
+            new Page<>(List.of(event), 0, 1, 1)
+        );
+
+        final Response response = envTarget().path("my-alert").path("events").request().get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        verify(alertService, times(1)).findEvents(eq("my-alert"), eq(ENVIRONMENT), eq(getCurrentEnvironment()), any(AlertEventQuery.class));
+    }
+
+    @Test
+    public void should_return_404_when_alert_events_belong_to_another_environment() {
+        when(alertService.findEvents(eq("my-alert"), eq(ENVIRONMENT), eq(getCurrentEnvironment()), any(AlertEventQuery.class))).thenThrow(
+            new AlertNotFoundException("my-alert")
+        );
+
+        final Response response = envTarget().path("my-alert").path("events").request().get();
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
 }
