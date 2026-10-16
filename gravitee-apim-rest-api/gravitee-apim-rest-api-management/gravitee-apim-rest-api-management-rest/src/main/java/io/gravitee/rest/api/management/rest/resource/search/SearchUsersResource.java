@@ -17,6 +17,10 @@ package io.gravitee.rest.api.management.rest.resource.search;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.idp.api.identity.SearchableUser;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.IdentityService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -48,7 +52,10 @@ public class SearchUsersResource {
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Search for users")
+    @Operation(
+        summary = "Search for users",
+        description = "User must have ORGANIZATION_USERS[READ], or an environment-level READ permission that allows managing members (API, APPLICATION, GROUP, or INTEGRATION)."
+    )
     @ApiResponse(
         responseCode = "200",
         description = "List of users",
@@ -58,7 +65,17 @@ public class SearchUsersResource {
         )
     )
     @ApiResponse(responseCode = "400", description = "Bad query parameter")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ),
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ),
+            @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.READ),
+            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ),
+            @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = RolePermissionAction.READ),
+        }
+    )
     public Collection<SearchableUser> searchUsers(@Parameter(name = "q", required = true) @NotNull @QueryParam("q") String query) {
         return identityService
             .search(query)

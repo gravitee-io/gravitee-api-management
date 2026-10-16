@@ -36,6 +36,7 @@ import inmemory.ScoringFunctionQueryServiceInMemory;
 import inmemory.ScoringProviderInMemory;
 import inmemory.ScoringRulesetQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.import_definition.ApiDescriptor;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
@@ -138,6 +139,23 @@ class ScoreApiRequestUseCaseTest {
             InMemoryAlternative::reset
         );
         scoringProvider.reset();
+    }
+
+    @Test
+    void should_reject_api_from_another_environment_without_loading_assets() {
+        var api = givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().environmentId("other-env").build());
+        givenExistingPage(
+            PageFixtures.aPage().toBuilder().referenceType(Page.ReferenceType.API).referenceId(api.getId()).type(Page.Type.SWAGGER).build()
+        );
+
+        scoreApiRequestUseCase
+            .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
+            .test()
+            .awaitDone(5, TimeUnit.SECONDS)
+            .assertError(ApiNotFoundException.class);
+
+        assertThat(scoringProvider.pendingRequests()).isEmpty();
+        assertThat(asyncJobCrudService.storage()).isEmpty();
     }
 
     @Test

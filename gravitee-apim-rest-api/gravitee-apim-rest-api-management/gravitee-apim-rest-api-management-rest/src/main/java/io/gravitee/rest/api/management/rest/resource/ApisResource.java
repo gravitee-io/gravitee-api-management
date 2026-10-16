@@ -584,7 +584,7 @@ public class ApisResource extends AbstractResource {
     @Path("import")
     @Operation(
         summary = "Update the API from the API definition",
-        description = "Update the API from the API definition in JSON format either with json or via an URL"
+        description = "Update the API from the API definition in JSON format either with json or via an URL. User must have the ENVIRONMENT_API[UPDATE] permission."
     )
     @ApiResponse(
         responseCode = "200",
@@ -593,6 +593,7 @@ public class ApisResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE) })
     public Response updateWithDefinition(@RequestBody(required = true) @Valid @NotNull Object apiDefinitionOrUrl) {
         ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiDefinitionOrUrl);
         return Response.ok(updatedApi)
