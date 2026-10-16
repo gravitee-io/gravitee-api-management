@@ -40,4 +40,11 @@ public interface PermissionService {
     );
 
     boolean hasManagementRights(ExecutionContext executionContext, String userId);
+
+    /**
+     * Tells whether the user manages members somewhere: users or roles of the organization, groups of an
+     * environment, or members of an API, application, integration, cluster or group. This is what the
+     * member-management screens need, and what the user directory search is opened to.
+     */
+    boolean canManageMembers(ExecutionContext executionContext, String userId);
 }
