@@ -1476,9 +1476,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             log.debug("Pause subscription {}", subscriptionId);
 
-            Subscription subscription = subscriptionRepository
-                .findById(subscriptionId)
-                .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
+            Subscription subscription = findSubscriptionInEnvironment(executionContext, subscriptionId);
 
             if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
                 Subscription previousSubscription = new Subscription(subscription);
@@ -1589,9 +1587,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             log.debug("Resume failed subscription by {} by consumer", subscriptionId);
 
-            Subscription subscription = subscriptionRepository
-                .findById(subscriptionId)
-                .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
+            Subscription subscription = findSubscriptionInEnvironment(executionContext, subscriptionId);
 
             Subscription.ConsumerStatus consumerStatus = subscription.getConsumerStatus();
 
@@ -1616,6 +1612,13 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 ex
             );
         }
+    }
+
+    private Subscription findSubscriptionInEnvironment(ExecutionContext executionContext, String subscriptionId) throws TechnicalException {
+        return subscriptionRepository
+            .findById(subscriptionId)
+            .filter(subscription -> executionContext.getEnvironmentId().equals(subscription.getEnvironmentId()))
+            .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
     }
 
     private SubscriptionEntity resumeSubscription(ExecutionContext executionContext, Subscription subscription, String referenceId)
@@ -1688,9 +1691,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             log.debug("Resume subscription {}", subscriptionId);
 
-            Subscription subscription = subscriptionRepository
-                .findById(subscriptionId)
-                .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
+            Subscription subscription = findSubscriptionInEnvironment(executionContext, subscriptionId);
 
             if (subscription.getStatus() == Subscription.Status.PAUSED) {
                 Subscription previousSubscription = new Subscription(subscription);

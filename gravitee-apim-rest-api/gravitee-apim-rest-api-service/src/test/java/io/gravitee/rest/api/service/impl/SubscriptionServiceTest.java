@@ -3008,6 +3008,64 @@ public class SubscriptionServiceTest {
     }
 
     @Test
+    public void should_not_pause_subscription_of_another_environment() throws Exception {
+        Subscription subscription = buildTestSubscription(SUBSCRIPTION_ID, API_ID, ACCEPTED, PLAN_ID, APPLICATION_ID, SUBSCRIBER_ID);
+        subscription.setEnvironmentId("another-environment");
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+
+        assertThatThrownBy(() -> subscriptionService.pause(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).isInstanceOf(
+            SubscriptionNotFoundException.class
+        );
+        verify(subscriptionRepository, never()).update(any());
+    }
+
+    @Test
+    public void should_not_resume_subscription_of_another_environment() throws Exception {
+        Subscription subscription = buildTestSubscription(SUBSCRIPTION_ID, API_ID, PAUSED, PLAN_ID, APPLICATION_ID, SUBSCRIBER_ID);
+        subscription.setEnvironmentId("another-environment");
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+
+        assertThatThrownBy(() -> subscriptionService.resume(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).isInstanceOf(
+            SubscriptionNotFoundException.class
+        );
+        verify(subscriptionRepository, never()).update(any());
+    }
+
+    @Test
+    public void should_not_resume_failed_subscription_of_another_environment() throws Exception {
+        Subscription subscription = buildTestSubscription(SUBSCRIPTION_ID, API_ID, ACCEPTED, PLAN_ID, APPLICATION_ID, SUBSCRIBER_ID);
+        subscription.setConsumerStatus(Subscription.ConsumerStatus.FAILURE);
+        subscription.setEnvironmentId("another-environment");
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+
+        assertThatThrownBy(() -> subscriptionService.resumeFailed(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).isInstanceOf(
+            SubscriptionNotFoundException.class
+        );
+        verify(subscriptionRepository, never()).update(any());
+    }
+
+    @Test
+    public void should_not_resume_failed_api_product_subscription_of_another_environment() throws Exception {
+        Subscription subscription = buildTestSubscription(
+            SUBSCRIPTION_ID,
+            "api-product-id",
+            ACCEPTED,
+            PLAN_ID,
+            APPLICATION_ID,
+            SUBSCRIBER_ID,
+            SubscriptionReferenceType.API_PRODUCT
+        );
+        subscription.setConsumerStatus(Subscription.ConsumerStatus.FAILURE);
+        subscription.setEnvironmentId("another-environment");
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+
+        assertThatThrownBy(() -> subscriptionService.resumeFailed(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).isInstanceOf(
+            SubscriptionNotFoundException.class
+        );
+        verify(subscriptionRepository, never()).update(any());
+    }
+
+    @Test
     public void update_should_not_override_clientId_if_not_present() throws Exception {
         testUpdateSubscriptionDependingOnClientIdSituation(null, "client-id", null);
     }
@@ -3513,6 +3571,7 @@ public class SubscriptionServiceTest {
         subscription.setSubscribedBy(subscribedBy);
         subscription.setReferenceId(referenceId);
         subscription.setReferenceType(referenceType);
+        subscription.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
         return subscription;
     }
 }
