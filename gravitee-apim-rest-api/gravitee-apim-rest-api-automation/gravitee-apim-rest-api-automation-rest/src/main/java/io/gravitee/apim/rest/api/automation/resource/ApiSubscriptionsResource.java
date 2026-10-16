@@ -18,20 +18,27 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
+import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.model.crd.ApiKeyCRDSpec;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDStatus;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionCRDUseCase;
+import io.gravitee.apim.rest.api.automation.exception.HRIDNotFoundException;
+import io.gravitee.apim.rest.api.automation.helpers.ApiIdResolver;
 import io.gravitee.apim.rest.api.automation.mapper.SubscriptionMapper;
 import io.gravitee.apim.rest.api.automation.model.ApiKeySpec;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionSpec;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -41,19 +48,28 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import lombok.CustomLog;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ApiSubscriptionsResource extends AbstractResource {
 
     @Inject
     private ImportSubscriptionCRDUseCase importSubscriptionCRDUseCase;
+
+    @Inject
+    private ApiSearchService apiSearchService;
+
+    @Inject
+    private PlanCrudService planCrudService;
 
     @Context
     private ResourceContext resourceContext;
@@ -72,7 +88,8 @@ public class ApiSubscriptionsResource extends AbstractResource {
         @PathParam("apiHrid") String apiHrid,
         @QueryParam("hridContainsUUID") boolean hridContainsUUID,
         @QueryParam("hridContainsApiUUID") boolean hridContainsApiUUID,
-        @QueryParam("hridContainsAppUUID") boolean hridContainsAppUUID
+        @QueryParam("hridContainsAppUUID") boolean hridContainsAppUUID,
+        @Context ContainerRequestContext requestContext
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -81,6 +98,12 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
         // Legacy mode means 'Hrid' fields contains GUID from GKO Status
         // that were preexisting in the kube cluster
+        var apiId = ApiIdResolver.authorizedApiId(requestContext);
+        var planId = hridContainsApiUUID
+            ? spec.getPlanHrid()
+            : HRIDToUUID.plan().context(auditInfo).api(apiHrid).plan(spec.getPlanHrid()).id();
+        mustBeAPlanOfTheApiInTheEnvironment(executionContext, apiHrid, apiId, spec.getPlanHrid(), planId);
+
         SubscriptionCRDSpec subscriptionCRDSpec = SubscriptionCRDSpec.builder()
             .id(
                 hridContainsUUID
@@ -92,11 +115,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
                     ? spec.getApplicationHrid()
                     : HRIDToUUID.application().context(auditInfo).hrid(spec.getApplicationHrid()).id()
             )
-            .referenceId(hridContainsApiUUID ? apiHrid : HRIDToUUID.api().context(auditInfo).hrid(apiHrid).id())
+            .referenceId(apiId)
             .referenceType(SubscriptionReferenceType.API)
-            .planId(
-                hridContainsApiUUID ? spec.getPlanHrid() : HRIDToUUID.plan().context(auditInfo).api(apiHrid).plan(spec.getPlanHrid()).id()
-            )
+            .planId(planId)
             .endingAt(spec.getEndingAt() != null ? spec.getEndingAt().toZonedDateTime() : null)
             .metadata(spec.getMetadata())
             .apiKeys(toApiKeyCRDSpecs(spec.getApiKeys()))
@@ -108,6 +129,24 @@ public class ApiSubscriptionsResource extends AbstractResource {
             .status();
 
         return Response.ok(SubscriptionMapper.INSTANCE.subscriptionSpecAndStatusToSubscriptionState(apiHrid, spec, status)).build();
+    }
+
+    private void mustBeAPlanOfTheApiInTheEnvironment(
+        ExecutionContext executionContext,
+        String apiHrid,
+        String apiId,
+        String planHrid,
+        String planId
+    ) {
+        try {
+            apiSearchService.findRepositoryApiById(executionContext, apiId);
+        } catch (ApiNotFoundException e) {
+            log.debug("API not found for hrid: {}, operation: createOrUpdate subscription", apiHrid);
+            throw new HRIDNotFoundException(apiHrid);
+        }
+        planCrudService
+            .findByPlanIdAndReferenceIdAndReferenceType(planId, apiId, GenericPlanEntity.ReferenceType.API.name())
+            .orElseThrow(() -> new HRIDNotFoundException(planHrid));
     }
 
     private static List<ApiKeyCRDSpec> toApiKeyCRDSpecs(List<ApiKeySpec> apiKeys) {

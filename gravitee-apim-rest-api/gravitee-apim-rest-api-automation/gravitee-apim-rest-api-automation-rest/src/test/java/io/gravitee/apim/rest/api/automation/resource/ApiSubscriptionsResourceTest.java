@@ -20,16 +20,24 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.atMostOnce;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.PlanFixtures;
+import inmemory.PlanCrudServiceInMemory;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDStatus;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionCRDUseCase;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -45,18 +53,24 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
     @Autowired
     private ImportSubscriptionCRDUseCase importSubscriptionCRDUseCase;
 
+    @Autowired
+    private PlanCrudServiceInMemory planCrudService;
+
     @AfterEach
     void tearDown() {
-        reset(importSubscriptionCRDUseCase);
+        reset(importSubscriptionCRDUseCase, apiSearchServiceV4);
+        planCrudService.reset();
     }
 
     static final String API_HRID = "api-hrid";
+    static final String API_ID = HRIDToUUID.api().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid(API_HRID).id();
 
     @Nested
     class Run {
 
         @Test
         void should_return_state_from_hrid() {
+            givenPlanOnApi(hashedPlanId("plan_hrid"), API_ID);
             when(importSubscriptionCRDUseCase.execute(any(ImportSubscriptionCRDUseCase.Input.class))).thenReturn(
                 new ImportSubscriptionCRDUseCase.Output(
                     SubscriptionCRDStatus.builder()
@@ -103,6 +117,7 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_guid() {
+            givenPlanOnApi(hashedPlanId("plan_id"), API_ID);
             when(importSubscriptionCRDUseCase.execute(any(ImportSubscriptionCRDUseCase.Input.class))).thenReturn(
                 new ImportSubscriptionCRDUseCase.Output(
                     SubscriptionCRDStatus.builder()
@@ -125,6 +140,50 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
             });
         }
+
+        @Test
+        void should_return_a_404_status_code_and_not_import_a_plan_of_another_api() {
+            givenPlanOnApi("plan_id", "another-api");
+
+            try (var response = putWithApiUUID("subscription-with-id.json")) {
+                assertThat(response.getStatus()).isEqualTo(404);
+            }
+            verify(importSubscriptionCRDUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_a_404_status_code_and_not_import_on_an_api_outside_the_environment() {
+            givenPlanOnApi("plan_id", API_HRID);
+            when(
+                apiSearchServiceV4.findRepositoryApiById(
+                    argThat(executionContext -> ENVIRONMENT.equals(executionContext.getEnvironmentId())),
+                    eq(API_HRID)
+                )
+            ).thenThrow(new ApiNotFoundException(API_HRID));
+
+            try (var response = putWithApiUUID("subscription-with-id.json")) {
+                assertThat(response.getStatus()).isEqualTo(404);
+            }
+            verify(importSubscriptionCRDUseCase, never()).execute(any());
+        }
+    }
+
+    private void givenPlanOnApi(String planId, String apiId) {
+        planCrudService.initWith(List.of(PlanFixtures.aPlanHttpV4().toBuilder().id(planId).referenceId(apiId).build()));
+    }
+
+    private static String hashedPlanId(String planHrid) {
+        return HRIDToUUID.plan().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).api(API_HRID).plan(planHrid).id();
+    }
+
+    private Response putWithApiUUID(String spec) {
+        return rootTarget()
+            .queryParam("hridContainsUUID", true)
+            .queryParam("hridContainsApiUUID", true)
+            .queryParam("hridContainsAppUUID", true)
+            .request()
+            .accept(MediaType.APPLICATION_JSON_TYPE)
+            .put(Entity.json(readJSON(spec)));
     }
 
     @Override
