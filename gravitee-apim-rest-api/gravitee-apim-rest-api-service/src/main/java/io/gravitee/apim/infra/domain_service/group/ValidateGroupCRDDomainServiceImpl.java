@@ -36,7 +36,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.SequencedMap;
 import java.util.SequencedSet;
-import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -58,7 +57,7 @@ public class ValidateGroupCRDDomainServiceImpl implements ValidateGroupCRDDomain
     public Result<ValidateGroupCRDDomainService.Input> validateAndSanitize(ValidateGroupCRDDomainService.Input input) {
         var errors = new ArrayList<Error>();
 
-        validateAndSanitizeId(input.spec().getId()).peek(id -> input.spec().setId(id), errors::addAll);
+        validateAndSanitizeId(input.spec()).peek(id -> input.spec().setId(id), errors::addAll);
         validateAndSanitizedName(input.spec().getName()).peek(name -> input.spec().setName(name), errors::addAll);
         validateAndSanitizeDefaultRoles(input, errors);
         validateAndSanitizeMembers(input).peek(members -> input.spec().setMembers(members), errors::addAll);
@@ -66,15 +65,11 @@ public class ValidateGroupCRDDomainServiceImpl implements ValidateGroupCRDDomain
         return Result.ofBoth(input, errors);
     }
 
-    private Result<String> validateAndSanitizeId(String id) {
-        if (StringUtils.isEmpty(id)) {
-            return Result.ofErrors(List.of(Error.severe("property [id] must be a valid UUID")));
-        }
-        try {
-            return Result.ofValue(UUID.fromString(id).toString());
-        } catch (IllegalArgumentException e) {
-            return Result.ofErrors(List.of(Error.severe("property [id] must be a valid UUID")));
-        }
+    private Result<String> validateAndSanitizeId(GroupCRDSpec spec) {
+        return spec
+            .canonicalId()
+            .map(Result::ofValue)
+            .orElseGet(() -> Result.ofErrors(List.of(Error.severe("property [id] must be a valid UUID"))));
     }
 
     private Result<String> validateAndSanitizedName(String name) {
