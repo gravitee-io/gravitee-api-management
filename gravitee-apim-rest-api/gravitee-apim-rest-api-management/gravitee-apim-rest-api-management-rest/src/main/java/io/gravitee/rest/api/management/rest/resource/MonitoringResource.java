@@ -64,6 +64,7 @@ public class MonitoringResource extends AbstractResource {
     public MonitoringData getInstanceMonitoring(@PathParam("gatewayId") String gatewayId) {
         InstanceEntity instanceEntity = instanceService.findByEvent(GraviteeContext.getExecutionContext(), this.instance);
         if (
+            !gatewayId.equals(instanceEntity.getId()) ||
             !isInstanceAccessibleByEnv(instanceEntity.getEnvironments(), GraviteeContext.getCurrentEnvironment()) ||
             !isInstanceAccessibleByOrga(instanceEntity.getEnvironments(), GraviteeContext.getCurrentOrganization())
         ) {
@@ -83,6 +84,6 @@ public class MonitoringResource extends AbstractResource {
     }
 
     private boolean isInstanceAccessibleByEnv(Set<String> environments, String currentEnvironment) {
-        return environments == null || environments.isEmpty() || environments.contains(currentEnvironment);
+        return environments != null && environments.contains(currentEnvironment);
     }
 }
