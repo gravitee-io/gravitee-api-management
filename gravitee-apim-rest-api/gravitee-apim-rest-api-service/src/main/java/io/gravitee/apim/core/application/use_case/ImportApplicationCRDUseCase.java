@@ -128,6 +128,12 @@ public class ImportApplicationCRDUseCase {
 
     private ApplicationCRDStatus update(Input sanitizedInput, BaseApplicationEntity application) {
         try {
+            membersDomainService.checkApplicationMembersUpdate(
+                sanitizedInput.auditInfo,
+                application.getId(),
+                sanitizedInput.crd.getMembers()
+            );
+
             if (sanitizedInput.crd().isIgnoreGroups()) {
                 // The platform owns the application's groups: keep them whatever the spec says
                 sanitizedInput.crd().setGroups(application.getGroups());

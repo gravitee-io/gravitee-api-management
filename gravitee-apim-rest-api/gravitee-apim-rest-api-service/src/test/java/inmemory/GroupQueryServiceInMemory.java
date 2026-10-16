@@ -45,6 +45,11 @@ public class GroupQueryServiceInMemory implements GroupQueryService, InMemoryAlt
     }
 
     @Override
+    public Optional<Group> findByIdAndEnvironmentId(String id, String environmentId) {
+        return findById(id).filter(group -> environmentId.equals(group.getEnvironmentId()));
+    }
+
+    @Override
     public Set<Group> findByIds(Set<String> ids) {
         return storage
             .stream()
