@@ -35,6 +35,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
@@ -68,8 +69,9 @@ public class UserResource extends AbstractResource {
         @BeanParam PaginationParam paginationParam,
         @QueryParam("environmentId") String environmentId
     ) {
+        var organizationId = GraviteeContext.getExecutionContext().getOrganizationId();
         var output = getUserApisUseCase.execute(
-            new GetUserApisUseCase.Input(userId, environmentId, paginationParam.getPage(), paginationParam.getPerPage())
+            new GetUserApisUseCase.Input(userId, organizationId, environmentId, paginationParam.getPage(), paginationParam.getPerPage())
         );
 
         List<UserApi> data = output
@@ -103,8 +105,15 @@ public class UserResource extends AbstractResource {
         @BeanParam PaginationParam paginationParam,
         @QueryParam("environmentId") String environmentId
     ) {
+        var organizationId = GraviteeContext.getExecutionContext().getOrganizationId();
         var output = getUserApiProductsUseCase.execute(
-            new GetUserApiProductsUseCase.Input(userId, environmentId, paginationParam.getPage(), paginationParam.getPerPage())
+            new GetUserApiProductsUseCase.Input(
+                userId,
+                organizationId,
+                environmentId,
+                paginationParam.getPage(),
+                paginationParam.getPerPage()
+            )
         );
 
         List<UserApiProduct> data = output
@@ -138,8 +147,15 @@ public class UserResource extends AbstractResource {
         @BeanParam PaginationParam paginationParam,
         @QueryParam("environmentId") String environmentId
     ) {
+        var organizationId = GraviteeContext.getExecutionContext().getOrganizationId();
         var output = getUserApplicationsUseCase.execute(
-            new GetUserApplicationsUseCase.Input(userId, environmentId, paginationParam.getPage(), paginationParam.getPerPage())
+            new GetUserApplicationsUseCase.Input(
+                userId,
+                organizationId,
+                environmentId,
+                paginationParam.getPage(),
+                paginationParam.getPerPage()
+            )
         );
 
         List<UserApplication> data = output
@@ -171,8 +187,9 @@ public class UserResource extends AbstractResource {
         @BeanParam PaginationParam paginationParam,
         @QueryParam("environmentId") String environmentId
     ) {
+        var organizationId = GraviteeContext.getExecutionContext().getOrganizationId();
         var output = getUserGroupsUseCase.execute(
-            new GetUserGroupsUseCase.Input(userId, environmentId, paginationParam.getPage(), paginationParam.getPerPage())
+            new GetUserGroupsUseCase.Input(userId, organizationId, environmentId, paginationParam.getPage(), paginationParam.getPerPage())
         );
 
         List<UserGroup> data = output
