@@ -1304,6 +1304,41 @@ public class ApiServiceImplTest {
     }
 
     @Test
+    public void should_not_mark_the_update_audit_when_a_plain_property_is_added_beside_an_unchanged_encrypted_one() throws Exception {
+        prepareUpdate();
+        givenStoredProperties(List.of(new Property("secret-key", "ciphertext", true, false)));
+        when(propertiesService.encryptProperties(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        updateApiEntity.setProperties(
+            List.of(new PropertyEntity("secret-key", "ciphertext", false, true), new PropertyEntity("plain-c", "plain-c", false, false))
+        );
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        verify(auditService).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(data -> data.getEvent().equals(API_UPDATED) && !data.getProperties().containsKey(ENCRYPTED)),
+            eq(API_ID)
+        );
+    }
+
+    @Test
+    public void should_not_mark_the_update_audit_when_only_the_name_of_an_api_holding_an_encrypted_property_changes() throws Exception {
+        prepareUpdate();
+        givenStoredProperties(List.of(new Property("secret-key", "ciphertext", true, false)));
+        when(propertiesService.encryptProperties(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        updateApiEntity.setName("renamed");
+        updateApiEntity.setProperties(List.of(new PropertyEntity("secret-key", "ciphertext", false, true)));
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        verify(auditService).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(data -> data.getEvent().equals(API_UPDATED) && !data.getProperties().containsKey(ENCRYPTED)),
+            eq(API_ID)
+        );
+    }
+
+    @Test
     public void should_not_audit_when_encryption_fails_on_update() throws Exception {
         prepareUpdate();
         when(propertiesService.encryptProperties(any(), any())).thenThrow(
