@@ -151,6 +151,40 @@ describe('GroupsComponent', () => {
     });
   });
 
+  describe('Edit group', () => {
+    beforeEach(async () => {
+      await init();
+      expectGetSettings(false);
+      expectGetGroupsList(
+        fakePagedResult(
+          [
+            { id: '1', name: 'Group 1', manageable: true },
+            { id: '2', name: 'Group 2', manageable: false },
+          ],
+          {
+            current: 1,
+            per_page: 10,
+            size: 2,
+            total_elements: 2,
+            total_pages: 1,
+          },
+        ),
+      );
+    });
+
+    it('should let the user edit a group they manage', async () => {
+      const editButton = await getButtonByRowIndexAndTooltip(0, 'Edit group');
+
+      expect(await editButton.isDisabled()).toEqual(false);
+    });
+
+    it('should not let the user edit a group they do not manage', async () => {
+      const editButton = await getButtonByRowIndexAndTooltip(1, 'Edit group');
+
+      expect(await editButton.isDisabled()).toEqual(true);
+    });
+  });
+
   describe('Delete group', () => {
     beforeEach(async () => {
       await init();
