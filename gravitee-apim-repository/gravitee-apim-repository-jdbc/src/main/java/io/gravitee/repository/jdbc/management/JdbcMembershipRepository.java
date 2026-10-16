@@ -455,6 +455,18 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
     }
 
     @Override
+    public Set<String> findRoleIdsByMemberIdAndMemberType(String memberId, final MembershipMemberType memberType)
+        throws TechnicalException {
+        log.debug("JdbcMembershipRepository.findRoleIdsByMemberIdAndMemberType({}, {})", memberId, memberType);
+        try {
+            final String query = "select distinct role_id from " + getOrm().getTableName() + " where member_id = ? and member_type = ? ";
+            return new HashSet<>(jdbcTemplate.queryForList(query, String.class, memberId, memberType.name()));
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to find role ids by member " + memberId, ex);
+        }
+    }
+
+    @Override
     public Set<Membership> findByMemberIdAndMemberType(String memberId, final MembershipMemberType memberType) throws TechnicalException {
         log.debug("JdbcMembershipRepository.findByMemberIdAndMemberType({}, {})", memberId, memberType);
         try {
