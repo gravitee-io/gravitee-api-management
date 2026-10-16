@@ -16,25 +16,32 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.MetadataReferenceType.API;
+import static io.gravitee.repository.management.model.MetadataReferenceType.ENVIRONMENT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import freemarker.template.TemplateException;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MetadataRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.model.Metadata;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -59,6 +66,9 @@ public class MetadataServiceTest {
 
     @Mock
     private MetadataRepository metadataRepository;
+
+    @Mock
+    private ApiRepository apiRepository;
 
     @Mock
     private NotificationTemplateService notificationTemplateService;
@@ -229,5 +239,48 @@ public class MetadataServiceTest {
 
             metadataService.findByKeyAndReferenceType("key", API);
         });
+    }
+
+    @Test
+    public void delete_should_only_cascade_to_api_metadata_of_current_environment() throws TechnicalException {
+        final ExecutionContext executionContext = new ExecutionContext("DEFAULT", "DEFAULT");
+
+        final Metadata environmentMetadata = new Metadata();
+        environmentMetadata.setKey("key");
+        environmentMetadata.setReferenceType(ENVIRONMENT);
+        environmentMetadata.setReferenceId("DEFAULT");
+        when(metadataRepository.findById("key", "DEFAULT", ENVIRONMENT)).thenReturn(Optional.of(environmentMetadata));
+
+        final Metadata apiMetadataSameEnv = new Metadata();
+        apiMetadataSameEnv.setKey("key");
+        apiMetadataSameEnv.setReferenceType(API);
+        apiMetadataSameEnv.setReferenceId("api-in-default");
+
+        final Metadata apiMetadataOtherEnv = new Metadata();
+        apiMetadataOtherEnv.setKey("key");
+        apiMetadataOtherEnv.setReferenceType(API);
+        apiMetadataOtherEnv.setReferenceId("api-in-prod");
+
+        when(metadataRepository.findByKeyAndReferenceType("key", API)).thenReturn(List.of(apiMetadataSameEnv, apiMetadataOtherEnv));
+        when(apiRepository.searchIds(anyList(), any(), any())).thenReturn(new Page<>(List.of("api-in-default"), 0, 1, 1));
+
+        metadataService.delete(executionContext, "key");
+
+        verify(metadataRepository).delete("key", "DEFAULT", ENVIRONMENT);
+        verify(metadataRepository).delete("key", "api-in-default", API);
+        verify(metadataRepository, never()).delete("key", "api-in-prod", API);
+
+        verify(apiRepository).searchIds(
+            argThat(criteria -> {
+                final ApiCriteria apiCriteria = (ApiCriteria) criteria.get(0);
+                return (
+                    criteria.size() == 1 &&
+                    "DEFAULT".equals(apiCriteria.getEnvironmentId()) &&
+                    (apiCriteria.getIds() == null || apiCriteria.getIds().isEmpty())
+                );
+            }),
+            any(),
+            any()
+        );
     }
 }
