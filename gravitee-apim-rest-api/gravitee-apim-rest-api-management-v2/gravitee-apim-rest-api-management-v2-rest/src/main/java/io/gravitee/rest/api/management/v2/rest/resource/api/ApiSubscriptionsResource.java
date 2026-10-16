@@ -245,6 +245,12 @@ public class ApiSubscriptionsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
     public Response resumeFailedSubscription(@PathParam("subscriptionId") String subscriptionId) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
+
+        if (!isSubscriptionOfApi(subscriptionEntity)) {
+            return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
+        }
+
         SubscriptionEntity updatedSubscriptionEntity = subscriptionService.resumeFailed(executionContext, subscriptionId);
         return Response.ok(subscriptionMapper.map(updatedSubscriptionEntity)).build();
     }
@@ -475,7 +481,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
 
-        if (!apiId.equals(subscriptionEntity.getReferenceId())) {
+        if (!isSubscriptionOfApi(subscriptionEntity)) {
             return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
         }
 
@@ -490,7 +496,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
 
-        if (!apiId.equals(subscriptionEntity.getReferenceId())) {
+        if (!isSubscriptionOfApi(subscriptionEntity)) {
             return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
         }
 
@@ -725,6 +731,13 @@ public class ApiSubscriptionsResource extends AbstractResource {
         apiKeyEntity = apiKeyService.reactivate(executionContext, apiKeyEntity);
 
         return Response.ok(subscriptionMapper.mapToApiKey(apiKeyEntity)).build();
+    }
+
+    private boolean isSubscriptionOfApi(SubscriptionEntity subscriptionEntity) {
+        return (
+            apiId.equals(subscriptionEntity.getReferenceId()) &&
+            SubscriptionReferenceType.API.name().equals(subscriptionEntity.getReferenceType())
+        );
     }
 
     private Error subscriptionNotFoundError(String subscriptionId) {
