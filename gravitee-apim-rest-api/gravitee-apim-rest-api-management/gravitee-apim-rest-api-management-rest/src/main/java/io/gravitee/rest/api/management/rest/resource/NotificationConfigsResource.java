@@ -82,7 +82,10 @@ public class NotificationConfigsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Object createGenericNotificationSetting(GenericNotificationConfigEntity config) {
-        if (!NotificationReferenceType.ENVIRONMENT.name().equals(config.getReferenceType())) {
+        if (
+            !NotificationReferenceType.ENVIRONMENT.name().equals(config.getReferenceType()) ||
+            !GraviteeContext.getCurrentEnvironment().equals(config.getReferenceId())
+        ) {
             throw new ForbiddenAccessException();
         }
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
