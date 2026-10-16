@@ -30,9 +30,11 @@ import inmemory.ApiQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
+import inmemory.EnvironmentCrudServiceInMemory;
 import inmemory.GroupCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.KafkaPortRangeCrudServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
 import inmemory.NewtAIProviderInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
@@ -41,6 +43,7 @@ import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationManifestParserInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
@@ -144,6 +147,7 @@ import io.gravitee.apim.core.documentation.domain_service.DocumentationValidatio
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessControlsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
+import io.gravitee.apim.core.environment.domain_service.ValidateEnvironmentInOrganizationDomainService;
 import io.gravitee.apim.core.environment.service_provider.EnvironmentTemplateModelProvider;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.group.crud_service.GroupCrudService;
@@ -261,6 +265,7 @@ import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSc
 import io.gravitee.apim.core.user.domain_service.CreateUserDomainService;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.domain_service.UserDomainService;
+import io.gravitee.apim.core.user.domain_service.ValidateUserInOrganizationDomainService;
 import io.gravitee.apim.core.user.service_provider.UserPasswordService;
 import io.gravitee.apim.core.user.service_provider.UserPortalNotificationService;
 import io.gravitee.apim.core.user.service_provider.UserRegistrationEnabledService;
@@ -1771,8 +1776,19 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public GetUserApisUseCase getUserApisUseCase() {
-        return mock(GetUserApisUseCase.class);
+    public GetUserApisUseCase getUserApisUseCase(
+        UserCrudServiceInMemory userCrudService,
+        EnvironmentCrudServiceInMemory environmentCrudService,
+        MembershipQueryServiceInMemory membershipQueryService,
+        ApiQueryServiceInMemory apiQueryService
+    ) {
+        return new GetUserApisUseCase(
+            new ValidateUserInOrganizationDomainService(userCrudService),
+            new ValidateEnvironmentInOrganizationDomainService(environmentCrudService),
+            membershipQueryService,
+            apiQueryService,
+            environmentCrudService
+        );
     }
 
     @Bean
