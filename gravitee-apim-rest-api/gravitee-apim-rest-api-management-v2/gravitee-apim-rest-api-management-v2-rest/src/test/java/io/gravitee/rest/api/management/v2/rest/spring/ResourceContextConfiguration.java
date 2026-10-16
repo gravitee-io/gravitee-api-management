@@ -876,7 +876,8 @@ public class ResourceContextConfiguration {
                     new VerifyPlanPortRangesDomainService(kafkaPortRangeCrudService)
                 ),
                 new ValidatePortalNotificationDomainService(groupsValidator),
-                new ValidateHealthCheckScheduleDomainService(new ObjectMapper())
+                new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
+                apiQueryService
             )
         );
     }

@@ -22,13 +22,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.ApiCRDFixtures;
+import fixtures.core.model.ApiFixtures;
+import inmemory.ApiQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
@@ -84,6 +88,8 @@ class ValidateApiCRDDomainServiceTest {
         new ObjectMapper()
     );
 
+    ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
+
     ValidateApiCRDDomainService cut = new ValidateApiCRDDomainService(
         categoryIdsValidator,
         pathValidator,
@@ -94,7 +100,8 @@ class ValidateApiCRDDomainServiceTest {
         pagesValidator,
         planValidator,
         portalNotificationValidator,
-        healthCheckScheduleValidator
+        healthCheckScheduleValidator,
+        apiQueryService
     );
 
     PortalNotificationConfigEntity consoleNotificationConfiguration = new PortalNotificationConfigEntity();
@@ -104,6 +111,18 @@ class ValidateApiCRDDomainServiceTest {
         reset(categoryIdsValidator);
         when(pathValidator.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
         consoleNotificationConfiguration.setConfigType(NotificationConfigType.PORTAL);
+    }
+
+    @Test
+    void should_reject_an_id_that_differs_from_the_existing_api() {
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder().id("existing-api-id").environmentId(ENV_ID).crossId(API_CROSS_ID).build();
+        apiQueryService.initWith(List.of(existingApi));
+        var spec = ApiCRDFixtures.newBaseSpec().id("another-api-id").crossId(API_CROSS_ID).build();
+
+        assertThatExceptionOfType(ValidationDomainException.class).isThrownBy(() ->
+            cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))
+        );
+        verifyNoInteractions(categoryIdsValidator, pathValidator, planValidator);
     }
 
     @Test
