@@ -94,6 +94,7 @@ public class ApiNotificationSettingsResource extends AbstractResource {
             throw new ForbiddenAccessException();
         }
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        config.setOrganizationId(executionContext.getOrganizationId());
         if (
             config.getConfigType().equals(NotificationConfigType.GENERIC) && hasPermission(executionContext, API_NOTIFICATION, api, CREATE)
         ) {
