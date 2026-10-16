@@ -18,11 +18,13 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
+import io.gravitee.apim.core.dictionary.domain_service.DictionaryAutomationDomainService;
 import io.gravitee.apim.core.dictionary.domain_service.ValidateDictionaryDomainService;
 import io.gravitee.apim.core.dictionary.use_case.CreateOrUpdateDictionaryUseCase;
 import io.gravitee.apim.rest.api.automation.mapper.DictionaryMapper;
 import io.gravitee.apim.rest.api.automation.model.DictionarySpec;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
@@ -55,6 +57,9 @@ public class DictionariesResource extends AbstractResource {
     @Inject
     private CreateOrUpdateDictionaryUseCase createOrUpdateDictionaryCRDUseCase;
 
+    @Inject
+    private DictionaryAutomationDomainService dictionaryAutomationDomainService;
+
     @Path("/{hrid}")
     public DictionaryResource getDictionaryResource() {
         return resourceContext.getResource(DictionaryResource.class);
@@ -68,12 +73,18 @@ public class DictionariesResource extends AbstractResource {
         var dictionary = DictionaryMapper.INSTANCE.toDictionary(spec);
         validateDictionaryDomainService.validate(dictionary);
 
+        dictionary.setId(HRIDToUUID.dictionary().context(getAuditInfo()).hrid(spec.getHrid()).id());
+        var executionContext = GraviteeContext.getExecutionContext();
+        requireCreateOrUpdate(
+            RolePermission.ENVIRONMENT_DICTIONARY,
+            RolePermission.ENVIRONMENT_DICTIONARY,
+            dictionaryAutomationDomainService.findById(executionContext, dictionary.getId()).map(DictionaryEntity::getId).orElse(null)
+        );
+
         if (dryRun) {
             return Response.ok(DictionaryMapper.INSTANCE.toDictionaryState(spec)).build();
         }
 
-        dictionary.setId(HRIDToUUID.dictionary().context(getAuditInfo()).hrid(spec.getHrid()).id());
-        var executionContext = GraviteeContext.getExecutionContext();
         var result = createOrUpdateDictionaryCRDUseCase.execute(
             new CreateOrUpdateDictionaryUseCase.Input(executionContext, dictionary, spec.getDeployed())
         );
