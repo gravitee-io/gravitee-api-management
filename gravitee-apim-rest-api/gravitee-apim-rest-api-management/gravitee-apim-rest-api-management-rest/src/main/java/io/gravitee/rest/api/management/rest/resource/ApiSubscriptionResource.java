@@ -277,9 +277,11 @@ public class ApiSubscriptionResource extends AbstractResource {
             );
             return Response.ok(convert(executionContext, result.subscription())).build();
         } else if (PAUSED.equals(subscriptionStatus)) {
+            checkSubscription(subscription);
             SubscriptionEntity updatedSubscriptionEntity = subscriptionService.pause(executionContext, subscription);
             return Response.ok(convert(executionContext, updatedSubscriptionEntity)).build();
         } else if (RESUMED.equals(subscriptionStatus)) {
+            checkSubscription(subscription);
             SubscriptionEntity updatedSubscriptionEntity = subscriptionService.resume(executionContext, subscription);
             return Response.ok(convert(executionContext, updatedSubscriptionEntity)).build();
         } else {
