@@ -15,13 +15,18 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_GROUP;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.model.crd.GroupCRDStatus;
 import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
 import io.gravitee.apim.core.group.use_case.ValidateGroupCRDUseCase;
@@ -29,9 +34,13 @@ import io.gravitee.apim.core.member.model.RoleScope;
 import io.gravitee.apim.rest.api.automation.model.GroupDefaultMemberRoles;
 import io.gravitee.apim.rest.api.automation.model.GroupState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
+import java.util.List;
 import java.util.Map;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
@@ -240,6 +249,112 @@ class GroupsResourceTest extends AbstractResourceTest {
                 verify(importGroupCRDUseCase).execute(input.capture());
             }
             assertThat(input.getValue().spec().isIgnoreMembers()).isTrue();
+        }
+    }
+
+    @Nested
+    class Authorization {
+
+        private final String groupId = HRIDToUUID.group().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("my-group").id();
+
+        @BeforeEach
+        void setUp() {
+            when(importGroupCRDUseCase.execute(any(ImportGroupCRDUseCase.Input.class))).thenReturn(
+                new ImportGroupCRDUseCase.Output(GroupCRDStatus.builder().id(groupId).members(0).build())
+            );
+            when(validateGroupCRDUseCase.execute(any(ImportGroupCRDUseCase.Input.class))).thenReturn(
+                new ImportGroupCRDUseCase.Output(GroupCRDStatus.builder().id(groupId).members(0).build())
+            );
+        }
+
+        @AfterEach
+        void tearDown() {
+            reset(permissionService);
+            groupQueryServiceInMemory.reset();
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_update_the_existing_group() {
+            givenGroup(groupId, ENVIRONMENT);
+            denyGroupPermission(UPDATE);
+
+            assertThat(put(readJSON("group-with-name.json"), false, false)).isEqualTo(403);
+            verify(importGroupCRDUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_403_on_dry_run_when_the_caller_cannot_update_the_existing_group() {
+            givenGroup(groupId, ENVIRONMENT);
+            denyGroupPermission(UPDATE);
+
+            assertThat(put(readJSON("group-with-name.json"), true, false)).isEqualTo(403);
+            verify(validateGroupCRDUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_update_the_existing_group_with_update_and_no_create() {
+            givenGroup(groupId, ENVIRONMENT);
+            denyGroupPermission(CREATE);
+
+            assertThat(put(readJSON("group-with-name.json"), false, false)).isEqualTo(200);
+            verify(importGroupCRDUseCase).execute(any());
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_create_a_new_group() {
+            denyGroupPermission(CREATE);
+
+            assertThat(put(readJSON("group-with-name.json"), false, false)).isEqualTo(403);
+            verify(importGroupCRDUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_create_a_new_group_with_create_and_no_update() {
+            denyGroupPermission(UPDATE);
+
+            assertThat(put(readJSON("group-with-name.json"), false, false)).isEqualTo(200);
+            verify(importGroupCRDUseCase).execute(any());
+        }
+
+        @Test
+        void should_authorize_a_group_of_another_environment_as_a_creation() {
+            givenGroup(groupId, "other-environment");
+            denyGroupPermission(UPDATE);
+
+            assertThat(put(readJSON("group-with-name.json"), false, false)).isEqualTo(200);
+            verify(importGroupCRDUseCase).execute(any());
+        }
+
+        @Test
+        void should_return_403_when_an_upper_case_id_names_an_existing_group_the_caller_cannot_update() {
+            var existingId = "abc0a85b-9924-4981-bd71-69295353f5ff";
+            givenGroup(existingId, ENVIRONMENT);
+            denyGroupPermission(UPDATE);
+
+            var spec = "{\"hrid\": \"" + existingId.toUpperCase() + "\", \"name\": \"my-group\"}";
+            assertThat(put(spec, false, true)).isEqualTo(403);
+            verify(importGroupCRDUseCase, never()).execute(any());
+        }
+
+        private void givenGroup(String id, String environmentId) {
+            groupQueryServiceInMemory.initWith(List.of(Group.builder().id(id).environmentId(environmentId).name("my-group").build()));
+        }
+
+        private void denyGroupPermission(RolePermissionAction action) {
+            when(permissionService.hasPermission(any(), eq(ENVIRONMENT_GROUP), eq(ENVIRONMENT), eq(action))).thenReturn(false);
+        }
+
+        private int put(String spec, boolean dryRun, boolean hridContainsUUID) {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .queryParam("hridContainsUUID", hridContainsUUID)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(spec))
+            ) {
+                return response.getStatus();
+            }
         }
     }
 
