@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource.configuration.identity;
 
+import static io.gravitee.rest.api.model.configuration.identity.IdentityProviderClientSecret.omitClientSecret;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
@@ -69,7 +71,7 @@ public class IdentityProviderResource extends AbstractResource {
         if (!identityProviderEntity.getOrganization().equalsIgnoreCase(GraviteeContext.getCurrentOrganization())) {
             throw new IdentityProviderNotFoundException(identityProvider);
         }
-        return identityProviderEntity;
+        return omitClientSecret(identityProviderEntity);
     }
 
     @PUT
@@ -93,7 +95,9 @@ public class IdentityProviderResource extends AbstractResource {
             required = true
         ) @Valid @NotNull final UpdateIdentityProviderEntity updatedIdentityProvider
     ) {
-        return identityProviderService.update(GraviteeContext.getExecutionContext(), identityProvider, updatedIdentityProvider);
+        return omitClientSecret(
+            identityProviderService.update(GraviteeContext.getExecutionContext(), identityProvider, updatedIdentityProvider)
+        );
     }
 
     @DELETE

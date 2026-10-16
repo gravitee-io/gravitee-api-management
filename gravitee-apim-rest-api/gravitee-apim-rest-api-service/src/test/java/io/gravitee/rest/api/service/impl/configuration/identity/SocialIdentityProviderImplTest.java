@@ -159,7 +159,11 @@ class SocialIdentityProviderImplTest {
     void find_by_id_should_return_enabled_idp_for_organization_target() {
         givenActivatedIdp(ORGANIZATION_TARGET, googleIdp("enabled-idp", "Enabled", true));
 
-        assertThat(socialIdentityProvider.findById("enabled-idp", ORGANIZATION_TARGET).getId()).isEqualTo("enabled-idp");
+        SocialIdentityProviderEntity result = socialIdentityProvider.findById("enabled-idp", ORGANIZATION_TARGET);
+
+        assertThat(result.getId()).isEqualTo("enabled-idp");
+        // Login still reads the secret in-process even though Management API responses omit it.
+        assertThat(result.getClientSecret()).isEqualTo("client-secret");
     }
 
     @Test
