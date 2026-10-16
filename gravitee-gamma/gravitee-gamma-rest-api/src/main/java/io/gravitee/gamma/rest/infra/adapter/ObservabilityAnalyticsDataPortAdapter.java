@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.apim.core.analytics.domain_service.AiWorkspaceAnalyticsApisDomainService;
 import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
@@ -38,6 +39,7 @@ import io.gravitee.apim.core.analytics_engine.model.TimeRange;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.apim.core.analytics_engine.model.TrafficScope;
+import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeFacetsUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeTimeSeriesUseCase;
@@ -50,6 +52,7 @@ import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsFacetM
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsMetricQuery;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsNumberRange;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsSortSpec;
+import io.gravitee.gamma.rest.core.observability.analytics.model.DataKind;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.AnalyticsRequestPipeline;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
@@ -57,8 +60,10 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -92,18 +97,41 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     private final AnalyticsQueryValidator analyticsQueryValidator;
     private final UnitEnrichmentPostProcessor unitEnrichmentPostProcessor;
     private final UserContextLoader userContextLoader;
+    private final AiWorkspaceAnalyticsApisDomainService workspaceApis;
+    private final AnalyticsQueryContextProvider queryContextProvider;
     private final ObjectMapper objectMapper;
 
     @Override
-    public List<AccessibleApi> loadAccessibleApis(String organizationId, String environmentId) {
+    public List<AccessibleApi> loadAccessibleApis(String organizationId, String environmentId, DataKind kind) {
         var auditInfo = currentAuditInfo(organizationId, environmentId);
-        var userContext = userContextLoader.loadApis(new UserContext(auditInfo), ApiDataKind.AGGREGATES);
+        var userContext = userContextLoader.loadApis(
+            new UserContext(auditInfo),
+            kind == DataKind.PER_REQUEST ? ApiDataKind.PER_REQUEST : ApiDataKind.AGGREGATES
+        );
         return userContext
             .apis()
             .orElseGet(Collections::emptyList)
             .stream()
             .map(api -> new AccessibleApi(api.getId(), api.getName(), ApiTypeAdapter.toObservability(api.getType())))
             .toList();
+    }
+
+    @Override
+    public List<AccessibleApi> loadWorkspaceApis(String organizationId, String environmentId, String workspaceId) {
+        var auditInfo = currentAuditInfo(organizationId, environmentId);
+        return workspaceApis
+            .findWorkspaceApis(new ExecutionContext(organizationId, environmentId), auditInfo.actor().userId(), workspaceId)
+            .stream()
+            .map(api -> new AccessibleApi(api.getId(), api.getName(), ApiTypeAdapter.toObservability(api.getType())))
+            .toList();
+    }
+
+    @Override
+    public boolean narrowsByApiProduct(Collection<String> metricNames) {
+        return (
+            !metricNames.isEmpty() &&
+            metricNames.stream().allMatch(metric -> queryContextProvider.narrowsBy(toApimMetricName(metric), FilterSpec.Name.API_PRODUCT))
+        );
     }
 
     @Override
@@ -222,7 +250,8 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     @Override
     public JsonNode computeFacets(FacetsQuery query) {
         var auditInfo = currentAuditInfo(query.organizationId(), query.environmentId());
-        var response = computeFacetsUseCase.execute(new ComputeFacetsUseCase.Input(auditInfo, toApimRequest(query))).response();
+        // The scope is already narrowed from the APIs Gamma reads for this query: the engine must not narrow it again.
+        var response = computeFacetsUseCase.executeForApis(auditInfo, toApimRequest(query), query.scope().apiIds()).response();
         var node = (ObjectNode) objectMapper.valueToTree(response);
         AnalyticsBucketTypeEnricher.enrichFacetsResponse(node);
         ConditionsNotAppliedEnricher.enrichFacets(node, query.conditionsNotApplied());
@@ -234,7 +263,7 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
         var auditInfo = currentAuditInfo(query.organizationId(), query.environmentId());
         var rankingConditions = rankingConditions(query);
         var response = computeTimeSeriesUseCase
-            .execute(new ComputeTimeSeriesUseCase.Input(auditInfo, toApimRequest(query, rankingConditions)))
+            .executeForApis(auditInfo, toApimRequest(query, rankingConditions), query.scope().apiIds())
             .response();
         if (query.ranking() != null) {
             response = RankedSeriesFilter.keepRankedSeries(response, query.ranking(), rankingConditions, query.scope());

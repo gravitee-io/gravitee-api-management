@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsMetricQuery;
+import io.gravitee.gamma.rest.core.observability.analytics.model.DataKind;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort.MeasuresQuery;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
@@ -109,6 +110,16 @@ class ComputeObservabilityMeasuresUseCaseTest {
                         Set.of(ApiType.HTTP_PROXY)
                     ),
                     new FilterSpec(
+                        "CONSUMER_IP",
+                        "Consumer IP",
+                        FilterType.KEYWORD,
+                        List.of(FilterOperator.EQ, FilterOperator.IN),
+                        null,
+                        null,
+                        Set.of(Signal.ANALYTICS),
+                        Set.of(ApiType.HTTP_PROXY)
+                    ),
+                    new FilterSpec(
                         "RECORD_TYPE",
                         "Record Type",
                         FilterType.ENUM,
@@ -124,10 +135,35 @@ class ComputeObservabilityMeasuresUseCaseTest {
                 )
             );
         lenient()
-            .when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+            .when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.AGGREGATES))
             .thenReturn(
                 List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY), new AccessibleApi("api-2", "API 2", ApiType.HTTP_PROXY))
             );
+    }
+
+    /** A metric condition identifying callers makes the whole request per-request data. */
+    @Test
+    void should_count_the_apis_whose_requests_the_caller_reads_when_a_metric_condition_identifies_callers() {
+        when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.PER_REQUEST)).thenReturn(
+            List.of(new AccessibleApi("logged-api", "Logged API", ApiType.HTTP_PROXY))
+        );
+        when(analyticsDataPort.computeMeasures(any())).thenReturn(JsonNodeFactory.instance.objectNode());
+        var byConsumerIp = new FilterCondition("CONSUMER_IP", FilterOperator.EQ, List.of("10.0.0.1"));
+
+        useCase.execute(
+            new ComputeObservabilityMeasuresUseCase.Input(
+                ORG_ID,
+                ENV_ID,
+                List.of(),
+                FROM,
+                TO,
+                List.of(new AnalyticsMetricQuery(null, "HTTP_REQUESTS", List.of("COUNT"), List.of(byConsumerIp)))
+            )
+        );
+
+        var captor = ArgumentCaptor.forClass(ObservabilityAnalyticsDataPort.MeasuresQuery.class);
+        verify(analyticsDataPort).computeMeasures(captor.capture());
+        assertThat(captor.getValue().groups()).allSatisfy(group -> assertThat(group.apiIds()).containsExactly("logged-api"));
     }
 
     @Nested
@@ -382,7 +418,7 @@ class ComputeObservabilityMeasuresUseCaseTest {
         // The answer to a malformed query must not depend on what the caller can read.
         @Test
         void should_refuse_a_malformed_query_even_when_the_caller_can_read_no_api() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of());
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.AGGREGATES)).thenReturn(List.of());
             doThrow(InvalidObservabilityQueryException.unknownMetric("BOGUS")).when(analyticsDataPort).validate(any(MeasuresQuery.class));
 
             assertThatThrownBy(() -> execute(List.of(), metric("BOGUS"))).isInstanceOf(InvalidObservabilityQueryException.class);

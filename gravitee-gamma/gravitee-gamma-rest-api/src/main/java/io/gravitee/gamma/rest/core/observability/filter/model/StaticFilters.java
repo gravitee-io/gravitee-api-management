@@ -340,6 +340,14 @@ public enum StaticFilters {
         return WITHOUT_VALUE_LISTING;
     }
 
+    /** Fields holding a person or a client identifier, as the platform catalog classifies them (pinned by a test). */
+    private static final Set<String> IDENTIFYING = Set.of(CONSUMER_IP.name(), NATIVE_CLIENT_ID.name(), AUTHZ_SUBJECT_ID.name());
+
+    /** A query using one of these, as condition or facet, reads the calls themselves. */
+    public static Set<String> identifying() {
+        return IDENTIFYING;
+    }
+
     /**
      * Shared constants for the catalog above. They live in a nested class (not as enum static
      * fields) because Java forbids an enum constant's constructor from referencing the enum's own

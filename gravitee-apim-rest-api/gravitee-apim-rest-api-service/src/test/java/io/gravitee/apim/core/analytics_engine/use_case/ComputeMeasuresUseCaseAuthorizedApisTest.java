@@ -72,7 +72,7 @@ class ComputeMeasuresUseCaseAuthorizedApisTest {
 
         useCase.executeForApis(AuditInfoFixtures.anAuditInfo("org-id", "env-id", "user-id"), request, Set.of("proxy-1"));
 
-        verify(loader, never()).load(any(), any());
+        verify(loader, never()).load(any(), any(), any());
         var captured = ArgumentCaptor.forClass(MeasuresRequest.class);
         verify(queryService).searchMeasures(any(), captured.capture());
         assertThat(captured.getValue().filters())

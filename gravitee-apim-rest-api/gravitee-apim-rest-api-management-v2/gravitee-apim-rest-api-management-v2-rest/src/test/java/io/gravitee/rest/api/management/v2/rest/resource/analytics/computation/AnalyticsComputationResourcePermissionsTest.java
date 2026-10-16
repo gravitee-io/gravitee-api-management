@@ -17,25 +17,26 @@ package io.gravitee.rest.api.management.v2.rest.resource.analytics.computation;
 
 import static assertions.MAPIAssertions.assertThat;
 import static fixtures.AnalyticsEngineFixtures.*;
-import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
+import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
-import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
+import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
+import io.gravitee.repository.analytics.engine.api.result.FacetsResult;
 import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
-import io.gravitee.repository.analytics.engine.api.result.MetricMeasuresResult;
-import io.gravitee.repository.common.query.QueryContext;
+import io.gravitee.repository.analytics.engine.api.result.TimeSeriesResult;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.rest.api.management.v2.rest.resource.api.AbstractNonAdminApiResourceTest;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,8 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Checks the permission guard of {@link AnalyticsComputationResource} with a non-admin user.
+ * Checks that {@link AnalyticsComputationResource} answers a non-admin user from the rows they read, whatever their
+ * environment permissions.
  *
  * @author GraviteeSource Team
  */
@@ -61,6 +63,9 @@ class AnalyticsComputationResourcePermissionsTest extends AbstractNonAdminApiRes
     @Autowired
     AnalyticsQueryContextLoaderResolver analyticsQueryContextLoader;
 
+    @Autowired
+    BucketNamesPostProcessor bucketNamesPostProcessor;
+
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/analytics";
@@ -68,100 +73,58 @@ class AnalyticsComputationResourcePermissionsTest extends AbstractNonAdminApiRes
 
     @BeforeEach
     void init2() {
-        Mockito.reset(analyticsRepository, queryFilterTransformer, analyticsQueryContextLoader);
+        Mockito.reset(analyticsRepository, queryFilterTransformer, analyticsQueryContextLoader, bucketNamesPostProcessor);
     }
 
-    private void givenNoDashboardNorApiPermission() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DASHBOARD,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_API,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(false);
+    private void givenNoEnvironmentPermissionNorMembership() {
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
         when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(Set.of());
     }
 
-    @Test
-    void should_return_403_on_measures_when_user_has_no_dashboard_nor_api_permission() {
-        givenNoDashboardNorApiPermission();
-
-        var response = rootTarget().path("measures").request().post(Entity.json(aCountMeasureRequest()));
-
-        assertThat(response).hasStatus(FORBIDDEN_403);
-    }
-
-    @Test
-    void should_return_403_on_facets_when_user_has_no_dashboard_nor_api_permission() {
-        givenNoDashboardNorApiPermission();
-
-        var response = rootTarget().path("facets").request().post(Entity.json(aRequestCountFacetRequest()));
-
-        assertThat(response).hasStatus(FORBIDDEN_403);
-    }
-
-    @Test
-    void should_return_403_on_time_series_when_user_has_no_dashboard_nor_api_permission() {
-        givenNoDashboardNorApiPermission();
-
-        var response = rootTarget().path("time-series").request().post(Entity.json(aRequestCountTimeSeries()));
-
-        assertThat(response).hasStatus(FORBIDDEN_403);
-    }
-
-    @Test
-    void should_return_measures_when_user_has_only_environment_api_read_permission() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DASHBOARD,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_API,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
-
-        var queryContext = new QueryContext(ORGANIZATION, ENVIRONMENT);
-        when(analyticsRepository.searchHTTPMeasures(eq(queryContext), any())).thenReturn(
-            new MeasuresResult(
-                List.of(
-                    new MetricMeasuresResult(
-                        Metric.HTTP_REQUESTS,
-                        Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 42)
-                    )
-                )
-            )
-        );
-        when(analyticsRepository.searchMessageMeasures(eq(queryContext), any())).thenReturn(
-            new MeasuresResult(
-                List.of(
-                    new MetricMeasuresResult(Metric.MESSAGES, Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 42))
-                )
-            )
-        );
-        when(analyticsQueryContextLoader.load(any(), any())).thenReturn(
+    private void givenTheCallerReadsNoApi() {
+        when(analyticsQueryContextLoader.load(any(), any(), any())).thenReturn(
             new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
         );
         when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));
+        when(analyticsRepository.searchHTTPMeasures(any(), any())).thenReturn(new MeasuresResult(List.of()));
+        when(analyticsRepository.searchMessageMeasures(any(), any())).thenReturn(new MeasuresResult(List.of()));
+        when(analyticsRepository.searchHTTPFacets(any(), any())).thenReturn(new FacetsResult(List.of()));
+        when(analyticsRepository.searchHTTPTimeSeries(any(), any())).thenReturn(new TimeSeriesResult(List.of()));
+        when(bucketNamesPostProcessor.mapBucketNames(any(), any(), any(FacetsResponse.class))).thenAnswer(inv -> inv.getArgument(2));
+        when(bucketNamesPostProcessor.mapBucketNames(any(), any(), any(TimeSeriesResponse.class))).thenAnswer(inv -> inv.getArgument(2));
+    }
+
+    /** The rows decide what is counted: the aggregates of the APIs the caller reads, none here. */
+    @Test
+    void should_compute_measures_without_any_environment_permission() {
+        givenNoEnvironmentPermissionNorMembership();
+        givenTheCallerReadsNoApi();
 
         var response = rootTarget().path("measures").request().post(Entity.json(aCountMeasureRequest()));
 
         assertThat(response).hasStatus(OK_200);
+        verify(analyticsQueryContextLoader).load(any(), eq(AnalyticsScope.MANAGEMENT), eq(ApiDataKind.AGGREGATES));
+    }
+
+    @Test
+    void should_compute_facets_without_any_environment_permission() {
+        givenNoEnvironmentPermissionNorMembership();
+        givenTheCallerReadsNoApi();
+
+        var response = rootTarget().path("facets").request().post(Entity.json(aRequestCountFacetRequest()));
+
+        assertThat(response).hasStatus(OK_200);
+        verify(analyticsQueryContextLoader).load(any(), eq(AnalyticsScope.MANAGEMENT), eq(ApiDataKind.AGGREGATES));
+    }
+
+    @Test
+    void should_compute_time_series_without_any_environment_permission() {
+        givenNoEnvironmentPermissionNorMembership();
+        givenTheCallerReadsNoApi();
+
+        var response = rootTarget().path("time-series").request().post(Entity.json(aRequestCountTimeSeries()));
+
+        assertThat(response).hasStatus(OK_200);
+        verify(analyticsQueryContextLoader).load(any(), eq(AnalyticsScope.MANAGEMENT), eq(ApiDataKind.AGGREGATES));
     }
 }

@@ -19,7 +19,6 @@ import io.gravitee.apim.core.analytics_engine.use_case.GetFilterValuesUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.AnalyticsDefinitionMapper;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterValuesResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
@@ -46,10 +45,6 @@ public class ObservabilityFilterValuesResource extends AbstractResource {
         @QueryParam("perPage") @DefaultValue("10") int perPage,
         @QueryParam("query") String query
     ) {
-        if (!canReadDashboards()) {
-            throw new ForbiddenAccessException();
-        }
-
         var input = new GetFilterValuesUseCase.Input(
             getAuditInfo(),
             filterName,

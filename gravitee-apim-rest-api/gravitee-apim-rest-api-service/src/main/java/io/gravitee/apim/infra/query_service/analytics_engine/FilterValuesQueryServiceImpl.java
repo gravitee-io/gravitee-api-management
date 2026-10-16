@@ -92,6 +92,30 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
         return new FilterValuesPage(values, result.afterKey(), result.totalCount());
     }
 
+    @Override
+    public Set<String> findValuesInCalls(
+        String organizationId,
+        String environmentId,
+        FilterSpec.Name filterName,
+        Instant from,
+        Instant to,
+        Set<String> values,
+        Set<String> authorizedApiIds
+    ) {
+        if (values.isEmpty() || authorizedApiIds.isEmpty()) {
+            return Set.of();
+        }
+        var query = FilterValuesQuery.builder()
+            .esFieldName(resolveEsFieldName(filterName))
+            .from(from != null ? from.toEpochMilli() : null)
+            .to(to != null ? to.toEpochMilli() : null)
+            .size(values.size())
+            .apiIds(authorizedApiIds)
+            .values(values)
+            .build();
+        return Set.copyOf(analyticsRepository.searchFilterValues(new QueryContext(organizationId, environmentId), query).values());
+    }
+
     private static final String ADDITIONAL_METRICS_PREFIX = "additional-metrics.";
 
     /**

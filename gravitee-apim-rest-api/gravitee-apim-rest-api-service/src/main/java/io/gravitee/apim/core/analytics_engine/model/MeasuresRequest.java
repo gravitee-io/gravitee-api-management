@@ -15,8 +15,10 @@
  */
 package io.gravitee.apim.core.analytics_engine.model;
 
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -29,5 +31,13 @@ public record MeasuresRequest(TimeRange timeRange, List<Filter> filters, List<Me
 
     public MeasuresRequest withFilters(List<Filter> filters) {
         return new MeasuresRequest(timeRange, filters, metrics);
+    }
+
+    public ApiDataKind dataKind() {
+        return FilterSpec.dataKindOf(
+            filters,
+            Stream.ofNullable(metrics).flatMap(List::stream).map(MetricMeasuresRequest::filters),
+            List.of()
+        );
     }
 }

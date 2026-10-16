@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
@@ -233,6 +234,49 @@ class FilterValuesQueryServiceImplTest {
 
         verify(analyticsRepository).searchFilterValues(any(), queryCaptor.capture());
         assertThat(queryCaptor.getValue().apiIds()).isNull();
+    }
+
+    @Test
+    void should_keep_only_the_values_found_in_the_calls_of_the_authorized_apis() {
+        var from = Instant.parse("2026-01-01T00:00:00Z");
+        var to = Instant.parse("2026-01-02T00:00:00Z");
+        when(analyticsRepository.searchFilterValues(any(), any())).thenReturn(new FilterValuesResult(List.of("app-1"), null, 1));
+
+        var found = service.findValuesInCalls(
+            ORG_ID,
+            ENV_ID,
+            FilterSpec.Name.APPLICATION,
+            from,
+            to,
+            Set.of("app-1", "app-2"),
+            Set.of("api-1")
+        );
+
+        assertThat(found).containsExactly("app-1");
+        verify(analyticsRepository).searchFilterValues(any(), queryCaptor.capture());
+        var query = queryCaptor.getValue();
+        assertThat(query.esFieldName()).isEqualTo("application-id");
+        assertThat(query.values()).containsExactlyInAnyOrder("app-1", "app-2");
+        assertThat(query.apiIds()).containsExactly("api-1");
+        assertThat(query.size()).isEqualTo(2);
+        assertThat(query.from()).isEqualTo(from.toEpochMilli());
+        assertThat(query.to()).isEqualTo(to.toEpochMilli());
+    }
+
+    @Test
+    void should_find_no_value_without_querying_the_calls_when_no_api_is_authorized() {
+        var found = service.findValuesInCalls(ORG_ID, ENV_ID, FilterSpec.Name.APPLICATION, null, null, Set.of("app-1"), Set.of());
+
+        assertThat(found).isEmpty();
+        verifyNoInteractions(analyticsRepository);
+    }
+
+    @Test
+    void should_find_no_value_without_querying_the_calls_when_none_is_asked() {
+        var found = service.findValuesInCalls(ORG_ID, ENV_ID, FilterSpec.Name.APPLICATION, null, null, Set.of(), Set.of("api-1"));
+
+        assertThat(found).isEmpty();
+        verifyNoInteractions(analyticsRepository);
     }
 
     @ParameterizedTest
