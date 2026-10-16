@@ -100,6 +100,8 @@ paths:
         - $ref: "#/components/parameters/orgIdParam"
         - $ref: "#/components/parameters/envIdParam"
         - $ref: "#/components/parameters/hridParam"
+        - $ref: "#/components/parameters/hridContainsUUIDQueryParam"
+        - $ref: "#/components/parameters/setHridHeaderParam"
       responses:
         "200":
           description: API successfully retrieved
@@ -125,6 +127,7 @@ paths:
         - $ref: "#/components/parameters/orgIdParam"
         - $ref: "#/components/parameters/envIdParam"
         - $ref: "#/components/parameters/hridParam"
+        - $ref: "#/components/parameters/hridContainsUUIDQueryParam"
       responses:
         "204":
           description: API successfully deleted
@@ -3507,6 +3510,15 @@ components:
         When true, the HRID path or spec value is treated as an existing UUID rather than
         a human-readable identifier. This is to support backward compatibility for resources
         created before migration to the automation API and should not be used for new resources.
+      schema:
+        type: boolean
+        default: false
+    setHridHeaderParam:
+      name: X-Gravitee-Set-Hrid
+      in: header
+      description: |
+        When true, the HRID path value is treated as an existing UUID (like hridContainsUUID), and the returned
+        HRIDs are generated from names: the API's when missing or a UUID, its pages' and plans' always.
       schema:
         type: boolean
         default: false
