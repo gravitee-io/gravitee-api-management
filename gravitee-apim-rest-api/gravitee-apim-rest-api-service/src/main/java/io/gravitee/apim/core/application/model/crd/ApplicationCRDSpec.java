@@ -15,11 +15,13 @@
  */
 package io.gravitee.apim.core.application.model.crd;
 
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.definition.model.Origin;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
+import io.gravitee.rest.api.service.common.IdBuilder;
 import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -45,6 +47,16 @@ public class ApplicationCRDSpec extends ApplicationEntity {
 
     private List<ApplicationMetadataCRD> metadata;
     private Set<MemberCRD> members;
+
+    /**
+     * The id of the application the import writes: the spec id, or else the one derived from the hrid.
+     */
+    public String targetId(AuditInfo auditInfo) {
+        if (getId() != null || getHrid() == null) {
+            return getId();
+        }
+        return IdBuilder.builder(auditInfo, getHrid()).buildId();
+    }
 
     public NewApplicationEntity toNewApplicationEntity() {
         NewApplicationEntity nae = new NewApplicationEntity();

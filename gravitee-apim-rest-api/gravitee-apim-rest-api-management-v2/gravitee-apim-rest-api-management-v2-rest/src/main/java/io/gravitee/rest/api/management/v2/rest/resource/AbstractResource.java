@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.rest.security.CreateOrUpdateAuthorization;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
@@ -139,6 +140,20 @@ public abstract class AbstractResource {
         RolePermissionAction... acls
     ) {
         return isAuthenticated() && permissionService.hasPermission(executionContext, permission, referenceId, acls);
+    }
+
+    /**
+     * @param existingId the id of the object the import targets, or {@code null} when it does not exist yet
+     * @see CreateOrUpdateAuthorization#require
+     */
+    protected void requireCreateOrUpdate(RolePermission createPermission, RolePermission updatePermission, String existingId) {
+        CreateOrUpdateAuthorization.require(
+            permissionService,
+            GraviteeContext.getExecutionContext(),
+            createPermission,
+            updatePermission,
+            existingId
+        );
     }
 
     protected boolean canReadAPIConfiguration() {
