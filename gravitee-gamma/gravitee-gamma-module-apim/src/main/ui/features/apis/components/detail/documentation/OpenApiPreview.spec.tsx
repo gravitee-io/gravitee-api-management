@@ -166,6 +166,21 @@ describe('OpenApiPreview', () => {
             expect(swaggerUi).toHaveBeenLastCalledWith(expect.objectContaining({ docExpansion: 'full' }));
         });
 
+        // Swagger UI mounts a React root on its node and never unmounts it: a second one on the same node would leave
+        // the first alive behind it.
+        it('builds Swagger UI again on a node of its own, removing the previous one', async () => {
+            const { rerender } = render(<OpenApiPreview content={PETSTORE} configuration={{ viewer: 'SWAGGER', docExpansion: 'list' }} />);
+            await screen.findByRole('heading', { name: 'Swagger UI: Petstore' });
+
+            rerender(<OpenApiPreview content={PETSTORE} configuration={{ viewer: 'SWAGGER', docExpansion: 'full' }} />);
+            await waitFor(() => expect(swaggerUi).toHaveBeenCalledTimes(2));
+
+            const [firstNode, secondNode] = swaggerUi.mock.calls.map(([options]) => options.domNode);
+            expect(secondNode).not.toBe(firstNode);
+            expect(firstNode).not.toBeInTheDocument();
+            expect(secondNode).toBeInTheDocument();
+        });
+
         it('passes the Swagger UI options of the configuration', async () => {
             const configuration: PortalPageOpenApiConfiguration = {
                 viewer: 'SWAGGER',

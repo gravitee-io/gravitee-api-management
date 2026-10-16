@@ -109,7 +109,8 @@ function SwaggerUiViewer({
     return (
         <>
             {status === 'loading' ? <PreviewLoading /> : null}
-            <div ref={nodeRef} />
+            {/* Swagger UI mounts a React root it never unmounts: each one needs a node of its own. */}
+            <div key={configurationKey} ref={nodeRef} />
         </>
     );
 }
