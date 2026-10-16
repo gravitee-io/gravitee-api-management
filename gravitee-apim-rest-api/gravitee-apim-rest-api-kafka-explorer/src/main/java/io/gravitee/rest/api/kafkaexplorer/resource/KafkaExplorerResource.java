@@ -41,6 +41,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.GraviteeLicenseFeature;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -89,6 +90,9 @@ public class KafkaExplorerResource {
     @Inject
     private ObjectMapper objectMapper;
 
+    @Inject
+    private PermissionService permissionService;
+
     private static final AtomicInteger activeTailStreams = new AtomicInteger(0);
     // Cap concurrent tail streams to prevent resource exhaustion on the management API
     private static final int MAX_TAIL_STREAMS = 256;
@@ -105,6 +109,8 @@ public class KafkaExplorerResource {
                 .entity(new KafkaExplorerError().message("clusterId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
                 .build();
         }
+
+        requireClusterAccess(request.getClusterId());
 
         try {
             var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
@@ -135,6 +141,8 @@ public class KafkaExplorerResource {
                 .entity(new KafkaExplorerError().message("clusterId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
                 .build();
         }
+
+        requireClusterAccess(request.getClusterId());
 
         if (page < 1) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -187,6 +195,8 @@ public class KafkaExplorerResource {
                 .build();
         }
 
+        requireClusterAccess(request.getClusterId());
+
         if (request.getTopicName() == null || request.getTopicName().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new KafkaExplorerError().message("topicName is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
@@ -218,6 +228,8 @@ public class KafkaExplorerResource {
                 .entity(new KafkaExplorerError().message("clusterId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
                 .build();
         }
+
+        requireClusterAccess(request.getClusterId());
 
         if (request.getBrokerId() == null || request.getBrokerId() < 0) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -256,6 +268,8 @@ public class KafkaExplorerResource {
                 .entity(new KafkaExplorerError().message("clusterId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
                 .build();
         }
+
+        requireClusterAccess(request.getClusterId());
 
         if (page < 1) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -309,6 +323,8 @@ public class KafkaExplorerResource {
                 .build();
         }
 
+        requireClusterAccess(request.getClusterId());
+
         if (request.getGroupId() == null || request.getGroupId().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new KafkaExplorerError().message("groupId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
@@ -340,6 +356,8 @@ public class KafkaExplorerResource {
                 .entity(new KafkaExplorerError().message("clusterId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
                 .build();
         }
+
+        requireClusterAccess(request.getClusterId());
 
         if (request.getTopicName() == null || request.getTopicName().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -401,6 +419,8 @@ public class KafkaExplorerResource {
         if (clusterId == null || clusterId.isBlank()) {
             throw badRequest("clusterId is required");
         }
+
+        requireClusterAccess(clusterId);
 
         if (topicName == null || topicName.isBlank()) {
             throw badRequest("topicName is required");
@@ -465,6 +485,22 @@ public class KafkaExplorerResource {
         } finally {
             activeTailStreams.decrementAndGet();
             eventSink.close();
+        }
+    }
+
+    /**
+     * The environment-level permission lets any publisher reach the explorer: the caller must also be
+     * allowed to read the target cluster. A denied cluster answers like a missing one.
+     */
+    private void requireClusterAccess(String clusterId) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        if (!permissionService.hasPermission(executionContext, RolePermission.CLUSTER_DEFINITION, clusterId, RolePermissionAction.READ)) {
+            throw new WebApplicationException(
+                Response.status(Response.Status.NOT_FOUND)
+                    .entity(new KafkaExplorerError().message("Cluster [" + clusterId + "] not found").technicalCode("NOT_FOUND"))
+                    .type(MediaType.APPLICATION_JSON_TYPE)
+                    .build()
+            );
         }
     }
 
