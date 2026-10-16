@@ -17,12 +17,14 @@ package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.documentation.model.factory.PageModelFactory;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
@@ -80,7 +82,7 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
 
     @Override
     public Validator.Result<ValidateApiCRDDomainService.Input> validateAndSanitize(ValidateApiCRDDomainService.Input input) {
-        rejectMakingEncryptedPropertiesPlain(input);
+        validateAgainstExistingApi(input);
 
         var errors = new ArrayList<Error>();
 
@@ -160,12 +162,22 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
         return Validator.Result.ofBoth(new ValidateApiCRDDomainService.Input(input.auditInfo(), sanitizedBuilder.build()), errors);
     }
 
-    private void rejectMakingEncryptedPropertiesPlain(Input input) {
+    private void validateAgainstExistingApi(Input input) {
         apiQueryService
             .findByEnvironmentIdAndCrossId(input.auditInfo().environmentId(), input.spec().getCrossId())
-            .ifPresent(existingApi ->
-                propertyDomainService.validateClassification(existingApi.getApiDefinitionValue(), input.spec().getProperties())
+            .ifPresent(existingApi -> {
+                rejectAnotherApiId(existingApi, input.spec());
+                propertyDomainService.validateClassification(existingApi.getApiDefinitionValue(), input.spec().getProperties());
+            });
+    }
+
+    // An import updates the API found by cross id: every write must target that same API
+    private static void rejectAnotherApiId(Api existingApi, ApiCRDSpec spec) {
+        if (spec.getId() != null && !spec.getId().equals(existingApi.getId())) {
+            throw new ValidationDomainException(
+                String.format("API id [%s] does not match the API with cross id [%s]", spec.getId(), spec.getCrossId())
             );
+        }
     }
 
     private void validateAndSanitizeHttpV4ForCreation(Input input, ApiCRDSpec.ApiCRDSpecBuilder sanitizedBuilder, ArrayList<Error> errors) {
