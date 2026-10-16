@@ -225,9 +225,18 @@ describeIfV4EmulationEngine('API - V4 - Connection Logs', () => {
             requestId: apiLog.requestId,
           }),
         maxRetries: 10,
+        // the log is indexed in several steps: wait for every field asserted below, not only for the document
         expectedResponseValidator: async (response) => {
           const body = response.value;
-          return body?.apiId === testContext.importedApi.id;
+          return (
+            body?.apiId === testContext.importedApi.id &&
+            body.clientIdentifier === apiLog.clientIdentifier &&
+            body.requestEnded === apiLog.requestEnded &&
+            !!body.entrypointRequest &&
+            !!body.endpointRequest &&
+            !!body.endpointResponse &&
+            !!body.entrypointResponse
+          );
         },
       });
 
