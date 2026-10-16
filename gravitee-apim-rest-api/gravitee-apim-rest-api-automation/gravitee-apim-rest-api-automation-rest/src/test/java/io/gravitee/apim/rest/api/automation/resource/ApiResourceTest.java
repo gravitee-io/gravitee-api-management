@@ -17,10 +17,13 @@ package io.gravitee.apim.rest.api.automation.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -65,10 +68,14 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.MediaType;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.groups.Tuple;
@@ -361,6 +368,42 @@ class ApiResourceTest extends AbstractResourceTest {
             expectNotFound("unknown");
         }
 
+        @ParameterizedTest
+        @MethodSource("setHridHeaderValues")
+        void should_never_export_an_api_the_caller_has_no_permission_on(List<String> setHridHeaderValues) throws Exception {
+            var victimId = UUID.randomUUID().toString();
+            var decoyId = HRIDToUUID.api().context(auditInfo).hrid(victimId).id();
+            when(
+                permissionService.hasPermission(any(), eq(RolePermission.API_DEFINITION), any(), any(RolePermissionAction[].class))
+            ).thenReturn(false);
+            when(
+                permissionService.hasPermission(any(), eq(RolePermission.API_DEFINITION), eq(decoyId), any(RolePermissionAction[].class))
+            ).thenReturn(true);
+            when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class))).thenReturn(
+                new ExportApiCRDUseCase.Output(ApiCRDSpec.builder().id(decoyId).crossId(API_CROSS_ID).hrid(victimId).name("decoy").build())
+            );
+
+            // java.net.http sends each value on its own header line; the JAX-RS client would join them into one
+            var request = HttpRequest.newBuilder(rootTarget().path(victimId).getUri()).GET();
+            setHridHeaderValues.forEach(value -> request.header(HRIDHelper.HEADER_X_GRAVITEE_SET_HRID, value));
+            try (var client = HttpClient.newHttpClient()) {
+                var status = client.send(request.build(), HttpResponse.BodyHandlers.discarding()).statusCode();
+                assertThat(status).isIn(200, 403);
+            }
+
+            verify(exportApiCRDUseCase, never()).execute(argThat(input -> victimId.equals(input.apiId())));
+        }
+
+        private static Stream<Arguments> setHridHeaderValues() {
+            return Stream.of(
+                Arguments.of(List.of()),
+                Arguments.of(List.of("true")),
+                Arguments.of(List.of("true", "true")),
+                Arguments.of(List.of("true", "false")),
+                Arguments.of(List.of("false", "true"))
+            );
+        }
+
         private void expectNotFound(String hrid) {
             try (var response = rootTarget().path(hrid).request().get()) {
                 assertThat(response.getStatus()).isEqualTo(404);
@@ -404,7 +447,7 @@ class ApiResourceTest extends AbstractResourceTest {
 
         @AfterEach
         void tearDown() {
-            reset(apiService);
+            reset(apiService, apiSearchServiceV4);
         }
 
         @Test
@@ -426,6 +469,21 @@ class ApiResourceTest extends AbstractResourceTest {
             doThrow(new ApiNotFoundException("unknown")).when(apiService).delete(any(), any(), eq(true));
 
             expectNotFound("unknown");
+        }
+
+        @Test
+        void should_return_a_404_status_code_and_not_delete_an_api_outside_the_environment() {
+            when(
+                apiSearchServiceV4.findRepositoryApiById(
+                    argThat(executionContext -> ENVIRONMENT.equals(executionContext.getEnvironmentId())),
+                    eq(API_ID)
+                )
+            ).thenThrow(new ApiNotFoundException(API_ID));
+
+            try (var response = rootTarget().queryParam("hridContainsUUID", true).path(API_ID).request().delete()) {
+                assertThat(response.getStatus()).isEqualTo(404);
+            }
+            verify(apiService, never()).delete(any(), any(), anyBoolean());
         }
 
         @Test
