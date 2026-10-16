@@ -106,6 +106,7 @@ public class PlanSearchServiceImplTest {
 
         api = new Api();
         api.setId(API_ID);
+        api.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
         api.setDefinitionVersion(DefinitionVersion.V4);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
@@ -177,6 +178,30 @@ public class PlanSearchServiceImplTest {
         when(genericPlanMapper.toGenericPlanWithFlow(api, plan)).thenReturn(planEntity);
 
         assertSame(planEntity, planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID));
+    }
+
+    @Test(expected = PlanNotFoundException.class)
+    public void shouldNotFindByIdWhenPlanWithoutEnvironmentBelongsToAnApiOfAnotherEnvironment() throws TechnicalException {
+        api.setEnvironmentId("another-environment");
+        plan.setEnvironmentId(null);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+
+        try {
+            planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        } finally {
+            verifyNoInteractions(genericPlanMapper);
+        }
+    }
+
+    @Test
+    public void shouldFindByIdWhenPlanWithoutEnvironmentBelongsToAnApiOfTheCurrentEnvironment() throws TechnicalException {
+        plan.setEnvironmentId(null);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        PlanEntity planEntity = new PlanEntity();
+        when(genericPlanMapper.toGenericPlanWithFlow(api, plan)).thenReturn(planEntity);
+
+        assertSame(planEntity, planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID));
+        assertEquals(GraviteeContext.getDefaultEnvironment(), plan.getEnvironmentId());
     }
 
     @Test(expected = TechnicalManagementException.class)
