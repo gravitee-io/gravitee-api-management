@@ -21,6 +21,10 @@ import io.gravitee.apim.rest.api.automation.model.BaseSelector;
 import io.gravitee.apim.rest.api.automation.model.FlowV4;
 import io.gravitee.apim.rest.api.automation.model.McpSelector;
 import io.gravitee.apim.rest.api.automation.model.NavigationPath;
+<<<<<<< HEAD
+=======
+import io.gravitee.apim.rest.api.automation.model.PortalVisibility;
+>>>>>>> d2bc8e4 (fix(automation): keep MCP flow selectors on apply)
 import io.gravitee.apim.rest.api.automation.model.Selector;
 import java.util.List;
 import java.util.Set;

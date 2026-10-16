@@ -233,6 +233,30 @@ class ApisResourceTest extends AbstractResourceTest {
                 soft.assertThat(spec.getFailover().getFailureCondition()).isEqualTo("{#response.status >= 500}");
                 soft.assertThat(spec.getFailover().isForceNextEndpointOnFailure()).isTrue();
             });
+<<<<<<< HEAD
+=======
+        }
+
+        @Test
+        void should_return_400_and_no_fqcn_when_use_case_throws_validation_domain_exception() {
+            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class))).thenThrow(
+                new io.gravitee.apim.core.exception.ValidationDomainException("bad payload")
+            );
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", false)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-with-hrid.json")))
+            ) {
+                var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Error.class);
+                SoftAssertions.assertSoftly(soft -> {
+                    soft.assertThat(response.getStatus()).isEqualTo(400);
+                    soft.assertThat(body.getMessage()).doesNotContain("io.gravitee.apim.core");
+                    soft.assertThat(body.getMessage()).contains("bad payload");
+                });
+            }
+>>>>>>> 0a15139 (feat(automation): expose HTTP listener, CORS and tracing redaction properties)
         }
 
         @Test
