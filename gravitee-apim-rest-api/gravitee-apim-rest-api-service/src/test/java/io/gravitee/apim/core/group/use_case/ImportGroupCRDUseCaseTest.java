@@ -42,6 +42,7 @@ import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainService
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -309,6 +310,56 @@ class ImportGroupCRDUseCaseTest {
             soft.assertThat(updated.isSystemInvitation()).isTrue();
             soft.assertThat(updated.isEmailInvitation()).isTrue();
             soft.assertThat(updated.getApiPrimaryOwner()).isEqualTo("po-user");
+        });
+    }
+
+    @Test
+    void should_reject_a_group_of_another_environment_without_writing_it() {
+        var existing = io.gravitee.apim.core.group.model.Group.builder()
+            .id(GROUP_ID)
+            .environmentId("other-environment-id")
+            .name("other-environment-group")
+            .build();
+        groupQueryService.initWith(List.of(existing));
+        groupCrudService.storage().put(GROUP_ID, existing);
+        givenRole(io.gravitee.rest.api.model.permissions.RoleScope.API, "USER");
+        userDomainService.initWith(
+            List.of(
+                BaseUserEntity.builder()
+                    .organizationId(ORGANIZATION_ID)
+                    .id("member-id")
+                    .source(IdpSource.of("memory"))
+                    .sourceId("api1")
+                    .build()
+            )
+        );
+        roleQueryService.initWith(
+            List.of(
+                Role.builder()
+                    .name("USER")
+                    .referenceType(Role.ReferenceType.ORGANIZATION)
+                    .referenceId(ORGANIZATION_ID)
+                    .id(UUID.randomUUID().toString())
+                    .scope(Role.Scope.API)
+                    .build()
+            )
+        );
+        var spec = aGroupSpec()
+            .defaultMemberRoles(Map.of(RoleScope.API, "USER"))
+            .members(
+                new LinkedHashSet<>(
+                    Set.of(GroupCRDSpec.Member.builder().source("memory").sourceId("api1").roles(Map.of(RoleScope.API, "USER")).build())
+                )
+            );
+
+        assertThatThrownBy(() -> cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, spec.build()))).isInstanceOf(
+            GroupNotFoundException.class
+        );
+
+        assertSoftly(soft -> {
+            soft.assertThat(groupCrudService.storage().get(GROUP_ID)).isEqualTo(existing);
+            soft.assertThat(membersService.getGroupMembers(GROUP_ID)).isEmpty();
+            soft.assertThat(membersService.getGroupApiRole(GROUP_ID)).isNull();
         });
     }
 
