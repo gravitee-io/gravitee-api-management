@@ -16,6 +16,11 @@
 package io.gravitee.apim.rest.api.automation.spring;
 
 import io.gravitee.apim.core.utils.CollectionUtils;
+import io.gravitee.apim.rest.api.automation.helpers.ApiIdResolver;
+import io.gravitee.apim.rest.api.automation.helpers.HRIDHelper;
+import io.gravitee.apim.rest.api.automation.resource.ApiResource;
+import io.gravitee.apim.rest.api.automation.resource.ApiSubscriptionResource;
+import io.gravitee.apim.rest.api.automation.resource.ApiSubscriptionsResource;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.PermissionService;
@@ -26,6 +31,7 @@ import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.ResourceInfo;
@@ -35,6 +41,7 @@ import jakarta.ws.rs.ext.Provider;
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 import lombok.CustomLog;
 
@@ -79,7 +86,7 @@ public class PermissionsFilter implements ContainerRequestFilter {
     private boolean hasPermission(Permission permission, ContainerRequestContext requestContext, ExecutionContext executionContext) {
         return switch (permission.value().getScope()) {
             case ENVIRONMENT -> hasPermission(executionContext, permission, executionContext.getEnvironmentId());
-            case API -> hasPermission(executionContext, permission, getApiHrid(requestContext));
+            case API -> hasPermission(executionContext, permission, authorizeApiId(requestContext, executionContext));
             case APPLICATION -> hasPermission(executionContext, permission, getApplicationPathParameter(requestContext, HRID_PATH_PARAM));
             default -> false;
         };
@@ -93,26 +100,46 @@ public class PermissionsFilter implements ContainerRequestFilter {
         return permissionService.hasPermission(executionContext, permission.value(), referenceId, permission.acls());
     }
 
-    private String getApiHrid(ContainerRequestContext requestContext) {
-        // subscription case
-        String apiHrid = getApiPathParameter(
-            requestContext,
-            API_HRID_PATH_PARAM,
-            hridContainsUUID(requestContext, HRID_CONTAINS_API_QUERY_UUID_PARAM)
-        );
-        return apiHrid != null
-            ? apiHrid // api case
-            : getApiPathParameter(requestContext, HRID_PATH_PARAM, hridContainsUUID(requestContext, HRID_CONTAINS_UUID_QUERY_PARAM));
+    private String authorizeApiId(ContainerRequestContext requestContext, ExecutionContext executionContext) {
+        String apiId = getApiId(requestContext, executionContext);
+        requestContext.setProperty(ApiIdResolver.AUTHORIZED_API_ID_PROPERTY, apiId);
+        return apiId;
     }
 
-    private String getApiPathParameter(ContainerRequestContext requestContext, String key, boolean hridContainsUUID) {
-        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        List<String> pathParams = requestContext.getUriInfo().getPathParameters().get(key);
+    private String getApiId(ContainerRequestContext requestContext, ExecutionContext executionContext) {
+        List<String> pathParams = requestContext.getUriInfo().getPathParameters().get(API_HRID_PATH_PARAM);
         if (CollectionUtils.isEmpty(pathParams)) {
             return null;
         }
 
-        return hridContainsUUID ? pathParams.getFirst() : HRIDToUUID.api().context(executionContext).hrid(pathParams.getFirst()).id();
+        return ApiIdResolver.resolve(executionContext, pathParams.getFirst(), apiHridContainsUUID(requestContext));
+    }
+
+    /**
+     * A resource that resolves the API id itself, instead of reading {@link ApiIdResolver#authorizedApiId}, must read the
+     * same flag: otherwise the filter authorizes one API while the resource acts on another. Resources that read no flag
+     * always resolve the API from its HRID.
+     */
+    private boolean apiHridContainsUUID(ContainerRequestContext requestContext) {
+        Class<?> resourceClass = resourceInfo.getResourceClass();
+        if (ApiResource.class.isAssignableFrom(resourceClass)) {
+            return hridContainsUUID(requestContext, HRID_CONTAINS_UUID_QUERY_PARAM) || isSetHridHeaderSentOnGet(requestContext);
+        }
+        if (
+            ApiSubscriptionsResource.class.isAssignableFrom(resourceClass) || ApiSubscriptionResource.class.isAssignableFrom(resourceClass)
+        ) {
+            return hridContainsUUID(requestContext, HRID_CONTAINS_API_QUERY_UUID_PARAM);
+        }
+        return false;
+    }
+
+    // HEAD is served by the GET resource method, which reads the header too.
+    // Read the first value like its @HeaderParam does: getHeaderString joins a repeated header with ','.
+    private static boolean isSetHridHeaderSentOnGet(ContainerRequestContext requestContext) {
+        return (
+            Set.of(HttpMethod.GET, HttpMethod.HEAD).contains(requestContext.getMethod()) &&
+            Boolean.parseBoolean(requestContext.getHeaders().getFirst(HRIDHelper.HEADER_X_GRAVITEE_SET_HRID))
+        );
     }
 
     private String getApplicationPathParameter(ContainerRequestContext requestContext, String key) {
