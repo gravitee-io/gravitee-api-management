@@ -26,6 +26,7 @@ import java.util.Set;
 
 public interface GroupQueryService {
     Optional<Group> findById(String id);
+    Optional<Group> findByIdAndEnvironmentId(String id, String environmentId);
     Set<Group> findByIds(Set<String> ids);
     Set<Group> findByEvent(String environmentId, Group.GroupEvent event);
     List<Group> findByNames(String environmentId, Set<String> name);
