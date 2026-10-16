@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.portal_page.use_case.CreateOrUpdateApiDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ValidateApiDocumentationUseCase;
 import io.gravitee.apim.rest.api.automation.mapper.ApiDocumentationMapper;
@@ -55,6 +56,9 @@ public class ApiDocumentationsResource extends AbstractResource {
     @Inject
     private ValidateApiDocumentationUseCase validateApiDocumentationUseCase;
 
+    @Inject
+    private PortalPageContentQueryService portalPageContentQueryService;
+
     @Path("/{docHrid}")
     public ApiDocumentationResource getApiDocumentationResource() {
         return resourceContext.getResource(ApiDocumentationResource.class);
@@ -74,6 +78,7 @@ public class ApiDocumentationsResource extends AbstractResource {
         var documentationId = PortalPageContentId.of(
             HRIDToUUID.apiDocumentation().context(auditInfo).api(apiHrid).hrid(spec.getHrid()).id()
         );
+        requireCreateOrUpdate(RolePermission.API_DOCUMENTATION, apiId, portalPageContentQueryService.findById(documentationId).isPresent());
 
         var input = new CreateOrUpdateApiDocumentationUseCase.Input(
             auditInfo,
