@@ -86,11 +86,12 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     public GenericPlanEntity findById(final ExecutionContext executionContext, final String plan) {
         try {
             logger.debug("Find plan by id : {}", plan);
-            return planRepository
-                .findById(plan)
-                .filter(found -> belongsToEnvironment(executionContext, found))
-                .map(this::mapToGeneric)
-                .orElseThrow(() -> new PlanNotFoundException(plan));
+            final Plan found = planRepository.findById(plan).orElseThrow(() -> new PlanNotFoundException(plan));
+            resolveEnvironment(found);
+            if (!belongsToEnvironment(executionContext, found)) {
+                throw new PlanNotFoundException(plan);
+            }
+            return mapToGeneric(found);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(String.format("An error occurs while trying to find a plan by id: %s", plan), ex);
         }
@@ -232,14 +233,16 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
         }
     }
 
-    // An organization-level context carries no environment, and plans created before environments were
-    // stored on them have none either: neither side can be compared, so both are accepted.
+    // Plans stored without an environment (CRD import, federation, rollback) take the one of the API they belong to.
+    private void resolveEnvironment(final Plan plan) throws TechnicalException {
+        if (plan.getEnvironmentId() == null && plan.getApi() != null) {
+            apiRepository.findById(plan.getApi()).map(Api::getEnvironmentId).ifPresent(plan::setEnvironmentId);
+        }
+    }
+
+    // An organization-level context carries no environment: there is nothing to compare, so any plan is accepted.
     private boolean belongsToEnvironment(final ExecutionContext executionContext, final Plan plan) {
-        return (
-            executionContext.getEnvironmentId() == null ||
-            plan.getEnvironmentId() == null ||
-            executionContext.getEnvironmentId().equals(plan.getEnvironmentId())
-        );
+        return executionContext.getEnvironmentId() == null || executionContext.getEnvironmentId().equals(plan.getEnvironmentId());
     }
 
     private GenericPlanEntity mapToGeneric(final Plan plan) {
