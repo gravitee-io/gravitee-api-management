@@ -20,18 +20,24 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.management.model.NotificationReferenceType;
+import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.GenericNotificationConfigService;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.ws.rs.core.SecurityContext;
 import java.lang.reflect.Field;
 import java.security.Principal;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,12 +51,19 @@ public class ApiNotificationSettingsResourceTest {
     private static final String API_ID = "my-api";
     private static final String AUTHENTICATED_USER = "authenticated-user";
     private static final String OTHER_USER = "other-user";
+    private static final String ORGANIZATION_ID = "my-org";
 
     @InjectMocks
     private ApiNotificationSettingsResource resource;
 
     @Mock
     private PortalNotificationConfigService portalNotificationConfigService;
+
+    @Mock
+    private GenericNotificationConfigService genericNotificationConfigService;
+
+    @Mock
+    private PermissionService permissionService;
 
     @Mock
     private SecurityContext securityContext;
@@ -62,6 +75,30 @@ public class ApiNotificationSettingsResourceTest {
         Field apiField = ApiNotificationSettingsResource.class.getDeclaredField("api");
         apiField.setAccessible(true);
         apiField.set(resource, API_ID);
+    }
+
+    @AfterEach
+    void tearDown() {
+        GraviteeContext.cleanContext();
+    }
+
+    @Test
+    public void createApiNotificationSettings_takesOrganizationFromContextIgnoringBody() {
+        GraviteeContext.setCurrentOrganization(ORGANIZATION_ID);
+        when(securityContext.getUserPrincipal()).thenReturn(mockPrincipal);
+        when(permissionService.hasPermission(any(), eq(API_NOTIFICATION), eq(API_ID), any())).thenReturn(true);
+        when(genericNotificationConfigService.create(any())).thenAnswer(i -> i.getArguments()[0]);
+
+        GenericNotificationConfigEntity config = GenericNotificationConfigEntity.builder()
+            .referenceType(NotificationReferenceType.API.name())
+            .referenceId(API_ID)
+            .configType(NotificationConfigType.GENERIC)
+            .organizationId("other-org")
+            .build();
+
+        GenericNotificationConfigEntity result = (GenericNotificationConfigEntity) resource.createApiNotificationSettings(config);
+
+        assertThat(result.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
     }
 
     @Test
