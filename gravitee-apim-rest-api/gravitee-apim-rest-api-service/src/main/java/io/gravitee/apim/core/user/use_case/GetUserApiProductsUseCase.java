@@ -19,8 +19,10 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
+import io.gravitee.apim.core.environment.domain_service.ValidateEnvironmentInOrganizationDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
+import io.gravitee.apim.core.user.domain_service.ValidateUserInOrganizationDomainService;
 import io.gravitee.apim.core.user.model.UserApiProduct;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import java.util.HashMap;
@@ -34,11 +36,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GetUserApiProductsUseCase {
 
+    private final ValidateUserInOrganizationDomainService validateUserInOrganizationDomainService;
+    private final ValidateEnvironmentInOrganizationDomainService validateEnvironmentInOrganizationDomainService;
     private final MembershipQueryService membershipQueryService;
     private final ApiProductQueryService apiProductQueryService;
     private final EnvironmentCrudService environmentCrudService;
 
     public Output execute(Input input) {
+        validateUserInOrganizationDomainService.validate(input.userId, input.organizationId);
+        validateEnvironmentInOrganizationDomainService.validate(input.environmentId, input.organizationId);
+
         var memberships = membershipQueryService.findByMemberIdAndMemberTypeAndReferenceType(
             input.userId,
             Membership.Type.USER,
@@ -91,7 +98,7 @@ public class GetUserApiProductsUseCase {
         return result;
     }
 
-    public record Input(String userId, String environmentId, int page, int perPage) {}
+    public record Input(String userId, String organizationId, String environmentId, int page, int perPage) {}
 
     public record Output(List<UserApiProduct> data, long totalCount) {}
 }
