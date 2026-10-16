@@ -685,7 +685,8 @@ public class ResourceContextConfiguration {
                     new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService)
                 ),
                 new ValidatePortalNotificationDomainService(groupsValidator),
-                new ValidateHealthCheckScheduleDomainService(new ObjectMapper())
+                new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
+                apiQueryService
             )
         );
     }

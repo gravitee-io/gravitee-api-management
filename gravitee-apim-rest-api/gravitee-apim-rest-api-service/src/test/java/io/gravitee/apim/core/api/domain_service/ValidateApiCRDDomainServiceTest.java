@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.api.domain_service;
 
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static fixtures.core.model.ApiCRDFixtures.API_CROSS_ID;
 import static fixtures.core.model.ApiCRDFixtures.API_HRID;
 import static io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE;
@@ -24,6 +26,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.exception.ValidationDomainException;
+import inmemory.ApiQueryServiceInMemory;
+import fixtures.core.model.ApiFixtures;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.ApiCRDFixtures;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -85,6 +90,8 @@ class ValidateApiCRDDomainServiceTest {
         new ObjectMapper()
     );
 
+    ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
+
     ValidateApiCRDDomainService cut = new ValidateApiCRDDomainService(
         categoryIdsValidator,
         pathValidator,
@@ -95,7 +102,8 @@ class ValidateApiCRDDomainServiceTest {
         pagesValidator,
         planValidator,
         portalNotificationValidator,
-        healthCheckScheduleValidator
+        healthCheckScheduleValidator,
+        apiQueryService
     );
 
     PortalNotificationConfigEntity consoleNotificationConfiguration = new PortalNotificationConfigEntity();
@@ -358,5 +366,17 @@ class ValidateApiCRDDomainServiceTest {
             .isInstanceOf(InvalidFlowException.class)
             .hasMessage("The flow [api-flow] contains an HTTP selector with a missing pathOperator");
         Assertions.assertThat(((InvalidFlowException) throwable).getParameters()).containsEntry("flowName", "api-flow");
+    }
+
+    @Test
+    void should_reject_an_id_that_differs_from_the_existing_api() {
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder().id("existing-api-id").environmentId(ENV_ID).crossId(API_CROSS_ID).build();
+        apiQueryService.initWith(List.of(existingApi));
+        var spec = ApiCRDFixtures.newBaseSpec().id("another-api-id").crossId(API_CROSS_ID).build();
+
+        assertThatExceptionOfType(ValidationDomainException.class).isThrownBy(() ->
+            cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))
+        );
+        verifyNoInteractions(categoryIdsValidator, pathValidator, planValidator);
     }
 }
