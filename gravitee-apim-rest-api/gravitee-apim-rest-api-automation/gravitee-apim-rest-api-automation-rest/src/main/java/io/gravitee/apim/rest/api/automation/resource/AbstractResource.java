@@ -20,10 +20,14 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.rest.security.CreateOrUpdateAuthorization;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
@@ -31,6 +35,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author GraviteeSource Team
  */
 public abstract class AbstractResource {
+
+    private static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
 
     @Inject
     private PermissionService permissionService;
@@ -42,6 +48,30 @@ public abstract class AbstractResource {
         RolePermissionAction... acls
     ) {
         return permissionService.hasPermission(executionContext, permission, referenceId, acls);
+    }
+
+    /**
+     * @param existingId the id of the object the import targets, or {@code null} when it does not exist yet
+     * @see CreateOrUpdateAuthorization#require
+     */
+    protected void requireCreateOrUpdate(RolePermission createPermission, RolePermission updatePermission, String existingId) {
+        CreateOrUpdateAuthorization.require(
+            permissionService,
+            GraviteeContext.getExecutionContext(),
+            createPermission,
+            updatePermission,
+            existingId
+        );
+    }
+
+    // The Automation application registers no SecurityContextFilter: the JAX-RS role check would not see the Gravitee authorities
+    protected boolean isAdmin() {
+        return SecurityContextHolder.getContext()
+            .getAuthentication()
+            .getAuthorities()
+            .stream()
+            .map(GrantedAuthority::getAuthority)
+            .anyMatch(ORGANIZATION_ADMIN::equals);
     }
 
     protected UserDetails getAuthenticatedUserDetails() {

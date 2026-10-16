@@ -36,6 +36,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -185,6 +186,7 @@ import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.vertx.rxjava3.core.Vertx;
 import java.security.GeneralSecurityException;
 import java.time.Clock;
@@ -1334,6 +1336,57 @@ class ImportApiCRDUseCaseTest {
 
             assertThat(throwable).isInstanceOf(ApiPropertyEncryptedToPlainException.class);
             verify(updateApiDomainService, never()).update(any(), any(), any());
+        }
+
+        @Test
+        void should_write_nothing_when_the_members_update_is_refused() {
+            givenExistingApi();
+            givenExistingPlans(List.of(KEYLESS, API_KEY));
+            var application = givenExistingApplication(anApplicationEntity());
+            givenExistingSubscriptions(
+                aSubscription()
+                    .toBuilder()
+                    .id("sub1")
+                    .apiId(API_ID)
+                    .applicationId(application.getId())
+                    .planId(API_KEY.getId())
+                    .status(SubscriptionEntity.Status.ACCEPTED)
+                    .build()
+            );
+            crdMembersDomainService.denyApiMembersUpdate(API_ID);
+
+            var throwable = catchThrowable(() ->
+                useCase.execute(
+                    new ImportApiCRDUseCase.Input(
+                        AUDIT_INFO,
+                        aCRD().state("STARTED").plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(KEYLESS))).build()
+                    )
+                )
+            );
+
+            assertThat(throwable).isInstanceOf(ForbiddenAccessException.class);
+            verify(updateApiDomainService, never()).update(any(), any(), any());
+            verifyNoInteractions(apiStateDomainService);
+            assertThat(planCrudService.storage()).extracting(Plan::getId).containsExactlyInAnyOrder(KEYLESS.getId(), API_KEY.getId());
+            assertThat(subscriptionCrudService.storage())
+                .extracting(SubscriptionEntity::getId, SubscriptionEntity::getStatus)
+                .containsExactly(tuple("sub1", SubscriptionEntity.Status.ACCEPTED));
+            assertThat(crdMembersDomainService.getApiMembers(API_ID)).isEmpty();
+        }
+
+        @Test
+        void should_reject_a_body_id_that_differs_from_the_existing_api() {
+            var otherApi = NATIVE_API.toBuilder().id("other-api-id").crossId("other-cross-id").name("other-api").build();
+            apiQueryService.initWith(List.of(NATIVE_API, otherApi));
+
+            var throwable = catchThrowable(() ->
+                useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aNativeApiCRD().id(otherApi.getId()).name("renamed").build()))
+            );
+
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+            assertThat(apiCrudService.get(otherApi.getId()).getName()).isEqualTo("other-api");
+            assertThat(apiCrudService.get(API_ID).getName()).isEqualTo(NATIVE_API.getName());
+            verifyNoInteractions(apiStateDomainService);
         }
 
         @Test

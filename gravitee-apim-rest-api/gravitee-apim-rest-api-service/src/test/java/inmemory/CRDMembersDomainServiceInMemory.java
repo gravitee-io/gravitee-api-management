@@ -20,7 +20,9 @@ import io.gravitee.apim.core.group.model.crd.GroupCRDSpec;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.model.RoleScope;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,6 +38,13 @@ public class CRDMembersDomainServiceInMemory implements CRDMembersDomainService 
     private final HashMap<String, String> groupApiRoles = new HashMap<>();
     private final HashMap<String, String> groupApplicationRoles = new HashMap<>();
     private final HashMap<String, String> groupApiProductRoles = new HashMap<>();
+    private final Set<String> applicationsDenyingMembersUpdate = new HashSet<>();
+    private final Set<String> apisDenyingMembersUpdate = new HashSet<>();
+
+    @Override
+    public void createApiMembers(AuditInfo auditInfo, String apiId, Set<MemberCRD> members) {
+        apiMembers.put(apiId, members);
+    }
 
     @Override
     public void updateApiMembers(AuditInfo auditInfo, String apiId, Set<MemberCRD> members) {
@@ -43,8 +52,30 @@ public class CRDMembersDomainServiceInMemory implements CRDMembersDomainService 
     }
 
     @Override
+    public void checkApiMembersUpdate(AuditInfo auditInfo, String apiId, Set<MemberCRD> members) {
+        if (apisDenyingMembersUpdate.contains(apiId)) {
+            throw new ForbiddenAccessException();
+        }
+    }
+
+    public void denyApiMembersUpdate(String apiId) {
+        apisDenyingMembersUpdate.add(apiId);
+    }
+
+    @Override
     public void updateApplicationMembers(AuditInfo auditInfo, String applicationId, Set<MemberCRD> members) {
         applicationMembers.put(applicationId, members);
+    }
+
+    @Override
+    public void checkApplicationMembersUpdate(AuditInfo auditInfo, String applicationId, Set<MemberCRD> members) {
+        if (applicationsDenyingMembersUpdate.contains(applicationId)) {
+            throw new ForbiddenAccessException();
+        }
+    }
+
+    public void denyApplicationMembersUpdate(String applicationId) {
+        applicationsDenyingMembersUpdate.add(applicationId);
     }
 
     @Override
@@ -93,6 +124,8 @@ public class CRDMembersDomainServiceInMemory implements CRDMembersDomainService 
         groupApiRoles.clear();
         groupApplicationRoles.clear();
         groupApiProductRoles.clear();
+        applicationsDenyingMembersUpdate.clear();
+        apisDenyingMembersUpdate.clear();
     }
 
     public Set<MemberCRD> getApiMembers(String id) {
