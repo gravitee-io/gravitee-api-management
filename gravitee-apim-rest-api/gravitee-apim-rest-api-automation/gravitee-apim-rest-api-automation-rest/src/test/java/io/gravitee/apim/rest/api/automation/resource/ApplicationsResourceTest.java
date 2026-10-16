@@ -15,8 +15,14 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_DEFINITION;
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_APPLICATION;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,11 +33,18 @@ import io.gravitee.apim.core.application.use_case.ImportApplicationCRDUseCase;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.rest.api.automation.model.ApplicationState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.SecurityContext;
+import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 import org.assertj.core.api.SoftAssertions;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -40,16 +53,34 @@ import org.mockito.ArgumentCaptor;
 
 class ApplicationsResourceTest extends AbstractResourceTest {
 
+    private static final String NON_ADMIN_HEADER = "X-Test-Non-Admin";
+
     @Inject
     private ImportApplicationCRDUseCase importApplicationCRDUseCase;
 
     @Inject
     private ValidateApplicationCRDDomainService validateApplicationCRDDomainService;
 
+    @Override
+    protected void decorate(ResourceConfig resourceConfig) {
+        super.decorate(resourceConfig);
+        // The default AuthenticationFilter answers true to every role check, which makes each caller an organization admin
+        resourceConfig.register(
+            (ContainerRequestFilter) requestContext -> {
+                if (requestContext.getHeaderString(NON_ADMIN_HEADER) != null) {
+                    requestContext.setSecurityContext(nonAdmin(requestContext.getSecurityContext()));
+                }
+            },
+            6
+        );
+    }
+
     @AfterEach
     void tearDown() {
         reset(importApplicationCRDUseCase);
         reset(validateApplicationCRDDomainService);
+        reset(permissionService);
+        applicationCrudService.reset();
     }
 
     @Nested
@@ -196,6 +227,105 @@ class ApplicationsResourceTest extends AbstractResourceTest {
         }
     }
 
+    @Nested
+    class Authorization {
+
+        private static final String APPLICATION_ID = "application-id";
+
+        @BeforeEach
+        void setUp() {
+            when(importApplicationCRDUseCase.execute(any(ImportApplicationCRDUseCase.Input.class))).thenReturn(
+                new ImportApplicationCRDUseCase.Output(
+                    ApplicationCRDStatus.builder().id(APPLICATION_ID).organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build()
+                )
+            );
+            when(validateApplicationCRDDomainService.validateAndSanitize(any(ValidateApplicationCRDDomainService.Input.class))).thenAnswer(
+                call -> Validator.Result.ofValue(call.getArgument(0))
+            );
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_update_the_existing_application() {
+            givenApplication(ApplicationStatus.ACTIVE);
+            when(permissionService.hasPermission(any(), eq(APPLICATION_DEFINITION), eq(APPLICATION_ID), eq(UPDATE))).thenReturn(false);
+
+            assertThat(put(false, false)).isEqualTo(403);
+            verify(importApplicationCRDUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_403_on_dry_run_when_the_caller_cannot_update_the_existing_application() {
+            givenApplication(ApplicationStatus.ACTIVE);
+            when(permissionService.hasPermission(any(), eq(APPLICATION_DEFINITION), eq(APPLICATION_ID), eq(UPDATE))).thenReturn(false);
+
+            assertThat(put(true, false)).isEqualTo(403);
+            verify(validateApplicationCRDDomainService, never()).validateAndSanitize(any());
+        }
+
+        @Test
+        void should_update_the_existing_application_with_update_on_it_and_no_create_on_the_environment() {
+            givenApplication(ApplicationStatus.ACTIVE);
+            when(permissionService.hasPermission(any(), eq(ENVIRONMENT_APPLICATION), eq(ENVIRONMENT), eq(CREATE))).thenReturn(false);
+
+            assertThat(put(false, false)).isEqualTo(200);
+            verify(importApplicationCRDUseCase).execute(any());
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_create_a_new_application() {
+            when(permissionService.hasPermission(any(), eq(ENVIRONMENT_APPLICATION), eq(ENVIRONMENT), eq(CREATE))).thenReturn(false);
+
+            assertThat(put(false, false)).isEqualTo(403);
+            verify(importApplicationCRDUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_create_a_new_application_with_create_on_the_environment() {
+            when(permissionService.hasPermission(any(), eq(APPLICATION_DEFINITION), any(), eq(UPDATE))).thenReturn(false);
+
+            assertThat(put(false, false)).isEqualTo(200);
+            verify(importApplicationCRDUseCase).execute(any());
+        }
+
+        @Test
+        void should_return_403_when_a_non_admin_imports_an_archived_application() {
+            givenApplication(ApplicationStatus.ARCHIVED);
+
+            assertThat(put(false, true)).isEqualTo(403);
+            verify(importApplicationCRDUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_let_an_admin_import_an_archived_application() {
+            givenApplication(ApplicationStatus.ARCHIVED);
+
+            assertThat(put(false, false)).isEqualTo(200);
+            verify(importApplicationCRDUseCase).execute(any());
+        }
+
+        private void givenApplication(ApplicationStatus status) {
+            var application = new BaseApplicationEntity();
+            application.setId(APPLICATION_ID);
+            application.setEnvironmentId(ENVIRONMENT);
+            application.setStatus(status.name());
+            applicationCrudService.initWith(List.of(application));
+        }
+
+        private int put(boolean dryRun, boolean nonAdmin) {
+            var request = rootTarget()
+                .queryParam("dryRun", dryRun)
+                .queryParam("hridContainsUUID", true)
+                .request()
+                .accept(MediaType.APPLICATION_JSON_TYPE);
+            if (nonAdmin) {
+                request = request.header(NON_ADMIN_HEADER, true);
+            }
+            try (var response = request.put(Entity.json(readJSON("application-with-uuid.json")))) {
+                return response.getStatus();
+            }
+        }
+    }
+
     @Override
     protected String contextPath() {
         return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/applications";
@@ -221,5 +351,29 @@ class ApplicationsResourceTest extends AbstractResourceTest {
             assertThat(response.getStatus()).isEqualTo(200);
             return response.readEntity(ApplicationState.class);
         }
+    }
+
+    private static SecurityContext nonAdmin(SecurityContext authenticated) {
+        return new SecurityContext() {
+            @Override
+            public Principal getUserPrincipal() {
+                return authenticated.getUserPrincipal();
+            }
+
+            @Override
+            public boolean isUserInRole(String role) {
+                return false;
+            }
+
+            @Override
+            public boolean isSecure() {
+                return authenticated.isSecure();
+            }
+
+            @Override
+            public String getAuthenticationScheme() {
+                return authenticated.getAuthenticationScheme();
+            }
+        };
     }
 }
