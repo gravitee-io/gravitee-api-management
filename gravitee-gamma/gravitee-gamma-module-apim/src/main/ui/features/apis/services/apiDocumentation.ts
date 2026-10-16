@@ -25,6 +25,7 @@ import type {
     ImportPortalNavigationRequest,
     ImportPortalNavigationResponse,
     PortalPageContent,
+    PortalPageOpenApiConfiguration,
     PublishApiToPortal,
     UpdateApiDocumentationItem,
     UpdatePortalPageContent,
@@ -113,5 +114,18 @@ export async function saveApiDocumentationPageContent(
     return apimFetchJsonV2<PortalPageContent>(environmentId, `${itemPath(apiId, navId)}/content`, {
         method: 'PUT',
         body: JSON.stringify(payload),
+    });
+}
+
+/** Saves how the portal renders an OpenAPI page, leaving its content as stored. */
+export async function saveApiDocumentationPageConfiguration(
+    environmentId: string,
+    apiId: string,
+    navId: string,
+    configuration: PortalPageOpenApiConfiguration,
+): Promise<PortalPageContent> {
+    return apimFetchJsonV2<PortalPageContent>(environmentId, `${itemPath(apiId, navId)}/content/configuration`, {
+        method: 'PATCH',
+        body: JSON.stringify(configuration),
     });
 }

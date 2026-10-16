@@ -406,6 +406,29 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_keep_accepting_a_relative_try_it_url() {
+            // Given
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_DOCUMENTATION,
+                    ENVIRONMENT,
+                    RolePermissionAction.UPDATE
+                )
+            ).thenReturn(true);
+
+            var configuration = Map.of("viewer", "REDOC", "tryItURL", "/petstore/v1");
+
+            // When
+            Response response = target.path(CONTENT_ID).path("configuration").request().method("PATCH", Entity.json(configuration));
+
+            // Then
+            assertThat(response).hasStatus(OK_200);
+            var storedContent = (OpenApiPageContent) portalPageContentCrudService.storage().getFirst();
+            assertThat(storedContent.getViewerSettings()).isEqualTo(new RedocConfiguration("/petstore/v1"));
+        }
+
+        @Test
         void should_return_403_when_insufficient_permissions() {
             // Given
             when(

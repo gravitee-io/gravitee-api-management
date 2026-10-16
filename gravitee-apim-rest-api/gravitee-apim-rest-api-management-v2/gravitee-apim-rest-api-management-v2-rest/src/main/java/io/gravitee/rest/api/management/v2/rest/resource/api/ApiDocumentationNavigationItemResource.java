@@ -16,12 +16,17 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
+import io.gravitee.apim.core.portal_page.exception.InvalidUrlFormatException;
+import io.gravitee.apim.core.portal_page.model.OpenApiConfiguration;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.RedocConfiguration;
+import io.gravitee.apim.core.portal_page.model.SwaggerUiConfiguration;
 import io.gravitee.apim.core.portal_page.use_case.DeletePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.FetchPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetApiPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
+import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageContentConfigurationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageContentUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
@@ -30,6 +35,7 @@ import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationI
 import io.gravitee.rest.api.management.v2.rest.model.FetchPortalNavigationItemResponse;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageContent;
+import io.gravitee.rest.api.management.v2.rest.model.PortalPageOpenApiConfiguration;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPageContent;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -44,6 +50,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
@@ -51,6 +58,8 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public class ApiDocumentationNavigationItemResource extends AbstractResource {
 
@@ -71,6 +80,9 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
 
     @Inject
     private UpdatePortalPageContentUseCase updatePortalPageContentUseCase;
+
+    @Inject
+    private UpdatePortalPageContentConfigurationUseCase updatePortalPageContentConfigurationUseCase;
 
     @Inject
     private ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
@@ -177,6 +189,10 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
         @PathParam("navId") String navigationItemId,
         @Valid @NotNull final UpdatePortalPageContent updatePortalPageContent
     ) {
+        var update = PortalPageContentMapper.INSTANCE.map(updatePortalPageContent);
+        if (update.getConfiguration() != null) {
+            requireHttpTryItUrl(update.getConfiguration());
+        }
         var environmentId = GraviteeContext.getCurrentEnvironment();
         var page = apiOwnedNavigationDomainService.requireOwnedPage(environmentId, apiId, PortalNavigationItemId.of(navigationItemId));
 
@@ -185,9 +201,59 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
                 GraviteeContext.getCurrentOrganization(),
                 environmentId,
                 page.getPortalPageContentId().json(),
-                PortalPageContentMapper.INSTANCE.map(updatePortalPageContent)
+                update
             )
         );
         return PortalPageContentMapper.INSTANCE.map(output.portalPageContent());
+    }
+
+    @Path("content/configuration")
+    @PATCH
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    public PortalPageContent updateApiPortalNavigationPageContentConfiguration(
+        @PathParam("apiId") String apiId,
+        @PathParam("navId") String navigationItemId,
+        @Valid @NotNull final PortalPageOpenApiConfiguration configuration
+    ) {
+        var viewerSettings = PortalPageContentMapper.INSTANCE.mapToConfiguration(configuration);
+        requireHttpTryItUrl(viewerSettings);
+        var environmentId = GraviteeContext.getCurrentEnvironment();
+        var page = apiOwnedNavigationDomainService.requireOwnedPage(environmentId, apiId, PortalNavigationItemId.of(navigationItemId));
+
+        var output = updatePortalPageContentConfigurationUseCase.execute(
+            new UpdatePortalPageContentConfigurationUseCase.Input(
+                GraviteeContext.getCurrentOrganization(),
+                environmentId,
+                page.getPortalPageContentId().json(),
+                viewerSettings
+            )
+        );
+        return PortalPageContentMapper.INSTANCE.map(output.portalPageContent());
+    }
+
+    /**
+     * The API-scoped content and configuration writes open the base URL to API users, so they only take what the dialogs
+     * allow: empty, or an http(s) URL. The environment-level endpoints are left as they were, relative URLs included.
+     */
+    private static void requireHttpTryItUrl(OpenApiConfiguration viewerSettings) {
+        var tryItUrl = switch (viewerSettings) {
+            case SwaggerUiConfiguration swagger -> swagger.tryItUrl();
+            case RedocConfiguration redoc -> redoc.tryItUrl();
+        };
+        if (!tryItUrl.isEmpty() && !isHttpUrl(tryItUrl)) {
+            throw new InvalidUrlFormatException();
+        }
+    }
+
+    private static boolean isHttpUrl(String url) {
+        try {
+            var uri = new URI(url);
+            var isHttpScheme = "http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme());
+            return isHttpScheme && uri.getRawAuthority() != null;
+        } catch (URISyntaxException e) {
+            return false;
+        }
     }
 }
