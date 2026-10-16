@@ -18,7 +18,9 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.use_case.CreateOrUpdatePortalUseCase;
@@ -29,7 +31,9 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -41,6 +45,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.util.Objects;
 
 /**
  * @author GraviteeSource Team
@@ -55,6 +60,9 @@ public class PortalsResource extends AbstractResource {
 
     @Inject
     private ValidatePortalUseCase validatePortalUseCase;
+
+    @Inject
+    private PortalCrudService portalCrudService;
 
     @Path("/{hrid}")
     public PortalResource getPortalResource() {
@@ -77,6 +85,7 @@ public class PortalsResource extends AbstractResource {
             spec.getName()
         );
         var structure = PortalMapper.INSTANCE.toCoreStructure(spec);
+        authorizeImport(auditInfo, portal.getId(), spec.getActiveThemeHrid());
 
         var input = new CreateOrUpdatePortalUseCase.Input(auditInfo, portal, structure, spec.getActiveThemeHrid());
         var output = dryRun ? validatePortalUseCase.execute(input) : createOrUpdatePortalUseCase.execute(input);
@@ -90,5 +99,24 @@ public class PortalsResource extends AbstractResource {
                 output.errors()
             )
         ).build();
+    }
+
+    private void authorizeImport(AuditInfo auditInfo, PortalId portalId, String activeThemeHrid) {
+        var existing = portalCrudService.findByIdAndEnvironmentId(portalId, auditInfo.environmentId());
+        requireCreateOrUpdate(
+            RolePermission.ENVIRONMENT_PORTAL,
+            RolePermission.ENVIRONMENT_PORTAL,
+            existing.map(p -> p.getId().toString()).orElse(null)
+        );
+
+        // Changing the portal's active theme activates or deactivates an environment theme, which the Console reserves to theme updaters
+        var activeThemeId = activeThemeHrid == null ? null : HRIDToUUID.portalTheme().context(auditInfo).hrid(activeThemeHrid).id();
+        var themeChanges = !Objects.equals(activeThemeId, existing.map(Portal::getActiveThemeId).orElse(null));
+        if (
+            themeChanges &&
+            !hasPermission(GraviteeContext.getExecutionContext(), RolePermission.ENVIRONMENT_THEME, auditInfo.environmentId(), UPDATE)
+        ) {
+            throw new ForbiddenAccessException();
+        }
     }
 }

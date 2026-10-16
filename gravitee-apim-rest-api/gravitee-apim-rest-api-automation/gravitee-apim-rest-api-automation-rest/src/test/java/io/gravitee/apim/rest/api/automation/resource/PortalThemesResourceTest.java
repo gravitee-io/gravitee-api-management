@@ -15,13 +15,19 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_THEME;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import inmemory.ThemeCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeType;
@@ -30,6 +36,7 @@ import io.gravitee.apim.core.theme.use_case.ValidatePortalThemeUseCase;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.rest.api.automation.model.PortalThemeState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
@@ -38,6 +45,7 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -55,6 +63,9 @@ class PortalThemesResourceTest extends AbstractResourceTest {
 
     @Inject
     private ValidatePortalThemeUseCase validatePortalThemeUseCase;
+
+    @Inject
+    private ThemeCrudServiceInMemory themeCrudService;
 
     @AfterEach
     void tearDown() {
@@ -174,5 +185,81 @@ class PortalThemesResourceTest extends AbstractResourceTest {
                     .build()
             )
             .build();
+    }
+
+    @Nested
+    class Authorization {
+
+        @BeforeEach
+        void setUp() {
+            var output = new CreateOrUpdatePortalThemeUseCase.Output(aTheme(), List.of());
+            when(createOrUpdatePortalThemeUseCase.execute(any())).thenReturn(output);
+            when(validatePortalThemeUseCase.execute(any())).thenReturn(output);
+        }
+
+        @AfterEach
+        void tearDown() {
+            themeCrudService.reset();
+            reset(permissionService);
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_update_the_existing_theme() {
+            themeCrudService.initWith(List.of(aTheme()));
+            deny(UPDATE);
+
+            assertThat(put(false)).isEqualTo(403);
+            verify(createOrUpdatePortalThemeUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_403_on_dry_run_when_the_caller_cannot_update_the_existing_theme() {
+            themeCrudService.initWith(List.of(aTheme()));
+            deny(UPDATE);
+
+            assertThat(put(true)).isEqualTo(403);
+            verify(validatePortalThemeUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_update_the_existing_theme_with_update_and_no_create() {
+            themeCrudService.initWith(List.of(aTheme()));
+            deny(CREATE);
+
+            assertThat(put(false)).isEqualTo(200);
+            verify(createOrUpdatePortalThemeUseCase).execute(any());
+        }
+
+        @Test
+        void should_create_a_new_theme_with_create_and_no_update() {
+            deny(UPDATE);
+
+            assertThat(put(false)).isEqualTo(200);
+            verify(createOrUpdatePortalThemeUseCase).execute(any());
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_create_a_new_theme() {
+            deny(CREATE);
+
+            assertThat(put(false)).isEqualTo(403);
+            verify(createOrUpdatePortalThemeUseCase, never()).execute(any());
+        }
+
+        private void deny(RolePermissionAction action) {
+            when(permissionService.hasPermission(any(), eq(ENVIRONMENT_THEME), eq(ENVIRONMENT), eq(action))).thenReturn(false);
+        }
+
+        private int put(boolean dryRun) {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("theme.json")))
+            ) {
+                return response.getStatus();
+            }
+        }
     }
 }
