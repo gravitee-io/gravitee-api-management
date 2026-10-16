@@ -423,7 +423,7 @@ public class PermissionServiceTest {
     @Test
     public void should_refuse_user_without_any_membership() {
         setSecurityContext(false);
-        when(membershipService.getMembershipsByMember(MembershipMemberType.USER, USER_NAME)).thenReturn(Set.of());
+        when(membershipService.getRoleIdsByMember(MembershipMemberType.USER, USER_NAME)).thenReturn(Set.of());
 
         assertFalse(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
 
@@ -433,13 +433,11 @@ public class PermissionServiceTest {
 
     private void givenUserRoles(RoleEntity... roles) {
         setSecurityContext(false);
-        Set<MembershipEntity> memberships = new HashSet<>();
         Map<String, RoleEntity> rolesById = new HashMap<>();
         for (RoleEntity role : roles) {
-            memberships.add(MembershipEntity.builder().memberId(USER_NAME).roleId(role.getId()).build());
             rolesById.put(role.getId(), role);
         }
-        when(membershipService.getMembershipsByMember(MembershipMemberType.USER, USER_NAME)).thenReturn(memberships);
+        when(membershipService.getRoleIdsByMember(MembershipMemberType.USER, USER_NAME)).thenReturn(rolesById.keySet());
         when(roleService.findByIds(rolesById.keySet())).thenReturn(rolesById);
     }
 
