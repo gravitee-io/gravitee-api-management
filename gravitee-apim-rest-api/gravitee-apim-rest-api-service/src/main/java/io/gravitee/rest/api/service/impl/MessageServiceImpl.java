@@ -26,6 +26,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.MessageChannel;
@@ -321,7 +322,8 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                 List<String> applicationIds = subscriptionRepository
                     .search(
                         SubscriptionCriteria.builder()
-                            .apis(Collections.singleton(api.getId()))
+                            .referenceIds(Collections.singleton(api.getId()))
+                            .referenceType(SubscriptionReferenceType.API)
                             .statuses(List.of(Subscription.Status.ACCEPTED.name()))
                             .build()
                     )
