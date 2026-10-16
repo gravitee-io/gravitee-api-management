@@ -592,6 +592,98 @@ public class GroupsResourceTest extends AbstractResourceTest {
             });
         }
 
+        @Nested
+        class Authorization {
+
+            private static final String GROUP_ID = "2868ef55-561e-4b99-a981-450015a248d9";
+
+            @AfterEach
+            void tearDown() {
+                Mockito.reset(permissionService);
+            }
+
+            @Test
+            void should_return_403_when_the_caller_cannot_update_the_existing_group() {
+                givenGroup(ENVIRONMENT);
+                denyGroupUpdate();
+
+                try (var response = put(readJSON("/crd/group/with-one-member.json"), false)) {
+                    Assertions.assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
+                }
+                Assertions.assertThat(groupCrudServiceInMemory.storage().get(GROUP_ID).getName()).isEqualTo("existing-group");
+            }
+
+            @Test
+            void should_return_403_on_dry_run_when_the_caller_cannot_update_the_existing_group() {
+                givenGroup(ENVIRONMENT);
+                denyGroupUpdate();
+
+                try (var response = put(readJSON("/crd/group/with-one-member.json"), true)) {
+                    Assertions.assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
+                }
+            }
+
+            @Test
+            void should_update_the_existing_group_with_update_on_the_environment() {
+                givenGroup(ENVIRONMENT);
+
+                try (var response = put(readJSON("/crd/group/with-one-member.json"), false)) {
+                    Assertions.assertThat(response.getStatus()).isEqualTo(OK_200);
+                }
+                Assertions.assertThat(groupCrudServiceInMemory.storage().get(GROUP_ID).getName()).isEqualTo("with-one-member");
+            }
+
+            @Test
+            void should_return_404_without_writing_a_group_of_another_environment() {
+                givenGroup("other-environment");
+
+                try (var response = put(readJSON("/crd/group/with-one-member.json"), false)) {
+                    Assertions.assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+                }
+                SoftAssertions.assertSoftly(soft -> {
+                    soft.assertThat(groupCrudServiceInMemory.storage().get(GROUP_ID).getName()).isEqualTo("existing-group");
+                    soft.assertThat(crdMembersDomainServiceInMemory.getGroupMembers(GROUP_ID)).isEmpty();
+                });
+            }
+
+            @Test
+            void should_return_403_when_an_upper_case_id_names_an_existing_group_the_caller_cannot_update() {
+                givenGroup(ENVIRONMENT);
+                denyGroupUpdate();
+
+                var spec = readJSON("/crd/group/with-one-member.json").replace(GROUP_ID, GROUP_ID.toUpperCase());
+                try (var response = put(spec, false)) {
+                    Assertions.assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
+                }
+                Assertions.assertThat(groupCrudServiceInMemory.storage().get(GROUP_ID).getName()).isEqualTo("existing-group");
+            }
+
+            private void givenGroup(String environmentId) {
+                var group = io.gravitee.apim.core.group.model.Group.builder()
+                    .id(GROUP_ID)
+                    .environmentId(environmentId)
+                    .name("existing-group")
+                    .build();
+                groupQueryServiceInMemory.initWith(List.of(group));
+                groupCrudServiceInMemory.storage().put(GROUP_ID, group);
+            }
+
+            private void denyGroupUpdate() {
+                when(
+                    permissionService.hasPermission(
+                        any(),
+                        eq(RolePermission.ENVIRONMENT_GROUP),
+                        eq(ENVIRONMENT),
+                        eq(RolePermissionAction.UPDATE)
+                    )
+                ).thenReturn(false);
+            }
+
+            private Response put(String spec, boolean dryRun) {
+                return target.queryParam("dryRun", dryRun).request().put(Entity.json(spec));
+            }
+        }
+
         private GroupCRDStatus doImport(String crdResource, boolean dryRun) {
             try (var response = target.queryParam("dryRun", dryRun).request().put(Entity.json(readJSON(crdResource)))) {
                 Assertions.assertThat(response.getStatus()).isEqualTo(200);
