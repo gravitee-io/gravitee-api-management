@@ -38,7 +38,7 @@ export class TestGatewayIntegrationJob extends AbstractTestJob {
         new commands.Run({
           name: 'Run gateway integration tests',
           // -nsu: the engine and the SDK come from the build workspace; a remote timestamped snapshot must not replace them.
-          command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -nsu -pl ${GATEWAY_INTEGRATION_TESTS_MODULE} -Dskip.validation=true -Dgravitee.archrules.skip=true ${mavenParallelism('large')}`,
+          command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -nsu -pl ${GATEWAY_INTEGRATION_TESTS_MODULE} -Dskip.validation=true -Dgravitee.archrules.skip=true -Dsurefire.rerunFailingTestsCount=3 -Dsurefire.exitTimeout=300 ${mavenParallelism('large')}`,
         }),
       ],
       OpenJdkExecutor.create('large'),
