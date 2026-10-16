@@ -21,24 +21,29 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductExistsUseCase;
+import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
+import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.service.GenericNotificationConfigService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class ApiProductNotificationSettingsResourceTest extends AbstractResourceTest {
 
@@ -107,6 +112,30 @@ class ApiProductNotificationSettingsResourceTest extends AbstractResourceTest {
             Response response = rootTarget().request().get();
 
             assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+        }
+    }
+
+    @Nested
+    class CreateApiProductNotificationSettingsTest {
+
+        @Test
+        void should_take_organization_from_context_ignoring_body() {
+            when(genericNotificationConfigService.create(any())).thenAnswer(i -> i.getArguments()[0]);
+            var config = GenericNotificationConfigEntity.builder()
+                .configType(NotificationConfigType.GENERIC)
+                .name("my-notifier")
+                .notifier("webhook")
+                .referenceType(NotificationReferenceType.API_PRODUCT.name())
+                .referenceId(API_PRODUCT_ID)
+                .organizationId("other-org")
+                .build();
+
+            Response response = rootTarget().request().post(Entity.json(config));
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var captor = ArgumentCaptor.forClass(GenericNotificationConfigEntity.class);
+            verify(genericNotificationConfigService).create(captor.capture());
+            assertThat(captor.getValue().getOrganizationId()).isEqualTo(ORGANIZATION);
         }
     }
 }
