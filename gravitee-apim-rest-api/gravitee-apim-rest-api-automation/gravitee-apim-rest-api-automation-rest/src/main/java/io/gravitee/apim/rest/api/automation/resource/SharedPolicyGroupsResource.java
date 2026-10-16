@@ -20,7 +20,10 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateSharedPolicyGroupCRDDomainService;
+import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
+import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRD;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRDStatus;
 import io.gravitee.apim.core.shared_policy_group.use_case.ImportSharedPolicyGroupCRDCRDUseCase;
 import io.gravitee.apim.rest.api.automation.mapper.SharedPolicyGroupMapper;
@@ -30,6 +33,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.IdBuilder;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -56,6 +60,9 @@ public class SharedPolicyGroupsResource extends AbstractResource {
 
     @Inject
     private ValidateSharedPolicyGroupCRDDomainService validateSharedPolicyGroupCRDDomainService;
+
+    @Inject
+    private SharedPolicyGroupCrudService sharedPolicyGroupCrudService;
 
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
@@ -88,6 +95,8 @@ public class SharedPolicyGroupsResource extends AbstractResource {
             sharedPolicyGroupCRD.setSharedPolicyGroupId(spec.getHrid());
         }
 
+        authorizeImport(crossIdOf(sharedPolicyGroupCRD, audit), executionContext.getEnvironmentId());
+
         if (dryRun) {
             var statusBuilder = SharedPolicyGroupCRDStatus.builder();
             validateSharedPolicyGroupCRDDomainService
@@ -118,5 +127,27 @@ public class SharedPolicyGroupsResource extends AbstractResource {
     @Path("/{hrid}")
     public SharedPolicyGroupResource getSharedPolicyGroupResource() {
         return resourceContext.getResource(SharedPolicyGroupResource.class);
+    }
+
+    // Without a cross id the import validator derives it from the hrid: authorize against the shared policy group it will write
+    private static String crossIdOf(SharedPolicyGroupCRD crd, AuditInfo auditInfo) {
+        if (crd.getCrossId() != null || crd.getHrid() == null) {
+            return crd.getCrossId();
+        }
+        return IdBuilder.builder(auditInfo, crd.getHrid()).buildCrossId();
+    }
+
+    // The import updates the shared policy group found by cross id, whichever id the spec carries
+    private void authorizeImport(String crossId, String environmentId) {
+        requireCreateOrUpdate(
+            RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+            RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+            crossId == null
+                ? null
+                : sharedPolicyGroupCrudService
+                    .findByEnvironmentIdAndCrossId(environmentId, crossId)
+                    .map(SharedPolicyGroup::getId)
+                    .orElse(null)
+        );
     }
 }
