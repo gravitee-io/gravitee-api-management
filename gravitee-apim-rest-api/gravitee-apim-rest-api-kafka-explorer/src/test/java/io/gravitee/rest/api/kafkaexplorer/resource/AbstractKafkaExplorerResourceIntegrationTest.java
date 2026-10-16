@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.kafkaexplorer.resource;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.ClusterCrudServiceInMemory;
 import io.gravitee.apim.core.cluster.model.Cluster;
@@ -27,6 +31,8 @@ import io.gravitee.rest.api.kafkaexplorer.domain.use_case.ListConsumerGroupsUseC
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.ListTopicsUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.TailMessagesUseCase;
 import io.gravitee.rest.api.kafkaexplorer.infrastructure.domain_service.KafkaClusterDomainServiceImpl;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.File;
 import java.lang.reflect.Field;
@@ -85,6 +91,7 @@ abstract class AbstractKafkaExplorerResourceIntegrationTest {
             injectField(resource, "browseMessagesUseCase", new BrowseMessagesUseCase(clusterCrudService, clusterService, objectMapper));
             injectField(resource, "tailMessagesUseCase", new TailMessagesUseCase(clusterCrudService, clusterService, objectMapper));
             injectField(resource, "objectMapper", objectMapper);
+            injectField(resource, "permissionService", grantingPermissions());
         } catch (Exception e) {
             throw new RuntimeException("Failed to set up integration test", e);
         }
@@ -94,6 +101,12 @@ abstract class AbstractKafkaExplorerResourceIntegrationTest {
     void resetClusterCrudService() {
         clusterCrudService.reset();
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
+    }
+
+    private static PermissionService grantingPermissions() {
+        var permissionService = mock(PermissionService.class);
+        when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class))).thenReturn(true);
+        return permissionService;
     }
 
     protected static String plaintextBootstrapServers() {
