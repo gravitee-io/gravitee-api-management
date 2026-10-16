@@ -21,7 +21,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
@@ -310,6 +312,54 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         Response response = envTarget(SUBSCRIPTION_ID).request().put(Entity.json(updateSubscriptionEntity));
 
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotPauseIfSubscriptionDoesNotBelongToApi() {
+        fakeSubscriptionEntity.setApi("Another_api");
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
+
+        Response response = envTarget(SUBSCRIPTION_ID + "/status").queryParam("status", "PAUSED").request().post(Entity.json(null));
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+        verify(subscriptionService, never()).pause(any(), any());
+    }
+
+    @Test
+    public void shouldNotResumeIfSubscriptionDoesNotBelongToApi() {
+        fakeSubscriptionEntity.setApi("Another_api");
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
+
+        Response response = envTarget(SUBSCRIPTION_ID + "/status").queryParam("status", "RESUMED").request().post(Entity.json(null));
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+        verify(subscriptionService, never()).resume(any(), any());
+    }
+
+    @Test
+    public void shouldPauseSubscriptionOfApi() {
+        fakePlanEntity.setSecurity(PlanSecurityType.API_KEY);
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
+        when(subscriptionService.pause(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(fakePlanEntity);
+
+        Response response = envTarget(SUBSCRIPTION_ID + "/status").queryParam("status", "PAUSED").request().post(Entity.json(null));
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        verify(subscriptionService).pause(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+    }
+
+    @Test
+    public void shouldResumeSubscriptionOfApi() {
+        fakePlanEntity.setSecurity(PlanSecurityType.API_KEY);
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
+        when(subscriptionService.resume(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(fakePlanEntity);
+
+        Response response = envTarget(SUBSCRIPTION_ID + "/status").queryParam("status", "RESUMED").request().post(Entity.json(null));
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        verify(subscriptionService).resume(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
     }
 
     private io.gravitee.apim.core.subscription.model.SubscriptionEntity givenExistingSubscription(
