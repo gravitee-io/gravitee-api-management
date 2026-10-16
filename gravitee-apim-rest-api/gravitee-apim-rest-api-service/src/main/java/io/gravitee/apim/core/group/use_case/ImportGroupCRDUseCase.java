@@ -20,11 +20,13 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.group.crud_service.GroupCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
+import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.model.crd.GroupCRDSpec;
 import io.gravitee.apim.core.group.model.crd.GroupCRDStatus;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import java.util.List;
 import lombok.CustomLog;
 
@@ -78,12 +80,21 @@ public class ImportGroupCRDUseCase {
 
         var status = queryService
             .findById(sanitizedInput.spec.getId())
+            .map(existing -> inEnvironment(existing, sanitizedInput.auditInfo.environmentId()))
             .map(existing -> this.update(sanitizedInput))
             .orElseGet(() -> this.create(sanitizedInput));
 
         status.setErrors(GroupCRDStatus.Errors.fromErrorList(warnings));
 
         return new Output(status);
+    }
+
+    // The id is unique across environments: a group of another environment can be neither updated nor created again
+    private static Group inEnvironment(Group existing, String environmentId) {
+        if (!environmentId.equals(existing.getEnvironmentId())) {
+            throw new GroupNotFoundException(existing.getId());
+        }
+        return existing;
     }
 
     private GroupCRDStatus create(Input input) {

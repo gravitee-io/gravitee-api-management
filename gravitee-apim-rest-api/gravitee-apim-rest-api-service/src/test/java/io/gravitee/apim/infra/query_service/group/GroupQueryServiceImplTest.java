@@ -112,6 +112,30 @@ class GroupQueryServiceImplTest {
     }
 
     @Nested
+    class FindByIdAndEnvironmentId {
+
+        @Test
+        @SneakyThrows
+        void should_find_the_group_of_the_environment() {
+            when(groupRepository.findById("1")).thenReturn(Optional.of(aGroup("1").build()));
+
+            var result = service.findByIdAndEnvironmentId("1", "environment-id");
+
+            Assertions.assertThat(result).map(Group::getId).contains("1");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_empty_when_the_group_belongs_to_another_environment() {
+            when(groupRepository.findById("1")).thenReturn(Optional.of(aGroup("1").build()));
+
+            var result = service.findByIdAndEnvironmentId("1", "other-environment-id");
+
+            Assertions.assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
     class FindByIds {
 
         @Test
