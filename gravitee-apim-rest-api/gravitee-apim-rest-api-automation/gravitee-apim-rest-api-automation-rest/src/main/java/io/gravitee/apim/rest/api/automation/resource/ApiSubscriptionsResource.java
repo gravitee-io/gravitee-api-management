@@ -22,6 +22,7 @@ import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.model.crd.ApiKeyCRDSpec;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDStatus;
+import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionCRDUseCase;
 import io.gravitee.apim.rest.api.automation.mapper.SubscriptionMapper;
 import io.gravitee.apim.rest.api.automation.model.ApiKeySpec;
@@ -54,6 +55,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
     @Inject
     private ImportSubscriptionCRDUseCase importSubscriptionCRDUseCase;
+
+    @Inject
+    private SubscriptionQueryService subscriptionQueryService;
 
     @Context
     private ResourceContext resourceContext;
@@ -103,8 +107,20 @@ public class ApiSubscriptionsResource extends AbstractResource {
             .consumerConfiguration(SubscriptionMapper.INSTANCE.toConsumerConfiguration(spec.getConsumerConfiguration()))
             .build();
 
+        requireCreateOrUpdate(
+            RolePermission.API_SUBSCRIPTION,
+            subscriptionCRDSpec.getReferenceId(),
+            subscriptionQueryService
+                .findByIdAndReferenceIdAndReferenceType(
+                    subscriptionCRDSpec.getId(),
+                    subscriptionCRDSpec.getReferenceId(),
+                    SubscriptionReferenceType.API
+                )
+                .isPresent()
+        );
+
         SubscriptionCRDStatus status = importSubscriptionCRDUseCase
-            .execute(new ImportSubscriptionCRDUseCase.Input(auditInfo, subscriptionCRDSpec))
+            .execute(new ImportSubscriptionCRDUseCase.Input(auditInfo, subscriptionCRDSpec.getReferenceId(), subscriptionCRDSpec))
             .status();
 
         return Response.ok(SubscriptionMapper.INSTANCE.subscriptionSpecAndStatusToSubscriptionState(apiHrid, spec, status)).build();
