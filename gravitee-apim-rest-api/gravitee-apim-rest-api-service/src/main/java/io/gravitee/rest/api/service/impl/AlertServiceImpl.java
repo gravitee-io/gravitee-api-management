@@ -361,8 +361,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         }
     }
 
-    @Override
-    public Page<AlertEventEntity> findEvents(final String alertId, final AlertEventQuery eventQuery) {
+    private Page<AlertEventEntity> findEvents(final String alertId, final AlertEventQuery eventQuery) {
         Page<AlertEvent> alertEventsRepo = alertEventRepository.search(
             new AlertEventCriteria.Builder().alert(alertId).from(eventQuery.getFrom()).to(eventQuery.getTo()).build(),
             new PageableBuilder().pageNumber(eventQuery.getPageNumber()).pageSize(eventQuery.getPageSize()).build()
