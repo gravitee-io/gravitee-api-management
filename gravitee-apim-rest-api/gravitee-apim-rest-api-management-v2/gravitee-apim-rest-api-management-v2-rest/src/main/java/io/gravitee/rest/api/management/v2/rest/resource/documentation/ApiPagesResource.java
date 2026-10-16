@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.documentation;
 
+import io.gravitee.apim.core.documentation.exception.ApiPageNotAssociatedException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.use_case.ApiCreateDocumentationPageUseCase;
 import io.gravitee.apim.core.documentation.use_case.ApiDeleteDocumentationPageUseCase;
@@ -45,6 +46,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -214,7 +216,13 @@ public class ApiPagesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.DELETE }) })
     public Response deleteDocumentationPage(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
-        apiDeleteDocumentationPageUseCase.execute(new ApiDeleteDocumentationPageUseCase.Input(apiId, pageId, getAuditInfo()));
+        try {
+            apiDeleteDocumentationPageUseCase.execute(new ApiDeleteDocumentationPageUseCase.Input(apiId, pageId, getAuditInfo()));
+        } catch (ApiPageNotAssociatedException e) {
+            var notFoundException = new PageNotFoundException(pageId);
+            notFoundException.initCause(e);
+            throw notFoundException;
+        }
         return Response.noContent().build();
     }
 }
