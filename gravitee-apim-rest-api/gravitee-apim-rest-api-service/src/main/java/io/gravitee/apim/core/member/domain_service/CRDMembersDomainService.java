@@ -27,7 +27,23 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface CRDMembersDomainService {
+    /**
+     * Sets the members of an API the caller has just created and makes the caller its primary owner.
+     */
+    void createApiMembers(AuditInfo auditInfo, String apiId, Set<MemberCRD> members);
+
+    /**
+     * Without the member permission on the API, the spec may only restate the current members: nothing is written and the
+     * primary owner is kept. A change is rejected with a {@code ForbiddenAccessException}.
+     */
     void updateApiMembers(AuditInfo auditInfo, String apiId, Set<MemberCRD> members);
+
+    /**
+     * Rejects, before anything is written, an import that would change the API's members without the member permission
+     * on it.
+     */
+    void checkApiMembersUpdate(AuditInfo auditInfo, String apiId, Set<MemberCRD> members);
+
     /**
      * Without the member permission on the application, the spec may only restate the current members: nothing is written
      * and the primary owner is kept. A change is rejected with a {@code ForbiddenAccessException}.
