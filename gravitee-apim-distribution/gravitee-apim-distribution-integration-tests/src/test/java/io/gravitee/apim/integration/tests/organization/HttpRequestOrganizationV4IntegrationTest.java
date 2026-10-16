@@ -55,7 +55,7 @@ import org.junit.jupiter.api.BeforeEach;
         @DeployOrganization(organization = "/organizations/organization-3.json"),
     }
 )
-class HttpRequestOrganizationV4IntegrationTest extends HttpRequestOrganizationV4EmulationIntegrationTest {
+class HttpRequestOrganizationV4IntegrationTest extends AbstractHttpRequestOrganizationIntegrationTest {
 
     @Override
     public void configureReactors(Set<ReactorPlugin<? extends ReactorFactory<?>>> reactors) {

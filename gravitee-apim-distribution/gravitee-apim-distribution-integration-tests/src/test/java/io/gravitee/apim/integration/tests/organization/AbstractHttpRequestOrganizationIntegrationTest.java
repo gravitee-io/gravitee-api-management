@@ -50,7 +50,7 @@ import org.junit.jupiter.api.Test;
         @DeployOrganization(organization = "/organizations/organization-3.json"),
     }
 )
-class HttpRequestOrganizationV4EmulationIntegrationTest extends AbstractGatewayTest {
+abstract class AbstractHttpRequestOrganizationIntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
