@@ -1407,6 +1407,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
     @Override
     public void deleteUserFromGroup(ExecutionContext executionContext, String groupId, String username) {
+        // Reject a group outside the current environment before any read or write happens.
+        GroupEntity existingGroup = this.findById(executionContext, groupId);
+
         //check if user exist
         this.userService.findById(executionContext, username);
 
@@ -1428,7 +1431,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             username
         );
 
-        GroupEntity existingGroup = this.findById(executionContext, groupId);
         if (existingGroup.getApiPrimaryOwner() != null && existingGroup.getApiPrimaryOwner().equals(username)) {
             updateApiPrimaryOwner(groupId, username);
         }
