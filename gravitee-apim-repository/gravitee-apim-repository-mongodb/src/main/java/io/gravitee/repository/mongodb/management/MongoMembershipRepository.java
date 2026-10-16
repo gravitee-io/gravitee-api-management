@@ -207,6 +207,11 @@ public class MongoMembershipRepository implements MembershipRepository {
     }
 
     @Override
+    public Set<String> findRoleIdsByMemberIdAndMemberType(String memberId, MembershipMemberType memberType) {
+        return internalMembershipRepo.findRoleIdsByMemberIdAndMemberType(memberId, memberType.name());
+    }
+
+    @Override
     public Set<Membership> findByRoleId(String roleId) {
         logger.debug("Find membership by roleId [{}]", roleId);
         Set<Membership> memberships = internalMembershipRepo.findByRoleId(roleId).stream().map(this::map).collect(Collectors.toSet());
