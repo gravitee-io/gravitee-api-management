@@ -77,6 +77,28 @@ public class MembershipService_GetMembershipsTest {
     }
 
     @Test
+    public void should_get_the_distinct_roles_held_by_a_member() throws Exception {
+        when(membershipRepository.findRoleIdsByMemberIdAndMemberType(memberId, MembershipMemberType.USER)).thenReturn(
+            Set.of("API_OWNER", "APPLICATION_USER")
+        );
+
+        Set<String> roleIds = membershipService.getRoleIdsByMember(io.gravitee.rest.api.model.MembershipMemberType.USER, memberId);
+
+        assertThat(roleIds).containsExactlyInAnyOrder("API_OWNER", "APPLICATION_USER");
+    }
+
+    @Test
+    public void should_wrap_a_technical_failure_when_getting_the_roles_held_by_a_member() throws Exception {
+        when(membershipRepository.findRoleIdsByMemberIdAndMemberType(memberId, MembershipMemberType.USER)).thenThrow(
+            new TechnicalException("boom")
+        );
+
+        assertThatThrownBy(() ->
+            membershipService.getRoleIdsByMember(io.gravitee.rest.api.model.MembershipMemberType.USER, memberId)
+        ).isInstanceOf(TechnicalManagementException.class);
+    }
+
+    @Test
     public void shouldGetEmptyMembersWithMembership() throws Exception {
         when(
             membershipRepository.findRefIdsByMemberIdAndMemberTypeAndReferenceType(

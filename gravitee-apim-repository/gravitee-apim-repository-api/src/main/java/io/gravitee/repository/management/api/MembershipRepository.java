@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -260,4 +261,15 @@ public interface MembershipRepository extends FindAllRepository<Membership> {
      * @throws TechnicalException if something goes wrong, should never happen.
      */
     Set<Membership> findByMemberIdAndMemberType(String memberId, MembershipMemberType memberType) throws TechnicalException;
+
+    /**
+     * find the distinct roles a member holds across all its memberships, whatever the references
+     * @param memberId the member
+     * @param memberType the member type. Can be USER or GROUP.
+     * @return the role ids, or an empty set
+     * @throws TechnicalException if something goes wrong, should never happen.
+     */
+    default Set<String> findRoleIdsByMemberIdAndMemberType(String memberId, MembershipMemberType memberType) throws TechnicalException {
+        return findByMemberIdAndMemberType(memberId, memberType).stream().map(Membership::getRoleId).collect(Collectors.toSet());
+    }
 }
