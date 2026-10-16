@@ -21,8 +21,10 @@ import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
+import io.gravitee.apim.core.environment.domain_service.ValidateEnvironmentInOrganizationDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
+import io.gravitee.apim.core.user.domain_service.ValidateUserInOrganizationDomainService;
 import io.gravitee.apim.core.user.model.UserApi;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -37,11 +39,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GetUserApisUseCase {
 
+    private final ValidateUserInOrganizationDomainService validateUserInOrganizationDomainService;
+    private final ValidateEnvironmentInOrganizationDomainService validateEnvironmentInOrganizationDomainService;
     private final MembershipQueryService membershipQueryService;
     private final ApiQueryService apiQueryService;
     private final EnvironmentCrudService environmentCrudService;
 
     public Output execute(Input input) {
+        validateUserInOrganizationDomainService.validate(input.userId, input.organizationId);
+        validateEnvironmentInOrganizationDomainService.validate(input.environmentId, input.organizationId);
+
         var memberships = membershipQueryService.findByMemberIdAndMemberTypeAndReferenceType(
             input.userId,
             Membership.Type.USER,
@@ -98,7 +105,7 @@ public class GetUserApisUseCase {
         return result;
     }
 
-    public record Input(String userId, String environmentId, int page, int perPage) {}
+    public record Input(String userId, String organizationId, String environmentId, int page, int perPage) {}
 
     public record Output(List<UserApi> data, long totalCount) {}
 }
