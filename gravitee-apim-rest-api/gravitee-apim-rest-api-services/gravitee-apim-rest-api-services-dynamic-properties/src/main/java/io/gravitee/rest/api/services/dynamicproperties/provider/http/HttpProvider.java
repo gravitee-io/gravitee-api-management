@@ -78,7 +78,9 @@ public class HttpProvider implements Provider {
                 httpClientService.createHttpClient(requestUrl.getProtocol(), dpConfiguration.isUseSystemProxy())
             );
 
-            final int port = requestUrl.getPort() != -1 ? requestUrl.getPort() : (HTTPS_SCHEME.equals(requestUrl.getProtocol()) ? 443 : 80);
+            final int port = requestUrl.getPort() != -1
+                ? requestUrl.getPort()
+                : (HTTPS_SCHEME.equalsIgnoreCase(requestUrl.getProtocol()) ? 443 : 80);
 
             String relativeUri = (requestUrl.getQuery() == null)
                 ? requestUrl.getPath()
