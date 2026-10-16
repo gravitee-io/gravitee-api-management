@@ -20,6 +20,8 @@ import static io.gravitee.apim.core.member.model.SystemRole.PRIMARY_OWNER;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
@@ -30,6 +32,7 @@ import io.gravitee.apim.core.application.model.crd.ApplicationCRDStatus;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.management.v2.rest.model.ApplicationCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.ApplicationMetadataEntity;
@@ -37,12 +40,18 @@ import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.IdBuilder;
 import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import java.security.Principal;
 import java.util.List;
 import org.assertj.core.api.SoftAssertions;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -51,6 +60,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ApplicationsResource_UpdateApplicationFromCRD extends AbstractResourceTest {
 
     private static final String ENVIRONMENT_ID = "my-env";
+    private static final String NON_ADMIN_HEADER = "X-Test-Non-Admin";
 
     @Autowired
     private OAIDomainService oaiDomainService;
@@ -61,6 +71,20 @@ public class ApplicationsResource_UpdateApplicationFromCRD extends AbstractResou
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT_ID + "/applications/_import/crd";
+    }
+
+    @Override
+    protected void decorate(ResourceConfig resourceConfig) {
+        super.decorate(resourceConfig);
+        // The default AuthenticationFilter answers true to every role check, which makes each caller an organization admin
+        resourceConfig.register(
+            (ContainerRequestFilter) requestContext -> {
+                if (requestContext.getHeaderString(NON_ADMIN_HEADER) != null) {
+                    requestContext.setSecurityContext(nonAdmin(requestContext.getSecurityContext()));
+                }
+            },
+            6
+        );
     }
 
     @BeforeEach
@@ -100,7 +124,7 @@ public class ApplicationsResource_UpdateApplicationFromCRD extends AbstractResou
             when(
                 permissionService.hasPermission(
                     GraviteeContext.getExecutionContext(),
-                    RolePermission.ENVIRONMENT_API,
+                    RolePermission.ENVIRONMENT_APPLICATION,
                     ENVIRONMENT_ID,
                     RolePermissionAction.CREATE
                 )
@@ -194,5 +218,132 @@ public class ApplicationsResource_UpdateApplicationFromCRD extends AbstractResou
             List<ApplicationMetadataEntity> allByApplication = applicationMetadataCrudService.storage();
             assertEquals(1, allByApplication.size());
         }
+    }
+
+    @Nested
+    class Authorization {
+
+        @Test
+        void should_return_403_and_leave_the_application_unchanged_when_the_hrid_names_an_application_the_caller_cannot_update() {
+            var existing = givenApplication(ApplicationStatus.ACTIVE);
+            var applicationId = IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT_ID), "application-hrid").buildId();
+            existing.setId(applicationId);
+            applicationCrudService.initWith(List.of(existing));
+            applicationCRDDomainService.initWith(List.of(existing));
+            when(
+                permissionService.hasPermission(
+                    any(),
+                    eq(RolePermission.APPLICATION_DEFINITION),
+                    eq(applicationId),
+                    eq(RolePermissionAction.UPDATE)
+                )
+            ).thenReturn(false);
+            var spec = ApplicationFixtures.anApplicationCRDSpec();
+            spec.setId(null);
+            spec.setHrid("application-hrid");
+
+            final Response response = rootTarget().request().put(Entity.json(spec));
+
+            assertThat(response).hasStatus(FORBIDDEN_403);
+            assertThat(applicationCRDDomainService.storage().get(0).getDescription()).isEqualTo("old_description");
+        }
+
+        @Test
+        void should_return_403_and_leave_the_application_unchanged_when_the_caller_cannot_update_it() {
+            var existing = givenApplication(ApplicationStatus.ACTIVE);
+            when(
+                permissionService.hasPermission(
+                    any(),
+                    eq(RolePermission.APPLICATION_DEFINITION),
+                    eq(existing.getId()),
+                    eq(RolePermissionAction.UPDATE)
+                )
+            ).thenReturn(false);
+
+            final Response response = rootTarget().request().put(Entity.json(specFor(existing)));
+
+            assertThat(response).hasStatus(FORBIDDEN_403);
+            assertThat(applicationCRDDomainService.storage().get(0).getDescription()).isEqualTo("old_description");
+        }
+
+        @Test
+        void should_return_403_on_dry_run_when_the_caller_cannot_update_the_application() {
+            var existing = givenApplication(ApplicationStatus.ACTIVE);
+            when(
+                permissionService.hasPermission(
+                    any(),
+                    eq(RolePermission.APPLICATION_DEFINITION),
+                    eq(existing.getId()),
+                    eq(RolePermissionAction.UPDATE)
+                )
+            ).thenReturn(false);
+
+            final Response response = rootTarget().queryParam("dryRun", true).request().put(Entity.json(specFor(existing)));
+
+            assertThat(response).hasStatus(FORBIDDEN_403);
+        }
+
+        @Test
+        void should_update_with_update_on_the_application() {
+            var existing = givenApplication(ApplicationStatus.ACTIVE);
+            var spec = specFor(existing);
+
+            final Response response = rootTarget().request().put(Entity.json(spec));
+
+            assertThat(response).hasStatus(OK_200);
+            assertThat(applicationCRDDomainService.storage().get(0).getDescription()).isEqualTo(spec.getDescription());
+        }
+
+        @Test
+        void should_return_403_and_keep_the_application_archived_when_a_non_admin_imports_it() {
+            var existing = givenApplication(ApplicationStatus.ARCHIVED);
+
+            final Response response = rootTarget().request().header(NON_ADMIN_HEADER, true).put(Entity.json(specFor(existing)));
+
+            assertThat(response).hasStatus(FORBIDDEN_403);
+            assertThat(applicationCRDDomainService.storage().get(0).getStatus()).isEqualTo(ApplicationStatus.ARCHIVED.name());
+        }
+
+        private BaseApplicationEntity givenApplication(ApplicationStatus status) {
+            var application = new BaseApplicationEntity();
+            application.setId(UuidString.generateRandom());
+            application.setName("test");
+            application.setDescription("old_description");
+            application.setEnvironmentId(ENVIRONMENT_ID);
+            application.setStatus(status.name());
+            applicationCrudService.initWith(List.of(application));
+            applicationCRDDomainService.initWith(List.of(application));
+            return application;
+        }
+
+        private ApplicationCRDSpec specFor(BaseApplicationEntity application) {
+            var spec = ApplicationFixtures.anApplicationCRDSpec();
+            spec.setId(application.getId());
+            return spec;
+        }
+    }
+
+    private static SecurityContext nonAdmin(SecurityContext authenticated) {
+        return new SecurityContext() {
+            @Override
+            public Principal getUserPrincipal() {
+                return authenticated.getUserPrincipal();
+            }
+
+            @Override
+            public boolean isUserInRole(String role) {
+                return false;
+            }
+
+            @Override
+            public boolean isSecure() {
+                return authenticated.isSecure();
+            }
+
+            @Override
+            public String getAuthenticationScheme() {
+                return authenticated.getAuthenticationScheme();
+            }
+        };
     }
 }
