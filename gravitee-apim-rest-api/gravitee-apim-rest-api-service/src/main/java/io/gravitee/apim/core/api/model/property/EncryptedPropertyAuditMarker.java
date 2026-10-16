@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 public final class EncryptedPropertyAuditMarker {
 
@@ -36,7 +38,7 @@ public final class EncryptedPropertyAuditMarker {
         ApiDefinition oldDefinition,
         ApiDefinition newDefinition
     ) {
-        if (ciphertextByKey(oldDefinition).equals(ciphertextByKey(newDefinition))) {
+        if (!changesEncryptedProperty(oldDefinition, newDefinition)) {
             return auditProperties;
         }
         Map<AuditProperties, String> marked = new EnumMap<>(AuditProperties.class);
@@ -47,6 +49,10 @@ public final class EncryptedPropertyAuditMarker {
 
     public static boolean changesEncryptedProperty(List<? extends Property> oldProperties, List<? extends Property> newProperties) {
         return !ciphertextByKey(oldProperties).equals(ciphertextByKey(newProperties));
+    }
+
+    private static boolean changesEncryptedProperty(ApiDefinition oldDefinition, ApiDefinition newDefinition) {
+        return !ciphertextByKey(oldDefinition).equals(ciphertextByKey(newDefinition));
     }
 
     public static boolean holdsEncryptedProperty(List<? extends Property> properties) {
@@ -65,29 +71,33 @@ public final class EncryptedPropertyAuditMarker {
         if (v4Properties == null) {
             return Map.of();
         }
-        return v4Properties
-            .stream()
-            .filter(Objects::nonNull)
-            .filter(Property::isEncrypted)
-            .collect(
-                HashMap::new,
-                (ciphertextByKey, property) -> ciphertextByKey.put(property.getKey(), property.getValue()),
-                HashMap::putAll
-            );
+        return valueByKey(
+            v4Properties.stream().filter(Objects::nonNull).filter(Property::isEncrypted),
+            Property::getKey,
+            Property::getValue
+        );
     }
 
     private static Map<String, String> ciphertextByKey(Properties v2Properties) {
         if (v2Properties == null) {
             return Map.of();
         }
-        return v2Properties
-            .getProperties()
-            .stream()
-            .filter(property -> property != null && property.isEncrypted())
-            .collect(
-                HashMap::new,
-                (ciphertextByKey, property) -> ciphertextByKey.put(property.getKey(), property.getValue()),
-                HashMap::putAll
-            );
+        return valueByKey(
+            v2Properties
+                .getProperties()
+                .stream()
+                .filter(Objects::nonNull)
+                .filter(property -> property.isEncrypted()),
+            property -> property.getKey(),
+            property -> property.getValue()
+        );
+    }
+
+    private static <T> Map<String, String> valueByKey(Stream<T> properties, Function<T, String> key, Function<T, String> value) {
+        return properties.collect(
+            HashMap::new,
+            (valueByKey, property) -> valueByKey.put(key.apply(property), value.apply(property)),
+            HashMap::putAll
+        );
     }
 }
