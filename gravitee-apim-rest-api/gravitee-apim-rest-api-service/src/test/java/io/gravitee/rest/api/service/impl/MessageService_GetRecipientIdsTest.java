@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -23,10 +24,12 @@ import static org.mockito.Mockito.*;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -38,6 +41,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -349,5 +353,32 @@ public class MessageService_GetRecipientIdsTest {
         assertEquals(1, recipientIds.size(), "size=1");
         assertTrue(recipientIds.contains("user-id"), "user=user-id");
         verify(mockMembershipService, never()).getMembershipsByReferenceAndRole(any(), any(), any());
+    }
+
+    @Test
+    public void should_search_only_accepted_subscriptions_of_the_api() throws TechnicalException {
+        when(mockSubscriptionRepository.search(any())).thenReturn(Collections.emptyList());
+
+        Api api = new Api();
+        api.setId("api-id");
+
+        messageService.getRecipientsId(GraviteeContext.getExecutionContext(), api, applicationOwnersMessage());
+
+        ArgumentCaptor<SubscriptionCriteria> criteriaCaptor = ArgumentCaptor.forClass(SubscriptionCriteria.class);
+        verify(mockSubscriptionRepository).search(criteriaCaptor.capture());
+        SubscriptionCriteria criteria = criteriaCaptor.getValue();
+        assertThat(criteria.getReferenceIds()).containsExactly("api-id");
+        assertThat(criteria.getReferenceType()).isEqualTo(SubscriptionReferenceType.API);
+        assertThat(criteria.getStatuses()).containsExactly(Subscription.Status.ACCEPTED.name());
+    }
+
+    private static MessageEntity applicationOwnersMessage() {
+        MessageEntity messageEntity = new MessageEntity();
+        messageEntity.setChannel(MessageChannel.PORTAL);
+        MessageRecipientEntity messageRecipientEntity = new MessageRecipientEntity();
+        messageRecipientEntity.setRoleScope("APPLICATION");
+        messageRecipientEntity.setRoleValues(Collections.singletonList("OWNER"));
+        messageEntity.setRecipient(messageRecipientEntity);
+        return messageEntity;
     }
 }
