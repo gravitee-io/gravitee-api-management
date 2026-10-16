@@ -35,7 +35,7 @@ public interface AlertService {
     List<AlertTriggerEntity> findByReferenceWithEventCounts(AlertReferenceType referenceType, String referenceId);
     void delete(String alertId, String referenceId);
     AlertStatusEntity getStatus(ExecutionContext executionContext);
-    Page<AlertEventEntity> findEvents(String alertId, AlertEventQuery eventQuery);
+    Page<AlertEventEntity> findEvents(String alertId, AlertReferenceType referenceType, String referenceId, AlertEventQuery eventQuery);
     void createDefaults(ExecutionContext executionContext, AlertReferenceType referenceType, String referenceId);
     void applyDefaults(ExecutionContext executionContext, String alertId, AlertReferenceType referenceType);
 }
