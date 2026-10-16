@@ -212,6 +212,8 @@ public class PlatformAlertsResource extends AbstractResource {
         return new AlertEventPage(
             alertService.findEvents(
                 alert,
+                ENVIRONMENT,
+                GraviteeContext.getCurrentEnvironment(),
                 new AlertEventQuery.Builder()
                     .from(param.getFrom())
                     .to(param.getTo())
