@@ -26,6 +26,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -55,6 +57,7 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.StillApiProductPrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
 import java.util.HashSet;
@@ -276,11 +279,32 @@ public class GroupServiceImplTest {
         );
     }
 
+    private void givenGroupExistsInCurrentEnvironment(ExecutionContext executionContext, String groupId) throws Exception {
+        when(groupRepository.findById(groupId)).thenReturn(
+            Optional.of(Group.builder().id(groupId).environmentId(executionContext.getEnvironmentId()).build())
+        );
+        // findById() marks the group manageable (skipping the group-admin lookup) when the caller holds ENVIRONMENT_GROUP rights.
+        when(
+            permissionService.hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_GROUP,
+                executionContext.getEnvironmentId(),
+                CREATE,
+                UPDATE,
+                DELETE
+            )
+        ).thenReturn(true);
+        // findById() maps the group, which resolves each scope's default role; tests that need a specific role override this.
+        lenient().when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Set.of());
+    }
+
     @Test
     public void deleteUserFromGroup_shouldSucceed_whenGroupIsNotApiPrimaryOwner() throws Exception {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String groupId = "group-1";
         String username = "user-1";
+
+        givenGroupExistsInCurrentEnvironment(executionContext, groupId);
 
         RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
         RoleEntity apiProductPORole = RoleEntity.builder()
@@ -314,12 +338,6 @@ public class GroupServiceImplTest {
             )
         ).thenReturn(Set.of());
 
-        // Mock group lookup for apiPrimaryOwner check at the end
-        when(groupRepository.findById(groupId)).thenReturn(
-            Optional.of(Group.builder().id(groupId).environmentId(executionContext.getEnvironmentId()).build())
-        );
-        when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Set.of());
-
         service.deleteUserFromGroup(executionContext, groupId, username);
 
         verify(membershipService).deleteReferenceMember(
@@ -332,10 +350,41 @@ public class GroupServiceImplTest {
     }
 
     @Test
+    public void deleteUserFromGroup_shouldThrowGroupNotFound_andDeleteNothing_whenGroupBelongsToAnotherEnvironment() throws Exception {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        String groupId = "group-in-another-env";
+        String username = "user-1";
+
+        // The group exists, but lives in another environment, so the environment-filtered findById must reject it.
+        when(groupRepository.findById(groupId)).thenReturn(
+            Optional.of(Group.builder().id(groupId).environmentId("another-environment").build())
+        );
+
+        // Stubs only reached if the (buggy) pre-check runs before the environment check.
+        lenient()
+            .when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId()))
+            .thenReturn(Optional.of(RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).build()));
+        lenient()
+            .when(
+                roleService.findByScopeAndName(RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+            )
+            .thenReturn(Optional.of(RoleEntity.builder().id("api-product-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).build()));
+
+        assertThatThrownBy(() -> service.deleteUserFromGroup(executionContext, groupId, username)).isInstanceOf(
+            GroupNotFoundException.class
+        );
+
+        verify(membershipService, never()).deleteReferenceMember(any(), any(), any(), any(), any());
+        verify(eventManager, never()).publishEvent(any(), any());
+    }
+
+    @Test
     public void deleteUserFromGroup_shouldSucceed_whenGroupIsApiPrimaryOwner_butUserDoesNotHavePrimaryOwnerRole() throws Exception {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String groupId = "group-1";
         String username = "user-1";
+
+        givenGroupExistsInCurrentEnvironment(executionContext, groupId);
 
         RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
         RoleEntity apiProductPORole = RoleEntity.builder()
@@ -381,11 +430,6 @@ public class GroupServiceImplTest {
             Set.of(userApiRole)
         );
 
-        // Mock group lookup for apiPrimaryOwner check at the end
-        when(groupRepository.findById(groupId)).thenReturn(
-            Optional.of(Group.builder().id(groupId).environmentId(executionContext.getEnvironmentId()).build())
-        );
-
         service.deleteUserFromGroup(executionContext, groupId, username);
 
         verify(membershipService).deleteReferenceMember(
@@ -398,10 +442,12 @@ public class GroupServiceImplTest {
     }
 
     @Test
-    public void deleteUserFromGroup_shouldThrowException_whenGroupIsApiPrimaryOwner_andUserHasPrimaryOwnerRole() {
+    public void deleteUserFromGroup_shouldThrowException_whenGroupIsApiPrimaryOwner_andUserHasPrimaryOwnerRole() throws Exception {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String groupId = "group-1";
         String username = "user-1";
+
+        givenGroupExistsInCurrentEnvironment(executionContext, groupId);
 
         RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
 
@@ -435,10 +481,12 @@ public class GroupServiceImplTest {
     }
 
     @Test
-    public void deleteUserFromGroup_shouldThrow_whenGroupIsApiProductPrimaryOwner_andUserHasApiProductPrimaryOwnerRole() {
+    public void deleteUserFromGroup_shouldThrow_whenGroupIsApiProductPrimaryOwner_andUserHasApiProductPrimaryOwnerRole() throws Exception {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String groupId = "group-1";
         String username = "user-1";
+
+        givenGroupExistsInCurrentEnvironment(executionContext, groupId);
 
         // The API guard is satisfied (no API PO membership for the group).
         RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
@@ -494,6 +542,8 @@ public class GroupServiceImplTest {
         String groupId = "group-1";
         String username = "user-1";
 
+        givenGroupExistsInCurrentEnvironment(executionContext, groupId);
+
         RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
         when(
             roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
@@ -534,10 +584,6 @@ public class GroupServiceImplTest {
             Set.of(userApiProductRole)
         );
 
-        when(groupRepository.findById(groupId)).thenReturn(
-            Optional.of(Group.builder().id(groupId).environmentId(executionContext.getEnvironmentId()).build())
-        );
-
         service.deleteUserFromGroup(executionContext, groupId, username);
 
         verify(membershipService).deleteReferenceMember(
@@ -550,13 +596,15 @@ public class GroupServiceImplTest {
     }
 
     @Test
-    public void deleteUserFromGroup_shouldThrow_whenApiProductPrimaryOwnerRoleNotInOrg() {
+    public void deleteUserFromGroup_shouldThrow_whenApiProductPrimaryOwnerRoleNotInOrg() throws Exception {
         // The PO-role lookup is symmetric: missing API_PRODUCT PRIMARY_OWNER role means startup
         // didn't complete (ApiProductRolesUpgrader didn't run). Loud-fail rather than silently
         // skipping the guard, otherwise the user could be removed and orphan a PO group's contact.
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String groupId = "group-1";
         String username = "user-1";
+
+        givenGroupExistsInCurrentEnvironment(executionContext, groupId);
 
         RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
         when(
