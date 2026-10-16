@@ -82,18 +82,24 @@ import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointCon
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.failure.ConnectionFailureClassifier;
 import io.gravitee.reporter.api.v4.metric.Metrics;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.core.http.HttpClosedException;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
+import io.vertx.core.internal.VertxInternal;
 import io.vertx.rxjava3.core.Vertx;
+import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
 import java.time.Instant;
+import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -1623,6 +1629,70 @@ class HttpConnectorTest {
         assertRequestCountStaysAt(slowRequests, 1);
     }
 
+    @Test
+    void should_not_reuse_the_connection_when_the_request_head_could_not_be_written() throws InterruptedException {
+        when(request.method()).thenReturn(HttpMethod.GET);
+        wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
+        cut = connectorWhoseFirstRequestHeadCannotBeWritten(new UnwritableHeaderValue());
+
+        final AtomicReference<Throwable> firstFailure = new AtomicReference<>();
+        final TestObserver<Void> first = connectFromWorkerContext(cut.connect(ctx).doOnError(firstFailure::set));
+        assertNoTimeout(first);
+        first.assertNotComplete();
+        assertThat(ConnectionFailureClassifier.classify(firstFailure.get()).key()).isEqualTo("GATEWAY_CLIENT_READ_TIMEOUT");
+
+        final TestObserver<Void> second = cut.connect(ctx).test();
+        assertNoTimeout(second);
+
+        second.assertComplete();
+        wiremock.verify(1, getRequestedFor(urlPathEqualTo("/team")));
+    }
+
+    @Test
+    void should_not_reuse_the_connection_when_the_request_is_disposed_after_its_head_could_not_be_written() throws InterruptedException {
+        when(request.method()).thenReturn(HttpMethod.GET);
+        wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
+        final UnwritableHeaderValue unwritableHeaderValue = new UnwritableHeaderValue();
+        cut = connectorWhoseFirstRequestHeadCannotBeWritten(unwritableHeaderValue);
+
+        final TestObserver<Void> first = connectFromWorkerContext(cut.connect(ctx));
+        assertThat(unwritableHeaderValue.awaitWriteAttempt()).as("Head write should have been attempted").isTrue();
+        first.dispose();
+
+        final TestObserver<Void> second = cut.connect(ctx).test();
+        assertNoTimeout(second);
+
+        second.assertComplete();
+        wiremock.verify(1, getRequestedFor(urlPathEqualTo("/team")));
+    }
+
+    private HttpConnector connectorWhoseFirstRequestHeadCannotBeWritten(final UnwritableHeaderValue unwritableHeaderValue) {
+        sharedConfiguration.getHttpOptions().setKeepAlive(true);
+        sharedConfiguration.getHttpOptions().setMaxConcurrentConnections(1);
+        sharedConfiguration.getHttpOptions().setReadTimeout(READ_TIMEOUT_MS);
+        final AtomicBoolean firstRequest = new AtomicBoolean(true);
+        return new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory()) {
+            @Override
+            protected HttpClientRequest customizeHttpClientRequest(final HttpClientRequest httpClientRequest) {
+                if (firstRequest.getAndSet(false)) {
+                    httpClientRequest.getDelegate().headers().add("X-Unwritable", unwritableHeaderValue);
+                }
+                return httpClientRequest;
+            }
+        };
+    }
+
+    /**
+     * Subscribes from a worker context so the request head is handed to the connection's event loop as a queued task,
+     * as it is when the gateway serves a request from another event loop. Written from the connection's own event
+     * loop, the head would be written inline and fail the caller at once instead of leaving the request waiting.
+     */
+    private TestObserver<Void> connectFromWorkerContext(final Completable connect) {
+        final TestObserver<Void> observer = new TestObserver<>();
+        ((VertxInternal) vertx.getDelegate()).createWorkerContext().runOnContext(v -> connect.subscribe(observer));
+        return observer;
+    }
+
     private void awaitRequestReceived(final RequestPatternBuilder pattern) throws InterruptedException {
         final long deadlineNs = System.nanoTime() + TimeUnit.SECONDS.toNanos(TIMEOUT_SECONDS);
         while (wiremock.findAll(pattern).isEmpty() && System.nanoTime() - deadlineNs < 0) {
@@ -1683,5 +1753,40 @@ class HttpConnectorTest {
 
     private void assertNoTimeout(TestObserver<Void> obs) throws InterruptedException {
         assertThat(obs.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)).as("Should complete before timeout").isTrue();
+    }
+
+    /**
+     * Passes Vert.x's header validation, then throws when the connection writes the request head, from inside the
+     * task queued on its event loop: the same place a concurrent header write surfaces as a
+     * ConcurrentModificationException.
+     */
+    private static final class UnwritableHeaderValue implements CharSequence {
+
+        private final CountDownLatch writeAttempted = new CountDownLatch(1);
+
+        boolean awaitWriteAttempt() throws InterruptedException {
+            return writeAttempted.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        }
+
+        @Override
+        public int length() {
+            return 1;
+        }
+
+        @Override
+        public char charAt(final int index) {
+            return 'x';
+        }
+
+        @Override
+        public CharSequence subSequence(final int start, final int end) {
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            writeAttempted.countDown();
+            throw new ConcurrentModificationException();
+        }
     }
 }
