@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.*;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.*;
@@ -53,6 +54,9 @@ public class PermissionServiceTest {
 
     @Mock
     protected MembershipService membershipService;
+
+    @Mock
+    protected RoleService roleService;
 
     private static final String USER_NAME = "username";
     private static final String API_ID = "api-id";
@@ -265,6 +269,201 @@ public class PermissionServiceTest {
             )
         );
         SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    public void should_let_organization_admin_manage_members_without_looking_at_memberships() {
+        setSecurityContext(true);
+
+        assertTrue(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+
+        verifyNoInteractions(membershipService, roleService);
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    public void should_let_user_who_reads_organization_users_manage_members() {
+        givenUserRoles(role(RoleScope.ORGANIZATION, OrganizationPermission.USER, "R"));
+
+        assertTrue(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+    }
+
+    @Test
+    public void should_let_user_who_updates_organization_users_manage_members() {
+        givenUserRoles(role(RoleScope.ORGANIZATION, OrganizationPermission.USER, "U"));
+
+        assertTrue(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+    }
+
+    @Test
+    public void should_let_user_who_updates_organization_roles_manage_members() {
+        givenUserRoles(role(RoleScope.ORGANIZATION, OrganizationPermission.ROLE, "U"));
+
+        assertTrue(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+    }
+
+    @Test
+    public void should_let_user_who_updates_environment_groups_manage_members() {
+        givenUserRoles(role(RoleScope.ENVIRONMENT, EnvironmentPermission.GROUP, "U"));
+
+        assertTrue(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+    }
+
+    @Test
+    public void should_let_user_who_updates_members_of_an_api_manage_members() {
+        givenUserRoles(role(RoleScope.API, ApiPermission.MEMBER, "U"));
+
+        assertTrue(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+    }
+
+    @Test
+    public void should_let_user_who_updates_members_of_an_application_manage_members() {
+        givenUserRoles(role(RoleScope.APPLICATION, ApplicationPermission.MEMBER, "U"));
+
+        assertTrue(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+    }
+
+    @Test
+    public void should_let_user_who_updates_members_of_an_integration_manage_members() {
+        givenUserRoles(role(RoleScope.INTEGRATION, IntegrationPermission.MEMBER, "U"));
+
+        assertTrue(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+    }
+
+    @Test
+    public void should_let_user_who_updates_members_of_a_cluster_manage_members() {
+        givenUserRoles(role(RoleScope.CLUSTER, ClusterPermission.MEMBER, "U"));
+
+        assertTrue(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+    }
+
+    @Test
+    public void should_let_user_who_updates_members_through_a_group_role_manage_members() {
+        givenUserRoles(role(RoleScope.GROUP, GroupPermission.MEMBER, "U"));
+
+        assertTrue(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+    }
+
+    // Adding a member is a CREATE: the add endpoints accept it and the Console shows the member picker on it.
+    @Test
+    public void should_let_user_who_may_only_add_members_of_an_api_manage_members() {
+        givenUserRoles(role(RoleScope.API, ApiPermission.MEMBER, "C"));
+
+        assertTrue(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+    }
+
+    @Test
+    public void should_let_user_who_may_only_add_members_of_an_application_manage_members() {
+        givenUserRoles(role(RoleScope.APPLICATION, ApplicationPermission.MEMBER, "C"));
+
+        assertTrue(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+    }
+
+    @Test
+    public void should_let_user_who_may_only_add_members_of_an_integration_manage_members() {
+        givenUserRoles(role(RoleScope.INTEGRATION, IntegrationPermission.MEMBER, "C"));
+
+        assertTrue(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+    }
+
+    @Test
+    public void should_let_user_who_may_only_add_members_of_a_cluster_manage_members() {
+        givenUserRoles(role(RoleScope.CLUSTER, ClusterPermission.MEMBER, "C"));
+
+        assertTrue(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+    }
+
+    @Test
+    public void should_let_user_who_may_only_add_members_through_a_group_role_manage_members() {
+        givenUserRoles(role(RoleScope.GROUP, GroupPermission.MEMBER, "C"));
+
+        assertTrue(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+    }
+
+    @Test
+    public void should_let_user_who_may_only_add_members_of_an_api_product_manage_members() {
+        givenUserRoles(role(RoleScope.API_PRODUCT, ApiProductPermission.MEMBER, "C"));
+
+        assertTrue(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+    }
+
+    @Test
+    public void should_let_user_who_updates_members_of_an_api_product_manage_members() {
+        givenUserRoles(role(RoleScope.API_PRODUCT, ApiProductPermission.MEMBER, "U"));
+
+        assertTrue(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+    }
+
+    @Test
+    public void should_let_user_who_may_only_create_environment_groups_manage_members() {
+        givenUserRoles(role(RoleScope.ENVIRONMENT, EnvironmentPermission.GROUP, "C"));
+
+        assertTrue(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+    }
+
+    @Test
+    public void should_let_user_who_may_only_create_organization_roles_manage_members() {
+        givenUserRoles(role(RoleScope.ORGANIZATION, OrganizationPermission.ROLE, "C"));
+
+        assertTrue(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+    }
+
+    @Test
+    public void should_refuse_user_whose_roles_only_read_members() {
+        givenUserRoles(
+            role(RoleScope.ORGANIZATION, OrganizationPermission.ROLE, "R"),
+            role(RoleScope.ENVIRONMENT, EnvironmentPermission.GROUP, "R"),
+            role(RoleScope.API, ApiPermission.MEMBER, "R"),
+            role(RoleScope.APPLICATION, ApplicationPermission.MEMBER, "R"),
+            role(RoleScope.API_PRODUCT, ApiProductPermission.MEMBER, "R"),
+            role(RoleScope.GROUP, GroupPermission.MEMBER, "R")
+        );
+
+        assertFalse(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+    }
+
+    @Test
+    public void should_refuse_user_with_default_organization_and_environment_roles_only() {
+        // The default roles manage no members: creating applications is not managing their members
+        RoleEntity organizationUser = role(RoleScope.ORGANIZATION, OrganizationPermission.ENVIRONMENT, "R");
+        organizationUser.getPermissions().put(OrganizationPermission.ROLE.getName(), "R".toCharArray());
+        RoleEntity environmentUser = role(RoleScope.ENVIRONMENT, EnvironmentPermission.APPLICATION, "CRUD");
+        environmentUser.getPermissions().put(EnvironmentPermission.API.getName(), "R".toCharArray());
+        environmentUser.getPermissions().put(EnvironmentPermission.GROUP.getName(), "R".toCharArray());
+        givenUserRoles(organizationUser, environmentUser);
+
+        assertFalse(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+    }
+
+    @Test
+    public void should_refuse_user_without_any_membership() {
+        setSecurityContext(false);
+        when(membershipService.getRoleIdsByMember(MembershipMemberType.USER, USER_NAME)).thenReturn(Set.of());
+
+        assertFalse(permissionService.canManageMembers(GraviteeContext.getExecutionContext(), USER_NAME));
+
+        verifyNoInteractions(roleService);
+        SecurityContextHolder.clearContext();
+    }
+
+    private void givenUserRoles(RoleEntity... roles) {
+        setSecurityContext(false);
+        Map<String, RoleEntity> rolesById = new HashMap<>();
+        for (RoleEntity role : roles) {
+            rolesById.put(role.getId(), role);
+        }
+        when(membershipService.getRoleIdsByMember(MembershipMemberType.USER, USER_NAME)).thenReturn(rolesById.keySet());
+        when(roleService.findByIds(rolesById.keySet())).thenReturn(rolesById);
+    }
+
+    private static RoleEntity role(RoleScope scope, Permission permission, String acls) {
+        RoleEntity role = new RoleEntity();
+        role.setId(scope.name() + "-" + permission.getName() + "-" + acls);
+        role.setScope(scope);
+        Map<String, char[]> permissions = new HashMap<>();
+        permissions.put(permission.getName(), acls.toCharArray());
+        role.setPermissions(permissions);
+        return role;
     }
 
     private static void setSecurityContext(boolean isOrganizationAdmin) {
