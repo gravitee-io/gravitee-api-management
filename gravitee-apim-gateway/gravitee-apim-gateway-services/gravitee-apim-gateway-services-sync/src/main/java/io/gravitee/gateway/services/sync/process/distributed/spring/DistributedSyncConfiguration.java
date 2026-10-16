@@ -34,6 +34,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.Organization
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SharedPolicyGroupMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.distributed.service.DefaultDistributedSyncService;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncMetrics;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.accesspoint.DistributedAccessPointSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.api.DistributedApiSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.apikey.DistributedApiKeySynchronizer;
@@ -68,53 +69,66 @@ import org.springframework.context.annotation.Lazy;
 public class DistributedSyncConfiguration {
 
     @Bean
-    public ApiMapper distributedApiMapper(ObjectMapper objectMapper, SubscriptionMapper subscriptionMapper, ApiKeyMapper apiKeyMapper) {
-        return new ApiMapper(objectMapper, subscriptionMapper, apiKeyMapper);
+    public DistributedSyncMetrics distributedSyncMetrics() {
+        return new DistributedSyncMetrics();
     }
 
     @Bean
-    public ApiKeyMapper distributedApiKeyMapper(ObjectMapper objectMapper) {
-        return new ApiKeyMapper(objectMapper);
+    public ApiMapper distributedApiMapper(
+        ObjectMapper objectMapper,
+        SubscriptionMapper subscriptionMapper,
+        ApiKeyMapper apiKeyMapper,
+        DistributedSyncMetrics distributedSyncMetrics
+    ) {
+        return new ApiMapper(objectMapper, subscriptionMapper, apiKeyMapper, distributedSyncMetrics);
     }
 
     @Bean
-    public SubscriptionMapper distributedSubscriptionMapper(ObjectMapper objectMapper) {
-        return new SubscriptionMapper(objectMapper);
+    public ApiKeyMapper distributedApiKeyMapper(ObjectMapper objectMapper, DistributedSyncMetrics distributedSyncMetrics) {
+        return new ApiKeyMapper(objectMapper, distributedSyncMetrics);
     }
 
     @Bean
-    public DictionaryMapper distributedDictionaryMapper(ObjectMapper objectMapper) {
-        return new DictionaryMapper(objectMapper);
+    public SubscriptionMapper distributedSubscriptionMapper(ObjectMapper objectMapper, DistributedSyncMetrics distributedSyncMetrics) {
+        return new SubscriptionMapper(objectMapper, distributedSyncMetrics);
     }
 
     @Bean
-    public OrganizationMapper distributedOrganizationMapper(ObjectMapper objectMapper) {
-        return new OrganizationMapper(objectMapper);
+    public DictionaryMapper distributedDictionaryMapper(ObjectMapper objectMapper, DistributedSyncMetrics distributedSyncMetrics) {
+        return new DictionaryMapper(objectMapper, distributedSyncMetrics);
     }
 
     @Bean
-    public AccessPointMapper distributedAccessPointMapper(ObjectMapper objectMapper) {
-        return new AccessPointMapper(objectMapper);
+    public OrganizationMapper distributedOrganizationMapper(ObjectMapper objectMapper, DistributedSyncMetrics distributedSyncMetrics) {
+        return new OrganizationMapper(objectMapper, distributedSyncMetrics);
     }
 
     @Bean
-    public SharedPolicyGroupMapper distributedSharedPolicyGroupMapper(ObjectMapper objectMapper) {
-        return new SharedPolicyGroupMapper(objectMapper);
+    public AccessPointMapper distributedAccessPointMapper(ObjectMapper objectMapper, DistributedSyncMetrics distributedSyncMetrics) {
+        return new AccessPointMapper(objectMapper, distributedSyncMetrics);
     }
 
     @Bean
-    public AuthzEntityMapper distributedAuthzEntityMapper(ObjectMapper objectMapper) {
-        return new AuthzEntityMapper(objectMapper);
+    public SharedPolicyGroupMapper distributedSharedPolicyGroupMapper(
+        ObjectMapper objectMapper,
+        DistributedSyncMetrics distributedSyncMetrics
+    ) {
+        return new SharedPolicyGroupMapper(objectMapper, distributedSyncMetrics);
     }
 
     @Bean
-    public AuthzPolicyMapper distributedAuthzPolicyMapper(ObjectMapper objectMapper) {
-        return new AuthzPolicyMapper(objectMapper);
+    public AuthzEntityMapper distributedAuthzEntityMapper(ObjectMapper objectMapper, DistributedSyncMetrics distributedSyncMetrics) {
+        return new AuthzEntityMapper(objectMapper, distributedSyncMetrics);
     }
 
     @Bean
-    public CredentialMapper distributedCredentialMapper(ObjectMapper objectMapper) {
-        return new CredentialMapper(objectMapper);
+    public AuthzPolicyMapper distributedAuthzPolicyMapper(ObjectMapper objectMapper, DistributedSyncMetrics distributedSyncMetrics) {
+        return new AuthzPolicyMapper(objectMapper, distributedSyncMetrics);
+    }
+
+    @Bean
+    public CredentialMapper distributedCredentialMapper(ObjectMapper objectMapper, DistributedSyncMetrics distributedSyncMetrics) {
+        return new CredentialMapper(objectMapper, distributedSyncMetrics);
     }
 
     @Bean
@@ -123,13 +137,13 @@ public class DistributedSyncConfiguration {
     }
 
     @Bean
-    public NodeMetadataMapper distributedNodeMetadataMapper(ObjectMapper objectMapper) {
-        return new NodeMetadataMapper(objectMapper);
+    public NodeMetadataMapper distributedNodeMetadataMapper(ObjectMapper objectMapper, DistributedSyncMetrics distributedSyncMetrics) {
+        return new NodeMetadataMapper(objectMapper, distributedSyncMetrics);
     }
 
     @Bean
-    public ApiProductMapper distributedApiProductMapper(ObjectMapper objectMapper) {
-        return new ApiProductMapper(objectMapper);
+    public ApiProductMapper distributedApiProductMapper(ObjectMapper objectMapper, DistributedSyncMetrics distributedSyncMetrics) {
+        return new ApiProductMapper(objectMapper, distributedSyncMetrics);
     }
 
     @Bean
@@ -381,7 +395,8 @@ public class DistributedSyncConfiguration {
         final AuthzEntityMapper authzEntityMapper,
         final AuthzPolicyMapper authzPolicyMapper,
         final ApiProductMapper apiProductMapper,
-        final CredentialMapper credentialMapper
+        final CredentialMapper credentialMapper,
+        final DistributedSyncMetrics distributedSyncMetrics
     ) {
         return new DefaultDistributedSyncService(
             node,
@@ -401,7 +416,8 @@ public class DistributedSyncConfiguration {
             authzEntityMapper,
             authzPolicyMapper,
             apiProductMapper,
-            credentialMapper
+            credentialMapper,
+            distributedSyncMetrics
         );
     }
 }
