@@ -191,6 +191,8 @@ public class ApiAlertsResource extends AbstractResource {
         return new AlertEventPage(
             alertService.findEvents(
                 alert,
+                API,
+                api,
                 new AlertEventQuery.Builder()
                     .from(param.getFrom())
                     .to(param.getTo())
