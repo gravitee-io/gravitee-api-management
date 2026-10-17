@@ -41,6 +41,8 @@ public abstract class SocialIdentityProviderEntity {
     @JsonIgnore
     private String clientSecret;
 
+    private ClientAuthenticationMethod tokenEndpointAuthMethod;
+
     private boolean syncMappings;
 
     @JsonIgnore
@@ -170,5 +172,13 @@ public abstract class SocialIdentityProviderEntity {
 
     public void setSyncMappings(boolean syncMappings) {
         this.syncMappings = syncMappings;
+    }
+
+    public ClientAuthenticationMethod getTokenEndpointAuthMethod() {
+        return tokenEndpointAuthMethod;
+    }
+
+    public void setTokenEndpointAuthMethod(ClientAuthenticationMethod tokenEndpointAuthMethod) {
+        this.tokenEndpointAuthMethod = tokenEndpointAuthMethod;
     }
 }
