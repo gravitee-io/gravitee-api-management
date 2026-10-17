@@ -24,6 +24,8 @@ import io.vertx.core.internal.VertxInternal;
 import io.vertx.core.net.NetClient;
 import io.vertx.core.net.NetServer;
 import java.lang.reflect.Field;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -75,9 +77,15 @@ class GraviteeApisProbeTest {
 
     @Test
     void should_report_unhealthy_when_no_server_accepts_the_connection() throws Exception {
-        await(server.close());
+        // A closed port can be taken again before the check, by a parallel test or as the probe's own source port
+        // (TCP self-connect). A bound socket that does not listen refuses every connection and keeps the port reserved.
+        try (Socket reservedPort = new Socket()) {
+            reservedPort.bind(new InetSocketAddress("127.0.0.1", 0));
+            setField(cut, "host", "127.0.0.1");
+            setField(cut, "port", reservedPort.getLocalPort());
 
-        assertThat(check().isHealthy()).isFalse();
+            assertThat(check().isHealthy()).isFalse();
+        }
     }
 
     @Test
