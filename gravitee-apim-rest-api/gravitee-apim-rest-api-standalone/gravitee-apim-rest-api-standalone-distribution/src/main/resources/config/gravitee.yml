@@ -351,8 +351,9 @@ security:
   # trustAll: false
   providers:  # authentication providers
     - type: memory
-      # allow search results to display the user email. Be careful, It may be contrary to the user privacy.
-#      allow-email-in-search-results: true
+      # The user search (used to add members) never returns the user email unless this is set to true.
+      # Be careful, it may be contrary to the user privacy.
+      allow-email-in-search-results: false
       # password encoding/hashing algorithm. One of:
       # - bcrypt : passwords are hashed with bcrypt (supports only $2a$ algorithm)
       # - none : passwords are not hashed/encrypted
@@ -396,8 +397,9 @@ security:
           #email:
     # Enable authentication using internal repository
     - type: gravitee
-      # allow search results to display the user email. Be careful, It may be contrary to the user privacy.
-#      allow-email-in-search-results: true
+      # The user search (used to add members) never returns the user email unless this is set to true.
+      # Be careful, it may be contrary to the user privacy.
+      allow-email-in-search-results: false
     # Enable authentication using an LDAP/Active Directory
 #    - type: ldap
       # This is default LDAP configuration for ApacheDS
@@ -430,8 +432,9 @@ security:
 #              GRAVITEE-USERS: USER
 #            }
 #      lookup:
-         # allow search results to display the user email. Be careful, It may be contrary to the user privacy.
-#         allow-email-in-search-results: true
+         # The user search (used to add members) never returns the user email unless this is set to true.
+         # Be careful, it may be contrary to the user privacy.
+#         allow-email-in-search-results: false
 #        user:
           # Search base for user searches. Defaults to "". Only used with user filter.
           # It should be relative to the Base DN. If the whole DN is o=user accounts,c=io,o=gravitee then the base should be like this:

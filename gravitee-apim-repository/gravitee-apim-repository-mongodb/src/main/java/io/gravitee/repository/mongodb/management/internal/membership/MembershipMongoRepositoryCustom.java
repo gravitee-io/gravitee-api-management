@@ -15,8 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management.internal.membership;
 
+import java.util.Set;
 import java.util.stream.Stream;
 
 public interface MembershipMongoRepositoryCustom {
     Stream<String> findRefIdsByMemberIdAndMemberTypeAndReferenceType(String memberId, String memberType, String referenceType);
+
+    Set<String> findRoleIdsByMemberIdAndMemberType(String memberId, String memberType);
 }
