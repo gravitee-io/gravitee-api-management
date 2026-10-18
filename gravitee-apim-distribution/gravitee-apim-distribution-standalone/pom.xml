@@ -2775,6 +2775,21 @@
                     </exclusions>
                 </dependency>
 
+                <!-- Reporters -->
+                <dependency>
+                    <groupId>com.graviteesource.reporter</groupId>
+                    <artifactId>gravitee-reporter-datadog</artifactId>
+                    <version>${gravitee-reporter-datadog.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+
                 <!-- Resources -->
                 <dependency>
                     <groupId>io.gravitee.resource</groupId>
@@ -2819,6 +2834,19 @@
                     <groupId>io.gravitee.resource</groupId>
                     <artifactId>gravitee-resource-cache-redis</artifactId>
                     <version>${gravitee-resource-cache-redis.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>io.gravitee.resource</groupId>
+                    <artifactId>gravitee-resource-cache-cloud-redis</artifactId>
+                    <version>${gravitee-resource-cache-cloud-redis.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
