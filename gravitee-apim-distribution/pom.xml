@@ -85,14 +85,11 @@
         -->
         <gravitee-connector-http.version>6.0.4</gravitee-connector-http.version>
         <gravitee-node.version>9.14.1</gravitee-node.version>
-        <grpc-java.version>1.65.0</grpc-java.version>
         <jna.version>5.19.1</jna.version>
         <mariadb-java-client.version>3.5.10</mariadb-java-client.version>
         <mongo.version>5.11.1</mongo.version>
         <mssql-jdbc.version>13.6.0.jre11</mssql-jdbc.version>
         <postgresql.version>42.7.13</postgresql.version>
-        <protobuf-java.version>3.25.5</protobuf-java.version>
-        <vertx.version>5.0.12</vertx.version>
 
         <!--
             Assembly poms are not published. They were deployed because the distribution happened to
@@ -159,8 +156,6 @@
     policy-token-bucket-ratelimit and gateway-services-ratelimit    -->
     <!--    <gravitee-policy-quota.version>5.0.2</gravitee-policy-quota.version>    -->
     <!--    <gravitee-policy-spikearrest.version>5.0.2</gravitee-policy-spikearrest.version>    -->
-    <!--
-    <gravitee-policy-token-bucket-ratelimit.version>5.0.0</gravitee-policy-token-bucket-ratelimit.version>    -->
     <gravitee-policy-ratelimit.version>5.0.3</gravitee-policy-ratelimit.version>
     <gravitee-policy-regex-threat-protection.version>2.0.0</gravitee-policy-regex-threat-protection.version>
     <gravitee-policy-request-content-limit.version>2.0.0</gravitee-policy-request-content-limit.version>
@@ -208,8 +203,6 @@
     <gravitee-reporter-otel.version>1.4.0</gravitee-reporter-otel.version>
     <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and
     gateway-services-ratelimit    -->
-    <!--
-    <gravitee-gateway-services-ratelimit.version>3.0.0</gravitee-gateway-services-ratelimit.version>    -->
 
     <!-- Versions of the plugins for the full distribution on dev environment-->
     <!-- Management API & Gateway -->
