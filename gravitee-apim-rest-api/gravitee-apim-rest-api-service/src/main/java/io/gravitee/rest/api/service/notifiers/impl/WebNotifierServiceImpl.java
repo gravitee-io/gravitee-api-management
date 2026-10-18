@@ -60,7 +60,8 @@ public class WebNotifierServiceImpl implements WebNotifierService {
     /**
      * Vert.x holds on to every client it creates until the Vert.x instance itself is closed, so a client per
      * notification would accumulate for as long as the node runs. A client is built once per distinct configuration
-     * and shared.
+     * and shared, and the organization is part of the configuration so that an unresponsive webhook endpoint can only
+     * exhaust the connections of the organization that configured it.
      */
     private final Map<ClientKey, HttpClient> clients = new ConcurrentHashMap<>();
 
@@ -87,7 +88,7 @@ public class WebNotifierServiceImpl implements WebNotifierService {
         CompletableFuture<Buffer> future = new CompletableFuture<>();
         URI requestUri = URI.create(uri);
         final HttpClient httpClient = clients.computeIfAbsent(
-            new ClientKey(HTTPS_SCHEME.equalsIgnoreCase(requestUri.getScheme()), useSystemProxy),
+            new ClientKey(organizationId, HTTPS_SCHEME.equalsIgnoreCase(requestUri.getScheme()), useSystemProxy),
             key -> buildHttpClient(key.ssl(), key.proxy())
         );
 
@@ -243,5 +244,9 @@ public class WebNotifierServiceImpl implements WebNotifierService {
         return configuration.getProperty("httpClient.proxy.https.password");
     }
 
-    private record ClientKey(boolean ssl, boolean proxy) {}
+    /**
+     * A setting that can differ per organization (SSL or proxy settings, timeouts, trust) has to be part of this key,
+     * otherwise organizations would silently share a client configured for one of them.
+     */
+    private record ClientKey(String organizationId, boolean ssl, boolean proxy) {}
 }
