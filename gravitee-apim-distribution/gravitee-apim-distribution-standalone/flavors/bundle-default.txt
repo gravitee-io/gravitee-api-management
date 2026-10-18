@@ -1,0 +1,251 @@
+#
+# Copyright © 2015 The Gravitee team (http://gravitee.io)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# Flavor bundle-default: built with -Dbundle: the released zip and images. Community plus the enterprise plugins we ship.
+# One artifactId per line. The versions come from the catalog profile of the standalone poms; each component
+# (gateway, rest-api) takes the names its assembly accepts and skips the others.
+
+# ==== Community
+
+# Clusters
+gravitee-node-cache-plugin-standalone
+gravitee-node-cluster-plugin-standalone
+
+# Connectors
+gravitee-alert-engine-connectors-ws
+gravitee-cockpit-connectors-ws
+gravitee-connector-http
+
+# Entrypoints
+gravitee-apim-plugin-entrypoint-http-proxy
+gravitee-apim-plugin-entrypoint-tcp-proxy
+
+# Endpoints
+gravitee-apim-plugin-endpoint-mock
+gravitee-apim-plugin-endpoint-http-proxy
+gravitee-apim-plugin-endpoint-tcp-proxy
+
+# Fetchers
+gravitee-fetcher-bitbucket
+gravitee-fetcher-git
+gravitee-fetcher-github
+gravitee-fetcher-gitlab
+gravitee-fetcher-http
+
+# Gamma Modules
+gravitee-gamma-module-apim
+gravitee-gamma-module-platform
+gravitee-gamma-module-portals
+
+# Notifiers
+gravitee-notifier-email
+gravitee-notifier-slack
+gravitee-notifier-webhook
+
+# Policies
+gravitee-policy-apikey
+gravitee-policy-assign-attributes
+gravitee-policy-assign-content
+gravitee-policy-cache
+gravitee-policy-callout-http
+gravitee-policy-dynamic-routing
+gravitee-policy-generate-http-signature
+gravitee-policy-generate-jwt
+gravitee-policy-groovy
+gravitee-policy-html-json
+gravitee-policy-http-signature
+gravitee-policy-ipfiltering
+gravitee-policy-json-to-json
+gravitee-policy-json-to-toon
+gravitee-policy-json-validation
+gravitee-policy-json-xml
+gravitee-policy-jws
+gravitee-policy-jwt
+gravitee-policy-keyless
+gravitee-policy-latency
+gravitee-policy-metrics-reporter
+gravitee-policy-message-filtering
+gravitee-policy-mock
+gravitee-policy-mtls
+gravitee-policy-oauth2
+gravitee-policy-openid-connect-userinfo
+gravitee-policy-override-http-method
+gravitee-policy-quota
+gravitee-policy-ratelimit
+gravitee-policy-token-bucket-ratelimit
+gravitee-policy-regex-threat-protection
+gravitee-policy-request-content-limit
+gravitee-policy-request-validation
+gravitee-policy-resource-filtering
+gravitee-policy-rest-to-soap
+gravitee-policy-retry
+gravitee-policy-role-based-access-control
+gravitee-policy-spikearrest
+gravitee-policy-ssl-enforcement
+gravitee-policy-traffic-shadowing
+gravitee-policy-transformheaders
+gravitee-policy-transformqueryparams
+gravitee-policy-transform-status-code
+gravitee-policy-url-rewriting
+gravitee-policy-xml-json
+gravitee-policy-xml-validation
+gravitee-policy-xml-threat-protection
+gravitee-policy-json-threat-protection
+gravitee-policy-ai-prompt-guard-rails
+gravitee-policy-ai-prompt-token-tracking
+gravitee-policy-http-redirect
+
+# Reporters
+gravitee-apim-reporter-elasticsearch
+gravitee-apim-reporter-file
+
+# Repositories
+gravitee-apim-repository-jdbc
+postgresql
+mariadb-java-client
+mssql-jdbc
+gravitee-apim-repository-mongodb
+gravitee-apim-repository-elasticsearch
+gravitee-apim-repository-noop
+gravitee-apim-repository-redis
+gravitee-apim-repository-hazelcast
+
+# Resources
+gravitee-resource-cache
+gravitee-resource-oauth2-provider-am
+gravitee-resource-oauth2-provider-generic
+gravitee-resource-oauth2-provider-auth0
+gravitee-resource-oauth2-provider-entra-id
+gravitee-resource-content-provider-inline
+gravitee-resource-ai-model-text-classification
+gravitee-resource-schema-registry-http
+
+# Services
+gravitee-service-discovery-consul
+gravitee-gateway-services-ratelimit
+gravitee-apim-plugin-apiservice-healthcheck-http
+gravitee-apim-plugin-apiservice-servicediscovery-consul
+gravitee-apim-plugin-apiservice-dynamicproperties-http
+gravitee-inference-service
+
+# ==== Enterprise
+
+# Entrypoints
+gravitee-entrypoint-http-get
+gravitee-entrypoint-http-post
+gravitee-entrypoint-sse
+gravitee-entrypoint-webhook
+gravitee-entrypoint-websocket
+gravitee-entrypoint-native-kafka
+gravitee-entrypoint-agent-to-agent
+gravitee-entrypoint-mcp-proxy
+gravitee-entrypoint-mcp-studio
+gravitee-entrypoint-llm-proxy
+gravitee-entrypoint-mcp-studio
+gravitee-entrypoint-a2a-proxy
+gravitee-entrypoint-authz
+gravitee-entrypoint-mcp-tool-server
+
+# Endpoints
+gravitee-endpoint-jms
+gravitee-endpoint-kafka
+gravitee-endpoint-mqtt5
+gravitee-endpoint-rabbitmq
+gravitee-endpoint-azure-service-bus
+gravitee-endpoint-native-kafka
+gravitee-endpoint-native-kafka-cluster
+gravitee-endpoint-native-kafka-virtual-cluster
+gravitee-endpoint-agent-to-agent
+gravitee-endpoint-mcp-proxy
+gravitee-endpoint-tools-http
+gravitee-endpoint-tools-mcp
+gravitee-endpoint-tools-arazzo
+gravitee-endpoint-llm-proxy
+gravitee-endpoint-a2a-proxy
+
+# Gamma
+gravitee-gamma-module-aim
+gravitee-gamma-module-authz
+gravitee-gamma-module-edge
+gravitee-gamma-module-esm
+
+# Reporters
+gravitee-reporter-tcp
+gravitee-reporter-cloud
+gravitee-reporter-otel
+
+# Resources
+gravitee-resource-ai-vector-store-redis
+gravitee-resource-ai-vector-store-aws-s3
+gravitee-resource-ai-model-text-embedding
+gravitee-resource-ai-model-token-classification
+gravitee-resource-schema-registry-confluent
+gravitee-resource-schema-registry-embedded
+
+# Policies
+gravitee-policy-assign-metrics
+gravitee-policy-cloud-events
+gravitee-policy-data-logging-masking
+gravitee-policy-generate-wssecurity
+gravitee-policy-xslt
+gravitee-policy-oas-validation
+gravitee-policy-data-cache
+gravitee-policy-kafka-quota
+gravitee-policy-kafka-topic-mapping
+gravitee-policy-kafka-acl
+gravitee-policy-kafka-fetch-rules
+gravitee-policy-kafka-produce-rules
+gravitee-policy-kafka-create-topic-rules
+gravitee-policy-kafka-alter-topic-rules
+gravitee-policy-kafka-transform-key
+gravitee-policy-kafka-offloading
+gravitee-policy-kafka-message-filtering
+gravitee-policy-kafka-message-encryption-decryption
+gravitee-policy-kafka-namespace
+gravitee-policy-transform-avro-json
+gravitee-policy-transform-protobuf-json
+gravitee-policy-token-ratelimit
+gravitee-policy-cost-ratelimit
+gravitee-policy-mcp-acl
+gravitee-policy-oauth2-token-exchange
+gravitee-policy-ai-semantic-caching
+gravitee-policy-ai-routing
+gravitee-policy-ai-token-compression
+gravitee-policy-pii-filtering
+gravitee-policy-native-ipfiltering
+gravitee-policy-authz-pep
+gravitee-policy-authz-pdp-authzen
+
+# Reactors
+gravitee-reactor-message
+gravitee-reactor-native-kafka
+gravitee-reactor-mcp-proxy
+gravitee-reactor-llm-proxy
+gravitee-reactor-a2a-proxy
+gravitee-reactor-authz
+gravitee-reactor-edge
+
+# Repositories
+gravitee-apim-repository-bridge-http-server
+gravitee-apim-repository-bridge-http-client
+
+# Services
+gravitee-service-authz-pdp
+
+# Secret Providers
+gravitee-secret-provider-hc-vault
+gravitee-service-secrets
+gravitee-secret-provider-kubernetes
