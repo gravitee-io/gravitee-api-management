@@ -61,6 +61,10 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
     /**
      * Vert.x holds on to every client it creates until the Vert.x instance itself is closed, so a client per call
      * would accumulate for as long as the node runs. A client is built once per distinct configuration and shared.
+     * <p>
+     * The organization is part of the key so that an unresponsive endpoint configured in one organization can only
+     * exhaust the connections of that organization. The clients of a deleted organization are kept until the next
+     * restart, which is acceptable since organizations are rarely deleted.
      */
     private final Map<ClientKey, HttpClient> clients = new ConcurrentHashMap<>();
 
@@ -73,7 +77,7 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
     public HttpClient createHttpClient(String organizationId, String uriScheme, Boolean useSystemProxy) {
         boolean ssl = HTTPS_SCHEME.equalsIgnoreCase(uriScheme);
         boolean proxy = (useSystemProxy == Boolean.TRUE) || (useSystemProxy == null && this.isProxyConfigured());
-        return clients.computeIfAbsent(new ClientKey(ssl, proxy), key -> buildHttpClient(key.ssl(), key.proxy()));
+        return clients.computeIfAbsent(new ClientKey(organizationId, ssl, proxy), key -> buildHttpClient(key.ssl(), key.proxy()));
     }
 
     private HttpClient buildHttpClient(boolean ssl, boolean proxy) {
@@ -266,5 +270,10 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
         return Boolean.valueOf(System.getProperty("httpClient.proxy", "false"));
     }
 
-    private record ClientKey(boolean ssl, boolean proxy) {}
+    /**
+     * A setting that can differ per organization (SSL or proxy settings, timeouts, trust) has to be part of this key,
+     * otherwise organizations would silently share a client configured for one of them.
+     * The organization is {@code null} for the endpoints the platform itself owns.
+     */
+    private record ClientKey(String organizationId, boolean ssl, boolean proxy) {}
 }
