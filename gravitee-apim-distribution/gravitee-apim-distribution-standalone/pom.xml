@@ -2193,7 +2193,7 @@
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-kafka-offloading</artifactId>
-                    <version>${gravitee-policy-offloading.version}</version>
+                    <version>${gravitee-policy-kafka-offloading.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
@@ -2552,7 +2552,7 @@
                 <dependency>
                     <groupId>com.graviteesource.secretprovider</groupId>
                     <artifactId>gravitee-secret-provider-hc-vault</artifactId>
-                    <version>${gravitee-secretprovider-hc-vault.version}</version>
+                    <version>${gravitee-secret-provider-hc-vault.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
@@ -2578,7 +2578,7 @@
                 <dependency>
                     <groupId>io.gravitee.secretprovider</groupId>
                     <artifactId>gravitee-secret-provider-kubernetes</artifactId>
-                    <version>${gravitee-secretprovider-kubernetes.version}</version>
+                    <version>${gravitee-secret-provider-kubernetes.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
@@ -2661,7 +2661,7 @@
                 <dependency>
                     <groupId>io.gravitee.policy</groupId>
                     <artifactId>gravitee-policy-custom-query-parameters-parser</artifactId>
-                    <version>${gravitee-policy-custom-query-parameters.version}</version>
+                    <version>${gravitee-policy-custom-query-parameters-parser.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
@@ -2861,7 +2861,7 @@
                 <dependency>
                     <groupId>com.graviteesource.secretprovider</groupId>
                     <artifactId>gravitee-secret-provider-aws</artifactId>
-                    <version>${gravitee-secretprovider-aws.version}</version>
+                    <version>${gravitee-secret-provider-aws.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
@@ -2874,7 +2874,7 @@
                 <dependency>
                     <groupId>com.graviteesource.secretprovider</groupId>
                     <artifactId>gravitee-secret-provider-azure-keyvault</artifactId>
-                    <version>${gravitee-secretprovider-azure-keyvault.version}</version>
+                    <version>${gravitee-secret-provider-azure-keyvault.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
