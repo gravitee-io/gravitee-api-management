@@ -326,7 +326,12 @@ class NotifierServiceImplTest {
                     .build()
             );
 
-            verify(webhookNotifierService).trigger(eq(ApiHook.API_STARTED), eq(webhookConfig), eq(params));
+            verify(webhookNotifierService).trigger(
+                eq(executionContext.getOrganizationId()),
+                eq(ApiHook.API_STARTED),
+                eq(webhookConfig),
+                eq(params)
+            );
             verify(emailNotifierService).trigger(
                 eq(executionContext),
                 eq(ApiHook.API_STARTED),

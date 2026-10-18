@@ -421,6 +421,7 @@ public class ApiResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response updateApiWithDefinitionFromUrl(@PathParam("apiId") String apiId, @NotNull String apiDefinitionUrl) {
         var input = new ImportApiDefinitionFromUrlUseCase.Input(
+            GraviteeContext.getExecutionContext().getOrganizationId(),
             apiDefinitionUrl,
             importConfiguration.getImportWhitelist(),
             importConfiguration.isAllowImportFromPrivate()

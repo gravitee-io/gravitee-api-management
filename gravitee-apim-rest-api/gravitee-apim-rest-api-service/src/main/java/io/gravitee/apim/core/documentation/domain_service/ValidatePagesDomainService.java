@@ -66,7 +66,7 @@ public class ValidatePagesDomainService implements Validator<ValidatePagesDomain
                 page.setHrid(key);
 
                 pageSourceValidator
-                    .validateAndSanitize(new ValidatePageSourceDomainService.Input(key, page.getSource()))
+                    .validateAndSanitize(new ValidatePageSourceDomainService.Input(input.auditInfo.organizationId(), key, page.getSource()))
                     .peek(sanitized -> page.setSource(sanitized.source()), errors::addAll);
 
                 accessControlsValidator
