@@ -43,6 +43,7 @@ import org.junit.jupiter.api.Test;
 class WebNotifierServiceImplTest {
 
     private static final int TIMEOUT_SECONDS = 10;
+    private static final String ORGANIZATION_ID = "DEFAULT";
 
     private Vertx vertx;
     private HttpServer server;
@@ -75,18 +76,18 @@ class WebNotifierServiceImplTest {
 
     @Test
     void should_deliver_the_notification_through_a_single_client() throws Exception {
-        cut.request(HttpMethod.POST, url, Map.of(), "{}", false);
+        cut.request(ORGANIZATION_ID, HttpMethod.POST, url, Map.of(), "{}", false);
 
         assertThat(registeredHttpClients()).isEqualTo(1);
     }
 
     @Test
     void should_not_register_a_new_client_on_every_notification() throws Exception {
-        cut.request(HttpMethod.POST, url, Map.of(), "{}", false);
+        cut.request(ORGANIZATION_ID, HttpMethod.POST, url, Map.of(), "{}", false);
         long afterFirstNotification = registeredHttpClients();
 
         for (int i = 0; i < 9; i++) {
-            cut.request(HttpMethod.POST, url, Map.of(), "{}", false);
+            cut.request(ORGANIZATION_ID, HttpMethod.POST, url, Map.of(), "{}", false);
         }
 
         assertThat(registeredHttpClients()).isEqualTo(afterFirstNotification);

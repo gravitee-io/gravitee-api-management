@@ -166,7 +166,7 @@ public class ApisResource_CreateApiWithDefinitionFromUrlTest extends AbstractRes
         ).thenReturn(true);
 
         Buffer buffer = Buffer.buffer(VALID_API_DEFINITION_JSON);
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
+        when(httpClientService.request(eq(ORGANIZATION), eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
 
         ApiWithFlows mockApi = ApiWithFlows.builder().id("test-api-id").name("Test API").build();
         when(importApiDefinitionUseCase.execute(any())).thenReturn(new ImportApiDefinitionUseCase.Output(mockApi));
@@ -174,7 +174,7 @@ public class ApisResource_CreateApiWithDefinitionFromUrlTest extends AbstractRes
         Response response = rootTarget().request(MediaType.APPLICATION_JSON).post(Entity.text(TEST_URL));
         assertEquals(CREATED_201, response.getStatus());
 
-        verify(httpClientService).request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any());
+        verify(httpClientService).request(eq(ORGANIZATION), eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any());
         verify(importApiDefinitionUseCase).execute(any());
     }
 
@@ -209,7 +209,7 @@ public class ApisResource_CreateApiWithDefinitionFromUrlTest extends AbstractRes
         ).thenReturn(true);
 
         Buffer buffer = Buffer.buffer("invalid json content");
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
+        when(httpClientService.request(eq(ORGANIZATION), eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
 
         Response response = rootTarget().request(MediaType.APPLICATION_JSON).post(Entity.text(TEST_URL));
         assertEquals(BAD_REQUEST_400, response.getStatus());
@@ -221,7 +221,7 @@ public class ApisResource_CreateApiWithDefinitionFromUrlTest extends AbstractRes
         // as a TechnicalManagementException; it must become a clean 4xx, not a 500 leaking the remote response.
         grantCreatePermission();
 
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenThrow(
+        when(httpClientService.request(eq(ORGANIZATION), eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenThrow(
             new TechnicalManagementException(" Error on url '" + TEST_URL + "'. Status code: 404. Message: Not Found", null)
         );
 
@@ -240,7 +240,7 @@ public class ApisResource_CreateApiWithDefinitionFromUrlTest extends AbstractRes
         // UnknownHostException or the failing host.
         grantCreatePermission();
 
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenThrow(
+        when(httpClientService.request(eq(ORGANIZATION), eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenThrow(
             new TechnicalManagementException(
                 "Failed to resolve 'nonexistent-host-xyz.invalid'",
                 new java.net.UnknownHostException("nonexistent-host-xyz.invalid")
@@ -262,7 +262,7 @@ public class ApisResource_CreateApiWithDefinitionFromUrlTest extends AbstractRes
         grantCreatePermission();
 
         Buffer buffer = Buffer.buffer("{\"hello\":\"world\"}");
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
+        when(httpClientService.request(eq(ORGANIZATION), eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
 
         Response response = rootTarget().request(MediaType.APPLICATION_JSON).post(Entity.text(TEST_URL));
 
@@ -278,7 +278,7 @@ public class ApisResource_CreateApiWithDefinitionFromUrlTest extends AbstractRes
         grantCreatePermission();
 
         Buffer buffer = Buffer.buffer("{\"api\":{\"definitionVersion\":\"V4\"},\"members\":[{\"displayName\":\"\"}]}");
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
+        when(httpClientService.request(eq(ORGANIZATION), eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
 
         Response response = rootTarget().request(MediaType.APPLICATION_JSON).post(Entity.text(TEST_URL));
 
