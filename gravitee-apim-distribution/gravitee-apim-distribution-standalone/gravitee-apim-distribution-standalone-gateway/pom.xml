@@ -223,6 +223,10 @@
 
     <build>
         <plugins>
+            <!-- The assembly first: in the package phase, the flavor goal starts from the slim distribution it builds -->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+            </plugin>
             <plugin>
                 <groupId>io.gravitee.apim.maven.plugin</groupId>
                 <artifactId>gravitee-apim-release-manifest-maven-plugin</artifactId>
@@ -230,21 +234,13 @@
                     <component>gateway</component>
                 </configuration>
             </plugin>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-            </plugin>
         </plugins>
     </build>
 
     <profiles>
+        <!-- Libraries of the catalog: never activated, a flavor file naming them adds them -->
         <profile>
-            <id>bundle-dev</id>
-            <activation>
-                <property>
-                    <name>bundle</name>
-                    <value>dev</value>
-                </property>
-            </activation>
+            <id>catalog</id>
             <build>
                 <plugins>
                     <plugin>
