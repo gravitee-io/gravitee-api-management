@@ -25,6 +25,7 @@ import io.gravitee.node.api.Node;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryProviderEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryTriggerEntity;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.event.DictionaryEvent;
 import io.gravitee.rest.api.services.dictionary.provider.http.HttpProvider;
@@ -55,6 +56,9 @@ public class DictionaryService extends AbstractService implements EventListener<
 
     @Autowired
     private HttpClientService httpClientService;
+
+    @Autowired
+    private EnvironmentService environmentService;
 
     @Autowired
     private Vertx vertx;
@@ -114,6 +118,7 @@ public class DictionaryService extends AbstractService implements EventListener<
                     HttpProvider provider = new HttpProvider(configuration);
                     provider.setHttpClientService(httpClientService);
                     provider.setNode(node);
+                    provider.setOrganizationId(environmentService.findById(dictionary.getEnvironmentId()).getOrganizationId());
 
                     refresher.setProvider(provider);
                     refresher.setDictionaryService(dictionaryService);
