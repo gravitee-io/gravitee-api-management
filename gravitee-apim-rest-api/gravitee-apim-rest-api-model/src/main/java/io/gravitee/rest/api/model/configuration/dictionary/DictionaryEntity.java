@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model.configuration.dictionary;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
 import java.util.Date;
@@ -33,6 +34,13 @@ import lombok.Setter;
 public class DictionaryEntity {
 
     private String id;
+
+    /**
+     * Environment owning the dictionary. Internal use only (it is how the organization of a dynamic dictionary is
+     * resolved), so it is not part of the REST representation.
+     */
+    @JsonIgnore
+    private String environmentId;
 
     private String name;
 

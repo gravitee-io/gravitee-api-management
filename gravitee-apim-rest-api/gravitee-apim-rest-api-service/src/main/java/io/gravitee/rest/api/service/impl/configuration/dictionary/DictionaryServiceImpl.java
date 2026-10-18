@@ -439,6 +439,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     private DictionaryEntity convert(Dictionary dictionary) {
         DictionaryEntity.DictionaryEntityBuilder dictionaryEntityBuilder = DictionaryEntity.builder()
             .id(dictionary.getId())
+            .environmentId(dictionary.getEnvironmentId())
             .name(dictionary.getName())
             .key(dictionary.getKey())
             .description(dictionary.getDescription())
