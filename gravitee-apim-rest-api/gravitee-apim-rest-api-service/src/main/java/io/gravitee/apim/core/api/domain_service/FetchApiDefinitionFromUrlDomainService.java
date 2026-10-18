@@ -20,5 +20,5 @@ import java.util.List;
 
 @DomainService
 public interface FetchApiDefinitionFromUrlDomainService {
-    String fetch(String url, List<String> whitelist, boolean allowPrivate);
+    String fetch(String organizationId, String url, List<String> whitelist, boolean allowPrivate);
 }

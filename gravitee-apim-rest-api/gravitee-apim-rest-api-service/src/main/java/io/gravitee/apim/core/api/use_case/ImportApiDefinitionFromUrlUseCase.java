@@ -22,7 +22,7 @@ import java.util.List;
 @UseCase
 public class ImportApiDefinitionFromUrlUseCase {
 
-    public record Input(String url, List<String> whitelist, boolean allowPrivate) {}
+    public record Input(String organizationId, String url, List<String> whitelist, boolean allowPrivate) {}
 
     public record Output(String apiDefinitionContent) {}
 
@@ -33,7 +33,12 @@ public class ImportApiDefinitionFromUrlUseCase {
     }
 
     public Output execute(Input input) {
-        String apiDefinitionContent = fetchApiDefinitionFromUrlDomainService.fetch(input.url(), input.whitelist(), input.allowPrivate());
+        String apiDefinitionContent = fetchApiDefinitionFromUrlDomainService.fetch(
+            input.organizationId(),
+            input.url(),
+            input.whitelist(),
+            input.allowPrivate()
+        );
         return new Output(apiDefinitionContent);
     }
 }

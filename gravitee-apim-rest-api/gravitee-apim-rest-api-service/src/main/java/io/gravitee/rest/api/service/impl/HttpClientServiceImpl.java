@@ -70,7 +70,7 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
     }
 
     @Override
-    public HttpClient createHttpClient(String uriScheme, Boolean useSystemProxy) {
+    public HttpClient createHttpClient(String organizationId, String uriScheme, Boolean useSystemProxy) {
         boolean ssl = HTTPS_SCHEME.equalsIgnoreCase(uriScheme);
         boolean proxy = (useSystemProxy == Boolean.TRUE) || (useSystemProxy == null && this.isProxyConfigured());
         return clients.computeIfAbsent(new ClientKey(ssl, proxy), key -> buildHttpClient(key.ssl(), key.proxy()));
@@ -110,7 +110,14 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
     }
 
     @Override
-    public Buffer request(HttpMethod method, String uri, Map<String, String> headers, String body, Boolean useSystemProxy) {
+    public Buffer request(
+        String organizationId,
+        HttpMethod method,
+        String uri,
+        Map<String, String> headers,
+        String body,
+        Boolean useSystemProxy
+    ) {
         if (uri == null || uri.isEmpty()) {
             log.error("HttpClient configuration is empty");
             return null;
@@ -120,7 +127,7 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
 
         URI requestUri = URI.create(uri);
 
-        final HttpClient httpClient = this.createHttpClient(requestUri.getScheme(), useSystemProxy);
+        final HttpClient httpClient = this.createHttpClient(organizationId, requestUri.getScheme(), useSystemProxy);
 
         final int port = requestUri.getPort() != -1
             ? requestUri.getPort()
@@ -259,10 +266,5 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
         return Boolean.valueOf(System.getProperty("httpClient.proxy", "false"));
     }
 
-    /**
-     * Clients are shared by every organization of the node, which is only acceptable because everything that is not
-     * in this key (proxy settings, timeouts, trust) is the same for the whole node. A setting that can differ per
-     * organization has to become part of the key.
-     */
     private record ClientKey(boolean ssl, boolean proxy) {}
 }

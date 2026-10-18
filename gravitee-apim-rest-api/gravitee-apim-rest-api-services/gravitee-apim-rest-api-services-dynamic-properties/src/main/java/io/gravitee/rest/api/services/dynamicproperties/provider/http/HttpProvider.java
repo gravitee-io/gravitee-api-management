@@ -51,16 +51,19 @@ public class HttpProvider implements Provider {
     private final JoltMapper mapper;
     private final HttpClientService httpClientService;
     private final Node node;
+    private final String organizationId;
 
     public HttpProvider(
         final DynamicPropertyProviderConfiguration dpConfiguration,
         final HttpClientService httpClientService,
-        final Node node
+        final Node node,
+        final String organizationId
     ) {
         this.dpConfiguration = (HttpDynamicPropertyProviderConfiguration) dpConfiguration;
         this.mapper = new JoltMapper(this.dpConfiguration.getSpecification());
         this.httpClientService = httpClientService;
         this.node = node;
+        this.organizationId = organizationId;
     }
 
     @Override
@@ -75,7 +78,7 @@ public class HttpProvider implements Provider {
             }
 
             final io.vertx.rxjava3.core.http.HttpClient httpClient = HttpClient.newInstance(
-                httpClientService.createHttpClient(requestUrl.getProtocol(), dpConfiguration.isUseSystemProxy())
+                httpClientService.createHttpClient(organizationId, requestUrl.getProtocol(), dpConfiguration.isUseSystemProxy())
             );
 
             final int port = requestUrl.getPort() != -1
