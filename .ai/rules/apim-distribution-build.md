@@ -15,7 +15,25 @@ Three flags, each of which fails quietly rather than loudly:
 
 - **`-Dapim.core.version=<root triplet>`** — without it you assemble the pinned *released* core instead of the working tree. The build succeeds and the change under test is simply absent. `task build-distribution` computes the value for you.
 - **`-nsu`** — without it Maven may replace the engine you just installed with a timestamped snapshot from the remote. Same symptom, different route.
-- **`-Dbundle=dev`** — activates the profile adding the Cloud initializer and MCP libraries to `lib/`. That profile belongs to the gateway container, an external dependency here, so `-P` does not reach it; only the property activation does.
+- **`-Dbundle=dev`** — picks the bundle-dev flavor (see below), and activates the profile adding the Cloud initializer and MCP libraries to `lib/`. That profile belongs to the gateway container, an external dependency here, so `-P` does not reach it; only the property activation does.
+
+## Flavors: what a distribution ships
+
+Each component is built in two steps, both in the `package` phase of `gravitee-apim-distribution-standalone-{gateway,rest-api}`:
+
+1. the assembly builds the **slim** distribution in `target/slim`, from the dependencies declared outside any profile;
+2. the `flavor` goal of `gravitee-apim-release-manifest-maven-plugin` copies it to `target/distribution` and adds the plugins its **flavor file** names.
+
+| Build | Flavor file | Ships |
+|---|---|---|
+| no `-Dbundle` | `flavors/community.txt` | open-source plugins only |
+| `-Dbundle` | `flavors/bundle-default.txt` | the released zip and images |
+| `-Dbundle=dev` | `flavors/bundle-dev.txt` | our dev and test images |
+
+- **A plugin needs two edits:** its declaration with its version (outside any profile when every distribution ships it, otherwise in the `catalog` profile of `gravitee-apim-distribution-standalone/pom.xml`), and its artifactId in each flavor file that ships it. Declared in `catalog` but listed nowhere, it ships in no image: the release manifest still lists it, for custom images.
+- **The `catalog` profile is never activated.** `-Pcatalog` would put every plugin into the slim distribution, and so into every flavor.
+- **One file per flavor, for both components.** Each component takes the names its assembly accepts and logs the others as skipped: a typo shows up there, not as a failure.
+- `target/distribution` keeps its path and its content: the Dockerfiles, `task docker-backend` and the CI read it as before.
 
 ## Running the inference plugin on a Mac
 

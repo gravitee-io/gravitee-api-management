@@ -15,7 +15,7 @@ inputs:
   - { path: ".ai/rules/apim-automation-signpost-definition.md", hash: "sha256:36cdfade56e02f0f0fce4b03c1d015fb1f3d64bd8f9577b888c348055b90b7d6" }
   - { path: ".ai/rules/apim-automation-signpost-repository.md", hash: "sha256:2445a6a106e1b3187a130f6efa374bd7f57c051d4d51df000672a265a987de8b" }
   - { path: ".ai/rules/apim-automation-signpost-restapi.md", hash: "sha256:962751855bd090c2812076d8d465187c34e39ead0bb273ee506d4a8db778496b" }
-  - { path: ".ai/rules/apim-distribution-build.md", hash: "sha256:f65d1c7e853b993bc1536efeee90d2e9a3ed9ee4c89a516401ca40100b513b83" }
+  - { path: ".ai/rules/apim-distribution-build.md", hash: "sha256:9a3c6cf62b274357f48d3d7bc7d3cf0c6c467ee99e0381f76559d938061b11b2" }
   - { path: ".ai/rules/apim-java.md", hash: "sha256:037362a2a791c844ecefd9e990020d1b857dd1ed81a2158c0cf59c2b174c8695" }
   - { path: ".ai/rules/apim-jsonnode.md", hash: "sha256:0dbaec902740b64b750be53ff03062a59e4de0171a4a52576253e20ed6e2b777" }
   - { path: ".ai/rules/apim-two-reactors.md", hash: "sha256:e8e036c1f0d1064a21c16360fd1a30a71761d0432789ea6deecee8e7416f2141" }
@@ -112,7 +112,7 @@ entries:
     status: generated
     scope: committed
   - path: "gravitee-apim-distribution/AGENTS.md"
-    hash: sha256:ceb05ed1a49a79fb9d544a39a3cfebb40e88c7d4ed1e75f65256ebd24d2801ef
+    hash: sha256:80b8944e96aebc5ba78fb9782cb4bcbbf982468f54f0d8c5be3b162a5a006cbb
     status: generated
     scope: committed
   - path: "gravitee-apim-distribution/CLAUDE.md"
@@ -120,7 +120,7 @@ entries:
     status: generated
     scope: committed
   - path: "gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/AGENTS.md"
-    hash: sha256:484d26e2a7c70798e94563766f940357258268789edbea52814dbbd7047eae36
+    hash: sha256:1912611565600cdf2dc7694b0f2bacadcba7ea27385429073e58bd37d6aca220
     status: generated
     scope: committed
   - path: "gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/CLAUDE.md"
@@ -271,4 +271,4 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-record: sha256:f1545cc7eac2a040bc7927dee2b536cb9cf75f5e72b27c5b0ddc2dd96f810337
+record: sha256:8206aa47af834be884c03ee22a660c0f284da68484885db3f19c23d834da1c77
