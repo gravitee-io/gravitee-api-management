@@ -120,7 +120,7 @@
     <gravitee-policy-cache.version>4.0.1</gravitee-policy-cache.version>
     <gravitee-policy-callout-http.version>7.0.2</gravitee-policy-callout-http.version>
     <gravitee-policy-circuit-breaker.version>2.1.0</gravitee-policy-circuit-breaker.version>
-    <gravitee-policy-custom-query-parameters.version>3.0.0</gravitee-policy-custom-query-parameters.version>
+    <gravitee-policy-custom-query-parameters-parser.version>3.0.0</gravitee-policy-custom-query-parameters-parser.version>
     <gravitee-policy-cloud-events.version>2.0.0</gravitee-policy-cloud-events.version>
     <gravitee-policy-data-cache.version>2.0.0</gravitee-policy-data-cache.version>
     <gravitee-policy-data-logging-masking.version>4.0.0</gravitee-policy-data-logging-masking.version>
@@ -218,7 +218,7 @@
     <gravitee-inference-service.version>3.0.0</gravitee-inference-service.version>
     <!-- Empty: the Linux zip. Pass -Dgravitee-inference-service.classifier=macos to run the plugin natively on macOS. Never for images. -->
     <gravitee-inference-service.classifier/>
-    <gravitee-secretprovider-kubernetes.version>3.0.0</gravitee-secretprovider-kubernetes.version>
+    <gravitee-secret-provider-kubernetes.version>3.0.0</gravitee-secret-provider-kubernetes.version>
     <gravitee-policy-ai-prompt-token-tracking.version>2.0.0</gravitee-policy-ai-prompt-token-tracking.version>
     <gravitee-policy-ai-prompt-guard-rails.version>5.2.0</gravitee-policy-ai-prompt-guard-rails.version>
 
@@ -256,9 +256,9 @@
     <gravitee-policy-ai-routing.version>1.1.0</gravitee-policy-ai-routing.version>
     <gravitee-policy-ai-token-compression.version>1.0.0</gravitee-policy-ai-token-compression.version>
     <gravitee-apim-repository-bridge.version>9.0.1</gravitee-apim-repository-bridge.version>
-    <gravitee-secretprovider-hc-vault.version>3.0.0</gravitee-secretprovider-hc-vault.version>
-    <gravitee-secretprovider-aws.version>3.0.0</gravitee-secretprovider-aws.version>
-    <gravitee-secretprovider-azure-keyvault.version>1.0.0</gravitee-secretprovider-azure-keyvault.version>
+    <gravitee-secret-provider-hc-vault.version>3.0.0</gravitee-secret-provider-hc-vault.version>
+    <gravitee-secret-provider-aws.version>3.0.0</gravitee-secret-provider-aws.version>
+    <gravitee-secret-provider-azure-keyvault.version>1.0.0</gravitee-secret-provider-azure-keyvault.version>
     <gravitee-service-secrets.version>4.0.2</gravitee-service-secrets.version>
     <gravitee-policy-interops.version>2.0.0</gravitee-policy-interops.version>
     <gravitee-policy-kafka-quota.version>2.0.1</gravitee-policy-kafka-quota.version>
@@ -269,7 +269,7 @@
     <gravitee-policy-kafka-message-encryption-decryption.version>1.0.2</gravitee-policy-kafka-message-encryption-decryption.version>
     <gravitee-policy-kafka-rules.version>1.1.3</gravitee-policy-kafka-rules.version>
     <gravitee-policy-kafka-namespace.version>1.0.1</gravitee-policy-kafka-namespace.version>
-    <gravitee-policy-offloading.version>1.2.0</gravitee-policy-offloading.version>
+    <gravitee-policy-kafka-offloading.version>1.2.0</gravitee-policy-kafka-offloading.version>
     <gravitee-policy-token-ratelimit.version>3.0.0</gravitee-policy-token-ratelimit.version>
     <gravitee-policy-cost-ratelimit.version>3.0.0</gravitee-policy-cost-ratelimit.version>
     <gravitee-policy-mcp-acl.version>2.1.0</gravitee-policy-mcp-acl.version>
