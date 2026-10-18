@@ -278,7 +278,7 @@ gravitee-resource-oauth2-provider-keycloak
 gravitee-resource-storage-azure-blob
 gravitee-node-cluster-plugin-hazelcast
 
-# Secret providers
+# Secret Providers
 gravitee-secret-provider-aws
 gravitee-secret-provider-azure-keyvault
 

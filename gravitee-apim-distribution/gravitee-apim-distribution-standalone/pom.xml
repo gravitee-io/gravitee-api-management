@@ -174,6 +174,12 @@
             <version>${apim.core.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Endpoints -->
@@ -209,6 +215,12 @@
             <version>${apim.core.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Fetchers -->
@@ -2849,7 +2861,7 @@
                     </exclusions>
                 </dependency>
 
-                <!-- Secret providers -->
+                <!-- Secret Providers -->
                 <dependency>
                     <groupId>com.graviteesource.secretprovider</groupId>
                     <artifactId>gravitee-secret-provider-aws</artifactId>
