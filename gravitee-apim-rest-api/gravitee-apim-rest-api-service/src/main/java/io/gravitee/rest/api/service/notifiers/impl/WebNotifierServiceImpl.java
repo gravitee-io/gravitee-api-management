@@ -59,8 +59,8 @@ public class WebNotifierServiceImpl implements WebNotifierService {
 
     /**
      * Vert.x holds on to every client it creates until the Vert.x instance itself is closed, so a client per
-     * notification would accumulate for as long as the node runs. A client is built once per distinct
-     * configuration and shared.
+     * notification would accumulate for as long as the node runs. A client is built once per distinct configuration
+     * and shared.
      */
     private final Map<ClientKey, HttpClient> clients = new ConcurrentHashMap<>();
 
@@ -71,7 +71,14 @@ public class WebNotifierServiceImpl implements WebNotifierService {
     @Autowired
     private Vertx vertx;
 
-    public void request(HttpMethod method, final String uri, final Map<String, String> headers, String body, boolean useSystemProxy) {
+    public void request(
+        String organizationId,
+        HttpMethod method,
+        final String uri,
+        final Map<String, String> headers,
+        String body,
+        boolean useSystemProxy
+    ) {
         if (uri == null || uri.isEmpty()) {
             log.error("Webhook Notifier configuration is empty");
             return;
@@ -236,10 +243,5 @@ public class WebNotifierServiceImpl implements WebNotifierService {
         return configuration.getProperty("httpClient.proxy.https.password");
     }
 
-    /**
-     * Clients are shared by every organization of the node, which is only acceptable because everything that is not
-     * in this key (proxy settings, timeouts, trust) is the same for the whole node. A setting that can differ per
-     * organization has to become part of the key.
-     */
     private record ClientKey(boolean ssl, boolean proxy) {}
 }

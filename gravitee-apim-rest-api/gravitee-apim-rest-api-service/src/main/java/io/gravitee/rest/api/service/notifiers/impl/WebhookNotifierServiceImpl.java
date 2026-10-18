@@ -59,7 +59,12 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
     WebNotifierService webNotifierService;
 
     @Override
-    public void trigger(final Hook hook, GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params) {
+    public void trigger(
+        String organizationId,
+        final Hook hook,
+        GenericNotificationConfig genericNotificationConfig,
+        final Map<String, Object> params
+    ) {
         //body
         String body = toJson(hook, params);
 
@@ -69,6 +74,7 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
         headers.put("X-Gravitee-Event-Scope", hook.getScope().name());
 
         webNotifierService.request(
+            organizationId,
             HttpMethod.POST,
             genericNotificationConfig.getConfig(),
             headers,

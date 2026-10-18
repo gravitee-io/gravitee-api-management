@@ -182,7 +182,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
     @Override
     public ApiEntity createWithImportedDefinition(final ExecutionContext executionContext, Object apiDefinitionOrURL) {
-        String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
+        String apiDefinition = fetchApiDefinitionContentFromURL(executionContext, apiDefinitionOrURL);
         try {
             // Read the whole input API definition, and recalculate its ID
             ImportApiJsonNode apiJsonNode = apiIdsCalculatorService.recalculateApiDefinitionIds(
@@ -216,7 +216,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
     @Override
     public ApiEntity updateWithImportedDefinition(final ExecutionContext executionContext, String urlApiId, Object apiDefinitionOrURL) {
-        String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
+        String apiDefinition = fetchApiDefinitionContentFromURL(executionContext, apiDefinitionOrURL);
 
         try {
             // Read the whole input API definition, and recalculate its ID
@@ -399,7 +399,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    private String fetchApiDefinitionContentFromURL(Object apiDefinitionOrURL) {
+    private String fetchApiDefinitionContentFromURL(ExecutionContext executionContext, Object apiDefinitionOrURL) {
         String definitionOrURL = stringifyApiDefinitionFromJackson(apiDefinitionOrURL);
         if (definitionOrURL.toUpperCase().startsWith("HTTP")) {
             UrlSanitizerUtils.checkAllowed(
@@ -407,7 +407,14 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 importConfiguration.getImportWhitelist(),
                 importConfiguration.isAllowImportFromPrivate()
             );
-            Buffer buffer = httpClientService.request(HttpMethod.GET, definitionOrURL, null, null, null);
+            Buffer buffer = httpClientService.request(
+                executionContext.getOrganizationId(),
+                HttpMethod.GET,
+                definitionOrURL,
+                null,
+                null,
+                null
+            );
             return buffer.toString();
         }
         return definitionOrURL;

@@ -157,7 +157,12 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
             .executionContext(executionContext)
             .build();
         if (DynamicPropertyProvider.HTTP == dynamicPropertyService.getProvider()) {
-            HttpProvider provider = new HttpProvider(dynamicPropertyService.getConfiguration(), httpClientService, node);
+            HttpProvider provider = new HttpProvider(
+                dynamicPropertyService.getConfiguration(),
+                httpClientService,
+                node,
+                executionContext.getOrganizationId()
+            );
             log.info("{} Add a scheduled task to poll dynamic properties each {}", api.getId(), dynamicPropertyService.getSchedule());
 
             // Force the first refresh, and then run it periodically

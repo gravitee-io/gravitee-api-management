@@ -26,10 +26,31 @@ import java.util.Map;
  */
 public interface HttpClientService {
     /**
-     * Returns a client shared by every caller with the same scheme and proxy setting. It must not be closed: it lives
-     * as long as the Vert.x instance, which holds on to every client it creates.
+     * Returns the client for the given scheme and proxy setting. It is shared by every caller and must not be closed:
+     * it lives as long as the Vert.x instance, which holds on to every client it creates.
+     *
+     * @param organizationId the organization owning the endpoint, or {@code null} for an endpoint the platform itself
+     *                       owns (newsletter, reCAPTCHA).
      */
-    HttpClient createHttpClient(String uriScheme, Boolean useSystemProxy);
+    HttpClient createHttpClient(String organizationId, String uriScheme, Boolean useSystemProxy);
 
-    Buffer request(HttpMethod method, final String uri, final Map<String, String> headers, String body, Boolean useSystemProxy);
+    /**
+     * Calls an endpoint configured by a user of the given organization.
+     */
+    Buffer request(
+        String organizationId,
+        HttpMethod method,
+        final String uri,
+        final Map<String, String> headers,
+        String body,
+        Boolean useSystemProxy
+    );
+
+    /**
+     * Calls an endpoint the platform itself owns (newsletter, reCAPTCHA). Never use it for an endpoint a user
+     * configures: use {@link #request(String, HttpMethod, String, Map, String, Boolean)} with the user's organization.
+     */
+    default Buffer request(HttpMethod method, final String uri, final Map<String, String> headers, String body, Boolean useSystemProxy) {
+        return request(null, method, uri, headers, body, useSystemProxy);
+    }
 }

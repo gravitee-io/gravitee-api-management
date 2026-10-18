@@ -18,6 +18,7 @@ package io.gravitee.rest.api.services.dynamicproperties.provider.http;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -56,6 +57,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith({ MockitoExtension.class, VertxExtension.class })
 public class HttpProviderTest {
 
+    private static final String ORGANIZATION_ID = "DEFAULT";
+
     @RegisterExtension
     private final WireMockExtension wiremock = WireMockExtension.newInstance()
         .options(WireMockConfiguration.wireMockConfig().dynamicPort())
@@ -70,7 +73,7 @@ public class HttpProviderTest {
     @BeforeEach
     public void setUp(Vertx vertx) {
         providerConfiguration = new HttpDynamicPropertyProviderConfiguration();
-        when(httpClientService.createHttpClient(anyString(), anyBoolean())).thenReturn(vertx.createHttpClient());
+        when(httpClientService.createHttpClient(eq(ORGANIZATION_ID), anyString(), anyBoolean())).thenReturn(vertx.createHttpClient());
     }
 
     @Test
@@ -142,6 +145,6 @@ public class HttpProviderTest {
         dynamicPropertyService.setProvider(DynamicPropertyProvider.HTTP);
         dynamicPropertyService.setConfiguration(providerConfiguration);
 
-        provider = new HttpProvider(dynamicPropertyService.getConfiguration(), httpClientService, null);
+        provider = new HttpProvider(dynamicPropertyService.getConfiguration(), httpClientService, null, ORGANIZATION_ID);
     }
 }

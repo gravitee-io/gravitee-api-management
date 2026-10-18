@@ -38,6 +38,8 @@ class FetchApiDefinitionFromUrlDomainServiceImplTest {
     // A public, allow-listable URL so UrlSanitizerUtils.checkAllowed passes and we exercise the fetch itself.
     private static final String URL = "https://example.com/api-definition.json";
 
+    private static final String ORGANIZATION_ID = "DEFAULT";
+
     private HttpClientService httpClientService;
     private FetchApiDefinitionFromUrlDomainServiceImpl service;
 
@@ -49,28 +51,30 @@ class FetchApiDefinitionFromUrlDomainServiceImplTest {
 
     @Test
     void should_return_body_when_remote_returns_content() {
-        when(httpClientService.request(eq(HttpMethod.GET), eq(URL), any(), any(), any())).thenReturn(Buffer.buffer("{\"api\":{}}"));
+        when(httpClientService.request(eq(ORGANIZATION_ID), eq(HttpMethod.GET), eq(URL), any(), any(), any())).thenReturn(
+            Buffer.buffer("{\"api\":{}}")
+        );
 
-        assertThat(service.fetch(URL, List.of(), false)).isEqualTo("{\"api\":{}}");
+        assertThat(service.fetch(ORGANIZATION_ID, URL, List.of(), false)).isEqualTo("{\"api\":{}}");
     }
 
     @Test
     void should_return_empty_string_when_remote_returns_null_body() {
         // HttpClientService returns null (e.g. an empty response). The null guard substitutes an empty string so the
         // downstream parser fails cleanly with a 400 rather than NPE-ing into a 500.
-        when(httpClientService.request(eq(HttpMethod.GET), eq(URL), any(), any(), any())).thenReturn(null);
+        when(httpClientService.request(eq(ORGANIZATION_ID), eq(HttpMethod.GET), eq(URL), any(), any(), any())).thenReturn(null);
 
-        assertThat(service.fetch(URL, List.of(), false)).isEmpty();
+        assertThat(service.fetch(ORGANIZATION_ID, URL, List.of(), false)).isEmpty();
     }
 
     @Test
     void should_translate_fetch_failure_to_clean_exception() {
         // Any failure raised while fetching must surface as a clean 4xx without leaking the underlying cause.
-        when(httpClientService.request(eq(HttpMethod.GET), eq(URL), any(), any(), any())).thenThrow(
+        when(httpClientService.request(eq(ORGANIZATION_ID), eq(HttpMethod.GET), eq(URL), any(), any(), any())).thenThrow(
             new RuntimeException("Status code: 404. Connection refused")
         );
 
-        assertThatThrownBy(() -> service.fetch(URL, List.of(), false))
+        assertThatThrownBy(() -> service.fetch(ORGANIZATION_ID, URL, List.of(), false))
             .isInstanceOf(ApiDefinitionFetchException.class)
             .hasMessageNotContainingAny("404", "Connection refused");
     }

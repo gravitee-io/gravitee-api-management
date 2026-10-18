@@ -18,6 +18,7 @@ package io.gravitee.rest.api.services.dictionary.provider.http;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
@@ -49,6 +50,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class HttpProviderTest {
 
+    private static final String ORGANIZATION_ID = "DEFAULT";
+
     @RegisterExtension
     public WireMockExtension wireMockRule = WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
@@ -66,7 +69,9 @@ public class HttpProviderTest {
 
     @BeforeEach
     public void setUp() {
-        when(httpClientService.createHttpClient(anyString(), anyBoolean())).thenReturn(Vertx.vertx().createHttpClient());
+        when(httpClientService.createHttpClient(eq(ORGANIZATION_ID), anyString(), anyBoolean())).thenReturn(
+            Vertx.vertx().createHttpClient()
+        );
     }
 
     @Test
@@ -80,6 +85,7 @@ public class HttpProviderTest {
         HttpProvider provider = new HttpProvider(configuration);
         provider.setMapper(mapper);
         provider.setHttpClientService(httpClientService);
+        provider.setOrganizationId(ORGANIZATION_ID);
 
         CompletableFuture<Collection<DynamicProperty>> future = provider.get();
         Collection<DynamicProperty> dynamicProperties = future.join();
@@ -100,6 +106,7 @@ public class HttpProviderTest {
         HttpProvider provider = new HttpProvider(configuration);
         provider.setMapper(mapper);
         provider.setHttpClientService(httpClientService);
+        provider.setOrganizationId(ORGANIZATION_ID);
 
         CompletableFuture<Collection<DynamicProperty>> future = provider.get();
         Collection<DynamicProperty> dynamicProperties = future.join();
@@ -121,6 +128,7 @@ public class HttpProviderTest {
         HttpProvider provider = new HttpProvider(configuration);
         provider.setMapper(mapper);
         provider.setHttpClientService(httpClientService);
+        provider.setOrganizationId(ORGANIZATION_ID);
 
         CompletableFuture<Collection<DynamicProperty>> future = provider.get();
         Collection<DynamicProperty> dynamicProperties = future.join();
@@ -141,6 +149,7 @@ public class HttpProviderTest {
         HttpProvider provider = new HttpProvider(configuration);
         provider.setMapper(mapper);
         provider.setHttpClientService(httpClientService);
+        provider.setOrganizationId(ORGANIZATION_ID);
 
         CompletableFuture<Collection<DynamicProperty>> future = provider.get();
         Collection<DynamicProperty> dynamicProperties = future.join();
@@ -162,6 +171,7 @@ public class HttpProviderTest {
             HttpProvider provider = new HttpProvider(configuration);
             provider.setMapper(mapper);
             provider.setHttpClientService(httpClientService);
+            provider.setOrganizationId(ORGANIZATION_ID);
 
             CompletableFuture<Collection<DynamicProperty>> future = provider.get();
             future.join();

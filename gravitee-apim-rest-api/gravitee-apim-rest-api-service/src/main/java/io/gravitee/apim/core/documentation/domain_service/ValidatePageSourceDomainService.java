@@ -23,9 +23,9 @@ import io.gravitee.apim.core.validation.Validator;
  * @author GraviteeSource Team
  */
 public interface ValidatePageSourceDomainService extends Validator<ValidatePageSourceDomainService.Input> {
-    record Input(String pageName, PageSource source) implements Validator.Input {
+    record Input(String organizationId, String pageName, PageSource source) implements Validator.Input {
         public Input sanitized(PageSource source) {
-            return new Input(pageName, source);
+            return new Input(organizationId, pageName, source);
         }
     }
 }
