@@ -201,6 +201,7 @@
     <gravitee-reporter-tcp.version>5.0.3</gravitee-reporter-tcp.version>
     <gravitee-reporter-cloud.version>4.0.0</gravitee-reporter-cloud.version>
     <gravitee-reporter-otel.version>1.4.0</gravitee-reporter-otel.version>
+    <gravitee-reporter-datadog.version>8.2.0</gravitee-reporter-datadog.version>
     <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and
     gateway-services-ratelimit    -->
 
@@ -212,6 +213,7 @@
     <gravitee-resource-auth-provider-inline.version>3.0.0</gravitee-resource-auth-provider-inline.version>
     <gravitee-resource-auth-provider-ldap.version>3.0.0</gravitee-resource-auth-provider-ldap.version>
     <gravitee-resource-cache-redis.version>5.0.1</gravitee-resource-cache-redis.version>
+    <gravitee-resource-cache-cloud-redis.version>1.0.0</gravitee-resource-cache-cloud-redis.version>
     <gravitee-resource-oauth2-provider-keycloak.version>5.0.0</gravitee-resource-oauth2-provider-keycloak.version>
     <gravitee-resource-ai-model-text-classification.version>2.3.0</gravitee-resource-ai-model-text-classification.version>
     <gravitee-service-geoip.version>3.0.0</gravitee-service-geoip.version>
