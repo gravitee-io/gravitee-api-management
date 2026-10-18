@@ -337,7 +337,9 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
                     case WEBHOOK -> {
                         notificationConfigs
                             .getOrDefault(notifier.getId(), Collections.emptyList())
-                            .forEach(config -> webhookNotifierService.trigger(data.hook, config, data.params));
+                            .forEach(config ->
+                                webhookNotifierService.trigger(executionContext.getOrganizationId(), data.hook, config, data.params)
+                            );
                     }
                     default -> log.error("Unknown notifier {}", notifier.getType());
                 }

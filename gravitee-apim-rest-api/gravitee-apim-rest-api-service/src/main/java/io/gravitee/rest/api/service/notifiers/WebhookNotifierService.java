@@ -24,5 +24,10 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface WebhookNotifierService {
-    void trigger(final Hook hook, GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params);
+    void trigger(
+        String organizationId,
+        final Hook hook,
+        GenericNotificationConfig genericNotificationConfig,
+        final Map<String, Object> params
+    );
 }

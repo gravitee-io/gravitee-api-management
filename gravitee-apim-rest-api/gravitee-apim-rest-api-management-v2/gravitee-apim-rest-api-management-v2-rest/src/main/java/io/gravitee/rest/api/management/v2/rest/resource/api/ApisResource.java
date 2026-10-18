@@ -328,6 +328,7 @@ public class ApisResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
     public Response createApiWithDefinitionFromUrl(@NotNull String apiDefinitionUrl) {
         var input = new ImportApiDefinitionFromUrlUseCase.Input(
+            GraviteeContext.getExecutionContext().getOrganizationId(),
             apiDefinitionUrl,
             importConfiguration.getImportWhitelist(),
             importConfiguration.isAllowImportFromPrivate()

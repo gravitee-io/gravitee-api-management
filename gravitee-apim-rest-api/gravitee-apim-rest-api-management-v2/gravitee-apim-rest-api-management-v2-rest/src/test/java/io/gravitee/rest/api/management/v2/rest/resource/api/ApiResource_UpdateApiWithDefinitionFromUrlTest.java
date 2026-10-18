@@ -158,7 +158,7 @@ class ApiResource_UpdateApiWithDefinitionFromUrlTest extends ApiResourceTest {
         ).thenReturn(true);
 
         Buffer buffer = Buffer.buffer(VALID_API_DEFINITION_JSON);
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
+        when(httpClientService.request(eq(ORGANIZATION), eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
 
         var existingApi = ApiFixtures.aProxyApiV4().toBuilder().id(API).environmentId(ENVIRONMENT).build();
         var apiWithFlows = new ApiWithFlows(existingApi, List.of());
@@ -170,7 +170,7 @@ class ApiResource_UpdateApiWithDefinitionFromUrlTest extends ApiResourceTest {
         Response response = rootTarget().request().put(Entity.text(TEST_URL));
 
         assertThat(response.getStatus()).isEqualTo(OK_200);
-        verify(httpClientService).request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any());
+        verify(httpClientService).request(eq(ORGANIZATION), eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any());
 
         ArgumentCaptor<UpdateApiDefinitionFromImportUseCase.Input> inputCaptor = ArgumentCaptor.forClass(
             UpdateApiDefinitionFromImportUseCase.Input.class
@@ -211,7 +211,7 @@ class ApiResource_UpdateApiWithDefinitionFromUrlTest extends ApiResourceTest {
         ).thenReturn(true);
 
         Buffer buffer = Buffer.buffer("not valid json");
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
+        when(httpClientService.request(eq(ORGANIZATION), eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
 
         Response response = rootTarget().request().put(Entity.text(TEST_URL));
 
@@ -228,7 +228,7 @@ class ApiResource_UpdateApiWithDefinitionFromUrlTest extends ApiResourceTest {
         // as a TechnicalManagementException; it must become a clean 4xx, not a 500 leaking the remote response.
         grantUpdatePermission();
 
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenThrow(
+        when(httpClientService.request(eq(ORGANIZATION), eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenThrow(
             new TechnicalManagementException(" Error on url '" + TEST_URL + "'. Status code: 404. Message: Not Found", null)
         );
 
@@ -247,7 +247,7 @@ class ApiResource_UpdateApiWithDefinitionFromUrlTest extends ApiResourceTest {
         // UnknownHostException or the failing host.
         grantUpdatePermission();
 
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenThrow(
+        when(httpClientService.request(eq(ORGANIZATION), eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenThrow(
             new TechnicalManagementException(
                 "Failed to resolve 'nonexistent-host-xyz.invalid'",
                 new java.net.UnknownHostException("nonexistent-host-xyz.invalid")
@@ -269,7 +269,7 @@ class ApiResource_UpdateApiWithDefinitionFromUrlTest extends ApiResourceTest {
         grantUpdatePermission();
 
         Buffer buffer = Buffer.buffer("{\"hello\":\"world\"}");
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
+        when(httpClientService.request(eq(ORGANIZATION), eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
 
         Response response = rootTarget().request().put(Entity.text(TEST_URL));
 
@@ -285,7 +285,7 @@ class ApiResource_UpdateApiWithDefinitionFromUrlTest extends ApiResourceTest {
         grantUpdatePermission();
 
         Buffer buffer = Buffer.buffer("{\"api\":{\"definitionVersion\":\"V4\"},\"members\":[{\"displayName\":\"\"}]}");
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
+        when(httpClientService.request(eq(ORGANIZATION), eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
 
         Response response = rootTarget().request().put(Entity.text(TEST_URL));
 

@@ -29,7 +29,7 @@ public class FetchApiDefinitionFromUrlDomainServiceInMemory implements FetchApiD
     }
 
     @Override
-    public String fetch(String url, List<String> whitelist, boolean allowPrivate) {
+    public String fetch(String organizationId, String url, List<String> whitelist, boolean allowPrivate) {
         if (toThrow != null) {
             throw toThrow;
         }

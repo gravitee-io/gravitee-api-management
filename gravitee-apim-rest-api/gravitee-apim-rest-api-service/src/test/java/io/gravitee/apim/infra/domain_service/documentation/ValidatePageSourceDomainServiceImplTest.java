@@ -44,6 +44,7 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class ValidatePageSourceDomainServiceImplTest {
 
+    private static final String ORGANIZATION_ID = "DEFAULT";
     private static final String PAGE_NAME = "test-page";
 
     Vertx vertx = mock(Vertx.class);
@@ -67,7 +68,7 @@ public class ValidatePageSourceDomainServiceImplTest {
 
         @Test
         void should_return_empty_with_null_source() {
-            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input("no-source", null));
+            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(ORGANIZATION_ID, "no-source", null));
             assertThat(result.value()).isEmpty();
             assertThat(result.errors()).isEmpty();
             result.peek(value -> fail("should not peek value"), error -> fail("should not peek errors"));
@@ -95,7 +96,7 @@ public class ValidatePageSourceDomainServiceImplTest {
                 )
                 .build();
 
-            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(ORGANIZATION_ID, PAGE_NAME, source));
 
             assertThat(result.severe()).isEmpty();
             assertThat(result.warning()).isEmpty();
@@ -103,7 +104,7 @@ public class ValidatePageSourceDomainServiceImplTest {
             assertThat(result.value().get())
                 .usingRecursiveComparison()
                 .ignoringFields("source.configuration")
-                .isEqualTo(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+                .isEqualTo(new ValidatePageSourceDomainService.Input(ORGANIZATION_ID, PAGE_NAME, source));
         }
 
         @Test
@@ -136,7 +137,7 @@ public class ValidatePageSourceDomainServiceImplTest {
                 )
                 .build();
 
-            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(ORGANIZATION_ID, PAGE_NAME, source));
 
             assertThat(result.severe()).isEmpty();
             assertThat(result.warning()).isEmpty();
@@ -144,7 +145,7 @@ public class ValidatePageSourceDomainServiceImplTest {
             assertThat(result.value().get())
                 .usingRecursiveComparison()
                 .ignoringFields("source.configuration")
-                .isEqualTo(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+                .isEqualTo(new ValidatePageSourceDomainService.Input(ORGANIZATION_ID, PAGE_NAME, source));
         }
 
         @Test
@@ -187,7 +188,7 @@ public class ValidatePageSourceDomainServiceImplTest {
                 )
                 .build();
 
-            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(ORGANIZATION_ID, PAGE_NAME, source));
 
             assertThat(result.severe()).isEmpty();
             assertThat(result.warning()).isEmpty();
@@ -195,7 +196,7 @@ public class ValidatePageSourceDomainServiceImplTest {
             assertThat(result.value().get())
                 .usingRecursiveComparison()
                 .ignoringFields("source.configuration")
-                .isEqualTo(new ValidatePageSourceDomainService.Input(PAGE_NAME, expectedSource));
+                .isEqualTo(new ValidatePageSourceDomainService.Input(ORGANIZATION_ID, PAGE_NAME, expectedSource));
         }
 
         @Test
@@ -207,7 +208,7 @@ public class ValidatePageSourceDomainServiceImplTest {
                 )
                 .build();
 
-            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(ORGANIZATION_ID, PAGE_NAME, source));
 
             assertThat(result.warning()).isEmpty();
             assertThat(result.severe())
@@ -237,7 +238,7 @@ public class ValidatePageSourceDomainServiceImplTest {
                 )
                 .build();
 
-            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(ORGANIZATION_ID, PAGE_NAME, source));
 
             assertThat(result.warning()).isEmpty();
             assertThat(result.severe())
@@ -289,7 +290,7 @@ public class ValidatePageSourceDomainServiceImplTest {
                 )
                 .build();
 
-            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(ORGANIZATION_ID, PAGE_NAME, source));
 
             assertThat(result.warning())
                 .isNotEmpty()
@@ -302,7 +303,7 @@ public class ValidatePageSourceDomainServiceImplTest {
             assertThat(result.value().get())
                 .usingRecursiveComparison()
                 .ignoringFields("source.configuration")
-                .isEqualTo(new ValidatePageSourceDomainService.Input(PAGE_NAME, expectedSource));
+                .isEqualTo(new ValidatePageSourceDomainService.Input(ORGANIZATION_ID, PAGE_NAME, expectedSource));
         }
     }
 
@@ -316,11 +317,11 @@ public class ValidatePageSourceDomainServiceImplTest {
                 .configurationMap(Map.of("url", "https://petstore.swagger.io/v2/swagger.json"))
                 .build();
 
-            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(ORGANIZATION_ID, PAGE_NAME, source));
 
             assertThat(result.severe()).isEmpty();
             assertThat(result.warning()).isEmpty();
-            assertThat(result.value()).hasValue(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+            assertThat(result.value()).hasValue(new ValidatePageSourceDomainService.Input(ORGANIZATION_ID, PAGE_NAME, source));
         }
 
         @Test
@@ -341,18 +342,18 @@ public class ValidatePageSourceDomainServiceImplTest {
                 )
                 .build();
 
-            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(ORGANIZATION_ID, PAGE_NAME, source));
 
             assertThat(result.severe()).isEmpty();
             assertThat(result.warning()).isEmpty();
-            assertThat(result.value()).isNotEmpty().hasValue(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+            assertThat(result.value()).isNotEmpty().hasValue(new ValidatePageSourceDomainService.Input(ORGANIZATION_ID, PAGE_NAME, source));
         }
 
         @Test
         void should_return_error_with_invalid_URL() {
             var source = PageSource.builder().type("http-fetcher").configurationMap(Map.of("url", "INVALID URL HERE")).build();
 
-            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(ORGANIZATION_ID, PAGE_NAME, source));
 
             assertThat(result.warning()).isEmpty();
             assertThat(result.severe())
@@ -367,7 +368,7 @@ public class ValidatePageSourceDomainServiceImplTest {
                 .configurationMap(Map.of("url", "https://petstore.swagger.io/v2/swagger.json", "fetchCron", "***"))
                 .build();
 
-            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(ORGANIZATION_ID, PAGE_NAME, source));
 
             assertThat(result.warning()).isEmpty();
             assertThat(result.severe())
@@ -389,7 +390,7 @@ public class ValidatePageSourceDomainServiceImplTest {
                 .configurationMap(Map.of("url", "https://petstore.swagger.io/v2/swagger.json"))
                 .build();
 
-            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(ORGANIZATION_ID, PAGE_NAME, source));
 
             assertThat(result.warning())
                 .isNotEmpty()
@@ -398,7 +399,9 @@ public class ValidatePageSourceDomainServiceImplTest {
                         warning("page [test-page] contains unknown configuration property [unknownPropertyKey] for [http-fetcher] source")
                     )
                 );
-            assertThat(result.value()).isNotEmpty().hasValue((new ValidatePageSourceDomainService.Input(PAGE_NAME, expectedSource)));
+            assertThat(result.value())
+                .isNotEmpty()
+                .hasValue((new ValidatePageSourceDomainService.Input(ORGANIZATION_ID, PAGE_NAME, expectedSource)));
         }
     }
 }

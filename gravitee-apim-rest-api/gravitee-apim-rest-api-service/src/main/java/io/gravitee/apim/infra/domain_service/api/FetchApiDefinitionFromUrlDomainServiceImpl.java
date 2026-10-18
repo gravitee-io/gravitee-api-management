@@ -36,13 +36,13 @@ public class FetchApiDefinitionFromUrlDomainServiceImpl implements FetchApiDefin
     }
 
     @Override
-    public String fetch(String url, List<String> whitelist, boolean allowPrivate) {
+    public String fetch(String organizationId, String url, List<String> whitelist, boolean allowPrivate) {
         // URL allow-listing runs before the fetch; its UrlForbiddenException (400) must propagate untouched.
         UrlSanitizerUtils.checkAllowed(url, whitelist, allowPrivate);
 
         log.debug("Fetching API definition from URL '{}'", url);
         try {
-            Buffer buffer = httpClientService.request(HttpMethod.GET, url, null, null, null);
+            Buffer buffer = httpClientService.request(organizationId, HttpMethod.GET, url, null, null, null);
             String body = buffer == null ? "" : buffer.toString();
             log.debug("Fetched API definition from URL '{}' ({} bytes)", url, body.length());
             return body;
