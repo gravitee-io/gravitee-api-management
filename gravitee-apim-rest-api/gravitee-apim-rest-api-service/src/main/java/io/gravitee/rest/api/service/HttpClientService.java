@@ -26,16 +26,20 @@ import java.util.Map;
  */
 public interface HttpClientService {
     /**
-     * Returns the client for the given scheme and proxy setting. It is shared by every caller and must not be closed:
-     * it lives as long as the Vert.x instance, which holds on to every client it creates.
+     * Returns the client of an organization for the given scheme and proxy setting. It is shared by every caller of that
+     * organization and must not be closed: it lives as long as the Vert.x instance, which holds on to every client it
+     * creates.
+     * <p>
+     * Any endpoint configured by a user must be called through the client of the user's organization, so that a slow
+     * or unresponsive endpoint can only affect that organization.
      *
      * @param organizationId the organization owning the endpoint, or {@code null} for an endpoint the platform itself
-     *                       owns (newsletter, reCAPTCHA).
+     *                       owns (newsletter, reCAPTCHA), which share a single client for the whole node.
      */
     HttpClient createHttpClient(String organizationId, String uriScheme, Boolean useSystemProxy);
 
     /**
-     * Calls an endpoint configured by a user of the given organization.
+     * Calls an endpoint configured by a user of the given organization, with the client of that organization.
      */
     Buffer request(
         String organizationId,

@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import lombok.CustomLog;
 import org.springframework.scheduling.support.CronExpression;
@@ -83,7 +84,14 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
 
     private final ObjectMapper objectMapper;
     private final Vertx vertx;
-    private HttpClient httpClient;
+
+    /**
+     * Vert.x holds on to every client it creates until the Vert.x instance itself is closed, so a client per
+     * validation would accumulate for as long as the node runs. The page source URL is configured by a user, so each
+     * organization gets its own client: an unresponsive source can then only exhaust the connections of the
+     * organization that configured it.
+     */
+    private final Map<String, HttpClient> httpClients = new ConcurrentHashMap<>();
 
     public ValidatePageSourceDomainServiceImpl(ObjectMapper objectMapper, Vertx vertx) {
         this.objectMapper = objectMapper;
@@ -126,7 +134,7 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
                 return Result.ofBoth(input.sanitized(sanitizedBuilder.build()), errors);
             }
 
-            if (!canAccessResource(config)) {
+            if (!canAccessResource(input.organizationId(), config)) {
                 errors.add(
                     Error.severe(
                         "Page [%s] cannot be fetched, this can come from either invalid / missing github credentials or an invalid file path",
@@ -154,7 +162,7 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
         }
     }
 
-    private boolean canAccessResource(Map<String, Object> config) {
+    private boolean canAccessResource(String organizationId, Map<String, Object> config) {
         final RequestOptions reqOptions = getGithubRequestOptions(config).setTimeout(REQUEST_TIMEOUT_MS);
         // TODO: we could fallback to bearer auth here is the username is null
         if (config.get(GITHUB_PERSONAL_ACCESS_TOKEN) != null && config.get(GITHUB_USERNAME) != null) {
@@ -162,22 +170,12 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
             reqOptions.putHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString(auth.getBytes()));
         }
 
-        return httpClient()
+        return httpClients
+            .computeIfAbsent(organizationId, id -> vertx.createHttpClient())
             .rxRequest(reqOptions)
             .flatMap(req -> req.rxSend().flatMap(resp -> Single.just(resp.statusCode() == 200)))
             .timeout(REQUEST_TIMEOUT_MS, TimeUnit.MILLISECONDS)
             .blockingGet();
-    }
-
-    /**
-     * Vert.x holds on to every client it creates until the Vert.x instance itself is closed, so a client per
-     * validation would accumulate for as long as the node runs. A single client serves them all.
-     */
-    private synchronized HttpClient httpClient() {
-        if (httpClient == null) {
-            httpClient = vertx.createHttpClient();
-        }
-        return httpClient;
     }
 
     private RequestOptions getGithubRequestOptions(Map<String, Object> config) {

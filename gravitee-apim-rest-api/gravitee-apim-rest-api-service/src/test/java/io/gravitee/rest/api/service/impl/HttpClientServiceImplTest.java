@@ -47,6 +47,7 @@ class HttpClientServiceImplTest {
 
     private static final int TIMEOUT_SECONDS = 10;
     private static final String ORGANIZATION_ID = "DEFAULT";
+    private static final String OTHER_ORGANIZATION_ID = "OTHER";
 
     private Vertx vertx;
     private HttpServer server;
@@ -59,7 +60,12 @@ class HttpClientServiceImplTest {
         server = await(
             vertx
                 .createHttpServer()
-                .requestHandler(req -> req.response().setStatusCode(req.path().startsWith("/ko") ? 500 : 200).end("{}"))
+                .requestHandler(req -> {
+                    if (req.path().startsWith("/hang")) {
+                        return; // accept the request and never answer it
+                    }
+                    req.response().setStatusCode(req.path().startsWith("/ko") ? 500 : 200).end("{}");
+                })
                 .listen(0, "localhost")
         );
         baseUrl = "http://localhost:" + server.actualPort();
@@ -134,6 +140,47 @@ class HttpClientServiceImplTest {
             .compose(request -> request.send());
 
         assertThatThrownBy(() -> await(call)).isInstanceOf(ExecutionException.class);
+    }
+
+    @Test
+    void should_use_a_distinct_client_per_organization() {
+        assertThat(cut.createHttpClient(OTHER_ORGANIZATION_ID, "http", false)).isNotSameAs(
+            cut.createHttpClient(ORGANIZATION_ID, "http", false)
+        );
+    }
+
+    @Test
+    void should_share_the_client_of_an_organization_between_its_calls() {
+        assertThat(cut.createHttpClient(OTHER_ORGANIZATION_ID, "http", false)).isSameAs(
+            cut.createHttpClient(OTHER_ORGANIZATION_ID, "http", false)
+        );
+    }
+
+    @Test
+    void should_use_a_client_of_its_own_for_the_endpoints_the_platform_owns() {
+        assertThat(cut.createHttpClient(null, "http", false)).isNotSameAs(cut.createHttpClient(ORGANIZATION_ID, "http", false));
+        assertThat(cut.createHttpClient(null, "http", false)).isSameAs(cut.createHttpClient(null, "http", false));
+    }
+
+    @Test
+    void should_not_let_an_unresponsive_endpoint_delay_the_calls_of_another_organization() throws Exception {
+        Configuration configuration = mock(Configuration.class);
+        when(configuration.getProperty(any(String.class), any(), any(Integer.class))).thenReturn(3000);
+        HttpClientServiceImpl service = new HttpClientServiceImpl(configuration, vertx);
+        HttpClient saturated = service.createHttpClient(OTHER_ORGANIZATION_ID, "http", false);
+
+        // far more than the connections of a client, so that the calls of the organization pile up
+        for (int i = 0; i < 40; i++) {
+            saturated
+                .request(new RequestOptions().setHost("localhost").setPort(server.actualPort()).setURI("/hang"))
+                .compose(request -> request.send());
+        }
+        Thread.sleep(300);
+
+        long start = System.nanoTime();
+        service.request(ORGANIZATION_ID, HttpMethod.GET, baseUrl + "/ok", null, null, false);
+
+        assertThat(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start)).isLessThan(1500);
     }
 
     /**
