@@ -46,6 +46,7 @@ import org.junit.jupiter.api.Test;
 class HttpClientServiceImplTest {
 
     private static final int TIMEOUT_SECONDS = 10;
+    private static final String ORGANIZATION_ID = "DEFAULT";
 
     private Vertx vertx;
     private HttpServer server;
@@ -76,29 +77,29 @@ class HttpClientServiceImplTest {
 
     @Test
     void should_return_the_response_body() {
-        assertThat(cut.request(HttpMethod.GET, baseUrl + "/ok", null, null, false).toString()).isEqualTo("{}");
+        assertThat(cut.request(ORGANIZATION_ID, HttpMethod.GET, baseUrl + "/ok", null, null, false).toString()).isEqualTo("{}");
     }
 
     @Test
     void should_share_a_client_between_calls_with_the_same_scheme_and_proxy() {
-        assertThat(cut.createHttpClient("http", false)).isSameAs(cut.createHttpClient("http", false));
+        assertThat(cut.createHttpClient(ORGANIZATION_ID, "http", false)).isSameAs(cut.createHttpClient(ORGANIZATION_ID, "http", false));
     }
 
     @Test
     void should_use_a_distinct_client_per_scheme_and_proxy() {
-        HttpClient plain = cut.createHttpClient("http", false);
+        HttpClient plain = cut.createHttpClient(ORGANIZATION_ID, "http", false);
 
-        assertThat(cut.createHttpClient("https", false)).isNotSameAs(plain);
-        assertThat(cut.createHttpClient("http", true)).isNotSameAs(plain);
+        assertThat(cut.createHttpClient(ORGANIZATION_ID, "https", false)).isNotSameAs(plain);
+        assertThat(cut.createHttpClient(ORGANIZATION_ID, "http", true)).isNotSameAs(plain);
     }
 
     @Test
     void should_not_register_a_new_client_on_every_successful_call() throws Exception {
-        cut.request(HttpMethod.GET, baseUrl + "/ok", null, null, false);
+        cut.request(ORGANIZATION_ID, HttpMethod.GET, baseUrl + "/ok", null, null, false);
         long afterFirstCall = registeredHttpClients();
 
         for (int i = 0; i < 9; i++) {
-            cut.request(HttpMethod.GET, baseUrl + "/ok", null, null, false);
+            cut.request(ORGANIZATION_ID, HttpMethod.GET, baseUrl + "/ok", null, null, false);
         }
 
         assertThat(registeredHttpClients()).isEqualTo(afterFirstCall);
@@ -106,11 +107,11 @@ class HttpClientServiceImplTest {
 
     @Test
     void should_not_register_a_new_client_on_every_failed_call() throws Exception {
-        assertThatThrownBy(() -> cut.request(HttpMethod.GET, baseUrl + "/ko", null, null, false)).isNotNull();
+        assertThatThrownBy(() -> cut.request(ORGANIZATION_ID, HttpMethod.GET, baseUrl + "/ko", null, null, false)).isNotNull();
         long afterFirstCall = registeredHttpClients();
 
         for (int i = 0; i < 9; i++) {
-            assertThatThrownBy(() -> cut.request(HttpMethod.GET, baseUrl + "/ko", null, null, false)).isNotNull();
+            assertThatThrownBy(() -> cut.request(ORGANIZATION_ID, HttpMethod.GET, baseUrl + "/ko", null, null, false)).isNotNull();
         }
 
         assertThat(registeredHttpClients()).isEqualTo(afterFirstCall);
@@ -126,7 +127,7 @@ class HttpClientServiceImplTest {
         );
         Configuration shortTimeout = mock(Configuration.class);
         when(shortTimeout.getProperty(any(String.class), any(), any(Integer.class))).thenReturn(500);
-        HttpClient client = new HttpClientServiceImpl(shortTimeout, vertx).createHttpClient("http", false);
+        HttpClient client = new HttpClientServiceImpl(shortTimeout, vertx).createHttpClient(ORGANIZATION_ID, "http", false);
 
         Future<?> call = client
             .request(new RequestOptions().setHost("localhost").setPort(silentServer.actualPort()).setURI("/"))

@@ -39,6 +39,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class WebhookNotifierServiceImplTest {
 
+    private static final String ORGANIZATION_ID = "DEFAULT";
+
     @Mock
     private WebNotifierService webNotifierService;
 
@@ -90,7 +92,7 @@ public class WebhookNotifierServiceImplTest {
             .build();
         params.put("subscription", subscriptionNotificationTemplateData);
 
-        webhookNotifierService.trigger(hook, genericNotificationConfig, params);
+        webhookNotifierService.trigger(ORGANIZATION_ID, hook, genericNotificationConfig, params);
 
         // toJson method should make JSON body from params
         String expectedBody =
@@ -104,7 +106,14 @@ public class WebhookNotifierServiceImplTest {
         expectedHeaders.put("X-Gravitee-Event", hook.name());
         expectedHeaders.put("X-Gravitee-Event-Scope", "API");
 
-        verify(webNotifierService).request(HttpMethod.POST, "http://example.com/webhook", expectedHeaders, expectedBody, false);
+        verify(webNotifierService).request(
+            ORGANIZATION_ID,
+            HttpMethod.POST,
+            "http://example.com/webhook",
+            expectedHeaders,
+            expectedBody,
+            false
+        );
     }
 
     @Test
@@ -137,7 +146,7 @@ public class WebhookNotifierServiceImplTest {
         SubscriptionEntity subscription = SubscriptionEntity.builder().id("subsId").status(SubscriptionStatus.ACCEPTED).build();
         params.put("subscription", subscription);
 
-        webhookNotifierService.trigger(hook, genericNotificationConfig, params);
+        webhookNotifierService.trigger(ORGANIZATION_ID, hook, genericNotificationConfig, params);
 
         // toJson method should make JSON body from params
         String expectedBody =
@@ -152,6 +161,13 @@ public class WebhookNotifierServiceImplTest {
         expectedHeaders.put("X-Gravitee-Event", hook.name());
         expectedHeaders.put("X-Gravitee-Event-Scope", "API");
 
-        verify(webNotifierService).request(HttpMethod.POST, "http://example.com/webhook", expectedHeaders, expectedBody, false);
+        verify(webNotifierService).request(
+            ORGANIZATION_ID,
+            HttpMethod.POST,
+            "http://example.com/webhook",
+            expectedHeaders,
+            expectedBody,
+            false
+        );
     }
 }
