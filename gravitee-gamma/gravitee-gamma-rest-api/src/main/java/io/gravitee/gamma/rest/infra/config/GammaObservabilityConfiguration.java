@@ -20,7 +20,7 @@ import org.springframework.context.annotation.Import;
 
 /**
  * Aggregates every per-sub-domain configuration under the Gamma Observability perimeter (traces,
- * filters, logs, analytics, dashboards — all mounted under {@code /observability/*} by
+ * filters, logs, analytics, dashboards, capabilities — all mounted under {@code /observability/*} by
  * {@code GammaRootResource}) so {@code StandaloneConfiguration} only needs a single entry point.
  *
  * <p>Declares no beans of its own: each sub-domain still owns its {@code @ComponentScan} and adapter
@@ -37,6 +37,7 @@ import org.springframework.context.annotation.Import;
         GammaLogsConfiguration.class,
         GammaAnalyticsConfiguration.class,
         GammaDashboardsConfiguration.class,
+        GammaObservabilityCapabilitiesConfiguration.class,
     }
 )
 public class GammaObservabilityConfiguration {}

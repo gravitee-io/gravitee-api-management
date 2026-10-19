@@ -112,6 +112,11 @@ tags:
           module lists its own dashboards. This scoping is not an access-control boundary: every dashboard
           of the environment stays readable and writable by anyone holding the
           `ENVIRONMENT_DASHBOARD` permissions, whatever its module.
+    - name: Capabilities
+      description: |
+          What the caller may open in the observability UIs, keyed like the capabilities of
+          gamma-lib-observability so a UI hands the answer over as is, instead of probing each
+          endpoint for a 403.
 
 paths:
     /organizations/{orgId}/environments/{envId}/observability/filters/definition:
@@ -1336,6 +1341,39 @@ paths:
                 "400":
                     $ref: "#/components/responses/AnalyticsQueryRefused"
 
+    /organizations/{orgId}/environments/{envId}/observability/capabilities:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            tags:
+                - Capabilities
+            summary: Get the caller's observability capabilities
+            description: |
+                - `observability.logs.read` and `observability.traces.read`: the caller reads the requests
+                  of at least one API (`API_LOG[READ]`).
+                - `observability.dashboards.read`: the caller reads the aggregates of at least one API
+                  (`API_ANALYTICS[READ]`, or `ENVIRONMENT_PLATFORM[READ]`), or holds
+                  `ENVIRONMENT_DASHBOARD[READ]`. It opens the built-in dashboards, whose widgets read
+                  the caller's rows; the saved dashboards still need `ENVIRONMENT_DASHBOARD[READ]`.
+                - `observability.dashboards.write`: the caller holds `ENVIRONMENT_DASHBOARD[CREATE]` or
+                  `[UPDATE]`.
+
+                No permission is required: the answer describes the caller's own access.
+            operationId: getObservabilityCapabilities
+            responses:
+                "200":
+                    description: The caller's capabilities in the environment.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObservabilityCapabilities"
+                            example:
+                                observability.logs.read: true
+                                observability.traces.read: true
+                                observability.dashboards.read: true
+                                observability.dashboards.write: false
+
     /organizations/{orgId}/environments/{envId}/observability/dashboards:
         parameters:
             - $ref: "#/components/parameters/orgIdParam"
@@ -2050,6 +2088,23 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/FilterSpec"
+
+        ObservabilityCapabilities:
+            type: object
+            required:
+                - observability.logs.read
+                - observability.traces.read
+                - observability.dashboards.read
+                - observability.dashboards.write
+            properties:
+                observability.logs.read:
+                    type: boolean
+                observability.traces.read:
+                    type: boolean
+                observability.dashboards.read:
+                    type: boolean
+                observability.dashboards.write:
+                    type: boolean
 
         FilterValue:
             type: object
