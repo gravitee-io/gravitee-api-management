@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.query_service.analytics_engine;
 import static io.gravitee.apim.core.analytics_engine.model.MetricSpec.Name.NATIVE_CONNECTIONS_SUMMARY;
 
 import io.gravitee.apim.core.analytics_engine.model.*;
+import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec.Name;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import io.gravitee.apim.infra.adapter.AnalyticsMeasuresAdapter;
@@ -35,6 +36,11 @@ public class NativeApiAnalyticsQueryService implements AnalyticsEngineQueryServi
 
     public NativeApiAnalyticsQueryService(@Lazy AnalyticsRepository analyticsRepository) {
         this.analyticsRepository = analyticsRepository;
+    }
+
+    @Override
+    public boolean narrowsBy(Name metric, FilterSpec.Name filter) {
+        return IgnoredFilters.narrows(analyticsRepository, AnalyticsSearchPath.NATIVE, filter);
     }
 
     @Override

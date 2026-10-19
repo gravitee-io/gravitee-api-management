@@ -59,7 +59,8 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
         Map<String, Object> afterKey,
         String searchPattern,
         Set<String> authorizedApiIds,
-        TrafficScope trafficScope
+        TrafficScope trafficScope,
+        String apiProductId
     ) {
         var esFieldName = resolveEsFieldName(filterName);
         var queryContext = new QueryContext(organizationId, environmentId);
@@ -84,6 +85,7 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
                             trafficScope.entrypointIds()
                         )
                 )
+                .apiProductId(apiProductId)
                 .build();
 
             result = analyticsRepository.searchFilterValues(queryContext, query);
@@ -106,7 +108,8 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
         Instant from,
         Instant to,
         Set<String> values,
-        Set<String> authorizedApiIds
+        Set<String> authorizedApiIds,
+        String apiProductId
     ) {
         if (values.isEmpty() || authorizedApiIds.isEmpty()) {
             return Set.of();
@@ -121,6 +124,7 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
                 .size(chunk.size())
                 .apiIds(authorizedApiIds)
                 .values(chunk)
+                .apiProductId(apiProductId)
                 .build();
             inCalls.addAll(analyticsRepository.searchFilterValues(queryContext, query).values());
         }

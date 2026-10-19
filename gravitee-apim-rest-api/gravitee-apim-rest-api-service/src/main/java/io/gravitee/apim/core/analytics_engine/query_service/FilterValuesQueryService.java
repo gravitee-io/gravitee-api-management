@@ -55,7 +55,7 @@ public interface FilterValuesQueryService {
      * @param trafficScope narrows the calls of {@code authorizedApiIds} the values come from, {@code null} when the
      *                     caller is not scoped by API kind
      */
-    FilterValuesPage searchFilterValues(
+    default FilterValuesPage searchFilterValues(
         String organizationId,
         String environmentId,
         FilterSpec.Name filterName,
@@ -67,10 +67,45 @@ public interface FilterValuesQueryService {
         String searchPattern,
         Set<String> authorizedApiIds,
         TrafficScope trafficScope
+    ) {
+        return searchFilterValues(
+            organizationId,
+            environmentId,
+            filterName,
+            from,
+            to,
+            page,
+            size,
+            afterKey,
+            searchPattern,
+            authorizedApiIds,
+            trafficScope,
+            null
+        );
+    }
+
+    /**
+     * @param trafficScope narrows the calls of {@code authorizedApiIds} the values come from, {@code null} when the
+     *                     caller is not scoped by API kind
+     * @param apiProductId keeps the calls made through that API product only, {@code null} when it does not matter
+     */
+    FilterValuesPage searchFilterValues(
+        String organizationId,
+        String environmentId,
+        FilterSpec.Name filterName,
+        Instant from,
+        Instant to,
+        int page,
+        int size,
+        Map<String, Object> afterKey,
+        String searchPattern,
+        Set<String> authorizedApiIds,
+        TrafficScope trafficScope,
+        String apiProductId
     );
 
     /** Of {@code values}, those found in the calls of {@code authorizedApiIds}, within the period when one is given. */
-    Set<String> findValuesInCalls(
+    default Set<String> findValuesInCalls(
         String organizationId,
         String environmentId,
         FilterSpec.Name filterName,
@@ -78,5 +113,19 @@ public interface FilterValuesQueryService {
         Instant to,
         Set<String> values,
         Set<String> authorizedApiIds
+    ) {
+        return findValuesInCalls(organizationId, environmentId, filterName, from, to, values, authorizedApiIds, null);
+    }
+
+    /** As above, among the calls made through {@code apiProductId} only when one is given. */
+    Set<String> findValuesInCalls(
+        String organizationId,
+        String environmentId,
+        FilterSpec.Name filterName,
+        Instant from,
+        Instant to,
+        Set<String> values,
+        Set<String> authorizedApiIds,
+        String apiProductId
     );
 }

@@ -70,7 +70,11 @@ tags:
           with `ENVIRONMENT_PLATFORM[READ]`. A query identifying callers — a condition or a facet on
           `CONSUMER_IP`, `NATIVE_CLIENT_ID` or `AUTHZ_SUBJECT_ID`, or a `RECORD_TYPE` selecting
           `AUTHZ_DECISION` — counts only the APIs where the caller holds `API_LOG[READ]`, which the
-          platform permission never widens. A caller who reads no API gets zero-valued answers, not 403.
+          platform permission never widens. A query narrowed to one AI workspace (a single `API_PRODUCT`
+          condition, `EQ` that workspace or `IN` it alone) also counts that workspace's calls for a holder of
+          `AI_WORKSPACE_USER[READ]` on it, whatever their API memberships; the condition keeps out the calls
+          of any other workspace sharing an API, and it never opens per-request data. A caller who reads no
+          API gets zero-valued answers, not 403.
           Entrypoint scope, on the request metrics: a request is counted unless its entrypoint is
           declared outside the HTTP scope; an entrypoint the registry does not know and a request
           refused before an entrypoint was selected are both counted. An explicit `ENTRYPOINT`
@@ -221,7 +225,10 @@ paths:
                 return the distinct values found in the calls of the APIs whose aggregates the caller
                 reads, or whose logs they read for a field identifying callers (`CONSUMER_IP`,
                 `NATIVE_CLIENT_ID`, `AUTHZ_SUBJECT_ID`) or one the logs only show; empty when they
-                read none. Searching `API` by name offers the APIs the caller reads. `NATIVE_TOPIC` and
+                read none. Searching `API` by name offers the APIs the caller reads. With `apiProduct`, only
+                the calls made through that API product count; a holder of `AI_WORKSPACE_USER[READ]` on that
+                workspace also gets the values of its calls, as the workspace rule of *Analytics* counts them,
+                except for the fields read from the logs. `NATIVE_TOPIC` and
                 `NATIVE_OPERATION` are the exception: their values live in a stream the store does not
                 aggregate over, and they return 400.
                 NUMBER and STRING filters have no enumerable values and return 400. `page` is capped at
@@ -290,6 +297,16 @@ paths:
                       type: array
                       items:
                           $ref: "#/components/schemas/ApiType"
+                - name: apiProduct
+                  in: query
+                  required: false
+                  description: |
+                      The single API product the request is scoped to, as an `API_PRODUCT` `EQ` condition
+                      scopes a query. KEYWORD filters then return the values of the calls made through it only.
+                      When absent or blank, no API-product constraint is applied (backward compatible).
+                  example: 3f5c2a8e-1b7d-4c9e-a6f0-2d8b4e1c7a95
+                  schema:
+                      type: string
             responses:
                 "200":
                     description: A page of selectable values.
@@ -372,8 +389,21 @@ paths:
                 APPLICATION, PLAN, API_PRODUCT) produce labels; other filters return an empty label
                 map. Only ids the caller's rows hold are labelled: an `API` id the caller reads
                 aggregates of, or an APPLICATION, PLAN or API_PRODUCT id found in the calls of those
-                APIs. Other ids are left out of `labels`. Limits: at most 10 entries, at most 100 ids per entry.
+                APIs. With `apiProduct`, a holder of `AI_WORKSPACE_USER[READ]` on that workspace also gets
+                the labels of the ids found in the calls made through it: the workspace, its APIs, their
+                applications and plans.
+                Other ids are left out of `labels`. Limits: at most 10 entries, at most 100 ids per entry.
             operationId: resolveObservabilityFilterLabels
+            parameters:
+                - name: apiProduct
+                  in: query
+                  required: false
+                  description: |
+                      The single API product the labelled request is scoped to, as on the values endpoint. A blank
+                      value is read as absent.
+                  example: 3f5c2a8e-1b7d-4c9e-a6f0-2d8b4e1c7a95
+                  schema:
+                      type: string
             requestBody:
                 required: true
                 content:

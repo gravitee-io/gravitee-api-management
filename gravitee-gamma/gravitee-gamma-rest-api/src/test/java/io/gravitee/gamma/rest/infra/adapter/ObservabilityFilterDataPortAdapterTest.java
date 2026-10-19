@@ -29,6 +29,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.gamma.rest.core.observability.filter.exception.FilterCatalogDriftException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterValue;
+import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.ObservabilityFilterDataPort.ResolveRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,7 +62,7 @@ class ObservabilityFilterDataPortAdapterTest {
             )
         );
 
-        var page = adapter.listKeywordValues("ENTRYPOINT", null, null, null, 1, 10, Set.of());
+        var page = adapter.listKeywordValues("ENTRYPOINT", null, null, null, 1, 10, Set.of(), null);
 
         assertThat(page.data()).containsExactly(new FilterValue("mcp-studio", null), new FilterValue("api-1", "Petstore"));
         assertThat(page.totalElements()).isEqualTo(7L);
@@ -75,7 +76,7 @@ class ObservabilityFilterDataPortAdapterTest {
             new ValidationDomainException("Filter not found", Map.of("filterName", "ENTRYPOINT"))
         );
 
-        assertThatThrownBy(() -> adapter.listKeywordValues("ENTRYPOINT", null, null, null, 1, 10, Set.of()))
+        assertThatThrownBy(() -> adapter.listKeywordValues("ENTRYPOINT", null, null, null, 1, 10, Set.of(), null))
             .isInstanceOf(FilterCatalogDriftException.class)
             .hasMessageContaining("ENTRYPOINT");
     }
@@ -87,7 +88,7 @@ class ObservabilityFilterDataPortAdapterTest {
             new UnsupportedOperationException("No ES field mapping for filter: NATIVE_TOPIC")
         );
 
-        assertThatThrownBy(() -> adapter.listKeywordValues("NATIVE_TOPIC", null, null, null, 1, 10, Set.of()))
+        assertThatThrownBy(() -> adapter.listKeywordValues("NATIVE_TOPIC", null, null, null, 1, 10, Set.of(), null))
             .isInstanceOf(FilterCatalogDriftException.class)
             .hasMessageContaining("NATIVE_TOPIC");
     }
@@ -99,7 +100,7 @@ class ObservabilityFilterDataPortAdapterTest {
             new GetFilterValuesUseCase.Output(new FilterValuesPage(List.of(), Map.of(), 0L))
         );
 
-        adapter.listKeywordValues("API", null, null, null, 1, 10, Set.of(ApiType.AUTHZ));
+        adapter.listKeywordValues("API", null, null, null, 1, 10, Set.of(ApiType.AUTHZ), null);
 
         var captor = ArgumentCaptor.forClass(GetFilterValuesUseCase.Input.class);
         verify(getFilterValuesUseCase).execute(captor.capture());
@@ -113,11 +114,35 @@ class ObservabilityFilterDataPortAdapterTest {
             new GetFilterValuesUseCase.Output(new FilterValuesPage(List.of(), Map.of(), 0L))
         );
 
-        adapter.listKeywordValues("API", null, null, null, 1, 10, Set.of(ApiType.MCP, ApiType.LLM, ApiType.A2A));
+        adapter.listKeywordValues("API", null, null, null, 1, 10, Set.of(ApiType.MCP, ApiType.LLM, ApiType.A2A), null);
 
         var captor = ArgumentCaptor.forClass(GetFilterValuesUseCase.Input.class);
         verify(getFilterValuesUseCase).execute(captor.capture());
         assertThat(captor.getValue().trafficEntrypointIds()).containsExactlyInAnyOrder("mcp", "agent-to-agent");
+    }
+
+    @Test
+    void should_hand_the_platform_the_api_product_the_values_are_scoped_to() {
+        when(getFilterValuesUseCase.execute(any())).thenReturn(
+            new GetFilterValuesUseCase.Output(new FilterValuesPage(List.of(), Map.of(), 0L))
+        );
+
+        adapter.listKeywordValues("APPLICATION", null, null, null, 1, 10, Set.of(), "workspace-1");
+
+        var captor = ArgumentCaptor.forClass(GetFilterValuesUseCase.Input.class);
+        verify(getFilterValuesUseCase).execute(captor.capture());
+        assertThat(captor.getValue().apiProductId()).isEqualTo("workspace-1");
+    }
+
+    @Test
+    void should_hand_the_platform_the_api_product_the_labels_are_scoped_to() {
+        when(resolveFilterLabelsUseCase.execute(any())).thenReturn(new ResolveFilterLabelsUseCase.Output(List.of()));
+
+        adapter.resolveLabels(List.of(new ResolveRequest("APPLICATION", List.of("app-1"))), "workspace-1");
+
+        var captor = ArgumentCaptor.forClass(ResolveFilterLabelsUseCase.Input.class);
+        verify(resolveFilterLabelsUseCase).execute(captor.capture());
+        assertThat(captor.getValue().apiProductId()).isEqualTo("workspace-1");
     }
 
     @Test
@@ -126,7 +151,7 @@ class ObservabilityFilterDataPortAdapterTest {
             new GetFilterValuesUseCase.Output(new FilterValuesPage(List.of(), Map.of(), 0L))
         );
 
-        adapter.listKeywordValues("API", null, null, null, 1, 10, Set.of(ApiType.HTTP_PROXY));
+        adapter.listKeywordValues("API", null, null, null, 1, 10, Set.of(ApiType.HTTP_PROXY), null);
 
         var captor = ArgumentCaptor.forClass(GetFilterValuesUseCase.Input.class);
         verify(getFilterValuesUseCase).execute(captor.capture());

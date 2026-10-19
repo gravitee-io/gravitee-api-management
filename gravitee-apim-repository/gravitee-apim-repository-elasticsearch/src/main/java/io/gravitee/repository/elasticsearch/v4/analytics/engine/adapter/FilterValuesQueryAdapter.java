@@ -24,6 +24,7 @@ import java.util.ArrayList;
 public class FilterValuesQueryAdapter {
 
     private static final String API_ID_FIELD = "api-id";
+    private static final String API_PRODUCT_ID_FIELD = "api-product-id";
 
     public String adapt(FilterValuesQuery query) {
         var root = new JsonObject();
@@ -46,6 +47,10 @@ public class FilterValuesQueryAdapter {
             } else {
                 boolFilter.add(JsonObject.of("terms", JsonObject.of(API_ID_FIELD, new JsonArray(new ArrayList<>(query.apiIds())))));
             }
+        }
+
+        if (query.apiProductId() != null) {
+            boolFilter.add(JsonObject.of("term", JsonObject.of(API_PRODUCT_ID_FIELD, query.apiProductId())));
         }
 
         if (query.values() != null) {

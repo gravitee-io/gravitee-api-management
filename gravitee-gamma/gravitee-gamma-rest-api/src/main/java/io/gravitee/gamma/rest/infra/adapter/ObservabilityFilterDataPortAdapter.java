@@ -65,7 +65,8 @@ public class ObservabilityFilterDataPortAdapter implements ObservabilityFilterDa
         Long to,
         int page,
         int perPage,
-        Set<ApiType> apiTypes
+        Set<ApiType> apiTypes,
+        String apiProduct
     ) {
         try {
             Instant fromInstant = from != null ? Instant.ofEpochMilli(from) : null;
@@ -87,7 +88,8 @@ public class ObservabilityFilterDataPortAdapter implements ObservabilityFilterDa
                     query,
                     platformApiTypes,
                     AnalyticsScope.MANAGEMENT,
-                    apiTypes == null ? Set.of() : entrypointScopeProvider.entrypointsAdding(apiTypes)
+                    apiTypes == null ? Set.of() : entrypointScopeProvider.entrypointsAdding(apiTypes),
+                    apiProduct
                 )
             );
             var valuesPage = output.valuesPage();
@@ -106,12 +108,12 @@ public class ObservabilityFilterDataPortAdapter implements ObservabilityFilterDa
     }
 
     @Override
-    public List<ResolvedLabels> resolveLabels(List<ResolveRequest> requests) {
+    public List<ResolvedLabels> resolveLabels(List<ResolveRequest> requests, String apiProduct) {
         var entries = requests
             .stream()
             .map(r -> new ResolveFilterLabelsUseCase.Entry(r.filterName(), r.ids()))
             .toList();
-        var output = resolveFilterLabelsUseCase.execute(new ResolveFilterLabelsUseCase.Input(currentAuditInfo(), entries));
+        var output = resolveFilterLabelsUseCase.execute(new ResolveFilterLabelsUseCase.Input(currentAuditInfo(), entries, apiProduct));
         return output
             .entries()
             .stream()

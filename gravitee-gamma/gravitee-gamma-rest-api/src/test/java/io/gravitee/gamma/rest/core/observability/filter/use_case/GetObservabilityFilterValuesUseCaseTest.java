@@ -248,4 +248,15 @@ class GetObservabilityFilterValuesUseCaseTest {
 
         assertThat(dataPort.lastCall()).hasValueSatisfying(call -> assertThat(call.apiTypes()).containsExactly(ApiType.HTTP_PROXY));
     }
+
+    @Test
+    void should_propagate_the_api_product_scope_to_the_data_port_for_keyword_filters() {
+        dataPort.givenKeywordValues("APPLICATION", List.of(new FilterValue("app-1", "Mobile")));
+
+        useCase.execute(
+            new GetObservabilityFilterValuesUseCase.Input("APPLICATION", null, null, null, null, null, Set.of(), "workspace-1")
+        );
+
+        assertThat(dataPort.lastCall()).hasValueSatisfying(call -> assertThat(call.apiProduct()).isEqualTo("workspace-1"));
+    }
 }
