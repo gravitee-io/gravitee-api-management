@@ -509,6 +509,22 @@ class CRDMembersDomainServiceImplTest {
         }
 
         @Test
+        void should_let_a_direct_member_restate_the_other_members() {
+            when(membershipService.getMembersByReference(EXECUTION_CONTEXT, MembershipReferenceType.API, API_ID)).thenReturn(
+                Set.of(
+                    MemberEntity.builder().id("po-id").roles(List.of(RoleEntity.builder().id("po-role-id").build())).build(),
+                    MemberEntity.builder().id("id-1").roles(List.of(RoleEntity.builder().id("role-1").build())).build(),
+                    MemberEntity.builder().id(AUDIT_INFO.actor().userId()).roles(List.of(RoleEntity.builder().id("role-1").build())).build()
+                )
+            );
+            var members = Set.of(MemberCRD.builder().role("role-1").id("id-1").sourceId("source-id-1").source("test").build());
+
+            cut.checkApiMembersUpdate(AUDIT_INFO, API_ID, members);
+
+            verifyNoMembershipWrite();
+        }
+
+        @Test
         void should_reject_a_member_change() {
             var members = Set.of(MemberCRD.builder().role("role-1").id("id-2").sourceId("source-id-2").source("test").build());
 
@@ -896,6 +912,24 @@ class CRDMembersDomainServiceImplTest {
 
             cut.checkApplicationMembersUpdate(AUDIT_INFO, APPLICATION_ID, members);
             cut.updateApplicationMembers(AUDIT_INFO, APPLICATION_ID, members);
+
+            verifyNoMembershipWrite();
+        }
+
+        @Test
+        void should_let_a_direct_member_restate_the_other_members() {
+            when(
+                membershipService.getMembersByReference(EXECUTION_CONTEXT, MembershipReferenceType.APPLICATION, APPLICATION_ID)
+            ).thenReturn(
+                Set.of(
+                    MemberEntity.builder().id("po-id").roles(List.of(RoleEntity.builder().id("po-role-id").build())).build(),
+                    MemberEntity.builder().id("id-1").roles(List.of(RoleEntity.builder().id("role-1").build())).build(),
+                    MemberEntity.builder().id(AUDIT_INFO.actor().userId()).roles(List.of(RoleEntity.builder().id("role-1").build())).build()
+                )
+            );
+            var members = Set.of(MemberCRD.builder().role("role-1").id("id-1").sourceId("source-id-1").source("test").build());
+
+            cut.checkApplicationMembersUpdate(AUDIT_INFO, APPLICATION_ID, members);
 
             verifyNoMembershipWrite();
         }
