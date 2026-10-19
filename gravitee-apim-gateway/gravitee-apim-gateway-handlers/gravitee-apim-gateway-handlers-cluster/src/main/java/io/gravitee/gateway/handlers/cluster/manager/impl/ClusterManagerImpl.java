@@ -19,19 +19,51 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.cluster.ClusterEvent;
 import io.gravitee.definition.model.cluster.ReactableCluster;
 import io.gravitee.gateway.handlers.cluster.manager.ClusterManager;
+import io.gravitee.secrets.api.discovery.Definition;
+import io.gravitee.secrets.api.discovery.DefinitionMetadata;
+import io.gravitee.secrets.api.event.SecretDiscoveryEvent;
+import io.gravitee.secrets.api.event.SecretDiscoveryEventType;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.CustomLog;
 
+/**
+ * Holds the clusters deployed on this gateway, and their secret references as it does for APIs and shared policy groups:
+ * discovered when a cluster version is deployed, revoked when it is superseded or undeployed. When a secret value
+ * changes, the cluster is published again as an update, so that clients built from it are renewed.
+ */
 @CustomLog
 public class ClusterManagerImpl implements ClusterManager {
 
     private final Map<String, ReactableCluster> clusters = new ConcurrentHashMap<>();
     private final EventManager eventManager;
 
+    public static final String CLUSTER_DEFINITION_KIND = "cluster";
+
     public ClusterManagerImpl(EventManager eventManager) {
         this.eventManager = eventManager;
+
+        eventManager.subscribeForEvents(
+            event -> {
+                if (
+                    !(event.content() instanceof SecretDiscoveryEvent secretDiscoveryEvent) ||
+                    !(secretDiscoveryEvent.definition() instanceof Definition definition) ||
+                    !CLUSTER_DEFINITION_KIND.equals(definition.kind())
+                ) {
+                    return;
+                }
+                ReactableCluster cluster = clusters.get(definition.id());
+                if (cluster == null) {
+                    log.trace("Received SecretDiscoveryEvent for cluster {}, but not found in manager", definition.id());
+                    return;
+                }
+                log.info("Secret value changed for cluster {}, updating it", definition.id());
+                eventManager.publishEvent(ClusterEvent.UPDATE, cluster);
+            },
+            SecretDiscoveryEventType.VALUE_CHANGED
+        );
     }
 
     @Override
@@ -88,6 +120,7 @@ public class ClusterManagerImpl implements ClusterManager {
         ReactableCluster cluster = clusters.remove(clusterId);
         if (cluster != null) {
             eventManager.publishEvent(ClusterEvent.UNDEPLOY, cluster);
+            publishSecretDiscoveryEvent(SecretDiscoveryEventType.REVOKE, cluster);
             log.info("Cluster [{}] has been undeployed", clusterId);
         }
     }
@@ -117,6 +150,7 @@ public class ClusterManagerImpl implements ClusterManager {
 
     private void deploy(ReactableCluster cluster) {
         log.debug("Deployment of cluster {}", cluster.getName());
+        publishSecretDiscoveryEvent(SecretDiscoveryEventType.DISCOVER, cluster);
         clusters.put(cluster.getId(), cluster);
         eventManager.publishEvent(ClusterEvent.DEPLOY, cluster);
         log.info("Cluster [{}] has been deployed", cluster.getId());
@@ -124,8 +158,24 @@ public class ClusterManagerImpl implements ClusterManager {
 
     private void update(ReactableCluster cluster) {
         log.debug("Updating cluster {}", cluster.getName());
-        clusters.put(cluster.getId(), cluster);
+        publishSecretDiscoveryEvent(SecretDiscoveryEventType.DISCOVER, cluster);
+        ReactableCluster previousCluster = clusters.put(cluster.getId(), cluster);
         eventManager.publishEvent(ClusterEvent.UPDATE, cluster);
+        // Versionless clusters share one revision: revoking the previous one would revoke what was just discovered.
+        if (previousCluster != null && !Objects.equals(revisionOf(previousCluster), revisionOf(cluster))) {
+            publishSecretDiscoveryEvent(SecretDiscoveryEventType.REVOKE, previousCluster);
+        }
         log.info("Cluster [{}] has been updated", cluster.getId());
+    }
+
+    private void publishSecretDiscoveryEvent(SecretDiscoveryEventType type, ReactableCluster cluster) {
+        eventManager.publishEvent(
+            type,
+            new SecretDiscoveryEvent(cluster.getEnvironmentId(), cluster, new DefinitionMetadata(revisionOf(cluster)))
+        );
+    }
+
+    private static String revisionOf(ReactableCluster cluster) {
+        return cluster.getVersion() == null ? null : String.valueOf(cluster.getVersion());
     }
 }
