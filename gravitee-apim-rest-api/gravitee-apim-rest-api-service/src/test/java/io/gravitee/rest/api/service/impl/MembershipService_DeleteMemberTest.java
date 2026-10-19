@@ -87,8 +87,11 @@ public class MembershipService_DeleteMemberTest {
             null,
             null,
             null,
+<<<<<<< HEAD
             null,
             null,
+=======
+>>>>>>> e4c7f77 (fix(rest-api): grant cluster permissions to users reaching a cluster through a group)
             null
         );
         when(roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(
