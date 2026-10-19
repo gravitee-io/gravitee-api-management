@@ -38,7 +38,15 @@ export const ROLE_SCOPES: readonly RoleScope[] = [
 ];
 
 /** Scopes the `/configuration/rolescopes` permissions-by-scope endpoint covers. */
-export type PermissionEligibleScope = 'API' | 'APPLICATION' | 'ENVIRONMENT' | 'ORGANIZATION' | 'INTEGRATION' | 'CLUSTER' | 'API_PRODUCT';
+export type PermissionEligibleScope =
+    | 'API'
+    | 'APPLICATION'
+    | 'ENVIRONMENT'
+    | 'ORGANIZATION'
+    | 'INTEGRATION'
+    | 'CLUSTER'
+    | 'API_PRODUCT'
+    | 'EXPLORER';
 
 export type RoleRight = 'C' | 'R' | 'U' | 'D';
 

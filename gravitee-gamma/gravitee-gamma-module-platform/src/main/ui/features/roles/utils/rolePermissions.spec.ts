@@ -89,10 +89,10 @@ describe('isPermissionEligibleScope', () => {
     it('accepts the scopes covered by the permissions-by-scope endpoint', () => {
         expect(isPermissionEligibleScope('API')).toBe(true);
         expect(isPermissionEligibleScope('ORGANIZATION')).toBe(true);
+        expect(isPermissionEligibleScope('EXPLORER')).toBe(true);
     });
 
-    it('rejects EXPLORER and AI_WORKSPACE, which the endpoint does not cover', () => {
-        expect(isPermissionEligibleScope('EXPLORER')).toBe(false);
+    it('rejects AI_WORKSPACE', () => {
         expect(isPermissionEligibleScope('AI_WORKSPACE')).toBe(false);
     });
 });
