@@ -138,7 +138,8 @@ public class ApiSubscriptionResource extends AbstractResource {
                 )
                 .build();
 
-            deleteSubscriptionSpecUseCase.execute(new DeleteSubscriptionSpecUseCase.Input(auditInfo, subscriptionId));
+            String apiId = legacy ? apiHrid : IdBuilder.builder(executionContext, apiHrid).buildId();
+            deleteSubscriptionSpecUseCase.execute(new DeleteSubscriptionSpecUseCase.Input(auditInfo, apiId, subscriptionId));
         } catch (SubscriptionNotFoundException e) {
             log.debug("Subscription not found for hrid: {}, apiHrid {}, operation: delete", hrid, apiHrid);
             throw new HRIDNotFoundException(hrid);
