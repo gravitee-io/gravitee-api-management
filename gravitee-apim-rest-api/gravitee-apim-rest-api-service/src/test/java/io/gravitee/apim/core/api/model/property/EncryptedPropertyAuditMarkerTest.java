@@ -126,7 +126,7 @@ class EncryptedPropertyAuditMarkerTest {
     }
 
     @Test
-    void should_not_mark_a_v2_api_without_encrypted_properties() {
+    void should_not_mark_when_the_new_definition_has_no_properties() {
         var withoutProperties = ApiDefinitionFixtures.anApiV4();
         withoutProperties.setProperties(null);
 
