@@ -21,14 +21,12 @@ import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.use_case.GetObservabilityFilterDefinitionsUseCase;
 import io.gravitee.gamma.rest.core.observability.filter.use_case.GetObservabilityFilterValuesUseCase;
 import io.gravitee.gamma.rest.core.observability.filter.use_case.ResolveObservabilityFilterLabelsUseCase;
-import io.gravitee.gamma.rest.resources.observability.ObservabilityPermissions;
 import io.gravitee.gamma.rest.resources.observability.filters.dto.FilterSpecDto;
 import io.gravitee.gamma.rest.resources.observability.filters.dto.FilterSpecsResponseDto;
 import io.gravitee.gamma.rest.resources.observability.filters.dto.FilterValueDto;
 import io.gravitee.gamma.rest.resources.observability.filters.dto.ResolveFilterLabelsRequestDto;
 import io.gravitee.gamma.rest.resources.observability.filters.dto.ResolveFilterLabelsResponseDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.PaginatedResponseDto;
-import io.gravitee.rest.api.service.PermissionService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
@@ -61,9 +59,8 @@ import java.util.function.Function;
  * </ul>
  *
  * <h2>Authorization</h2>
- * {@code /definition} is a static catalog and needs no permission. {@code /{filterName}/values} and
- * {@code /resolve} read data, so they are behind {@link ObservabilityPermissions#checkEnvironmentRead},
- * otherwise {@code 403}.
+ * No permission guard: the catalog holds no traffic data, and values and labels come from the rows the
+ * caller reads, so a caller who reads no API gets empty answers.
  *
  * @author GraviteeSource Team
  */
@@ -77,9 +74,6 @@ public class ObservabilityFiltersResource {
 
     @Inject
     private ResolveObservabilityFilterLabelsUseCase resolveFilterLabelsUseCase;
-
-    @Inject
-    private PermissionService permissionService;
 
     @GET
     @Path("/definition")
@@ -109,7 +103,6 @@ public class ObservabilityFiltersResource {
         @QueryParam("perPage") Integer perPage,
         @QueryParam("apiType") List<String> apiTypes
     ) {
-        ObservabilityPermissions.checkEnvironmentRead(permissionService);
         var output = getFilterValuesUseCase.execute(
             new GetObservabilityFilterValuesUseCase.Input(
                 filterName,
@@ -130,7 +123,6 @@ public class ObservabilityFiltersResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public ResolveFilterLabelsResponseDto resolveFilterLabels(ResolveFilterLabelsRequestDto request) {
-        ObservabilityPermissions.checkEnvironmentRead(permissionService);
         List<ResolveObservabilityFilterLabelsUseCase.Entry> entries = request == null || request.entries() == null
             ? List.of()
             : request

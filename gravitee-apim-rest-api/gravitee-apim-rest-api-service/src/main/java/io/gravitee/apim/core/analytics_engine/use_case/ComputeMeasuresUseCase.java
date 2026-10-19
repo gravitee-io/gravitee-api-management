@@ -83,17 +83,7 @@ public class ComputeMeasuresUseCase {
      * {@code authorizedApiIds} is the only API set applied. Portal navigation and management permissions are not consulted.
      */
     public Output executeForApis(AuditInfo auditInfo, MeasuresRequest request, Set<String> authorizedApiIds) {
-        return compute(
-            new AnalyticsQueryContext(
-                auditInfo,
-                new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId()),
-                authorizedApiIds,
-                Map.of(),
-                Map.of(),
-                Map.of()
-            ),
-            request
-        );
+        return compute(AnalyticsQueryContext.forApis(auditInfo, authorizedApiIds), request);
     }
 
     private Output compute(AnalyticsQueryContext analyticsContext, MeasuresRequest request) {

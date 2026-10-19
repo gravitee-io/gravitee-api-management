@@ -21,7 +21,6 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ResolveFil
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ResolveFilterLabelsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ResolveFilterLabelsResponseEntry;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -38,10 +37,6 @@ public class ObservabilityFilterLabelsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public ResolveFilterLabelsResponse resolveFilterLabels(ResolveFilterLabelsRequest request) {
-        if (!canReadDashboards()) {
-            throw new ForbiddenAccessException();
-        }
-
         if (request == null || request.getEntries() == null || request.getEntries().isEmpty()) {
             return new ResolveFilterLabelsResponse().entries(List.of());
         }

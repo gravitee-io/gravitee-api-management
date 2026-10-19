@@ -20,7 +20,6 @@ import io.gravitee.apim.core.observability.model.Signal;
 import io.gravitee.rest.api.management.v2.rest.mapper.AnalyticsDefinitionMapper;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpecsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.GET;
@@ -45,10 +44,6 @@ public class ObservabilityFiltersDefinitionResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public FilterSpecsResponse getFilterDefinitions(@QueryParam("signal") List<String> signals) {
-        if (!canReadDashboards()) {
-            throw new ForbiddenAccessException();
-        }
-
         var input = new GetAnalyticsFilterDefinitionsUseCase.Input(parseSignals(signals));
         return AnalyticsDefinitionMapper.INSTANCE.toFilterSpecsResponse(getAnalyticsFilterDefinitions.execute(input).specs());
     }
