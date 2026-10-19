@@ -16,25 +16,37 @@
 package io.gravitee.apim.rest.api.automation.resource;
 
 import static io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED;
+import static io.gravitee.rest.api.model.permissions.RolePermission.API_SUBSCRIPTION;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.atMostOnce;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.SubscriptionFixtures;
+import inmemory.SubscriptionCrudServiceInMemory;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDStatus;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.List;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +55,9 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
     @Autowired
     private ImportSubscriptionSpecUseCase importSubscriptionSpecUseCase;
+
+    @Autowired
+    private SubscriptionCrudServiceInMemory subscriptionCrudService;
 
     @AfterEach
     void tearDown() {
@@ -120,6 +135,96 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
             });
+        }
+    }
+
+    @Nested
+    class Authorization {
+
+        private final ExecutionContext executionContext = new ExecutionContext(ORGANIZATION, ENVIRONMENT);
+        private final String apiId = IdBuilder.builder(executionContext, API_HRID).buildId();
+        private final String subscriptionId = IdBuilder.builder(executionContext, API_HRID).withExtraId("subscription_hrid").buildId();
+
+        @BeforeEach
+        void setUp() {
+            when(importSubscriptionSpecUseCase.execute(any(ImportSubscriptionSpecUseCase.Input.class))).thenReturn(
+                new ImportSubscriptionSpecUseCase.Output(
+                    SubscriptionCRDStatus.builder()
+                        .startingAt(Instant.now().atZone(ZoneOffset.UTC))
+                        .status(ACCEPTED.name())
+                        .organizationId(ORGANIZATION)
+                        .environmentId(ENVIRONMENT)
+                        .build()
+                )
+            );
+        }
+
+        @AfterEach
+        void tearDown() {
+            subscriptionCrudService.reset();
+            reset(permissionService);
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_update_the_existing_subscription() {
+            givenExistingSubscription();
+            deny(UPDATE);
+
+            assertThat(put()).isEqualTo(403);
+            verify(importSubscriptionSpecUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_update_the_existing_subscription_with_update_and_no_create() {
+            givenExistingSubscription();
+            deny(CREATE);
+
+            assertThat(put()).isEqualTo(200);
+            verify(importSubscriptionSpecUseCase).execute(any());
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_create_a_new_subscription() {
+            deny(CREATE);
+
+            assertThat(put()).isEqualTo(403);
+            verify(importSubscriptionSpecUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_create_a_new_subscription_with_create_and_no_update() {
+            deny(UPDATE);
+
+            assertThat(put()).isEqualTo(200);
+            verify(importSubscriptionSpecUseCase).execute(any());
+        }
+
+        private void givenExistingSubscription() {
+            subscriptionCrudService.initWith(
+                List.of(
+                    SubscriptionFixtures.aSubscription()
+                        .toBuilder()
+                        .id(subscriptionId)
+                        .referenceId(apiId)
+                        .referenceType(SubscriptionReferenceType.API)
+                        .build()
+                )
+            );
+        }
+
+        private void deny(RolePermissionAction action) {
+            when(permissionService.hasPermission(any(), eq(API_SUBSCRIPTION), eq(apiId), eq(action))).thenReturn(false);
+        }
+
+        private int put() {
+            try (
+                var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("subscription-with-hrid.json")))
+            ) {
+                return response.getStatus();
+            }
         }
     }
 
