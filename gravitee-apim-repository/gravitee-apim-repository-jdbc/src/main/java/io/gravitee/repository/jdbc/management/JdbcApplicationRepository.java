@@ -504,7 +504,8 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             field = sortable.field();
         }
 
-        sbQuery.append(String.format("order by a.%s %s", field, direction));
+        // id tie-breaker keeps pages stable when sort values collide (e.g. same name)
+        sbQuery.append(String.format("order by a.%s %s, a.id %s", field, direction, direction));
 
         return sbQuery.toString();
     }
