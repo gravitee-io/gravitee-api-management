@@ -17,9 +17,11 @@ package io.gravitee.apim.rest.api.automation.resource;
 
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.security.CreateOrUpdateAuthorization;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.impl.PermissionServiceImpl;
 import jakarta.inject.Inject;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,6 +47,17 @@ public abstract class AbstractResource {
             updatePermission,
             existingId
         );
+    }
+
+    /**
+     * Authorizes a create-or-update import of an object held by another one, such as an API page: {@code permission} CREATE
+     * on {@code referenceId} when the object is absent, UPDATE when it is present.
+     */
+    protected void requireCreateOrUpdate(RolePermission permission, String referenceId, boolean exists) {
+        var action = exists ? RolePermissionAction.UPDATE : RolePermissionAction.CREATE;
+        if (!permissionService.hasPermission(GraviteeContext.getExecutionContext(), permission, referenceId, action)) {
+            throw new ForbiddenAccessException();
+        }
     }
 
     // The Automation application registers no SecurityContextFilter: the JAX-RS role check would not see the Gravitee authorities
