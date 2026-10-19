@@ -62,9 +62,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * </ul>
  *
  * <h2>Authorization</h2>
- * Declarative {@code ENVIRONMENT_DASHBOARD} with per-verb ACLs — a CRUD resource, unlike the
- * read-only {@code ObservabilityPermissions#checkEnvironmentRead} check used by
- * {@code LogsResource} / {@code ObservabilityFiltersResource}. POST and PUT
+ * Declarative {@code ENVIRONMENT_DASHBOARD} with per-verb ACLs, for the dashboard definitions only: the
+ * widgets read their data from the endpoints that answer from the caller's rows. POST and PUT
  * stay separate verbs (no PUT upsert): {@code @Permissions} is per method and CREATE / UPDATE are
  * distinct ACLs, so collapsing them would silently grant creation to anyone holding update rights.
  *

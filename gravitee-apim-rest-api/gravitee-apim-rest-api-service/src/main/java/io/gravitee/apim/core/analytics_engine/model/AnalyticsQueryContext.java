@@ -35,4 +35,19 @@ public record AnalyticsQueryContext(
         if (applicationNamesById == null) applicationNamesById = Map.of();
         if (apiIdsByType == null) apiIdsByType = Map.of();
     }
+
+    /**
+     * A context for APIs the caller already resolved. Nothing is preloaded: bucket names are looked up for the
+     * returned ids only, and an {@code API_TYPE} condition matches no API, so callers narrow by type beforehand.
+     */
+    public static AnalyticsQueryContext forApis(AuditInfo auditInfo, Set<String> authorizedApiIds) {
+        return new AnalyticsQueryContext(
+            auditInfo,
+            new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId()),
+            authorizedApiIds,
+            Map.of(),
+            Map.of(),
+            Map.of()
+        );
+    }
 }
