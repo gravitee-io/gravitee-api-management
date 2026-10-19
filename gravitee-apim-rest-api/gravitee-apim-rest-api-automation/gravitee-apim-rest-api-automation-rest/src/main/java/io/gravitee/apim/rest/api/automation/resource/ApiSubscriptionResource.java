@@ -138,10 +138,11 @@ public class ApiSubscriptionResource extends AbstractResource {
                 throw new SubscriptionNotFoundException(apiHrid);
             }
 
+            String apiId = hridContainsApiUUID ? apiHrid : HRIDToUUID.api().context(executionContext).hrid(apiHrid).id();
             var userDetails = getAuthenticatedUserDetails();
 
             deleteSubscriptionSpecUseCase.execute(
-                new DeleteSubscriptionSpecUseCase.Input(buildAuditInfo(executionContext, userDetails), subscriptionId)
+                new DeleteSubscriptionSpecUseCase.Input(buildAuditInfo(executionContext, userDetails), apiId, subscriptionId)
             );
         } catch (SubscriptionNotFoundException e) {
             log.debug("Subscription not found for hrid: {}, apiHrid {}, operation: delete", hrid, apiHrid);
