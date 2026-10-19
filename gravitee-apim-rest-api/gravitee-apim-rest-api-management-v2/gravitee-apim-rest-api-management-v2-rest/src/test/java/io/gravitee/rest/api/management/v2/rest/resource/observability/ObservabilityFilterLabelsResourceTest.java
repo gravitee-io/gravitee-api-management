@@ -21,14 +21,15 @@ import static jakarta.ws.rs.client.Entity.json;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
-import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.rest.api.management.v2.rest.UserDetails;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ResolveFilterLabelsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletResponse;
@@ -54,7 +55,7 @@ class ObservabilityFilterLabelsResourceTest extends AbstractResourceTest {
     private static final String ENVIRONMENT = "my-env";
 
     @Inject
-    FilterValueNameResolver filterValueNameResolver;
+    AnalyticsQueryContextLoaderResolver analyticsQueryContextLoader;
 
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
@@ -128,9 +129,7 @@ class ObservabilityFilterLabelsResourceTest extends AbstractResourceTest {
 
     @Test
     void should_resolve_filter_labels() {
-        when(filterValueNameResolver.resolveNames(ENVIRONMENT, FilterSpec.Name.API, List.of("api-id-1"))).thenReturn(
-            Map.of("api-id-1", "Public API")
-        );
+        givenReadableApis(Map.of("api-id-1", "Public API"));
 
         var response = rootTarget()
             .request()
@@ -159,6 +158,17 @@ class ObservabilityFilterLabelsResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    void should_return_400_for_validation_error() {
+        var entries = IntStream.range(0, 11)
+            .mapToObj(index -> Map.of("filterName", "API", "ids", List.of("api-id-" + index)))
+            .toList();
+
+        var response = rootTarget().request().post(json(Map.of("entries", entries)));
+
+        assertThat(response).hasStatus(400).asError().hasHttpStatus(400).hasMessage("Too many filter entries to resolve");
+    }
+
+    @Test
     void should_return_403_when_missing_dashboard_read_permission() {
         when(
             permissionService.hasPermission(
@@ -183,14 +193,16 @@ class ObservabilityFilterLabelsResourceTest extends AbstractResourceTest {
         assertThat(response).hasStatus(FORBIDDEN_403);
     }
 
-    @Test
-    void should_return_400_for_validation_error() {
-        var entries = IntStream.range(0, 11)
-            .mapToObj(index -> Map.of("filterName", "API", "ids", List.of("api-id-" + index)))
-            .toList();
-
-        var response = rootTarget().request().post(json(Map.of("entries", entries)));
-
-        assertThat(response).hasStatus(400).asError().hasHttpStatus(400).hasMessage("Too many filter entries to resolve");
+    private void givenReadableApis(Map<String, String> namesById) {
+        when(analyticsQueryContextLoader.load(any(), any(), any())).thenReturn(
+            new AnalyticsQueryContext(
+                null,
+                new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                namesById.keySet(),
+                namesById,
+                Map.of(),
+                Map.of()
+            )
+        );
     }
 }

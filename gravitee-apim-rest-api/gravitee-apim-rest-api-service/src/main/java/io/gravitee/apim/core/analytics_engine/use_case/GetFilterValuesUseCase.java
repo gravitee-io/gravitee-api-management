@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -308,13 +309,13 @@ public class GetFilterValuesUseCase {
             return searchApisByNameFromContext(input, lowerQuery, inTrafficScope(input, analyticsContext, trafficScope));
         }
         if (filterSpecName == FilterSpec.Name.APPLICATION) {
-            return searchApplicationsByNameFromEnvironment(input, lowerQuery);
+            return searchApplicationsByNameInCalls(input, lowerQuery, analyticsContext);
         }
         if (filterSpecName == FilterSpec.Name.PLAN) {
             return searchPlansByNameFromAuthorizedApis(input, lowerQuery, inTrafficScope(input, analyticsContext, trafficScope));
         }
         if (filterSpecName == FilterSpec.Name.API_PRODUCT) {
-            return searchApiProductsByNameFromEnvironment(input, lowerQuery);
+            return searchApiProductsByNameInCalls(input, lowerQuery, analyticsContext);
         }
         return new Output(new FilterValuesPage(Collections.emptyList(), null, 0L));
     }
@@ -345,12 +346,18 @@ public class GetFilterValuesUseCase {
         return new Output(new FilterValuesPage(values, null, totalFiltered));
     }
 
-    private Output searchApplicationsByNameFromEnvironment(Input input, String lowerQuery) {
+    /** Applications are not attached to an API: only the calls of the readable APIs tell which ones the caller may see. */
+    private Output searchApplicationsByNameInCalls(Input input, String lowerQuery, AnalyticsQueryContext analyticsContext) {
         var environmentId = input.auditInfo().environmentId();
-        var matching = applicationQueryService
+        var named = applicationQueryService
             .findByEnvironment(environmentId)
             .stream()
             .filter(app -> app.getName() != null && app.getName().toLowerCase().contains(lowerQuery))
+            .toList();
+        var inCalls = findInCalls(input, FilterSpec.Name.APPLICATION, named.stream().map(BaseApplicationEntity::getId), analyticsContext);
+        var matching = named
+            .stream()
+            .filter(app -> inCalls.contains(app.getId()))
             .sorted(
                 Comparator.comparing(BaseApplicationEntity::getName, String.CASE_INSENSITIVE_ORDER).thenComparing(
                     BaseApplicationEntity::getId
@@ -370,7 +377,7 @@ public class GetFilterValuesUseCase {
         return new Output(new FilterValuesPage(values, null, totalFiltered));
     }
 
-    private Output searchApiProductsByNameFromEnvironment(Input input, String lowerQuery) {
+    private Output searchApiProductsByNameInCalls(Input input, String lowerQuery, AnalyticsQueryContext analyticsContext) {
         var environmentId = input.auditInfo().environmentId();
 
         var stream = apiProductQueryService
@@ -383,7 +390,11 @@ public class GetFilterValuesUseCase {
             stream = stream.filter(ap -> ap.getName().toLowerCase().contains(lowerQuery));
         }
 
-        var matching = stream
+        var named = stream.toList();
+        var inCalls = findInCalls(input, FilterSpec.Name.API_PRODUCT, named.stream().map(ApiProduct::getId), analyticsContext);
+        var matching = named
+            .stream()
+            .filter(ap -> inCalls.contains(ap.getId()))
             .sorted(Comparator.comparing(ApiProduct::getName, String.CASE_INSENSITIVE_ORDER).thenComparing(ApiProduct::getId))
             .toList();
 
@@ -405,6 +416,18 @@ public class GetFilterValuesUseCase {
         return perRequest ? ApiDataKind.PER_REQUEST : ApiDataKind.AGGREGATES;
     }
 
+    private Set<String> findInCalls(Input input, FilterSpec.Name filterName, Stream<String> ids, AnalyticsQueryContext analyticsContext) {
+        return filterValuesQueryService.findValuesInCalls(
+            input.auditInfo().organizationId(),
+            input.auditInfo().environmentId(),
+            filterName,
+            input.from(),
+            input.to(),
+            ids.collect(Collectors.toSet()),
+            analyticsContext.authorizedApiIds()
+        );
+    }
+
     private Output searchPlansByNameFromAuthorizedApis(Input input, String lowerQuery, AnalyticsQueryContext analyticsContext) {
         Objects.requireNonNull(analyticsContext);
         var environmentId = input.auditInfo().environmentId();
@@ -413,13 +436,17 @@ public class GetFilterValuesUseCase {
             return new Output(new FilterValuesPage(Collections.emptyList(), null, 0L));
         }
 
-        var plans = planQueryService.findAllByApiIds(apiIds, Set.of(environmentId));
-        var matching = plans
+        var named = planQueryService
+            .findAllByApiIds(apiIds, Set.of(environmentId))
             .stream()
             .filter(plan -> plan.getName() != null && plan.getName().toLowerCase().contains(lowerQuery))
             .collect(Collectors.toMap(Plan::getId, p -> p, (a, b) -> a, LinkedHashMap::new))
-            .values()
+            .values();
+        // Offered like the labels resolve them: a plan without calls in the period has none to show.
+        var inCalls = findInCalls(input, FilterSpec.Name.PLAN, named.stream().map(Plan::getId), analyticsContext);
+        var matching = named
             .stream()
+            .filter(plan -> inCalls.contains(plan.getId()))
             .sorted(Comparator.comparing(Plan::getName, String.CASE_INSENSITIVE_ORDER).thenComparing(Plan::getId))
             .toList();
 

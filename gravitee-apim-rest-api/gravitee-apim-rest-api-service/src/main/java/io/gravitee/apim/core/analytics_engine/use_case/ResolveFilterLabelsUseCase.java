@@ -16,14 +16,20 @@
 package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
+import io.gravitee.apim.core.analytics_engine.query_service.FilterValuesQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -43,6 +49,8 @@ public class ResolveFilterLabelsUseCase {
     );
 
     private final FilterValueNameResolver filterValueNameResolver;
+    private final AnalyticsQueryContextLoaderResolver contextLoader;
+    private final FilterValuesQueryService filterValuesQueryService;
 
     public record Entry(String filterName, List<String> ids) {}
 
@@ -56,21 +64,59 @@ public class ResolveFilterLabelsUseCase {
         var entries = input.entries() == null ? List.<Entry>of() : input.entries();
         validate(entries);
 
-        var environmentId = input.auditInfo().environmentId();
+        var context = entries.stream().anyMatch(ResolveFilterLabelsUseCase::isResolvable)
+            ? contextLoader.load(input.auditInfo(), AnalyticsScope.MANAGEMENT, ApiDataKind.AGGREGATES)
+            : null;
         var resolved = entries
             .stream()
             .map(entry -> {
-                var filterName = parseFilterName(entry.filterName());
-                if (filterName == null || !RESOLVABLE_FILTERS.contains(filterName)) {
+                if (!isResolvable(entry)) {
                     log.warn("Ignoring unsupported observability filter label resolution request for filter [{}]", entry.filterName());
                     return new ResolvedEntry(entry.filterName(), Map.of());
                 }
-                var labels = filterValueNameResolver.resolveNames(environmentId, filterName, entry.ids() == null ? List.of() : entry.ids());
-                return new ResolvedEntry(entry.filterName(), labels);
+                var ids = entry.ids() == null ? Set.<String>of() : Set.copyOf(entry.ids());
+                return new ResolvedEntry(entry.filterName(), labels(context, parseFilterName(entry.filterName()), ids));
             })
             .toList();
 
         return new Output(resolved);
+    }
+
+    /** Labels only what the caller's rows hold: an API they read, or an id found in the calls of those APIs. */
+    private Map<String, String> labels(AnalyticsQueryContext context, FilterSpec.Name filterName, Set<String> ids) {
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        if (filterName == FilterSpec.Name.API) {
+            return restrict(context.apiNamesById(), ids);
+        }
+        var auditInfo = context.auditInfo();
+        var inCalls = filterValuesQueryService.findValuesInCalls(
+            auditInfo.organizationId(),
+            auditInfo.environmentId(),
+            filterName,
+            null,
+            null,
+            ids,
+            context.authorizedApiIds()
+        );
+        if (inCalls.isEmpty()) {
+            return Map.of();
+        }
+        return restrict(filterValueNameResolver.resolveNames(auditInfo.environmentId(), filterName, List.copyOf(inCalls)), inCalls);
+    }
+
+    private static Map<String, String> restrict(Map<String, String> labels, Set<String> ids) {
+        return labels
+            .entrySet()
+            .stream()
+            .filter(label -> ids.contains(label.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private static boolean isResolvable(Entry entry) {
+        var filterName = parseFilterName(entry.filterName());
+        return filterName != null && RESOLVABLE_FILTERS.contains(filterName);
     }
 
     private static void validate(List<Entry> entries) {

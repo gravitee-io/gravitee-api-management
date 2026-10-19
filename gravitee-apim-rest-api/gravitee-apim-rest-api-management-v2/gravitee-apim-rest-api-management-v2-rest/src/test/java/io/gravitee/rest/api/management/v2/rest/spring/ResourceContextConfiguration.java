@@ -1766,8 +1766,12 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ResolveFilterLabelsUseCase resolveFilterLabelsUseCase(FilterValueNameResolver filterValueNameResolver) {
-        return new ResolveFilterLabelsUseCase(filterValueNameResolver);
+    public ResolveFilterLabelsUseCase resolveFilterLabelsUseCase(
+        FilterValueNameResolver filterValueNameResolver,
+        AnalyticsQueryContextLoaderResolver analyticsQueryContextLoader,
+        FilterValuesQueryService filterValuesQueryService
+    ) {
+        return new ResolveFilterLabelsUseCase(filterValueNameResolver, analyticsQueryContextLoader, filterValuesQueryService);
     }
 
     @Bean
