@@ -74,8 +74,7 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
     @Override
     public void updateApplicationMembers(AuditInfo auditInfo, String applicationId, Set<MemberCRD> members) {
         if (!canManageApplicationMembers(auditInfo, applicationId)) {
-            // Restating the current members is all the caller may do: there is nothing to write, and the owner stays
-            requireUnchangedMembers(auditInfo, applicationId, RoleScope.APPLICATION, MembershipReferenceType.APPLICATION, members);
+            // checkApplicationMembersUpdate already rejected any member change: there is nothing to write, and the owner stays
             return;
         }
         updateMembers(auditInfo, applicationId, RoleScope.APPLICATION, MembershipReferenceType.APPLICATION, members);
