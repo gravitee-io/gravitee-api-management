@@ -1299,7 +1299,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 - The server refuses to publish an API that has no page, with an error naming the condition, which the dialog shows like its other refusals. This covers the last page being deleted while the dialog is open, and every other client of the endpoint.
 - The server refuses to create the Overview page when the API already has a page, so a second click cannot create a second one.
 - The portal editor is unchanged and keeps seeding its starter page when it adds an API; STORY-09's rule, which also counts links, stays as it is.
-- **Decision required (decision 10):** the Overview page is stored as a template and filled in with the API's details only when the portal displays it, so the editor's source and preview show `${api.name}` and `<#if …>` as written.
+- The Overview page keeps the template as written, as the portal editor's starter page does, so it follows later changes to the API: the portal fills in the API's details each time it displays the page, and the editor's source and preview show `${api.name}` and `<#if …>` as written (decision 10).
 **Files:**
 - *edit* `V2SPEC/openapi-apis.yaml` — `POST /environments/{envId}/apis/{apiId}/portal-navigation-items/_overview-page`, returning the created `PortalNavigationItem`
 - *edit* `V2REST/resource/api/ApiDocumentationNavigationResource.java` — the action, under `API_DOCUMENTATION` CREATE
@@ -1312,7 +1312,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 - *edit* `GAMMA/features/apis/utils/documentationTree.ts` — whether the API has a page
 - *edit* `GAMMA/features/apis/services/apiDocumentation.ts` and `GAMMA/features/apis/hooks/useApiDocumentation.ts` — create the Overview page; invalidate the documentation list like the other writes
 - *edit* `GAMMA/features/apis/pages/detail/ApiDocumentationEditPage.tsx` — the one-time banner, from the navigation state
-**Size:** M · **Depends on:** STORY-16, STORY-26, STORY-30 · **Blocked by:** decision 10
+**Size:** M · **Depends on:** STORY-16, STORY-26, STORY-30
 **Note:** security-sensitive: a new operation under API documentation permission, and publish now refuses an API it accepted before, for every client of the endpoint. The Automation API has no publish operation and is not affected. The server also counts a page stored as a real child of a standalone listing row, as STORY-09 does; the documentation list does not return those, so in that rare case the dialog asks for a page and the Overview page operation refuses with the reason.
 **Subtasks:**
 1. The server refuses to publish an API with no page.
@@ -1693,7 +1693,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | 7 | Confirm Documentation stays hidden for federated APIs | 23 |
 | 8 | ~~Migrate-and-dedupe or skip, for an API listed more than once~~ **Settled: a plain merge.** The uniqueness rule means an API never has more than one standalone listing row; if older data has more, every row's children become the API's documentation, shown under each row | — |
 | 9 | ~~Moving an item out of an API listed in several portals — refuse, or define the semantic?~~ **Settled: refuse.** Defining it would need the caller to say which listing they mean, and a way to remove an item from one listing only, which the ownership model does not have. Only standalone listings count: a listing inside an API product does not show the API's documentation. | — |
-| 10 | The Overview page Gamma creates is a template, filled in with the API's details only when the portal displays it, so the editor's review shows `${api.name}` and `<#if …>` as written. Keep the template, as the portal editor's starter page does, so the page follows later changes to the API, and accept placeholders in the review; or fill it in when the page is created, so the review shows what developers will see, at the cost of a page that no longer follows the API? | 30 Bis |
+| 10 | ~~The Overview page Gamma creates is a template, filled in with the API's details only when the portal displays it, so the editor's review shows `${api.name}` and `<#if …>` as written. Keep the template, or fill it in when the page is created?~~ **Settled: keep the template**, as the portal editor's starter page does, so the page follows later changes to the API, such as its version and last deployment date; the review shows the placeholders as written. Filling it in at creation would freeze those details | — |
 
 **Settled during design, recorded so the reasoning is not relitigated:**
 
