@@ -341,7 +341,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         auditService.createApiAuditLog(
             executionContext,
             AuditService.AuditLogData.builder()
-                .properties(EncryptedPropertyAuditProperties.of(null, apiEntity.getProperties()))
+                .properties(EncryptedPropertyAuditProperties.ofChange(null, apiEntity.getProperties()))
                 .event(API_CREATED)
                 .createdAt(createdApi.getCreatedAt())
                 .oldValue(null)
@@ -568,7 +568,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             auditService.createApiAuditLog(
                 executionContext,
                 AuditService.AuditLogData.builder()
-                    .properties(EncryptedPropertyAuditProperties.of(existingApiEntity.getProperties(), updateApiEntity.getProperties()))
+                    .properties(
+                        EncryptedPropertyAuditProperties.ofChange(existingApiEntity.getProperties(), updateApiEntity.getProperties())
+                    )
                     .event(API_UPDATED)
                     .createdAt(updatedApi.getUpdatedAt())
                     .oldValue(apiToUpdate)
@@ -748,7 +750,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             auditService.createApiAuditLog(
                 executionContext,
                 AuditService.AuditLogData.builder()
-                    .properties(EncryptedPropertyAuditProperties.of(apiEntity.getProperties(), null))
+                    .properties(EncryptedPropertyAuditProperties.ofChange(apiEntity.getProperties(), null))
                     .event(API_DELETED)
                     .createdAt(new Date())
                     .oldValue(api)
