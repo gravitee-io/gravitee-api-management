@@ -431,6 +431,34 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
     }
 
     @Test
+    public void shouldReturnEachApplicationOnceWhenPagingThroughSameNames() throws Exception {
+        List<String> ids = List.of("same-name-e", "same-name-b", "same-name-d", "same-name-a", "same-name-c");
+        for (String id : ids) {
+            Application application = new Application();
+            application.setId(id);
+            application.setEnvironmentId("SAME-NAME-ENV");
+            application.setName("Same name");
+            application.setType(ApplicationType.SIMPLE);
+            application.setStatus(ApplicationStatus.ACTIVE);
+            application.setCreatedAt(parse("11/02/2016"));
+            application.setUpdatedAt(parse("11/02/2016"));
+            applicationRepository.create(application);
+        }
+
+        ApplicationCriteria criteria = ApplicationCriteria.builder().environmentIds(Set.of("SAME-NAME-ENV")).build();
+        List<String> pagedIds = new ArrayList<>();
+        for (int page = 0; page < 3; page++) {
+            Pageable pageable = new PageableBuilder().pageSize(2).pageNumber(page).build();
+            applicationRepository
+                .search(criteria, pageable)
+                .getContent()
+                .forEach(app -> pagedIds.add(app.getId()));
+        }
+
+        assertThat(pagedIds).containsExactly("same-name-a", "same-name-b", "same-name-c", "same-name-d", "same-name-e");
+    }
+
+    @Test
     public void shouldSearchByGroups() throws Exception {
         final Page<Application> appsPage = applicationRepository.search(
             ApplicationCriteria.builder().groups(Set.of("application-group")).build(),
