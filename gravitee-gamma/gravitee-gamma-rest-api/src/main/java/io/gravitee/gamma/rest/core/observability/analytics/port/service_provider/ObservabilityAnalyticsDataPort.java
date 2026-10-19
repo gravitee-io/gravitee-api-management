@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsFacetMetricQuery;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsMetricQuery;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsNumberRange;
+import io.gravitee.gamma.rest.core.observability.analytics.model.DataKind;
 import io.gravitee.gamma.rest.core.observability.analytics.model.SeriesRanking;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.AnalyticsRequestPipeline;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
@@ -40,7 +41,8 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface ObservabilityAnalyticsDataPort {
-    List<AccessibleApi> loadAccessibleApis(String organizationId, String environmentId);
+    /** The APIs whose data of this kind the caller reads: none, never every API, when they read none. */
+    List<AccessibleApi> loadAccessibleApis(String organizationId, String environmentId, DataKind kind);
 
     JsonNode computeMeasures(MeasuresQuery query);
 

@@ -105,7 +105,7 @@ class ManagementContextLoaderTest {
                 List.of(API_1, API_2, API_3)
             );
 
-            var context = contextLoader.load(auditInfo);
+            var context = contextLoader.load(auditInfo, ApiDataKind.AGGREGATES);
 
             assertThat(context.authorizedApiIds()).containsExactlyInAnyOrder("id1", "id2", "id3");
             assertThat(context.apiNamesById()).isEqualTo(Map.of("id1", "api1", "id2", "api2", "id3", "api3"));
@@ -124,7 +124,7 @@ class ManagementContextLoaderTest {
                 List.of(API_1, apiWithoutType)
             );
 
-            var context = contextLoader.load(auditInfo);
+            var context = contextLoader.load(auditInfo, ApiDataKind.AGGREGATES);
 
             assertThat(context.authorizedApiIds()).containsExactlyInAnyOrder("id1", "id-no-type");
             assertThat(context.apiIdsByType()).isEqualTo(Map.of(ApiType.PROXY, Set.of("id1")));
@@ -137,7 +137,7 @@ class ManagementContextLoaderTest {
                 List.of(API_1, anotherProxy, API_3)
             );
 
-            var context = contextLoader.load(auditInfo);
+            var context = contextLoader.load(auditInfo, ApiDataKind.AGGREGATES);
 
             assertThat(context.apiIdsByType().get(ApiType.PROXY)).containsExactlyInAnyOrder("id1", "id4");
             assertThat(context.apiIdsByType().get(ApiType.LLM_PROXY)).containsExactly("id3");
@@ -153,10 +153,19 @@ class ManagementContextLoaderTest {
         }
 
         @Test
+        void should_load_context_with_the_apis_whose_requests_the_user_may_read() {
+            when(readableApis.findReadableApis(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.PER_REQUEST)).thenReturn(List.of(API_1));
+
+            var context = contextLoader.load(auditInfo, ApiDataKind.PER_REQUEST);
+
+            assertThat(context.authorizedApiIds()).containsExactly("id1");
+        }
+
+        @Test
         void should_load_context_with_the_apis_whose_aggregates_the_user_may_read() {
             when(readableApis.findReadableApis(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.AGGREGATES)).thenReturn(List.of(API_2));
 
-            var context = contextLoader.load(auditInfo);
+            var context = contextLoader.load(auditInfo, ApiDataKind.AGGREGATES);
 
             assertThat(context.authorizedApiIds()).containsExactly("id2");
             assertThat(context.apiNamesById()).isEqualTo(Map.of("id2", "api2"));
@@ -168,7 +177,7 @@ class ManagementContextLoaderTest {
         void should_load_an_empty_context_when_the_user_may_read_no_api() {
             when(readableApis.findReadableApis(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.AGGREGATES)).thenReturn(List.of());
 
-            var context = contextLoader.load(auditInfo);
+            var context = contextLoader.load(auditInfo, ApiDataKind.AGGREGATES);
 
             assertThat(context.authorizedApiIds()).isEmpty();
             assertThat(context.apiNamesById()).isEmpty();
@@ -179,7 +188,7 @@ class ManagementContextLoaderTest {
         void should_ask_for_aggregates_and_never_for_the_requests_themselves() {
             when(readableApis.findReadableApis(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.AGGREGATES)).thenReturn(List.of());
 
-            contextLoader.load(auditInfo);
+            contextLoader.load(auditInfo, ApiDataKind.AGGREGATES);
 
             verify(readableApis).findReadableApis(eq(EXECUTION_CONTEXT), eq(USER_ID), eq(false), eq(ApiDataKind.AGGREGATES));
         }

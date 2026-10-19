@@ -50,6 +50,7 @@ import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsFacetM
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsMetricQuery;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsNumberRange;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsSortSpec;
+import io.gravitee.gamma.rest.core.observability.analytics.model.DataKind;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.AnalyticsRequestPipeline;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
@@ -95,9 +96,12 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     private final ObjectMapper objectMapper;
 
     @Override
-    public List<AccessibleApi> loadAccessibleApis(String organizationId, String environmentId) {
+    public List<AccessibleApi> loadAccessibleApis(String organizationId, String environmentId, DataKind kind) {
         var auditInfo = currentAuditInfo(organizationId, environmentId);
-        var userContext = userContextLoader.loadApis(new UserContext(auditInfo), ApiDataKind.AGGREGATES);
+        var userContext = userContextLoader.loadApis(
+            new UserContext(auditInfo),
+            kind == DataKind.PER_REQUEST ? ApiDataKind.PER_REQUEST : ApiDataKind.AGGREGATES
+        );
         return userContext
             .apis()
             .orElseGet(Collections::emptyList)

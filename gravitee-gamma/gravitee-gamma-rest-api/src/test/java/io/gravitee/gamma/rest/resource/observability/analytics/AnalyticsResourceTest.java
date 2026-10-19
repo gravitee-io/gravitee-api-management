@@ -92,7 +92,7 @@ class AnalyticsResourceTest extends AbstractResourceTest {
         env.setId(ENVIRONMENT);
         env.setOrganizationId(ORGANIZATION);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(env);
-        when(analyticsDataPort.loadAccessibleApis(any(), any())).thenReturn(
+        when(analyticsDataPort.loadAccessibleApis(any(), any(), any())).thenReturn(
             List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
         );
         when(analyticsDataPort.computeMeasures(any())).thenReturn(JsonNodeFactory.instance.objectNode());
