@@ -143,10 +143,22 @@ describe('RoleFormPage', () => {
             ).toBeInTheDocument();
         });
 
-        it('treats EXPLORER as having no eligible permissions instead of crashing', () => {
+        it('renders the EXPLORER permissions served by the permissions-by-scope endpoint', () => {
+            mockUsePermissionsByScopes.mockReturnValue({
+                data: { EXPLORER: ['CONFIGURATION', 'MEMBER'] },
+                isLoading: false,
+            } as ReturnType<typeof usePermissionsByScopes>);
             renderPage('/roles/EXPLORER');
 
             expect(screen.getByRole('heading', { name: 'Create role in the Explorer scope' })).toBeInTheDocument();
+            expect(screen.getByText('CONFIGURATION')).toBeInTheDocument();
+            expect(screen.getByText('MEMBER')).toBeInTheDocument();
+        });
+
+        it('treats AI_WORKSPACE as having no eligible permissions instead of crashing', () => {
+            renderPage('/roles/AI_WORKSPACE');
+
+            expect(screen.getByRole('heading', { name: 'Create role in the AI Workspace scope' })).toBeInTheDocument();
             expect(screen.getByText('No permissions can be managed for this scope yet.')).toBeInTheDocument();
         });
 

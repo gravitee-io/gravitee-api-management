@@ -68,11 +68,6 @@ export function RoleFormPage() {
         return <SectionError message="Failed to load this role. Please refresh and try again." />;
     }
 
-    // EXPLORER/AI_WORKSPACE have no permissions-by-scope entry (Angular's getPermissionsByScope throws for
-    // them, so Classic's create form never renders for these scopes at all). Rendering an empty, still-usable
-    // matrix here is new capability, not a port of existing behavior — flag it as such in review, since it's
-    // a product decision (whether custom roles should be creatable in these scopes) rather than a parity fix.
-    // See PR discussion; do not treat this comment's presence alone as product sign-off.
     const permissionNames = isPermissionEligibleScope(scope) ? (permissionsByScopes?.[scope] ?? []) : [];
     const systemRoleEditionEnabled = Boolean(settings?.management?.systemRoleEdition?.enabled);
     const isReadOnly = isRoleReadOnly(role ?? { scope, name: roleName ?? '', system: false }, systemRoleEditionEnabled);

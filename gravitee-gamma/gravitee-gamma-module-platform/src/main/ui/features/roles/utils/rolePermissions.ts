@@ -28,6 +28,7 @@ export const PERMISSION_ELIGIBLE_SCOPES: readonly PermissionEligibleScope[] = [
     'INTEGRATION',
     'CLUSTER',
     'API_PRODUCT',
+    'EXPLORER',
 ];
 
 export function isPermissionEligibleScope(scope: RoleScope): scope is PermissionEligibleScope {
