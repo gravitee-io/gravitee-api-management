@@ -21,6 +21,7 @@ import io.gravitee.gamma.rest.resources.GammaUIResource;
 import io.gravitee.gamma.rest.resources.OpenAPIResource;
 import io.gravitee.gamma.rest.resources.observability.GammaObservabilityResource;
 import io.gravitee.gamma.rest.resources.observability.analytics.AnalyticsResource;
+import io.gravitee.gamma.rest.resources.observability.capabilities.ObservabilityCapabilitiesResource;
 import io.gravitee.gamma.rest.resources.observability.dashboards.ObservabilityDashboardResource;
 import io.gravitee.gamma.rest.resources.observability.dashboards.ObservabilityDashboardsResource;
 import io.gravitee.gamma.rest.resources.observability.dashboards.exception.DashboardVersionConflictExceptionMapper;
@@ -69,6 +70,7 @@ public class GammaModuleApplication extends ResourceConfig {
         register(AnalyticsResource.class);
         register(ObservabilityDashboardsResource.class);
         register(ObservabilityDashboardResource.class);
+        register(ObservabilityCapabilitiesResource.class);
 
         register(MultiPartFeature.class);
         register(PayloadInputBodyReader.class);
