@@ -3393,7 +3393,7 @@ public class UserServiceTest {
         @Test
         void should_keep_a_role_the_user_already_holds_without_checking_the_caller() {
             authenticateCaller();
-            givenTargetMemberWithRoles(adminRole, userRole);
+            givenTargetMemberWithRoles(adminRole);
 
             userService.updateUserRoles(
                 EXECUTION_CONTEXT,
@@ -3403,6 +3403,44 @@ public class UserServiceTest {
                 new ArrayList<>(List.of(ADMIN_ROLE_ID))
             );
 
+            verify(membershipService, never()).removeRole(any(), any(), any(), any(), any());
+            verify(membershipService, never()).addRoleToMemberOnReference(any(), any(), any(), any());
+            verify(membershipService, never()).getUserMemberPermissions(any(), any(), any(), any());
+        }
+
+        @Test
+        void should_forbid_removing_a_role_with_permissions_the_caller_does_not_hold() {
+            authenticateCaller();
+            givenTargetMemberWithRoles(adminRole, userRole);
+            givenCallerPermissions(Map.of("USER", "RU".toCharArray()));
+
+            assertThrows(ForbiddenAccessException.class, () ->
+                userService.updateUserRoles(
+                    EXECUTION_CONTEXT,
+                    USER_NAME,
+                    MembershipReferenceType.ORGANIZATION,
+                    ORGANIZATION,
+                    new ArrayList<>(List.of(USER_ROLE_ID))
+                )
+            );
+
+            verify(membershipService, never()).removeRole(any(), any(), any(), any(), any());
+        }
+
+        @Test
+        void should_remove_a_role_whose_permissions_the_caller_holds() {
+            authenticateCaller();
+            givenTargetMemberWithRoles(userRole);
+            givenCallerPermissions(Map.of("USER", "RU".toCharArray()));
+
+            userService.updateUserRoles(
+                EXECUTION_CONTEXT,
+                USER_NAME,
+                MembershipReferenceType.ORGANIZATION,
+                ORGANIZATION,
+                new ArrayList<>()
+            );
+
             verify(membershipService).removeRole(
                 MembershipReferenceType.ORGANIZATION,
                 ORGANIZATION,
@@ -3410,8 +3448,6 @@ public class UserServiceTest {
                 USER_NAME,
                 USER_ROLE_ID
             );
-            verify(membershipService, never()).addRoleToMemberOnReference(any(), any(), any(), any());
-            verify(membershipService, never()).getUserMemberPermissions(any(), any(), any(), any());
         }
 
         @Test
