@@ -15,20 +15,27 @@
  */
 package io.gravitee.apim.core.application.domain_service;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import inmemory.ApplicationCrudServiceInMemory;
+import inmemory.CRDMembersDomainServiceInMemory;
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDSpec;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.service.common.IdBuilder;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import java.util.Date;
+import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -48,11 +55,52 @@ class ValidateApplicationCRDDomainServiceTest {
     ValidateCRDMembersDomainService membersValidator = mock(ValidateCRDMembersDomainService.class);
     ValidateApplicationSettingsDomainService settingsValidator = mock(ValidateApplicationSettingsDomainService.class);
 
+    ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
+    CRDMembersDomainServiceInMemory membersDomainService = new CRDMembersDomainServiceInMemory();
+
     private ValidateApplicationCRDDomainService cut = new ValidateApplicationCRDDomainService(
         groupsValidator,
         membersValidator,
-        settingsValidator
+        settingsValidator,
+        applicationCrudService,
+        membersDomainService
     );
+
+    @Test
+    void should_reject_a_member_change_on_the_existing_application_without_the_member_permission() {
+        var existing = new BaseApplicationEntity();
+        existing.setId(APP_ID);
+        existing.setEnvironmentId(ENV_ID);
+        applicationCrudService.initWith(List.of(existing));
+        membersDomainService.denyApplicationMembersUpdate(APP_ID);
+        givenEveryValidatorAccepts();
+
+        assertThatExceptionOfType(ForbiddenAccessException.class).isThrownBy(() ->
+            cut.validateAndSanitize(new ValidateApplicationCRDDomainService.Input(AUDIT_INFO, anApplicationCRD()))
+        );
+    }
+
+    @Test
+    void should_not_check_the_members_of_an_application_to_create() {
+        membersDomainService.denyApplicationMembersUpdate(APP_ID);
+        givenEveryValidatorAccepts();
+
+        assertThatNoException().isThrownBy(() ->
+            cut.validateAndSanitize(new ValidateApplicationCRDDomainService.Input(AUDIT_INFO, anApplicationCRD()))
+        );
+    }
+
+    private void givenEveryValidatorAccepts() {
+        when(groupsValidator.validateAndSanitize(any(ValidateGroupsDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+        when(membersValidator.validateAndSanitize(any(ValidateCRDMembersDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+        when(settingsValidator.validateAndSanitize(any(ValidateApplicationSettingsDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+    }
 
     @Test
     void should_give_error_for_application_with_no_id_and_hrid() {

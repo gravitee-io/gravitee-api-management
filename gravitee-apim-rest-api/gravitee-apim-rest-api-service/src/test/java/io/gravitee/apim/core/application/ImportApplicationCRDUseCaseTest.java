@@ -112,7 +112,9 @@ class ImportApplicationCRDUseCaseTest {
     private final ValidateApplicationCRDDomainService crdValidator = new ValidateApplicationCRDDomainService(
         new ValidateGroupsDomainService(groupQueryService),
         new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
-        new ValidateApplicationSettingsDomainServiceImpl(applicationRepository, new ApplicationTypeServiceImpl(), parameterService)
+        new ValidateApplicationSettingsDomainServiceImpl(applicationRepository, new ApplicationTypeServiceImpl(), parameterService),
+        applicationCrudService,
+        membersDomainService
     );
 
     ImportApplicationCRDUseCase useCase;
