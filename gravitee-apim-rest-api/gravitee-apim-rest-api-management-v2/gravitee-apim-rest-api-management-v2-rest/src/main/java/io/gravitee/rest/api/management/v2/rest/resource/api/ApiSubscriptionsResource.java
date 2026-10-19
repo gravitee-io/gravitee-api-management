@@ -21,6 +21,7 @@ import io.gravitee.apim.core.api_key.use_case.RevokeApiSubscriptionApiKeyUseCase
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
+import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.DeleteSubscriptionSpecUseCase;
@@ -142,6 +143,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
     @Inject
     private ImportSubscriptionSpecUseCase importSubscriptionSpecUseCase;
+
+    @Inject
+    private SubscriptionQueryService subscriptionQueryService;
 
     @Inject
     private DeleteSubscriptionSpecUseCase deleteSubscriptionSpecUseCase;
@@ -366,6 +370,11 @@ public class ApiSubscriptionsResource extends AbstractResource {
         { @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }) }
     )
     public Response importSubscriptionSpec(@Valid SubscriptionCRDSpec spec) {
+        requireCreateOrUpdate(
+            RolePermission.API_SUBSCRIPTION,
+            apiId,
+            subscriptionQueryService.findByIdAndApiId(spec.getId(), apiId).isPresent()
+        );
         return Response.ok(
             importSubscriptionSpecUseCase.execute(new ImportSubscriptionSpecUseCase.Input(getAuditInfo(), apiId, spec)).status()
         ).build();
