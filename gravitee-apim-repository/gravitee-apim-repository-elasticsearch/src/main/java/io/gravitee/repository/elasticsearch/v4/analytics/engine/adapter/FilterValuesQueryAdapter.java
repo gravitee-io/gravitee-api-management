@@ -48,6 +48,14 @@ public class FilterValuesQueryAdapter {
             }
         }
 
+        if (query.values() != null) {
+            boolFilter.add(
+                query.values().isEmpty()
+                    ? JsonObject.of("match_none", JsonObject.of())
+                    : JsonObject.of("terms", JsonObject.of(query.esFieldName(), new JsonArray(new ArrayList<>(query.values()))))
+            );
+        }
+
         if (query.trafficScope() != null) {
             boolFilter.add(
                 EntrypointScopeClause.trafficScope(query.trafficScope(), apiIds ->

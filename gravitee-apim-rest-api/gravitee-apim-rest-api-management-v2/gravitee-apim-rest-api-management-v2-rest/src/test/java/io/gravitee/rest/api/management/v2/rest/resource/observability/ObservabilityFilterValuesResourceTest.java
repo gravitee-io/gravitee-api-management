@@ -430,6 +430,17 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
                     .build()
             )
         );
+        when(
+            filterValuesQueryService.findValuesInCalls(
+                eq(ORGANIZATION),
+                eq(ENVIRONMENT),
+                eq(FilterSpec.Name.PLAN),
+                any(),
+                any(),
+                eq(Set.of("plan-id-1")),
+                eq(Set.of("api-1"))
+            )
+        ).thenReturn(Set.of("plan-id-1"));
 
         try {
             var response = rootTarget("PLAN/values").queryParam("query", "Gold").request().get();

@@ -68,4 +68,15 @@ public interface FilterValuesQueryService {
         Set<String> authorizedApiIds,
         TrafficScope trafficScope
     );
+
+    /** Of {@code values}, those found in the calls of {@code authorizedApiIds}, within the period when one is given. */
+    Set<String> findValuesInCalls(
+        String organizationId,
+        String environmentId,
+        FilterSpec.Name filterName,
+        Instant from,
+        Instant to,
+        Set<String> values,
+        Set<String> authorizedApiIds
+    );
 }

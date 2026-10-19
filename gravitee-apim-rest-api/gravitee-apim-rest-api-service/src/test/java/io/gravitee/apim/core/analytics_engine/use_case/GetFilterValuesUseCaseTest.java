@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -866,39 +867,53 @@ class GetFilterValuesUseCaseTest {
         }
 
         @Test
-        void should_search_application_by_name_when_query_provided() {
-            var app = new BaseApplicationEntity();
-            app.setId("app-id-1");
-            app.setName("My App 1");
-            when(applicationQueryService.findByEnvironment("env-id")).thenReturn(Set.of(app));
+        void should_search_by_name_the_applications_found_in_the_calls_of_the_readable_apis() {
+            givenReadableApis("api-1");
+            var app1 = application("app-id-1", "My App 1");
+            var app2 = application("app-id-2", "My App 2");
+            var other = application("app-id-3", "Other");
+            when(applicationQueryService.findByEnvironment("env-id")).thenReturn(Set.of(app1, app2, other));
+            var from = Instant.parse("2026-01-01T00:00:00Z");
+            var to = Instant.parse("2026-01-02T00:00:00Z");
+            when(
+                filterValuesQueryService.findValuesInCalls(
+                    "org-id",
+                    "env-id",
+                    FilterSpec.Name.APPLICATION,
+                    from,
+                    to,
+                    Set.of("app-id-1", "app-id-2"),
+                    Set.of("api-1")
+                )
+            ).thenReturn(Set.of("app-id-1"));
+
+            var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "APPLICATION", from, to, 1, 10, "My App"));
+
+            assertThat(output.valuesPage().data()).containsExactly(new FilterValue("My App 1", "app-id-1"));
+            assertThat(output.valuesPage().totalFilteredCount()).isEqualTo(1L);
+            verifyNoInteractions(filterValueNameResolver);
+        }
+
+        @Test
+        void should_find_no_application_by_name_when_no_api_is_readable() {
+            when(applicationQueryService.findByEnvironment("env-id")).thenReturn(Set.of(application("app-id-1", "My App 1")));
 
             var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "APPLICATION", null, null, 1, 10, "My App"));
 
-            assertThat(output.valuesPage().data())
-                .hasSize(1)
-                .first()
-                .satisfies(v -> {
-                    assertThat(v.value()).isEqualTo("My App 1");
-                    assertThat(v.id()).isEqualTo("app-id-1");
-                });
-            assertThat(output.valuesPage().totalFilteredCount()).isEqualTo(1L);
-            verifyNoInteractions(filterValuesQueryService);
-            verifyNoInteractions(filterValueNameResolver);
-            verify(applicationQueryService).findByEnvironment("env-id");
+            assertThat(output.valuesPage().data()).isEmpty();
+            assertThat(output.valuesPage().totalFilteredCount()).isZero();
         }
 
         @Test
         void should_paginate_application_search_by_name() {
-            var app1 = new BaseApplicationEntity();
-            app1.setId("a-1");
-            app1.setName("My App A");
-            var app2 = new BaseApplicationEntity();
-            app2.setId("a-2");
-            app2.setName("My App B");
-            var app3 = new BaseApplicationEntity();
-            app3.setId("a-3");
-            app3.setName("My App C");
+            givenReadableApis("api-1");
+            var app1 = application("a-1", "My App A");
+            var app2 = application("a-2", "My App B");
+            var app3 = application("a-3", "My App C");
             when(applicationQueryService.findByEnvironment("env-id")).thenReturn(Set.of(app1, app2, app3));
+            when(
+                filterValuesQueryService.findValuesInCalls(any(), any(), eq(FilterSpec.Name.APPLICATION), any(), any(), any(), any())
+            ).thenReturn(Set.of("a-1", "a-2", "a-3"));
 
             var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "APPLICATION", null, null, 2, 2, "My App"));
 
@@ -998,34 +1013,30 @@ class GetFilterValuesUseCaseTest {
                 });
         }
 
+        /** A plan without calls in the period is not offered: its label could not be resolved from the rows either. */
         @Test
-        void should_search_plan_by_name_when_query_provided() {
-            when(contextLoader.load(any(), any(), any())).thenReturn(
-                new AnalyticsQueryContext(
-                    AUDIT_INFO,
-                    new ExecutionContext("org-id", "env-id"),
-                    Set.of("api-1"),
-                    Map.of(),
-                    Map.of(),
-                    Map.of()
+        void should_search_by_name_the_plans_of_the_readable_apis_found_in_their_calls() {
+            givenReadableApis("api-1");
+            var gold = Plan.builder().id("plan-id-1").name("Gold Plan").build();
+            var goldPlus = Plan.builder().id("plan-id-2").name("Gold Plus").build();
+            when(planQueryService.findAllByApiIds(eq(Set.of("api-1")), eq(Set.of("env-id")))).thenReturn(List.of(gold, goldPlus));
+            when(
+                filterValuesQueryService.findValuesInCalls(
+                    "org-id",
+                    "env-id",
+                    FilterSpec.Name.PLAN,
+                    null,
+                    null,
+                    Set.of("plan-id-1", "plan-id-2"),
+                    Set.of("api-1")
                 )
-            );
-            var plan = Plan.builder().id("plan-id-1").name("Gold Plan").build();
-            when(planQueryService.findAllByApiIds(eq(Set.of("api-1")), eq(Set.of("env-id")))).thenReturn(List.of(plan));
-            when(filterValueNameResolver.planLabels("env-id", List.of(plan))).thenReturn(Map.of("plan-id-1", "Gold Plan · Payments API"));
+            ).thenReturn(Set.of("plan-id-1"));
+            when(filterValueNameResolver.planLabels("env-id", List.of(gold))).thenReturn(Map.of("plan-id-1", "Gold Plan · Payments API"));
 
             var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "PLAN", null, null, 1, 10, "Gold"));
 
-            assertThat(output.valuesPage().data())
-                .hasSize(1)
-                .first()
-                .satisfies(v -> {
-                    assertThat(v.value()).isEqualTo("Gold Plan · Payments API");
-                    assertThat(v.id()).isEqualTo("plan-id-1");
-                });
+            assertThat(output.valuesPage().data()).containsExactly(new FilterValue("Gold Plan · Payments API", "plan-id-1"));
             assertThat(output.valuesPage().totalFilteredCount()).isEqualTo(1L);
-            verifyNoInteractions(filterValuesQueryService);
-            verify(planQueryService).findAllByApiIds(eq(Set.of("api-1")), eq(Set.of("env-id")));
         }
 
         @Test
@@ -1046,6 +1057,9 @@ class GetFilterValuesUseCaseTest {
                     Plan.builder().id("p-2").name("Gold B").build(),
                     Plan.builder().id("p-3").name("Gold C").build()
                 )
+            );
+            when(filterValuesQueryService.findValuesInCalls(any(), any(), eq(FilterSpec.Name.PLAN), any(), any(), any(), any())).thenReturn(
+                Set.of("p-1", "p-2", "p-3")
             );
 
             var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "PLAN", null, null, 2, 2, "Gold"));
@@ -1242,31 +1256,51 @@ class GetFilterValuesUseCaseTest {
         }
 
         @Test
-        void should_search_api_product_by_name_when_query_provided() {
+        void should_search_by_name_the_api_products_found_in_the_calls_of_the_readable_apis() {
+            givenReadableApis("api-1");
             var prod1 = ApiProduct.builder().id("prod-id-1").name("My Product 1").build();
-            when(apiProductQueryService.findByEnvironmentId("env-id")).thenReturn(Set.of(prod1));
+            var prod2 = ApiProduct.builder().id("prod-id-2").name("My Product 2").build();
+            when(apiProductQueryService.findByEnvironmentId("env-id")).thenReturn(Set.of(prod1, prod2));
+            when(
+                filterValuesQueryService.findValuesInCalls(
+                    "org-id",
+                    "env-id",
+                    FilterSpec.Name.API_PRODUCT,
+                    null,
+                    null,
+                    Set.of("prod-id-1", "prod-id-2"),
+                    Set.of("api-1")
+                )
+            ).thenReturn(Set.of("prod-id-1"));
 
             var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "API_PRODUCT", null, null, 1, 10, "My Prod"));
 
-            assertThat(output.valuesPage().data())
-                .hasSize(1)
-                .first()
-                .satisfies(v -> {
-                    assertThat(v.value()).isEqualTo("My Product 1");
-                    assertThat(v.id()).isEqualTo("prod-id-1");
-                });
+            assertThat(output.valuesPage().data()).containsExactly(new FilterValue("My Product 1", "prod-id-1"));
             assertThat(output.valuesPage().totalFilteredCount()).isEqualTo(1L);
-            verifyNoInteractions(filterValuesQueryService);
             verifyNoInteractions(filterValueNameResolver);
-            verify(apiProductQueryService).findByEnvironmentId("env-id");
+        }
+
+        @Test
+        void should_find_no_api_product_by_name_when_no_api_is_readable() {
+            when(apiProductQueryService.findByEnvironmentId("env-id")).thenReturn(
+                Set.of(ApiProduct.builder().id("prod-id-1").name("My Product 1").build())
+            );
+
+            var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "API_PRODUCT", null, null, 1, 10, "My Prod"));
+
+            assertThat(output.valuesPage().data()).isEmpty();
         }
 
         @Test
         void should_paginate_api_product_search_by_name() {
+            givenReadableApis("api-1");
             var prod1 = ApiProduct.builder().id("p-1").name("My Product A").build();
             var prod2 = ApiProduct.builder().id("p-2").name("My Product B").build();
             var prod3 = ApiProduct.builder().id("p-3").name("My Product C").build();
             when(apiProductQueryService.findByEnvironmentId("env-id")).thenReturn(Set.of(prod1, prod2, prod3));
+            when(
+                filterValuesQueryService.findValuesInCalls(any(), any(), eq(FilterSpec.Name.API_PRODUCT), any(), any(), any(), any())
+            ).thenReturn(Set.of("p-1", "p-2", "p-3"));
 
             var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "API_PRODUCT", null, null, 2, 2, "My Prod"));
 
@@ -1316,9 +1350,13 @@ class GetFilterValuesUseCaseTest {
 
         @Test
         void should_exclude_api_products_with_null_name_when_searching_by_name() {
+            givenReadableApis("api-1");
             var prod1 = ApiProduct.builder().id("prod-id-1").name("My API Product").build();
             var prodNoName = ApiProduct.builder().id("prod-id-2").name(null).build();
             when(apiProductQueryService.findByEnvironmentId("env-id")).thenReturn(Set.of(prod1, prodNoName));
+            when(
+                filterValuesQueryService.findValuesInCalls(any(), any(), eq(FilterSpec.Name.API_PRODUCT), any(), any(), any(), any())
+            ).thenReturn(Set.of("prod-id-1", "prod-id-2"));
 
             var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "API_PRODUCT", null, null, 1, 10, "My"));
 
@@ -1599,18 +1637,38 @@ class GetFilterValuesUseCaseTest {
             verifyNoInteractions(filterValuesQueryService);
         }
 
-        /** Applications are searched in the whole environment, so the APIs in scope would be computed for nothing. */
+        /** Applications are searched in the calls of every readable API: the APIs in the module's scope would be computed for nothing. */
         @Test
-        void should_not_query_the_calls_when_searching_applications_by_name() {
-            var app = new BaseApplicationEntity();
-            app.setId("app-id-1");
-            app.setName("Agent client");
-            when(applicationQueryService.findByEnvironment("env-id")).thenReturn(Set.of(app));
+        void should_search_applications_by_name_in_the_calls_of_every_readable_api() {
+            when(applicationQueryService.findByEnvironment("env-id")).thenReturn(Set.of(application("app-id-1", "Agent client")));
+            when(
+                filterValuesQueryService.findValuesInCalls(
+                    "org-id",
+                    "env-id",
+                    FilterSpec.Name.APPLICATION,
+                    null,
+                    null,
+                    Set.of("app-id-1"),
+                    READABLE
+                )
+            ).thenReturn(Set.of("app-id-1"));
 
             var output = useCase.execute(aim("APPLICATION", "agent"));
 
             assertThat(output.valuesPage().data()).extracting(FilterValue::id).containsExactly("app-id-1");
-            verifyNoInteractions(filterValuesQueryService);
+            verify(filterValuesQueryService, never()).searchFilterValues(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                anyInt(),
+                anyInt(),
+                any(),
+                any(),
+                any(),
+                any()
+            );
         }
     }
 
@@ -1640,5 +1698,18 @@ class GetFilterValuesUseCaseTest {
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessageContaining("does not support value listing");
         }
+    }
+
+    private void givenReadableApis(String... apiIds) {
+        when(contextLoader.load(any(), any(), any())).thenReturn(
+            new AnalyticsQueryContext(AUDIT_INFO, new ExecutionContext("org-id", "env-id"), Set.of(apiIds), Map.of(), Map.of(), Map.of())
+        );
+    }
+
+    private static BaseApplicationEntity application(String id, String name) {
+        var application = new BaseApplicationEntity();
+        application.setId(id);
+        application.setName(name);
+        return application;
     }
 }
