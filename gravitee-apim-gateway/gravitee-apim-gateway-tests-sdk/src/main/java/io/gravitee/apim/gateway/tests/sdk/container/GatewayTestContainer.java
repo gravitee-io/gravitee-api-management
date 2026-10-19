@@ -98,8 +98,12 @@ public class GatewayTestContainer extends GatewayContainer {
             return new GatewayTestNode();
         }
 
+        /**
+         * Not named {@code clusterManager}: that is the gateway's manager of deployed Kafka clusters, which a bean of the
+         * same name would replace.
+         */
         @Bean
-        public ClusterManager clusterManager(final Vertx vertx) {
+        public ClusterManager nodeClusterManager(final Vertx vertx) {
             return new StandaloneClusterManager(vertx);
         }
 
