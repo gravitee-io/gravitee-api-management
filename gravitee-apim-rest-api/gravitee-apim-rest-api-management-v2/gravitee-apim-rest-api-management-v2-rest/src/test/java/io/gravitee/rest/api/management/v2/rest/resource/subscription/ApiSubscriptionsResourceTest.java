@@ -288,6 +288,73 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             verify(subscriptionService, never()).update(any(), any(UpdateSubscriptionEntity.class));
         }
 
+        @Test
+        void should_return_403_when_updating_an_existing_subscription_with_create_only() {
+            givenExistingAcceptedSubscription();
+            denySubscriptionAction(RolePermissionAction.UPDATE);
+
+            try (var response = target.request(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON()))) {
+                assertThat(response.getStatus()).isEqualTo(403);
+            }
+            verify(subscriptionService, never()).create(any(), any(), any(), any());
+            verify(subscriptionService, never()).update(any(), any(UpdateSubscriptionEntity.class));
+        }
+
+        @Test
+        void should_update_an_existing_subscription_with_update_only() {
+            givenExistingAcceptedSubscription();
+            denySubscriptionAction(RolePermissionAction.CREATE);
+
+            assertThat(doImport().getStatus()).isEqualTo(Status.ACCEPTED);
+        }
+
+        @Test
+        void should_return_403_when_creating_a_subscription_with_update_only() {
+            subscriptionCrudService.initWith(List.of());
+            denySubscriptionAction(RolePermissionAction.CREATE);
+
+            try (var response = target.request(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON()))) {
+                assertThat(response.getStatus()).isEqualTo(403);
+            }
+            verify(subscriptionService, never()).create(any(), any(), any(), any());
+        }
+
+        @Test
+        void should_create_a_subscription_with_create_only() {
+            var persisted = subscriptionCrudService.get(SUBSCRIPTION_ID);
+            subscriptionCrudService.initWith(List.of());
+            when(subscriptionService.create(any(ExecutionContext.class), any(), isNull(), eq(SUBSCRIPTION_ID))).thenAnswer(invocation -> {
+                subscriptionCrudService.initWith(List.of(persisted));
+                return io.gravitee.rest.api.model.SubscriptionEntity.builder()
+                    .id(SUBSCRIPTION_ID)
+                    .referenceId(API_ID)
+                    .referenceType("API")
+                    .plan(PLAN_ID)
+                    .application(APPLICATION_ID)
+                    .build();
+            });
+            denySubscriptionAction(RolePermissionAction.UPDATE);
+
+            assertThat(doImport().getStatus()).isEqualTo(Status.ACCEPTED);
+        }
+
+        private void givenExistingAcceptedSubscription() {
+            when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(
+                io.gravitee.rest.api.model.SubscriptionEntity.builder()
+                    .id(SUBSCRIPTION_ID)
+                    .referenceId(API_ID)
+                    .referenceType("API")
+                    .plan(PLAN_ID)
+                    .application(APPLICATION_ID)
+                    .status(SubscriptionStatus.ACCEPTED)
+                    .build()
+            );
+        }
+
+        private void denySubscriptionAction(RolePermissionAction action) {
+            when(permissionService.hasPermission(any(), eq(RolePermission.API_SUBSCRIPTION), eq(API_ID), eq(action))).thenReturn(false);
+        }
+
         private SubscriptionEntity doImport() {
             try (var response = target.request(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON()))) {
                 assertThat(response.getStatus()).isEqualTo(200);
