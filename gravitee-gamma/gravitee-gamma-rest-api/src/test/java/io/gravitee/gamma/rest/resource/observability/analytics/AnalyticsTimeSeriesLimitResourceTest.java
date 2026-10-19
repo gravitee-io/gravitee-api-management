@@ -183,7 +183,7 @@ class AnalyticsTimeSeriesLimitResourceTest extends AbstractResourceTest {
         var response = rootTarget("time-series").request().post(Entity.entity(body(Map.of()), MediaType.APPLICATION_JSON_TYPE));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-        verify(computeFacetsUseCase, never()).execute(any());
+        verify(computeFacetsUseCase, never()).executeForApis(any(), any(), any());
         assertThat(timeSeriesRequest().limit()).isNull();
     }
 
@@ -219,7 +219,7 @@ class AnalyticsTimeSeriesLimitResourceTest extends AbstractResourceTest {
                 new FacetBucketResponse(entry.getKey(), null, null, List.of(new Measure(MetricSpec.Measure.COUNT, entry.getValue())))
             )
             .toList();
-        when(computeFacetsUseCase.execute(any())).thenReturn(
+        when(computeFacetsUseCase.executeForApis(any(), any(), any())).thenReturn(
             new ComputeFacetsUseCase.Output(
                 new FacetsResponse(
                     List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, buckets, List.of()))
@@ -244,7 +244,7 @@ class AnalyticsTimeSeriesLimitResourceTest extends AbstractResourceTest {
                 )
             )
             .toList();
-        when(computeTimeSeriesUseCase.execute(any())).thenReturn(
+        when(computeTimeSeriesUseCase.executeForApis(any(), any(), any())).thenReturn(
             new ComputeTimeSeriesUseCase.Output(
                 new TimeSeriesResponse(
                     List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, buckets, List.of()))
@@ -254,15 +254,15 @@ class AnalyticsTimeSeriesLimitResourceTest extends AbstractResourceTest {
     }
 
     private io.gravitee.apim.core.analytics_engine.model.FacetsRequest facetsRequest() {
-        var captor = ArgumentCaptor.forClass(ComputeFacetsUseCase.Input.class);
-        verify(computeFacetsUseCase).execute(captor.capture());
-        return captor.getValue().request();
+        var captor = ArgumentCaptor.forClass(io.gravitee.apim.core.analytics_engine.model.FacetsRequest.class);
+        verify(computeFacetsUseCase).executeForApis(any(), captor.capture(), any());
+        return captor.getValue();
     }
 
     private io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest timeSeriesRequest() {
-        var captor = ArgumentCaptor.forClass(ComputeTimeSeriesUseCase.Input.class);
-        verify(computeTimeSeriesUseCase).execute(captor.capture());
-        return captor.getValue().request();
+        var captor = ArgumentCaptor.forClass(io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest.class);
+        verify(computeTimeSeriesUseCase).executeForApis(any(), captor.capture(), any());
+        return captor.getValue();
     }
 
     private static List<Filter> concat(List<Filter> filters, Filter filter) {

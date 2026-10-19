@@ -44,7 +44,7 @@ tags:
     - name: Logs
       description: |
           Environment-wide log search returning light rows from the `v4-metrics` index. Results
-          are RBAC-scoped: the caller only sees logs for APIs they have read access to.
+          only hold the logs of the APIs where the caller holds `API_LOG[READ]`.
 
           Filter conditions reference the shared filter catalog narrowed to the `LOGS` signal.
           Entrypoint scope: rows are returned unless their entrypoint is declared outside the logs
@@ -66,7 +66,11 @@ tags:
           time-series histograms. Backed by the Elasticsearch analytics engine.
 
           Filter conditions reference the shared filter catalog narrowed to the `ANALYTICS` signal.
-          RBAC scoping ensures the caller only sees metrics for APIs they have read access to.
+          Rows: the APIs where the caller holds `API_ANALYTICS[READ]`, or every API of the environment
+          with `ENVIRONMENT_PLATFORM[READ]`. A query identifying callers — a condition or a facet on
+          `CONSUMER_IP`, `NATIVE_CLIENT_ID` or `AUTHZ_SUBJECT_ID`, or a `RECORD_TYPE` selecting
+          `AUTHZ_DECISION` — counts only the APIs where the caller holds `API_LOG[READ]`, which the
+          platform permission never widens. A caller who reads no API gets zero-valued answers, not 403.
           Entrypoint scope, on the request metrics: a request is counted unless its entrypoint is
           declared outside the HTTP scope; an entrypoint the registry does not know and a request
           refused before an entrypoint was selected are both counted. An explicit `ENTRYPOINT`
@@ -91,9 +95,10 @@ tags:
           response schemas below document the stable structure but additional fields may appear.
     - name: Dashboards
       description: |
-          Read access to dashboards saved by Gamma Observability users, so a dashboard opens from
-          any machine instead of being tied to one browser's local storage. Write endpoints land in
-          a later increment.
+          Dashboards saved by Gamma Observability users, so a dashboard opens from any machine
+          instead of being tied to one browser's local storage. Their definitions need the
+          `ENVIRONMENT_DASHBOARD` permissions; their widgets read the caller's rows like every
+          analytics query.
 
           `widgets` is opaque JSON, returned verbatim — the shape belongs to the frontend. `version`
           is an optimistic-locking counter: nothing enforces it yet, but it must round-trip so a
@@ -116,7 +121,8 @@ paths:
             description: |
                 Returns the filter catalog, optionally narrowed by signal and/or API type. Both axes
                 are optional and multi-valued; omitting an axis means no constraint on it. A filter is
-                included when its declared signals/apiTypes intersect the requested values.
+                included when its declared signals/apiTypes intersect the requested values. No
+                permission is required: the catalog holds no traffic data.
             operationId: getObservabilityFilterDefinitions
             parameters:
                 - name: signal
@@ -212,8 +218,12 @@ paths:
             description: |
                 Paginated selectable values for one filter. ENUM filters return their static labelled
                 values (optionally filtered by a case-insensitive substring `query`). KEYWORD filters
-                return distinct values from the data store, except `NATIVE_TOPIC` and `NATIVE_OPERATION`,
-                whose values live in a stream the store does not aggregate over and which return 400.
+                return the distinct values found in the calls of the APIs whose aggregates the caller
+                reads, or whose logs they read for a field identifying callers (`CONSUMER_IP`,
+                `NATIVE_CLIENT_ID`, `AUTHZ_SUBJECT_ID`) or one the logs only show; empty when they
+                read none. Searching `API` by name offers the APIs the caller reads. `NATIVE_TOPIC` and
+                `NATIVE_OPERATION` are the exception: their values live in a stream the store does not
+                aggregate over, and they return 400.
                 NUMBER and STRING filters have no enumerable values and return 400. `page` is capped at
                 10000; a larger page returns 400.
             operationId: getObservabilityFilterValues
@@ -339,15 +349,6 @@ paths:
                                 http_status: 400
                                 message: "Filter type NUMBER does not support value listing."
                                 technicalCode: "filter.values.unsupported"
-                "403":
-                    description: The caller cannot read observability metadata in this environment (missing `ENVIRONMENT_PLATFORM:READ` permission).
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-                            example:
-                                http_status: 403
-                                message: "Insufficient permissions to access observability metadata."
                 "404":
                     description: No filter with the given name exists in the catalog.
                     content:
@@ -369,7 +370,9 @@ paths:
             description: |
                 Resolves entity ids into display labels in bulk. Only id-based filters (API,
                 APPLICATION, PLAN, API_PRODUCT) produce labels; other filters return an empty label
-                map. Limits: at most 10 entries, at most 100 ids per entry.
+                map. Only ids the caller's rows hold are labelled: an `API` id the caller reads
+                aggregates of, or an APPLICATION, PLAN or API_PRODUCT id found in the calls of those
+                APIs. Other ids are left out of `labels`. Limits: at most 10 entries, at most 100 ids per entry.
             operationId: resolveObservabilityFilterLabels
             requestBody:
                 required: true
@@ -419,15 +422,6 @@ paths:
                             example:
                                 http_status: 400
                                 message: "Request exceeds the maximum of 10 entries."
-                "403":
-                    description: The caller cannot read observability metadata in this environment (missing `ENVIRONMENT_PLATFORM:READ` permission).
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-                            example:
-                                http_status: 403
-                                message: "Insufficient permissions to access observability metadata."
 
     /organizations/{orgId}/environments/{envId}/observability/logs/{requestId}/messages:
         parameters:
@@ -722,10 +716,10 @@ paths:
                 environment. Returns light rows from the `v4-metrics` Elasticsearch index — no
                 HTTP bodies or headers (those live in the detail endpoint, planned in GMA-424).
 
-                **RBAC scoping**: the response only contains logs for APIs the caller has `READ`
-                access to. When the caller requests specific APIs via an `API` filter, the server
-                intersects that set with the caller's accessible APIs. If the intersection is
-                empty, the response is an empty page (not 403).
+                **RBAC scoping**: the response only contains logs of the APIs where the caller holds
+                `API_LOG[READ]`; `ENVIRONMENT_PLATFORM[READ]` does not widen it. When the caller
+                requests specific APIs via an `API` filter, the server intersects that set with those
+                APIs. If the intersection is empty, the response is an empty page (not 403).
 
                 **Filter validation**: every `FilterCondition` in the request body is validated
                 against the shared filter catalog (see the *Filters* tag) narrowed to the `LOGS`
@@ -996,15 +990,6 @@ paths:
                                         http_status: 400
                                         message: "Invalid time range: 'from' must be before 'to'."
                                         technicalCode: "observability.query.invalid_time_range"
-                "403":
-                    description: The caller cannot read observability data in this environment (missing `ENVIRONMENT_PLATFORM:READ` permission).
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-                            example:
-                                http_status: 403
-                                message: "Insufficient permissions to access observability data."
 
     /organizations/{orgId}/environments/{envId}/observability/analytics/measures:
         parameters:
@@ -1019,7 +1004,8 @@ paths:
                 given time range and filter set. Use this endpoint to populate summary cards and KPI
                 panels in the dashboard.
 
-                **RBAC scoping**: only metrics from APIs the caller can read are included.
+                **RBAC scoping**: only metrics of the APIs whose aggregates the caller reads are
+                included (see the *Analytics* tag); with none, every measure is zero.
 
                 **Filter validation**: conditions are validated against the `ANALYTICS` signal catalog.
 
@@ -1139,15 +1125,6 @@ paths:
                                                     value: 3756
                 "400":
                     $ref: "#/components/responses/AnalyticsQueryRefused"
-                "403":
-                    description: Insufficient permissions.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-                            example:
-                                http_status: 403
-                                message: "Insufficient permissions to access observability data."
 
     /organizations/{orgId}/environments/{envId}/observability/analytics/facets:
         parameters:
@@ -1239,15 +1216,6 @@ paths:
                                                           value: 12
                 "400":
                     $ref: "#/components/responses/AnalyticsQueryRefused"
-                "403":
-                    description: Insufficient permissions.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-                            example:
-                                http_status: 403
-                                message: "Insufficient permissions to access observability data."
 
     /organizations/{orgId}/environments/{envId}/observability/analytics/time-series:
         parameters:
@@ -1337,15 +1305,6 @@ paths:
                                                           value: 12
                 "400":
                     $ref: "#/components/responses/AnalyticsQueryRefused"
-                "403":
-                    description: Insufficient permissions.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-                            example:
-                                http_status: 403
-                                message: "Insufficient permissions to access observability data."
 
     /organizations/{orgId}/environments/{envId}/observability/dashboards:
         parameters:

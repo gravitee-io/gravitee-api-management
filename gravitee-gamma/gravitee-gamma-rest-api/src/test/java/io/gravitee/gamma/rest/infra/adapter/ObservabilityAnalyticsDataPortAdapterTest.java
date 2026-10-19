@@ -30,6 +30,7 @@ import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.model.FacetBucketResponse;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
@@ -221,13 +222,15 @@ class ObservabilityAnalyticsDataPortAdapterTest {
 
         @Test
         void should_read_the_sort_order_case_insensitively() {
-            when(computeFacetsUseCase.execute(any())).thenReturn(new ComputeFacetsUseCase.Output(new FacetsResponse(List.of())));
+            when(computeFacetsUseCase.executeForApis(any(), any(), any())).thenReturn(
+                new ComputeFacetsUseCase.Output(new FacetsResponse(List.of()))
+            );
 
             adapter.computeFacets(facetsQuery(List.of("HTTP_STATUS"), List.of(new AnalyticsSortSpec("COUNT", "desc"))));
 
-            var captor = ArgumentCaptor.forClass(ComputeFacetsUseCase.Input.class);
-            verify(computeFacetsUseCase).execute(captor.capture());
-            assertThat(captor.getValue().request().metrics().getFirst().sorts().getFirst().order()).isEqualTo(
+            var captor = ArgumentCaptor.forClass(FacetsRequest.class);
+            verify(computeFacetsUseCase).executeForApis(any(), captor.capture(), any());
+            assertThat(captor.getValue().metrics().getFirst().sorts().getFirst().order()).isEqualTo(
                 FacetMetricMeasuresRequest.Sort.Order.DESC
             );
         }
@@ -319,7 +322,7 @@ class ObservabilityAnalyticsDataPortAdapterTest {
         // The use case moves them into the query's scope; the engine's per-metric filters are never used.
         @Test
         void should_never_hand_metric_level_conditions_to_the_engine_per_metric() {
-            when(computeFacetsUseCase.execute(any())).thenReturn(
+            when(computeFacetsUseCase.executeForApis(any(), any(), any())).thenReturn(
                 new ComputeFacetsUseCase.Output(
                     new FacetsResponse(List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(), List.of())))
                 )
@@ -339,9 +342,9 @@ class ObservabilityAnalyticsDataPortAdapterTest {
                 )
             );
 
-            var captor = ArgumentCaptor.forClass(ComputeFacetsUseCase.Input.class);
-            verify(computeFacetsUseCase).execute(captor.capture());
-            assertThat(captor.getValue().request().metrics().getFirst().filters()).isNullOrEmpty();
+            var captor = ArgumentCaptor.forClass(FacetsRequest.class);
+            verify(computeFacetsUseCase).executeForApis(any(), captor.capture(), any());
+            assertThat(captor.getValue().metrics().getFirst().filters()).isNullOrEmpty();
             assertThat(response.at("/metrics/0/ignoredFilters").toString()).isEqualTo("[\"RECORD_TYPE\"]");
         }
     }
@@ -750,7 +753,7 @@ class ObservabilityAnalyticsDataPortAdapterTest {
 
         @Test
         void should_not_report_a_ranking_condition_the_engine_ignored_unless_the_caller_sent_it() {
-            when(computeTimeSeriesUseCase.execute(any())).thenReturn(
+            when(computeTimeSeriesUseCase.executeForApis(any(), any(), any())).thenReturn(
                 new ComputeTimeSeriesUseCase.Output(
                     new TimeSeriesResponse(
                         List.of(
@@ -772,7 +775,7 @@ class ObservabilityAnalyticsDataPortAdapterTest {
         }
 
         private void givenTheEngineAnswers(List<TimeSeriesBucketResponse> buckets) {
-            when(computeTimeSeriesUseCase.execute(any())).thenReturn(
+            when(computeTimeSeriesUseCase.executeForApis(any(), any(), any())).thenReturn(
                 new ComputeTimeSeriesUseCase.Output(
                     new TimeSeriesResponse(List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, null, buckets, List.of())))
                 )
@@ -780,9 +783,9 @@ class ObservabilityAnalyticsDataPortAdapterTest {
         }
 
         private TimeSeriesRequest engineRequest() {
-            var captor = ArgumentCaptor.forClass(ComputeTimeSeriesUseCase.Input.class);
-            verify(computeTimeSeriesUseCase).execute(captor.capture());
-            return captor.getValue().request();
+            var captor = ArgumentCaptor.forClass(TimeSeriesRequest.class);
+            verify(computeTimeSeriesUseCase).executeForApis(any(), captor.capture(), any());
+            return captor.getValue();
         }
 
         private static TimeSeriesQuery query(List<String> facets, List<AnalyticsNumberRange> ranges, SeriesRanking ranking) {

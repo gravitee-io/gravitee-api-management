@@ -249,6 +249,8 @@ paths:
                 Use `signal` to narrow the catalog to the filters a given surface can actually honour — for
                 example `?signal=LOGS` on the logs table. Without it, the whole catalog is returned, which
                 includes filters no single query path supports end to end.
+
+                No permission is required: the catalog holds no traffic data.
             tags:
                 - definition
             parameters:
@@ -307,6 +309,8 @@ paths:
             description: |
                 Resolves stable filter value identifiers (for example API, APPLICATION, or PLAN ids) into display labels.
                 This endpoint is used when hydrating dashboard filters from the URL, where labels are intentionally not stored.
+                Only ids the caller's rows hold are labelled: an API whose aggregates the caller reads, or an APPLICATION,
+                PLAN or API_PRODUCT id found in the calls of those APIs. Other ids are left out of `labels`.
             tags:
                 - definition
             parameters:
@@ -352,7 +356,10 @@ paths:
             description: |
                 Returns a paginated list of distinct values for a given filter within an optional time range.
                 - ENUM filters return their static enum values.
-                - KEYWORD filters return distinct values from the analytics data store.
+                - KEYWORD filters return the distinct values found in the calls of the APIs whose aggregates the caller
+                  reads, or whose logs they read for a field identifying callers (`CONSUMER_IP`, `NATIVE_CLIENT_ID`,
+                  `AUTHZ_SUBJECT_ID`) or one the logs only show. Empty when they read none. Searching `API` by name
+                  offers the APIs the caller reads.
                 - NUMBER and STRING filters are not supported and return 400.
             tags:
                 - definition
@@ -458,6 +465,11 @@ paths:
             description: |
                 Return aggregated values for specified metrics within a time range.
 
+                Only the APIs whose aggregates the caller reads are counted: `API_ANALYTICS[READ]` on the API, or every
+                API of the environment with `ENVIRONMENT_PLATFORM[READ]`. A query using a field identifying callers
+                (`CONSUMER_IP`, `NATIVE_CLIENT_ID`, `AUTHZ_SUBJECT_ID`) as filter or facet counts only the APIs where the
+                caller holds `API_LOG[READ]`. A caller who reads no API gets empty results, not 403.
+
             tags:
                 - computation
             parameters:
@@ -552,6 +564,11 @@ paths:
                 Facet requests are limited to 3 dimensions in the by clause.
 
                 Sorting and ranging always apply to the last given facet.
+
+                Only the APIs whose aggregates the caller reads are counted: `API_ANALYTICS[READ]` on the API, or every
+                API of the environment with `ENVIRONMENT_PLATFORM[READ]`. A query using a field identifying callers
+                (`CONSUMER_IP`, `NATIVE_CLIENT_ID`, `AUTHZ_SUBJECT_ID`) as filter or facet counts only the APIs where the
+                caller holds `API_LOG[READ]`. A caller who reads no API gets empty results, not 403.
 
             tags:
                 - computation
@@ -732,6 +749,11 @@ paths:
                 Return data points over time with optional grouping by facets.
 
                 Time series responses will include the lower and upper bound of the time range as the first and last buckets.
+
+                Only the APIs whose aggregates the caller reads are counted: `API_ANALYTICS[READ]` on the API, or every
+                API of the environment with `ENVIRONMENT_PLATFORM[READ]`. A query using a field identifying callers
+                (`CONSUMER_IP`, `NATIVE_CLIENT_ID`, `AUTHZ_SUBJECT_ID`) as filter or facet counts only the APIs where the
+                caller holds `API_LOG[READ]`. A caller who reads no API gets empty results, not 403.
 
             tags:
                 - computation
