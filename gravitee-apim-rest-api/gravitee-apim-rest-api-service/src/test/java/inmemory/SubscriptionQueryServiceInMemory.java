@@ -21,6 +21,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class SubscriptionQueryServiceInMemory implements SubscriptionQueryService, InMemoryAlternative<SubscriptionEntity> {
 
@@ -85,6 +86,14 @@ public class SubscriptionQueryServiceInMemory implements SubscriptionQueryServic
                     applicationId.equals(subscription.getApplicationId())
             )
             .toList();
+    }
+
+    @Override
+    public Optional<SubscriptionEntity> findByIdAndApiId(String subscriptionId, String apiId) {
+        return storage
+            .stream()
+            .filter(subscription -> subscription.getId().equals(subscriptionId) && apiId.equals(subscription.getApiId()))
+            .findFirst();
     }
 
     @Override
