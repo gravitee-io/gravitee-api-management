@@ -22,6 +22,7 @@ import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCR
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.apim.core.api.model.property.EncryptedPropertyAuditMarker;
 import io.gravitee.apim.infra.json.jackson.EncryptedPropertyAccessPatch;
 import io.gravitee.apim.infra.json.jackson.EncryptedPropertyAuditRedaction;
 import io.gravitee.common.component.Lifecycle;
@@ -563,13 +564,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     }
 
     private static boolean writesEncryptedValue(Dictionary oldValue, Dictionary newValue) {
-        Map<String, String> oldCiphertextByKey = ciphertextByKey(oldValue);
-        return ciphertextByKey(newValue)
-            .entrySet()
-            .stream()
-            .anyMatch(
-                ciphertext -> ciphertext.getValue() != null && !ciphertext.getValue().equals(oldCiphertextByKey.get(ciphertext.getKey()))
-            );
+        return EncryptedPropertyAuditMarker.holdsNewCiphertext(ciphertextByKey(oldValue), ciphertextByKey(newValue));
     }
 
     private static Map<String, String> ciphertextByKey(Dictionary dictionary) {

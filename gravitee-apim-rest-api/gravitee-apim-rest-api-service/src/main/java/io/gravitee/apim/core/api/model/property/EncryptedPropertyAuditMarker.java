@@ -55,7 +55,7 @@ public final class EncryptedPropertyAuditMarker {
         return holdsNewCiphertext(ciphertextByKey(oldDefinition), ciphertextByKey(newDefinition));
     }
 
-    private static boolean holdsNewCiphertext(Map<String, String> oldCiphertextByKey, Map<String, String> newCiphertextByKey) {
+    public static boolean holdsNewCiphertext(Map<String, String> oldCiphertextByKey, Map<String, String> newCiphertextByKey) {
         return newCiphertextByKey
             .entrySet()
             .stream()
