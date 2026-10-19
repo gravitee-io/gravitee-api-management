@@ -37,6 +37,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.*;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
@@ -63,9 +64,17 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import org.apache.commons.io.IOUtils;
+<<<<<<< HEAD
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+=======
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+>>>>>>> e4836d7 (fix: only grant user roles the caller already holds)
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
@@ -74,9 +83,12 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -3277,5 +3289,183 @@ public class UserServiceTest {
         when(userRepository.findById(USER_NAME)).thenReturn(of(existingUser));
 
         userService.updateServiceAccountStatus(EXECUTION_CONTEXT, USER_NAME, true);
+    }
+
+    @Nested
+    class UpdateUserRoles {
+
+        private static final String CALLER_ID = "caller";
+        private static final String ADMIN_ROLE_ID = "admin-role";
+        private static final String USER_ROLE_ID = "user-role";
+
+        private final RoleEntity adminRole = role(
+            ADMIN_ROLE_ID,
+            "ADMIN",
+            Map.of("USER", "CRUD".toCharArray(), "ROLE", "CRUD".toCharArray())
+        );
+        private final RoleEntity userRole = role(USER_ROLE_ID, "USER", Map.of("USER", "R".toCharArray()));
+
+        @BeforeEach
+        void setUp() throws TechnicalException {
+            User target = new User();
+            target.setId(USER_NAME);
+            target.setOrganizationId(ORGANIZATION);
+            when(userRepository.findById(USER_NAME)).thenReturn(of(target));
+            when(roleService.findById(ADMIN_ROLE_ID)).thenReturn(adminRole);
+            when(roleService.findById(USER_ROLE_ID)).thenReturn(userRole);
+        }
+
+        @AfterEach
+        void tearDown() {
+            SecurityContextHolder.clearContext();
+        }
+
+        @Test
+        void should_forbid_granting_a_role_with_permissions_the_caller_does_not_hold() {
+            authenticateCaller();
+            givenTargetMemberWithRoles(userRole);
+            givenCallerPermissions(Map.of("USER", "RU".toCharArray()));
+
+            assertThrows(ForbiddenAccessException.class, () ->
+                userService.updateUserRoles(
+                    EXECUTION_CONTEXT,
+                    USER_NAME,
+                    MembershipReferenceType.ORGANIZATION,
+                    ORGANIZATION,
+                    new ArrayList<>(List.of(ADMIN_ROLE_ID))
+                )
+            );
+
+            verify(membershipService, never()).removeRole(any(), any(), any(), any(), any());
+            verify(membershipService, never()).addRoleToMemberOnReference(any(), any(), any(), any());
+        }
+
+        @Test
+        void should_grant_a_role_whose_permissions_the_caller_holds() {
+            authenticateCaller();
+            givenTargetMemberWithRoles();
+            givenCallerPermissions(Map.of("USER", "RU".toCharArray()));
+
+            userService.updateUserRoles(
+                EXECUTION_CONTEXT,
+                USER_NAME,
+                MembershipReferenceType.ORGANIZATION,
+                ORGANIZATION,
+                new ArrayList<>(List.of(USER_ROLE_ID))
+            );
+
+            verify(membershipService).addRoleToMemberOnReference(
+                eq(EXECUTION_CONTEXT),
+                eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, ORGANIZATION)),
+                eq(new MembershipService.MembershipMember(USER_NAME, null, MembershipMemberType.USER)),
+                eq(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"))
+            );
+        }
+
+        @Test
+        void should_grant_any_role_when_the_caller_is_organization_admin() {
+            authenticateCaller("ORGANIZATION:ADMIN");
+            givenTargetMemberWithRoles(userRole);
+
+            userService.updateUserRoles(
+                EXECUTION_CONTEXT,
+                USER_NAME,
+                MembershipReferenceType.ORGANIZATION,
+                ORGANIZATION,
+                new ArrayList<>(List.of(ADMIN_ROLE_ID))
+            );
+
+            verify(membershipService).removeRole(
+                MembershipReferenceType.ORGANIZATION,
+                ORGANIZATION,
+                MembershipMemberType.USER,
+                USER_NAME,
+                USER_ROLE_ID
+            );
+            verify(membershipService).addRoleToMemberOnReference(
+                eq(EXECUTION_CONTEXT),
+                any(),
+                any(),
+                eq(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN"))
+            );
+        }
+
+        @Test
+        void should_keep_a_role_the_user_already_holds_without_checking_the_caller() {
+            authenticateCaller();
+            givenTargetMemberWithRoles(adminRole, userRole);
+
+            userService.updateUserRoles(
+                EXECUTION_CONTEXT,
+                USER_NAME,
+                MembershipReferenceType.ORGANIZATION,
+                ORGANIZATION,
+                new ArrayList<>(List.of(ADMIN_ROLE_ID))
+            );
+
+            verify(membershipService).removeRole(
+                MembershipReferenceType.ORGANIZATION,
+                ORGANIZATION,
+                MembershipMemberType.USER,
+                USER_NAME,
+                USER_ROLE_ID
+            );
+            verify(membershipService, never()).addRoleToMemberOnReference(any(), any(), any(), any());
+            verify(membershipService, never()).getUserMemberPermissions(any(), any(), any(), any());
+        }
+
+        @Test
+        void should_forbid_granting_an_environment_role_when_the_caller_only_holds_its_permissions_on_the_organization() {
+            authenticateCaller();
+            RoleEntity environmentRole = role("env-role", "USER", Map.of("USER", "R".toCharArray()));
+            environmentRole.setScope(RoleScope.ENVIRONMENT);
+            when(roleService.findById("env-role")).thenReturn(environmentRole);
+            givenCallerPermissions(Map.of("USER", "RU".toCharArray()));
+            when(
+                membershipService.getUserMemberPermissions(EXECUTION_CONTEXT, MembershipReferenceType.ENVIRONMENT, ENVIRONMENT, CALLER_ID)
+            ).thenReturn(Map.of());
+
+            assertThrows(ForbiddenAccessException.class, () ->
+                userService.updateUserRoles(
+                    EXECUTION_CONTEXT,
+                    USER_NAME,
+                    MembershipReferenceType.ENVIRONMENT,
+                    ENVIRONMENT,
+                    new ArrayList<>(List.of("env-role"))
+                )
+            );
+
+            verify(membershipService, never()).addRoleToMemberOnReference(any(), any(), any(), any());
+        }
+
+        private void authenticateCaller(String... authorities) {
+            var principal = new UserDetails(CALLER_ID, "", Arrays.stream(authorities).map(SimpleGrantedAuthority::new).toList());
+            SecurityContextHolder.setContext(
+                new SecurityContextImpl(new UsernamePasswordAuthenticationToken(principal, "", principal.getAuthorities()))
+            );
+        }
+
+        private void givenTargetMemberWithRoles(RoleEntity... roles) {
+            MemberEntity member = new MemberEntity();
+            member.setRoles(List.of(roles));
+            when(
+                membershipService.getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.ORGANIZATION, ORGANIZATION, USER_NAME)
+            ).thenReturn(member);
+        }
+
+        private void givenCallerPermissions(Map<String, char[]> permissions) {
+            when(
+                membershipService.getUserMemberPermissions(EXECUTION_CONTEXT, MembershipReferenceType.ORGANIZATION, ORGANIZATION, CALLER_ID)
+            ).thenReturn(permissions);
+        }
+
+        private static RoleEntity role(String id, String name, Map<String, char[]> permissions) {
+            RoleEntity role = new RoleEntity();
+            role.setId(id);
+            role.setName(name);
+            role.setScope(RoleScope.ORGANIZATION);
+            role.setPermissions(permissions);
+            return role;
+        }
     }
 }
