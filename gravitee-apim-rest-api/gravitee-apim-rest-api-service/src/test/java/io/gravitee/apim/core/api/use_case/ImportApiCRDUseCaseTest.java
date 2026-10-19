@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
-import static org.mockito.Mockito.verifyNoInteractions;
 import static fixtures.ApplicationModelFixtures.anApplicationEntity;
 import static fixtures.core.model.ApiFixtures.aNativeApi;
 import static fixtures.core.model.ApiFixtures.aProxyApiV4;
@@ -36,6 +35,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -399,7 +399,8 @@ class ImportApiCRDUseCaseTest {
             new ValidatePagesDomainService(pageSourceValidator, accessControlValidator, validationDomainService),
             new ValidatePlanDomainService(planValidatorDomainService),
             new ValidatePortalNotificationDomainService(new ValidateGroupsDomainService(groupQueryService)),
-            apiQueryService
+            apiQueryService,
+            crdMembersDomainService
         );
 
         planQueryService = new PlanQueryServiceInMemory(planCrudService);
