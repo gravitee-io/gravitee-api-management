@@ -37,6 +37,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -326,6 +327,46 @@ public class SubscriptionQueryServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage("An error occurs while trying to find plan's subscription");
+        }
+    }
+
+    @Nested
+    class FindByIdAndApiId {
+
+        @Test
+        void should_return_the_subscription_of_the_api() throws TechnicalException {
+            when(subscriptionRepository.findById("subscription-id")).thenReturn(Optional.of(aSubscription("subscription-id").build()));
+
+            var result = service.findByIdAndApiId("subscription-id", "api-id");
+
+            assertThat(result).map(SubscriptionEntity::getId).contains("subscription-id");
+        }
+
+        @Test
+        void should_return_empty_when_the_subscription_belongs_to_another_api() throws TechnicalException {
+            when(subscriptionRepository.findById("subscription-id")).thenReturn(
+                Optional.of(aSubscription("subscription-id").api("other-api-id").build())
+            );
+
+            assertThat(service.findByIdAndApiId("subscription-id", "api-id")).isEmpty();
+        }
+
+        @Test
+        void should_return_empty_when_the_subscription_does_not_exist() throws TechnicalException {
+            when(subscriptionRepository.findById("subscription-id")).thenReturn(Optional.empty());
+
+            assertThat(service.findByIdAndApiId("subscription-id", "api-id")).isEmpty();
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            when(subscriptionRepository.findById("subscription-id")).thenThrow(TechnicalException.class);
+
+            Throwable throwable = catchThrowable(() -> service.findByIdAndApiId("subscription-id", "api-id"));
+
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to find subscription by id and API");
         }
     }
 
