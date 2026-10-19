@@ -181,6 +181,14 @@ class EncryptedPropertyAuditMarkerTest {
     }
 
     @Test
+    void should_map_each_encrypted_key_to_its_ciphertext_ignoring_null_and_plain_properties() {
+        assertThat(EncryptedPropertyAuditMarker.ciphertextByKey(null)).isEmpty();
+        assertThat(
+            EncryptedPropertyAuditMarker.ciphertextByKey(Arrays.asList(null, encrypted("secret", "secret-ciphertext"), plain("p", "value")))
+        ).isEqualTo(Map.of("secret", "secret-ciphertext"));
+    }
+
+    @Test
     void should_tell_whether_properties_hold_an_encrypted_one() {
         assertThat(EncryptedPropertyAuditMarker.holdsEncryptedProperty(null)).isFalse();
         assertThat(EncryptedPropertyAuditMarker.holdsEncryptedProperty(List.of(plain("p", "value")))).isFalse();

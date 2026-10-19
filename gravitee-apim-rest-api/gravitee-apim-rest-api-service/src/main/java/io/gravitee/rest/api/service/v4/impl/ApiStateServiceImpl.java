@@ -269,22 +269,11 @@ public class ApiStateServiceImpl implements ApiStateService {
                 .properties(emptyMap())
                 .event(event)
                 .createdAt(deployedAt)
-                .patch(EncryptedPropertyAccessPatch.of(ciphertextByKey(properties)))
+                .patch(EncryptedPropertyAccessPatch.of(EncryptedPropertyAuditMarker.ciphertextByKey(properties)))
                 .build(),
             deployedApi.getId(),
             authenticatedUser
         );
-    }
-
-    private static Map<String, String> ciphertextByKey(List<Property> properties) {
-        return properties
-            .stream()
-            .filter(Property::isEncrypted)
-            .collect(
-                HashMap::new,
-                (ciphertextByKey, property) -> ciphertextByKey.put(property.getKey(), property.getValue()),
-                HashMap::putAll
-            );
     }
 
     private static List<Property> v4Properties(GenericApiEntity api) {

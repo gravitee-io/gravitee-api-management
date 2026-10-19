@@ -76,7 +76,7 @@ public final class EncryptedPropertyAuditMarker {
         };
     }
 
-    private static Map<String, String> ciphertextByKey(List<? extends Property> v4Properties) {
+    public static Map<String, String> ciphertextByKey(List<? extends Property> v4Properties) {
         if (v4Properties == null) {
             return Map.of();
         }
