@@ -43,7 +43,7 @@ public class JdbcApplicationRepositoryTest {
             "am.k as am_k, am.v as am_v from table_prefix_applications a left join " +
             "table_prefix_application_metadata am on a.id = am.application_id where 1 = 1 and " +
             "(a.id = ? or lower(a.name) like ?) and a.status = ? and a.environment_id in (? ) " +
-            "order by a.name asc";
+            "order by a.name asc, a.id asc";
         assertThat(query).isEqualTo(expectedQuery);
     }
 
@@ -65,7 +65,7 @@ public class JdbcApplicationRepositoryTest {
             "am.k as am_k, am.v as am_v from table_prefix_applications a left join " +
             "table_prefix_application_metadata am on a.id = am.application_id where 1 = 1 and " +
             "(a.id = ? or lower(a.name) like ?) and a.id in (? , ? ) and lower(a.name) like ? and a.status = ? " +
-            "and a.environment_id in (? ) order by a.name asc";
+            "and a.environment_id in (? ) order by a.name asc, a.id asc";
         assertThat(query).isEqualTo(expectedQuery);
     }
 }
