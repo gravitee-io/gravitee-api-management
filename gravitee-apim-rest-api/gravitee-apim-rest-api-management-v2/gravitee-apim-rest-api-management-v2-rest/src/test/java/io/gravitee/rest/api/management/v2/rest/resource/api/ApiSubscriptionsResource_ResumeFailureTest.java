@@ -60,24 +60,7 @@ public class ApiSubscriptionsResource_ResumeFailureTest extends AbstractApiSubsc
         final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
             .toBuilder()
             .id(SUBSCRIPTION)
-            .referenceId("ANOTHER-API")
-            .referenceType("API")
-            .build();
-        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
-
-        final Response response = rootTarget().request().post(Entity.json(null));
-
-        assertSubscriptionNotFound(response);
-        verify(subscriptionService, never()).resumeFailed(any(), any());
-    }
-
-    @Test
-    public void should_return_404_if_subscription_associated_to_an_api_product() {
-        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
-            .toBuilder()
-            .id(SUBSCRIPTION)
-            .referenceId(API)
-            .referenceType("API_PRODUCT")
+            .api("ANOTHER-API")
             .build();
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
 
