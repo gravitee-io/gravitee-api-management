@@ -15,19 +15,31 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.ClusterRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.model.Cluster;
+import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,17 +66,26 @@ public class MembershipService_GetUserMemberTest {
     @Mock
     private ApplicationRepository applicationRepository;
 
+    @Mock
+    private ClusterRepository clusterRepository;
+
+    @Mock
+    private UserService userService;
+
+    @Mock
+    private RoleService roleService;
+
     @BeforeEach
     public void setUp() throws Exception {
         cut = new MembershipServiceImpl(
             null,
-            null,
+            userService,
             applicationRepository,
             null,
             null,
             null,
             membershipRepository,
-            null,
+            roleService,
             null,
             null,
             null,
@@ -78,7 +99,8 @@ public class MembershipService_GetUserMemberTest {
             null,
             null,
             null,
-            null
+            null,
+            clusterRepository
         );
     }
 
@@ -104,5 +126,62 @@ public class MembershipService_GetUserMemberTest {
         assertThatThrownBy(() ->
             cut.getUserMember(GraviteeContext.getExecutionContext(), MembershipReferenceType.APPLICATION, "reference-id", "user-id")
         ).isInstanceOf(ApplicationNotFoundException.class);
+    }
+
+    @Test
+    public void should_grant_cluster_role_to_user_member_of_group_attached_to_cluster() throws TechnicalException {
+        givenGroupMemberWithClusterRole(Set.of("group-id"));
+
+        MemberEntity member = cut.getUserMember(
+            GraviteeContext.getExecutionContext(),
+            MembershipReferenceType.CLUSTER,
+            "cluster-id",
+            "user-id"
+        );
+
+        assertThat(member).isNotNull();
+        assertThat(member.getPermissions()).containsKey("DEFINITION");
+    }
+
+    @Test
+    public void should_not_grant_cluster_role_when_group_is_not_attached_to_cluster() throws TechnicalException {
+        givenGroupMemberWithClusterRole(Set.of("other-group-id"));
+
+        MemberEntity member = cut.getUserMember(
+            GraviteeContext.getExecutionContext(),
+            MembershipReferenceType.CLUSTER,
+            "cluster-id",
+            "user-id"
+        );
+
+        assertThat(member).isNotNull();
+        assertThat(member.getPermissions()).isEmpty();
+    }
+
+    private void givenGroupMemberWithClusterRole(Set<String> clusterGroups) throws TechnicalException {
+        io.gravitee.repository.management.model.Membership groupMembership = new io.gravitee.repository.management.model.Membership();
+        groupMembership.setReferenceType(io.gravitee.repository.management.model.MembershipReferenceType.GROUP);
+        groupMembership.setReferenceId("group-id");
+        groupMembership.setRoleId("role-id");
+
+        Cluster cluster = new Cluster();
+        cluster.setId("cluster-id");
+        cluster.setGroups(clusterGroups);
+        when(clusterRepository.findById("cluster-id")).thenReturn(Optional.of(cluster));
+        when(
+            membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(any(), any(), any(), eq("cluster-id"))
+        ).thenReturn(Set.of());
+        when(userService.findById(any(), eq("user-id"))).thenReturn(new UserEntity());
+
+        RoleEntity role = new RoleEntity();
+        role.setId("role-id");
+        role.setScope(RoleScope.CLUSTER);
+        role.setPermissions(Map.of("DEFINITION", new char[] { 'R' }));
+        if (clusterGroups.contains("group-id")) {
+            when(
+                membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds(any(), any(), any(), eq(Set.of("group-id")))
+            ).thenReturn(Set.of(groupMembership));
+            when(roleService.findByIds(Set.of("role-id"))).thenReturn(Map.of("role-id", role));
+        }
     }
 }
