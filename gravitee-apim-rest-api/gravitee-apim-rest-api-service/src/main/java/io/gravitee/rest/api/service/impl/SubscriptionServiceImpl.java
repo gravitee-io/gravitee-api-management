@@ -1155,9 +1155,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         }
     }
 
-<<<<<<< HEAD
-    private SubscriptionEntity resumeSubscription(ExecutionContext executionContext, Subscription subscription, String apiId)
-=======
     private Subscription findSubscriptionInEnvironment(ExecutionContext executionContext, String subscriptionId) throws TechnicalException {
         return subscriptionRepository
             .findById(subscriptionId)
@@ -1165,8 +1162,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
     }
 
-    private SubscriptionEntity resumeSubscription(ExecutionContext executionContext, Subscription subscription, String referenceId)
->>>>>>> 6b605eb (fix(rest-api): only change a subscription's status in its own environment)
+    private SubscriptionEntity resumeSubscription(ExecutionContext executionContext, Subscription subscription, String apiId)
         throws TechnicalException {
         Subscription previousSubscription = new Subscription(subscription);
         final Date now = new Date();
