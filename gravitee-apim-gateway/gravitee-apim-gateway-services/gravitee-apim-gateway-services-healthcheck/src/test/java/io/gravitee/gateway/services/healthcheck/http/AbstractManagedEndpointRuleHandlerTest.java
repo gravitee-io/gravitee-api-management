@@ -75,9 +75,15 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         .proxyMode(true)
         .build();
 
+    @RegisterExtension
+    static WireMockExtension wmHttps = WireMockExtension.newInstance()
+        .options(wireMockConfig().httpDisabled(true).dynamicHttpsPort())
+        .build();
+
     @BeforeEach
     void setup() {
         wm.resetAll();
+        wmHttps.resetAll();
         environment = mock(Environment.class);
         templateEngine = mock(TemplateEngine.class);
         when(environment.getProperty("http.ssl.openssl", Boolean.class, false)).thenReturn(useOpenSsl());
@@ -190,6 +196,48 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
             (Handler<EndpointStatus>) status -> {
                 assertTrue(status.isSuccess());
                 wm.verify(getRequestedFor(urlEqualTo("/")));
+                statusCheckpoint.flag();
+            }
+        );
+        runner.setRescheduleHandler(v -> {
+            rescheduleCheckpoint.flag();
+        });
+
+        // Run
+        runner.handle(null);
+    }
+
+    @Test
+    void shouldValidateOverHttpsWithTrustAll(Vertx vertx, VertxTestContext context) throws Throwable {
+        // Prepare HTTPS endpoint with a self-signed certificate
+        wmHttps.stubFor(get(urlEqualTo("/")).willReturn(ok("{\"status\": \"green\"}")));
+
+        final Checkpoint statusCheckpoint = context.checkpoint();
+        final Checkpoint rescheduleCheckpoint = context.checkpoint();
+
+        // Prepare
+        EndpointRule rule = createEndpointRule(wmHttps.baseUrl(), null, false);
+        HttpClientSslOptions sslOptions = new HttpClientSslOptions();
+        sslOptions.setTrustAll(true);
+        sslOptions.setHostnameVerifier(false);
+        ((HttpEndpoint) rule.endpoint()).setHttpClientSslOptions(sslOptions);
+
+        HealthCheckStep step = new HealthCheckStep();
+        HealthCheckRequest request = new HealthCheckRequest("/", HttpMethod.GET);
+
+        step.setRequest(request);
+        HealthCheckResponse response = new HealthCheckResponse();
+        response.setAssertions(Collections.singletonList(HealthCheckResponse.DEFAULT_ASSERTION));
+        step.setResponse(response);
+        when(rule.steps()).thenReturn(Collections.singletonList(step));
+
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
+
+        // Verify
+        runner.setStatusHandler(
+            (Handler<EndpointStatus>) status -> {
+                assertTrue(status.isSuccess());
+                wmHttps.verify(getRequestedFor(urlEqualTo("/")));
                 statusCheckpoint.flag();
             }
         );
