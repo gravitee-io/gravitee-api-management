@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.v2.rest.resource.observability;
 
 import static assertions.MAPIAssertions.assertThat;
-import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -27,8 +26,6 @@ import io.gravitee.rest.api.management.v2.rest.UserDetails;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ResolveFilterLabelsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
@@ -38,7 +35,6 @@ import jakarta.ws.rs.core.SecurityContext;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.IntStream;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.AfterEach;
@@ -166,31 +162,6 @@ class ObservabilityFilterLabelsResourceTest extends AbstractResourceTest {
         var response = rootTarget().request().post(json(Map.of("entries", entries)));
 
         assertThat(response).hasStatus(400).asError().hasHttpStatus(400).hasMessage("Too many filter entries to resolve");
-    }
-
-    @Test
-    void should_return_403_when_missing_dashboard_read_permission() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DASHBOARD,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_API,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(false);
-        when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(Set.of());
-
-        var response = rootTarget().request().post(json(Map.of("entries", List.of())));
-
-        assertThat(response).hasStatus(FORBIDDEN_403);
     }
 
     private void givenReadableApis(Map<String, String> namesById) {

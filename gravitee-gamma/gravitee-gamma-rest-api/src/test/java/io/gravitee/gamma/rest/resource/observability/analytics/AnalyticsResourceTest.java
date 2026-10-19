@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -415,29 +416,51 @@ class AnalyticsResourceTest extends AbstractResourceTest {
         }
     }
 
+    /**
+     * The rows a caller reads decide what analytics count, never an environment permission: a caller whose rows are
+     * empty (no permission at all, ENVIRONMENT_API[READ] only, or the platform permission of another environment) gets
+     * an empty answer, and no API reaches the engine.
+     */
     @Nested
-    class Authorization {
+    class RowRule {
 
         @ParameterizedTest
         @MethodSource("io.gravitee.gamma.rest.resource.observability.analytics.AnalyticsResourceTest#wellFormedRequests")
-        void should_answer_403_without_querying_when_caller_only_holds_environment_api_read(String path, Map<String, Object> body) {
-            givenOnlyReadPermission(RolePermission.ENVIRONMENT_API, ENVIRONMENT);
+        void should_answer_without_querying_any_api_when_caller_holds_no_permission(String path, Map<String, Object> body) {
+            when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
+            givenTheCallerReadsNoApi();
 
             var response = post(path, body);
 
-            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
-            verifyNoInteractions(analyticsDataPort);
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            assertNoApiQueried(path);
         }
 
         @ParameterizedTest
         @MethodSource("io.gravitee.gamma.rest.resource.observability.analytics.AnalyticsResourceTest#wellFormedRequests")
-        void should_answer_403_when_environment_platform_read_is_held_on_another_environment(String path, Map<String, Object> body) {
-            givenOnlyReadPermission(RolePermission.ENVIRONMENT_PLATFORM, OTHER_ENVIRONMENT);
+        void should_answer_without_querying_any_api_when_caller_only_holds_environment_api_read(String path, Map<String, Object> body) {
+            givenOnlyReadPermission(RolePermission.ENVIRONMENT_API, ENVIRONMENT);
+            givenTheCallerReadsNoApi();
 
             var response = post(path, body);
 
-            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
-            verifyNoInteractions(analyticsDataPort);
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            assertNoApiQueried(path);
+        }
+
+        @ParameterizedTest
+        @MethodSource("io.gravitee.gamma.rest.resource.observability.analytics.AnalyticsResourceTest#wellFormedRequests")
+        void should_answer_without_querying_any_api_when_environment_platform_read_is_held_on_another_environment(
+            String path,
+            Map<String, Object> body
+        ) {
+            givenOnlyReadPermission(RolePermission.ENVIRONMENT_PLATFORM, OTHER_ENVIRONMENT);
+            givenTheCallerReadsNoApi();
+
+            var response = post(path, body);
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            assertNoApiQueried(path);
         }
 
         @ParameterizedTest
@@ -448,6 +471,23 @@ class AnalyticsResourceTest extends AbstractResourceTest {
             var response = post(path, body);
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        private void givenTheCallerReadsNoApi() {
+            when(analyticsDataPort.loadAccessibleApis(any(), any(), any())).thenReturn(List.of());
+            when(analyticsDataPort.emptyFacetsResponse()).thenReturn(JsonNodeFactory.instance.objectNode());
+        }
+
+        private void assertNoApiQueried(String path) {
+            switch (path) {
+                case "measures" -> {
+                    var captor = ArgumentCaptor.forClass(ObservabilityAnalyticsDataPort.MeasuresQuery.class);
+                    verify(analyticsDataPort).computeMeasures(captor.capture());
+                    assertThat(captor.getValue().groups()).allSatisfy(group -> assertThat(group.isEmpty()).isTrue());
+                }
+                case "facets" -> verify(analyticsDataPort, never()).computeFacets(any());
+                default -> verify(analyticsDataPort, never()).computeTimeSeries(any());
+            }
         }
     }
 

@@ -245,44 +245,49 @@ class LogsResourceTest extends AbstractResourceTest {
             verifyNoInteractions(searchLogsUseCase);
         }
 
+        /** The rows a caller reads decide what the search answers: no environment permission is required. */
         @Test
-        void should_return_403_when_caller_cannot_read_observability() {
+        void should_search_without_any_environment_permission() {
             when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
+            when(searchLogsUseCase.execute(any())).thenReturn(new SearchObservabilityLogsUseCase.Output(LogsPage.EMPTY, 1, 20));
 
             Response response = rootTarget("search").request().post(Entity.entity(Map.of(), MediaType.APPLICATION_JSON_TYPE));
 
-            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
-            verifyNoInteractions(searchLogsUseCase);
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            verify(searchLogsUseCase).execute(any());
         }
 
         @Test
-        void should_return_403_when_caller_only_holds_environment_api_read() {
+        void should_search_the_rows_when_caller_only_holds_environment_api_read() {
             givenOnlyReadPermission(RolePermission.ENVIRONMENT_API, ENVIRONMENT);
+            when(searchLogsUseCase.execute(any())).thenReturn(new SearchObservabilityLogsUseCase.Output(LogsPage.EMPTY, 1, 20));
 
             Response response = rootTarget("search").request().post(Entity.entity(Map.of(), MediaType.APPLICATION_JSON_TYPE));
 
-            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
-            verifyNoInteractions(searchLogsUseCase);
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            verify(searchLogsUseCase).execute(any());
         }
 
         @Test
-        void should_return_403_when_environment_platform_read_is_held_on_another_environment() {
+        void should_search_the_rows_when_environment_platform_read_is_held_on_another_environment() {
             givenOnlyReadPermission(RolePermission.ENVIRONMENT_PLATFORM, OTHER_ENVIRONMENT);
+            when(searchLogsUseCase.execute(any())).thenReturn(new SearchObservabilityLogsUseCase.Output(LogsPage.EMPTY, 1, 20));
 
             Response response = rootTarget("search").request().post(Entity.entity(Map.of(), MediaType.APPLICATION_JSON_TYPE));
 
-            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
-            verifyNoInteractions(searchLogsUseCase);
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            verify(searchLogsUseCase).execute(any());
         }
 
         @Test
-        void should_return_403_when_caller_only_holds_environment_dashboard_read() {
+        void should_search_the_rows_when_caller_only_holds_environment_dashboard_read() {
             givenOnlyReadPermission(RolePermission.ENVIRONMENT_DASHBOARD, ENVIRONMENT);
+            when(searchLogsUseCase.execute(any())).thenReturn(new SearchObservabilityLogsUseCase.Output(LogsPage.EMPTY, 1, 20));
 
             Response response = rootTarget("search").request().post(Entity.entity(Map.of(), MediaType.APPLICATION_JSON_TYPE));
 
-            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
-            verifyNoInteractions(searchLogsUseCase);
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            verify(searchLogsUseCase).execute(any());
         }
 
         @Test

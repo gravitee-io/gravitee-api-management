@@ -16,8 +16,11 @@
 package io.gravitee.apim.core.analytics_engine.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -34,6 +37,7 @@ import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQuery
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.observability.model.FilterOperator;
+import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ApiTypeFilterTransformer;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Instant;
 import java.util.List;
@@ -97,6 +101,32 @@ class ComputeFacetsUseCaseTest {
         when(contextLoader.load(any(), any(), any())).thenReturn(ANALYTICS_CONTEXT);
         when(bucketNamesPostProcessor.mapBucketNames(any(), any(), any(FacetsResponse.class))).thenAnswer(inv -> inv.getArgument(2));
         when(unitEnrichmentPostProcessor.enrichUnits(any(FacetsResponse.class))).thenAnswer(inv -> inv.getArgument(0));
+    }
+
+    /** A caller that already authorized the query (Gamma) hands its own API set over: no scope is loaded. */
+    @Test
+    void should_authorize_only_the_given_apis_without_loading_a_scope() {
+        var queryService = mock(AnalyticsEngineQueryService.class);
+        when(queryService.searchFacets(any(), any())).thenReturn(new FacetsResponse(List.of()));
+        var useCase = new ComputeFacetsUseCase(
+            queryContextProvider,
+            validator,
+            List.of(new ApiTypeFilterTransformer()),
+            bucketNamesPostProcessor,
+            unitEnrichmentPostProcessor,
+            contextLoader
+        );
+        var request = aFacetsRequest();
+        when(queryContextProvider.resolve(request)).thenReturn(Map.of(queryService, request));
+
+        useCase.executeForApis(AUDIT_INFO, request, Set.of("proxy-1"));
+
+        verify(contextLoader, never()).load(any(), any(), any());
+        var captured = ArgumentCaptor.forClass(FacetsRequest.class);
+        verify(queryService).searchFacets(any(), captured.capture());
+        assertThat(captured.getValue().filters())
+            .extracting(Filter::name, Filter::value)
+            .contains(tuple(FilterSpec.Name.API, Set.of("proxy-1")));
     }
 
     @Test

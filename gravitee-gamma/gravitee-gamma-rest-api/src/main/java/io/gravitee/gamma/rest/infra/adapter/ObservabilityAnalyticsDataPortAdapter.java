@@ -226,7 +226,8 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     @Override
     public JsonNode computeFacets(FacetsQuery query) {
         var auditInfo = currentAuditInfo(query.organizationId(), query.environmentId());
-        var response = computeFacetsUseCase.execute(new ComputeFacetsUseCase.Input(auditInfo, toApimRequest(query))).response();
+        // The scope is already narrowed from the APIs Gamma reads for this query: the engine must not narrow it again.
+        var response = computeFacetsUseCase.executeForApis(auditInfo, toApimRequest(query), query.scope().apiIds()).response();
         var node = (ObjectNode) objectMapper.valueToTree(response);
         AnalyticsBucketTypeEnricher.enrichFacetsResponse(node);
         ConditionsNotAppliedEnricher.enrichFacets(node, query.conditionsNotApplied());
@@ -238,7 +239,7 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
         var auditInfo = currentAuditInfo(query.organizationId(), query.environmentId());
         var rankingConditions = rankingConditions(query);
         var response = computeTimeSeriesUseCase
-            .execute(new ComputeTimeSeriesUseCase.Input(auditInfo, toApimRequest(query, rankingConditions)))
+            .executeForApis(auditInfo, toApimRequest(query, rankingConditions), query.scope().apiIds())
             .response();
         if (query.ranking() != null) {
             response = RankedSeriesFilter.keepRankedSeries(response, query.ranking(), rankingConditions, query.scope());

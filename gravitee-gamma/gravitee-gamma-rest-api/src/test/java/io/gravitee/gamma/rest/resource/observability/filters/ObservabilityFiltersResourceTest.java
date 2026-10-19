@@ -170,6 +170,7 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
             Mockito.verifyNoInteractions(getFilterDefinitionsUseCase);
         }
 
+        /** The catalog holds no traffic data. */
         @Test
         void should_return_the_catalog_to_a_caller_without_any_permission() {
             when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
@@ -283,34 +284,44 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
             Mockito.verifyNoInteractions(getFilterValuesUseCase);
         }
 
+        /** The values come from the rows the caller reads: no environment permission is required. */
         @Test
-        void should_return_403_when_caller_cannot_read_observability() {
+        void should_list_values_without_any_environment_permission() {
             when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
+            when(getFilterValuesUseCase.execute(any())).thenReturn(
+                new GetObservabilityFilterValuesUseCase.Output(new FilterValuesPage(List.of(), 0L), 1, 10)
+            );
 
-            Response response = rootTarget("API_TYPE/values").request().get();
+            Response response = rootTarget("APPLICATION/values").request().get();
 
-            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
-            Mockito.verifyNoInteractions(getFilterValuesUseCase);
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            Mockito.verify(getFilterValuesUseCase).execute(any());
         }
 
         @Test
-        void should_return_403_when_caller_only_holds_environment_api_read() {
+        void should_answer_from_the_rows_when_caller_only_holds_environment_api_read() {
             givenOnlyReadPermission(RolePermission.ENVIRONMENT_API, ENVIRONMENT);
+            when(getFilterValuesUseCase.execute(any())).thenReturn(
+                new GetObservabilityFilterValuesUseCase.Output(new FilterValuesPage(List.of(), 0L), 1, 10)
+            );
 
             Response response = rootTarget("API_TYPE/values").request().get();
 
-            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
-            Mockito.verifyNoInteractions(getFilterValuesUseCase);
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            Mockito.verify(getFilterValuesUseCase).execute(any());
         }
 
         @Test
-        void should_return_403_when_environment_platform_read_is_held_on_another_environment() {
+        void should_answer_from_the_rows_when_environment_platform_read_is_held_on_another_environment() {
             givenOnlyReadPermission(RolePermission.ENVIRONMENT_PLATFORM, OTHER_ENVIRONMENT);
+            when(getFilterValuesUseCase.execute(any())).thenReturn(
+                new GetObservabilityFilterValuesUseCase.Output(new FilterValuesPage(List.of(), 0L), 1, 10)
+            );
 
             Response response = rootTarget("API_TYPE/values").request().get();
 
-            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
-            Mockito.verifyNoInteractions(getFilterValuesUseCase);
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            Mockito.verify(getFilterValuesUseCase).execute(any());
         }
 
         @Test
@@ -410,40 +421,44 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
             Mockito.verifyNoInteractions(resolveFilterLabelsUseCase);
         }
 
+        /** Only ids found in the rows the caller reads are labelled: no environment permission is required. */
         @Test
-        void should_return_403_when_caller_cannot_read_observability() {
+        void should_resolve_labels_without_any_environment_permission() {
             when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
+            when(resolveFilterLabelsUseCase.execute(any())).thenReturn(new ResolveObservabilityFilterLabelsUseCase.Output(List.of()));
 
             Response response = rootTarget("resolve")
                 .request()
                 .post(Entity.entity(Map.of("entries", List.of()), MediaType.APPLICATION_JSON_TYPE));
 
-            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
-            Mockito.verifyNoInteractions(resolveFilterLabelsUseCase);
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            Mockito.verify(resolveFilterLabelsUseCase).execute(any());
         }
 
         @Test
-        void should_return_403_when_caller_only_holds_environment_api_read() {
+        void should_answer_from_the_rows_when_caller_only_holds_environment_api_read() {
             givenOnlyReadPermission(RolePermission.ENVIRONMENT_API, ENVIRONMENT);
+            when(resolveFilterLabelsUseCase.execute(any())).thenReturn(new ResolveObservabilityFilterLabelsUseCase.Output(List.of()));
 
             Response response = rootTarget("resolve")
                 .request()
                 .post(Entity.entity(Map.of("entries", List.of()), MediaType.APPLICATION_JSON_TYPE));
 
-            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
-            Mockito.verifyNoInteractions(resolveFilterLabelsUseCase);
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            Mockito.verify(resolveFilterLabelsUseCase).execute(any());
         }
 
         @Test
-        void should_return_403_when_environment_platform_read_is_held_on_another_environment() {
+        void should_answer_from_the_rows_when_environment_platform_read_is_held_on_another_environment() {
             givenOnlyReadPermission(RolePermission.ENVIRONMENT_PLATFORM, OTHER_ENVIRONMENT);
+            when(resolveFilterLabelsUseCase.execute(any())).thenReturn(new ResolveObservabilityFilterLabelsUseCase.Output(List.of()));
 
             Response response = rootTarget("resolve")
                 .request()
                 .post(Entity.entity(Map.of("entries", List.of()), MediaType.APPLICATION_JSON_TYPE));
 
-            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
-            Mockito.verifyNoInteractions(resolveFilterLabelsUseCase);
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            Mockito.verify(resolveFilterLabelsUseCase).execute(any());
         }
 
         @Test

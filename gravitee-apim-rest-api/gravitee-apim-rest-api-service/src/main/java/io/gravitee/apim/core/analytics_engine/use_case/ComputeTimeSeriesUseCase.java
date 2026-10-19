@@ -34,6 +34,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -80,16 +81,26 @@ public class ComputeTimeSeriesUseCase {
 
     public Output execute(Input input) {
         validator.validateTimeSeriesRequest(input.request);
+        return compute(contextLoader.load(input.auditInfo, input.scope(), input.request.dataKind()), input.request);
+    }
 
-        var analyticsContext = contextLoader.load(input.auditInfo, input.scope(), input.request.dataKind());
+    /**
+     * Runs a query already authorized by the caller.
+     * {@code authorizedApiIds} is the only API set applied. Portal navigation and management permissions are not consulted.
+     */
+    public Output executeForApis(AuditInfo auditInfo, TimeSeriesRequest request, Set<String> authorizedApiIds) {
+        validator.validateTimeSeriesRequest(request);
+        return compute(AnalyticsQueryContext.forApis(auditInfo, authorizedApiIds), request);
+    }
 
-        var queryContext = queryContextProvider.resolve(input.request);
+    private Output compute(AnalyticsQueryContext analyticsContext, TimeSeriesRequest request) {
+        var queryContext = queryContextProvider.resolve(request);
 
         var responses = executeQueries(analyticsContext.executionContext(), analyticsContext, queryContext);
 
-        TimeSeriesResponse response = TimeSeriesResponse.merge(responses);
+        var response = TimeSeriesResponse.merge(responses);
 
-        var mappedResponse = bucketNamesPostprocessor.mapBucketNames(analyticsContext, input.request.facets(), response);
+        var mappedResponse = bucketNamesPostprocessor.mapBucketNames(analyticsContext, request.facets(), response);
 
         var enriched = unitEnrichmentPostProcessor.enrichUnits(mappedResponse);
 
