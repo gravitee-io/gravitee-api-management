@@ -42,6 +42,8 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -132,6 +134,7 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         @BeforeEach
         void setUp() {
             target = rootTarget().path("/spec/_import");
+            when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class))).thenReturn(true);
 
             when(subscriptionService.create(any(ExecutionContext.class), any(), isNull(), eq("subscription-id"))).thenReturn(
                 io.gravitee.rest.api.model.SubscriptionEntity.builder()
@@ -199,6 +202,25 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 soft.assertThat(crdStatus.getStartingAt()).isEqualTo(ZonedDateTime.parse("2025-01-01T00:00:00Z"));
                 soft.assertThat(crdStatus.getEndingAt()).isEqualTo(ZonedDateTime.parse("2025-08-06T00:00:00Z"));
             });
+        }
+
+        @Test
+        void should_return_403_without_subscription_create_or_update_right() {
+            when(
+                permissionService.hasPermission(
+                    any(),
+                    eq(RolePermission.API_SUBSCRIPTION),
+                    eq(API_ID),
+                    eq(RolePermissionAction.CREATE),
+                    eq(RolePermissionAction.UPDATE)
+                )
+            ).thenReturn(false);
+
+            try (var response = target.request(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON()))) {
+                assertThat(response.getStatus()).isEqualTo(403);
+            }
+            verify(subscriptionService, never()).create(any(), any(), any(), any());
+            verify(subscriptionService, never()).update(any(), any(UpdateSubscriptionEntity.class));
         }
 
         @Test
@@ -305,6 +327,13 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                     soft.assertThat(subscription.getStatus()).isEqualTo(Status.REJECTED);
                 });
             }
+        }
+
+        @Test
+        void should_return_403_without_subscription_delete_right() {
+            shouldReturn403(RolePermission.API_SUBSCRIPTION, API_ID, RolePermissionAction.DELETE, () -> target.request().delete());
+
+            assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getStatus()).isEqualTo(Status.PENDING);
         }
 
         @Test
