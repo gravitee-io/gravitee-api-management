@@ -173,6 +173,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -2338,25 +2339,34 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         // check if user exist
         this.findById(executionContext, userId);
         MemberEntity userMember = membershipService.getUserMember(executionContext, referenceType, referenceId, userId);
-        Set<String> currentRoleIds = userMember == null ? Set.of() : userMember.getRoles().stream().map(RoleEntity::getId).collect(toSet());
+        List<RoleEntity> currentRoles = userMember == null ? List.of() : userMember.getRoles();
+        Set<String> currentRoleIds = currentRoles.stream().map(RoleEntity::getId).collect(toSet());
+        List<RoleEntity> rolesToRemove = currentRoles
+            .stream()
+            .filter(role -> !roleIds.contains(role.getId()))
+            .toList();
         Set<RoleEntity> rolesToAdd = roleIds
             .stream()
             .filter(roleId -> !currentRoleIds.contains(roleId))
             .map(roleService::findById)
             .filter(role -> role.getScope().equals(RoleScope.valueOf(referenceType.name())))
             .collect(toSet());
-        assertCallerCanGrantRoles(executionContext, referenceType, referenceId, rolesToAdd);
+        assertCallerHoldsRolesPermissions(
+            executionContext,
+            referenceType,
+            referenceId,
+            Stream.concat(rolesToRemove.stream(), rolesToAdd.stream()).toList()
+        );
 
-        currentRoleIds
-            .stream()
-            .filter(roleId -> !roleIds.contains(roleId))
-            .forEach(roleId -> membershipService.removeRole(referenceType, referenceId, MembershipMemberType.USER, userId, roleId));
+        rolesToRemove.forEach(role ->
+            membershipService.removeRole(referenceType, referenceId, MembershipMemberType.USER, userId, role.getId())
+        );
         if (!rolesToAdd.isEmpty()) {
             this.addRolesToUser(executionContext, userId, rolesToAdd, referenceType, referenceId);
         }
     }
 
-    private void assertCallerCanGrantRoles(
+    private void assertCallerHoldsRolesPermissions(
         ExecutionContext executionContext,
         MembershipReferenceType referenceType,
         String referenceId,
