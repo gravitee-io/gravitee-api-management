@@ -17,4 +17,10 @@ package io.gravitee.definition.model.cluster;
 
 import java.io.Serializable;
 
-public record SaslMechanism(String type, String username, String password) implements Serializable {}
+public record SaslMechanism(String type, String username, String password) implements Serializable {
+    /** Once its secrets are resolved, a connection's security holds the real password: never print it. */
+    @Override
+    public String toString() {
+        return "SaslMechanism[type=" + type + ", username=" + username + ", password=" + (password == null ? null : "******") + "]";
+    }
+}
