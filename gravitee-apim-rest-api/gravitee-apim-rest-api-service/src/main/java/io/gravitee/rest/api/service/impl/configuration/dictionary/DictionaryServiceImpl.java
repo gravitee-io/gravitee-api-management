@@ -499,7 +499,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
         Map<Audit.AuditProperties, String> auditProperties = new EnumMap<>(Audit.AuditProperties.class);
         auditProperties.put(DICTIONARY, dictionaryName);
-        if (changesEncryptedProperty(oldValue, newValue)) {
+        if (writesEncryptedValue(oldValue, newValue)) {
             auditProperties.put(ENCRYPTED, Boolean.TRUE.toString());
         }
 
@@ -550,7 +550,6 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         }
         Map<Audit.AuditProperties, String> auditProperties = new EnumMap<>(Audit.AuditProperties.class);
         auditProperties.put(DICTIONARY, deployedDictionary.getName());
-        auditProperties.put(ENCRYPTED, Boolean.TRUE.toString());
 
         auditService.createAuditLog(
             executionContext,
@@ -563,8 +562,14 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         );
     }
 
-    private static boolean changesEncryptedProperty(Dictionary oldValue, Dictionary newValue) {
-        return !ciphertextByKey(oldValue).equals(ciphertextByKey(newValue));
+    private static boolean writesEncryptedValue(Dictionary oldValue, Dictionary newValue) {
+        Map<String, String> oldCiphertextByKey = ciphertextByKey(oldValue);
+        return ciphertextByKey(newValue)
+            .entrySet()
+            .stream()
+            .anyMatch(
+                ciphertext -> ciphertext.getValue() != null && !ciphertext.getValue().equals(oldCiphertextByKey.get(ciphertext.getKey()))
+            );
     }
 
     private static Map<String, String> ciphertextByKey(Dictionary dictionary) {
