@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.analytics.domain_service.AiWorkspaceAnalyticsApisDomainService;
 import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
@@ -74,12 +75,15 @@ class ResolveFilterLabelsUseCaseTest {
     @Mock
     private FilterValuesQueryService filterValuesQueryService;
 
+    @Mock
+    private AiWorkspaceAnalyticsApisDomainService workspaceApis;
+
     private ResolveFilterLabelsUseCase useCase;
 
     @BeforeEach
     void setUp() {
         lenient().when(contextLoader.load(AUDIT_INFO, AnalyticsScope.MANAGEMENT, ApiDataKind.AGGREGATES)).thenReturn(READABLE);
-        useCase = new ResolveFilterLabelsUseCase(filterValueNameResolver, contextLoader, filterValuesQueryService);
+        useCase = new ResolveFilterLabelsUseCase(filterValueNameResolver, contextLoader, filterValuesQueryService, workspaceApis);
     }
 
     @Test

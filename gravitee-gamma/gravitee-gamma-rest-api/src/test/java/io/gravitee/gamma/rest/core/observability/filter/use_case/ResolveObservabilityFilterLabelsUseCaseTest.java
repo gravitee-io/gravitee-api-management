@@ -52,6 +52,18 @@ class ResolveObservabilityFilterLabelsUseCaseTest {
     }
 
     @Test
+    void should_hand_the_data_port_the_api_product_the_request_is_scoped_to() {
+        useCase.execute(
+            new ResolveObservabilityFilterLabelsUseCase.Input(
+                List.of(new ResolveObservabilityFilterLabelsUseCase.Entry("APPLICATION", List.of("app-1"))),
+                "workspace-1"
+            )
+        );
+
+        assertThat(dataPort.lastApiProduct).isEqualTo("workspace-1");
+    }
+
+    @Test
     void should_handle_a_null_entries_input_gracefully() {
         var output = useCase.execute(new ResolveObservabilityFilterLabelsUseCase.Input(null));
 
@@ -61,6 +73,7 @@ class ResolveObservabilityFilterLabelsUseCaseTest {
     private static final class StubDataPort implements ObservabilityFilterDataPort {
 
         private Map<String, Map<String, String>> labelsByFilter = Map.of();
+        private String lastApiProduct;
 
         @Override
         public FilterValuesPage listKeywordValues(
@@ -70,13 +83,15 @@ class ResolveObservabilityFilterLabelsUseCaseTest {
             Long to,
             int page,
             int perPage,
-            java.util.Set<io.gravitee.gamma.rest.core.observability.filter.model.ApiType> apiTypes
+            java.util.Set<io.gravitee.gamma.rest.core.observability.filter.model.ApiType> apiTypes,
+            String apiProduct
         ) {
             return new FilterValuesPage(List.of(), 0L);
         }
 
         @Override
-        public List<ResolvedLabels> resolveLabels(List<ResolveRequest> requests) {
+        public List<ResolvedLabels> resolveLabels(List<ResolveRequest> requests, String apiProduct) {
+            lastApiProduct = apiProduct;
             return requests
                 .stream()
                 .map(r -> new ResolvedLabels(r.filterName(), labelsByFilter.getOrDefault(r.filterName(), Map.of())))

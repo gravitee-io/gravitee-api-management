@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.analytics.domain_service.AiWorkspaceAnalyticsApisDomainService;
 import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.model.FacetBucketResponse;
@@ -38,6 +39,7 @@ import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesBucketResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesMetricResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
+import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeFacetsUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeTimeSeriesUseCase;
@@ -308,6 +310,8 @@ class AnalyticsTimeSeriesLimitResourceTest extends AbstractResourceTest {
                 new AnalyticsQueryValidator(new AnalyticsDefinitionYAMLQueryService()),
                 new UnitEnrichmentPostProcessorImpl(new AnalyticsDefinitionYAMLQueryService()),
                 userContextLoader,
+                mock(AiWorkspaceAnalyticsApisDomainService.class),
+                mock(AnalyticsQueryContextProvider.class),
                 new ObjectMapper()
             );
         }

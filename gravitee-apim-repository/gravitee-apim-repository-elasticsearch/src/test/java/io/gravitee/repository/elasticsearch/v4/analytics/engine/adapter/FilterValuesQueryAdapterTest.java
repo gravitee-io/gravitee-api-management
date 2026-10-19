@@ -181,6 +181,43 @@ class FilterValuesQueryAdapterTest {
     }
 
     @Test
+    void should_offer_only_the_values_of_the_calls_made_through_the_api_product() {
+        var query = FilterValuesQuery.builder()
+            .esFieldName("application-id")
+            .size(10)
+            .apiIds(Set.of("api-1"))
+            .apiProductId("product-1")
+            .build();
+
+        var boolFilter = new JsonObject(adapter.adapt(query)).getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
+
+        assertThat(boolFilter).hasSize(2);
+        assertThat(boolFilter.getJsonObject(1).getJsonObject("term").getString("api-product-id")).isEqualTo("product-1");
+    }
+
+    @Test
+    void should_keep_the_api_product_next_to_the_traffic_scope() {
+        var query = FilterValuesQuery.builder()
+            .esFieldName("application-id")
+            .size(10)
+            .apiIds(Set.of("studio", "orders"))
+            .trafficScope(new TrafficScope(Set.of("studio"), Set.of("mcp")))
+            .apiProductId("product-1")
+            .build();
+
+        var boolFilter = new JsonObject(adapter.adapt(query)).getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
+
+        assertThat(boolFilter).hasSize(3);
+        assertThat(boolFilter.getJsonObject(1).getJsonObject("term").getString("api-product-id")).isEqualTo("product-1");
+        assertThat(boolFilter.getJsonObject(2)).isEqualTo(
+            EntrypointScopeClause.apisOrEntrypoints(
+                JsonObject.of("terms", JsonObject.of("api-id", new JsonArray(List.of("studio")))),
+                List.of("mcp")
+            )
+        );
+    }
+
+    @Test
     void should_add_match_none_when_no_value_is_requested() {
         var query = FilterValuesQuery.builder().esFieldName("application-id").size(10).values(Set.of()).build();
 

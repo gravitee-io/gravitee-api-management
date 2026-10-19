@@ -43,6 +43,7 @@ import inmemory.RoleQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
+import io.gravitee.apim.core.analytics.domain_service.AiWorkspaceAnalyticsApisDomainService;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
@@ -1745,7 +1746,8 @@ public class ResourceContextConfiguration {
             analyticsQueryContextLoader,
             applicationQueryService,
             planQueryService,
-            apiProductQueryService
+            apiProductQueryService,
+            mock(AiWorkspaceAnalyticsApisDomainService.class)
         );
     }
 
@@ -1755,7 +1757,12 @@ public class ResourceContextConfiguration {
         AnalyticsQueryContextLoaderResolver analyticsQueryContextLoader,
         FilterValuesQueryService filterValuesQueryService
     ) {
-        return new ResolveFilterLabelsUseCase(filterValueNameResolver, analyticsQueryContextLoader, filterValuesQueryService);
+        return new ResolveFilterLabelsUseCase(
+            filterValueNameResolver,
+            analyticsQueryContextLoader,
+            filterValuesQueryService,
+            mock(AiWorkspaceAnalyticsApisDomainService.class)
+        );
     }
 
     @Bean

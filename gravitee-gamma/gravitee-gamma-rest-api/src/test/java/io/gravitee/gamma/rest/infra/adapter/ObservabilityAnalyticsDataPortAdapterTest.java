@@ -26,6 +26,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.analytics.domain_service.AiWorkspaceAnalyticsApisDomainService;
 import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.model.FacetBucketResponse;
@@ -44,6 +45,7 @@ import io.gravitee.apim.core.analytics_engine.model.TimeSeriesBucketResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesMetricResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
+import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeFacetsUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeTimeSeriesUseCase;
@@ -108,6 +110,12 @@ class ObservabilityAnalyticsDataPortAdapterTest {
     @Mock
     private UserContextLoader userContextLoader;
 
+    @Mock
+    private AiWorkspaceAnalyticsApisDomainService workspaceApis;
+
+    @Mock
+    private AnalyticsQueryContextProvider queryContextProvider;
+
     private ObservabilityAnalyticsDataPortAdapter adapter;
 
     @BeforeEach
@@ -119,6 +127,8 @@ class ObservabilityAnalyticsDataPortAdapterTest {
             new AnalyticsQueryValidator(new AnalyticsDefinitionYAMLQueryService()),
             new UnitEnrichmentPostProcessorImpl(new AnalyticsDefinitionYAMLQueryService()),
             userContextLoader,
+            workspaceApis,
+            queryContextProvider,
             new ObjectMapper()
         );
     }
@@ -149,6 +159,29 @@ class ObservabilityAnalyticsDataPortAdapterTest {
 
         assertThat(accessibleApis).hasSize(1);
         assertThat(accessibleApis.getFirst().id()).isEqualTo("api-1");
+    }
+
+    @Test
+    void should_load_the_apis_of_the_workspace_the_caller_reads() {
+        when(workspaceApis.findWorkspaceApis(any(), any(), eq("workspace"))).thenReturn(
+            List.of(Api.builder().id("llm").name("LLM").type(io.gravitee.definition.model.v4.ApiType.LLM_PROXY).build())
+        );
+
+        var apis = adapter.loadWorkspaceApis(ORG, ENV, "workspace");
+
+        assertThat(apis).hasSize(1);
+        assertThat(apis.getFirst().id()).isEqualTo("llm");
+        assertThat(apis.getFirst().type()).isEqualTo(ApiType.LLM);
+    }
+
+    @Test
+    void should_narrow_by_the_api_product_only_when_the_engine_narrows_every_metric_by_it() {
+        when(queryContextProvider.narrowsBy(MetricSpec.Name.HTTP_REQUESTS, FilterSpec.Name.API_PRODUCT)).thenReturn(true);
+        when(queryContextProvider.narrowsBy(MetricSpec.Name.AUTHZ_DECISIONS, FilterSpec.Name.API_PRODUCT)).thenReturn(false);
+
+        assertThat(adapter.narrowsByApiProduct(List.of("HTTP_REQUESTS"))).isTrue();
+        assertThat(adapter.narrowsByApiProduct(List.of("HTTP_REQUESTS", "AUTHZ_DECISIONS"))).isFalse();
+        assertThat(adapter.narrowsByApiProduct(List.of())).isFalse();
     }
 
     @Nested
