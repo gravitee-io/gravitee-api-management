@@ -123,7 +123,9 @@ class ImportApplicationCRDUseCaseTest {
             parameterService,
             new ClientCertificateValidationDomainServiceImpl(new ClientCertificateCrudServiceInMemory()),
             new ClientCertificateCrudServiceInMemory()
-        )
+        ),
+        applicationCrudService,
+        membersDomainService
     );
 
     ImportApplicationCRDUseCase useCase;
