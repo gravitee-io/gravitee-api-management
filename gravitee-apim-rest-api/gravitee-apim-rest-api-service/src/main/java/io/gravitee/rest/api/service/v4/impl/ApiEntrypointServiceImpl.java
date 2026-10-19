@@ -75,7 +75,7 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
     public List<ApiEntrypointEntity> getApiEntrypoints(final ExecutionContext executionContext, final GenericApiEntity genericApiEntity) {
         List<ApiEntrypointEntity> apiEntrypoints = new ArrayList<>();
 
-        if (APIS_WITHOUT_ENTRYPOINT.contains(genericApiEntity.getDefinitionVersion())) {
+        if (APIS_WITHOUT_ENTRYPOINT.contains(genericApiEntity.getDefinitionVersion()) || isWithoutProxy(genericApiEntity)) {
             return apiEntrypoints;
         }
 
@@ -442,6 +442,14 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         }
 
         throw new EntrypointNotFoundException(genericApiEntity.getId());
+    }
+
+    /**
+     * A federated API read by the v1 services is an {@link ApiEntity} with no definition version and no proxy. Like the
+     * {@link #APIS_WITHOUT_ENTRYPOINT}, it has no Gravitee entrypoint: consumers call the provider.
+     */
+    private static boolean isWithoutProxy(GenericApiEntity api) {
+        return api instanceof ApiEntity v2Api && v2Api.getProxy() == null;
     }
 
     private boolean hasSupportedListeners(GenericApiEntity api) {
