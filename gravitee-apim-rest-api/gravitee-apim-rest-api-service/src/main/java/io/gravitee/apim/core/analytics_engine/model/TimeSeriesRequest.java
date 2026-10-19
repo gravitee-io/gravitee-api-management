@@ -15,9 +15,11 @@
  */
 package io.gravitee.apim.core.analytics_engine.model;
 
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.observability.model.NumberRange;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -42,5 +44,13 @@ public record TimeSeriesRequest(
 
     public TimeSeriesRequest withFilters(List<Filter> filters) {
         return new TimeSeriesRequest(timeRange, interval, filters, metrics, facets, limit, ranges);
+    }
+
+    public ApiDataKind dataKind() {
+        return FilterSpec.dataKindOf(
+            filters,
+            Stream.ofNullable(metrics).flatMap(List::stream).map(FacetMetricMeasuresRequest::filters),
+            facets
+        );
     }
 }

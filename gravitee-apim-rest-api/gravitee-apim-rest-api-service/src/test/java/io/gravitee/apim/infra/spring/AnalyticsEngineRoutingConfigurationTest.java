@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
@@ -62,7 +63,7 @@ class AnalyticsEngineRoutingConfigurationTest {
         @Bean
         ManagementContextLoader managementContextLoader() {
             var loader = mock(ManagementContextLoader.class);
-            when(loader.load(org.mockito.ArgumentMatchers.any())).thenReturn(context("mgmt-api"));
+            when(loader.load(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any())).thenReturn(context("mgmt-api"));
             return loader;
         }
     }
@@ -74,7 +75,7 @@ class AnalyticsEngineRoutingConfigurationTest {
         @Bean
         PortalContextLoader portalContextLoader() {
             var loader = mock(PortalContextLoader.class);
-            when(loader.load(org.mockito.ArgumentMatchers.any())).thenReturn(context("portal-api"));
+            when(loader.load(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any())).thenReturn(context("portal-api"));
             return loader;
         }
     }
@@ -92,8 +93,12 @@ class AnalyticsEngineRoutingConfigurationTest {
             var resolver = ctx.getBean(AnalyticsQueryContextLoaderResolver.class);
             var auditInfo = mock(AuditInfo.class);
 
-            assertThat(resolver.load(auditInfo, AnalyticsScope.MANAGEMENT).authorizedApiIds()).containsExactly("mgmt-api");
-            assertThat(resolver.load(auditInfo, AnalyticsScope.PORTAL).authorizedApiIds()).containsExactly("portal-api");
+            assertThat(resolver.load(auditInfo, AnalyticsScope.MANAGEMENT, ApiDataKind.AGGREGATES).authorizedApiIds()).containsExactly(
+                "mgmt-api"
+            );
+            assertThat(resolver.load(auditInfo, AnalyticsScope.PORTAL, ApiDataKind.AGGREGATES).authorizedApiIds()).containsExactly(
+                "portal-api"
+            );
         }
     }
 }

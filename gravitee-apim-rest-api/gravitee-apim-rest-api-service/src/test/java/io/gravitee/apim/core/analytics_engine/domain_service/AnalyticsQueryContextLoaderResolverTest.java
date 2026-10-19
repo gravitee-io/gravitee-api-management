@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -44,23 +45,27 @@ class AnalyticsQueryContextLoaderResolverTest {
 
     @Test
     void should_route_management_scope_to_management_loader() {
-        when(managementLoader.load(auditInfo)).thenReturn(aContext("mgmt-api"));
+        when(managementLoader.load(auditInfo, ApiDataKind.PER_REQUEST)).thenReturn(aContext("mgmt-api"));
         var resolver = new AnalyticsQueryContextLoaderResolver(
             Map.of(AnalyticsScope.MANAGEMENT, managementLoader, AnalyticsScope.PORTAL, portalLoader)
         );
 
-        assertThat(resolver.load(auditInfo, AnalyticsScope.MANAGEMENT).authorizedApiIds()).containsExactly("mgmt-api");
+        assertThat(resolver.load(auditInfo, AnalyticsScope.MANAGEMENT, ApiDataKind.PER_REQUEST).authorizedApiIds()).containsExactly(
+            "mgmt-api"
+        );
         verifyNoInteractions(portalLoader);
     }
 
     @Test
     void should_route_portal_scope_to_portal_loader() {
-        when(portalLoader.load(auditInfo)).thenReturn(aContext("portal-api"));
+        when(portalLoader.load(auditInfo, ApiDataKind.AGGREGATES)).thenReturn(aContext("portal-api"));
         var resolver = new AnalyticsQueryContextLoaderResolver(
             Map.of(AnalyticsScope.MANAGEMENT, managementLoader, AnalyticsScope.PORTAL, portalLoader)
         );
 
-        assertThat(resolver.load(auditInfo, AnalyticsScope.PORTAL).authorizedApiIds()).containsExactly("portal-api");
+        assertThat(resolver.load(auditInfo, AnalyticsScope.PORTAL, ApiDataKind.AGGREGATES).authorizedApiIds()).containsExactly(
+            "portal-api"
+        );
         verifyNoInteractions(managementLoader);
     }
 
@@ -68,7 +73,7 @@ class AnalyticsQueryContextLoaderResolverTest {
     void should_fail_when_requested_scope_loader_is_absent() {
         var resolver = new AnalyticsQueryContextLoaderResolver(Map.of(AnalyticsScope.MANAGEMENT, managementLoader));
 
-        assertThatThrownBy(() -> resolver.load(auditInfo, AnalyticsScope.PORTAL))
+        assertThatThrownBy(() -> resolver.load(auditInfo, AnalyticsScope.PORTAL, ApiDataKind.AGGREGATES))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("PORTAL");
     }

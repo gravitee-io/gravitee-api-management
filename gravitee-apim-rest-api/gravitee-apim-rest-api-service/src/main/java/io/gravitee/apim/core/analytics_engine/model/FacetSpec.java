@@ -71,7 +71,12 @@ public record FacetSpec(Name name, String label, String type, List<Object> enumV
         AUTHZ_RESOURCE_ID,
         AUTHZ_REASON,
         AUTHZ_PDP,
-        AUTHZ_SEARCH_TYPE,
+        AUTHZ_SEARCH_TYPE;
+
+        /** Classified as the filter on the same field: see {@link FilterSpec.Name#isIdentifying()}. */
+        public boolean isIdentifying() {
+            return FilterSpec.Name.valueOf(name()).isIdentifying();
+        }
     }
 
     public enum Type {

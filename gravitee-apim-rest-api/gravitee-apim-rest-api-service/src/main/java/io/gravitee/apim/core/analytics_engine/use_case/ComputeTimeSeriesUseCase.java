@@ -81,7 +81,7 @@ public class ComputeTimeSeriesUseCase {
     public Output execute(Input input) {
         validator.validateTimeSeriesRequest(input.request);
 
-        var analyticsContext = contextLoader.load(input.auditInfo, input.scope());
+        var analyticsContext = contextLoader.load(input.auditInfo, input.scope(), input.request.dataKind());
 
         var queryContext = queryContextProvider.resolve(input.request);
 
