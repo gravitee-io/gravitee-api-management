@@ -20,6 +20,7 @@ import static fixtures.core.model.ApiCRDFixtures.API_HRID;
 import static io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -30,6 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.ApiCRDFixtures;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiQueryServiceInMemory;
+import inmemory.CRDMembersDomainServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
 import io.gravitee.apim.core.api.exception.ApiPropertyNotCiphertextException;
@@ -55,6 +57,7 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Set;
@@ -100,6 +103,8 @@ class ValidateApiCRDDomainServiceTest {
 
     DataEncryptor dataEncryptor = mock(DataEncryptor.class);
 
+    CRDMembersDomainServiceInMemory membersDomainService = new CRDMembersDomainServiceInMemory();
+
     ValidateApiCRDDomainService cut = new ValidateApiCRDDomainService(
         categoryIdsValidator,
         pathValidator,
@@ -112,7 +117,8 @@ class ValidateApiCRDDomainServiceTest {
         portalNotificationValidator,
         healthCheckScheduleValidator,
         apiQueryService,
-        new PropertyDomainService(dataEncryptor)
+        new PropertyDomainService(dataEncryptor),
+        membersDomainService
     );
 
     PortalNotificationConfigEntity consoleNotificationConfiguration = new PortalNotificationConfigEntity();
@@ -171,6 +177,60 @@ class ValidateApiCRDDomainServiceTest {
             cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))
         );
         verifyNoInteractions(categoryIdsValidator, pathValidator, planValidator);
+    }
+
+    @Test
+    void should_reject_a_member_change_on_the_existing_api_without_the_member_permission() {
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder().environmentId(ENV_ID).crossId(API_CROSS_ID).build();
+        apiQueryService.initWith(List.of(existingApi));
+        membersDomainService.denyApiMembersUpdate(existingApi.getId());
+        givenEveryValidatorAccepts();
+        var spec = ApiCRDFixtures.newBaseSpec()
+            .id(existingApi.getId())
+            .crossId(API_CROSS_ID)
+            .consoleNotificationConfiguration(consoleNotificationConfiguration)
+            .build();
+
+        assertThatExceptionOfType(ForbiddenAccessException.class).isThrownBy(() ->
+            cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))
+        );
+    }
+
+    @Test
+    void should_not_check_the_members_of_an_api_to_create() {
+        membersDomainService.denyApiMembersUpdate("api-to-create");
+        givenEveryValidatorAccepts();
+        var spec = ApiCRDFixtures.newBaseSpec()
+            .id("api-to-create")
+            .crossId("api-to-create-cross-id")
+            .consoleNotificationConfiguration(consoleNotificationConfiguration)
+            .build();
+
+        assertThatNoException().isThrownBy(() -> cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec)));
+    }
+
+    private void givenEveryValidatorAccepts() {
+        when(categoryIdsValidator.validateAndSanitize(any(ValidateCategoryIdsDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+        when(membersValidator.validateAndSanitize(any(ValidateCRDMembersDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+        when(groupsValidator.validateAndSanitize(any(ValidateGroupsDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+        when(resourceValidator.validateAndSanitize(any(ValidateResourceDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+        when(pagesValidator.validateAndSanitize(any(ValidatePagesDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+        when(planValidator.validateAndSanitize(any(ValidatePlanDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+        when(portalNotificationValidator.validateAndSanitize(any(ValidatePortalNotificationDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
     }
 
     @Test

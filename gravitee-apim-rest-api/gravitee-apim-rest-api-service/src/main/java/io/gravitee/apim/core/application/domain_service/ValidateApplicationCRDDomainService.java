@@ -16,14 +16,19 @@
 package io.gravitee.apim.core.application.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDSpec;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
+import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import java.util.ArrayList;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -41,6 +46,10 @@ public class ValidateApplicationCRDDomainService implements Validator<ValidateAp
     private final ValidateCRDMembersDomainService membersValidator;
 
     private final ValidateApplicationSettingsDomainService settingsValidator;
+
+    private final ApplicationCrudService applicationCrudService;
+
+    private final CRDMembersDomainService membersDomainService;
 
     @Override
     public Result<ValidateApplicationCRDDomainService.Input> validateAndSanitize(ValidateApplicationCRDDomainService.Input input) {
@@ -77,6 +86,23 @@ public class ValidateApplicationCRDDomainService implements Validator<ValidateAp
             )
             .peek(sanitized -> sanitizedBuilder.settings(sanitized.settings()), errors::addAll);
 
-        return Validator.Result.ofBoth(new Input(input.auditInfo(), sanitizedBuilder.build()), errors);
+        var sanitizedSpec = sanitizedBuilder.build();
+        // Checked here, after the members are sanitized, so a dry run refuses what the import would refuse
+        findApplication(sanitizedSpec.getId(), input.auditInfo().environmentId()).ifPresent(application ->
+            membersDomainService.checkApplicationMembersUpdate(input.auditInfo(), application.getId(), sanitizedSpec.getMembers())
+        );
+
+        return Validator.Result.ofBoth(new Input(input.auditInfo(), sanitizedSpec), errors);
+    }
+
+    private Optional<BaseApplicationEntity> findApplication(String applicationId, String environmentId) {
+        if (applicationId == null) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(applicationCrudService.findById(applicationId, environmentId));
+        } catch (ApplicationNotFoundException e) {
+            return Optional.empty();
+        }
     }
 }

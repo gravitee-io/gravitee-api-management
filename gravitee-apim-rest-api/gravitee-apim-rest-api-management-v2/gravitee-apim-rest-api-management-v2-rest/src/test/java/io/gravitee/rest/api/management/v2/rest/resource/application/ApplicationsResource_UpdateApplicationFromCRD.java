@@ -87,6 +87,7 @@ public class ApplicationsResource_UpdateApplicationFromCRD extends AbstractResou
 
     @BeforeEach
     public void init() throws TechnicalException {
+        crdMembersDomainServiceInMemory.reset();
         applicationCRDDomainService.reset();
         applicationMetadataCrudService.reset();
         applicationCrudService.reset();
@@ -250,6 +251,16 @@ public class ApplicationsResource_UpdateApplicationFromCRD extends AbstractResou
                     eq(RolePermissionAction.UPDATE)
                 )
             ).thenReturn(false);
+
+            final Response response = rootTarget().queryParam("dryRun", true).request().put(Entity.json(specFor(existing)));
+
+            assertThat(response).hasStatus(FORBIDDEN_403);
+        }
+
+        @Test
+        void should_return_403_on_dry_run_when_the_caller_cannot_change_the_members() {
+            var existing = givenApplication(ApplicationStatus.ACTIVE);
+            crdMembersDomainServiceInMemory.denyApplicationMembersUpdate(existing.getId());
 
             final Response response = rootTarget().queryParam("dryRun", true).request().put(Entity.json(specFor(existing)));
 
