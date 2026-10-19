@@ -28,6 +28,7 @@ import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
 import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
@@ -76,6 +77,8 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
 
     private final ApiQueryService apiQueryService;
 
+    private final CRDMembersDomainService membersDomainService;
+
     @Override
     public Validator.Result<ValidateApiCRDDomainService.Input> validateAndSanitize(ValidateApiCRDDomainService.Input input) {
         var errors = new ArrayList<Error>();
@@ -98,7 +101,8 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
             input.spec.setId(idBuilder.buildId());
         }
 
-        validateAgainstExistingApi(input);
+        var existingApi = apiQueryService.findByEnvironmentIdAndCrossId(input.auditInfo().environmentId(), input.spec().getCrossId());
+        existingApi.ifPresent(api -> rejectAnotherApiId(api, input.spec()));
 
         var sanitizedBuilder = input.spec().toBuilder();
 
@@ -171,13 +175,13 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
             )
             .peek(sanitized -> sanitizedBuilder.plans(sanitized.plans()), errors::addAll);
 
-        return Validator.Result.ofBoth(new ValidateApiCRDDomainService.Input(input.auditInfo(), sanitizedBuilder.build()), errors);
-    }
+        var sanitizedSpec = sanitizedBuilder.build();
+        // Checked here, after the members are sanitized, so a dry run refuses what the import would refuse
+        existingApi.ifPresent(api ->
+            membersDomainService.checkApiMembersUpdate(input.auditInfo(), api.getId(), sanitizedSpec.getMembers())
+        );
 
-    private void validateAgainstExistingApi(Input input) {
-        apiQueryService
-            .findByEnvironmentIdAndCrossId(input.auditInfo().environmentId(), input.spec().getCrossId())
-            .ifPresent(existingApi -> rejectAnotherApiId(existingApi, input.spec()));
+        return Validator.Result.ofBoth(new ValidateApiCRDDomainService.Input(input.auditInfo(), sanitizedSpec), errors);
     }
 
     // An import updates the API found by cross id: every write must target that same API

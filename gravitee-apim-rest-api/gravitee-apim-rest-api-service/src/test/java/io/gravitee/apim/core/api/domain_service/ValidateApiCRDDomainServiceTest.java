@@ -15,23 +15,26 @@
  */
 package io.gravitee.apim.core.api.domain_service;
 
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static fixtures.core.model.ApiCRDFixtures.API_CROSS_ID;
 import static fixtures.core.model.ApiCRDFixtures.API_HRID;
 import static io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.exception.ValidationDomainException;
-import inmemory.ApiQueryServiceInMemory;
-import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.ApiCRDFixtures;
+import fixtures.core.model.ApiFixtures;
+import inmemory.ApiQueryServiceInMemory;
+import inmemory.CRDMembersDomainServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
@@ -45,6 +48,7 @@ import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
@@ -83,6 +87,8 @@ class ValidateApiCRDDomainServiceTest {
 
     ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
 
+    CRDMembersDomainServiceInMemory membersDomainService = new CRDMembersDomainServiceInMemory();
+
     ValidateApiCRDDomainService cut = new ValidateApiCRDDomainService(
         categoryIdsValidator,
         pathValidator,
@@ -93,7 +99,8 @@ class ValidateApiCRDDomainServiceTest {
         pagesValidator,
         planValidator,
         portalNotificationValidator,
-        apiQueryService
+        apiQueryService,
+        membersDomainService
     );
 
     PortalNotificationConfigEntity consoleNotificationConfiguration = new PortalNotificationConfigEntity();
@@ -304,5 +311,79 @@ class ValidateApiCRDDomainServiceTest {
             cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))
         );
         verifyNoInteractions(categoryIdsValidator, pathValidator, planValidator);
+    }
+
+    @Test
+    void should_reject_a_member_change_on_the_existing_api_without_the_member_permission() {
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder().environmentId(ENV_ID).crossId(API_CROSS_ID).build();
+        apiQueryService.initWith(List.of(existingApi));
+        membersDomainService.denyApiMembersUpdate(existingApi.getId());
+        givenEveryValidatorAccepts();
+        var spec = ApiCRDFixtures.newBaseSpec()
+            .id(existingApi.getId())
+            .crossId(API_CROSS_ID)
+            .consoleNotificationConfiguration(consoleNotificationConfiguration)
+            .build();
+
+        assertThatExceptionOfType(ForbiddenAccessException.class).isThrownBy(() ->
+            cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))
+        );
+    }
+
+    @Test
+    void should_reject_a_member_change_on_the_existing_api_named_by_its_hrid_only() {
+        // The lookup runs after the cross id is derived from the hrid: an hrid-only spec must find the existing API
+        var ids = IdBuilder.builder(AUDIT_INFO, API_HRID);
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder().id(ids.buildId()).environmentId(ENV_ID).crossId(ids.buildCrossId()).build();
+        apiQueryService.initWith(List.of(existingApi));
+        membersDomainService.denyApiMembersUpdate(existingApi.getId());
+        givenEveryValidatorAccepts();
+        var spec = ApiCRDFixtures.newBaseSpec()
+            .id(null)
+            .crossId(null)
+            .hrid(API_HRID)
+            .consoleNotificationConfiguration(consoleNotificationConfiguration)
+            .build();
+
+        assertThatExceptionOfType(ForbiddenAccessException.class).isThrownBy(() ->
+            cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))
+        );
+    }
+
+    @Test
+    void should_not_check_the_members_of_an_api_to_create() {
+        membersDomainService.denyApiMembersUpdate("api-to-create");
+        givenEveryValidatorAccepts();
+        var spec = ApiCRDFixtures.newBaseSpec()
+            .id("api-to-create")
+            .crossId("api-to-create-cross-id")
+            .consoleNotificationConfiguration(consoleNotificationConfiguration)
+            .build();
+
+        assertThatNoException().isThrownBy(() -> cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec)));
+    }
+
+    private void givenEveryValidatorAccepts() {
+        when(categoryIdsValidator.validateAndSanitize(any(ValidateCategoryIdsDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+        when(membersValidator.validateAndSanitize(any(ValidateCRDMembersDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+        when(groupsValidator.validateAndSanitize(any(ValidateGroupsDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+        when(resourceValidator.validateAndSanitize(any(ValidateResourceDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+        when(pagesValidator.validateAndSanitize(any(ValidatePagesDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+        when(planValidator.validateAndSanitize(any(ValidatePlanDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+        when(portalNotificationValidator.validateAndSanitize(any(ValidatePortalNotificationDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
     }
 }
