@@ -17,15 +17,18 @@ package io.gravitee.apim.infra.domain_service.subscription;
 
 import static fixtures.core.model.MembershipFixtures.anApplicationPrimaryOwnerUserMembership;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.ApplicationModelFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.*;
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_key.domain_service.GenerateApiKeyDomainService;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
@@ -45,10 +48,13 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -78,6 +84,8 @@ class SubscriptionCRDSpecDomainServiceImplTest {
     private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
 
     private static final String API_ID = "api-id";
+    private static final String OTHER_API_ID = "other-api-id";
+    private static final String OTHER_ENVIRONMENT_ID = "other-environment-id";
     private static final String APPLICATION_ID = "application-id";
     private static final String PLAN_ID = "plan-id";
     private static final String SUBSCRIPTION_ID = "subscription-id";
@@ -132,12 +140,15 @@ class SubscriptionCRDSpecDomainServiceImplTest {
             List.of(subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.PENDING).subscribedBy(USER_ID).build())
         );
 
-        apiCrudService.initWith(List.of(Api.builder().id(API_ID).build()));
+        apiCrudService.initWith(List.of(Api.builder().id(API_ID).environmentId(ENVIRONMENT_ID).build()));
         cut = new SubscriptionCRDSpecDomainServiceImpl(
             subscriptionService,
             subscriptionAdapter,
             acceptSubscriptionDomainService(),
-            closeSubscriptionDomainService()
+            closeSubscriptionDomainService(),
+            apiCrudService,
+            planCrudService,
+            subscriptionCrudService
         );
 
         membershipQueryService.initWith(List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)));
@@ -179,7 +190,7 @@ class SubscriptionCRDSpecDomainServiceImplTest {
     void should_create() {
         givenExistingJWTPlan();
 
-        cut.createOrUpdate(AUDIT_INFO, SPEC);
+        cut.createOrUpdate(AUDIT_INFO, API_ID, SPEC);
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID)).isNotNull();
@@ -197,7 +208,7 @@ class SubscriptionCRDSpecDomainServiceImplTest {
             subscriptionAdapter.map(subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.ACCEPTED).build())
         );
 
-        var result = cut.createOrUpdate(AUDIT_INFO, SPEC);
+        var result = cut.createOrUpdate(AUDIT_INFO, API_ID, SPEC);
 
         // The returned subscription should be ACCEPTED
         assertThat(result.getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
@@ -211,7 +222,7 @@ class SubscriptionCRDSpecDomainServiceImplTest {
     void should_update() {
         givenExistingJWTPlan();
 
-        cut.createOrUpdate(AUDIT_INFO, SPEC.toBuilder().endingAt(ZonedDateTime.now()).build());
+        cut.createOrUpdate(AUDIT_INFO, API_ID, SPEC.toBuilder().endingAt(ZonedDateTime.now()).build());
 
         verify(subscriptionService).update(EXECUTION_CONTEXT, subscriptionAdapter.fromCoreForUpdate(subscriptionAdapter.fromSpec(SPEC)));
 
@@ -223,12 +234,83 @@ class SubscriptionCRDSpecDomainServiceImplTest {
 
     @Test
     void should_close_on_delete() {
-        cut.delete(AUDIT_INFO, SPEC.getId());
+        cut.delete(AUDIT_INFO, API_ID, SPEC.getId());
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID)).isNotNull();
             soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getStatus()).isEqualTo(SubscriptionEntity.Status.REJECTED);
         });
+    }
+
+    @Test
+    void should_reject_create_when_plan_belongs_to_another_api() {
+        givenExistingPlan(
+            Plan.builder()
+                .id(PLAN_ID)
+                .apiId(OTHER_API_ID)
+                .definitionVersion(DefinitionVersion.V2)
+                .planDefinitionV2(io.gravitee.definition.model.Plan.builder().security("JWT").build())
+                .build()
+        );
+
+        assertThatThrownBy(() -> cut.createOrUpdate(AUDIT_INFO, API_ID, SPEC)).isInstanceOf(PlanNotFoundException.class);
+
+        verify(subscriptionService, never()).create(any(), any(), any(), any());
+        assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getStatus()).isEqualTo(SubscriptionEntity.Status.PENDING);
+    }
+
+    @Test
+    void should_reject_update_when_subscription_belongs_to_another_api() {
+        givenExistingJWTPlan();
+        var otherApiSubscription = subscriptionAdapter.map(
+            subscriptionAdapter.fromSpec(SPEC).toBuilder().apiId(OTHER_API_ID).status(SubscriptionEntity.Status.ACCEPTED).build()
+        );
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(otherApiSubscription);
+
+        assertThatThrownBy(() ->
+            cut.createOrUpdate(AUDIT_INFO, API_ID, SPEC.toBuilder().endingAt(ZonedDateTime.now()).build())
+        ).isInstanceOf(SubscriptionNotFoundException.class);
+
+        verify(subscriptionService, never()).update(any(), any(UpdateSubscriptionEntity.class));
+    }
+
+    @Test
+    void should_reject_create_or_update_when_api_belongs_to_another_environment() {
+        givenExistingJWTPlan();
+        apiCrudService.initWith(List.of(Api.builder().id(API_ID).environmentId(OTHER_ENVIRONMENT_ID).build()));
+
+        assertThatThrownBy(() -> cut.createOrUpdate(AUDIT_INFO, API_ID, SPEC)).isInstanceOf(ApiNotFoundException.class);
+
+        verify(subscriptionService, never()).create(any(), any(), any(), any());
+        verify(subscriptionService, never()).update(any(), any(UpdateSubscriptionEntity.class));
+    }
+
+    @Test
+    void should_reject_delete_when_subscription_belongs_to_another_api() {
+        subscriptionCrudService.initWith(
+            List.of(
+                subscriptionAdapter
+                    .fromSpec(SPEC)
+                    .toBuilder()
+                    .apiId(OTHER_API_ID)
+                    .status(SubscriptionEntity.Status.PENDING)
+                    .subscribedBy(USER_ID)
+                    .build()
+            )
+        );
+
+        assertThatThrownBy(() -> cut.delete(AUDIT_INFO, API_ID, SUBSCRIPTION_ID)).isInstanceOf(SubscriptionNotFoundException.class);
+
+        assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getStatus()).isEqualTo(SubscriptionEntity.Status.PENDING);
+    }
+
+    @Test
+    void should_reject_delete_when_api_belongs_to_another_environment() {
+        apiCrudService.initWith(List.of(Api.builder().id(API_ID).environmentId(OTHER_ENVIRONMENT_ID).build()));
+
+        assertThatThrownBy(() -> cut.delete(AUDIT_INFO, API_ID, SUBSCRIPTION_ID)).isInstanceOf(ApiNotFoundException.class);
+
+        assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getStatus()).isEqualTo(SubscriptionEntity.Status.PENDING);
     }
 
     private void givenExistingJWTPlan() {
