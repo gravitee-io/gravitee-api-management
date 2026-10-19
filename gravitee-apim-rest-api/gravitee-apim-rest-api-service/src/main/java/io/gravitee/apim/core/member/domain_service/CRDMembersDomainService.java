@@ -27,8 +27,8 @@ import java.util.Set;
 public interface CRDMembersDomainService {
     void updateApiMembers(AuditInfo auditInfo, String apiId, Set<MemberCRD> members);
     /**
-     * Without the member permission on the application, the spec may only restate the current members: nothing is written
-     * and the primary owner is kept. A change is rejected with a {@code ForbiddenAccessException}.
+     * Without the member permission on the application, nothing is written and the primary owner is kept: call
+     * {@link #checkApplicationMembersUpdate} first to reject a member change.
      */
     void updateApplicationMembers(AuditInfo auditInfo, String applicationId, Set<MemberCRD> members);
 
