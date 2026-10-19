@@ -961,6 +961,41 @@ class ApiEntrypointServiceImplTest {
         assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://tag-entrypoint/path");
     }
 
+    /** A federated API has no Gravitee entrypoint: consumers call the provider (AIAM-1319). */
+    @Nested
+    class Federated_api {
+
+        /** As the v1 services read a federated API: no definition version, no proxy. */
+        io.gravitee.rest.api.model.api.ApiEntity readByV1Services() {
+            io.gravitee.rest.api.model.api.ApiEntity apiEntity = new io.gravitee.rest.api.model.api.ApiEntity();
+            apiEntity.setId("federated-api");
+            return apiEntity;
+        }
+
+        @Test
+        void should_return_no_entrypoint_for_a_federated_api_read_by_the_v1_services() {
+            List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(
+                GraviteeContext.getExecutionContext(),
+                readByV1Services()
+            );
+
+            assertThat(apiEntrypoints).isEmpty();
+        }
+
+        @Test
+        void should_return_no_entrypoint_for_a_federated_api_with_tags_read_by_the_v1_services() {
+            io.gravitee.rest.api.model.api.ApiEntity apiEntity = readByV1Services();
+            apiEntity.setTags(Set.of("internal"));
+
+            List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(
+                GraviteeContext.getExecutionContext(),
+                apiEntity
+            );
+
+            assertThat(apiEntrypoints).isEmpty();
+        }
+    }
+
     @Nested
     class createHttpApiEntrypointEntity {
 
