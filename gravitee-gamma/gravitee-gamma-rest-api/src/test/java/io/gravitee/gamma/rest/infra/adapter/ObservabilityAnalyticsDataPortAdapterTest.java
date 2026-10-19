@@ -56,6 +56,7 @@ import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsFacetM
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsMetricQuery;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsNumberRange;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsSortSpec;
+import io.gravitee.gamma.rest.core.observability.analytics.model.DataKind;
 import io.gravitee.gamma.rest.core.observability.analytics.model.SeriesRanking;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort.FacetsQuery;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort.MeasuresQuery;
@@ -129,10 +130,24 @@ class ObservabilityAnalyticsDataPortAdapterTest {
             )
         );
 
-        var accessibleApis = adapter.loadAccessibleApis(ORG, ENV);
+        var accessibleApis = adapter.loadAccessibleApis(ORG, ENV, DataKind.AGGREGATES);
 
         assertThat(accessibleApis).hasSize(1);
         assertThat(accessibleApis.getFirst().type()).isEqualTo(ApiType.AUTHZ);
+    }
+
+    @Test
+    void should_load_the_apis_whose_requests_the_caller_reads_for_per_request_data() {
+        when(userContextLoader.loadApis(any(), eq(ApiDataKind.PER_REQUEST))).thenAnswer(invocation ->
+            ((UserContext) invocation.getArgument(0)).withApis(
+                List.of(Api.builder().id("api-1").name("Logged API").type(io.gravitee.definition.model.v4.ApiType.PROXY).build())
+            )
+        );
+
+        var accessibleApis = adapter.loadAccessibleApis(ORG, ENV, DataKind.PER_REQUEST);
+
+        assertThat(accessibleApis).hasSize(1);
+        assertThat(accessibleApis.getFirst().id()).isEqualTo("api-1");
     }
 
     @Nested

@@ -132,7 +132,7 @@ class ObservabilityApiScopeByRoleTest {
 
         @Test
         void should_see_no_api_in_the_analytics_engine() {
-            assertThat(platformLoader.load(auditInfo).authorizedApiIds()).isEmpty();
+            assertThat(platformLoader.load(auditInfo, ApiDataKind.AGGREGATES).authorizedApiIds()).isEmpty();
         }
 
         @Test
@@ -158,7 +158,7 @@ class ObservabilityApiScopeByRoleTest {
 
         @Test
         void should_see_only_the_owned_api_in_the_analytics_engine() {
-            assertThat(platformLoader.load(auditInfo).authorizedApiIds()).containsExactly("api1");
+            assertThat(platformLoader.load(auditInfo, ApiDataKind.AGGREGATES).authorizedApiIds()).containsExactly("api1");
         }
 
         @Test
@@ -174,7 +174,7 @@ class ObservabilityApiScopeByRoleTest {
         void should_see_neither_the_analytics_nor_the_logs_of_the_api() {
             givenMemberOf(API_1, DefaultRoleEntityDefinition.DEFAULT_ROLE_API_USER.getPermissions());
 
-            assertThat(platformLoader.load(auditInfo).authorizedApiIds()).isEmpty();
+            assertThat(platformLoader.load(auditInfo, ApiDataKind.AGGREGATES).authorizedApiIds()).isEmpty();
             assertThat(requestsApis()).isEmpty();
         }
     }
@@ -186,7 +186,7 @@ class ObservabilityApiScopeByRoleTest {
         void should_see_the_analytics_but_not_the_logs_with_the_analytics_permission_only() {
             givenMemberOf(API_1, Map.of(ApiPermission.ANALYTICS.getName(), new char[] { RolePermissionAction.READ.getId() }));
 
-            assertThat(platformLoader.load(auditInfo).authorizedApiIds()).containsExactly("api1");
+            assertThat(platformLoader.load(auditInfo, ApiDataKind.AGGREGATES).authorizedApiIds()).containsExactly("api1");
             assertThat(requestsApis()).isEmpty();
         }
 
@@ -194,7 +194,7 @@ class ObservabilityApiScopeByRoleTest {
         void should_see_the_logs_but_not_the_analytics_with_the_log_permission_only() {
             givenMemberOf(API_1, Map.of(ApiPermission.LOG.getName(), new char[] { RolePermissionAction.READ.getId() }));
 
-            assertThat(platformLoader.load(auditInfo).authorizedApiIds()).isEmpty();
+            assertThat(platformLoader.load(auditInfo, ApiDataKind.AGGREGATES).authorizedApiIds()).isEmpty();
             assertThat(requestsApis()).containsExactly("api1");
         }
     }
@@ -209,7 +209,11 @@ class ObservabilityApiScopeByRoleTest {
 
         @Test
         void should_see_the_analytics_of_every_api_of_the_environment_whatever_its_type() {
-            assertThat(platformLoader.load(auditInfo).authorizedApiIds()).containsExactlyInAnyOrder("api1", "api2", "api3");
+            assertThat(platformLoader.load(auditInfo, ApiDataKind.AGGREGATES).authorizedApiIds()).containsExactlyInAnyOrder(
+                "api1",
+                "api2",
+                "api3"
+            );
         }
 
         @Test
@@ -223,6 +227,14 @@ class ObservabilityApiScopeByRoleTest {
 
             assertThat(requestsApis()).containsExactly("api2");
         }
+
+        /** A field identifying a caller (client IP, subject, Kafka client id) is per-request data. */
+        @Test
+        void should_see_the_analytics_of_the_member_apis_only_when_a_field_identifies_a_caller() {
+            givenMemberOf(API_2, DefaultRoleEntityDefinition.ROLE_API_OWNER.getPermissions());
+
+            assertThat(platformLoader.load(auditInfo, ApiDataKind.PER_REQUEST).authorizedApiIds()).containsExactly("api2");
+        }
     }
 
     @Nested
@@ -232,7 +244,7 @@ class ObservabilityApiScopeByRoleTest {
         void should_not_see_the_analytics_of_the_apis_of_this_environment() {
             givenEnvironmentRole(OTHER_ENVIRONMENT_ID, DefaultRoleEntityDefinition.ROLE_ENVIRONMENT_API_PUBLISHER.getPermissions());
 
-            assertThat(platformLoader.load(auditInfo).authorizedApiIds()).isEmpty();
+            assertThat(platformLoader.load(auditInfo, ApiDataKind.AGGREGATES).authorizedApiIds()).isEmpty();
         }
     }
 
@@ -246,7 +258,11 @@ class ObservabilityApiScopeByRoleTest {
 
         @Test
         void should_see_every_api_in_the_analytics_engine_and_in_the_environment_logs() {
-            assertThat(platformLoader.load(auditInfo).authorizedApiIds()).containsExactlyInAnyOrder("api1", "api2", "api3");
+            assertThat(platformLoader.load(auditInfo, ApiDataKind.AGGREGATES).authorizedApiIds()).containsExactlyInAnyOrder(
+                "api1",
+                "api2",
+                "api3"
+            );
             assertThat(requestsApis()).containsExactlyInAnyOrder("api1", "api2", "api3");
         }
     }

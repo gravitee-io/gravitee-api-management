@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.analytics_engine.domain_service;
 
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 
@@ -26,5 +27,6 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
  * @author GraviteeSource Team
  */
 public interface AnalyticsQueryContextLoader {
-    AnalyticsQueryContext load(AuditInfo auditInfo);
+    /** @param kind the data the query reads, which decides the APIs a management caller may see */
+    AnalyticsQueryContext load(AuditInfo auditInfo, ApiDataKind kind);
 }

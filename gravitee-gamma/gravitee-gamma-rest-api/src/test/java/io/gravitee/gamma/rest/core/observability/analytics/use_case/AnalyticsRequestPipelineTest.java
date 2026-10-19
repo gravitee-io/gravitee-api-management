@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.gamma.rest.core.observability.analytics.model.DataKind;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
@@ -92,6 +93,16 @@ class AnalyticsRequestPipelineTest {
                         ApiType.ALL
                     ),
                     new FilterSpec(
+                        "API_PRODUCT",
+                        "API Product",
+                        FilterType.KEYWORD,
+                        List.of(FilterOperator.EQ, FilterOperator.IN),
+                        null,
+                        null,
+                        Set.of(Signal.LOGS, Signal.ANALYTICS),
+                        ApiType.ALL
+                    ),
+                    new FilterSpec(
                         "HTTP_STATUS",
                         "Status Code",
                         FilterType.NUMBER,
@@ -143,48 +154,108 @@ class AnalyticsRequestPipelineTest {
     }
 
     @Nested
+    class DataKindOf {
+
+        private static final FilterCondition BY_METHOD = new FilterCondition("HTTP_METHOD", FilterOperator.EQ, List.of("GET"));
+
+        @Test
+        void should_read_the_aggregates_when_no_field_identifies_a_caller() {
+            assertThat(pipeline.dataKindOf(List.of(BY_METHOD), List.of(List.of(BY_METHOD)), List.of("HTTP_STATUS"))).isEqualTo(
+                DataKind.AGGREGATES
+            );
+        }
+
+        @Test
+        void should_read_the_requests_when_a_condition_identifies_a_caller() {
+            var byConsumerIp = new FilterCondition("CONSUMER_IP", FilterOperator.EQ, List.of("10.0.0.1"));
+
+            assertThat(pipeline.dataKindOf(List.of(byConsumerIp), List.of(), List.of())).isEqualTo(DataKind.PER_REQUEST);
+        }
+
+        @Test
+        void should_read_the_requests_when_a_metric_condition_identifies_a_caller() {
+            var bySubject = new FilterCondition("AUTHZ_SUBJECT_ID", FilterOperator.IN, List.of("alice"));
+
+            assertThat(pipeline.dataKindOf(List.of(), List.of(List.of(), List.of(bySubject)), List.of())).isEqualTo(DataKind.PER_REQUEST);
+        }
+
+        @Test
+        void should_read_the_requests_when_a_facet_identifies_a_caller() {
+            assertThat(pipeline.dataKindOf(List.of(), List.of(), List.of("NATIVE_CLIENT_ID"))).isEqualTo(DataKind.PER_REQUEST);
+        }
+
+        @Test
+        void should_read_the_requests_when_the_request_asks_for_decision_records() {
+            var decisions = new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION"));
+            var notRequests = new FilterCondition("RECORD_TYPE", FilterOperator.NEQ, List.of("REQUEST"));
+
+            assertThat(pipeline.dataKindOf(List.of(decisions), List.of(), List.of())).isEqualTo(DataKind.PER_REQUEST);
+            assertThat(pipeline.dataKindOf(List.of(notRequests), List.of(), List.of())).isEqualTo(DataKind.PER_REQUEST);
+        }
+
+        @Test
+        void should_read_the_aggregates_when_the_request_asks_for_request_records() {
+            var requests = new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("REQUEST"));
+
+            assertThat(pipeline.dataKindOf(List.of(requests), List.of(), List.of())).isEqualTo(DataKind.AGGREGATES);
+        }
+
+        @Test
+        void should_load_the_apis_of_the_kind_the_request_reads() {
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.PER_REQUEST)).thenReturn(
+                List.of(new AccessibleApi("logged-api", "Logged API", ApiType.HTTP_PROXY))
+            );
+
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), FROM, TO, DataKind.PER_REQUEST, analyticsDataPort).scopeWith(List.of());
+
+            assertThat(scope.apiIds()).containsExactly("logged-api");
+        }
+    }
+
+    /** AI_WORKSPACE_USER[READ] on a workspace opens the aggregates of the calls made through it, nothing else. */
+    @Nested
     class Scoping {
 
         @Test
         void should_compute_scope_from_accessible_apis() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.AGGREGATES)).thenReturn(
                 List.of(
                     new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
                     new AccessibleApi("api-llm", "LLM API", ApiType.LLM)
                 )
             );
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.apiIds()).containsExactlyInAnyOrder("api-proxy", "api-llm");
         }
 
         @Test
         void should_intersect_user_api_filter_with_accessible_apis() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.AGGREGATES)).thenReturn(
                 List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY), new AccessibleApi("api-2", "API 2", ApiType.HTTP_PROXY))
             );
 
             var filters = List.of(new FilterCondition("API", FilterOperator.EQ, List.of("api-1")));
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.apiIds()).containsExactly("api-1");
         }
 
         @Test
         void should_return_empty_scope_when_no_accessible_apis() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of());
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.AGGREGATES)).thenReturn(List.of());
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.apiIds()).isEmpty();
         }
 
         @Test
         void should_return_the_empty_scope_rather_than_an_environment_wide_query_when_no_api_is_accessible() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of());
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.AGGREGATES)).thenReturn(List.of());
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.isEmpty()).isTrue();
             assertThat(scope.filters()).isEmpty();
@@ -192,12 +263,12 @@ class AnalyticsRequestPipelineTest {
 
         @Test
         void should_return_empty_scope_when_user_filters_unknown_api() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.AGGREGATES)).thenReturn(
                 List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
             );
 
             var filters = List.of(new FilterCondition("API", FilterOperator.IN, List.of("non-existent-api")));
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.isEmpty()).isTrue();
             assertThat(scope.apiIds()).isEmpty();
@@ -211,7 +282,7 @@ class AnalyticsRequestPipelineTest {
         @BeforeEach
         void readable_apis() {
             lenient()
-                .when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                .when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.AGGREGATES))
                 .thenReturn(
                     List.of(
                         new AccessibleApi("studio", "Studio", ApiType.MCP),
@@ -225,7 +296,7 @@ class AnalyticsRequestPipelineTest {
         void should_keep_every_readable_api_and_narrow_their_calls_when_an_entrypoint_adds_a_wanted_kind() {
             var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.IN, List.of("MCP", "LLM")));
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.apiIds()).containsExactlyInAnyOrder("studio", "orders", "petstore");
             assertThat(scope.trafficScope()).isEqualTo(new TrafficScope(Set.of("studio"), Set.of("mcp")));
@@ -235,7 +306,7 @@ class AnalyticsRequestPipelineTest {
         void should_scope_by_type_alone_when_no_entrypoint_adds_the_wanted_kinds() {
             var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("HTTP_PROXY")));
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.apiIds()).containsExactlyInAnyOrder("orders", "petstore");
             assertThat(scope.trafficScope()).isNull();
@@ -243,7 +314,7 @@ class AnalyticsRequestPipelineTest {
 
         @Test
         void should_carry_no_traffic_scope_without_a_kind_condition() {
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.trafficScope()).isNull();
         }
@@ -255,7 +326,7 @@ class AnalyticsRequestPipelineTest {
                 new FilterCondition("API_TYPE", FilterOperator.IN, List.of("MCP", "LLM"))
             );
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.apiIds()).containsExactly("orders");
             assertThat(scope.trafficScope()).isEqualTo(new TrafficScope(Set.of(), Set.of("mcp")));
@@ -273,7 +344,7 @@ class AnalyticsRequestPipelineTest {
 
         @BeforeEach
         void readable_apis() {
-            lenient().when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(READABLE);
+            lenient().when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.AGGREGATES)).thenReturn(READABLE);
         }
 
         @Test
@@ -283,7 +354,7 @@ class AnalyticsRequestPipelineTest {
                 new FilterCondition("API", FilterOperator.IN, List.of("proxy-2", "llm-1"))
             );
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.apiIds()).containsExactly("proxy-2");
             assertThat(scope.filters()).containsExactly(new FilterCondition("API", FilterOperator.IN, List.of("proxy-2")));
@@ -296,7 +367,7 @@ class AnalyticsRequestPipelineTest {
                 new FilterCondition("API", FilterOperator.EQ, List.of("proxy-2"))
             );
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.isEmpty()).isTrue();
         }
@@ -305,7 +376,7 @@ class AnalyticsRequestPipelineTest {
         void should_resolve_an_api_type_condition_to_the_readable_apis_of_that_type() {
             var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("HTTP_PROXY")));
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.apiIds()).containsExactlyInAnyOrder("proxy-1", "proxy-2");
             assertThat(scope.filters()).noneMatch(condition -> "API_TYPE".equals(condition.name()));
@@ -318,7 +389,7 @@ class AnalyticsRequestPipelineTest {
                 new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("LLM"))
             );
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.apiIds()).containsExactly("llm-1");
         }
@@ -330,7 +401,7 @@ class AnalyticsRequestPipelineTest {
                 new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("LLM"))
             );
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.isEmpty()).isTrue();
         }
@@ -342,7 +413,7 @@ class AnalyticsRequestPipelineTest {
                 new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("LLM"))
             );
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.apiIds()).containsExactly("llm-1");
         }
@@ -351,7 +422,7 @@ class AnalyticsRequestPipelineTest {
         void should_never_widen_the_readable_apis() {
             var filters = List.of(new FilterCondition("API", FilterOperator.IN, List.of("proxy-1", "not-readable")));
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.apiIds()).containsExactly("proxy-1");
         }
@@ -363,7 +434,7 @@ class AnalyticsRequestPipelineTest {
                 new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of("500"))
             );
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.filters()).containsSubsequence(filters);
         }
@@ -372,7 +443,7 @@ class AnalyticsRequestPipelineTest {
         void should_append_a_group_condition_to_the_request_conditions() {
             var status200 = new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of("200"));
             var status500 = new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of("500"));
-            var prepared = pipeline.prepare(ORG_ID, ENV_ID, List.of(status200), FROM, TO, analyticsDataPort);
+            var prepared = pipeline.prepare(ORG_ID, ENV_ID, List.of(status200), FROM, TO, DataKind.AGGREGATES, analyticsDataPort);
 
             var scope = prepared.scopeWith(List.of(status500));
 
@@ -387,6 +458,7 @@ class AnalyticsRequestPipelineTest {
                 List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("HTTP_PROXY"))),
                 FROM,
                 TO,
+                DataKind.AGGREGATES,
                 analyticsDataPort
             );
 
@@ -400,12 +472,12 @@ class AnalyticsRequestPipelineTest {
 
         @Test
         void should_load_the_accessible_apis_once_whatever_the_number_of_groups() {
-            var prepared = pipeline.prepare(ORG_ID, ENV_ID, List.of(), FROM, TO, analyticsDataPort);
+            var prepared = pipeline.prepare(ORG_ID, ENV_ID, List.of(), FROM, TO, DataKind.AGGREGATES, analyticsDataPort);
 
             prepared.scopeWith(List.of(new FilterCondition("API", FilterOperator.EQ, List.of("proxy-1"))));
             prepared.scopeWith(List.of(new FilterCondition("API", FilterOperator.EQ, List.of("proxy-2"))));
 
-            verify(analyticsDataPort, times(1)).loadAccessibleApis(ORG_ID, ENV_ID);
+            verify(analyticsDataPort, times(1)).loadAccessibleApis(ORG_ID, ENV_ID, DataKind.AGGREGATES);
         }
     }
 
@@ -468,18 +540,18 @@ class AnalyticsRequestPipelineTest {
         void should_reject_unknown_filter_name() {
             var filters = List.of(new FilterCondition("UNKNOWN", FilterOperator.EQ, List.of("val")));
 
-            assertThatThrownBy(() -> pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort)).isInstanceOf(
-                UnsupportedObservabilityFilterException.class
-            );
+            assertThatThrownBy(() ->
+                pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, DataKind.AGGREGATES, analyticsDataPort)
+            ).isInstanceOf(UnsupportedObservabilityFilterException.class);
         }
 
         @Test
         void should_reject_unsupported_operator() {
             var filters = List.of(new FilterCondition("HTTP_STATUS", FilterOperator.CONTAINS, List.of("200")));
 
-            assertThatThrownBy(() -> pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort)).isInstanceOf(
-                UnsupportedObservabilityFilterException.class
-            );
+            assertThatThrownBy(() ->
+                pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, DataKind.AGGREGATES, analyticsDataPort)
+            ).isInstanceOf(UnsupportedObservabilityFilterException.class);
         }
     }
 
@@ -491,7 +563,7 @@ class AnalyticsRequestPipelineTest {
             var from = Instant.parse("2026-06-11T12:00:00Z");
             var to = Instant.parse("2026-06-10T12:00:00Z");
 
-            assertThatThrownBy(() -> pipeline.prepare(ORG_ID, ENV_ID, List.of(), from, to, analyticsDataPort))
+            assertThatThrownBy(() -> pipeline.prepare(ORG_ID, ENV_ID, List.of(), from, to, DataKind.AGGREGATES, analyticsDataPort))
                 .isInstanceOf(InvalidObservabilityQueryException.class)
                 .hasMessageContaining("from")
                 .extracting("technicalCode")
@@ -501,7 +573,7 @@ class AnalyticsRequestPipelineTest {
         @ParameterizedTest
         @CsvSource(value = { "null, 2026-06-11T00:00:00Z, from", "2026-06-10T00:00:00Z, null, to" }, nullValues = "null")
         void should_reject_a_missing_bound_before_loading_the_accessible_apis(Instant from, Instant to, String missingBound) {
-            assertThatThrownBy(() -> pipeline.prepare(ORG_ID, ENV_ID, List.of(), from, to, analyticsDataPort))
+            assertThatThrownBy(() -> pipeline.prepare(ORG_ID, ENV_ID, List.of(), from, to, DataKind.AGGREGATES, analyticsDataPort))
                 .isInstanceOf(InvalidObservabilityQueryException.class)
                 .hasMessageContaining("'" + missingBound + "'")
                 .extracting("technicalCode")
@@ -511,13 +583,13 @@ class AnalyticsRequestPipelineTest {
 
         @Test
         void should_preserve_valid_time_range() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.AGGREGATES)).thenReturn(
                 List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
             );
 
             var from = Instant.parse("2026-06-10T00:00:00Z");
             var to = Instant.parse("2026-06-11T00:00:00Z");
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), from, to, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), from, to, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.from()).isEqualTo(from);
             assertThat(scope.to()).isEqualTo(to);
@@ -529,23 +601,23 @@ class AnalyticsRequestPipelineTest {
 
         @Test
         void should_add_no_entrypoint_condition_and_leave_the_default_scope_to_the_engine() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.AGGREGATES)).thenReturn(
                 List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
             );
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.filters()).noneMatch(condition -> "ENTRYPOINT".equals(condition.name()));
         }
 
         @Test
         void should_preserve_user_entrypoint_filter_when_provided() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.AGGREGATES)).thenReturn(
                 List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
             );
 
             var filters = List.of(new FilterCondition("ENTRYPOINT", FilterOperator.IN, List.of("http-proxy")));
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             var entrypoints = scope
                 .filters()
@@ -564,31 +636,31 @@ class AnalyticsRequestPipelineTest {
         void should_strip_the_record_type_condition_before_it_reaches_the_analytics_engine() {
             var conditions = List.of(new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")));
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, conditions, FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, conditions, FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.filters()).noneMatch(condition -> "RECORD_TYPE".equals(condition.name()));
         }
 
         @Test
         void should_scope_decision_records_to_the_accessible_apis() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.AGGREGATES)).thenReturn(
                 List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
             );
             var conditions = List.of(new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")));
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, conditions, FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, conditions, FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.filters()).anyMatch(condition -> "API".equals(condition.name()));
         }
 
         @Test
         void should_strip_a_record_type_request_condition_before_it_reaches_the_analytics_engine() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.AGGREGATES)).thenReturn(
                 List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
             );
             var conditions = List.of(new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("REQUEST")));
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, conditions, FROM, TO, analyticsDataPort).scopeWith(List.of());
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, conditions, FROM, TO, DataKind.AGGREGATES, analyticsDataPort).scopeWith(List.of());
 
             assertThat(scope.filters()).noneMatch(condition -> "RECORD_TYPE".equals(condition.name()));
             assertThat(scope.filters()).anyMatch(condition -> "API".equals(condition.name()));

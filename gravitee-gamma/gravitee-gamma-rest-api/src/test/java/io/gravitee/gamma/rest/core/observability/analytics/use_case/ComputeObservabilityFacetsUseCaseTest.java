@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsFacetMetricQuery;
+import io.gravitee.gamma.rest.core.observability.analytics.model.DataKind;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
@@ -94,7 +95,7 @@ class ComputeObservabilityFacetsUseCaseTest {
             new EntrypointScopeProviderAdapter()
         );
         var useCase = new ComputeObservabilityFacetsUseCase(analyticsDataPort, pipeline);
-        when(analyticsDataPort.loadAccessibleApis("org-1", "env-1")).thenReturn(List.of());
+        when(analyticsDataPort.loadAccessibleApis("org-1", "env-1", DataKind.AGGREGATES)).thenReturn(List.of());
         doThrow(InvalidObservabilityQueryException.unknownFacet("BOGUS"))
             .when(analyticsDataPort)
             .validate(any(ObservabilityAnalyticsDataPort.FacetsQuery.class));
@@ -114,10 +115,41 @@ class ComputeObservabilityFacetsUseCaseTest {
         verify(analyticsDataPort, never()).emptyFacetsResponse();
     }
 
+    /** A breakdown by client IP is per-request data: it counts only the APIs whose requests the caller reads. */
+    @Test
+    void should_scope_a_breakdown_by_an_identifying_field_to_the_apis_whose_requests_the_caller_reads() {
+        var pipeline = new AnalyticsRequestPipeline(
+            new ObservabilityFilterValidator(filterRegistry),
+            new AccessibleApiScopeDomainService(),
+            new EntrypointScopeProviderAdapter()
+        );
+        var useCase = new ComputeObservabilityFacetsUseCase(analyticsDataPort, pipeline);
+        when(analyticsDataPort.loadAccessibleApis("org-1", "env-1", DataKind.PER_REQUEST)).thenReturn(
+            List.of(new AccessibleApi("logged-api", "Logged API", ApiType.HTTP_PROXY))
+        );
+        var input = new ComputeObservabilityFacetsUseCase.Input(
+            "org-1",
+            "env-1",
+            List.of(),
+            Instant.parse("2026-06-10T00:00:00Z"),
+            Instant.parse("2026-06-11T00:00:00Z"),
+            List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())),
+            List.of("CONSUMER_IP"),
+            null,
+            List.of()
+        );
+
+        useCase.execute(input);
+
+        var captor = ArgumentCaptor.forClass(ObservabilityAnalyticsDataPort.FacetsQuery.class);
+        verify(analyticsDataPort).computeFacets(captor.capture());
+        assertThat(captor.getValue().scope().apiIds()).containsExactly("logged-api");
+    }
+
     @Test
     void should_append_the_metric_conditions_every_metric_shares_to_the_query_filters() {
         givenTheStatusFilter();
-        when(analyticsDataPort.loadAccessibleApis("org-1", "env-1")).thenReturn(
+        when(analyticsDataPort.loadAccessibleApis("org-1", "env-1", DataKind.AGGREGATES)).thenReturn(
             List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
         );
 
