@@ -20,6 +20,7 @@ import static io.gravitee.apim.core.analytics_engine.model.MetricSpec.Name.HTTP_
 
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
+import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec.Name;
@@ -49,6 +50,15 @@ public class HTTPDataPlaneAnalyticsQueryService implements AnalyticsEngineQueryS
     }
 
     private static final Set<Name> EDGE_METRICS = Set.of(EDGE_DETECTION_COUNT, EDGE_TOKENS_IN, EDGE_TOKENS_OUT, EDGE_HEARTBEAT_COUNT);
+
+    /** An Edge metric is searched on the Edge path by facets and on the HTTP path otherwise: both must narrow it. */
+    @Override
+    public boolean narrowsBy(Name metric, FilterSpec.Name filter) {
+        var onHttp = IgnoredFilters.narrows(analyticsRepository, AnalyticsSearchPath.HTTP, filter);
+        return EDGE_METRICS.contains(metric)
+            ? onHttp && IgnoredFilters.narrows(analyticsRepository, AnalyticsSearchPath.EDGE, filter)
+            : onHttp;
+    }
 
     @Override
     public Set<Name> metrics() {

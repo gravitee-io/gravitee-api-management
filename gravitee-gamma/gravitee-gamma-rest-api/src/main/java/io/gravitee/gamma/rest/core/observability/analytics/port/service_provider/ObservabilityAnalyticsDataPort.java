@@ -23,6 +23,7 @@ import io.gravitee.gamma.rest.core.observability.analytics.model.DataKind;
 import io.gravitee.gamma.rest.core.observability.analytics.model.SeriesRanking;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.AnalyticsRequestPipeline;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +44,19 @@ import java.util.Map;
 public interface ObservabilityAnalyticsDataPort {
     /** The APIs whose data of this kind the caller reads: none, never every API, when they read none. */
     List<AccessibleApi> loadAccessibleApis(String organizationId, String environmentId, DataKind kind);
+
+    /**
+     * The APIs of an AI workspace the caller reads: their calls through that workspace only may be counted. None when
+     * the caller does not read it, or when it is no workspace of the environment.
+     */
+    List<AccessibleApi> loadWorkspaceApis(String organizationId, String environmentId, String workspaceId);
+
+    /**
+     * Whether the engine counts, for every one of these metrics, only the calls an {@code API_PRODUCT} condition
+     * matches. Some search paths ignore it: a workspace may then open none of its APIs. False for an empty list or an
+     * unknown metric.
+     */
+    boolean narrowsByApiProduct(Collection<String> metricNames);
 
     JsonNode computeMeasures(MeasuresQuery query);
 

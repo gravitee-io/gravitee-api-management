@@ -18,6 +18,7 @@ package io.gravitee.apim.core.analytics_engine.service_provider;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.analytics_engine.exception.UnsupportedMetricException;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
+import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
@@ -72,6 +73,11 @@ public class AnalyticsQueryContextProvider {
             request.metrics().add(metric);
         }
         return context;
+    }
+
+    /** See {@link AnalyticsEngineQueryService#narrowsBy}, asked of the service the metric is routed to. */
+    public boolean narrowsBy(MetricSpec.Name metric, FilterSpec.Name filter) {
+        return resolve(metric).narrowsBy(metric, filter);
     }
 
     public AnalyticsEngineQueryService resolve(MetricSpec.Name metric) {

@@ -67,7 +67,16 @@ public class ComputeObservabilityFacetsUseCase {
         );
         var kind = pipeline.dataKindOf(input.filters, metricConditions, input.facets);
         var scope = pipeline
-            .prepare(input.organizationId, input.environmentId, input.filters, input.from, input.to, kind, analyticsDataPort)
+            .prepare(
+                input.organizationId,
+                input.environmentId,
+                input.filters,
+                input.from,
+                input.to,
+                kind,
+                input.metrics.stream().map(AnalyticsFacetMetricQuery::metricName).toList(),
+                analyticsDataPort
+            )
             .scopeWith(shared);
         var query = new ObservabilityAnalyticsDataPort.FacetsQuery(
             input.organizationId,

@@ -56,6 +56,11 @@ final class IgnoredFilters {
             .toList();
     }
 
+    /** Whether the searches of the path count only what a top-level condition on the filter matches. */
+    static boolean narrows(AnalyticsRepository repository, AnalyticsSearchPath path, FilterSpec.Name filter) {
+        return repository.filterOutcome(path, AnalyticsMeasuresAdapter.INSTANCE.toFilterName(filter)) == FilterOutcome.APPLIED;
+    }
+
     static MeasuresResponse mark(MeasuresResponse response, List<FilterSpec.Name> ignored) {
         return response == null ? null : response.withIgnoredFilters(ignored);
     }

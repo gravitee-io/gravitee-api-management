@@ -277,6 +277,36 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_forward_the_api_product_the_request_is_scoped_to() {
+            when(getFilterValuesUseCase.execute(any())).thenReturn(
+                new GetObservabilityFilterValuesUseCase.Output(new FilterValuesPage(List.of(), 0L), 1, 10)
+            );
+
+            rootTarget("APPLICATION/values").queryParam("apiProduct", "workspace-1").request().get();
+
+            ArgumentCaptor<GetObservabilityFilterValuesUseCase.Input> captor = ArgumentCaptor.forClass(
+                GetObservabilityFilterValuesUseCase.Input.class
+            );
+            Mockito.verify(getFilterValuesUseCase).execute(captor.capture());
+            assertThat(captor.getValue().apiProduct()).isEqualTo("workspace-1");
+        }
+
+        @Test
+        void should_read_a_blank_api_product_as_absent() {
+            when(getFilterValuesUseCase.execute(any())).thenReturn(
+                new GetObservabilityFilterValuesUseCase.Output(new FilterValuesPage(List.of(), 0L), 1, 10)
+            );
+
+            rootTarget("APPLICATION/values").queryParam("apiProduct", " ").request().get();
+
+            ArgumentCaptor<GetObservabilityFilterValuesUseCase.Input> captor = ArgumentCaptor.forClass(
+                GetObservabilityFilterValuesUseCase.Input.class
+            );
+            Mockito.verify(getFilterValuesUseCase).execute(captor.capture());
+            assertThat(captor.getValue().apiProduct()).isNull();
+        }
+
+        @Test
         void should_return_400_for_unknown_apiType_value() {
             Response response = rootTarget("API_TYPE/values").queryParam("apiType", "NOPE").request().get();
 
@@ -387,6 +417,49 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
                     assertThat(e.filterName()).isEqualTo("PLAN");
                     assertThat(e.ids()).containsExactly("plan-1", "plan-2");
                 });
+        }
+
+        @Test
+        void should_forward_the_api_product_the_labelled_request_is_scoped_to() {
+            when(resolveFilterLabelsUseCase.execute(any())).thenReturn(new ResolveObservabilityFilterLabelsUseCase.Output(List.of()));
+
+            Response response = rootTarget("resolve")
+                .queryParam("apiProduct", "workspace-1")
+                .request()
+                .post(
+                    Entity.entity(
+                        Map.of("entries", List.of(Map.of("filterName", "APPLICATION", "ids", List.of("app-1")))),
+                        MediaType.APPLICATION_JSON_TYPE
+                    )
+                );
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            ArgumentCaptor<ResolveObservabilityFilterLabelsUseCase.Input> captor = ArgumentCaptor.forClass(
+                ResolveObservabilityFilterLabelsUseCase.Input.class
+            );
+            Mockito.verify(resolveFilterLabelsUseCase).execute(captor.capture());
+            assertThat(captor.getValue().apiProduct()).isEqualTo("workspace-1");
+        }
+
+        @Test
+        void should_read_a_blank_api_product_as_absent() {
+            when(resolveFilterLabelsUseCase.execute(any())).thenReturn(new ResolveObservabilityFilterLabelsUseCase.Output(List.of()));
+
+            rootTarget("resolve")
+                .queryParam("apiProduct", "")
+                .request()
+                .post(
+                    Entity.entity(
+                        Map.of("entries", List.of(Map.of("filterName", "APPLICATION", "ids", List.of("app-1")))),
+                        MediaType.APPLICATION_JSON_TYPE
+                    )
+                );
+
+            ArgumentCaptor<ResolveObservabilityFilterLabelsUseCase.Input> captor = ArgumentCaptor.forClass(
+                ResolveObservabilityFilterLabelsUseCase.Input.class
+            );
+            Mockito.verify(resolveFilterLabelsUseCase).execute(captor.capture());
+            assertThat(captor.getValue().apiProduct()).isNull();
         }
 
         @Test

@@ -71,7 +71,21 @@ public class GetObservabilityFilterValuesUseCase {
     private final FilterRegistry filterRegistry;
     private final ObservabilityFilterDataPort filterDataPort;
 
-    public record Input(String filterName, String query, Long from, Long to, Integer page, Integer perPage, Set<ApiType> apiTypes) {
+    /** @param apiProduct the single API product the request is scoped to, or {@code null} */
+    public record Input(
+        String filterName,
+        String query,
+        Long from,
+        Long to,
+        Integer page,
+        Integer perPage,
+        Set<ApiType> apiTypes,
+        String apiProduct
+    ) {
+        public Input(String filterName, String query, Long from, Long to, Integer page, Integer perPage, Set<ApiType> apiTypes) {
+            this(filterName, query, from, to, page, perPage, apiTypes, null);
+        }
+
         public Input(String filterName, String query, Long from, Long to, Integer page, Integer perPage) {
             this(filterName, query, from, to, page, perPage, Set.of());
         }
@@ -113,7 +127,16 @@ public class GetObservabilityFilterValuesUseCase {
         if (StaticFilters.withoutValueListing().contains(spec.name())) {
             throw UnsupportedObservabilityFilterException.valueListingNotSupported(spec.name(), spec.type().name());
         }
-        var stored = filterDataPort.listKeywordValues(spec.name(), input.query(), input.from(), input.to(), page, perPage, apiTypes);
+        var stored = filterDataPort.listKeywordValues(
+            spec.name(),
+            input.query(),
+            input.from(),
+            input.to(),
+            page,
+            perPage,
+            apiTypes,
+            input.apiProduct()
+        );
         if (!StaticFilters.ENTRYPOINT.name().equals(spec.name()) || !noEntrypointMatches(input.query())) {
             return stored;
         }

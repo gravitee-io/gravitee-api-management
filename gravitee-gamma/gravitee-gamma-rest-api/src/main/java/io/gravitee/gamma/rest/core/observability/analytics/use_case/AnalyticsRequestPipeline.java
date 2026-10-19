@@ -39,6 +39,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -63,6 +64,7 @@ public class AnalyticsRequestPipeline {
     private static final String API = "API";
     private static final String API_TYPE = "API_TYPE";
     private static final String RECORD_TYPE = "RECORD_TYPE";
+    private static final String API_PRODUCT = "API_PRODUCT";
     private static final Set<String> SCOPE_ONLY = Set.of(API, API_TYPE, RECORD_TYPE);
 
     /** The metrics served from authorization decision records; pinned to the engine's routing by a test. */
@@ -194,7 +196,10 @@ public class AnalyticsRequestPipeline {
         return perRequest ? DataKind.PER_REQUEST : DataKind.AGGREGATES;
     }
 
-    /** @param dataKind the data the request reads, from {@link #dataKindOf}: it decides which APIs the caller reads */
+    /**
+     * @param dataKind the data the request reads, from {@link #dataKindOf}: it decides which APIs the caller reads
+     * @param metricNames the metrics the request computes, which decide whether a workspace condition is applied
+     */
     public PreparedRequest prepare(
         String organizationId,
         String environmentId,
@@ -202,6 +207,7 @@ public class AnalyticsRequestPipeline {
         Instant from,
         Instant to,
         DataKind dataKind,
+        List<String> metricNames,
         ObservabilityAnalyticsDataPort analyticsDataPort
     ) {
         var conditions = rawFilters != null ? rawFilters : List.<FilterCondition>of();
@@ -209,7 +215,15 @@ public class AnalyticsRequestPipeline {
         filterValidator.validate(conditions, Signal.ANALYTICS);
         validateTimeRange(from, to);
 
-        var accessibleApis = analyticsDataPort.loadAccessibleApis(organizationId, environmentId, dataKind);
+        var accessibleApis = withWorkspaceApis(
+            analyticsDataPort.loadAccessibleApis(organizationId, environmentId, dataKind),
+            conditions,
+            dataKind,
+            metricNames,
+            organizationId,
+            environmentId,
+            analyticsDataPort
+        );
         var readable = accessibleApiScope.computeScope(accessibleApis, ApiType.ALL, null).apiIds();
         var readableApis = accessibleApis
             .stream()
@@ -220,6 +234,46 @@ public class AnalyticsRequestPipeline {
             Collectors.toMap(kind -> kind, kind -> entrypointScopeProvider.entrypointsAdding(Set.of(kind)))
         );
         return new PreparedRequest(from, to, List.copyOf(conditions), readableApis, entrypointsAddingKind);
+    }
+
+    /**
+     * A query narrowed to one AI workspace (a single {@code API_PRODUCT} condition naming it alone) also counts the
+     * workspace's APIs its reader reads no other way: the condition stays in the query, so only the calls made through that workspace are
+     * counted, never those another workspace sharing an API makes. Aggregates only, and only for metrics the engine
+     * narrows by that condition: a search path that ignores it would count every call of the workspace's APIs.
+     */
+    private static List<AccessibleApi> withWorkspaceApis(
+        List<AccessibleApi> readable,
+        List<FilterCondition> conditions,
+        DataKind dataKind,
+        List<String> metricNames,
+        String organizationId,
+        String environmentId,
+        ObservabilityAnalyticsDataPort analyticsDataPort
+    ) {
+        var workspace = dataKind == DataKind.AGGREGATES ? singleWorkspace(conditions) : Optional.<String>empty();
+        if (workspace.isEmpty() || !analyticsDataPort.narrowsByApiProduct(metricNames)) {
+            return readable;
+        }
+        var apis = new LinkedHashMap<String, AccessibleApi>();
+        readable.forEach(api -> apis.put(api.id(), api));
+        analyticsDataPort.loadWorkspaceApis(organizationId, environmentId, workspace.get()).forEach(api -> apis.putIfAbsent(api.id(), api));
+        return List.copyOf(apis.values());
+    }
+
+    /** One {@code API_PRODUCT} condition naming one workspace alone, as {@code EQ} or as the one value of an {@code IN}. */
+    private static Optional<String> singleWorkspace(List<FilterCondition> conditions) {
+        var onApiProducts = conditions
+            .stream()
+            .filter(condition -> API_PRODUCT.equals(condition.name()))
+            .toList();
+        if (onApiProducts.size() != 1) {
+            return Optional.empty();
+        }
+        var condition = onApiProducts.getFirst();
+        var values = condition.values() != null ? condition.values() : List.<String>of();
+        var namesOne = condition.operator() == FilterOperator.EQ || condition.operator() == FilterOperator.IN;
+        return namesOne && values.size() == 1 ? Optional.ofNullable(values.getFirst()) : Optional.empty();
     }
 
     /**

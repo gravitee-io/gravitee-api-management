@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.query_service.analytics_engine;
 
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
+import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
@@ -42,6 +43,11 @@ public class MessageDataPlaneQueryService implements AnalyticsEngineQueryService
 
     public MessageDataPlaneQueryService(@Lazy AnalyticsRepository analyticsRepository) {
         this.analyticsRepository = analyticsRepository;
+    }
+
+    @Override
+    public boolean narrowsBy(MetricSpec.Name metric, FilterSpec.Name filter) {
+        return IgnoredFilters.narrows(analyticsRepository, AnalyticsSearchPath.MESSAGE, filter);
     }
 
     @Override

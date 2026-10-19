@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics.domain_service.AiWorkspaceAnalyticsApisDomainService;
 import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
@@ -37,10 +38,12 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -88,6 +91,7 @@ public class GetFilterValuesUseCase {
     private final ApplicationQueryService applicationQueryService;
     private final PlanQueryService planQueryService;
     private final ApiProductQueryService apiProductQueryService;
+    private final AiWorkspaceAnalyticsApisDomainService workspaceApis;
 
     public record Input(
         AuditInfo auditInfo,
@@ -103,10 +107,30 @@ public class GetFilterValuesUseCase {
          * Entrypoints whose calls belong to one of {@code apiTypes} whatever the API's type, so an API of another
          * type enters through those calls only. Empty when no entrypoint adds one of the kinds.
          */
-        Set<String> trafficEntrypointIds
+        Set<String> trafficEntrypointIds,
+        /**
+         * The single API product the request is scoped to, or {@code null}: only the calls made through it count. A reader
+         * of that AI workspace also gets its APIs, for the aggregates its calls show them.
+         */
+        String apiProductId
     ) {
         public Input {
             trafficEntrypointIds = trafficEntrypointIds == null ? Set.of() : Set.copyOf(trafficEntrypointIds);
+        }
+
+        public Input(
+            AuditInfo auditInfo,
+            String filterName,
+            Instant from,
+            Instant to,
+            int page,
+            int perPage,
+            String query,
+            Set<ApiType> apiTypes,
+            AnalyticsScope scope,
+            Set<String> trafficEntrypointIds
+        ) {
+            this(auditInfo, filterName, from, to, page, perPage, query, apiTypes, scope, trafficEntrypointIds, null);
         }
 
         public Input(AuditInfo auditInfo, String filterName, Instant from, Instant to, int page, int perPage, String query) {
@@ -154,7 +178,8 @@ public class GetFilterValuesUseCase {
         var filterSpecName = validateFilterName(input.filterName());
         var filterSpec = findFilterSpec(filterSpecName);
 
-        var analyticsContext = contextLoader.load(input.auditInfo(), input.scope(), dataKindOf(filterSpec));
+        var dataKind = dataKindOf(filterSpec);
+        var analyticsContext = withWorkspaceApis(input, dataKind, contextLoader.load(input.auditInfo(), input.scope(), dataKind));
         TrafficScope trafficScope = null;
         if (input.apiTypes() != null && !input.apiTypes().isEmpty()) {
             var ofTheTypes = narrowByApiTypes(analyticsContext, input.apiTypes());
@@ -255,7 +280,7 @@ public class GetFilterValuesUseCase {
         return apis;
     }
 
-    /** A caller not scoped by kind sends exactly the query it always did. */
+    /** A caller scoped neither by kind nor by API product sends exactly the query it always did. */
     private FilterValuesPage searchValues(
         Input input,
         FilterSpec.Name filterName,
@@ -267,6 +292,22 @@ public class GetFilterValuesUseCase {
     ) {
         var organizationId = input.auditInfo().organizationId();
         var environmentId = input.auditInfo().environmentId();
+        if (input.apiProductId() != null) {
+            return filterValuesQueryService.searchFilterValues(
+                organizationId,
+                environmentId,
+                filterName,
+                input.from(),
+                input.to(),
+                page,
+                size,
+                null,
+                searchPattern,
+                apiIds,
+                trafficScope,
+                input.apiProductId()
+            );
+        }
         if (trafficScope == null) {
             return filterValuesQueryService.searchFilterValues(
                 organizationId,
@@ -320,8 +361,9 @@ public class GetFilterValuesUseCase {
         return new Output(new FilterValuesPage(Collections.emptyList(), null, 0L));
     }
 
+    /** The readable APIs by name; on a request scoped to an API product, those with calls made through it only. */
     private Output searchApisByNameFromContext(Input input, String lowerQuery, AnalyticsQueryContext analyticsContext) {
-        var matching = analyticsContext
+        var named = analyticsContext
             .apiNamesById()
             .entrySet()
             .stream()
@@ -329,6 +371,13 @@ public class GetFilterValuesUseCase {
                 var name = e.getValue();
                 return name != null && name.toLowerCase().contains(lowerQuery);
             })
+            .toList();
+        var inCalls = input.apiProductId() == null
+            ? null
+            : findInCalls(input, FilterSpec.Name.API, named.stream().map(Map.Entry::getKey), analyticsContext);
+        var matching = named
+            .stream()
+            .filter(e -> inCalls == null || inCalls.contains(e.getKey()))
             .sorted(
                 Comparator.comparing(Map.Entry<String, String>::getValue, String.CASE_INSENSITIVE_ORDER).thenComparing(Map.Entry::getKey)
             )
@@ -417,14 +466,67 @@ public class GetFilterValuesUseCase {
     }
 
     private Set<String> findInCalls(Input input, FilterSpec.Name filterName, Stream<String> ids, AnalyticsQueryContext analyticsContext) {
+        var values = ids.collect(Collectors.toSet());
+        if (input.apiProductId() != null) {
+            return filterValuesQueryService.findValuesInCalls(
+                input.auditInfo().organizationId(),
+                input.auditInfo().environmentId(),
+                filterName,
+                input.from(),
+                input.to(),
+                values,
+                analyticsContext.authorizedApiIds(),
+                input.apiProductId()
+            );
+        }
         return filterValuesQueryService.findValuesInCalls(
             input.auditInfo().organizationId(),
             input.auditInfo().environmentId(),
             filterName,
             input.from(),
             input.to(),
-            ids.collect(Collectors.toSet()),
+            values,
             analyticsContext.authorizedApiIds()
+        );
+    }
+
+    /**
+     * The AI workspace a request is scoped to adds its APIs for its reader, for aggregates only: every query of the
+     * request keeps the calls made through that workspace, so another workspace sharing an API never shows.
+     */
+    private AnalyticsQueryContext withWorkspaceApis(Input input, ApiDataKind dataKind, AnalyticsQueryContext context) {
+        if (input.apiProductId() == null || dataKind != ApiDataKind.AGGREGATES) {
+            return context;
+        }
+        var auditInfo = input.auditInfo();
+        var apis = workspaceApis.findWorkspaceApis(
+            new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId()),
+            auditInfo.actor().userId(),
+            input.apiProductId()
+        );
+        if (apis.isEmpty()) {
+            return context;
+        }
+        var authorizedApiIds = new HashSet<>(context.authorizedApiIds());
+        var apiNamesById = new HashMap<>(context.apiNamesById());
+        var apiIdsByType = new HashMap<ApiType, Set<String>>();
+        context.apiIdsByType().forEach((type, ids) -> apiIdsByType.put(type, new HashSet<>(ids)));
+        for (var api : apis) {
+            authorizedApiIds.add(api.getId());
+            if (api.getName() != null) {
+                apiNamesById.putIfAbsent(api.getId(), api.getName());
+            }
+            if (api.getType() != null) {
+                apiIdsByType.computeIfAbsent(api.getType(), type -> new HashSet<>()).add(api.getId());
+            }
+        }
+        return new AnalyticsQueryContext(
+            context.auditInfo(),
+            context.executionContext(),
+            authorizedApiIds,
+            apiNamesById,
+            context.applicationNamesById(),
+            apiIdsByType
         );
     }
 

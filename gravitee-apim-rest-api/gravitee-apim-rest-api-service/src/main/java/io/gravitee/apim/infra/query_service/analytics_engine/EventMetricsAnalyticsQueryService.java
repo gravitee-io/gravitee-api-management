@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.query_service.analytics_engine;
 
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
+import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec.Name;
@@ -50,6 +51,11 @@ public class EventMetricsAnalyticsQueryService implements AnalyticsEngineQuerySe
 
     public EventMetricsAnalyticsQueryService(@Lazy AnalyticsRepository analyticsRepository) {
         this.analyticsRepository = analyticsRepository;
+    }
+
+    @Override
+    public boolean narrowsBy(Name metric, FilterSpec.Name filter) {
+        return IgnoredFilters.narrows(analyticsRepository, AnalyticsSearchPath.EVENT_METRICS, filter);
     }
 
     @Override
