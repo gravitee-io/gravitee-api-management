@@ -36,6 +36,7 @@ import io.gravitee.node.api.Node;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.ClusterRepository;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -178,6 +179,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     private final ParameterService parameterService;
 
     private final IntegrationRepository integrationRepository;
+    private final ClusterRepository clusterRepository;
     private final Node node;
     private final ObjectMapper objectMapper;
     private final CommandRepository commandRepository;
@@ -207,7 +209,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         @Autowired ObjectMapper objectMapper,
         @Autowired @Lazy CommandRepository commandRepository,
         @Autowired @Lazy ApiMetadataService apiMetadataService,
-        @Autowired @Lazy SearchEngineService searchEngineService
+        @Autowired @Lazy SearchEngineService searchEngineService,
+        @Autowired @Lazy ClusterRepository clusterRepository
     ) {
         this.identityService = identityService;
         this.userService = userService;
@@ -231,6 +234,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         this.commandRepository = commandRepository;
         this.apiMetadataService = apiMetadataService;
         this.searchEngineService = searchEngineService;
+        this.clusterRepository = clusterRepository;
     }
 
     @Override
@@ -1543,6 +1547,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     .findByIntegrationId(referenceId)
                     .orElseThrow(() -> new ApplicationNotFoundException(referenceId))
                     .getGroups();
+                case CLUSTER -> clusterRepository
+                    .findById(referenceId)
+                    .map(c -> c.getGroups())
+                    .orElse(Set.of());
                 default -> Set.of();
             };
 
