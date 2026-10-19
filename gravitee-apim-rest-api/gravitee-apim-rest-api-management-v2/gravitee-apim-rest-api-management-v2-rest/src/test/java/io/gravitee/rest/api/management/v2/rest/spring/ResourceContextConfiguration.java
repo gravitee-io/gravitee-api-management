@@ -136,6 +136,7 @@ import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificat
 import io.gravitee.apim.core.open_api.OpenApiValidator;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
+import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
@@ -187,6 +188,7 @@ import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGrou
 import io.gravitee.apim.core.shared_policy_group.use_case.UndeploySharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.specgen.use_case.SpecGenRequestUseCase;
+import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDomainService;
@@ -813,13 +815,19 @@ public class ResourceContextConfiguration {
         SubscriptionService subscriptionService,
         SubscriptionAdapter subscriptionAdapter,
         AcceptSubscriptionDomainService acceptSubscriptionDomainService,
-        CloseSubscriptionDomainService closeSubscriptionDomainService
+        CloseSubscriptionDomainService closeSubscriptionDomainService,
+        ApiCrudService apiCrudService,
+        PlanCrudService planCrudService,
+        SubscriptionCrudService subscriptionCrudService
     ) {
         return new SubscriptionCRDSpecDomainServiceImpl(
             subscriptionService,
             subscriptionAdapter,
             acceptSubscriptionDomainService,
-            closeSubscriptionDomainService
+            closeSubscriptionDomainService,
+            apiCrudService,
+            planCrudService,
+            subscriptionCrudService
         );
     }
 
