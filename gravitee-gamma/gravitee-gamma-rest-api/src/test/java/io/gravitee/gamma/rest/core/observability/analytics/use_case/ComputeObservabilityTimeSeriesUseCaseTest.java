@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsFacetMetricQuery;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsSortSpec;
+import io.gravitee.gamma.rest.core.observability.analytics.model.DataKind;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
@@ -111,7 +112,7 @@ class ComputeObservabilityTimeSeriesUseCaseTest {
 
     @Test
     void should_compute_a_well_formed_request() {
-        when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+        when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.AGGREGATES)).thenReturn(
             List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
         );
         var response = JsonNodeFactory.instance.objectNode();
@@ -122,9 +123,24 @@ class ComputeObservabilityTimeSeriesUseCaseTest {
         assertThat(output.response()).isSameAs(response);
     }
 
+    /** A breakdown by a field identifying callers is per-request data. */
+    @Test
+    void should_count_the_apis_whose_requests_the_caller_reads_when_a_facet_identifies_callers() {
+        when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.PER_REQUEST)).thenReturn(
+            List.of(new AccessibleApi("logged-api", "Logged API", ApiType.HTTP_PROXY))
+        );
+        when(analyticsDataPort.computeTimeSeries(any())).thenReturn(JsonNodeFactory.instance.objectNode());
+
+        useCase.execute(input(60_000L, METRICS, List.of("CONSUMER_IP"), null));
+
+        var captor = ArgumentCaptor.forClass(ObservabilityAnalyticsDataPort.TimeSeriesQuery.class);
+        verify(analyticsDataPort).computeTimeSeries(captor.capture());
+        assertThat(captor.getValue().scope().apiIds()).containsExactly("logged-api");
+    }
+
     @Test
     void should_refuse_a_malformed_query_even_when_the_caller_can_read_no_api() {
-        when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of());
+        when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.AGGREGATES)).thenReturn(List.of());
         doThrow(InvalidObservabilityQueryException.unknownMeasure("HTTP_REQUESTS", "MEDIAN"))
             .when(analyticsDataPort)
             .validate(any(ObservabilityAnalyticsDataPort.TimeSeriesQuery.class));
@@ -136,7 +152,7 @@ class ComputeObservabilityTimeSeriesUseCaseTest {
     @Test
     void should_append_the_metric_conditions_every_metric_shares_to_the_query_filters() {
         givenTheStatusFilter();
-        when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+        when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.AGGREGATES)).thenReturn(
             List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
         );
         var metrics = List.of(
@@ -195,7 +211,7 @@ class ComputeObservabilityTimeSeriesUseCaseTest {
 
         @BeforeEach
         void readableApi() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.AGGREGATES)).thenReturn(
                 List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
             );
         }

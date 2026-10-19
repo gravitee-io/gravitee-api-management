@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
+import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.infra.adapter.SpiFilterRegistry;
 import java.util.List;
@@ -73,6 +74,23 @@ class FilterCatalogParityTest {
             .toList();
 
         assertThat(gammaOnlyAnalytics).as("filters the platform catalog does not know yet advertised by Gamma for analytics").isEmpty();
+    }
+
+    /** A query using a field identifying a caller reads the requests themselves, in Gamma as on the platform. */
+    @Test
+    void gamma_should_classify_the_identifying_fields_as_the_platform_does() {
+        List<String> platformIdentifying = gamma
+            .getFilters(null, null)
+            .stream()
+            .map(spec -> spec.name())
+            .filter(name ->
+                platformFilter(name)
+                    .map(spec -> spec.name().isIdentifying())
+                    .orElse(false)
+            )
+            .toList();
+
+        assertThat(StaticFilters.identifying()).containsExactlyInAnyOrderElementsOf(platformIdentifying);
     }
 
     /** Two catalogs, two {@code Signal} enums: the platform one is spelled out here, once. */

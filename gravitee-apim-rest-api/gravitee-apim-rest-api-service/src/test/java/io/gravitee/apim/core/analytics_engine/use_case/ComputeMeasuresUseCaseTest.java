@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import fixtures.core.model.AuditInfoFixtures;
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
@@ -85,7 +86,7 @@ class ComputeMeasuresUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        when(contextLoader.load(any(), any())).thenReturn(ANALYTICS_CONTEXT);
+        when(contextLoader.load(any(), any(), any())).thenReturn(ANALYTICS_CONTEXT);
         when(unitEnrichmentPostProcessor.enrichUnits(any(MeasuresResponse.class))).thenAnswer(inv -> inv.getArgument(0));
     }
 
@@ -98,7 +99,19 @@ class ComputeMeasuresUseCaseTest {
 
         useCase.execute(new ComputeMeasuresUseCase.Input(AUDIT_INFO, request));
 
-        verify(contextLoader).load(AUDIT_INFO, AnalyticsScope.MANAGEMENT);
+        verify(contextLoader).load(AUDIT_INFO, AnalyticsScope.MANAGEMENT, ApiDataKind.AGGREGATES);
+    }
+
+    @Test
+    void should_load_the_apis_whose_requests_the_user_reads_when_a_condition_identifies_a_caller() {
+        var useCase = new ComputeMeasuresUseCase(queryContextProvider, validator, List.of(), unitEnrichmentPostProcessor, contextLoader);
+        var request = aMeasuresRequest().withFilters(List.of(new Filter(FilterSpec.Name.CONSUMER_IP, FilterOperator.EQ, "10.0.0.1")));
+
+        when(queryContextProvider.resolve(request)).thenReturn(Map.of());
+
+        useCase.execute(new ComputeMeasuresUseCase.Input(AUDIT_INFO, request));
+
+        verify(contextLoader).load(AUDIT_INFO, AnalyticsScope.MANAGEMENT, ApiDataKind.PER_REQUEST);
     }
 
     @Test
@@ -110,7 +123,7 @@ class ComputeMeasuresUseCaseTest {
 
         useCase.execute(new ComputeMeasuresUseCase.Input(AUDIT_INFO, request, AnalyticsScope.PORTAL));
 
-        verify(contextLoader).load(AUDIT_INFO, AnalyticsScope.PORTAL);
+        verify(contextLoader).load(AUDIT_INFO, AnalyticsScope.PORTAL, ApiDataKind.AGGREGATES);
     }
 
     @Test

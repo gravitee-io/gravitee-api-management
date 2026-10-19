@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.analytics_engine.domain_service;
 
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -32,11 +33,11 @@ public class AnalyticsQueryContextLoaderResolver {
         this.loadersByScope = Map.copyOf(loadersByScope);
     }
 
-    public AnalyticsQueryContext load(AuditInfo auditInfo, AnalyticsScope scope) {
+    public AnalyticsQueryContext load(AuditInfo auditInfo, AnalyticsScope scope, ApiDataKind kind) {
         var loader = loadersByScope.get(scope);
         if (loader == null) {
             throw new IllegalStateException("No analytics query context loader available for scope " + scope);
         }
-        return loader.load(auditInfo);
+        return loader.load(auditInfo, kind);
     }
 }

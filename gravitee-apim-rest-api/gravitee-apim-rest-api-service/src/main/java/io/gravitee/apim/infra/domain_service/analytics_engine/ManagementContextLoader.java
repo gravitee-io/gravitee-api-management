@@ -55,11 +55,11 @@ public class ManagementContextLoader implements AnalyticsQueryContextLoader {
     }
 
     @Override
-    public AnalyticsQueryContext load(AuditInfo auditInfo) {
+    public AnalyticsQueryContext load(AuditInfo auditInfo, ApiDataKind kind) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
         var userId = auditInfo.actor().userId();
 
-        var apis = readableApis.findReadableApis(executionContext, userId, isAdmin(), ApiDataKind.AGGREGATES);
+        var apis = readableApis.findReadableApis(executionContext, userId, isAdmin(), kind);
 
         var authorizedApiIds = apis.stream().map(Api::getId).collect(Collectors.toSet());
         var apiNamesById = mapApiIdsToNames(apis);

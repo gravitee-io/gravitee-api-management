@@ -81,7 +81,7 @@ public class ComputeFacetsUseCase {
     public ComputeFacetsUseCase.Output execute(Input input) {
         validator.validateFacetsRequest(input.request);
 
-        var analyticsContext = contextLoader.load(input.auditInfo, input.scope());
+        var analyticsContext = contextLoader.load(input.auditInfo, input.scope(), input.request.dataKind());
 
         var queryContext = queryContextProvider.resolve(input.request);
 

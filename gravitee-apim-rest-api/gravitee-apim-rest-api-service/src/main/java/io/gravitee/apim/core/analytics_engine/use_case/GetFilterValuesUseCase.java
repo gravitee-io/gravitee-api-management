@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
@@ -31,6 +32,7 @@ import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.query_service.ApplicationQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.observability.model.Signal;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.definition.model.v4.ApiType;
@@ -151,7 +153,7 @@ public class GetFilterValuesUseCase {
         var filterSpecName = validateFilterName(input.filterName());
         var filterSpec = findFilterSpec(filterSpecName);
 
-        var analyticsContext = contextLoader.load(input.auditInfo(), input.scope());
+        var analyticsContext = contextLoader.load(input.auditInfo(), input.scope(), dataKindOf(filterSpec));
         TrafficScope trafficScope = null;
         if (input.apiTypes() != null && !input.apiTypes().isEmpty()) {
             var ofTheTypes = narrowByApiTypes(analyticsContext, input.apiTypes());
@@ -395,6 +397,12 @@ public class GetFilterValuesUseCase {
             .toList();
 
         return new Output(new FilterValuesPage(values, null, totalFiltered));
+    }
+
+    /** A field identifying callers, or one the logs only show, lists the values of the requests the caller reads. */
+    private static ApiDataKind dataKindOf(FilterSpec filterSpec) {
+        var perRequest = filterSpec.name().isIdentifying() || !filterSpec.appliesTo(Signal.ANALYTICS);
+        return perRequest ? ApiDataKind.PER_REQUEST : ApiDataKind.AGGREGATES;
     }
 
     private Output searchPlansByNameFromAuthorizedApis(Input input, String lowerQuery, AnalyticsQueryContext analyticsContext) {

@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.core.observability.analytics.use_case;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.gamma.rest.core.observability.analytics.model.DataKind;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
@@ -25,6 +26,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
+import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.EntrypointScopeProvider;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import io.gravitee.gamma.rest.core.observability.logs.model.TrafficScope;
@@ -39,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 
 /**
@@ -172,12 +175,33 @@ public class AnalyticsRequestPipeline {
         }
     }
 
+    /**
+     * The data a request reads: the calls themselves when a condition or a facet uses a field identifying a caller,
+     * or when it asks for authorization decision records; aggregates otherwise.
+     */
+    public DataKind dataKindOf(List<FilterCondition> rawFilters, List<List<FilterCondition>> metricConditions, List<String> facets) {
+        var filters = rawFilters != null ? rawFilters : List.<FilterCondition>of();
+        var identifying = StaticFilters.identifying();
+        var perRequest =
+            filters
+                .stream()
+                .filter(condition -> RECORD_TYPE.equals(condition.name()))
+                .anyMatch(condition -> selects(condition, RecordType.AUTHZ_DECISION)) ||
+            Stream.concat(filters.stream(), metricConditions.stream().flatMap(List::stream)).anyMatch(condition ->
+                identifying.contains(condition.name())
+            ) ||
+            (facets != null && facets.stream().anyMatch(identifying::contains));
+        return perRequest ? DataKind.PER_REQUEST : DataKind.AGGREGATES;
+    }
+
+    /** @param dataKind the data the request reads, from {@link #dataKindOf}: it decides which APIs the caller reads */
     public PreparedRequest prepare(
         String organizationId,
         String environmentId,
         List<FilterCondition> rawFilters,
         Instant from,
         Instant to,
+        DataKind dataKind,
         ObservabilityAnalyticsDataPort analyticsDataPort
     ) {
         var conditions = rawFilters != null ? rawFilters : List.<FilterCondition>of();
@@ -185,7 +209,7 @@ public class AnalyticsRequestPipeline {
         filterValidator.validate(conditions, Signal.ANALYTICS);
         validateTimeRange(from, to);
 
-        var accessibleApis = analyticsDataPort.loadAccessibleApis(organizationId, environmentId);
+        var accessibleApis = analyticsDataPort.loadAccessibleApis(organizationId, environmentId, dataKind);
         var readable = accessibleApiScope.computeScope(accessibleApis, ApiType.ALL, null).apiIds();
         var readableApis = accessibleApis
             .stream()

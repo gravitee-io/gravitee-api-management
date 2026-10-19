@@ -155,7 +155,7 @@ class AnalyticsComputationResourcePermissionsTest extends AbstractNonAdminApiRes
                 )
             )
         );
-        when(analyticsQueryContextLoader.load(any(), any())).thenReturn(
+        when(analyticsQueryContextLoader.load(any(), any(), any())).thenReturn(
             new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
         );
         when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));

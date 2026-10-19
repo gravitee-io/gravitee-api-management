@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.AuditInfoFixtures;
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
@@ -93,7 +94,7 @@ class ComputeFacetsUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        when(contextLoader.load(any(), any())).thenReturn(ANALYTICS_CONTEXT);
+        when(contextLoader.load(any(), any(), any())).thenReturn(ANALYTICS_CONTEXT);
         when(bucketNamesPostProcessor.mapBucketNames(any(), any(), any(FacetsResponse.class))).thenAnswer(inv -> inv.getArgument(2));
         when(unitEnrichmentPostProcessor.enrichUnits(any(FacetsResponse.class))).thenAnswer(inv -> inv.getArgument(0));
     }
@@ -114,7 +115,34 @@ class ComputeFacetsUseCaseTest {
 
         useCase.execute(new ComputeFacetsUseCase.Input(AUDIT_INFO, request));
 
-        verify(contextLoader).load(AUDIT_INFO, AnalyticsScope.MANAGEMENT);
+        verify(contextLoader).load(AUDIT_INFO, AnalyticsScope.MANAGEMENT, ApiDataKind.AGGREGATES);
+    }
+
+    @Test
+    void should_load_the_apis_whose_requests_the_user_reads_when_a_facet_identifies_a_caller() {
+        var useCase = new ComputeFacetsUseCase(
+            queryContextProvider,
+            validator,
+            List.of(),
+            bucketNamesPostProcessor,
+            unitEnrichmentPostProcessor,
+            contextLoader
+        );
+        var base = aFacetsRequest();
+        var request = new FacetsRequest(
+            base.timeRange(),
+            base.filters(),
+            base.metrics(),
+            List.of(FacetSpec.Name.CONSUMER_IP),
+            null,
+            List.of()
+        );
+
+        when(queryContextProvider.resolve(request)).thenReturn(Map.of());
+
+        useCase.execute(new ComputeFacetsUseCase.Input(AUDIT_INFO, request));
+
+        verify(contextLoader).load(AUDIT_INFO, AnalyticsScope.MANAGEMENT, ApiDataKind.PER_REQUEST);
     }
 
     @Test

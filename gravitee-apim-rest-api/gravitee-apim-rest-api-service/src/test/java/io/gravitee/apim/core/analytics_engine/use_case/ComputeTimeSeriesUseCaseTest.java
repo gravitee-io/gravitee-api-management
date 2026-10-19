@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.AuditInfoFixtures;
+import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
@@ -94,7 +95,7 @@ class ComputeTimeSeriesUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        when(contextLoader.load(any(), any())).thenReturn(ANALYTICS_CONTEXT);
+        when(contextLoader.load(any(), any(), any())).thenReturn(ANALYTICS_CONTEXT);
         when(bucketNamesPostProcessor.mapBucketNames(any(), any(), any(TimeSeriesResponse.class))).thenAnswer(inv -> inv.getArgument(2));
         when(unitEnrichmentPostProcessor.enrichUnits(any(TimeSeriesResponse.class))).thenAnswer(inv -> inv.getArgument(0));
     }
@@ -115,7 +116,35 @@ class ComputeTimeSeriesUseCaseTest {
 
         useCase.execute(new ComputeTimeSeriesUseCase.Input(AUDIT_INFO, request));
 
-        verify(contextLoader).load(AUDIT_INFO, AnalyticsScope.MANAGEMENT);
+        verify(contextLoader).load(AUDIT_INFO, AnalyticsScope.MANAGEMENT, ApiDataKind.AGGREGATES);
+    }
+
+    @Test
+    void should_load_the_apis_whose_requests_the_user_reads_when_a_facet_identifies_a_caller() {
+        var useCase = new ComputeTimeSeriesUseCase(
+            queryContextProvider,
+            validator,
+            List.of(),
+            bucketNamesPostProcessor,
+            unitEnrichmentPostProcessor,
+            contextLoader
+        );
+        var base = aTimeSeriesRequest();
+        var request = new TimeSeriesRequest(
+            base.timeRange(),
+            base.interval(),
+            base.filters(),
+            base.metrics(),
+            List.of(FacetSpec.Name.NATIVE_CLIENT_ID),
+            null,
+            List.of()
+        );
+
+        when(queryContextProvider.resolve(request)).thenReturn(Map.of());
+
+        useCase.execute(new ComputeTimeSeriesUseCase.Input(AUDIT_INFO, request));
+
+        verify(contextLoader).load(AUDIT_INFO, AnalyticsScope.MANAGEMENT, ApiDataKind.PER_REQUEST);
     }
 
     @Test
