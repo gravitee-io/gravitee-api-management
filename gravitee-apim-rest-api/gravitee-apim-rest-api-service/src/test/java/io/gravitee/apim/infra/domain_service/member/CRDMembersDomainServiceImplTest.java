@@ -719,20 +719,20 @@ class CRDMembersDomainServiceImplTest {
                     eq(RolePermissionAction.UPDATE)
                 )
             ).thenReturn(false);
-            when(roleService.findDefaultRoleByScopes(AUDIT_INFO.organizationId(), RoleScope.APPLICATION)).thenReturn(
-                List.of(RoleEntity.builder().id("default-app-role").build())
-            );
-            when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.APPLICATION)).thenReturn(
-                RoleEntity.builder().id("po-role-id").build()
-            );
-            when(
-                membershipService.getMembersByReference(EXECUTION_CONTEXT, MembershipReferenceType.APPLICATION, APPLICATION_ID)
-            ).thenReturn(
-                Set.of(
-                    MemberEntity.builder().id("po-id").roles(List.of(RoleEntity.builder().id("po-role-id").build())).build(),
-                    MemberEntity.builder().id("id-1").roles(List.of(RoleEntity.builder().id("role-1").build())).build()
-                )
-            );
+            lenient()
+                .when(roleService.findDefaultRoleByScopes(AUDIT_INFO.organizationId(), RoleScope.APPLICATION))
+                .thenReturn(List.of(RoleEntity.builder().id("default-app-role").build()));
+            lenient()
+                .when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.APPLICATION))
+                .thenReturn(RoleEntity.builder().id("po-role-id").build());
+            lenient()
+                .when(membershipService.getMembersByReference(EXECUTION_CONTEXT, MembershipReferenceType.APPLICATION, APPLICATION_ID))
+                .thenReturn(
+                    Set.of(
+                        MemberEntity.builder().id("po-id").roles(List.of(RoleEntity.builder().id("po-role-id").build())).build(),
+                        MemberEntity.builder().id("id-1").roles(List.of(RoleEntity.builder().id("role-1").build())).build()
+                    )
+                );
             lenient()
                 .when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId()))
                 .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
@@ -755,9 +755,15 @@ class CRDMembersDomainServiceImplTest {
             assertThatThrownBy(() -> cut.checkApplicationMembersUpdate(AUDIT_INFO, APPLICATION_ID, members)).isInstanceOf(
                 ForbiddenAccessException.class
             );
-            assertThatThrownBy(() -> cut.updateApplicationMembers(AUDIT_INFO, APPLICATION_ID, members)).isInstanceOf(
-                ForbiddenAccessException.class
-            );
+            verifyNoMembershipWrite();
+        }
+
+        @Test
+        void should_write_nothing_on_update_without_the_member_permission() {
+            var members = Set.of(MemberCRD.builder().role("role-1").id("id-2").sourceId("source-id-2").source("test").build());
+
+            cut.updateApplicationMembers(AUDIT_INFO, APPLICATION_ID, members);
+
             verifyNoMembershipWrite();
         }
 
