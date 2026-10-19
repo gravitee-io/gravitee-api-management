@@ -28,6 +28,8 @@ import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDStatus;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionCRDUseCase;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import java.time.Instant;
@@ -99,6 +101,25 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                     );
                 })
             );
+        }
+
+        @Test
+        void should_import_on_the_path_api() {
+            when(importSubscriptionCRDUseCase.execute(any(ImportSubscriptionCRDUseCase.Input.class))).thenReturn(
+                new ImportSubscriptionCRDUseCase.Output(
+                    SubscriptionCRDStatus.builder()
+                        .startingAt(Instant.now().atZone(ZoneOffset.UTC))
+                        .status(ACCEPTED.name())
+                        .organizationId(ORGANIZATION)
+                        .environmentId(ENVIRONMENT)
+                        .build()
+                )
+            );
+
+            expectEntity("subscription-with-hrid.json");
+
+            String apiId = HRIDToUUID.api().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid(API_HRID).id();
+            verify(importSubscriptionCRDUseCase).execute(argThat(input -> apiId.equals(input.apiId())));
         }
 
         @Test
