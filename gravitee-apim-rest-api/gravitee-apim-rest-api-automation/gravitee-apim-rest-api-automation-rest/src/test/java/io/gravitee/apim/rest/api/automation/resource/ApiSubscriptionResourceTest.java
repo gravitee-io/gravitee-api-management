@@ -209,7 +209,9 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
             );
             applicationCrudService.initWith(List.of(BaseApplicationEntity.builder().id(applicationId).hrid(APPLICATION_HRID).build()));
 
-            apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(apiId).hrid(API_HRID).build()));
+            apiCrudService.initWith(
+                List.of(ApiFixtures.aProxyApiV4().toBuilder().id(apiId).hrid(API_HRID).environmentId(ENVIRONMENT).build())
+            );
             expectNoContent(HRID);
         }
 
@@ -228,13 +230,31 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
             );
             applicationCrudService.initWith(List.of(BaseApplicationEntity.builder().id(APPLICATION_HRID).hrid(APPLICATION_HRID).build()));
 
-            apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_HRID).hrid(API_HRID).build()));
+            apiCrudService.initWith(
+                List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_HRID).hrid(API_HRID).environmentId(ENVIRONMENT).build())
+            );
             expectNoContent(HRID, true);
         }
 
         @Test
         void should_return_a_404_status_code_with_unknown_hrid() {
             expectNotFound("unknown");
+        }
+
+        @Test
+        void should_return_a_404_status_code_when_subscription_belongs_to_another_api() {
+            var context = new ExecutionContext(ORGANIZATION, ENVIRONMENT);
+            String apiId = IdBuilder.builder(context, API_HRID).buildId();
+            String subscriptionId = IdBuilder.builder(context, API_HRID).withExtraId(HRID).buildId();
+            subscriptionCrudService.initWith(
+                List.of(SubscriptionFixtures.aSubscription().toBuilder().id(subscriptionId).apiId("other-api-id").status(ACCEPTED).build())
+            );
+            apiCrudService.initWith(
+                List.of(ApiFixtures.aProxyApiV4().toBuilder().id(apiId).hrid(API_HRID).environmentId(ENVIRONMENT).build())
+            );
+
+            expectNotFound(HRID);
+            assertThat(subscriptionCrudService.get(subscriptionId).getStatus()).isEqualTo(ACCEPTED);
         }
 
         private void expectNoContent(String hrid) {
@@ -286,7 +306,9 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
             );
             applicationCrudService.initWith(List.of(BaseApplicationEntity.builder().id(applicationId).hrid(APPLICATION_HRID).build()));
 
-            apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(apiId).hrid(API_HRID).build()));
+            apiCrudService.initWith(
+                List.of(ApiFixtures.aProxyApiV4().toBuilder().id(apiId).hrid(API_HRID).environmentId(ENVIRONMENT).build())
+            );
             // PUT: create/update subscription
             try (
                 var response = rootTarget()

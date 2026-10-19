@@ -364,14 +364,14 @@ public class ApiSubscriptionsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response importSubscriptionSpec(@Valid SubscriptionCRDSpec spec) {
         return Response.ok(
-            importSubscriptionSpecUseCase.execute(new ImportSubscriptionSpecUseCase.Input(getAuditInfo(), spec)).status()
+            importSubscriptionSpecUseCase.execute(new ImportSubscriptionSpecUseCase.Input(getAuditInfo(), apiId, spec)).status()
         ).build();
     }
 
     @DELETE
     @Path("/spec/{id}")
     public Response deleteSubscriptionSpec(@PathParam("id") String id) {
-        deleteSubscriptionSpecUseCase.execute(new DeleteSubscriptionSpecUseCase.Input(getAuditInfo(), id));
+        deleteSubscriptionSpecUseCase.execute(new DeleteSubscriptionSpecUseCase.Input(getAuditInfo(), apiId, id));
         return Response.noContent().build();
     }
 
