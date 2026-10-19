@@ -50,8 +50,10 @@ export class TestGammaUiJob {
         // Jest sizes its worker pool from os.cpus(), which inside a container reports the host's cores
         // rather than the resource class — the same trap mavenParallelism exists to avoid for -T. Left
         // alone it opens dozens of jsdom environments on a four-core executor.
+        // A worker keeps growing across suites (past 1.5 GB each, three projects in parallel) until the
+        // executor's 8 GB limit kills one mid-suite; recycling workers above 512 MB caps the job's peak.
         name: 'Run unit tests',
-        command: `yarn nx run-many --target=test --projects=${projects} --maxWorkers=2 --coverage`,
+        command: `yarn nx run-many --target=test --projects=${projects} --maxWorkers=2 --workerIdleMemoryLimit=512MB --coverage`,
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       ...TestGammaUiJob.projects.flatMap((project) => [
