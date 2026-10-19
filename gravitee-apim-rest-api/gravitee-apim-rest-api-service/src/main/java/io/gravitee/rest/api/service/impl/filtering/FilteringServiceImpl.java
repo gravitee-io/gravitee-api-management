@@ -226,6 +226,9 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
     ) {
         Set<String> apisForUser = this.apiAuthorizationService.findAccessibleApiIdsForUser(executionContext, userId);
         Collection<String> apis = this.filterApis(executionContext, apisForUser, filterType, excludedFilterType);
+        if (apis.isEmpty()) {
+            return Collections.emptySet();
+        }
         return this.apiCategoryService.listCategories(apis, executionContext.getEnvironmentId());
     }
 
@@ -272,6 +275,9 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
     private Collection<String> getCurrentUserSubscribedApis(ExecutionContext executionContext, Set<String> apis, boolean excluded) {
         //get Current user applications
         Set<String> currentUserApplicationsId = applicationService.findIdsByUser(executionContext, getAuthenticatedUser().getUsername());
+        if (currentUserApplicationsId.isEmpty()) {
+            return excluded ? apis : Collections.emptyList();
+        }
 
         //find all subscribed apis for these applications
         SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
