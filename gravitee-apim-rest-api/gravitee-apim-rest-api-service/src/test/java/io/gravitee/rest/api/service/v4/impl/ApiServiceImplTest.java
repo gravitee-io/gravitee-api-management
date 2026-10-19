@@ -1369,6 +1369,22 @@ public class ApiServiceImplTest {
     }
 
     @Test
+    public void should_not_mark_the_update_audit_when_an_encrypted_property_is_removed() throws Exception {
+        prepareUpdate();
+        givenStoredProperties(List.of(new Property("secret-key", "ciphertext", true, false), new Property("plain", "value", false, false)));
+        when(propertiesService.encryptProperties(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        updateApiEntity.setProperties(List.of(new PropertyEntity("plain", "value", false, false)));
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        verify(auditService).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(data -> data.getEvent().equals(API_UPDATED) && !data.getProperties().containsKey(ENCRYPTED)),
+            eq(API_ID)
+        );
+    }
+
+    @Test
     public void should_not_mark_the_update_audit_when_only_the_tags_of_an_api_holding_an_encrypted_property_change() throws Exception {
         prepareUpdate();
         givenStoredProperties(List.of(new Property("secret-key", "ciphertext", true, false)));
