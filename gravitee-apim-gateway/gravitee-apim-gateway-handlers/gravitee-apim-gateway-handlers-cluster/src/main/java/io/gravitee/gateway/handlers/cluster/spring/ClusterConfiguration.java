@@ -15,9 +15,21 @@
  */
 package io.gravitee.gateway.handlers.cluster.spring;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.definition.model.cluster.ClusterSecurityResolver;
+import io.gravitee.el.TemplateVariableProvider;
+import io.gravitee.el.TemplateVariableProviderFactory;
+import io.gravitee.el.TemplateVariableScope;
 import io.gravitee.gateway.handlers.cluster.manager.ClusterManager;
 import io.gravitee.gateway.handlers.cluster.manager.impl.ClusterManagerImpl;
+import io.gravitee.gateway.handlers.cluster.secrets.KafkaClusterDefinitionSecretRefsFinder;
+import io.gravitee.gateway.handlers.cluster.security.DefaultClusterSecurityResolver;
+import io.gravitee.secrets.api.discovery.DefinitionSecretRefsFinder;
+import java.util.List;
+import java.util.stream.Stream;
+import org.springframework.beans.factory.BeanFactoryUtils;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -35,5 +47,29 @@ public class ClusterConfiguration {
     @Primary
     public ClusterManager clusterManager(EventManager eventManager) {
         return new ClusterManagerImpl(eventManager);
+    }
+
+    /** Finds the secret references of a registered Kafka cluster when the cluster manager deploys it. */
+    @Bean
+    public DefinitionSecretRefsFinder<?> kafkaClusterDefinitionSecretRefsFinder() {
+        return new KafkaClusterDefinitionSecretRefsFinder(new ObjectMapper());
+    }
+
+    /**
+     * Evaluates the secrets of registered cluster connections for every component building Kafka clients from them
+     * (native Kafka reactor, Kafka endpoint). Its template engine gets the gateway-wide variables, as API template
+     * engines do, but none of an API: a cluster is shared by many APIs.
+     */
+    @Bean
+    public ClusterSecurityResolver clusterSecurityResolver(ApplicationContext applicationContext) {
+        return new DefaultClusterSecurityResolver(new ObjectMapper(), () -> gatewayTemplateVariableProviders(applicationContext));
+    }
+
+    private static List<TemplateVariableProvider> gatewayTemplateVariableProviders(ApplicationContext applicationContext) {
+        return Stream.of(BeanFactoryUtils.beanNamesForTypeIncludingAncestors(applicationContext, TemplateVariableProviderFactory.class))
+            .map(name -> applicationContext.getBean(name, TemplateVariableProviderFactory.class))
+            .filter(factory -> factory.getTemplateVariableScope() == TemplateVariableScope.API)
+            .flatMap(factory -> factory.getTemplateVariableProviders().stream())
+            .toList();
     }
 }

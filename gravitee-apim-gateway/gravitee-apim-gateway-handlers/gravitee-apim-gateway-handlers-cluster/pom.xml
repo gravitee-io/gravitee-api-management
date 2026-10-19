@@ -34,5 +34,12 @@
             <artifactId>gravitee-apim-definition-model</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- The expression language whitelist references BouncyCastle types -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk18on</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
