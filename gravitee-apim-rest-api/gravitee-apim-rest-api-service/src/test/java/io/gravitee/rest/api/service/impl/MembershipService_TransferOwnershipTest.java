@@ -149,7 +149,8 @@ public class MembershipService_TransferOwnershipTest {
             objectMapper,
             commandRepository,
             apiMetadataService,
-            searchEngineService
+            searchEngineService,
+            null
         );
         newPrimaryOwnerRole.setId(USER_ROLE_ID);
         newPrimaryOwnerRole.setName(USER_ROLE_NAME);
