@@ -792,7 +792,7 @@ jobs:
           command: yarn nx run-many --target=lint --projects=gravitee-gamma-module-apim,gravitee-gamma-module-platform,gravitee-gamma-module-portals
       - run:
           name: Run unit tests
-          command: yarn nx run-many --target=test --projects=gravitee-gamma-module-apim,gravitee-gamma-module-platform,gravitee-gamma-module-portals --maxWorkers=2 --coverage
+          command: yarn nx run-many --target=test --projects=gravitee-gamma-module-apim,gravitee-gamma-module-platform,gravitee-gamma-module-portals --maxWorkers=2 --workerIdleMemoryLimit=512MB --coverage
       - cmd-notify-on-failure
       - store_test_results:
           path: gravitee-gamma/gravitee-gamma-module-apim/coverage/junit.xml
