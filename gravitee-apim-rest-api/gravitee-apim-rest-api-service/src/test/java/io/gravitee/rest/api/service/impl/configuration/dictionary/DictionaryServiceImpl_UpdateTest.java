@@ -923,6 +923,7 @@ public class DictionaryServiceImpl_UpdateTest {
             )
         );
         assertThat(patch.toString()).doesNotContain("NEW-CIPHER").doesNotContain("was-plain");
+        verify(auditService).createAuditLog(any(), argThat(data -> "true".equals(data.getProperties().get(ENCRYPTED))));
     }
 
     @Test
@@ -955,6 +956,7 @@ public class DictionaryServiceImpl_UpdateTest {
                 )
             );
         });
+        verify(auditService).createAuditLog(any(), argThat(data -> "true".equals(data.getProperties().get(ENCRYPTED))));
     }
 
     @Test
