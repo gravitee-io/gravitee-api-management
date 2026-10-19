@@ -64,7 +64,8 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
             order = new Sort.Order(direction, FieldUtils.toCamelCase(sortable.field()));
         }
 
-        query.with(Sort.by(order));
+        // _id tie-breaker keeps pages stable when sort values collide (e.g. same name)
+        query.with(Sort.by(order, new Sort.Order(direction, "_id")));
 
         long total = mongoTemplate.count(query, ApplicationMongo.class);
 
