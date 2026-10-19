@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.resources.observability;
 
 import io.gravitee.gamma.rest.resources.observability.analytics.AnalyticsResource;
+import io.gravitee.gamma.rest.resources.observability.capabilities.ObservabilityCapabilitiesResource;
 import io.gravitee.gamma.rest.resources.observability.dashboards.ObservabilityDashboardsResource;
 import io.gravitee.gamma.rest.resources.observability.filters.ObservabilityFiltersResource;
 import io.gravitee.gamma.rest.resources.observability.logs.LogsResource;
@@ -26,7 +27,7 @@ import jakarta.ws.rs.core.Context;
 
 /**
  * Groups every resource mounted under the shared {@code /observability/*} namespace (traces,
- * filters, logs, analytics, dashboards), so {@code GammaRootResource} only needs a single locator
+ * filters, logs, analytics, dashboards, capabilities), so {@code GammaRootResource} only needs a single locator
  * for the whole Observability perimeter instead of one per sub-domain. Mirrors, at the REST layer,
  * the {@code GammaObservabilityConfiguration} aggregator introduced for Spring wiring.
  *
@@ -80,5 +81,13 @@ public class GammaObservabilityResource {
     @Path("/dashboards")
     public ObservabilityDashboardsResource getObservabilityDashboardsResource() {
         return resourceContext.getResource(ObservabilityDashboardsResource.class);
+    }
+
+    /**
+     * The caller's observability capabilities. See {@link ObservabilityCapabilitiesResource} for the contract.
+     */
+    @Path("/capabilities")
+    public ObservabilityCapabilitiesResource getObservabilityCapabilitiesResource() {
+        return resourceContext.getResource(ObservabilityCapabilitiesResource.class);
     }
 }
