@@ -266,6 +266,30 @@ class FilterValuesQueryServiceImplTest {
     }
 
     @Test
+    void should_keep_the_calls_made_through_the_api_product_only() {
+        when(analyticsRepository.searchFilterValues(any(), any())).thenReturn(new FilterValuesResult(List.of("app-1"), null, 1));
+
+        service.findValuesInCalls(ORG_ID, ENV_ID, FilterSpec.Name.APPLICATION, null, null, Set.of("app-1"), Set.of("api-1"), "product-1");
+        service.searchFilterValues(
+            ORG_ID,
+            ENV_ID,
+            FilterSpec.Name.APPLICATION,
+            null,
+            null,
+            1,
+            10,
+            null,
+            null,
+            Set.of("api-1"),
+            null,
+            "product-1"
+        );
+
+        verify(analyticsRepository, times(2)).searchFilterValues(any(), queryCaptor.capture());
+        assertThat(queryCaptor.getAllValues()).extracting(FilterValuesQuery::apiProductId).containsExactly("product-1", "product-1");
+    }
+
+    @Test
     void should_split_many_values_into_bounded_queries_and_merge_what_they_find() {
         var values = IntStream.range(0, 2_500)
             .mapToObj(i -> "app-" + i)

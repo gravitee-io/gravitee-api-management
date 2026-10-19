@@ -27,6 +27,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.FilterSpecFixtures;
+import io.gravitee.apim.core.analytics.domain_service.AiWorkspaceAnalyticsApisDomainService;
 import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
@@ -40,6 +41,7 @@ import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQ
 import io.gravitee.apim.core.analytics_engine.query_service.FilterValuesQueryService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.application.query_service.ApplicationQueryService;
+import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.observability.model.FilterOperator;
@@ -75,6 +77,11 @@ import org.mockito.quality.Strictness;
 class GetFilterValuesUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder().organizationId("org-id").environmentId("env-id").build();
+    private static final AuditInfo AUDIT_INFO_WITH_ACTOR = AuditInfo.builder()
+        .organizationId("org-id")
+        .environmentId("env-id")
+        .actor(AuditActor.builder().userId("user-id").build())
+        .build();
 
     private static final AnalyticsQueryContext ANALYTICS_CONTEXT = new AnalyticsQueryContext(
         AUDIT_INFO,
@@ -106,6 +113,9 @@ class GetFilterValuesUseCaseTest {
     @Mock
     private io.gravitee.apim.core.api_product.query_service.ApiProductQueryService apiProductQueryService;
 
+    @Mock
+    private AiWorkspaceAnalyticsApisDomainService workspaceApis;
+
     private GetFilterValuesUseCase useCase;
 
     @BeforeEach
@@ -118,7 +128,8 @@ class GetFilterValuesUseCaseTest {
             contextLoader,
             applicationQueryService,
             planQueryService,
-            apiProductQueryService
+            apiProductQueryService,
+            workspaceApis
         );
     }
 
@@ -1564,6 +1575,58 @@ class GetFilterValuesUseCaseTest {
                 null,
                 READABLE,
                 AIM
+            );
+        }
+
+        /** A member's request scoped to an API product they hold no workspace grant on: their rows, through its calls. */
+        @Test
+        void should_keep_both_the_traffic_scope_and_the_api_product_of_the_request() {
+            when(
+                filterValuesQueryService.searchFilterValues(
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    anyInt(),
+                    anyInt(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            ).thenReturn(new FilterValuesPage(List.of(new FilterValue("GET")), null));
+
+            useCase.execute(
+                new GetFilterValuesUseCase.Input(
+                    AUDIT_INFO_WITH_ACTOR,
+                    "HTTP_METHOD",
+                    null,
+                    null,
+                    1,
+                    10,
+                    null,
+                    Set.of(ApiType.MCP_PROXY),
+                    AnalyticsScope.MANAGEMENT,
+                    Set.of("mcp"),
+                    "workspace-1"
+                )
+            );
+
+            verify(filterValuesQueryService).searchFilterValues(
+                "org-id",
+                "env-id",
+                FilterSpec.Name.HTTP_METHOD,
+                null,
+                null,
+                1,
+                10,
+                null,
+                null,
+                READABLE,
+                AIM,
+                "workspace-1"
             );
         }
 

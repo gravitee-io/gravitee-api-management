@@ -17,6 +17,7 @@ package io.gravitee.apim.core.analytics_engine.query_service;
 
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
+import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
@@ -31,6 +32,12 @@ import java.util.Set;
  */
 public interface AnalyticsEngineQueryService {
     Set<MetricSpec.Name> metrics();
+
+    /**
+     * Whether a top-level condition on {@code filter} narrows the search of {@code metric}: false when the path the
+     * search takes ignores the condition, or empties the result whatever it is.
+     */
+    boolean narrowsBy(MetricSpec.Name metric, FilterSpec.Name filter);
 
     MeasuresResponse searchMeasures(ExecutionContext context, MeasuresRequest request);
 

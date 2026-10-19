@@ -24,6 +24,7 @@ import lombok.Builder;
  * @param trafficScope narrows the calls of {@code apiIds} the values come from, absent when the caller is not
  *                     scoped by API kind
  * @param values       the only values to offer, absent when every value of the field is offered
+ * @param apiProductId narrows the calls to those made through one API product, absent when it does not matter
  */
 @Builder
 public record FilterValuesQuery(
@@ -35,5 +36,6 @@ public record FilterValuesQuery(
     String searchPattern,
     Set<String> apiIds,
     TrafficScope trafficScope,
-    Set<String> values
+    Set<String> values,
+    String apiProductId
 ) {}

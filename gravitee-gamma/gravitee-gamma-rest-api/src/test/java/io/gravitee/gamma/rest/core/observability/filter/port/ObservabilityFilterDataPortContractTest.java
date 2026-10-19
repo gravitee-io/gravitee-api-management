@@ -49,7 +49,7 @@ public abstract class ObservabilityFilterDataPortContractTest {
     void should_list_the_distinct_values_of_a_keyword_filter() {
         givenKeywordValues("ENTRYPOINT", List.of(new FilterValue("http-proxy", null), new FilterValue("mcp-studio", null)));
 
-        var page = port().listKeywordValues("ENTRYPOINT", null, null, null, 1, 10, Set.of());
+        var page = port().listKeywordValues("ENTRYPOINT", null, null, null, 1, 10, Set.of(), null);
 
         assertThat(page.data()).extracting(FilterValue::value).containsExactly("http-proxy", "mcp-studio");
         assertThat(page.totalElements()).isEqualTo(2L);
@@ -62,7 +62,7 @@ public abstract class ObservabilityFilterDataPortContractTest {
             List.of(new FilterValue("api-1", "Petstore"), new FilterValue("api-2", "Weather"), new FilterValue("pet-3", "Other"))
         );
 
-        var page = port().listKeywordValues("API", "PET", null, null, 1, 10, Set.of());
+        var page = port().listKeywordValues("API", "PET", null, null, 1, 10, Set.of(), null);
 
         assertThat(page.data()).extracting(FilterValue::value).containsExactly("api-1", "pet-3");
         assertThat(page.totalElements()).isEqualTo(2L);
@@ -72,7 +72,7 @@ public abstract class ObservabilityFilterDataPortContractTest {
     void should_paginate_values_one_based_and_report_the_total() {
         givenKeywordValues("ENTRYPOINT", List.of(new FilterValue("a", null), new FilterValue("b", null), new FilterValue("c", null)));
 
-        var secondPage = port().listKeywordValues("ENTRYPOINT", null, null, null, 2, 2, Set.of());
+        var secondPage = port().listKeywordValues("ENTRYPOINT", null, null, null, 2, 2, Set.of(), null);
 
         assertThat(secondPage.data()).extracting(FilterValue::value).containsExactly("c");
         assertThat(secondPage.totalElements()).isEqualTo(3L);
@@ -80,7 +80,7 @@ public abstract class ObservabilityFilterDataPortContractTest {
 
     @Test
     void should_return_an_empty_page_for_a_filter_without_values() {
-        var page = port().listKeywordValues("ENTRYPOINT", null, null, null, 1, 10, Set.of());
+        var page = port().listKeywordValues("ENTRYPOINT", null, null, null, 1, 10, Set.of(), null);
 
         assertThat(page.data()).isEmpty();
         assertThat(page.totalElements()).isZero();
@@ -92,7 +92,8 @@ public abstract class ObservabilityFilterDataPortContractTest {
         givenLabels("APPLICATION", Map.of("app-1", "Mobile"));
 
         List<ResolvedLabels> resolved = port().resolveLabels(
-            List.of(new ResolveRequest("API", List.of("api-1", "unknown")), new ResolveRequest("APPLICATION", List.of("app-1")))
+            List.of(new ResolveRequest("API", List.of("api-1", "unknown")), new ResolveRequest("APPLICATION", List.of("app-1"))),
+            null
         );
 
         assertThat(resolved)

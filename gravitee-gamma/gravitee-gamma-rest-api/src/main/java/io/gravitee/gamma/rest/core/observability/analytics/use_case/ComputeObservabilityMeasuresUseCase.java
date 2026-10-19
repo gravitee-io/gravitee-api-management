@@ -81,6 +81,7 @@ public class ComputeObservabilityMeasuresUseCase {
             input.from,
             input.to,
             kind,
+            input.metrics.stream().map(AnalyticsMetricQuery::metricName).toList(),
             analyticsDataPort
         );
         var groupOf = new HashMap<Set<FilterCondition>, Integer>();

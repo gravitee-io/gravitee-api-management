@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.apim.core.analytics.domain_service.AiWorkspaceAnalyticsApisDomainService;
 import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
@@ -38,6 +39,7 @@ import io.gravitee.apim.core.analytics_engine.model.TimeRange;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.apim.core.analytics_engine.model.TrafficScope;
+import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeFacetsUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeTimeSeriesUseCase;
@@ -58,8 +60,10 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -93,6 +97,8 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     private final AnalyticsQueryValidator analyticsQueryValidator;
     private final UnitEnrichmentPostProcessor unitEnrichmentPostProcessor;
     private final UserContextLoader userContextLoader;
+    private final AiWorkspaceAnalyticsApisDomainService workspaceApis;
+    private final AnalyticsQueryContextProvider queryContextProvider;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -108,6 +114,24 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
             .stream()
             .map(api -> new AccessibleApi(api.getId(), api.getName(), ApiTypeAdapter.toObservability(api.getType())))
             .toList();
+    }
+
+    @Override
+    public List<AccessibleApi> loadWorkspaceApis(String organizationId, String environmentId, String workspaceId) {
+        var auditInfo = currentAuditInfo(organizationId, environmentId);
+        return workspaceApis
+            .findWorkspaceApis(new ExecutionContext(organizationId, environmentId), auditInfo.actor().userId(), workspaceId)
+            .stream()
+            .map(api -> new AccessibleApi(api.getId(), api.getName(), ApiTypeAdapter.toObservability(api.getType())))
+            .toList();
+    }
+
+    @Override
+    public boolean narrowsByApiProduct(Collection<String> metricNames) {
+        return (
+            !metricNames.isEmpty() &&
+            metricNames.stream().allMatch(metric -> queryContextProvider.narrowsBy(toApimMetricName(metric), FilterSpec.Name.API_PRODUCT))
+        );
     }
 
     @Override

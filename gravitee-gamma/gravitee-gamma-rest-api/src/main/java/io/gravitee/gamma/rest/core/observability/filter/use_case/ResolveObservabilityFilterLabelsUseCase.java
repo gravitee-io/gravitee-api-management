@@ -39,7 +39,12 @@ public class ResolveObservabilityFilterLabelsUseCase {
 
     public record ResolvedEntry(String filterName, Map<String, String> labels) {}
 
-    public record Input(List<Entry> entries) {}
+    /** @param apiProduct the single API product the labelled request is scoped to, or {@code null} */
+    public record Input(List<Entry> entries, String apiProduct) {
+        public Input(List<Entry> entries) {
+            this(entries, null);
+        }
+    }
 
     public record Output(List<ResolvedEntry> entries) {}
 
@@ -50,7 +55,7 @@ public class ResolveObservabilityFilterLabelsUseCase {
             .map(e -> new ObservabilityFilterDataPort.ResolveRequest(e.filterName(), e.ids()))
             .toList();
         var resolved = filterDataPort
-            .resolveLabels(requests)
+            .resolveLabels(requests, input.apiProduct())
             .stream()
             .map(r -> new ResolvedEntry(r.filterName(), r.labels()))
             .toList();

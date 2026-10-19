@@ -41,13 +41,29 @@ public interface ObservabilityFilterDataPort {
      * entity id and {@code label} its display name; for direct-value filters the value is the raw
      * indexed value and {@code label} is {@code null}.
      *
-     * @param apiTypes optional API-kind constraint to narrow results to the calls those kinds select,
-     *                 the entrypoints adding them included (empty = unconstrained)
+     * @param apiTypes   optional API-kind constraint to narrow results to the calls those kinds select,
+     *                   the entrypoints adding them included (empty = unconstrained)
+     * @param apiProduct the single API product the request is scoped to, or {@code null}: only its calls count, and a
+     *                   reader of that AI workspace gets the values its aggregates show them
      */
-    FilterValuesPage listKeywordValues(String filterName, String query, Long from, Long to, int page, int perPage, Set<ApiType> apiTypes);
+    FilterValuesPage listKeywordValues(
+        String filterName,
+        String query,
+        Long from,
+        Long to,
+        int page,
+        int perPage,
+        Set<ApiType> apiTypes,
+        String apiProduct
+    );
 
-    /** Bulk id → label resolution, grouped per requested filter. */
-    List<ResolvedLabels> resolveLabels(List<ResolveRequest> requests);
+    /**
+     * Bulk id → label resolution, grouped per requested filter.
+     *
+     * @param apiProduct the single API product the request is scoped to, or {@code null}: a reader of that AI workspace
+     *                   also gets the labels of what its aggregates show them
+     */
+    List<ResolvedLabels> resolveLabels(List<ResolveRequest> requests, String apiProduct);
 
     record ResolveRequest(String filterName, List<String> ids) {}
 

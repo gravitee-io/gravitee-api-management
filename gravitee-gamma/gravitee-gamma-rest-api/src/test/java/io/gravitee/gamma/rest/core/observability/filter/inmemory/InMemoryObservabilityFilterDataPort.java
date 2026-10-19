@@ -38,7 +38,16 @@ public class InMemoryObservabilityFilterDataPort implements ObservabilityFilterD
     private Call lastCall;
 
     /** One {@link #listKeywordValues} invocation, as received. */
-    public record Call(String filterName, String query, Long from, Long to, int page, int perPage, Set<ApiType> apiTypes) {}
+    public record Call(
+        String filterName,
+        String query,
+        Long from,
+        Long to,
+        int page,
+        int perPage,
+        Set<ApiType> apiTypes,
+        String apiProduct
+    ) {}
 
     public InMemoryObservabilityFilterDataPort givenKeywordValues(String filterName, List<FilterValue> values) {
         valuesByFilter.put(filterName, List.copyOf(values));
@@ -68,9 +77,10 @@ public class InMemoryObservabilityFilterDataPort implements ObservabilityFilterD
         Long to,
         int page,
         int perPage,
-        Set<ApiType> apiTypes
+        Set<ApiType> apiTypes,
+        String apiProduct
     ) {
-        lastCall = new Call(filterName, query, from, to, page, perPage, apiTypes);
+        lastCall = new Call(filterName, query, from, to, page, perPage, apiTypes, apiProduct);
         String needle = query == null || query.isBlank() ? null : query.toLowerCase();
         List<FilterValue> matching = valuesByFilter
             .getOrDefault(filterName, List.of())
@@ -83,7 +93,7 @@ public class InMemoryObservabilityFilterDataPort implements ObservabilityFilterD
     }
 
     @Override
-    public List<ResolvedLabels> resolveLabels(List<ResolveRequest> requests) {
+    public List<ResolvedLabels> resolveLabels(List<ResolveRequest> requests, String apiProduct) {
         return requests
             .stream()
             .map(request -> {
