@@ -174,6 +174,7 @@ import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificat
 import io.gravitee.apim.core.open_api.OpenApiValidator;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
+import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
@@ -1020,7 +1021,9 @@ public class ResourceContextConfiguration {
         AcceptSubscriptionDomainService acceptSubscriptionDomainService,
         CloseSubscriptionDomainService closeSubscriptionDomainService,
         ReconcileApiKeysDomainService reconcileApiKeysDomainService,
-        SubscriptionCrudService subscriptionCrudService
+        SubscriptionCrudService subscriptionCrudService,
+        ApiCrudService apiCrudService,
+        PlanCrudService planCrudService
     ) {
         return new SubscriptionCRDDomainServiceImpl(
             subscriptionService,
@@ -1028,7 +1031,9 @@ public class ResourceContextConfiguration {
             acceptSubscriptionDomainService,
             closeSubscriptionDomainService,
             reconcileApiKeysDomainService,
-            subscriptionCrudService
+            subscriptionCrudService,
+            apiCrudService,
+            planCrudService
         );
     }
 

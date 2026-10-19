@@ -28,11 +28,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DeleteSubscriptionSpecUseCase {
 
-    public record Input(AuditInfo auditInfo, String id) {}
+    public record Input(AuditInfo auditInfo, String apiId, String id) {}
 
     private final SubscriptionCRDDomainService subscriptionSpecDomainService;
 
     public void execute(Input input) {
-        subscriptionSpecDomainService.delete(input.auditInfo, input.id);
+        subscriptionSpecDomainService.delete(input.auditInfo, input.apiId, input.id);
     }
 }
