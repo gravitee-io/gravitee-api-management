@@ -47,6 +47,7 @@ import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFilterSpecUseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
@@ -131,6 +132,7 @@ import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
 import io.gravitee.apim.core.notification.crud_service.NotificationConfigCrudService;
 import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
+import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plan.query_service.PlanSearchQueryService;
@@ -1105,7 +1107,9 @@ public class ResourceContextConfiguration {
         AcceptSubscriptionDomainService acceptSubscriptionDomainService,
         CloseSubscriptionDomainService closeSubscriptionDomainService,
         ReconcileApiKeysDomainService reconcileApiKeysDomainService,
-        SubscriptionCrudService subscriptionCrudService
+        SubscriptionCrudService subscriptionCrudService,
+        ApiCrudService apiCrudService,
+        PlanCrudService planCrudService
     ) {
         return new SubscriptionCRDDomainServiceImpl(
             subscriptionService,
@@ -1113,7 +1117,9 @@ public class ResourceContextConfiguration {
             acceptSubscriptionDomainService,
             closeSubscriptionDomainService,
             reconcileApiKeysDomainService,
-            subscriptionCrudService
+            subscriptionCrudService,
+            apiCrudService,
+            planCrudService
         );
     }
 

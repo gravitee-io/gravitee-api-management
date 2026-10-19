@@ -34,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ImportSubscriptionCRDUseCase {
 
-    public record Input(AuditInfo auditInfo, SubscriptionCRDSpec spec) {}
+    public record Input(AuditInfo auditInfo, String apiId, SubscriptionCRDSpec spec) {}
 
     public record Output(SubscriptionCRDStatus status) {}
 
@@ -44,7 +44,7 @@ public class ImportSubscriptionCRDUseCase {
     public Output execute(Input input) {
         var validationResult = validateSubscriptionCRDDomainService
             .validateAndSanitize(new ValidateSubscriptionCRDDomainService.Input(input.auditInfo(), input.spec()))
-            .map(sanitized -> new Input(sanitized.auditInfo(), sanitized.spec()));
+            .map(sanitized -> new Input(sanitized.auditInfo(), input.apiId(), sanitized.spec()));
 
         validationResult
             .severe()
@@ -60,7 +60,7 @@ public class ImportSubscriptionCRDUseCase {
         var warnings = validationResult.warning().orElseGet(List::of);
         var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
 
-        var subscription = domainService.createOrUpdate(sanitizedInput.auditInfo(), sanitizedInput.spec());
+        var subscription = domainService.createOrUpdate(sanitizedInput.auditInfo(), sanitizedInput.apiId(), sanitizedInput.spec());
         return new Output(
             new SubscriptionCRDStatus(
                 subscription.getId(),
