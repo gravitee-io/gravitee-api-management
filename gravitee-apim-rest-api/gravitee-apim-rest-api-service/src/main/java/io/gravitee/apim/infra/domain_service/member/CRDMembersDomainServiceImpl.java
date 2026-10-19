@@ -250,11 +250,13 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
                 )
             );
 
-        // Members other than the primary owner, as deleteOrphans sees them: a spec naming the primary owner is a change
+        // Members other than the primary owner, as deleteOrphans sees them: a spec naming the primary owner is a change.
+        // The caller is left out too, since the spec may not declare them (ValidateCRDMembersDomainService rejects it).
         Map<String, Set<String>> currentRoles = membershipService
             .getMembersByReference(executionContext, referenceType, referenceId)
             .stream()
             .filter(member -> member.getRoles().stream().noneMatch(poRole::equals))
+            .filter(member -> !member.getId().equals(auditInfo.actor().userId()))
             .collect(
                 Collectors.toMap(
                     MemberEntity::getId,
