@@ -163,6 +163,34 @@ class FilterValuesQueryAdapterTest {
     }
 
     @Test
+    void should_offer_only_the_requested_values() {
+        var query = FilterValuesQuery.builder()
+            .esFieldName("application-id")
+            .size(2)
+            .apiIds(Set.of("api-1"))
+            .values(Set.of("app-1", "app-2"))
+            .build();
+
+        var boolFilter = new JsonObject(adapter.adapt(query)).getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
+
+        assertThat(boolFilter).hasSize(2);
+        assertThat(boolFilter.getJsonObject(1).getJsonObject("terms").getJsonArray("application-id")).containsExactlyInAnyOrder(
+            "app-1",
+            "app-2"
+        );
+    }
+
+    @Test
+    void should_add_match_none_when_no_value_is_requested() {
+        var query = FilterValuesQuery.builder().esFieldName("application-id").size(10).values(Set.of()).build();
+
+        var boolFilter = new JsonObject(adapter.adapt(query)).getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
+
+        assertThat(boolFilter).hasSize(1);
+        assertThat(boolFilter.getJsonObject(0).getJsonObject("match_none")).isNotNull();
+    }
+
+    @Test
     void should_add_match_none_when_api_ids_empty_set() {
         var query = FilterValuesQuery.builder().esFieldName("api-id").size(10).apiIds(Set.of()).build();
 
