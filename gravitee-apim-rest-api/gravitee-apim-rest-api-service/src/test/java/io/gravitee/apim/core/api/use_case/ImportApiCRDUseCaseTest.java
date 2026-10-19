@@ -405,7 +405,8 @@ class ImportApiCRDUseCaseTest {
             new ValidatePlanDomainService(planValidatorService, verifyPlanPortRanges),
             new ValidatePortalNotificationDomainService(new ValidateGroupsDomainService(groupQueryService)),
             new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
-            apiQueryService
+            apiQueryService,
+            crdMembersDomainService
         );
 
         planQueryService = new PlanQueryServiceInMemory(planCrudService);

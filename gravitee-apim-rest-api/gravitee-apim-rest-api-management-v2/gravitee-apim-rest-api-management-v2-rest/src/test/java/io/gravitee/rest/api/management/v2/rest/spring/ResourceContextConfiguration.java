@@ -855,7 +855,8 @@ public class ResourceContextConfiguration {
         ParametersQueryService parametersQueryService,
         PolicyValidationDomainService policyValidationDomainService,
         PageCrudService pageCrudService,
-        KafkaPortRangeCrudServiceInMemory kafkaPortRangeCrudService
+        KafkaPortRangeCrudServiceInMemory kafkaPortRangeCrudService,
+        CRDMembersDomainServiceInMemory crdMembersDomainService
     ) {
         ValidateGroupsDomainService groupsValidator = new ValidateGroupsDomainService(groupQueryService);
         return new ValidateApiCRDUseCase(
@@ -877,7 +878,8 @@ public class ResourceContextConfiguration {
                 ),
                 new ValidatePortalNotificationDomainService(groupsValidator),
                 new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
-                apiQueryService
+                apiQueryService,
+                crdMembersDomainService
             )
         );
     }
@@ -887,13 +889,17 @@ public class ResourceContextConfiguration {
         GroupQueryService groupQueryService,
         UserDomainService userDomainService,
         RoleQueryServiceInMemory roleQueryService,
-        ValidateApplicationSettingsDomainService validateApplicationSettingsDomainService
+        ValidateApplicationSettingsDomainService validateApplicationSettingsDomainService,
+        ApplicationCrudServiceInMemory applicationCrudService,
+        CRDMembersDomainServiceInMemory crdMembersDomainService
     ) {
         return new ValidateApplicationCRDUseCase(
             new ValidateApplicationCRDDomainService(
                 new ValidateGroupsDomainService(groupQueryService),
                 new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
-                validateApplicationSettingsDomainService
+                validateApplicationSettingsDomainService,
+                applicationCrudService,
+                crdMembersDomainService
             )
         );
     }
