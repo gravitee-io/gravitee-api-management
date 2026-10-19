@@ -2034,7 +2034,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                         PlanFixtures.aPlanHttpV4()
                             .toBuilder()
                             .id("victim-plan")
-                            .referenceId(victimApiId)
+                            .apiId(victimApiId)
                             .generalConditions(PAGE_ID)
                             .build()
                             .setPlanStatus(PlanStatus.PUBLISHED)
