@@ -68,7 +68,6 @@ import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Date;
 import java.util.HashMap;
@@ -275,8 +274,6 @@ public class ImportApiCRDUseCase {
 
     private ApiCRDStatus update(Input input, Api existingApi) {
         try {
-            membersDomainService.checkApiMembersUpdate(input.auditInfo, existingApi.getId(), input.spec().getMembers());
-
             if (input.spec().isIgnoreGroups()) {
                 // The platform owns the API's groups: keep them whatever the spec says
                 input.spec().setGroups(existingApi.getGroups());
@@ -351,7 +348,7 @@ public class ImportApiCRDUseCase {
                 .state(api.getLifecycleState().name())
                 .plans(planKeyIdMapping)
                 .build();
-        } catch (AbstractDomainException | AbstractManagementException e) {
+        } catch (AbstractDomainException e) {
             throw e;
         } catch (Exception e) {
             throw new TechnicalManagementException(e);
