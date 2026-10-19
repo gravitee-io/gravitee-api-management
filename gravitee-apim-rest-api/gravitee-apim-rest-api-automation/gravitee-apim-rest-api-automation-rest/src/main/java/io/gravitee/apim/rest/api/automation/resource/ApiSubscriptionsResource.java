@@ -94,7 +94,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         );
 
         SubscriptionCRDStatus status = importSubscriptionSpecUseCase
-            .execute(new ImportSubscriptionSpecUseCase.Input(auditInfo, subscriptionCRDSpec))
+            .execute(new ImportSubscriptionSpecUseCase.Input(auditInfo, subscriptionCRDSpec.getApiId(), subscriptionCRDSpec))
             .status();
 
         return Response.ok(SubscriptionMapper.INSTANCE.subscriptionSpecAndStatusToSubscriptionState(apiHrid, spec, status)).build();

@@ -21,6 +21,9 @@ import static org.assertj.core.api.SoftAssertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import inmemory.PlanCrudServiceInMemory;
@@ -37,6 +40,7 @@ import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -50,6 +54,7 @@ import java.sql.Date;
 import java.time.ZonedDateTime;
 import java.util.List;
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -63,6 +68,7 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "fake-env";
     private static final String API_ID = "api-id";
+    private static final String OTHER_API_ID = "other-api-id";
     private static final String PLAN_ID = "plan-id";
     private static final String APPLICATION_ID = "application-id";
     private static final String SUBSCRIPTION_ID = "subscription-id";
@@ -112,6 +118,12 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         );
     }
 
+    @AfterEach
+    void resetSubscriptionsAndPlans() {
+        reset(subscriptionService);
+        planCrudService.reset();
+    }
+
     @Nested
     class ImportSpec {
 
@@ -140,6 +152,7 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 List.of(
                     Plan.builder()
                         .id(PLAN_ID)
+                        .apiId(API_ID)
                         .definitionVersion(DefinitionVersion.V4)
                         .planDefinitionHttpV4(
                             io.gravitee.definition.model.v4.plan.Plan.builder()
@@ -150,6 +163,8 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                         .build()
                 )
             );
+
+            apiCrudService.initWith(List.of(Api.builder().id(API_ID).environmentId(ENVIRONMENT).build()));
         }
 
         @Test
@@ -184,6 +199,49 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 soft.assertThat(crdStatus.getStartingAt()).isEqualTo(ZonedDateTime.parse("2025-01-01T00:00:00Z"));
                 soft.assertThat(crdStatus.getEndingAt()).isEqualTo(ZonedDateTime.parse("2025-08-06T00:00:00Z"));
             });
+        }
+
+        @Test
+        void should_return_404_when_plan_belongs_to_another_api() {
+            planCrudService.reset();
+            planCrudService.initWith(
+                List.of(
+                    Plan.builder()
+                        .id(PLAN_ID)
+                        .apiId(OTHER_API_ID)
+                        .definitionVersion(DefinitionVersion.V4)
+                        .planDefinitionHttpV4(
+                            io.gravitee.definition.model.v4.plan.Plan.builder()
+                                .id(PLAN_ID)
+                                .security(PlanSecurity.builder().type("JWT").build())
+                                .build()
+                        )
+                        .build()
+                )
+            );
+
+            try (var response = target.request(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON()))) {
+                assertThat(response.getStatus()).isEqualTo(404);
+            }
+            verify(subscriptionService, never()).create(any(), any(), any(), any());
+        }
+
+        @Test
+        void should_return_404_when_subscription_belongs_to_another_api() {
+            when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(
+                io.gravitee.rest.api.model.SubscriptionEntity.builder()
+                    .id(SUBSCRIPTION_ID)
+                    .api(OTHER_API_ID)
+                    .plan(PLAN_ID)
+                    .application(APPLICATION_ID)
+                    .status(SubscriptionStatus.ACCEPTED)
+                    .build()
+            );
+
+            try (var response = target.request(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON()))) {
+                assertThat(response.getStatus()).isEqualTo(404);
+            }
+            verify(subscriptionService, never()).update(any(), any(UpdateSubscriptionEntity.class));
         }
 
         private SubscriptionEntity doImport() {
@@ -222,6 +280,7 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 List.of(
                     Plan.builder()
                         .id(PLAN_ID)
+                        .apiId(API_ID)
                         .definitionVersion(DefinitionVersion.V4)
                         .planDefinitionHttpV4(
                             io.gravitee.definition.model.v4.plan.Plan.builder()
@@ -233,7 +292,7 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 )
             );
 
-            apiCrudService.initWith(List.of(Api.builder().id(API_ID).build()));
+            apiCrudService.initWith(List.of(Api.builder().id(API_ID).environmentId(ENVIRONMENT).build()));
         }
 
         @Test
@@ -246,6 +305,32 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                     soft.assertThat(subscription.getStatus()).isEqualTo(Status.REJECTED);
                 });
             }
+        }
+
+        @Test
+        void should_return_404_when_subscription_belongs_to_another_api() {
+            subscriptionCrudService.initWith(
+                List.of(
+                    builder()
+                        .id(SUBSCRIPTION_ID)
+                        .apiId(OTHER_API_ID)
+                        .planId(PLAN_ID)
+                        .applicationId(APPLICATION_ID)
+                        .status(Status.PENDING)
+                        .build()
+                )
+            );
+            apiCrudService.initWith(
+                List.of(
+                    Api.builder().id(API_ID).environmentId(ENVIRONMENT).build(),
+                    Api.builder().id(OTHER_API_ID).environmentId(ENVIRONMENT).build()
+                )
+            );
+
+            try (var response = target.request().delete()) {
+                assertThat(response.getStatus()).isEqualTo(404);
+            }
+            assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getStatus()).isEqualTo(Status.PENDING);
         }
     }
 

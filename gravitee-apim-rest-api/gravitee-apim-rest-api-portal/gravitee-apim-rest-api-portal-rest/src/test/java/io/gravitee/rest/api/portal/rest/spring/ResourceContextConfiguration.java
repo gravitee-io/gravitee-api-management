@@ -37,6 +37,7 @@ import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFilterSpecUseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
@@ -84,6 +85,7 @@ import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainServi
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
 import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
+import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
@@ -114,6 +116,7 @@ import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGrou
 import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UndeploySharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGroupUseCase;
+import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDomainService;
@@ -802,13 +805,19 @@ public class ResourceContextConfiguration {
         SubscriptionService subscriptionService,
         SubscriptionAdapter subscriptionAdapter,
         AcceptSubscriptionDomainService acceptSubscriptionDomainService,
-        CloseSubscriptionDomainService closeSubscriptionDomainService
+        CloseSubscriptionDomainService closeSubscriptionDomainService,
+        ApiCrudService apiCrudService,
+        PlanCrudService planCrudService,
+        SubscriptionCrudService subscriptionCrudService
     ) {
         return new SubscriptionCRDSpecDomainServiceImpl(
             subscriptionService,
             subscriptionAdapter,
             acceptSubscriptionDomainService,
-            closeSubscriptionDomainService
+            closeSubscriptionDomainService,
+            apiCrudService,
+            planCrudService,
+            subscriptionCrudService
         );
     }
 

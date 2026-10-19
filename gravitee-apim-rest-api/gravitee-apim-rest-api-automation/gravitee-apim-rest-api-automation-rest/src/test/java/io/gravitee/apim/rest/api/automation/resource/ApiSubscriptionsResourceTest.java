@@ -17,14 +17,18 @@ package io.gravitee.apim.rest.api.automation.resource;
 
 import static io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDStatus;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.IdBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import java.time.Instant;
@@ -72,6 +76,25 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
             });
+        }
+
+        @Test
+        void should_import_on_the_path_api() {
+            when(importSubscriptionSpecUseCase.execute(any(ImportSubscriptionSpecUseCase.Input.class))).thenReturn(
+                new ImportSubscriptionSpecUseCase.Output(
+                    SubscriptionCRDStatus.builder()
+                        .startingAt(Instant.now().atZone(ZoneOffset.UTC))
+                        .status(ACCEPTED.name())
+                        .organizationId(ORGANIZATION)
+                        .environmentId(ENVIRONMENT)
+                        .build()
+                )
+            );
+
+            expectEntity("subscription-with-hrid.json");
+
+            String apiId = IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).buildId();
+            verify(importSubscriptionSpecUseCase).execute(argThat(input -> apiId.equals(input.apiId())));
         }
 
         @Test
