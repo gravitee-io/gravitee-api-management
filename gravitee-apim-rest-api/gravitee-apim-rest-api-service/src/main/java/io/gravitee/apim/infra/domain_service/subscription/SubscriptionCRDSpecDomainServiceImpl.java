@@ -15,18 +15,25 @@
  */
 package io.gravitee.apim.infra.domain_service.subscription;
 
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDomainService;
 import io.gravitee.apim.core.subscription.exception.SubscriptionApplicationImmutableException;
 import io.gravitee.apim.core.subscription.exception.SubscriptionPlanImmutableException;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import java.time.ZonedDateTime;
 import java.util.Objects;
@@ -54,16 +61,50 @@ public class SubscriptionCRDSpecDomainServiceImpl implements SubscriptionCRDSpec
 
     private final CloseSubscriptionDomainService closeSubscriptionDomainService;
 
+    private final ApiCrudService apiCrudService;
+
+    private final PlanCrudService planCrudService;
+
+    private final SubscriptionCrudService subscriptionCrudService;
+
     @Override
-    public SubscriptionEntity createOrUpdate(AuditInfo auditInfo, SubscriptionCRDSpec spec) {
+    public SubscriptionEntity createOrUpdate(AuditInfo auditInfo, String apiId, SubscriptionCRDSpec spec) {
+        requireApiInEnvironment(apiId, auditInfo);
         return find(spec.getId())
-            .map(existing -> update(auditInfo, existing, spec))
-            .orElseGet(() -> create(auditInfo, spec));
+            .map(existing -> {
+                requireSubscriptionOfApi(existing, apiId);
+                return update(auditInfo, existing, spec);
+            })
+            .orElseGet(() -> {
+                requirePlanOfApi(spec.getPlanId(), apiId);
+                return create(auditInfo, spec);
+            });
     }
 
     @Override
-    public void delete(AuditInfo auditInfo, String id) {
+    public void delete(AuditInfo auditInfo, String apiId, String id) {
+        requireApiInEnvironment(apiId, auditInfo);
+        requireSubscriptionOfApi(subscriptionCrudService.get(id), apiId);
         closeSubscriptionDomainService.closeSubscription(id, auditInfo);
+    }
+
+    private void requireApiInEnvironment(String apiId, AuditInfo auditInfo) {
+        if (!auditInfo.environmentId().equals(apiCrudService.get(apiId).getEnvironmentId())) {
+            throw new ApiNotFoundException(apiId);
+        }
+    }
+
+    private void requirePlanOfApi(String planId, String apiId) {
+        var plan = planCrudService.getById(planId);
+        if (plan.getReferenceType() != GenericPlanEntity.ReferenceType.API || !apiId.equals(plan.getReferenceId())) {
+            throw new PlanNotFoundException(planId);
+        }
+    }
+
+    private static void requireSubscriptionOfApi(SubscriptionEntity subscription, String apiId) {
+        if (subscription.getReferenceType() != SubscriptionReferenceType.API || !apiId.equals(subscription.getReferenceId())) {
+            throw new SubscriptionNotFoundException(subscription.getId());
+        }
     }
 
     private SubscriptionEntity create(AuditInfo auditInfo, SubscriptionCRDSpec spec) {

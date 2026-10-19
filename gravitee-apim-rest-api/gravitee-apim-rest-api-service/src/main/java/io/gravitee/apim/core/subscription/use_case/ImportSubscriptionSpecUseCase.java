@@ -30,14 +30,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ImportSubscriptionSpecUseCase {
 
-    public record Input(AuditInfo auditInfo, SubscriptionCRDSpec spec) {}
+    public record Input(AuditInfo auditInfo, String apiId, SubscriptionCRDSpec spec) {}
 
     public record Output(SubscriptionCRDStatus status) {}
 
     private final SubscriptionCRDSpecDomainService domainService;
 
     public Output execute(Input input) {
-        var subscription = domainService.createOrUpdate(input.auditInfo, input.spec);
+        var subscription = domainService.createOrUpdate(input.auditInfo, input.apiId, input.spec);
         return new Output(
             new SubscriptionCRDStatus(
                 subscription.getId(),
