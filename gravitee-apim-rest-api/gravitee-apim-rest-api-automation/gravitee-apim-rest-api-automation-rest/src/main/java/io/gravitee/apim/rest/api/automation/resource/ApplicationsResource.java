@@ -118,8 +118,9 @@ public class ApplicationsResource extends AbstractResource {
 
     private void authorizeImport(String applicationId, String environmentId) {
         var existing = findApplication(applicationId, environmentId);
+        boolean archived = existing.filter(application -> ApplicationStatus.ARCHIVED.name().equals(application.getStatus())).isPresent();
         // Reviving an archived application wipes its members and makes the caller its owner: the Console reserves that to admins
-        if (existing.filter(application -> ApplicationStatus.ARCHIVED.name().equals(application.getStatus())).isPresent() && !isAdmin()) {
+        if (archived && !isAdmin()) {
             throw new ForbiddenAccessException();
         }
         requireCreateOrUpdate(
