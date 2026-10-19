@@ -38,7 +38,7 @@ public final class EncryptedPropertyAuditMarker {
         ApiDefinition oldDefinition,
         ApiDefinition newDefinition
     ) {
-        if (!changesEncryptedProperty(oldDefinition, newDefinition)) {
+        if (!writesEncryptedValue(oldDefinition, newDefinition)) {
             return auditProperties;
         }
         Map<AuditProperties, String> marked = new EnumMap<>(AuditProperties.class);
@@ -47,12 +47,21 @@ public final class EncryptedPropertyAuditMarker {
         return marked;
     }
 
-    public static boolean changesEncryptedProperty(List<? extends Property> oldProperties, List<? extends Property> newProperties) {
-        return !ciphertextByKey(oldProperties).equals(ciphertextByKey(newProperties));
+    public static boolean writesEncryptedValue(List<? extends Property> oldProperties, List<? extends Property> newProperties) {
+        return holdsNewCiphertext(ciphertextByKey(oldProperties), ciphertextByKey(newProperties));
     }
 
-    private static boolean changesEncryptedProperty(ApiDefinition oldDefinition, ApiDefinition newDefinition) {
-        return !ciphertextByKey(oldDefinition).equals(ciphertextByKey(newDefinition));
+    private static boolean writesEncryptedValue(ApiDefinition oldDefinition, ApiDefinition newDefinition) {
+        return holdsNewCiphertext(ciphertextByKey(oldDefinition), ciphertextByKey(newDefinition));
+    }
+
+    private static boolean holdsNewCiphertext(Map<String, String> oldCiphertextByKey, Map<String, String> newCiphertextByKey) {
+        return newCiphertextByKey
+            .entrySet()
+            .stream()
+            .anyMatch(
+                ciphertext -> ciphertext.getValue() != null && !ciphertext.getValue().equals(oldCiphertextByKey.get(ciphertext.getKey()))
+            );
     }
 
     public static boolean holdsEncryptedProperty(List<? extends Property> properties) {

@@ -39,8 +39,10 @@ class EncryptedPropertyAuditMarkerTest {
     }
 
     @Test
-    void should_mark_when_an_encrypted_property_is_removed() {
-        assertThat(EncryptedPropertyAuditMarker.mark(BASE, httpApi(encrypted("secret")), httpApi())).isEqualTo(MARKED);
+    void should_not_mark_when_an_encrypted_property_is_removed() {
+        assertThat(
+            EncryptedPropertyAuditMarker.mark(BASE, httpApi(encrypted("secret"), plain("p", "v")), httpApi(plain("p", "v")))
+        ).isEqualTo(BASE);
     }
 
     @Test
@@ -67,15 +69,27 @@ class EncryptedPropertyAuditMarkerTest {
     }
 
     @Test
-    void should_mark_a_creation_or_a_deletion() {
+    void should_mark_a_creation() {
         assertThat(EncryptedPropertyAuditMarker.mark(Map.of(), null, nativeApi(encrypted("secret")))).containsEntry(
             AuditProperties.ENCRYPTED,
             "true"
         );
-        assertThat(EncryptedPropertyAuditMarker.mark(Map.of(), nativeApi(encrypted("secret")), null)).containsEntry(
-            AuditProperties.ENCRYPTED,
-            "true"
+    }
+
+    @Test
+    void should_not_mark_a_deletion() {
+        assertThat(EncryptedPropertyAuditMarker.mark(Map.of(), nativeApi(encrypted("secret")), null)).isEmpty();
+    }
+
+    @Test
+    void should_mark_a_renewal_beside_a_removal() {
+        var marked = EncryptedPropertyAuditMarker.mark(
+            BASE,
+            httpApi(encrypted("removed"), encrypted("secret", "old-ciphertext")),
+            httpApi(encrypted("secret", "new-ciphertext"))
         );
+
+        assertThat(marked).isEqualTo(MARKED);
     }
 
     @Test
@@ -136,12 +150,12 @@ class EncryptedPropertyAuditMarkerTest {
     }
 
     @Test
-    void should_detect_a_changed_encrypted_property_between_property_lists() {
-        assertThat(EncryptedPropertyAuditMarker.changesEncryptedProperty(null, List.of(encrypted("secret")))).isTrue();
-        assertThat(EncryptedPropertyAuditMarker.changesEncryptedProperty(List.of(encrypted("secret")), null)).isTrue();
-        assertThat(EncryptedPropertyAuditMarker.changesEncryptedProperty(List.of(plain("p", "v1")), List.of(plain("p", "v2")))).isFalse();
+    void should_detect_an_encrypted_value_written_between_property_lists() {
+        assertThat(EncryptedPropertyAuditMarker.writesEncryptedValue(null, List.of(encrypted("secret")))).isTrue();
+        assertThat(EncryptedPropertyAuditMarker.writesEncryptedValue(List.of(encrypted("secret")), null)).isFalse();
+        assertThat(EncryptedPropertyAuditMarker.writesEncryptedValue(List.of(plain("p", "v1")), List.of(plain("p", "v2")))).isFalse();
         assertThat(
-            EncryptedPropertyAuditMarker.changesEncryptedProperty(
+            EncryptedPropertyAuditMarker.writesEncryptedValue(
                 List.of(encrypted("secret")),
                 List.of(encrypted("secret"), plain("plain-c", "plain-c"))
             )
@@ -150,19 +164,20 @@ class EncryptedPropertyAuditMarkerTest {
 
     @Test
     void should_ignore_null_properties_when_comparing() {
-        assertThat(EncryptedPropertyAuditMarker.changesEncryptedProperty(null, null)).isFalse();
+        assertThat(EncryptedPropertyAuditMarker.writesEncryptedValue(null, null)).isFalse();
         assertThat(
-            EncryptedPropertyAuditMarker.changesEncryptedProperty(Arrays.asList(null, encrypted("secret")), List.of(encrypted("secret")))
+            EncryptedPropertyAuditMarker.writesEncryptedValue(Arrays.asList(null, encrypted("secret")), List.of(encrypted("secret")))
         ).isFalse();
-        assertThat(EncryptedPropertyAuditMarker.changesEncryptedProperty(Arrays.asList(null, encrypted("secret")), null)).isTrue();
+        assertThat(EncryptedPropertyAuditMarker.writesEncryptedValue(null, Arrays.asList(null, encrypted("secret")))).isTrue();
     }
 
     @Test
-    void should_compare_an_encrypted_property_without_value() {
+    void should_not_count_an_encrypted_property_without_value_as_written() {
         var withoutValue = Property.builder().key("secret").encrypted(true).build();
 
-        assertThat(EncryptedPropertyAuditMarker.changesEncryptedProperty(List.of(withoutValue), List.of(withoutValue))).isFalse();
-        assertThat(EncryptedPropertyAuditMarker.changesEncryptedProperty(List.of(withoutValue), List.of(encrypted("secret")))).isTrue();
+        assertThat(EncryptedPropertyAuditMarker.writesEncryptedValue(List.of(withoutValue), List.of(withoutValue))).isFalse();
+        assertThat(EncryptedPropertyAuditMarker.writesEncryptedValue(List.of(encrypted("secret")), List.of(withoutValue))).isFalse();
+        assertThat(EncryptedPropertyAuditMarker.writesEncryptedValue(List.of(withoutValue), List.of(encrypted("secret")))).isTrue();
     }
 
     @Test

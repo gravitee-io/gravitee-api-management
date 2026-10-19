@@ -805,7 +805,7 @@ public class ApiServiceImplTest {
     }
 
     @Test
-    public void should_mark_the_deletion_audit_when_the_api_held_an_encrypted_property() throws Exception {
+    public void should_not_mark_the_deletion_audit_when_the_api_held_an_encrypted_property() throws Exception {
         givenStoredProperties(List.of(new Property("secret-key", "ciphertext", true, false)));
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
@@ -813,7 +813,7 @@ public class ApiServiceImplTest {
 
         verify(auditService).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            argThat(data -> data.getEvent().equals(API_DELETED) && "true".equals(data.getProperties().get(ENCRYPTED))),
+            argThat(data -> data.getEvent().equals(API_DELETED) && !data.getProperties().containsKey(ENCRYPTED)),
             eq(API_ID)
         );
     }

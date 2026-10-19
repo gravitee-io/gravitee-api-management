@@ -656,7 +656,7 @@ class UpdateDynamicPropertiesUseCaseTest {
         }
 
         @Test
-        void should_mark_the_audit_when_a_sync_drops_an_encrypted_property() throws GeneralSecurityException {
+        void should_not_mark_the_audit_when_a_sync_drops_an_encrypted_property() throws GeneralSecurityException {
             var api = givenApi(buildApiWithProperties(List.of(encryptedDynamic("secret", "s3cret"), fetched("other", "v1"))));
 
             cut.execute(
@@ -665,7 +665,7 @@ class UpdateDynamicPropertiesUseCaseTest {
 
             assertThat(auditCrudServiceInMemory.storage())
                 .singleElement()
-                .satisfies(audit -> assertThat(audit.getProperties()).containsEntry("ENCRYPTED", "true"));
+                .satisfies(audit -> assertThat(audit.getProperties()).doesNotContainKey("ENCRYPTED"));
         }
 
         @Test
