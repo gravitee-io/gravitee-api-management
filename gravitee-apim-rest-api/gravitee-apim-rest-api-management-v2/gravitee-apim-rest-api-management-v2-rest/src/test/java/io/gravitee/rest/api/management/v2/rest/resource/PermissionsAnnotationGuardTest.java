@@ -60,8 +60,6 @@ class PermissionsAnnotationGuardTest {
         Map.entry("ApiResource#GET /{apiId}", "pre-existing, not reviewed yet"),
         Map.entry("ApiResource#POST /{apiId}/_duplicate", "permission checked inside the method"),
         Map.entry("ApiServicesResource#GET /plugins/api-services/{apiServiceId}/schema", "pre-existing, not reviewed yet"),
-        Map.entry("ApiSubscriptionsResource#DELETE /subscriptions/spec/{id}", "pre-existing, not reviewed yet"),
-        Map.entry("ApiSubscriptionsResource#PUT /subscriptions/spec/_import", "pre-existing, not reviewed yet"),
         Map.entry("ClusterResource#GET /{clusterId}/permissions", "permission checked inside the method"),
         Map.entry("EndpointsResource#GET /plugins/endpoints", "plugin catalog / schema read"),
         Map.entry("EndpointsResource#GET /plugins/endpoints/{endpointId}", "plugin catalog / schema read"),
