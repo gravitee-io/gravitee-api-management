@@ -128,12 +128,6 @@ public class ImportApplicationCRDUseCase {
 
     private ApplicationCRDStatus update(Input sanitizedInput, BaseApplicationEntity application) {
         try {
-            membersDomainService.checkApplicationMembersUpdate(
-                sanitizedInput.auditInfo,
-                application.getId(),
-                sanitizedInput.crd.getMembers()
-            );
-
             var updateApplicationEntity = sanitizedInput.crd.toUpdateApplicationEntity();
 
             var updatedApplication = importApplicationCRDDomainService.update(

@@ -625,6 +625,7 @@ class ApisResourceTest extends AbstractResourceTest {
         void setUp() {
             target = rootTarget().path("/_import/crd");
             apiCrudService.reset();
+            crdMembersDomainServiceInMemory.reset();
             categoryQueryService.reset();
             categoryQueryService.initWith(
                 List.of(Category.builder().id("category-id").build(), Category.builder().id("category-key").build())
@@ -813,6 +814,16 @@ class ApisResourceTest extends AbstractResourceTest {
             shouldReturn403(RolePermission.API_DEFINITION, existing.getId(), RolePermissionAction.UPDATE, () ->
                 target.queryParam("dryRun", true).request().put(Entity.json(readJSON("/crd/with-unknown-category.json")))
             );
+        }
+
+        @Test
+        void should_return_403_on_dry_run_when_the_caller_cannot_change_the_members() {
+            var existing = givenExistingApi();
+            crdMembersDomainServiceInMemory.denyApiMembersUpdate(existing.getId());
+
+            var response = target.queryParam("dryRun", true).request().put(Entity.json(readJSON("/crd/with-unknown-category.json")));
+
+            assertThat(response).hasStatus(FORBIDDEN_403);
         }
 
         @Test
