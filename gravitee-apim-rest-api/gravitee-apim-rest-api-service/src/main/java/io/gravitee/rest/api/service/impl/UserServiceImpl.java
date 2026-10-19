@@ -30,6 +30,7 @@ import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.USER_CREATION
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.USER_REGISTRATION;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
+import static io.gravitee.rest.api.service.impl.PermissionServiceImpl.isOrganizationAdmin;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.REGISTRATION_PATH;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.RESET_PASSWORD_PATH;
 import static java.util.Collections.emptyList;
@@ -128,6 +129,7 @@ import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import io.gravitee.rest.api.service.exceptions.DefaultRoleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.EmailFormatInvalidException;
 import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InvalidUserException;
 import io.gravitee.rest.api.service.exceptions.PasswordAlreadyResetException;
@@ -2411,29 +2413,54 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         // check if user exist
         this.findById(executionContext, userId);
         MemberEntity userMember = membershipService.getUserMember(executionContext, referenceType, referenceId, userId);
-        if (userMember != null) {
-            userMember
-                .getRoles()
-                .forEach(role -> {
-                    if (!roleIds.contains(role.getId())) {
-                        membershipService.removeRole(referenceType, referenceId, MembershipMemberType.USER, userId, role.getId());
-                    } else {
-                        roleIds.remove(role.getId());
-                    }
-                });
+        Set<String> currentRoleIds = userMember == null ? Set.of() : userMember.getRoles().stream().map(RoleEntity::getId).collect(toSet());
+        Set<RoleEntity> rolesToAdd = roleIds
+            .stream()
+            .filter(roleId -> !currentRoleIds.contains(roleId))
+            .map(roleService::findById)
+            .filter(role -> role.getScope().equals(RoleScope.valueOf(referenceType.name())))
+            .collect(toSet());
+        assertCallerCanGrantRoles(executionContext, referenceType, referenceId, rolesToAdd);
+
+        currentRoleIds
+            .stream()
+            .filter(roleId -> !roleIds.contains(roleId))
+            .forEach(roleId -> membershipService.removeRole(referenceType, referenceId, MembershipMemberType.USER, userId, roleId));
+        if (!rolesToAdd.isEmpty()) {
+            this.addRolesToUser(executionContext, userId, rolesToAdd, referenceType, referenceId);
         }
-        if (!roleIds.isEmpty()) {
-            this.addRolesToUser(
-                executionContext,
-                userId,
-                roleIds
-                    .stream()
-                    .map(roleService::findById)
-                    .filter(role -> role.getScope().equals(RoleScope.valueOf(referenceType.name())))
-                    .collect(toSet()),
-                referenceType,
-                referenceId
-            );
+    }
+
+    private void assertCallerCanGrantRoles(
+        ExecutionContext executionContext,
+        MembershipReferenceType referenceType,
+        String referenceId,
+        Collection<RoleEntity> roles
+    ) {
+        if (roles.isEmpty() || isOrganizationAdmin()) {
+            return;
         }
+        Map<String, char[]> callerPermissions = membershipService.getUserMemberPermissions(
+            executionContext,
+            referenceType,
+            referenceId,
+            getAuthenticatedUsername()
+        );
+        if (roles.stream().anyMatch(role -> !holdsAllPermissions(callerPermissions, role.getPermissions()))) {
+            throw new ForbiddenAccessException();
+        }
+    }
+
+    private static boolean holdsAllPermissions(Map<String, char[]> heldPermissions, Map<String, char[]> requiredPermissions) {
+        if (requiredPermissions == null) {
+            return true;
+        }
+        return requiredPermissions
+            .entrySet()
+            .stream()
+            .allMatch(required -> {
+                String held = new String(heldPermissions.getOrDefault(required.getKey(), new char[0]));
+                return new String(required.getValue()).chars().allMatch(action -> held.indexOf(action) >= 0);
+            });
     }
 }
