@@ -57,6 +57,7 @@
       <gv-button
         *ngFor="let provider of providers"
         class="btn__provider"
+        [attr.data-testid]="'login-provider-' + provider.id"
         [provider]="provider.type.toLowerCase()"
         [style]="getProviderStyle(provider)"
         (:gv-button:click)="authenticate(provider)"

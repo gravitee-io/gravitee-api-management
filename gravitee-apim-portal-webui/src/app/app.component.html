@@ -54,6 +54,7 @@
         <gv-user-menu [routes]="userRoutes" [ngClass]="{ 'layout__user-menu': isHomepage }" [username]="userName">
           <gv-identity-picture
             *ngIf="currentUser"
+            data-testid="user-identity"
             rounded
             [display_name]="currentUser.display_name || currentUser.email || 'User'"
             [picture]="userPicture"
