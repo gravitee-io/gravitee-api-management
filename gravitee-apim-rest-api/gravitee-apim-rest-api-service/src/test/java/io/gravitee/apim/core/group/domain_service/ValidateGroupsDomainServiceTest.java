@@ -41,6 +41,7 @@ import org.junit.jupiter.api.Test;
 class ValidateGroupsDomainServiceTest {
 
     private static final String ENVIRONMENT = "TEST";
+    private static final String OTHER_ENVIRONMENT = "OTHER";
 
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
 
@@ -65,7 +66,8 @@ class ValidateGroupsDomainServiceTest {
                     .name("hrid-group-with-po")
                     .hrid("my-hrid-group-with-po")
                     .apiPrimaryOwner("some-po")
-                    .build()
+                    .build(),
+                Group.builder().environmentId(OTHER_ENVIRONMENT).id("other-environment-group-id").name("other-environment-group").build()
             )
         );
         validateGroupsDomainService = new ValidateGroupsDomainService(groupQueryService);
@@ -285,6 +287,27 @@ class ValidateGroupsDomainServiceTest {
             soft
                 .assertThat(result.errors())
                 .hasValue(List.of(Validator.Error.warning("Group [does-not-exist] could not be found in environment [TEST]")));
+        });
+    }
+
+    @Test
+    void should_warn_when_group_id_belongs_to_another_environment() {
+        var input = new ValidateGroupsDomainService.Input(
+            ENVIRONMENT,
+            Set.of("other-environment-group-id", "group-without-po-id"),
+            DefinitionVersion.V4.getLabel(),
+            null,
+            API_CREATE,
+            false
+        );
+
+        var result = validateGroupsDomainService.validateAndSanitize(input);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.value()).hasValue(input.sanitized(Set.of("group-without-po-id")));
+            soft
+                .assertThat(result.errors())
+                .hasValue(List.of(Validator.Error.warning("Group [other-environment-group-id] could not be found in environment [TEST]")));
         });
     }
 
