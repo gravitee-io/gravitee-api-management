@@ -200,6 +200,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.slf4j.LoggerFactory;
+import org.springframework.mock.env.MockEnvironment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -212,6 +213,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @MockitoSettings(strictness = Strictness.WARN)
 public class ApiServiceImplTest {
 
+    private static final DataEncryptor REAL_DATA_ENCRYPTOR = new DataEncryptor(
+        new MockEnvironment(),
+        "api.properties.encryption.secret",
+        "vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6"
+    );
     private static final String API_ID = "id-api";
     private static final String API_NAME = "myAPI";
     private static final String USER_NAME = "myUser";
@@ -1344,6 +1350,27 @@ public class ApiServiceImplTest {
                 persisted -> persisted.getDefinition().contains("ciphertext") && !persisted.getDefinition().contains(ENCRYPTED_VALUE_MASK)
             )
         );
+        verify(auditService).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(data -> data.getEvent().equals(API_UPDATED) && !data.getProperties().containsKey(ENCRYPTED)),
+            eq(API_ID)
+        );
+    }
+
+    @Test
+    public void should_not_mark_the_update_audit_when_an_encrypted_value_is_resubmitted_as_the_same_plaintext() throws Exception {
+        prepareUpdate();
+        String storedCiphertext = REAL_DATA_ENCRYPTOR.encrypt("s3cret");
+        givenStoredProperties(List.of(new Property("secret-key", storedCiphertext, true, false)));
+        PropertiesService realPropertiesService = new PropertiesServiceImpl(REAL_DATA_ENCRYPTOR);
+        when(propertiesService.encryptProperties(any(), any())).thenAnswer(invocation ->
+            realPropertiesService.encryptProperties(invocation.getArgument(0), invocation.getArgument(1))
+        );
+        updateApiEntity.setProperties(List.of(new PropertyEntity("secret-key", "s3cret", true, false)));
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        verify(apiRepository).update(argThat(persisted -> persisted.getDefinition().contains(storedCiphertext)));
         verify(auditService).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
             argThat(data -> data.getEvent().equals(API_UPDATED) && !data.getProperties().containsKey(ENCRYPTED)),
