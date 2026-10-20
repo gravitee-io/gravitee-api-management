@@ -46,6 +46,7 @@ import {
     FEDERATED_ALLOWED_PATHS,
     withApiScoreEnabled,
     withApiAlertPermission,
+    withDocumentationPermission,
     withFederatedRestrictions,
     withMetadataPermission,
     withObservabilityLinks,
@@ -315,6 +316,7 @@ export function ApiDetailLayout() {
     const canReadMetadata = useHasPermission({ anyOf: ['api-metadata-r'] });
     const canReadDefinition = useHasPermission({ anyOf: ['api-definition-r'] });
     const canReadEvents = useHasPermission({ anyOf: ['api-event-r'] });
+    const canReadDocumentation = useHasPermission({ anyOf: ['api-documentation-r'] });
     const canReadResponseTemplates = useHasPermission({ anyOf: ['api-response_templates-r'] });
     const canAccessAlerts = useHasPermission({ anyOf: [...API_ALERT_PAGE_PERMISSIONS] });
     const showResponseTemplates = Boolean(api) && canReadResponseTemplates && supportsResponseTemplates(api);
@@ -381,20 +383,26 @@ export function ApiDetailLayout() {
     const navGroups = withFederatedRestrictions(
         withDeploymentPermissions(
             withApiAlertPermission(
-                withMetadataPermission(
-                    withTcpRestrictions(
-                        withObservabilityLinks(
-                            withResponseTemplatesPermission(
-                                withApiScoreEnabled(API_PROXY_NAV_GROUPS, apiScoreEnabled),
-                                showResponseTemplates,
+                withDocumentationPermission(
+                    withMetadataPermission(
+                        withTcpRestrictions(
+                            withObservabilityLinks(
+                                withResponseTemplatesPermission(
+                                    withApiScoreEnabled(API_PROXY_NAV_GROUPS, apiScoreEnabled),
+                                    showResponseTemplates,
+                                ),
+                                apiId
+                                    ? {
+                                          dashboardHref: buildApiDashboardHref(moduleRoot, apiId),
+                                          logsHref: buildApiLogsHref(moduleRoot, apiId),
+                                      }
+                                    : {},
                             ),
-                            apiId
-                                ? { dashboardHref: buildApiDashboardHref(moduleRoot, apiId), logsHref: buildApiLogsHref(moduleRoot, apiId) }
-                                : {},
+                            hasTcpListeners(api),
                         ),
-                        hasTcpListeners(api),
+                        canReadMetadata,
                     ),
-                    canReadMetadata,
+                    canReadDocumentation,
                 ),
                 canAccessAlerts,
             ),
@@ -446,6 +454,7 @@ export function ApiDetailLayout() {
             reviewBannerCopy,
             askForReview.isPending,
             canReadMetadata,
+            canReadDocumentation,
             showResponseTemplates,
             apiScoreEnabled,
             canAccessAlerts,

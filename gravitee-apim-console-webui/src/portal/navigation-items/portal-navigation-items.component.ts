@@ -364,14 +364,6 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       this.snackBarService.error(`Folder "${sourcedContainer.title}" is managed by an external source: items cannot be created inside it`);
       return true;
     }
-    if (
-      event.action === 'delete' &&
-      (nodeItem.type === 'PAGE' || nodeItem.type === 'FOLDER') &&
-      (nodeItem as PortalNavigationPage | PortalNavigationFolder).source
-    ) {
-      this.snackBarService.error(`"${nodeItem.title}" is bound to an external source: remove the source before deleting it`);
-      return true;
-    }
     return false;
   }
 

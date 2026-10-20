@@ -21,6 +21,26 @@
       },
       "defaultConfiguration": "development"
     },
+    "build-element": {
+      "executor": "@angular/build:application",
+      "outputs": ["{workspaceRoot}/dist/@gravitee/gravitee-markdown-element"],
+      "cache": true,
+      "inputs": ["production", "^production"],
+      "options": {
+        "browser": "gravitee-apim-webui-libs/gravitee-markdown/src/lib/gravitee-markdown-viewer/gmd-viewer.element.ts",
+        "tsConfig": "gravitee-apim-webui-libs/gravitee-markdown/tsconfig.lib.json",
+        "outputPath": {
+          "base": "dist/@gravitee/gravitee-markdown-element",
+          "browser": ""
+        },
+        "index": false,
+        "polyfills": [],
+        "outputHashing": "none",
+        "sourceMap": false,
+        "optimization": true,
+        "allowedCommonJsDependencies": ["lodash"]
+      }
+    },
     "test": {
       "executor": "@nx/jest:jest",
       "options": {

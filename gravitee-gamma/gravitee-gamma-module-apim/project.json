@@ -5,6 +5,13 @@
     "projectType": "application",
     "tags": [],
     "targets": {
+        "build": {
+            "dependsOn": ["^build", { "projects": ["markdown"], "target": "build-element" }],
+            "inputs": ["production", "^production", { "dependentTasksOutputFiles": "**/*.js", "transitive": false }]
+        },
+        "serve": {
+            "dependsOn": [{ "projects": ["markdown"], "target": "build-element" }]
+        },
         "lint": {},
         "lint-eslint": {
             "options": {

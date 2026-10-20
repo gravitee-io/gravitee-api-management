@@ -170,6 +170,21 @@ export const apiMetadataKeys = {
     list: (envId: string, apiId: string, params: object) => [...apiMetadataKeys.all, 'list', envId, apiId, params] as const,
 };
 
+export const apiDocumentationKeys = {
+    all: ['api-documentation'] as const,
+    api: (envId: string, apiId: string) => [...apiDocumentationKeys.all, envId, apiId] as const,
+    list: (envId: string, apiId: string) => [...apiDocumentationKeys.api(envId, apiId), 'list'] as const,
+    publishLocations: (envId: string, apiId: string) => [...apiDocumentationKeys.api(envId, apiId), 'publish-locations'] as const,
+    contents: (envId: string, apiId: string) => [...apiDocumentationKeys.api(envId, apiId), 'content'] as const,
+    fetch: (envId: string, apiId: string) => [...apiDocumentationKeys.api(envId, apiId), 'fetch'] as const,
+    content: (envId: string, apiId: string, navId: string) => [...apiDocumentationKeys.contents(envId, apiId), navId] as const,
+};
+
+export const fetcherKeys = {
+    all: ['fetchers'] as const,
+    list: (envId: string, forImport: boolean) => [...fetcherKeys.all, envId, forImport ? 'import' : 'all'] as const,
+};
+
 export const apiPlanKeys = {
     all: ['api-plans'] as const,
     list: (envId: string, ctx: PlanContext, statuses: PlanStatus[], page: number, perPage: number) =>
