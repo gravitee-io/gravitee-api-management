@@ -107,7 +107,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             .consumerConfiguration(SubscriptionMapper.INSTANCE.toConsumerConfiguration(spec.getConsumerConfiguration()))
             .build();
 
-        requireCreateOrUpdate(
+        requireCreateOrUpdateOn(
             RolePermission.API_SUBSCRIPTION,
             subscriptionCRDSpec.getReferenceId(),
             subscriptionQueryService

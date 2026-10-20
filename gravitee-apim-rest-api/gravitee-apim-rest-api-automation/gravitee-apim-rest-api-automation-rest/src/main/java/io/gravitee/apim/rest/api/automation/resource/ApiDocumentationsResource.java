@@ -83,7 +83,11 @@ public class ApiDocumentationsResource extends AbstractResource {
         var documentationId = PortalPageContentId.of(
             HRIDToUUID.apiDocumentation().context(auditInfo).api(apiHrid).hrid(spec.getHrid()).id()
         );
-        requireCreateOrUpdate(RolePermission.API_DOCUMENTATION, apiId, portalPageContentQueryService.findById(documentationId).isPresent());
+        requireCreateOrUpdateOn(
+            RolePermission.API_DOCUMENTATION,
+            apiId,
+            portalPageContentQueryService.findById(documentationId).isPresent()
+        );
 
         var input = new CreateOrUpdateApiDocumentationUseCase.Input(
             auditInfo,
