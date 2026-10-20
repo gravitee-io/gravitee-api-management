@@ -179,7 +179,9 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
         var output = createApiOverviewPageUseCase.execute(
             new CreateApiOverviewPageUseCase.Input(executionContext.getOrganizationId(), executionContext.getEnvironmentId(), apiId)
         );
-        return Response.created(this.getLocationHeader(output.page().getId().toString())).entity(mapper.map(output.page())).build();
+        return Response.created(this.getCollectionLocationHeader(output.page().getId().toString()))
+            .entity(mapper.map(output.page()))
+            .build();
     }
 
     @Path("_import")

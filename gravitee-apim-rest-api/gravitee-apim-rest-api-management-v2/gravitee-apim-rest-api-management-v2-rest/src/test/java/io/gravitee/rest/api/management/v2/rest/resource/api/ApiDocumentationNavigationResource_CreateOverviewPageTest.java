@@ -86,6 +86,7 @@ class ApiDocumentationNavigationResource_CreateOverviewPageTest extends Abstract
 
         assertThat(response).hasStatus(CREATED_201);
         var page = response.readEntity(PortalNavigationPage.class);
+        assertThat(response.getLocation().getPath()).endsWith("/apis/" + API_ID + "/portal-navigation-items/" + page.getId());
         assertThat(page.getTitle()).isEqualTo("Overview");
         assertThat(page.getPublished()).isFalse();
         assertThat(page.getParentId()).isNull();
