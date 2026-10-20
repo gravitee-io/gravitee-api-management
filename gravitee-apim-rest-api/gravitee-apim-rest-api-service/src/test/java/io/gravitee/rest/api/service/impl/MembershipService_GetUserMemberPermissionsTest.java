@@ -85,6 +85,7 @@ public class MembershipService_GetUserMemberPermissionsTest {
             commandRepository,
             null,
             null,
+            null,
             null
         );
         membershipService = spy(membershipService);
