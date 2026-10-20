@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static assertions.MAPIAssertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -24,12 +25,16 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.SharedPolicyGroupFixtures;
 import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGroupHistoryUseCase;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroupHistoriesResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -103,5 +108,55 @@ public class SharedPolicyGroupResource_GetHistoriesTest extends AbstractResource
         verify(searchSharedPolicyGroupHistoryUseCase).execute(
             new SearchSharedPolicyGroupHistoryUseCase.Input(ENV_ID, SHARED_POLICY_GROUP_ID, new PageableImpl(2, 1), "version")
         );
+    }
+
+    @Test
+    void should_return_steps_to_a_caller_who_can_update_shared_policy_groups() {
+        // Given
+        when(searchSharedPolicyGroupHistoryUseCase.execute(any())).thenReturn(
+            new SearchSharedPolicyGroupHistoryUseCase.Output(new Page<>(List.of(SharedPolicyGroupFixtures.aSharedPolicyGroup()), 1, 1, 1))
+        );
+
+        // When
+        var response = rootTarget().request().get();
+
+        // Then
+        assertThat(response)
+            .hasStatus(200)
+            .asEntity(SharedPolicyGroupHistoriesResponse.class)
+            .satisfies(histories ->
+                assertThat(histories.getData())
+                    .singleElement()
+                    .satisfies(spg -> assertThat(spg.getSteps()).hasSize(1))
+            );
+    }
+
+    @Test
+    void should_hide_steps_from_a_caller_who_cannot_update_shared_policy_groups() {
+        // Given
+        when(searchSharedPolicyGroupHistoryUseCase.execute(any())).thenReturn(
+            new SearchSharedPolicyGroupHistoryUseCase.Output(new Page<>(List.of(SharedPolicyGroupFixtures.aSharedPolicyGroup()), 1, 1, 1))
+        );
+        when(
+            permissionService.hasPermission(
+                any(),
+                eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP),
+                eq(ENV_ID),
+                eq(RolePermissionAction.UPDATE)
+            )
+        ).thenReturn(false);
+
+        // When
+        var response = rootTarget().request().get();
+
+        // Then
+        assertThat(response)
+            .hasStatus(200)
+            .asEntity(Map.class)
+            .satisfies(page ->
+                assertThat((List<Map<String, Object>>) page.get("data"))
+                    .singleElement()
+                    .satisfies(spg -> assertThat(spg).containsKey("name").doesNotContainKey("steps"))
+            );
     }
 }
