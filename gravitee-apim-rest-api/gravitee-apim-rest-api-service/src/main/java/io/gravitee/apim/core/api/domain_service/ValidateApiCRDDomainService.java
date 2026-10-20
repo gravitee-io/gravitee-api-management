@@ -158,7 +158,13 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
 
         pagesValidator
             .validateAndSanitize(
-                new ValidatePagesDomainService.Input(input.auditInfo, input.spec.getId(), input.spec.getHrid(), input.spec.getPages())
+                new ValidatePagesDomainService.Input(
+                    input.auditInfo,
+                    // A spec naming the API by cross id only carries no id: the pages belong to the API the import updates
+                    existingApi.map(Api::getId).orElse(input.spec.getId()),
+                    input.spec.getHrid(),
+                    input.spec.getPages()
+                )
             )
             .peek(sanitized -> sanitizedBuilder.pages(sanitized.pages()), errors::addAll);
 
