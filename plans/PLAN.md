@@ -106,7 +106,7 @@ todos:
     status: completed
   - id: STORY-32
     content: "Reorder and move documentation by dragging."
-    status: pending
+    status: cancelled
   - id: STORY-33
     content: "Preview OpenAPI and AsyncAPI content."
     status: pending
@@ -1159,7 +1159,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 - refreshing a sourced item (`_fetch`) — STORY-34;
 - the single-item read — dropped: the list returns every field of every item, and the edit page needs the content type, which lives on the page content, not on the item.
 
-**Cache:** `apiDocumentationKeys.list(envId, apiId)` holds both the items and the API's `publications`; every write invalidates that key only, for the API it touched. Publish locations are a separate key and are not invalidated by publishing. Errors reach the screens as the shared client's `ApimApiError` (status and server message), unwrapped. STORY-31 and STORY-32 update the list key optimistically.
+**Cache:** `apiDocumentationKeys.list(envId, apiId)` holds both the items and the API's `publications`; every write invalidates that key only, for the API it touched. Publish locations are a separate key and are not invalidated by publishing. Errors reach the screens as the shared client's `ApimApiError` (status and server message), unwrapped. STORY-31 updates the list key optimistically.
 **Why:** every screen in this phase reads and writes the same backend, so the calls and cache handling belong in one place. Without it each screen fetches its own way, and a change made on one screen — a page created, a visibility toggled — does not show up on the others.
 **Acceptance criteria:**
 - A service covering list, read, create, update, delete, import, publish, unpublish and publish-locations.
@@ -1185,7 +1185,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 - A single Publish or Unpublish action for the whole API, chosen by whether the API is currently in a portal, never both.
 **Files:**
 - *edit* `GAMMA/features/apis/pages/detail/ApiDocumentationPage.tsx` — the empty, permission-gated page STORY-23 added
-- *create* `GAMMA/features/apis/components/detail/documentation/DocumentationTree.tsx` — static at this point; dragging arrives in STORY-32
+- *create* `GAMMA/features/apis/components/detail/documentation/DocumentationTree.tsx` — static: dragging was planned for STORY-32, which is descoped
 - *create* `GAMMA/features/apis/components/detail/documentation/DocumentationBreadcrumbs.tsx`
 **Size:** M · **Depends on:** STORY-24
 **Subtasks:**
@@ -1335,6 +1335,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 3. The cascade prompt when revealing a folder.
 
 #### STORY-32 — Reorder and move documentation by dragging
+**Status:** Descoped. Gamma's documentation tree stays static; reordering and moving are done in the portal editor.
 **Why:** largest frontend item, and the only one with no backend dependency — the natural thing to cut if the release runs short.
 **Acceptance criteria:**
 - Drag to reorder among siblings, onto a folder to move inside it, or to the top level.
@@ -1583,7 +1584,7 @@ flowchart LR
         S30["30 Publish UI"]
         S30B["30 Bis Publish without a page"]
         S31["31 Show / hide item"]
-        S32["32 Drag and drop"]
+        S32["32 Drag and drop — descoped"]
         S33["33 Spec preview"]
         S33B["33 Bis Viewer settings"]
         S34["34 External source"]
@@ -1667,7 +1668,7 @@ The longest backend chain is **01 → 03 → 05 → 06** ≈ 8. It only becomes 
 |---|---|---|
 | **A — ownership core** | 01 → 03 → 04, 05 → 06, 07, 08, 09, 02, 10, 36 | One owner. Stories 01, 02, 05, 06 all land in the same file, so they cannot be split further without constant conflicts |
 | **B — Gamma backend and data** | 11 → 12 → 12 Bis, 13, 14, 15, 16, 17, 35, 19, 38, (37) | Independently testable from day one; 12 does not wait on track A because the explicit-owner rule needs no pipeline change |
-| **C — frontend** | 20 → 21 → 22, 23, 24 → 25 → 26, 27, 28, 29, 30, 30 Bis, 31, 33, 33 Bis, 34, 34 Bis, 34 Ter, 32 | Build against the contract's stand-in. 32 last. 33 Bis carries its own small backend operation |
+| **C — frontend** | 20 → 21 → 22, 23, 24 → 25 → 26, 27, 28, 29, 30, 30 Bis, 31, 33, 33 Bis, 34, 34 Bis, 34 Ter, 32 | Build against the contract's stand-in. 32 descoped. 33 Bis carries its own small backend operation |
 
 Track C is roughly half the total work, so with four people the split is two on backend and two on frontend — the frontend divides cleanly (21/22/26/33/33 Bis/34/34 Bis/34 Ter against 24/25/27/28/29/30/30 Bis/31/32), while the backend cannot, because of the shared file in track A.
 
@@ -1741,7 +1742,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | Unpublishing from Gamma deletes pages the classic editor stored under the listing row | High | Closed: unpublishing hides the listing row instead of deleting it ([#20703](https://github.com/gravitee-io/gravitee-api-management/pull/20703)) |
 | Republishing the API re-shows items that were hidden individually | Low (accepted) | STORY-31 warns about it; choosing what to publish can come later |
 | Publishing from Gamma can move a listing row an admin placed in the portal editor | Low (accepted) | Limited to the caller's own API and to allowed sections; `ApiItemUpdateRule` still applies (STORY-16) |
-| The sortable tree is the largest frontend item | Medium | STORY-32 last, cuttable |
+| The sortable tree is the largest frontend item | Medium | Closed: STORY-32 is descoped |
 | A hand-made folder blocks a GitOps apply | Accepted | STORY-36 pins it; the CRD dry-run does not report it, only the apply does |
 | A console page inside an automation-managed folder is deleted with its content when the config drops that folder | Accepted | Not caused by this work; release-note it |
 | A product's own documentation dies with its listing row, unlike an API's | Low (accepted) | Documented asymmetry |
