@@ -296,3 +296,47 @@ describe('SharedPolicyGroupStudioComponent', () => {
       .flush([fakePolicyPlugin(), ...fakePoliciesPlugin()]);
   }
 });
+
+describe('SharedPolicyGroupStudioComponent without the update permission', () => {
+  const SHARED_POLICY_GROUP_ID = 'sharedPolicyGroupId';
+
+  let fixture: ComponentFixture<SharedPolicyGroupStudioComponent>;
+  let httpTestingController: HttpTestingController;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [SharedPolicyGroupStudioComponent, GioTestingModule, NoopAnimationsModule],
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { params: { sharedPolicyGroupId: SHARED_POLICY_GROUP_ID } } },
+        },
+        { provide: GioTestingPermissionProvider, useValue: ['environment-shared_policy_group-r'] },
+        importProvidersFrom(GioFormJsonSchemaModule),
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(SharedPolicyGroupStudioComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
+  it('should explain that the policies are hidden instead of showing an empty studio', () => {
+    // The API returns no steps to a caller who cannot edit shared policy groups
+    expectGetSharedPolicyGroupRequest(
+      httpTestingController,
+      fakeSharedPolicyGroup({ id: SHARED_POLICY_GROUP_ID, name: 'Shared Policy Group', steps: undefined }),
+    );
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Shared Policy Group');
+    expect(fixture.nativeElement.querySelector('gio-banner-info').textContent).toContain(
+      'only shown to users who can edit shared policy groups',
+    );
+    expect(fixture.nativeElement.querySelector('gio-policy-group-studio')).toBeNull();
+  });
+});
