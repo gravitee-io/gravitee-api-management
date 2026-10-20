@@ -312,7 +312,9 @@ describe('SharedPolicyGroupPolicyStudio', () => {
         });
 
         expect(screen.getByText('Disabled')).not.toBeNull();
-        expect(screen.getByText(/Condition: \{#request\.headers\.debug != null\}/)).not.toBeNull();
+        expect(screen.queryByText(/Condition:/)).toBeNull();
+        await user.hover(screen.getByRole('button', { name: 'Condition for JWT' }));
+        expect(await screen.findByRole('tooltip')).toHaveTextContent('{#request.headers.debug != null}');
 
         await user.click(screen.getByRole('button', { name: 'JWT actions' }));
         await user.click(await screen.findByRole('menuitem', { name: 'Enable' }));

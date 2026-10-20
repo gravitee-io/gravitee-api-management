@@ -24,6 +24,10 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
     cn,
 } from '@gravitee/graphene-core';
 import {
@@ -36,6 +40,7 @@ import {
     MoreVerticalIcon,
     PlusIcon,
     ServerIcon,
+    SlidersHorizontalIcon,
     Trash2Icon,
 } from '@gravitee/graphene-core/icons';
 import {
@@ -325,11 +330,6 @@ function SortableStepItem({
                             Disabled
                         </Badge>
                     ) : null}
-                    {resolvedStep.step.condition ? (
-                        <span className="line-clamp-1 text-xs font-normal text-muted-foreground">
-                            Condition: {resolvedStep.step.condition}
-                        </span>
-                    ) : null}
                     {resolvedStep.unresolved ? (
                         <span className="line-clamp-2 text-xs font-normal text-muted-foreground">
                             {resolvedStep.unresolvedMessage ?? 'This policy is not available in this environment.'}
@@ -337,6 +337,7 @@ function SortableStepItem({
                     ) : null}
                 </span>
             </Button>
+            {resolvedStep.step.condition ? <PolicyStepCondition condition={resolvedStep.step.condition} label={label} /> : null}
             {!readOnly ? (
                 <PolicyStepActions
                     label={label}
@@ -349,6 +350,26 @@ function SortableStepItem({
                 />
             ) : null}
         </li>
+    );
+}
+
+/** Same treatment as Graphene Policy Studio `StepCard`: the expression stays in a tooltip so a long condition cannot widen the chip. */
+function PolicyStepCondition({ condition, label }: { readonly condition: string; readonly label: string }) {
+    return (
+        <TooltipProvider delayDuration={200}>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <button type="button" className="shrink-0 pr-1" aria-label={`Condition for ${label}`}>
+                        <Badge variant="outline" className="size-5 px-0">
+                            <SlidersHorizontalIcon className="size-3" aria-hidden />
+                        </Badge>
+                    </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-xs">
+                    <code className="break-all font-mono text-xs">{condition}</code>
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
     );
 }
 
