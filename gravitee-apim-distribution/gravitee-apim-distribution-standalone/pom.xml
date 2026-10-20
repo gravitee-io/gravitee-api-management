@@ -2886,6 +2886,18 @@
 
                 <dependency>
                     <groupId>io.gravitee.node</groupId>
+                    <artifactId>gravitee-node-cache-plugin-hazelcast</artifactId>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>io.gravitee.node</groupId>
                     <artifactId>gravitee-node-cluster-plugin-hazelcast</artifactId>
                     <type>zip</type>
                     <scope>runtime</scope>
