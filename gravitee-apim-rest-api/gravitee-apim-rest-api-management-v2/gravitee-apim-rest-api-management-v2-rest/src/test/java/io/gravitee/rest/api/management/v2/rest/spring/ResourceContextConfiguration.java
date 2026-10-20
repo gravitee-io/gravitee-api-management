@@ -130,6 +130,7 @@ import io.gravitee.apim.core.cluster.use_case.CountClustersByLifecycleStateUseCa
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.DeployClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.GetClusterStartedApisUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetDeployedClustersUseCase;
 import io.gravitee.apim.core.cluster.use_case.SearchClusterUseCase;
@@ -1203,6 +1204,11 @@ public class ResourceContextConfiguration {
     @Bean
     public UndeployClusterUseCase undeployClusterUseCase() {
         return mock(UndeployClusterUseCase.class);
+    }
+
+    @Bean
+    public GetClusterStartedApisUseCase getClusterStartedApisUseCase() {
+        return mock(GetClusterStartedApisUseCase.class);
     }
 
     @Bean

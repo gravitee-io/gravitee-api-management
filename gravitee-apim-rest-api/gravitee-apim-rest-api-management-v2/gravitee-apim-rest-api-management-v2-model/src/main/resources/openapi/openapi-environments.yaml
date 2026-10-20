@@ -713,6 +713,41 @@ paths:
                 $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
+  /clusters/{clusterId}/started-apis:
+    parameters:
+      - $ref: "#/components/parameters/clusterId"
+    get:
+      tags:
+        - Clusters
+      summary: List the started APIs that block a change of a cluster
+      description: |-
+        User must have the CLUSTER_DEFINITION[READ] permission.
+
+        The started APIs that use the cluster, sorted by name: a Kafka Native API (through a
+        `native-kafka-cluster` or `native-kafka-virtual-cluster` endpoint), a Message API (through a `kafka`
+        endpoint in `CLUSTER` mode), or a Kafka Native API using a deployed virtual cluster with a backend on it.
+        They block undeploying or deleting the cluster. With `connectionCrossId`, only the started APIs using
+        one of these connections: they block removing them. Stopped APIs are never listed.
+      operationId: getClusterStartedApis
+      parameters:
+        - name: connectionCrossId
+          in: query
+          required: false
+          description: Cross ids of the connections about to be removed. Comma-separate several connections (`?connectionCrossId=main,spare`).
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        "200":
+          description: The started APIs that block the change
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClusterStartedApisResponse"
+        default:
+          $ref: "#/components/responses/Error"
   /clusters/{clusterId}/groups:
     parameters:
       - $ref: "#/components/parameters/clusterId"
@@ -1990,6 +2025,23 @@ components:
         configuration:
           type: object
       required: [ "type", "name", "configuration" ]
+    ClusterStartedApisResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClusterStartedApi"
+    ClusterStartedApi:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/ApiType"
+      required: [ "id", "name", "type" ]
     Cluster:
       type: object
       properties:

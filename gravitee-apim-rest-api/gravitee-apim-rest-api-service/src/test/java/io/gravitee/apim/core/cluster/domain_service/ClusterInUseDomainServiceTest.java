@@ -94,6 +94,25 @@ class ClusterInUseDomainServiceTest {
         }
 
         @Test
+        void should_name_three_apis_in_the_message_and_list_them_all_in_the_parameters() {
+            apiQueryService.initWith(
+                List.of("e", "d", "c", "b", "a")
+                    .stream()
+                    .map(id -> ApiFixtures.aMessageApiBoundToCluster(id, ENV_ID, Api.LifecycleState.STARTED, CLUSTER_CROSS_ID, "plain"))
+                    .toList()
+            );
+
+            var error = catchThrowableOfType(ClusterInUseException.class, () ->
+                service.checkNotUsed(registeredCluster(connection("plain")), ENV_ID, "undeploy")
+            );
+
+            assertThat(error.getMessage()).isEqualTo(
+                "Cannot undeploy cluster 'Production': 5 started APIs (a, b, c and 2 more) use it. Stop them first."
+            );
+            assertThat(error.getParameters()).containsOnlyKeys("a", "b", "c", "d", "e");
+        }
+
+        @Test
         void should_accept_when_only_stopped_apis_use_the_cluster() {
             apiQueryService.initWith(
                 List.of(ApiFixtures.aMessageApiBoundToCluster("audit", ENV_ID, Api.LifecycleState.STOPPED, CLUSTER_CROSS_ID, "plain"))
