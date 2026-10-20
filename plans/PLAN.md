@@ -133,7 +133,7 @@ todos:
     status: completed
   - id: STORY-38
     content: "Make the legacy documentation migration script write each API's documentation as API-owned on 4.13, selected by an apimVersion setting checked against the server."
-    status: pending
+    status: completed
 isProject: false
 ---
 
@@ -1050,6 +1050,7 @@ None of them changes STORY-19's design if wrong; each only changes how much the 
 6. The fixture matrix and the run-twice diff.
 
 #### STORY-38 — Migrate legacy API documentation straight to API ownership in the migration script
+**Status:** Done under [PORTAL-290](https://gravitee.atlassian.net/browse/PORTAL-290), as [gravitee-migration-scripts#2](https://github.com/gravitee-io/gravitee-migration-scripts/pull/2). Two differences from the criteria below: the setting is `targetApimVersion`, the version of the server being migrated into, and it is required, so a `conf.json` written for 4.11 or 4.12 stops until it is set; and V2 APIs are migrated like V4 APIs instead of being skipped. A server without the API-scoped endpoints stops the run at the check against the server.
 **Why:** the [documentation migration script](https://github.com/gravitee-io/gravitee-migration-scripts/blob/main/developer-portal-documentation/README.md), written for 4.11 and 4.12, copies the legacy `pages` into the Next Gen portal through the Management API. It creates a listing row for each API under `DOCUMENTATION_MIGRATION/APIS`, and the API's pages under that row. On 4.13 those pages become owned by the API (STORY-03), so they are no longer inside the folder: deleting it, which the README gives as the way to run the script again, leaves them in place, and the next run duplicates them. The script's "already migrated" check looks only for listing rows, so an API that already has documentation, written in Gamma for example, gets legacy pages merged into it. Customers moving to the Next Gen portal on 4.13, from an older version or from the Classic portal, run the script there for the first time.
 **Acceptance criteria:**
 - A new `apimVersion` setting in `conf.json`. `4.13` or later selects the 4.13 behaviour; `4.11`, `4.12` or no value keeps today's, so existing configuration files still work.
