@@ -332,7 +332,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             var updatedDescription = "updated-description";
             var integration = List.<io.gravitee.apim.core.integration.model.Integration>of(IntegrationFixture.anApiIntegration());
             integrationCrudServiceInMemory.initWith(integration);
-            givenExistingGroup(List.of(Group.builder().id(groupId).name("group-name").build()));
+            givenExistingGroup(List.of(Group.builder().id(groupId).environmentId(ENVIRONMENT).name("group-name").build()));
 
             var updateIntegration = new io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration()
                 .name(updatedName)
