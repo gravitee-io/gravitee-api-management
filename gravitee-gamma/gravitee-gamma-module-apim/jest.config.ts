@@ -37,6 +37,7 @@ export default {
         '^@gravitee/gamma-modules-sdk/routing$': '<rootDir>/../../node_modules/@gravitee/gamma-modules-sdk/dist/routing.js',
         '^@gravitee/gamma-ui-shared/api$': '<rootDir>/../gamma-ui-shared/src/api/index.ts',
         '^@gravitee/gamma-ui-shared/federation$': '<rootDir>/../gamma-ui-shared/src/federation/index.ts',
+        '^@gravitee/gravitee-markdown-element$': '<rootDir>/src/main/ui/testing/gmd-viewer-element.stub.ts',
     },
     transform: {
         '^(?!.*\\.(js|jsx|ts|tsx|css|json)$)': '@nx/react/plugins/jest',

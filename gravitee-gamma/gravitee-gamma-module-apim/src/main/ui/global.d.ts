@@ -17,6 +17,16 @@
 declare module '@gravitee/graphene-core/styles';
 declare module '@gravitee/gamma-lib-observability/styles';
 
+declare module '@gravitee/gravitee-markdown-element' {
+    export function registerGmdViewerElement(): Promise<void>;
+}
+
+declare module '@asyncapi/react-component/browser/index.js' {
+    import AsyncApiComponent from '@asyncapi/react-component';
+
+    export default AsyncApiComponent;
+}
+
 interface ImportMeta {
     readonly env: {
         readonly DEV: boolean;

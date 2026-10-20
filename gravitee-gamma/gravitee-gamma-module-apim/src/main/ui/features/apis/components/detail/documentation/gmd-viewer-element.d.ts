@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-export function ApiDetailPlaceholderPage({ title }: { title: string }) {
-    return (
-        <div className="space-y-2">
-            <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-            <p className="text-sm text-muted-foreground">Coming soon.</p>
-        </div>
-    );
+import type { DetailedHTMLProps, HTMLAttributes } from 'react';
+
+/** The `<gmd-viewer>` custom element registered by `registerGmdViewerElement()`. */
+export type GmdViewerElement = HTMLElement & { content: string };
+
+declare module 'react' {
+    namespace JSX {
+        interface IntrinsicElements {
+            'gmd-viewer': DetailedHTMLProps<HTMLAttributes<GmdViewerElement>, GmdViewerElement> & Pick<GmdViewerElement, 'content'>;
+        }
+    }
 }
