@@ -320,37 +320,57 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         RolePermissionAction... acl
     ) {
         LOGGER.debug("Find applicationIds for user and permission {}, {}, {}", username, rolePermission, acl);
-        ApplicationQuery applicationQuery = buildApplicationQueryForUserAndPermission(executionContext, rolePermission, acl, username);
+        Set<String> grantedApplicationIds = findApplicationIdsGrantingPermission(executionContext, username, rolePermission, acl);
+        // searchIds reads an empty id set as "no restriction", so no grant must short-circuit here.
+        if (grantedApplicationIds.isEmpty()) {
+            return emptySet();
+        }
+
+        ApplicationQuery applicationQuery = new ApplicationQuery();
+        applicationQuery.setIds(grantedApplicationIds);
+        applicationQuery.setStatus(ApplicationStatus.ACTIVE.name());
         applicationQuery.setExcludeFilters(Arrays.asList(ApplicationExcludeFilter.OWNER));
         return searchIds(executionContext, applicationQuery, sortable);
     }
 
-    @NotNull
-    private ApplicationQuery buildApplicationQueryForUserAndPermission(
+    private Set<String> findApplicationIdsGrantingPermission(
         ExecutionContext executionContext,
+        String username,
         RolePermission rolePermission,
-        RolePermissionAction[] acl,
-        String username
+        RolePermissionAction[] acl
     ) {
+        // Permission names are shared across scopes (API LOG vs APPLICATION LOG), and group memberships carry roles of every scope.
         List<String> roleIdsWithPermission = roleService
             .findAllByOrganization(executionContext.getOrganizationId())
             .stream()
+            .filter(roleEntity -> roleEntity.getScope() == rolePermission.getScope())
             .filter(roleEntity -> roleService.hasPermission(roleEntity.getPermissions(), rolePermission.getPermission(), acl))
             .map(RoleEntity::getId)
             .collect(toList());
 
-        Set<String> appIds = membershipService.getReferenceIdsByMemberAndReferenceAndRoleIn(
-            MembershipMemberType.USER,
-            username,
-            MembershipReferenceType.APPLICATION,
-            roleIdsWithPermission
+        Set<String> applicationIds = new HashSet<>(
+            membershipService.getReferenceIdsByMemberAndReferenceAndRoleIn(
+                MembershipMemberType.USER,
+                username,
+                MembershipReferenceType.APPLICATION,
+                roleIdsWithPermission
+            )
         );
 
-        ApplicationQuery applicationQuery = new ApplicationQuery();
-        applicationQuery.setIds(appIds);
-        applicationQuery.setUser(username);
-        applicationQuery.setStatus(ApplicationStatus.ACTIVE.name());
-        return applicationQuery;
+        Set<String> groupIds = membershipService.getReferenceIdsByMemberAndReferenceAndRoleIn(
+            MembershipMemberType.USER,
+            username,
+            MembershipReferenceType.GROUP,
+            roleIdsWithPermission
+        );
+        if (!groupIds.isEmpty()) {
+            ApplicationQuery groupApplicationsQuery = new ApplicationQuery();
+            groupApplicationsQuery.setGroups(groupIds);
+            groupApplicationsQuery.setStatus(ApplicationStatus.ACTIVE.name());
+            applicationIds.addAll(searchIds(executionContext, groupApplicationsQuery, null));
+        }
+
+        return applicationIds;
     }
 
     @Override
