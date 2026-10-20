@@ -70,19 +70,23 @@
     </mat-card-header>
 
     <div class="card__content">
-      @if (policies$ | async; as policies) {
-        <gio-policy-group-studio
-          [policies]="policies"
-          [readOnly]="isReadOnly || sharedPolicyGroup.isKubernetesOrigin"
-          [apiType]="sharedPolicyGroup.apiType"
-          [flowPhase]="sharedPolicyGroup.phase"
-          [policyDocumentationFetcher]="policyDocumentationFetcher"
-          [policySchemaFetcher]="policySchemaFetcher"
-          [policyGroup]="sharedPolicyGroup.steps ?? []"
-          (policyGroupChange)="onStudioChange($event)"
-        ></gio-policy-group-studio>
+      @if (isReadOnly) {
+        <gio-banner-info>The policies of a shared policy group are only shown to users who can edit shared policy groups.</gio-banner-info>
       } @else {
-        <gio-loader></gio-loader>
+        @if (policies$ | async; as policies) {
+          <gio-policy-group-studio
+            [policies]="policies"
+            [readOnly]="isReadOnly || sharedPolicyGroup.isKubernetesOrigin"
+            [apiType]="sharedPolicyGroup.apiType"
+            [flowPhase]="sharedPolicyGroup.phase"
+            [policyDocumentationFetcher]="policyDocumentationFetcher"
+            [policySchemaFetcher]="policySchemaFetcher"
+            [policyGroup]="sharedPolicyGroup.steps ?? []"
+            (policyGroupChange)="onStudioChange($event)"
+          ></gio-policy-group-studio>
+        } @else {
+          <gio-loader></gio-loader>
+        }
       }
     </div>
   } @else {
