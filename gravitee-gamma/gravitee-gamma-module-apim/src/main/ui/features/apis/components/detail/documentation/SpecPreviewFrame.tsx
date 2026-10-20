@@ -19,6 +19,10 @@ import { Component, type ErrorInfo, type ReactNode } from 'react';
 import type { SpecPreview } from '../../../hooks/useSpecPreview';
 import type { SpecDocument } from '../../../utils/specDocument';
 
+// Redoc, Swagger UI and AsyncAPI set only some of their colors and inherit the rest, expecting a light page as in
+// the portal. Graphene cannot scope its light theme to a subtree, so that page is recreated here.
+const PORTAL_PAGE_SURFACE = { colorScheme: 'light', backgroundColor: '#ffffff', color: '#333333' } as const;
+
 /**
  * What an OpenAPI or AsyncAPI preview shows around its viewer: why the preview is out of date, or why there is
  * nothing to preview. The viewer is only ever given a document that parsed.
@@ -47,7 +51,11 @@ export function SpecPreviewFrame({
                 </Alert>
             ) : null}
             <div className={problem ? 'opacity-50' : undefined}>
-                <ViewerErrorBoundary document={document}>{children(document)}</ViewerErrorBoundary>
+                <ViewerErrorBoundary document={document}>
+                    <div className="rounded-md p-4" style={PORTAL_PAGE_SURFACE}>
+                        {children(document)}
+                    </div>
+                </ViewerErrorBoundary>
             </div>
         </div>
     );
