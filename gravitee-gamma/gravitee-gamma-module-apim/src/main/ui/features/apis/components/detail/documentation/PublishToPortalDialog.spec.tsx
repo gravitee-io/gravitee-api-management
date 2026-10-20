@@ -22,8 +22,8 @@ import type { ReactNode } from 'react';
 import { PublishToPortalDialog } from './PublishToPortalDialog';
 import { ApimApiError } from '../../../../../shared/api/apimClient';
 import { notify } from '../../../../../shared/notify';
-import { listApiPublishLocations, publishApiToPortal } from '../../../services/apiDocumentation';
-import type { ApiPortalPublication, ApiPortalPublishLocation } from '../../../types/apiDocumentation';
+import { createApiOverviewPage, listApiPublishLocations, publishApiToPortal } from '../../../services/apiDocumentation';
+import type { ApiPortalPublication, ApiPortalPublishLocation, PortalNavigationPage } from '../../../types/apiDocumentation';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     ...jest.requireActual<object>('@gravitee/gamma-modules-sdk'),
@@ -49,6 +49,7 @@ Element.prototype.scrollIntoView ??= () => {};
 
 const mockLocations = jest.mocked(listApiPublishLocations);
 const mockPublish = jest.mocked(publishApiToPortal);
+const mockCreateOverviewPage = jest.mocked(createApiOverviewPage);
 
 const GUIDES: ApiPortalPublishLocation = { id: 'guides', name: 'Guides' };
 const APIS: ApiPortalPublishLocation = { id: 'apis', name: 'APIs' };
@@ -75,12 +76,33 @@ function publication(sectionId: string, sectionName: string, published: boolean)
     };
 }
 
-function renderDialog(publications: ApiPortalPublication[] = []) {
+function renderDialog(
+    publications: ApiPortalPublication[] = [],
+    { hasPage = true, canCreatePage = true }: { hasPage?: boolean; canCreatePage?: boolean } = {},
+) {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
     const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
     const onClose = jest.fn();
-    render(<PublishToPortalDialog open apiId="api-1" publications={publications} onClose={onClose} />, { wrapper });
-    return { onClose, user: userEvent.setup() };
+    const onOverviewPageCreated = jest.fn();
+    render(
+        <PublishToPortalDialog
+            open
+            apiId="api-1"
+            publications={publications}
+            hasPage={hasPage}
+            canCreatePage={canCreatePage}
+            onOverviewPageCreated={onOverviewPageCreated}
+            onClose={onClose}
+        />,
+        { wrapper },
+    );
+    return { onClose, onOverviewPageCreated, user: userEvent.setup() };
+}
+
+const OVERVIEW_PAGE = { id: 'overview', type: 'PAGE', title: 'Overview' } as PortalNavigationPage;
+
+function createOverviewPageButton() {
+    return screen.getByRole('button', { name: /^(Create Overview page|Creating)/ }) as HTMLButtonElement;
 }
 
 function sectionPicker() {
@@ -224,5 +246,73 @@ describe('PublishToPortalDialog', () => {
         expect(publishButton().disabled).toBe(false);
         expect(onClose).not.toHaveBeenCalled();
         expect(notify.success).not.toHaveBeenCalled();
+    });
+
+    describe('when the API has no page', () => {
+        it('asks for a page first, without offering a section', () => {
+            renderDialog([], { hasPage: false });
+
+            expect(screen.getByRole('heading', { name: 'Add a page before publishing' })).not.toBeNull();
+            expect(
+                screen.getByText(
+                    "An API needs at least one page to be shown in the developer portal. Start from an Overview page built from the API's details.",
+                ),
+            ).not.toBeNull();
+            expect(screen.queryByRole('combobox', { name: 'Section' })).toBeNull();
+            expect(screen.queryByRole('button', { name: /^Publish/ })).toBeNull();
+            expect(mockLocations).not.toHaveBeenCalled();
+        });
+
+        it('creates the Overview page and hands it over', async () => {
+            mockCreateOverviewPage.mockResolvedValue(OVERVIEW_PAGE);
+            const { user, onOverviewPageCreated } = renderDialog([], { hasPage: false });
+
+            await user.click(createOverviewPageButton());
+
+            await waitFor(() => expect(onOverviewPageCreated).toHaveBeenCalledWith('overview'));
+            expect(mockCreateOverviewPage).toHaveBeenCalledWith('env-1', 'api-1');
+            expect(notify.success).toHaveBeenCalledWith("Page 'Overview' created");
+            expect(mockPublish).not.toHaveBeenCalled();
+        });
+
+        it('cannot be sent twice or dismissed while creating the page', async () => {
+            mockCreateOverviewPage.mockReturnValue(new Promise(() => {}));
+            const { user, onClose } = renderDialog([], { hasPage: false });
+
+            await user.click(createOverviewPageButton());
+            await user.keyboard('{Escape}');
+
+            expect(createOverviewPageButton().textContent).toBe('Creating…');
+            expect(createOverviewPageButton().disabled).toBe(true);
+            expect(onClose).not.toHaveBeenCalled();
+        });
+
+        it('shows why the server refused, keeping the dialog open', async () => {
+            mockCreateOverviewPage.mockRejectedValue(new ApimApiError(500, 'The page could not be created'));
+            const { user, onClose, onOverviewPageCreated } = renderDialog([], { hasPage: false });
+
+            await user.click(createOverviewPageButton());
+
+            expect(await screen.findByText('The page could not be created')).not.toBeNull();
+            expect(createOverviewPageButton().disabled).toBe(false);
+            expect(onOverviewPageCreated).not.toHaveBeenCalled();
+            expect(onClose).not.toHaveBeenCalled();
+        });
+
+        it('only explains, without permission to add documentation', async () => {
+            const { user, onClose } = renderDialog([], { hasPage: false, canCreatePage: false });
+
+            expect(
+                screen.getByText(
+                    'An API needs at least one page to be shown in the developer portal. Ask someone who can add documentation to this API.',
+                ),
+            ).not.toBeNull();
+            expect(screen.queryByRole('button', { name: 'Create Overview page' })).toBeNull();
+
+            // The footer's button, not the dialog's own close icon, which bears the same name
+            await user.click(screen.getByText('Close', { selector: 'button' }));
+
+            expect(onClose).toHaveBeenCalled();
+        });
     });
 });

@@ -205,18 +205,29 @@ jest.mock('../../components/detail/documentation/PublishToPortalDialog', () => (
         open,
         apiId,
         publications,
+        hasPage,
+        canCreatePage,
+        onOverviewPageCreated,
         onClose,
     }: {
         open: boolean;
         apiId: string;
         publications: { sectionName: string }[];
+        hasPage: boolean;
+        canCreatePage: boolean;
+        onOverviewPageCreated: (pageId: string) => void;
         onClose: () => void;
     }) =>
         open ? (
             <div role="dialog" aria-label="Publish to the developer portal">
                 Publishing {apiId}, listed in [{publications.map(publication => publication.sectionName).join(', ')}]
+                {hasPage ? ', with a page' : ', with no page'}
+                {canCreatePage ? ', can create one' : ', cannot create one'}
                 <button type="button" onClick={onClose}>
                     Close
+                </button>
+                <button type="button" onClick={() => onOverviewPageCreated('overview')}>
+                    Overview created
                 </button>
             </div>
         ) : null,
@@ -433,6 +444,51 @@ describe('ApiDocumentationPage', () => {
             givenDocumentation({ items: [GUIDES], publications: [publication(true)] });
             renderPage();
             expect(screen.queryByRole('button', { name: 'Unpublish' })).not.toBeInTheDocument();
+        });
+
+        it('tells the dialog the API has a page, and that the user can create one', async () => {
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Publish' }));
+
+            expect(screen.getByRole('dialog', { name: 'Publish to the developer portal' })).toHaveTextContent(
+                'with a page, can create one',
+            );
+        });
+
+        it('tells the dialog the API has no page when its documentation holds only folders and links', async () => {
+            givenDocumentation({ items: [GUIDES, STATUS_PAGE], publications: [] });
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Publish' }));
+
+            expect(screen.getByRole('dialog', { name: 'Publish to the developer portal' })).toHaveTextContent('with no page');
+        });
+
+        it('tells the dialog the user cannot create a page without api-documentation-c', async () => {
+            mockUseHasPermission.mockImplementation(
+                (query: { anyOf?: string[]; allOf?: string[] }) =>
+                    ![...(query.anyOf ?? []), ...(query.allOf ?? [])].includes('api-documentation-c'),
+            );
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Publish' }));
+
+            expect(screen.getByRole('dialog', { name: 'Publish to the developer portal' })).toHaveTextContent('cannot create one');
+        });
+
+        it('opens the Overview page the dialog created in the editor', async () => {
+            givenDocumentation({ items: [], publications: [] });
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Publish' }));
+            await user.click(screen.getByRole('button', { name: 'Overview created' }));
+
+            expect(screen.getByText('Editing overview')).toBeInTheDocument();
         });
 
         it('offers neither while the documentation is loading', () => {

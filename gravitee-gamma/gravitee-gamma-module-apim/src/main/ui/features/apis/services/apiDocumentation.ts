@@ -24,6 +24,7 @@ import type {
     FetchPortalNavigationItemResponse,
     ImportPortalNavigationRequest,
     ImportPortalNavigationResponse,
+    PortalNavigationPage,
     PortalPageContent,
     PortalPageOpenApiConfiguration,
     PublishApiToPortal,
@@ -95,6 +96,11 @@ export async function publishApiToPortal(environmentId: string, apiId: string, r
         method: 'POST',
         body: JSON.stringify(request),
     });
+}
+
+/** Creates the API's Overview page from the API's details, unpublished. */
+export async function createApiOverviewPage(environmentId: string, apiId: string): Promise<PortalNavigationPage> {
+    return apimFetchJsonV2<PortalNavigationPage>(environmentId, `${documentationPath(apiId)}/_overview-page`, { method: 'POST' });
 }
 
 export async function unpublishApiFromPortal(environmentId: string, apiId: string): Promise<void> {

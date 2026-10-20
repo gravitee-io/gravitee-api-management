@@ -37,37 +37,121 @@ import { useId, useState, type FormEvent } from 'react';
 
 import { notify } from '../../../../../shared/notify';
 import { extractErrorMessage } from '../../../../../shared/notify/extractErrorMessage';
-import { useApiPublishLocations, usePublishApiToPortal } from '../../../hooks/useApiDocumentation';
-import type { ApiPortalPublication, PublishApiToPortal } from '../../../types/apiDocumentation';
+import { useApiPublishLocations, useCreateApiOverviewPage, usePublishApiToPortal } from '../../../hooks/useApiDocumentation';
+import type { ApiPortalPublication, PortalNavigationPage, PublishApiToPortal } from '../../../types/apiDocumentation';
 import { defaultPublishSectionId, getHiddenListing } from '../../../utils/documentationTree';
 
 export function PublishToPortalDialog({
     open,
     apiId,
     publications,
+    hasPage,
+    canCreatePage,
+    onOverviewPageCreated,
     onClose,
 }: Readonly<{
     open: boolean;
     apiId: string;
     /** Where the API is listed: a hidden listing is reused, and moved if needed, rather than another one added. */
     publications: ApiPortalPublication[];
+    /** Listed with no page, the API would have nothing to open in the portal. */
+    hasPage: boolean;
+    canCreatePage: boolean;
+    onOverviewPageCreated: (pageId: string) => void;
     onClose: () => void;
 }>) {
-    // Held here rather than in the form: closing the dialog mid-request would unmount the form and lose a refusal.
+    // Held here rather than in the forms: closing the dialog mid-request would unmount the form and lose a refusal.
     const publish = usePublishApiToPortal(apiId);
+    const createOverviewPage = useCreateApiOverviewPage(apiId);
+    const isPending = publish.isPending || createOverviewPage.isPending;
 
     return (
-        <Dialog open={open} onOpenChange={isOpen => !isOpen && !publish.isPending && onClose()}>
+        <Dialog open={open} onOpenChange={isOpen => !isOpen && !isPending && onClose()}>
             <DialogContent style={{ maxWidth: '480px' }}>
-                <PublishToPortalForm
-                    apiId={apiId}
-                    publications={publications}
-                    publishApi={publish.mutateAsync}
-                    isPublishing={publish.isPending}
-                    onClose={onClose}
-                />
+                {hasPage ? (
+                    <PublishToPortalForm
+                        apiId={apiId}
+                        publications={publications}
+                        publishApi={publish.mutateAsync}
+                        isPublishing={publish.isPending}
+                        onClose={onClose}
+                    />
+                ) : (
+                    <AddPageFirst
+                        canCreatePage={canCreatePage}
+                        createOverviewPage={() => createOverviewPage.mutateAsync()}
+                        isCreating={createOverviewPage.isPending}
+                        onCreated={onOverviewPageCreated}
+                        onClose={onClose}
+                    />
+                )}
             </DialogContent>
         </Dialog>
+    );
+}
+
+function AddPageFirst({
+    canCreatePage,
+    createOverviewPage,
+    isCreating,
+    onCreated,
+    onClose,
+}: Readonly<{
+    canCreatePage: boolean;
+    createOverviewPage: () => Promise<PortalNavigationPage>;
+    isCreating: boolean;
+    onCreated: (pageId: string) => void;
+    onClose: () => void;
+}>) {
+    const [refusal, setRefusal] = useState<string | null>(null);
+
+    async function handleCreate() {
+        setRefusal(null);
+        try {
+            const page = await createOverviewPage();
+            notify.success(`Page '${page.title}' created`);
+            onCreated(page.id);
+        } catch (error) {
+            setRefusal(extractErrorMessage(error));
+        }
+    }
+
+    return (
+        <>
+            <DialogHeader>
+                <DialogTitle>Add a page before publishing</DialogTitle>
+                <DialogDescription>
+                    An API needs at least one page to be shown in the developer portal.{' '}
+                    {canCreatePage
+                        ? "Start from an Overview page built from the API's details."
+                        : 'Ask someone who can add documentation to this API.'}
+                </DialogDescription>
+            </DialogHeader>
+
+            {refusal ? (
+                <Alert variant="destructive">
+                    <AlertCircleIcon aria-hidden />
+                    <AlertDescription>{refusal}</AlertDescription>
+                </Alert>
+            ) : null}
+
+            <DialogFooter>
+                {canCreatePage ? (
+                    <>
+                        <Button type="button" variant="outline" onClick={onClose} disabled={isCreating}>
+                            Cancel
+                        </Button>
+                        <Button type="button" onClick={() => void handleCreate()} disabled={isCreating}>
+                            {isCreating ? 'Creating…' : 'Create Overview page'}
+                        </Button>
+                    </>
+                ) : (
+                    <Button type="button" variant="outline" onClick={onClose}>
+                        Close
+                    </Button>
+                )}
+            </DialogFooter>
+        </>
     );
 }
 

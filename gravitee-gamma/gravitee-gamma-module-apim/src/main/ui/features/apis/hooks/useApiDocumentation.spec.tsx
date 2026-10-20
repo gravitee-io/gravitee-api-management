@@ -24,6 +24,7 @@ import {
     useChangeApiDocumentationItem,
     useApiPublishLocations,
     useCreateApiDocumentationItem,
+    useCreateApiOverviewPage,
     useDeleteApiDocumentationItem,
     useFetchApiDocumentationItem,
     useImportApiDocumentation,
@@ -35,6 +36,7 @@ import {
 import { ApimApiError } from '../../../shared/api/apimClient';
 import {
     createApiDocumentationItem,
+    createApiOverviewPage,
     deleteApiDocumentationItem,
     fetchApiDocumentationItem,
     getApiDocumentationPageContent,
@@ -70,6 +72,7 @@ const mockDeleteApiDocumentationItem = jest.mocked(deleteApiDocumentationItem);
 const mockImportApiDocumentation = jest.mocked(importApiDocumentation);
 const mockPublishApiToPortal = jest.mocked(publishApiToPortal);
 const mockUnpublishApiFromPortal = jest.mocked(unpublishApiFromPortal);
+const mockCreateApiOverviewPage = jest.mocked(createApiOverviewPage);
 const mockSaveApiDocumentationPageContent = jest.mocked(saveApiDocumentationPageContent);
 const mockSaveApiDocumentationPageConfiguration = jest.mocked(saveApiDocumentationPageConfiguration);
 const mockGetApiDocumentationPageContent = jest.mocked(getApiDocumentationPageContent);
@@ -213,6 +216,13 @@ describe('useApiDocumentation hooks', () => {
             render: () => renderWithQueryClient(() => useUnpublishApiFromPortal('api-1')),
             variables: undefined,
             service: mockUnpublishApiFromPortal,
+            expectedCall: ['env-1', 'api-1'],
+        },
+        {
+            name: 'useCreateApiOverviewPage',
+            render: () => renderWithQueryClient(() => useCreateApiOverviewPage('api-1')),
+            variables: undefined,
+            service: mockCreateApiOverviewPage,
             expectedCall: ['env-1', 'api-1'],
         },
     ])('$name', ({ render, variables, service, expectedCall }) => {

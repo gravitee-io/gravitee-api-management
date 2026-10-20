@@ -15,6 +15,7 @@
  */
 import {
     createApiDocumentationItem,
+    createApiOverviewPage,
     deleteApiDocumentationItem,
     fetchApiDocumentationItem,
     getApiDocumentationPageContent,
@@ -167,6 +168,16 @@ describe('apiDocumentation service', () => {
                 method: 'POST',
                 body: JSON.stringify({ sectionId: 'section-1' }),
             });
+        });
+    });
+
+    describe('createApiOverviewPage', () => {
+        it('POSTs with no body and resolves to the created page', async () => {
+            const page = { id: 'nav-1', type: 'PAGE', title: 'Overview' };
+            mockApimFetchJsonV2.mockResolvedValueOnce(page);
+
+            await expect(createApiOverviewPage('env-1', 'api-1')).resolves.toBe(page);
+            expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', `${BASE_PATH}/_overview-page`, { method: 'POST' });
         });
     });
 
