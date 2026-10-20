@@ -110,15 +110,22 @@ spec:
       {{- if .Values.api.additionalPlugins -}}
         {{- $plugins = concat $plugins .Values.api.additionalPlugins -}}
       {{- end -}}
+      {{- $installPlugins := list -}}
       {{- if .Values.api.federation.enabled -}}
-        {{- $plugins = concat $plugins .Values.cluster.plugins -}}
+        {{- range .Values.cluster.plugins -}}
+          {{- if contains "://" . -}}
+            {{- $plugins = append $plugins . -}}
+          {{- else -}}
+            {{- $installPlugins = append $installPlugins . -}}
+          {{- end -}}
+        {{- end -}}
       {{- end -}}
 
-      {{- $pluginParams := dict "plugins" $plugins "appName" "graviteeio-management-api" "initContainers" $initContainers "context" . -}}
+      {{- $pluginParams := dict "plugins" $plugins "installPlugins" $installPlugins "image" (printf "%s:%s" .Values.api.image.repository $dockerImageTag) "imagePullPolicy" .Values.api.image.pullPolicy "appName" "graviteeio-management-api" "initContainers" $initContainers "context" . -}}
       {{- $shouldDownloadJdbcDriver := eq (include "apim.shouldDownloadJdbcDriver" .) "true" -}}
       {{- $shouldCopyJdbcDriverFromImage := eq (include "apim.shouldCopyJdbcDriverFromImage" .) "true" -}}
       {{- $shouldProvisionJdbcDriver := eq (include "apim.shouldProvisionJdbcDriver" .) "true" -}}
-      {{- if or .Values.api.extraInitContainers $plugins $shouldProvisionJdbcDriver }}
+      {{- if or .Values.api.extraInitContainers $plugins $installPlugins $shouldProvisionJdbcDriver }}
       initContainers:
         {{- if $shouldDownloadJdbcDriver }}
         - name: get-repository-jdbc-ext
@@ -175,7 +182,7 @@ spec:
             {{- end }}
             {{- end }}
             {{- end }}
-            {{- if $plugins }}
+            {{- if or $plugins $installPlugins }}
             - name: GRAVITEE_PLUGINS_PATH_0
               value: '${gravitee.home}/plugins'
             - name: GRAVITEE_PLUGINS_PATH_1
