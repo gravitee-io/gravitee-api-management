@@ -530,7 +530,7 @@ class ImportApiCRDUseCaseTest {
 
         groupQueryService.initWith(
             List.of(
-                Group.builder().id(GROUP_ID_1).build(),
+                Group.builder().id(GROUP_ID_1).environmentId(ENVIRONMENT_ID).build(),
                 Group.builder().id(GROUP_ID_2).environmentId(ENVIRONMENT_ID).name(GROUP_NAME).build()
             )
         );
@@ -1001,6 +1001,22 @@ class ImportApiCRDUseCaseTest {
             assertThat(throwable).isInstanceOf(ValidationDomainException.class);
             assertThat(apiCrudService.storage()).isEmpty();
             assertThat(pageCrudService.storage()).containsExactly(aStoredPage("foreign-page-id", "other-api-id", Page.ReferenceType.API));
+        }
+
+        @Test
+        void should_not_attach_a_group_of_another_environment() {
+            groupQueryService.initWith(
+                List.of(Group.builder().id("other-environment-group-id").environmentId("other-environment-id").build())
+            );
+
+            var result = useCase.execute(
+                new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().groups(Set.of("other-environment-group-id")).build())
+            );
+
+            assertThat(apiCrudService.get(API_ID).getGroups()).doesNotContain("other-environment-group-id");
+            assertThat(result.status().getErrors().warning()).containsExactly(
+                "Group [other-environment-group-id] could not be found in environment [environment-id]"
+            );
         }
 
         @Test
