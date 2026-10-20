@@ -299,6 +299,89 @@ describe('ShellLayout app switcher', () => {
     });
 });
 
+describe('ShellLayout with Account Management', () => {
+    const MODULES_WITH_CLOUD: GammaModule[] = [
+        { id: 'apim', name: 'API Management', version: '1.0.0', remoteName: 'apim', exposedModule: 'Module' },
+        { id: 'cloud', name: 'Account Management', version: '1.0.0', remoteName: 'cloud', exposedModule: 'Module' },
+    ];
+
+    beforeEach(() => {
+        resetAllStores();
+        seedBootstrap();
+        seedEnvironments();
+    });
+
+    function renderShellAt(path: string) {
+        render(
+            <MemoryRouter initialEntries={[path]}>
+                <Routes>
+                    <Route path="/environments/:envHrid" element={<ShellLayout modules={MODULES_WITH_CLOUD} />}>
+                        <Route path="*" element={null} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>,
+        );
+    }
+
+    it('should pin Account Management in place of Home, and list Home first among the products', async () => {
+        renderShellAt('/environments/env-1/home');
+
+        await userEvent.setup().click(screen.getByRole('button', { name: 'Home' }));
+
+        const items = await screen.findAllByRole('menuitem');
+        expect(items.map(item => item.textContent)).toEqual(
+            ['Account Management', 'Home', 'API Management'].map(label => expect.stringMatching(`^${label}`)),
+        );
+        const separator = within(screen.getByRole('menu')).getByRole('separator');
+        expect(items[0].compareDocumentPosition(separator) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(items[1].compareDocumentPosition(separator) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
+        expect(items[1].textContent).toContain('Overview and quick actions');
+    });
+
+    it('should keep Home pinned when the Cloud module is not deployed', async () => {
+        render(
+            <MemoryRouter initialEntries={['/environments/env-1/home']}>
+                <Routes>
+                    <Route path="/environments/:envHrid" element={<ShellLayout modules={MODULES} />}>
+                        <Route path="*" element={null} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>,
+        );
+
+        await userEvent.setup().click(screen.getByRole('button', { name: 'Home' }));
+
+        const items = await screen.findAllByRole('menuitem');
+        expect(items.map(item => item.textContent)).toEqual(['Home', 'API Management'].map(label => expect.stringMatching(`^${label}`)));
+        const separator = within(screen.getByRole('menu')).getByRole('separator');
+        expect(items[0].compareDocumentPosition(separator) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(screen.queryByRole('menuitem', { name: /Account Management/ })).toBeNull();
+    });
+
+    it('should link Account Management to the Cloud module', async () => {
+        renderShellAt('/environments/env-1/home');
+
+        await userEvent.setup().click(screen.getByRole('button', { name: 'Home' }));
+
+        expect((await screen.findByRole('menuitem', { name: /Account Management/ })).closest('a')?.getAttribute('href')).toBe(
+            '/environments/env-1/cloud',
+        );
+    });
+
+    it('should hide the environment selector in Account Management', () => {
+        renderShellAt('/environments/env-1/cloud');
+
+        expect(screen.getByRole('button', { name: 'Account Management' })).toBeTruthy();
+        expect(screen.queryByRole('button', { name: /Switch environment/ })).toBeNull();
+    });
+
+    it('should keep the environment selector in the other apps', () => {
+        renderShellAt('/environments/env-1/apim');
+
+        expect(screen.getByRole('button', { name: /Switch environment/ })).toBeTruthy();
+    });
+});
+
 describe('ShellLayout document title', () => {
     beforeEach(() => {
         resetAllStores();
