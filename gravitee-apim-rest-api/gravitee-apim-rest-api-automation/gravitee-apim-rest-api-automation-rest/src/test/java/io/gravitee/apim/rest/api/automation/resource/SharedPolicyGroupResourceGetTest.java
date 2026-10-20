@@ -32,6 +32,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
 import jakarta.inject.Inject;
 import java.util.List;
+import java.util.Map;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -113,6 +114,23 @@ class SharedPolicyGroupResourceGetTest extends AbstractResourceTest {
             assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
             assertThat(state.getSteps()).isNotEmpty();
         });
+    }
+
+    @Test
+    void should_hide_steps_from_a_caller_who_cannot_update_shared_policy_groups() {
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP),
+                eq(ENVIRONMENT),
+                eq(RolePermissionAction.UPDATE)
+            )
+        ).thenReturn(false);
+
+        try (var response = rootTarget().path(HRID).request().get()) {
+            assertThat(response.getStatus()).isEqualTo(200);
+            assertThat(response.readEntity(Map.class)).containsEntry("hrid", HRID).doesNotContainKey("steps");
+        }
     }
 
     @Test
