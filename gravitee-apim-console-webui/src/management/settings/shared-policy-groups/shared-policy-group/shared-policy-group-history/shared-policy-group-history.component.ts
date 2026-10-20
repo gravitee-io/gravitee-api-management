@@ -26,7 +26,7 @@ import { MatSortModule } from '@angular/material/sort';
 import { debounceTime, filter, map, tap } from 'rxjs/operators';
 import { isEqual, isNil } from 'lodash';
 import { MatIcon } from '@angular/material/icon';
-import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
+import { GIO_DIALOG_WIDTH, GioBannerModule } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { FormsModule } from '@angular/forms';
@@ -83,6 +83,7 @@ type PageTableVM = {
     MatIcon,
     MatCheckbox,
     FormsModule,
+    GioBannerModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -99,7 +100,12 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
 
   private refreshPageTableVM$ = new BehaviorSubject<void>(undefined);
 
-  protected displayedColumns = ['checkbox', 'version', 'name', 'lastDeploy', 'actions'];
+  // The API returns the steps of each version only to a caller who can edit shared policy groups.
+  protected canReadSteps = this.permissionService.hasAnyMatching(['environment-shared_policy_group-u']);
+
+  protected displayedColumns = this.canReadSteps
+    ? ['checkbox', 'version', 'name', 'lastDeploy', 'actions']
+    : ['version', 'name', 'lastDeploy'];
   protected filters: GioTableWrapperFilters = {
     searchTerm: '',
     pagination: {
@@ -197,9 +203,7 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
       .open<HistoryStudioDialogComponent, HistoryStudioDialogData, HistoryStudioDialogResult>(HistoryStudioDialogComponent, {
         data: {
           sharedPolicyGroup,
-          isReadOnly:
-            sharedPolicyGroup.originContext?.origin === 'KUBERNETES' ||
-            !this.permissionService.hasAnyMatching(['environment-shared_policy_group-u']),
+          isReadOnly: sharedPolicyGroup.originContext?.origin === 'KUBERNETES' || !this.canReadSteps,
         },
         width: GIO_DIALOG_WIDTH.LARGE,
         role: 'dialog',
