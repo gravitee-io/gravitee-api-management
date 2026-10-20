@@ -443,7 +443,9 @@ components:
         phase:
           $ref: "#/components/schemas/FlowPhase"
         steps:
-          description: SharedPolicyGroup Steps
+          description: |-
+            SharedPolicyGroup Steps.
+            A GET returns them only to a caller with the `SHARED_POLICY_GROUP` `UPDATE` permission on the environment.
           items:
             $ref: "#/components/schemas/FlowStep"
           type: array
