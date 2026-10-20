@@ -25,8 +25,12 @@ import io.gravitee.rest.api.model.api.TicketQuery;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.TicketService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -37,6 +41,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -54,14 +59,24 @@ public class PlatformTicketsResource extends AbstractResource {
     @ApiResponse(responseCode = "201", description = "Ticket succesfully created")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response createPlatformTicket(@Valid @NotNull final NewTicketEntity ticketEntity) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        checkReadPermission(executionContext, RolePermission.API_DEFINITION, ticketEntity.getApi());
+        checkReadPermission(executionContext, RolePermission.APPLICATION_DEFINITION, ticketEntity.getApplication());
+
         ticketService.create(
-            GraviteeContext.getExecutionContext(),
+            executionContext,
             getAuthenticatedUser(),
             ticketEntity,
             GraviteeContext.getCurrentOrganization(),
             ParameterReferenceType.ORGANIZATION
         );
         return Response.status(Response.Status.CREATED).build();
+    }
+
+    private void checkReadPermission(ExecutionContext executionContext, RolePermission permission, String referenceId) {
+        if (StringUtils.isNotEmpty(referenceId) && !hasPermission(executionContext, permission, referenceId, RolePermissionAction.READ)) {
+            throw new ForbiddenAccessException();
+        }
     }
 
     @GET
