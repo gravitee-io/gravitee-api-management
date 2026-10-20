@@ -237,3 +237,47 @@ describe('SharedPolicyGroupHistoryComponent', () => {
       .flush([fakePolicyPlugin(), ...fakePoliciesPlugin()]);
   }
 });
+
+describe('SharedPolicyGroupHistoryComponent without the update permission', () => {
+  const SHARED_POLICY_GROUP_ID = 'sharedPolicyGroupId';
+  let fixture: ComponentFixture<SharedPolicyGroupHistoryComponent>;
+  let componentHarness: SharedPolicyGroupHistoryHarness;
+  let httpTestingController: HttpTestingController;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [NoopAnimationsModule, SharedPolicyGroupHistoryComponent, GioTestingModule],
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { params: { sharedPolicyGroupId: SHARED_POLICY_GROUP_ID } } },
+        },
+        { provide: GioTestingPermissionProvider, useValue: ['environment-shared_policy_group-r'] },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(SharedPolicyGroupHistoryComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, SharedPolicyGroupHistoryHarness);
+    expectGetSharedPolicyGroupRequest(httpTestingController, fakeSharedPolicyGroup({ id: SHARED_POLICY_GROUP_ID }));
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
+  it('should list the versions without the actions that show their policies', async () => {
+    expectListSharedPolicyGroupHistoriesRequest(
+      httpTestingController,
+      fakePagedResult([fakeSharedPolicyGroup({ steps: undefined })]),
+      SHARED_POLICY_GROUP_ID,
+    );
+
+    const table = await componentHarness.getTable();
+    expect(await table.getCellTextByIndex()).toStrictEqual([['1', 'Shared policy group', expect.any(String)]]);
+    expect(fixture.nativeElement.querySelector('gio-banner-info').textContent).toContain(
+      'only shown to users who can edit shared policy groups',
+    );
+    expect(fixture.nativeElement.querySelector('.shared-policy-group-history__headerRightBtn')).toBeNull();
+  });
+});
