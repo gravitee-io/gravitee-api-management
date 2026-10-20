@@ -59,7 +59,19 @@ public class SharedPolicyGroupResource extends AbstractResource {
                 executionContext.getEnvironmentId(),
                 hridContainsUUID ? hrid : HRIDToUUID.sharedPolicyGroup().context(executionContext).hrid(hrid).id()
             );
-            return Response.ok(SharedPolicyGroupMapper.INSTANCE.toState(sharedPolicyGroup)).build();
+            var state = SharedPolicyGroupMapper.INSTANCE.toState(sharedPolicyGroup);
+            // The steps hold the policy configuration, inline credentials included: only a caller who may edit reads them.
+            if (
+                !hasPermission(
+                    executionContext,
+                    RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+                    executionContext.getEnvironmentId(),
+                    RolePermissionAction.UPDATE
+                )
+            ) {
+                state.setSteps(null);
+            }
+            return Response.ok(state).build();
         } catch (SharedPolicyGroupNotFoundException e) {
             log.warn("SharedPolicyGroup not found for hrid: {}, operation: get", hrid);
             throw new HRIDNotFoundException(hrid);
