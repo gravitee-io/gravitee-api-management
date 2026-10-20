@@ -150,11 +150,14 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
             List<Object> paramList = new ArrayList<>();
             paramList.add(hash);
 
+            if (mediaCriteria != null && mediaCriteria.getApi() != null) {
+                sql += " and api = ?";
+                paramList.add(mediaCriteria.getApi());
+            } else {
+                sql += " and api IS NULL";
+            }
+
             if (mediaCriteria != null) {
-                if (mediaCriteria.getApi() != null) {
-                    sql += " and api = ?";
-                    paramList.add(mediaCriteria.getApi());
-                }
                 if (mediaCriteria.getMediaType() != null) {
                     sql += " and type = ?";
                     paramList.add(mediaCriteria.getMediaType());
