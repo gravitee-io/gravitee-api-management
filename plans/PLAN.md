@@ -99,7 +99,7 @@ todos:
     content: "Publish and unpublish the API from Gamma."
     status: completed
   - id: STORY-30-BIS
-    content: "Ask for a page before publishing an API that has none, offering an Overview page to review first."
+    content: "Ask for a page before publishing an API that has none, offering to create an Overview page."
     status: pending
   - id: STORY-31
     content: "Show or hide an individual page, folder or link."
@@ -445,7 +445,7 @@ The natural home is `PortalNavigationItemCreationExpansionDomainService.expand(.
 |---|---|---|
 | Gamma: write documentation | Content + items owned by the API; no listing row yet | No — nothing to graft into |
 | Gamma: "Publish to Portal" | Listing row created at the chosen folder, or an existing hidden row moved there and made visible; all the API's items published | Yes |
-| Gamma: "Publish to Portal" with no page | Refused; the dialog offers to create an Overview page to review first (STORY-30 Bis) | No |
+| Gamma: "Publish to Portal" with no page | Gamma asks for a page first and offers to create an Overview page, opened in the editor (STORY-30 Bis); the server does not refuse | No |
 | Editor: add an API to the navigation | Listing row created immediately, **unpublished**; starter page seeded **only if the API has no documentation yet** | No — the row hides everything below it |
 | Editor: add a page under a listed API | Created immediately, owned by the API | No, until published |
 | Either: unpublish | Listing row hidden, **not deleted**; all the API's items hidden; the documentation survives | No |
@@ -1290,14 +1290,13 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 3. The no-sections-available state, per decision 3.
 
 #### STORY-30 Bis — Ask for a page before publishing an API that has none
-**Why:** publishing an API that has no page lists it in the portal menu with nothing to open, so developers cannot subscribe to it from the portal. The portal editor avoids this by seeding an Overview starter page when it adds an API (STORY-09), while Gamma's publish creates the listing row directly and seeds nothing (the STORY-16 row of the [PHASE 3 differences](#where-the-implementation-differs-from-the-stories)). Seeding on publish would put a page live that nobody has read, so Gamma asks for a page first and offers to create the Overview page, which the author reviews before publishing.
+**Why:** publishing an API that has no page lists it in the portal menu with nothing to open, so developers cannot subscribe to it from the portal. The portal editor avoids this by seeding an Overview starter page when it adds an API (STORY-09), while Gamma's publish creates the listing row directly and seeds nothing (the STORY-16 row of the [PHASE 3 differences](#where-the-implementation-differs-from-the-stories)). Seeding on publish would put a page live that nobody has read, so Gamma asks for a page first and offers to create the Overview page, which opens in the editor before the API is published.
 **Acceptance criteria:**
-- Publish on an API that has no page opens "Add a page before publishing" instead of the section picker. Any page the API owns counts, at any depth and whether published or not, since publishing shows them all; folders and links do not, so an API with only those has no page.
+- Publish on an API that has no page opens "Add a page before publishing" instead of the section picker. Gamma decides from the documentation list: any page counts, at any depth and whether published or not, since publishing shows them all; folders and links do not, so an API with only those has no page.
 - That dialog explains that an API needs at least one page to be shown in the developer portal, and offers Cancel and "Create Overview page". Without create permission on the API's documentation it offers only Close, and says to ask someone who can add documentation to this API.
 - "Create Overview page" creates an unpublished, public Gravitee Markdown page titled "Overview" at the top of the API's documentation, from the template the portal editor seeds — the MCP proxy variant for an MCP proxy API — and opens it in the editor.
-- Opened that way, the editor shows a banner once: the page was created from the API's details; review it, then publish the API from the documentation list. The editor gets no other change and no publish action: the user goes back to the documentation list, where Publish now opens the section dialog of STORY-30.
-- The server refuses to publish an API that has no page, with an error naming the condition, which the dialog shows like its other refusals. This covers the last page being deleted while the dialog is open, and every other client of the endpoint.
-- The server refuses to create the Overview page when the API already has a page, so a second click cannot create a second one.
+- The editor is unchanged: no banner and no publish action. The user publishes the API from the documentation list, where Publish now opens the section dialog of STORY-30.
+- The server enforces neither rule: publishing an API with no page is not refused, and the Overview page operation does not refuse an API that already has a page. The check is Gamma's alone, so another client of `_publish` can still list an API with no page, and calling the operation twice creates two Overview pages.
 - The portal editor is unchanged and keeps seeding its starter page when it adds an API; STORY-09's rule, which also counts links, stays as it is.
 - The Overview page keeps the template as written, as the portal editor's starter page does, so it follows later changes to the API: the portal fills in the API's details each time it displays the page, and the editor's source and preview show `${api.name}` and `<#if …>` as written (decision 10).
 **Files:**
@@ -1305,20 +1304,15 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 - *edit* `V2REST/resource/api/ApiDocumentationNavigationResource.java` — the action, under `API_DOCUMENTATION` CREATE
 - *create* `CORE/portal_page/use_case/CreateApiOverviewPageUseCase.java`
 - *edit* `CORE/portal_page/domain_service/PortalNavigationDefaultPageDomainService.java` — choose the template from the API rather than from a listing row, so the new use case shares the template choice and the content loading
-- *edit* `CORE/portal_page/use_case/PublishApiToPortalUseCase.java` — refuse an API with no page
-- *edit* `CORE/portal_page/exception/InvalidPortalNavigationItemDataException.java` — the refusal
 - *edit* `GAMMA/features/apis/components/detail/documentation/PublishToPortalDialog.tsx` — the "Add a page before publishing" state
 - *edit* `GAMMA/features/apis/pages/detail/ApiDocumentationPage.tsx` — tell the dialog whether the API has a page, and open the editor once the Overview page is created
-- *edit* `GAMMA/features/apis/utils/documentationTree.ts` — whether the API has a page
 - *edit* `GAMMA/features/apis/services/apiDocumentation.ts` and `GAMMA/features/apis/hooks/useApiDocumentation.ts` — create the Overview page; invalidate the documentation list like the other writes
-- *edit* `GAMMA/features/apis/pages/detail/ApiDocumentationEditPage.tsx` — the one-time banner, from the navigation state
 **Size:** M · **Depends on:** STORY-16, STORY-26, STORY-30
-**Note:** security-sensitive: a new operation under API documentation permission, and publish now refuses an API it accepted before, for every client of the endpoint. The Automation API has no publish operation and is not affected. The server also counts a page stored as a real child of a standalone listing row, as STORY-09 does; the documentation list does not return those, so in that rare case the dialog asks for a page and the Overview page operation refuses with the reason.
+**Note:** security-sensitive: a new operation under API documentation permission. The Automation API is not affected. The documentation list does not return a page stored as a real child of a standalone listing row, so an API whose only pages are such pages is asked for a page; creating the Overview page then gives it one.
 **Subtasks:**
-1. The server refuses to publish an API with no page.
-2. The Overview page operation, with its template chosen from the API, refused when the API has a page.
-3. The dialog's "Add a page before publishing" state, with and without create permission.
-4. Creating the Overview page, opening it in the editor, and the one-time banner.
+1. The Overview page operation, with its template chosen from the API.
+2. The dialog's "Add a page before publishing" state, with and without create permission.
+3. Creating the Overview page and opening it in the editor.
 
 #### STORY-31 — Show or hide an individual page, folder or link
 **Status:** Done under [PORTAL-274](https://gravitee.atlassian.net/browse/PORTAL-274), as [#21195](https://github.com/gravitee-io/gravitee-api-management/pull/21195). Publish and Unpublish on each row, confirmed in a dialog. Unpublishing a folder unpublishes its contents; publishing one offers to publish them, checked by default. Publish is disabled while the API or the item's folder is unpublished, and items inside a synced folder cannot be changed.
@@ -1730,7 +1724,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | zone.js turns out to be required and patches globals across Gamma | Medium | STORY-20 settles it before anything depends on it |
 | Create response misleads the editor about where the page is | Medium | Closed: STORY-04 ([#21063](https://github.com/gravitee-io/gravitee-api-management/pull/21063)) returns the created item the way the tree does |
 | Publishing impossible when no top-level section exists | Medium | Accepted: the publish dialog explains it, a portal administrator adds a section (decision 3), and STORY-35 adds a default one |
-| An API published from Gamma with no page has nothing to open in the portal and cannot be subscribed to | Medium | STORY-30 Bis: Gamma asks for a page first, and the server refuses to publish an API without one |
+| An API published with no page has nothing to open in the portal and cannot be subscribed to | Medium | STORY-30 Bis: Gamma asks for a page first. Accepted: the server does not enforce it, so another client of `_publish` can still list an API with no page |
 | Deleting an API from the console leaks documentation and page text | Medium | Closed: STORY-37 ([#21242](https://github.com/gravitee-io/gravitee-api-management/pull/21242)) |
 | The migration cannot be reversed | Medium | In-place updates, unchanged ids, logging, run-twice test (STORY-19) |
 | Items with an external source lose read-only protection after migration | Medium | Read-only is decided by the source and the stored parent chain, not by ownership, and the migration keeps that chain below each root. STORY-19 tests it |
@@ -1756,7 +1750,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | Angular runtime shipped into Gamma for one widget | Low | Lazy-load on the documentation screen only (STORY-22) |
 | Gamma's theme does not reach inside the preview | Low (accepted) | Already true in the classic console |
 
-**Security-sensitive** — call out in the PR descriptions for STORY-12, STORY-12 Bis, STORY-13, STORY-16 and STORY-33 Bis: new authorization paths, publishing moved from environment-level to API-level permission, and the body-target check. STORY-19 rewrites persisted ownership fields. STORY-34 Bis writes fetcher settings back, which can hold credentials the server returns masked. STORY-34 Ter changes the server's rule on deleting a synced item, for the API-scoped and the environment-scoped endpoints alike. STORY-30 Bis adds an operation under API documentation permission and makes publish refuse an API with no page.
+**Security-sensitive** — call out in the PR descriptions for STORY-12, STORY-12 Bis, STORY-13, STORY-16 and STORY-33 Bis: new authorization paths, publishing moved from environment-level to API-level permission, and the body-target check. STORY-19 rewrites persisted ownership fields. STORY-34 Bis writes fetcher settings back, which can hold credentials the server returns masked. STORY-34 Ter changes the server's rule on deleting a synced item, for the API-scoped and the environment-scoped endpoints alike. STORY-30 Bis adds an operation under API documentation permission.
 
 ## Follow-ups
 
