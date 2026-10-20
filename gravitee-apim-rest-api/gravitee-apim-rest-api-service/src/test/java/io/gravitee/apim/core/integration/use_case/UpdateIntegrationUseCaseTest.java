@@ -135,7 +135,7 @@ class UpdateIntegrationUseCaseTest {
         @Test
         void should_add_group_to_an_integration() {
             //Given
-            givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("group-name").build()));
+            givenExistingGroup(List.of(Group.builder().id(GROUP_ID).environmentId(ENV_ID).name("group-name").build()));
             var updateIntegration = new Input.UpdateFields("updated-integration", "updated-description", Set.of("group-id"), null);
 
             //When
@@ -165,7 +165,7 @@ class UpdateIntegrationUseCaseTest {
             var apiIntegration = IntegrationFixture.anApiIntegration();
             apiIntegration = IntegrationFixture.withGroups(apiIntegration, Set.of(GROUP_ID));
             integrationCrudServiceInMemory.initWith(List.of(apiIntegration));
-            givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("group-name").build()));
+            givenExistingGroup(List.of(Group.builder().id(GROUP_ID).environmentId(ENV_ID).name("group-name").build()));
             var updateIntegration = new Input.UpdateFields("updated-integration", "updated-description", null, null);
 
             //When

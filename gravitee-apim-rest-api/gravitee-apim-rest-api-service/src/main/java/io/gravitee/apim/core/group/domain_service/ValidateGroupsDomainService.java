@@ -86,7 +86,11 @@ public class ValidateGroupsDomainService implements Validator<ValidateGroupsDoma
 
         var givenGroups = new HashSet<>(input.groups());
 
-        var groupsFromIds = groupQueryService.findByIds(givenGroups).stream().toList();
+        var groupsFromIds = groupQueryService
+            .findByIds(givenGroups)
+            .stream()
+            .filter(group -> input.environmentId().equals(group.getEnvironmentId()))
+            .toList();
         var groupsFromNames = groupQueryService.findByNames(input.environmentId(), givenGroups).stream().toList();
 
         var groupIds = groupsFromIds.stream().map(Group::getId).collect(toSet());
