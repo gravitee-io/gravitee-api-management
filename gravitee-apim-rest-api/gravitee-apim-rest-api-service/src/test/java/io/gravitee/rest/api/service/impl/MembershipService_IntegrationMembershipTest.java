@@ -151,6 +151,7 @@ public class MembershipService_IntegrationMembershipTest {
             commandRepository,
             null,
             null,
+            null,
             null
         );
     }

@@ -133,6 +133,7 @@ public class MembershipService_CreateNewMembershipForApiTest {
             commandRepository,
             null,
             null,
+            null,
             null
         );
 

@@ -112,11 +112,9 @@ public class MembershipService_GetMemberPermissionsTest {
             null,
             null,
             null,
-<<<<<<< HEAD
             null,
             null,
-=======
->>>>>>> e4c7f77 (fix(rest-api): grant cluster permissions to users reaching a cluster through a group)
+            null,
             null
         );
     }
