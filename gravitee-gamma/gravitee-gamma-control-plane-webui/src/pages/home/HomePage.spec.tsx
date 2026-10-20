@@ -143,6 +143,14 @@ describe('HomePage', () => {
         ]);
     });
 
+    it('should not list Account Management among the application cards', () => {
+        const cloud: GammaModule = { id: 'cloud', name: 'Account Management', version: '1.0.0', remoteName: 'cloud', exposedModule: 'App' };
+        renderHome([cloud, ...ALL_MODULES]);
+
+        const appsSection = screen.getByRole('region', { name: /applications/i });
+        expect(within(appsSection).queryByRole('heading', { level: 3, name: 'Account Management' })).toBeNull();
+    });
+
     it('should render an "Upgrade to access" CTA instead of a link when aim is missing from /modules', async () => {
         renderHome(ALL_MODULES.filter(m => m.id !== 'aim'));
 

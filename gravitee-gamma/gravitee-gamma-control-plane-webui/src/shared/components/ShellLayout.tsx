@@ -26,6 +26,7 @@ import { useAvatarCacheBust, useLogout, useUser } from '../../features/auth';
 import { useEnvironmentStore } from '../../features/environment/environment.store';
 import { getPrimaryHrid, useEnvHrid } from '../../features/environment/environment.utils';
 import {
+    ACCOUNT_MANAGEMENT,
     PORTALS_MODULE_ID,
     HOME_ICON,
     MODULE_ICONS,
@@ -45,6 +46,8 @@ const DOCUMENT_TITLE_SUFFIX = 'Gravitee Gamma';
 const hostAppDefinition = {
     key: GAMMA_APP_KEY,
     label: 'Home',
+    // Only shown when Home sits in the grid, next to a pinned Account Management.
+    description: 'Overview and quick actions',
     icon: <HOME_ICON className="size-5" />,
     pinned: true,
 };
@@ -59,9 +62,23 @@ function appPath(appKey: string, envHrid: string): string {
 }
 
 function buildAppDefinitions(modules: readonly GammaModule[], appHref: (appKey: string) => string | undefined) {
+    const hasAccountManagement = modules.some(m => m.id === ACCOUNT_MANAGEMENT.id);
+    // Home is environment-scoped: next to Account Management it is one more app of the grid.
+    const accountManagement = hasAccountManagement
+        ? [
+              {
+                  key: ACCOUNT_MANAGEMENT.id,
+                  label: ACCOUNT_MANAGEMENT.label,
+                  icon: moduleIcon(ACCOUNT_MANAGEMENT.id),
+                  href: appHref(ACCOUNT_MANAGEMENT.id),
+                  pinned: true,
+              },
+          ]
+        : [];
     return [
-        { ...hostAppDefinition, href: appHref(GAMMA_APP_KEY) },
-        ...orderByCatalog(modules).map(m => {
+        ...accountManagement,
+        { ...hostAppDefinition, href: appHref(GAMMA_APP_KEY), pinned: !hasAccountManagement },
+        ...orderByCatalog(modules.filter(m => m.id !== ACCOUNT_MANAGEMENT.id)).map(m => {
             const product = findModuleProduct(m.id);
             return {
                 key: m.id,
@@ -134,6 +151,8 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
         [consoleUrl, modules, toHref, envHrid],
     );
     const activeAppKey = useMemo(() => resolveActiveAppKey(pathname, envHrid, modules), [pathname, envHrid, modules]);
+    // Account Management sits above the environments, so switching environments means nothing there.
+    const isAccountScoped = activeAppKey === ACCOUNT_MANAGEMENT.id;
 
     // Home is the host, not a product: its pages are titled by their breadcrumbs alone.
     const activeAppLabel = activeAppKey === GAMMA_APP_KEY ? undefined : apps.find(app => app.key === activeAppKey)?.label;
@@ -200,7 +219,7 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
                             apps={apps}
                             activeAppKey={activeAppKey}
                             onAppChange={handleAppChange}
-                            environments={envItems}
+                            environments={isAccountScoped ? undefined : envItems}
                             activeEnvironmentKey={envHrid}
                             onEnvironmentChange={handleEnvironmentChange}
                         />
