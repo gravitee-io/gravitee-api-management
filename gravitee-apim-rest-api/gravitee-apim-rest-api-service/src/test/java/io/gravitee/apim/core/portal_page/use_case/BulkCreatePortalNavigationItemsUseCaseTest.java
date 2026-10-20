@@ -15,16 +15,20 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.API1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -40,18 +44,26 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemRenderingDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
+import io.gravitee.apim.core.portal_page.exception.ItemAlreadyExistsException;
+import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -59,56 +71,71 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class BulkCreatePortalNavigationItemsUseCaseTest {
 
     private BulkCreatePortalNavigationItemUseCase useCase;
+    private PortalNavigationItemsCrudServiceInMemory crudService;
+    private PortalNavigationItemDomainService domainService;
     private PortalNavigationItemsQueryServiceInMemory queryService;
     private PortalNavigationItemValidatorService validatorService;
     private PortalNavigationItemCreationExpansionDomainService creationExpansionDomainService;
     private PortalNavigationDefaultPageDomainService defaultPageDomainService;
     private ApiProductQueryServiceInMemory apiProductQueryService;
     private ApiCrudServiceInMemory apiCrudService;
+    private PortalPageContentCrudServiceInMemory pageContentCrudService;
 
     @BeforeEach
     void setUp() {
         final var storage = new ArrayList<PortalNavigationItem>();
 
-        final var crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
+        crudService = spy(new PortalNavigationItemsCrudServiceInMemory(storage));
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
         final var pageContentQueryService = new PortalPageContentQueryServiceInMemory();
         apiProductQueryService = new ApiProductQueryServiceInMemory();
+        apiCrudService = new ApiCrudServiceInMemory();
         validatorService = new PortalNavigationItemValidatorService(
             queryService,
             pageContentQueryService,
             apiProductQueryService,
-            new PortalNavigationItemSourceDomainServiceInMemory()
+            new PortalNavigationItemSourceDomainServiceInMemory(),
+            apiCrudService
         );
-        final var pageContentCrudService = new PortalPageContentCrudServiceInMemory();
-        apiCrudService = new ApiCrudServiceInMemory();
+        pageContentCrudService = new PortalPageContentCrudServiceInMemory();
 
-        final var domainService = new PortalNavigationItemDomainService(
+        domainService = new PortalNavigationItemDomainService(
             crudService,
             queryService,
             pageContentCrudService,
             PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
             apiCrudService,
-            new PortalNavigationItemSourceDomainServiceInMemory()
+            new PortalNavigationItemSourceDomainServiceInMemory(),
+            new ApiOwnedNavigationDomainService(queryService, crudService)
         );
-        creationExpansionDomainService = new PortalNavigationItemCreationExpansionDomainService(apiProductQueryService, apiCrudService);
+        creationExpansionDomainService = new PortalNavigationItemCreationExpansionDomainService(
+            apiProductQueryService,
+            apiCrudService,
+            queryService
+        );
         defaultPageDomainService = new PortalNavigationDefaultPageDomainService(
             queryService,
             domainService,
             pageContentCrudService,
-            apiCrudService
+            apiCrudService,
+            creationExpansionDomainService,
+            validatorService,
+            new ApiOwnedNavigationDomainService(queryService, crudService)
         );
         useCase = new BulkCreatePortalNavigationItemUseCase(
             domainService,
             validatorService,
             creationExpansionDomainService,
             defaultPageDomainService,
-            new PortalNavigationItemSourceDomainServiceInMemory()
+            new PortalNavigationItemSourceDomainServiceInMemory(),
+            new PortalNavigationItemRenderingDomainService(queryService)
         );
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
     }
@@ -122,6 +149,12 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             )
         );
         apiCrudService.initWith(List.of(Api.builder().id("shared-api").name("Shared API").environmentId(ENV_ID).build()));
+        var standalonePage = PortalNavigationItemFixtures.aPage("Standalone documentation", null)
+            .toBuilder()
+            .reference(new NavigationItemReference.ApiReference("shared-api"))
+            .build();
+        standalonePage.markAsRoot();
+        queryService.storage().add(standalonePage);
         var firstProduct = productItem("product-1", "First product", 0);
         var secondProduct = productItem("product-2", "Second product", 1);
 
@@ -132,6 +165,12 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             .containsExactly("product-1", "product-2");
         assertDefaultProductAndApiPages(output.items().get(0).getId());
         assertDefaultProductAndApiPages(output.items().get(1).getId());
+        assertThat(pageContentCrudService.storage()).hasSize(4);
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, standalonePage.getId())).satisfies(page -> {
+            assertThat(page.getReference()).isEqualTo(new NavigationItemReference.ApiReference("shared-api"));
+            assertThat(page.getParentId()).isNull();
+            assertThat(page.getTitle()).isEqualTo("Standalone documentation");
+        });
     }
 
     @Test
@@ -148,7 +187,301 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
                 assertThat(page.getTitle()).isEqualTo("Overview");
                 assertThat(page.getOrder()).isZero();
                 assertThat(page.getPublished()).isFalse();
+                assertThat(page.getParentId()).isEqualTo(output.items().getFirst().getId());
+                assertThat(page.getReference()).isEqualTo(NavigationItemReference.defaultReference());
             });
+    }
+
+    @Test
+    void should_inherit_pending_api_ownership_and_visibility_through_pending_folders_in_request_order() {
+        apiCrudService.initWith(List.of(Api.builder().id("pending-api").name("Pending API").environmentId(ENV_ID).build()));
+        var api = CreatePortalNavigationItem.builder()
+            .id(PortalNavigationItemId.random())
+            .type(PortalNavigationItemType.API)
+            .apiId("pending-api")
+            .area(PortalArea.TOP_NAVBAR)
+            .parentId(PortalNavigationItemId.of(APIS_ID))
+            .visibility(PortalVisibility.PRIVATE)
+            .order(0)
+            .build();
+        var folder = documentation(PortalNavigationItemType.FOLDER, "Guides", api.getId());
+        var page = documentation(PortalNavigationItemType.PAGE, "Overview", folder.getId());
+        var link = documentation(PortalNavigationItemType.LINK, "Reference", api.getId()).toBuilder().order(1).build();
+
+        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(api, folder, page, link)));
+
+        assertThat(output.items())
+            .extracting(PortalNavigationItem::getId)
+            .containsExactly(api.getId(), folder.getId(), page.getId(), link.getId());
+        assertThat(output.items().getFirst().getReference()).isEqualTo(NavigationItemReference.defaultReference());
+        assertThat(output.items().subList(1, 4)).allSatisfy(item -> {
+            assertThat(item.getReference()).isEqualTo(new NavigationItemReference.ApiReference("pending-api"));
+            assertThat(item.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
+        });
+        assertThat(output.items().get(1).getParentId()).isEqualTo(api.getId());
+        assertThat(output.items().get(1).getRootId()).isEqualTo(PortalNavigationItemId.of(APIS_ID));
+        assertThat(output.items().get(2).getParentId()).isEqualTo(folder.getId());
+        assertThat(output.items().get(2).getRootId()).isEqualTo(folder.getId());
+        assertThat(output.items().get(3).getParentId()).isEqualTo(api.getId());
+        assertThat(output.items().get(3).getRootId()).isEqualTo(PortalNavigationItemId.of(APIS_ID));
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, folder.getId())).satisfies(stored -> {
+            assertThat(stored.getParentId()).isNull();
+            assertThat(stored.getRootId()).isEqualTo(folder.getId());
+        });
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, link.getId())).satisfies(stored -> {
+            assertThat(stored.getParentId()).isNull();
+            assertThat(stored.getRootId()).isEqualTo(link.getId());
+        });
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, page.getId())).usingRecursiveComparison().isEqualTo(output.items().get(2));
+        assertThat(
+            queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
+                ENV_ID,
+                PortalArea.TOP_NAVBAR,
+                new NavigationItemReference.ApiReference("pending-api")
+            )
+        )
+            .extracting(PortalNavigationItem::getOrder)
+            .containsExactly(0, 1);
+        assertThat(pageContentCrudService.storage()).hasSize(1);
+    }
+
+    @Test
+    void should_return_rendered_bulk_response_when_api_listing_is_deleted_after_first_write() {
+        apiCrudService.initWith(List.of(Api.builder().id("api-1").name("API 1").environmentId(ENV_ID).build()));
+        var api = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID));
+        var page = documentation(PortalNavigationItemType.PAGE, "Overview", api.getId());
+        var folder = documentation(PortalNavigationItemType.FOLDER, "Guides", api.getId()).toBuilder().order(1).build();
+        doAnswer(invocation -> {
+            var createdItem = invocation.callRealMethod();
+            crudService.delete(api.getId());
+            return createdItem;
+        })
+            .when(crudService)
+            .create(any());
+
+        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(page, folder)));
+
+        assertThat(output.items()).extracting(PortalNavigationItem::getId).containsExactly(page.getId(), folder.getId());
+        assertThat(output.items()).allSatisfy(item -> {
+            assertThat(item.getParentId()).isEqualTo(api.getId());
+            assertThat(item.getRootId()).isEqualTo(api.getRootId());
+            var stored = queryService.findByIdAndEnvironmentId(ENV_ID, item.getId());
+            assertThat(stored.getParentId()).isNull();
+            assertThat(stored.getRootId()).isEqualTo(stored.getId());
+        });
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, api.getId())).isNull();
+        assertThat(pageContentCrudService.storage()).hasSize(1);
+    }
+
+    @Test
+    void should_not_write_bulk_documentation_when_api_listing_disappears_after_validation() {
+        apiCrudService.initWith(List.of(Api.builder().id("api-1").name("API 1").environmentId(ENV_ID).build()));
+        var api = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID));
+        var page = documentation(PortalNavigationItemType.PAGE, "Overview", api.getId());
+        var folder = documentation(PortalNavigationItemType.FOLDER, "Guides", api.getId()).toBuilder().order(1).build();
+        var validator = spy(validatorService);
+        doAnswer(invocation -> {
+            invocation.callRealMethod();
+            crudService.delete(api.getId());
+            return null;
+        })
+            .when(validator)
+            .validateAll(anyList(), eq(ENV_ID));
+        var useCaseWithConcurrentDelete = new BulkCreatePortalNavigationItemUseCase(
+            domainService,
+            validator,
+            creationExpansionDomainService,
+            defaultPageDomainService,
+            new PortalNavigationItemSourceDomainServiceInMemory(),
+            new PortalNavigationItemRenderingDomainService(queryService)
+        );
+
+        assertThrows(ParentNotFoundException.class, () ->
+            useCaseWithConcurrentDelete.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(page, folder)))
+        );
+
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, page.getId())).isNull();
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, folder.getId())).isNull();
+        assertThat(pageContentCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_render_all_documentation_types_under_existing_api_without_changing_storage() {
+        apiCrudService.initWith(List.of(Api.builder().id("api-1").name("API 1").environmentId(ENV_ID).build()));
+        var api = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID));
+        var page = documentation(PortalNavigationItemType.PAGE, "Overview", api.getId());
+        var folder = documentation(PortalNavigationItemType.FOLDER, "Guides", api.getId()).toBuilder().order(1).build();
+        var link = documentation(PortalNavigationItemType.LINK, "Reference", api.getId()).toBuilder().order(2).build();
+
+        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(page, folder, link)));
+
+        assertThat(output.items()).extracting(PortalNavigationItem::getId).containsExactly(page.getId(), folder.getId(), link.getId());
+        assertThat(output.items()).allSatisfy(item -> {
+            assertThat(item.getParentId()).isEqualTo(api.getId());
+            assertThat(item.getRootId()).isEqualTo(api.getRootId());
+            assertThat(item.getReference()).isEqualTo(new NavigationItemReference.ApiReference("api-1"));
+            assertThat(item.getPublished()).isFalse();
+            var stored = queryService.findByIdAndEnvironmentId(ENV_ID, item.getId());
+            assertThat(stored.getParentId()).isNull();
+            assertThat(stored.getRootId()).isEqualTo(stored.getId());
+            assertThat(item).usingRecursiveComparison().ignoringFields("parentId", "rootId").isEqualTo(stored);
+        });
+        assertThat(pageContentCrudService.storage()).hasSize(1);
+    }
+
+    @Test
+    void should_keep_api_scoped_bulk_response_canonical_without_rendered_parent() {
+        apiCrudService.initWith(List.of(Api.builder().id("api-1").name("API 1").environmentId(ENV_ID).build()));
+        var reference = new NavigationItemReference.ApiReference("api-1");
+        var folder = documentation(PortalNavigationItemType.FOLDER, "Guides", null).toBuilder().reference(reference).build();
+        var page = documentation(PortalNavigationItemType.PAGE, "Overview", folder.getId()).toBuilder().reference(reference).build();
+
+        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(folder, page)));
+
+        assertThat(output.items()).extracting(PortalNavigationItem::getId).containsExactly(folder.getId(), page.getId());
+        assertThat(output.items().getFirst().getParentId()).isNull();
+        assertThat(output.items().getFirst().getRootId()).isEqualTo(folder.getId());
+        assertThat(output.items().getLast().getParentId()).isEqualTo(folder.getId());
+        assertThat(output.items().getLast().getRootId()).isEqualTo(folder.getId());
+        assertThat(output.items()).allSatisfy(item -> {
+            assertThat(item.getReference()).isEqualTo(reference);
+            assertThat(item).usingRecursiveComparison().isEqualTo(queryService.findByIdAndEnvironmentId(ENV_ID, item.getId()));
+        });
+    }
+
+    @Test
+    void should_mask_source_configuration_on_rendered_bulk_response() {
+        apiCrudService.initWith(List.of(Api.builder().id("api-1").name("API 1").environmentId(ENV_ID).build()));
+        var api = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID));
+        var source = PortalNavigationItemSource.builder()
+            .sourceType("http-fetcher")
+            .sourceConfiguration(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA)
+            .build();
+        var page = documentation(PortalNavigationItemType.PAGE, "Sourced overview", api.getId()).toBuilder().source(source).build();
+        var folder = documentation(PortalNavigationItemType.FOLDER, "Guides", api.getId()).toBuilder().order(1).build();
+
+        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(page, folder)));
+
+        assertThat(output.items()).extracting(PortalNavigationItem::getId).containsExactly(page.getId(), folder.getId());
+        assertThat(output.items()).allSatisfy(item -> {
+            assertThat(item.getParentId()).isEqualTo(api.getId());
+            assertThat(item.getRootId()).isEqualTo(api.getRootId());
+            var stored = queryService.findByIdAndEnvironmentId(ENV_ID, item.getId());
+            assertThat(stored.getParentId()).isNull();
+            assertThat(stored.getRootId()).isEqualTo(stored.getId());
+        });
+        assertThat(output.items().getFirst().getSource().getSourceConfiguration()).isEqualTo(
+            PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT
+        );
+        assertThat(output.items().getFirst().getSource().getLastFetchedAt()).isNotNull();
+        assertThat(output.items().getFirst().getSource().getLastFetchError()).isNull();
+        assertThat(output.items().getLast().getSource()).isNull();
+        assertThat(pageContentCrudService.storage())
+            .singleElement()
+            .isInstanceOfSatisfying(GraviteeMarkdownPageContent.class, content ->
+                assertThat(content.getContent().value()).isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN)
+            );
+    }
+
+    @Test
+    void should_distinguish_standalone_and_product_listing_of_same_api_in_one_batch() {
+        apiCrudService.initWith(List.of(Api.builder().id("api-1").name("API 1").environmentId(ENV_ID).build()));
+        var standaloneApi = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID));
+        var product = PortalNavigationItemFixtures.anApiProduct(PortalNavigationItemId.random().toString(), "Product", null, "product-id");
+        product.markAsRoot();
+        var productFolder = PortalNavigationItemFixtures.aFolder("Product APIs", product.getId());
+        productFolder.updateParent(product);
+        var productApi = PortalNavigationItemFixtures.anApi(
+            PortalNavigationItemId.random().toString(),
+            "Product API",
+            productFolder.getId(),
+            "api-1"
+        );
+        productApi.updateParent(productFolder);
+        queryService.storage().addAll(List.of(product, productFolder, productApi));
+        var standalonePage = documentation(PortalNavigationItemType.PAGE, "Standalone overview", standaloneApi.getId());
+        var productPage = documentation(PortalNavigationItemType.PAGE, "Product overview", productApi.getId());
+
+        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(standalonePage, productPage)));
+
+        assertThat(output.items()).extracting(PortalNavigationItem::getId).containsExactly(standalonePage.getId(), productPage.getId());
+        assertThat(output.items().getFirst().getReference()).isEqualTo(new NavigationItemReference.ApiReference("api-1"));
+        assertThat(output.items().getFirst().getParentId()).isEqualTo(standaloneApi.getId());
+        assertThat(output.items().getFirst().getRootId()).isEqualTo(standaloneApi.getRootId());
+        assertThat(output.items().getLast().getReference()).isEqualTo(NavigationItemReference.defaultReference());
+        assertThat(output.items().getLast().getParentId()).isEqualTo(productApi.getId());
+        assertThat(output.items().getLast().getRootId()).isEqualTo(product.getId());
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, standalonePage.getId())).satisfies(stored -> {
+            assertThat(stored.getParentId()).isNull();
+            assertThat(stored.getRootId()).isEqualTo(stored.getId());
+        });
+        assertThat(output.items().getLast())
+            .usingRecursiveComparison()
+            .isEqualTo(queryService.findByIdAndEnvironmentId(ENV_ID, productPage.getId()));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = PortalNavigationItemType.class, names = { "API", "API_PRODUCT" })
+    void should_reject_api_or_product_under_pending_api_owned_folder_before_writes(PortalNavigationItemType type) {
+        apiCrudService.initWith(
+            List.of(
+                Api.builder().id("pending-api").name("Pending API").environmentId(ENV_ID).build(),
+                Api.builder().id("nested-api").name("Nested API").environmentId(ENV_ID).build()
+            )
+        );
+        apiProductQueryService.initWith(List.of(ApiProduct.builder().id("product-1").environmentId(ENV_ID).apiIds(Set.of()).build()));
+        var api = PortalNavigationItemFixtures.aCreatePortalNavigationApi("pending-api", PortalNavigationItemId.of(APIS_ID))
+            .toBuilder()
+            .id(PortalNavigationItemId.random())
+            .build();
+        var folder = documentation(PortalNavigationItemType.FOLDER, "Guides", api.getId());
+        var nestedItem = type == PortalNavigationItemType.API
+            ? PortalNavigationItemFixtures.aCreatePortalNavigationApi("nested-api", folder.getId())
+            : productItem("product-1", "Nested product", 0).toBuilder().parentId(folder.getId()).build();
+        var existingItems = List.copyOf(queryService.storage());
+
+        var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
+            useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(api, folder, nestedItem)))
+        );
+
+        assertThat(exception.getMessage()).isEqualTo(InvalidPortalNavigationItemDataException.parentHierarchyContainsApi().getMessage());
+        assertThat(queryService.storage()).containsExactlyElementsOf(existingItems);
+        assertThat(pageContentCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_reject_pending_cycle_before_canonicalization_can_hide_it_and_before_writes() {
+        var api = CreatePortalNavigationItem.builder()
+            .id(PortalNavigationItemId.random())
+            .type(PortalNavigationItemType.API)
+            .apiId("pending-api")
+            .area(PortalArea.TOP_NAVBAR)
+            .build();
+        var folder = documentation(PortalNavigationItemType.FOLDER, "Guides", api.getId());
+        api.setParentId(folder.getId());
+        var existingItems = List.copyOf(queryService.storage());
+
+        var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
+            useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(folder, api)))
+        );
+
+        assertThat(exception.getMessage()).isEqualTo(InvalidPortalNavigationItemDataException.cyclicParentHierarchy().getMessage());
+        assertThat(queryService.storage()).containsExactlyElementsOf(existingItems);
+        assertThat(pageContentCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_reject_duplicate_pending_ids_before_creating_items_or_page_content() {
+        var first = documentation(PortalNavigationItemType.PAGE, "First page", PortalNavigationItemId.of(API1_ID));
+        var duplicate = first.toBuilder().title("Second page").build();
+        var existingItems = List.copyOf(queryService.storage());
+
+        assertThrows(ItemAlreadyExistsException.class, () ->
+            useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(first, duplicate)))
+        );
+
+        assertThat(queryService.storage()).containsExactlyElementsOf(existingItems);
+        assertThat(pageContentCrudService.storage()).isEmpty();
     }
 
     @Test
@@ -215,7 +548,8 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             validatorService,
             creationExpansionDomainService,
             defaultPageDomainService,
-            new PortalNavigationItemSourceDomainServiceInMemory()
+            new PortalNavigationItemSourceDomainServiceInMemory(),
+            new PortalNavigationItemRenderingDomainService(queryService)
         );
 
         final var validItem = CreatePortalNavigationItem.builder()
@@ -279,7 +613,8 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             validatorService,
             creationExpansionDomainService,
             defaultPageDomainService,
-            new PortalNavigationItemSourceDomainServiceInMemory()
+            new PortalNavigationItemSourceDomainServiceInMemory(),
+            new PortalNavigationItemRenderingDomainService(queryService)
         );
 
         assertThrows(IllegalStateException.class, () ->
@@ -302,6 +637,19 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             .build();
     }
 
+    private static CreatePortalNavigationItem documentation(PortalNavigationItemType type, String title, PortalNavigationItemId parentId) {
+        return CreatePortalNavigationItem.builder()
+            .id(PortalNavigationItemId.random())
+            .type(type)
+            .title(title)
+            .area(PortalArea.TOP_NAVBAR)
+            .parentId(parentId)
+            .order(0)
+            .url(type == PortalNavigationItemType.LINK ? "https://gravitee.io" : null)
+            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+            .build();
+    }
+
     private void assertDefaultProductAndApiPages(PortalNavigationItemId productNavigationItemId) {
         var productChildren = queryService.findByParentIdAndEnvironmentId(ENV_ID, productNavigationItemId);
         assertThat(productChildren)
@@ -311,6 +659,8 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
                 assertThat(page.getTitle()).isEqualTo("Overview");
                 assertThat(page.getOrder()).isZero();
                 assertThat(page.getPublished()).isFalse();
+                assertThat(page.getParentId()).isEqualTo(productNavigationItemId);
+                assertThat(page.getReference()).isEqualTo(NavigationItemReference.defaultReference());
             });
         assertThat(productChildren)
             .filteredOn(PortalNavigationApi.class::isInstance)
@@ -319,7 +669,12 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
                 assertThat(apiItem.getOrder()).isEqualTo(1);
                 assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, apiItem.getId()))
                     .singleElement()
-                    .isInstanceOfSatisfying(PortalNavigationPage.class, page -> assertThat(page.getTitle()).isEqualTo("Overview"));
+                    .isInstanceOfSatisfying(PortalNavigationPage.class, page -> {
+                        assertThat(page.getTitle()).isEqualTo("Overview");
+                        assertThat(page.getPublished()).isFalse();
+                        assertThat(page.getParentId()).isEqualTo(apiItem.getId());
+                        assertThat(page.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+                    });
             });
     }
 }

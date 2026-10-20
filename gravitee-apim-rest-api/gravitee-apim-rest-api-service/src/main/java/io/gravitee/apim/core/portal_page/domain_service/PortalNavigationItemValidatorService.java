@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ApiDocumentationAreaRule;
@@ -32,9 +33,11 @@ import io.gravitee.apim.core.portal_page.domain_service.validation.ExternalSourc
 import io.gravitee.apim.core.portal_page.domain_service.validation.FileListingSourceOnFolderRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.HomepageUniquenessRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.LinkUrlRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.OwnerChangeRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.PageContentExistsRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ParentRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.PendingSegmentClaim;
+import io.gravitee.apim.core.portal_page.domain_service.validation.ReferencedApiExistsRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.SegmentConflictRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.SourceAutomationExclusivityRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.SourceConfigurationRule;
@@ -47,7 +50,6 @@ import io.gravitee.apim.core.portal_page.domain_service.validation.UpdatePortalN
 import io.gravitee.apim.core.portal_page.domain_service.validation.UpdateValidationContext;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
@@ -76,7 +78,8 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
         PortalNavigationItemsQueryService navigationItemsQueryService,
         PortalPageContentQueryService pageContentQueryService,
         ApiProductQueryService apiProductQueryService,
-        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService
+        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService,
+        ApiCrudService apiCrudService
     ) {
         this.navigationItemsQueryService = navigationItemsQueryService;
         this.bulkCreateRules = List.of(new DuplicateApiIdsInPayloadRule(), new DuplicateApiProductIdsInPayloadRule());
@@ -100,6 +103,7 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
             new ApiItemCreateRule(apiProductQueryService),
             new ApiProductItemCreateRule(apiProductQueryService),
             new ApiDocumentationAreaRule(),
+            new ReferencedApiExistsRule(apiCrudService),
             linkUrlRule,
             parentRule,
             segmentConflictRule,
@@ -113,6 +117,7 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
             titleRequiredRule,
             new ApiItemUpdateRule(apiProductQueryService),
             new ApiProductItemUpdateRule(),
+            new OwnerChangeRule(),
             parentRule,
             segmentConflictRule,
             linkUrlRule,
@@ -126,7 +131,7 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
 
     @Override
     public void validate(List<CreatePortalNavigationItem> creates, List<PendingUpdate> updates, String environmentId) {
-        validate(creates, updates, environmentId, Set.of(), Set.of());
+        validate(creates, updates, environmentId, Set.of(), Set.of(), true);
     }
 
     private void validate(
@@ -134,7 +139,8 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
         List<PendingUpdate> updates,
         String environmentId,
         Set<PortalPageContentId> pendingContentIds,
-        Set<PortalNavigationItemId> itemIdsBeingReplaced
+        Set<PortalNavigationItemId> itemIdsBeingReplaced,
+        boolean recheckDescendantsOfVisibilityChanges
     ) {
         List<PortalNavigationItem> navigationItems = shouldFetch(creates, updates) ? fetchAllNavigationItems(environmentId) : List.of();
         Map<PortalNavigationItemId, PortalNavigationItem> itemsById = navigationItems
@@ -145,7 +151,12 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
             .filter(item -> item.getId() != null)
             .collect(Collectors.toMap(CreatePortalNavigationItem::getId, Function.identity(), (first, ignored) -> first));
 
-        List<PendingUpdate> augmentedUpdates = withDescendantsOfPendingContainers(creates, updates, environmentId);
+        List<PendingUpdate> augmentedUpdates = withDescendantsOfPendingContainers(
+            creates,
+            updates,
+            environmentId,
+            recheckDescendantsOfVisibilityChanges
+        );
         List<PendingSegmentClaim> pendingSegmentClaims = collectPendingSegmentClaims(creates, augmentedUpdates);
         Map<PortalNavigationItemId, PendingUpdate> pendingUpdatesByExistingId = updates
             .stream()
@@ -180,12 +191,13 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
         }
     }
 
-    // Include pre-existing descendants of pending container creates and of pending container updates that change visibility.
+    // Include pre-existing descendants of pending container creates and, when asked, of pending container updates that change visibility.
     // Descendants that already have their own pending update in this batch are skipped: that update is their validation.
     private List<PendingUpdate> withDescendantsOfPendingContainers(
         List<CreatePortalNavigationItem> creates,
         List<PendingUpdate> updates,
-        String environmentId
+        String environmentId,
+        boolean recheckDescendantsOfVisibilityChanges
     ) {
         var alreadyPendingIds = updates
             .stream()
@@ -200,7 +212,7 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
             .flatMap(container -> descendantsOf(container.getId(), environmentId).stream());
         var descendantsOfUpdates = updates
             .stream()
-            .filter(PortalNavigationItemValidatorService::isContainerVisibilityChange)
+            .filter(update -> recheckDescendantsOfVisibilityChanges && isContainerVisibilityChange(update))
             .flatMap(update -> descendantsOf(update.existing().getId(), environmentId).stream());
         var descendantUpdates = Stream.concat(descendantsOfCreates, descendantsOfUpdates)
             .filter(descendant -> !alreadyPendingIds.contains(descendant.getId()))
@@ -254,7 +266,7 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
 
     @Override
     public void validateOne(CreatePortalNavigationItem item, String environmentId) {
-        validate(List.of(item), List.of(), environmentId, Set.of(), Set.of());
+        validate(List.of(item), List.of(), environmentId, Set.of(), Set.of(), true);
     }
 
     /**
@@ -268,12 +280,21 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
         Set<PortalPageContentId> pendingContentIds,
         Set<PortalNavigationItemId> itemIdsBeingReplaced
     ) {
-        validate(List.of(item), List.of(), environmentId, pendingContentIds, itemIdsBeingReplaced);
+        validate(List.of(item), List.of(), environmentId, pendingContentIds, itemIdsBeingReplaced, true);
     }
 
     @Override
     public void validateToUpdate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem) {
         validate(List.of(), List.of(new PendingUpdate(toUpdate, existingItem)), existingItem.getEnvironmentId());
+    }
+
+    /**
+     * Like {@link #validateToUpdate}, for an update saved by {@link PortalNavigationItemDomainService#update}, which makes
+     * everything below a folder made private private too. The items below a folder whose visibility changes are therefore
+     * not checked against its new visibility, as they are for automation, where each item declares its own.
+     */
+    public void validateToUpdateCascadingVisibility(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem) {
+        validate(List.of(), List.of(new PendingUpdate(toUpdate, existingItem)), existingItem.getEnvironmentId(), Set.of(), Set.of(), false);
     }
 
     private static List<PendingSegmentClaim> collectPendingSegmentClaims(
@@ -296,13 +317,23 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
     private static boolean vacatesSlot(PendingUpdate update) {
         var existing = update.existing();
         var toUpdate = update.toUpdate();
+        // A root handed to another owner leaves its slot although neither its parent nor its segment changes
+        boolean changesOwner = toUpdate.getReference() != null;
         return (
-            !Objects.equals(existing.getParentId(), toUpdate.getParentId()) || !Objects.equals(existing.getSegment(), toUpdate.getSegment())
+            !Objects.equals(existing.getParentId(), toUpdate.getParentId()) ||
+            !Objects.equals(existing.getSegment(), toUpdate.getSegment()) ||
+            changesOwner
         );
     }
 
     private static boolean shouldFetch(List<CreatePortalNavigationItem> creates, List<PendingUpdate> updates) {
-        return (hasApiOrApiProductItems(creates) || updates.stream().anyMatch(u -> u.existing() instanceof PortalNavigationItemContainer));
+        return (
+            hasApiOrApiProductItems(creates) ||
+            updates
+                .stream()
+                // A move that changes the owner is judged against the listings of the API the item leaves
+                .anyMatch(update -> update.isExistingContainer() || update.isUpdatingReference())
+        );
     }
 
     private List<PortalNavigationItem> fetchAllNavigationItems(String environmentId) {

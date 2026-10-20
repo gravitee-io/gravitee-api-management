@@ -21,12 +21,18 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImpo
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.FetchPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ImportPortalNavigationUseCase;
+import io.gravitee.apim.core.portal_page.use_case.ListApiDocumentationUseCase;
+import io.gravitee.apim.core.portal_page.use_case.ListApiPublishLocationsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForPortalNavigationItemsUseCase;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
+import io.gravitee.rest.api.management.v2.rest.model.ApiPortalNavigationItemsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublication;
+import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublishLocation;
+import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublishLocationsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
@@ -108,10 +114,10 @@ public interface PortalNavigationItemsMapper {
         };
     }
 
-    @Mapping(
-        target = "portalPageContentId",
-        expression = "java(page.getPortalPageContentId() == null ? null : io.gravitee.apim.core.portal_page.model.PortalPageContentId.of(page.getPortalPageContentId().toString()))"
-    )
+    // No endpoint lets a client create a page content on its own, so an id sent here can only name the content of
+    // another page: a page created through the Management API always gets a content of its own
+    @Mapping(target = "portalPageContentId", ignore = true)
+    @Mapping(target = "renderedParentId", ignore = true)
     @Mapping(
         target = "contentType",
         expression = "java(page.getContentType() == null ? io.gravitee.apim.core.portal_page.model.PortalPageContentType.GRAVITEE_MARKDOWN : map(page.getContentType()))"
@@ -121,22 +127,26 @@ public interface PortalNavigationItemsMapper {
     );
 
     @Mapping(target = "contentType", constant = "GRAVITEE_MARKDOWN")
+    @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder folder
     );
 
     @Mapping(target = "contentType", constant = "GRAVITEE_MARKDOWN")
+    @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink link
     );
 
     @Mapping(target = "contentType", constant = "GRAVITEE_MARKDOWN")
+    @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi api
     );
 
     @Mapping(target = "contentType", constant = "GRAVITEE_MARKDOWN")
     @Mapping(target = "apiProductId", source = "apiProductId")
+    @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(CreatePortalNavigationApiProduct apiProduct);
 
     default io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
@@ -179,6 +189,28 @@ public interface PortalNavigationItemsMapper {
     FetchPortalNavigationItemResponse map(FetchPortalNavigationItemUseCase.Output output);
 
     PortalNavigationItemFetchResult map(PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult result);
+
+    default ApiPortalNavigationItemsResponse map(ListApiDocumentationUseCase.Output output) {
+        return new ApiPortalNavigationItemsResponse()
+            .items(map(output.items()))
+            .publications(output.publications().stream().map(this::mapPublication).toList());
+    }
+
+    default ApiPortalPublishLocationsResponse map(ListApiPublishLocationsUseCase.Output output) {
+        var locations = output
+            .locations()
+            .stream()
+            .map(location -> new ApiPortalPublishLocation().id(location.id().id()).name(location.name()))
+            .toList();
+        return new ApiPortalPublishLocationsResponse().data(locations);
+    }
+
+    default ApiPortalPublication mapPublication(ListApiDocumentationUseCase.Publication publication) {
+        return new ApiPortalPublication()
+            .portalId(publication.portalId().toString())
+            .portalNavigationItem(map(publication.listing()))
+            .sectionName(publication.section().getTitle());
+    }
 
     default ImportPortalNavigationResponse map(ImportPortalNavigationUseCase.Output output) {
         var results = output.result().files().stream().map(this::map).toList();
@@ -274,22 +306,32 @@ public interface PortalNavigationItemsMapper {
         };
     }
 
+    @Mapping(target = "renderedParentId", ignore = true)
+    @Mapping(target = "reference", ignore = true)
     io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationPage page
     );
 
+    @Mapping(target = "renderedParentId", ignore = true)
+    @Mapping(target = "reference", ignore = true)
     io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationFolder folder
     );
 
+    @Mapping(target = "renderedParentId", ignore = true)
+    @Mapping(target = "reference", ignore = true)
     io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationLink link
     );
 
+    @Mapping(target = "renderedParentId", ignore = true)
+    @Mapping(target = "reference", ignore = true)
     io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApi api
     );
 
+    @Mapping(target = "renderedParentId", ignore = true)
+    @Mapping(target = "reference", ignore = true)
     io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(UpdatePortalNavigationApiProduct apiProduct);
 
     default PortalCategoryId mapCategoryId(UUID id) {

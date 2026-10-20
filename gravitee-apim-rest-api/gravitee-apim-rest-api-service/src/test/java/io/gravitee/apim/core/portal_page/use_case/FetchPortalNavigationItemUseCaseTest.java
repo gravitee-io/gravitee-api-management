@@ -29,12 +29,14 @@ import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -73,7 +75,8 @@ class FetchPortalNavigationItemUseCaseTest {
             pageContentCrudService,
             PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
             new ApiCrudServiceInMemory(),
-            sourceDomainService
+            sourceDomainService,
+            new ApiOwnedNavigationDomainService(queryService, crudService)
         );
         var bulkImportDomainService = new PortalNavigationBulkImportDomainService(
             sourceDomainService,
@@ -114,6 +117,21 @@ class FetchPortalNavigationItemUseCaseTest {
             assertThat(source).isNotNull();
             assertThat(source.getLastFetchedAt()).isNotNull();
             assertThat(source.getLastFetchError()).isNull();
+            assertThat(fetchedContentOf(page)).isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN);
+        }
+
+        @Test
+        void should_refresh_a_page_owned_by_an_api_without_changing_its_owner_or_publishing_it() {
+            var apiReference = new NavigationItemReference.ApiReference("api-id");
+            var page = aPage("Sourced Page", null, aSource().build());
+            crudService.update(page.toBuilder().reference(apiReference).published(false).build());
+
+            execute(page);
+
+            var stored = queryService.findByIdAndEnvironmentId(ENV_ID, page.getId());
+            assertThat(stored.getReference()).isEqualTo(apiReference);
+            assertThat(stored.getPublished()).isFalse();
+            assertThat(stored.getParentId()).isNull();
             assertThat(fetchedContentOf(page)).isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN);
         }
 

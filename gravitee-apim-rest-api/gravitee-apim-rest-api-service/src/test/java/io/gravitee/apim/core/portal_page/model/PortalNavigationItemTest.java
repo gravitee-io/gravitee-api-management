@@ -176,4 +176,23 @@ class PortalNavigationItemTest {
 
         assertThat(api.getCategoryIds()).isEmpty();
     }
+
+    @Test
+    void should_change_the_owner_of_an_item() {
+        var page = PortalNavigationItemFixtures.aPage("Guide", null);
+        var api = new NavigationItemReference.ApiReference("api-a");
+
+        page.changeOwner(api);
+
+        assertThat(page.getReference()).isEqualTo(api);
+    }
+
+    @Test
+    void should_apply_to_the_api_it_lists_only() {
+        var listing = PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().json(), "Listing", null, "api-a");
+
+        assertThat(listing.appliesToApiId("api-a")).isTrue();
+        assertThat(listing.appliesToApiId("api-b")).isFalse();
+        assertThat(listing.appliesToApiId(null)).isFalse();
+    }
 }

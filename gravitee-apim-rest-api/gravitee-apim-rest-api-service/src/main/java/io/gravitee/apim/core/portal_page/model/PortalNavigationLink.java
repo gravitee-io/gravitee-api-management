@@ -23,7 +23,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Getter
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
 public final class PortalNavigationLink extends PortalNavigationItem {
 
     private static final PortalNavigationItemType TYPE = PortalNavigationItemType.LINK;

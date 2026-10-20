@@ -38,7 +38,6 @@ public class UpdatePortalNavigationItemUseCase {
     private final PortalNavigationItemSourceDomainService sourceDomainService;
 
     public Output execute(Input input) {
-        var toUpdate = input.updatePortalNavigationItem;
         PortalNavigationItem existing = portalNavigationItemsQueryService.findByIdAndEnvironmentId(
             input.environmentId(),
             PortalNavigationItemId.of(input.navigationItemId)
@@ -46,6 +45,7 @@ public class UpdatePortalNavigationItemUseCase {
         if (existing == null) {
             throw new PortalNavigationItemNotFoundException(input.navigationItemId);
         }
+        var toUpdate = domainService.resolveDestination(input.updatePortalNavigationItem(), existing, input.ownerFixed());
         // Restore the masked secrets before validation: the plugin must validate the configuration it will be given
         if (existing.getSource() != null && toUpdate.getSource() != null) {
             sourceDomainService.mergeSensitiveData(existing.getSource(), toUpdate.getSource());
@@ -54,7 +54,7 @@ public class UpdatePortalNavigationItemUseCase {
         if (toUpdate.getSource() != null) {
             toUpdate.getSource().setSubtreeImport(existing.getSource() != null && existing.getSource().isSubtreeImport());
         }
-        validatorService.validateToUpdate(toUpdate, existing);
+        validatorService.validateToUpdateCascadingVisibility(toUpdate, existing);
         var updatedItem = domainService.update(toUpdate, existing, input.propagatePublishToChildren());
         if (updatedItem.getSource() != null) {
             sourceDomainService.removeSensitiveData(updatedItem.getSource());
@@ -62,13 +62,17 @@ public class UpdatePortalNavigationItemUseCase {
         return new Output(updatedItem);
     }
 
+    /**
+     * @param ownerFixed see {@link PortalNavigationItemDomainService#resolveDestination}
+     */
     @Builder
     public record Input(
         String organizationId,
         String environmentId,
         String navigationItemId,
         UpdatePortalNavigationItem updatePortalNavigationItem,
-        boolean propagatePublishToChildren
+        boolean propagatePublishToChildren,
+        boolean ownerFixed
     ) {}
 
     public record Output(PortalNavigationItem updatedItem) {}

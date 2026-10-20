@@ -152,12 +152,15 @@ import io.gravitee.apim.core.plan.use_case.PatchPlanUseCase.PlanFlowsConverter;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
+import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.OpenApiContentTransformer;
 import io.gravitee.apim.core.portal_page.domain_service.PortalCatalogNavigationVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemRenderingDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
@@ -1282,13 +1285,15 @@ public class ResourceContextConfiguration {
     @Bean
     public PortalNavigationItemValidatorService portalNavigationItemValidatorService(
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
-        PortalPageContentQueryService portalPageContentQueryService
+        PortalPageContentQueryService portalPageContentQueryService,
+        ApiCrudServiceInMemory apiCrudServiceInMemory
     ) {
         return new PortalNavigationItemValidatorService(
             portalNavigationItemsQueryService,
             portalPageContentQueryService,
             mock(io.gravitee.apim.core.api_product.query_service.ApiProductQueryService.class),
-            new PortalNavigationItemSourceDomainServiceInMemory()
+            new PortalNavigationItemSourceDomainServiceInMemory(),
+            apiCrudServiceInMemory
         );
     }
 
@@ -1326,13 +1331,16 @@ public class ResourceContextConfiguration {
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
         PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService,
         PortalNavigationApiProductVisibilityDomainService portalNavigationApiProductVisibilityDomainService,
-        ApiPortalSearchQueryService apiPortalSearchQueryService
+        ApiPortalSearchQueryService apiPortalSearchQueryService,
+        PortalNavigationItemCrudService portalNavigationItemCrudService
     ) {
         return new ListPortalNavigationItemsUseCase(
             portalNavigationItemsQueryService,
             List.of(portalNavigationApiVisibilityDomainService, portalNavigationApiProductVisibilityDomainService),
             new PortalNavigationItemSourceDomainServiceInMemory(),
-            apiPortalSearchQueryService
+            apiPortalSearchQueryService,
+            new ApiOwnedNavigationDomainService(portalNavigationItemsQueryService, portalNavigationItemCrudService),
+            new PortalNavigationItemRenderingDomainService(portalNavigationItemsQueryService)
         );
     }
 

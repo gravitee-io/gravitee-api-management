@@ -33,6 +33,44 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
         );
     }
 
+    public static InvalidPortalNavigationItemDataException notApiDocumentationType(String type) {
+        return new InvalidPortalNavigationItemDataException(
+            "The documentation of an API can only hold pages, folders and links (got %s).".formatted(type)
+        );
+    }
+
+    public static InvalidPortalNavigationItemDataException notAPublishLocation(String sectionId) {
+        return new InvalidPortalNavigationItemDataException(
+            "An API can only be published to a published top-level folder of the main navigation (got %s).".formatted(sectionId)
+        );
+    }
+
+    public static InvalidPortalNavigationItemDataException automationManagedItemCannotChangeOwner(String itemId) {
+        return new InvalidPortalNavigationItemDataException(
+            "The navigation item %s is managed by automation and cannot be moved between the portal and an API.".formatted(itemId)
+        );
+    }
+
+    public static InvalidPortalNavigationItemDataException apiDocumentationCannotHoldListing(String itemId) {
+        return new InvalidPortalNavigationItemDataException(
+            "The navigation item %s is an API or an API Product and cannot be moved into the documentation of an API.".formatted(itemId)
+        );
+    }
+
+    public static InvalidPortalNavigationItemDataException apiListedInMoreThanOnePlace(String apiId) {
+        return new InvalidPortalNavigationItemDataException(
+            "The API %s is listed in more than one place, so an item cannot be moved out of its documentation.".formatted(apiId)
+        );
+    }
+
+    public static InvalidPortalNavigationItemDataException notAPage(String itemId) {
+        return new InvalidPortalNavigationItemDataException("The navigation item %s is not a page and has no content.".formatted(itemId));
+    }
+
+    public static InvalidPortalNavigationItemDataException apiIsNotPublished(String apiId) {
+        return new InvalidPortalNavigationItemDataException("The API %s is not published to the portal.".formatted(apiId));
+    }
+
     public static InvalidPortalNavigationItemDataException apiMustBeInTopNavbar() {
         return new InvalidPortalNavigationItemDataException("API items can only be added to TOP_NAVBAR area.");
     }
@@ -98,12 +136,6 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
     public static InvalidPortalNavigationItemDataException childOfSourcedItemIsReadOnly(String itemId) {
         return new InvalidPortalNavigationItemDataException(
             "Navigation item %s belongs to a subtree managed by an external source and is read-only.".formatted(itemId)
-        );
-    }
-
-    public static InvalidPortalNavigationItemDataException sourcedItemCannotBeDeleted(String itemId) {
-        return new InvalidPortalNavigationItemDataException(
-            "Navigation item %s is managed by an external source and cannot be deleted. Remove the source first.".formatted(itemId)
         );
     }
 

@@ -22,6 +22,7 @@ import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudServi
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
@@ -43,6 +44,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
     private static final String FIRST_API_CALL_PATH = "portal-first-api-call-page-content.md";
     private static final String DOCS_URL = "https://documentation.gravitee.io/apim/developer-portal/new-developer-portal";
     private static final String HOMEPAGE_CONTENT_PATH = "default-portal-homepage-content.md";
+    private static final String APIS_SECTION_TITLE = "APIs";
 
     private final PortalNavigationItemDomainService portalNavigationItemDomainService;
     private final PortalPageContentCrudService pageContentCrudService;
@@ -57,6 +59,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
      *   🗂️ Core concepts
      *     📄 Authentication
      *     📄 Making your first API call
+     * 🗂 APIs
      * 🔗 Docs
      * </pre>
      *
@@ -129,6 +132,8 @@ public class CreateDefaultPortalNavigationItemsUseCase {
             );
         }
 
+        ensureApisSection(organizationId, environmentId);
+
         if (findByTitleAndType(topLevelTopNavbarItems, "Docs", PortalNavigationItemType.LINK) == null) {
             createPortalLink("Docs", organizationId, environmentId, DOCS_URL, PortalArea.TOP_NAVBAR, null);
         }
@@ -140,6 +145,22 @@ public class CreateDefaultPortalNavigationItemsUseCase {
         if (existingHomepage.isEmpty()) {
             final var contentHomePage = createPortalPageContent(organizationId, environmentId, HOMEPAGE_CONTENT_PATH);
             createPortalPage("Home Page", organizationId, environmentId, PortalArea.HOMEPAGE, contentHomePage.getId(), null);
+        }
+    }
+
+    /**
+     * Creates the "APIs" section when the environment has none: a published top-level folder of the main
+     * navigation, which is what an API can be published into. Added after whatever the menu already holds.
+     */
+    public void ensureApisSection(String organizationId, String environmentId) {
+        final var hasApisSection = portalNavigationItemsQueryService
+            .findTopLevelItemsByEnvironmentIdAndPortalArea(environmentId, PortalArea.TOP_NAVBAR)
+            .stream()
+            // The documentation of an API is stored at the top level too: a folder an API owns is not a section
+            .filter(item -> !(item.getReference() instanceof NavigationItemReference.ApiReference))
+            .anyMatch(item -> APIS_SECTION_TITLE.equals(item.getTitle()) && item.getType() == PortalNavigationItemType.FOLDER);
+        if (!hasApisSection) {
+            createPortalFolder(APIS_SECTION_TITLE, organizationId, environmentId, PortalArea.TOP_NAVBAR, null);
         }
     }
 

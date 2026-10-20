@@ -22,12 +22,10 @@ import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
@@ -36,7 +34,6 @@ import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.slug.model.Slug;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -57,7 +54,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ApiDocumentationSyncDomainService {
 
-    private static final int MAX_CASCADE_DEPTH = 50;
     private static final PortalArea API_DOCUMENTATION_AREA = PortalArea.TOP_NAVBAR;
     private static final PortalNavigationItemType TYPE = PortalNavigationItemType.PAGE;
     private static final int DEFAULT_ORDER = 0;
@@ -106,51 +102,13 @@ public class ApiDocumentationSyncDomainService {
     }
 
     /**
-     * Cleans up the API's own subtree — its folder subtree, its documentation pages, and its links, wherever
-     * they are rooted — enumerated by reference rather than by iterating nav-api rows: the subtree belongs to
-     * the API, not to any listing. Nav-api rows are owned by their {@code PortalListing}, so none are touched here.
-     */
-    public void cleanupForApi(AuditInfo auditInfo, String apiId) {
-        var reference = new NavigationItemReference.ApiReference(apiId);
-        var envFolders = navigationItemsQueryService.search(
-            PortalNavigationItemQueryCriteria.builder()
-                .environmentId(auditInfo.environmentId())
-                .type(PortalNavigationItemType.FOLDER)
-                .build()
-        );
-        envFolders
-            .stream()
-            .filter(folder -> reference.equals(folder.getReference()))
-            .filter(PortalNavigationItem::isRoot)
-            .forEach(root -> {
-                cascadeDeleteDescendants(auditInfo.environmentId(), root.getId(), 0);
-                navigationItemCrudService.delete(root.getId());
-            });
-        navigationItemsQueryService
-            .findByAutomationReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
-            .stream()
-            .filter(item -> item.getType() == PortalNavigationItemType.PAGE || item.getType() == PortalNavigationItemType.LINK)
-            .forEach(item -> navigationItemCrudService.delete(item.getId()));
-    }
-
-    /**
      * Cleans up a single {@link PortalNavigationApi} row. The API's own subtree is not a descendant of this
-     * row — it belongs to the API (see {@link #cleanupForApi}) — so removing a listing entry never takes it.
+     * row — it belongs to the API — so removing a listing entry never takes it.
      */
     public void cleanupNavApi(AuditInfo auditInfo, PortalNavigationItemId navApiId) {
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navApiId);
         if (existing instanceof PortalNavigationApi) {
             navigationItemCrudService.delete(navApiId);
-        }
-    }
-
-    private void cascadeDeleteDescendants(String environmentId, PortalNavigationItemId parentId, int depth) {
-        if (depth > MAX_CASCADE_DEPTH) throw new IllegalStateException(
-            "Maximum portal navigation nesting level of %d exceeded".formatted(MAX_CASCADE_DEPTH)
-        );
-        for (var child : navigationItemsQueryService.findByParentIdAndEnvironmentId(environmentId, parentId)) {
-            cascadeDeleteDescendants(environmentId, child.getId(), depth + 1);
-            navigationItemCrudService.delete(child.getId());
         }
     }
 

@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
@@ -70,7 +71,8 @@ class ValidatePortalLinkUseCaseTest {
                 navQueryService,
                 new PortalPageContentQueryServiceInMemory(),
                 new ApiProductQueryServiceInMemory(),
-                new PortalNavigationItemSourceDomainServiceInMemory()
+                new PortalNavigationItemSourceDomainServiceInMemory(),
+                new ApiCrudServiceInMemory()
             ),
             new PortalLinkSyncDomainService(navCrudService, navQueryService),
             new PortalAutomationScopeDomainService(portalCrudService, () -> false)

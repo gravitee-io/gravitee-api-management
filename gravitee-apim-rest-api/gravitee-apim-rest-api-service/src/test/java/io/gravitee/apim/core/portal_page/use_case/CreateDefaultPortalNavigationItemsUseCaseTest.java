@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
@@ -26,8 +27,11 @@ import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
@@ -36,6 +40,8 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -64,7 +70,8 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
             pageContentCrudService,
             PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
             apiCrudService,
-            new PortalNavigationItemSourceDomainServiceInMemory()
+            new PortalNavigationItemSourceDomainServiceInMemory(),
+            new ApiOwnedNavigationDomainService(queryService, crudService)
         );
         useCase = new CreateDefaultPortalNavigationItemsUseCase(portalNavigationItemDomainService, pageContentCrudService, queryService);
     }
@@ -163,7 +170,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         assertThat(((PortalNavigationLink) docsLink).getUrl()).isEqualTo(
             "https://documentation.gravitee.io/apim/developer-portal/new-developer-portal"
         );
-        assertThat(docsLink.getOrder()).isEqualTo(1);
+        assertThat(docsLink.getOrder()).isEqualTo(2);
         assertThat(docsLink.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
         assertThat(docsLink.getPublished()).isTrue();
     }
@@ -233,6 +240,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
             "Core concepts",
             "Authentication",
             "Making your first API call",
+            "APIs",
             "Docs",
             "Home Page"
         );
@@ -270,6 +278,101 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
             .findFirst()
             .get();
         assertThat(gettingStartedPage.getParentId()).isEqualTo(guidesFolder.getId());
+    }
+
+    @Test
+    void should_create_a_published_apis_section_at_the_top_level() {
+        useCase.execute(ORG_ID, ENV_ID);
+
+        var section = theApisSection();
+        assertThat(section).isInstanceOf(PortalNavigationFolder.class);
+        assertThat(section.getParentId()).isNull();
+        assertThat(section.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
+        assertThat(section.getPublished()).isTrue();
+        assertThat(section.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+        assertThat(section.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+    }
+
+    @Test
+    void should_place_the_apis_section_between_guides_and_docs() {
+        useCase.execute(ORG_ID, ENV_ID);
+
+        assertThat(queryService.findTopLevelItemsByEnvironmentIdAndPortalArea(ENV_ID, PortalArea.TOP_NAVBAR))
+            .extracting(PortalNavigationItem::getTitle, PortalNavigationItem::getOrder)
+            .containsExactlyInAnyOrder(tuple("Guides", 0), tuple("APIs", 1), tuple("Docs", 2));
+    }
+
+    @Test
+    void should_offer_the_apis_section_as_a_publish_location() {
+        useCase.execute(ORG_ID, ENV_ID);
+
+        assertThat(new ApiOwnedNavigationDomainService(queryService, crudService).findPublishLocations(ENV_ID))
+            .extracting(PortalNavigationItem::getTitle)
+            .contains("APIs");
+    }
+
+    @Test
+    void should_not_mistake_an_api_owned_folder_titled_apis_for_the_section() {
+        var apiOwned = PortalNavigationItemFixtures.aFolder("APIs")
+            .toBuilder()
+            .reference(new NavigationItemReference.ApiReference("api-id"))
+            .build();
+        queryService.storage().add(apiOwned);
+
+        useCase.ensureApisSection(ORG_ID, ENV_ID);
+
+        assertThat(theApisSection().getId()).isNotEqualTo(apiOwned.getId());
+    }
+
+    @Test
+    void should_not_mistake_a_page_titled_apis_for_the_section() {
+        queryService.storage().add(PortalNavigationItemFixtures.aPage("APIs", null));
+
+        useCase.ensureApisSection(ORG_ID, ENV_ID);
+
+        assertThat(theApisSection()).isInstanceOf(PortalNavigationFolder.class);
+    }
+
+    @Test
+    void should_leave_an_existing_apis_section_as_it_is() {
+        var existing = PortalNavigationItemFixtures.aFolder("APIs");
+        existing.setPublished(false);
+        queryService.storage().add(existing);
+
+        useCase.ensureApisSection(ORG_ID, ENV_ID);
+
+        assertThat(queryService.storage()).containsExactly(existing);
+        assertThat(existing.getPublished()).isFalse();
+    }
+
+    @Test
+    void should_add_only_the_apis_section_at_the_end_of_a_menu_that_already_exists() {
+        var products = PortalNavigationItemFixtures.aFolder("Products");
+        products.setOrder(0);
+        var support = PortalNavigationItemFixtures.aPage("Support", null);
+        support.setOrder(1);
+        queryService.storage().addAll(List.of(products, support));
+
+        useCase.ensureApisSection(ORG_ID, ENV_ID);
+
+        assertThat(queryService.storage())
+            .extracting(PortalNavigationItem::getTitle, PortalNavigationItem::getOrder)
+            .containsExactlyInAnyOrder(tuple("Products", 0), tuple("Support", 1), tuple("APIs", 2));
+        assertThat(pageContentCrudService.storage()).isEmpty();
+    }
+
+    private PortalNavigationItem theApisSection() {
+        return queryService
+            .storage()
+            .stream()
+            .filter(item -> item.getTitle().equals("APIs") && item.getType() == PortalNavigationItemType.FOLDER)
+            .filter(item -> !(item.getReference() instanceof NavigationItemReference.ApiReference))
+            .collect(
+                Collectors.collectingAndThen(Collectors.toList(), sections -> {
+                    assertThat(sections).hasSize(1);
+                    return sections.getFirst();
+                })
+            );
     }
 
     @Test

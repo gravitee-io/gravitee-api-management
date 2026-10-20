@@ -309,6 +309,22 @@ public abstract class AbstractResource {
         return requestUriBuilder.build();
     }
 
+    /**
+     * The location of an item created by an action served next to its collection, at {@code …/collection/_action}:
+     * the item is named under the collection, where it is served, while {@link #getLocationHeader} would name it under
+     * the action.
+     */
+    protected URI getCollectionLocationHeader(String... paths) {
+        var requestUri = this.uriInfo.getRequestUri();
+        var actionPath = requestUri.getPath().replaceFirst("/+$", "");
+        var collectionPath = actionPath.substring(0, actionPath.lastIndexOf('/'));
+        var locationBuilder = UriBuilder.fromUri(requestUri).replacePath(collectionPath).replaceQuery(null);
+        for (String path : paths) {
+            locationBuilder.path(path);
+        }
+        return locationBuilder.build();
+    }
+
     protected Response.ResponseBuilder applyCacheHeaders(Response.ResponseBuilder builder, Date updatedAt) {
         if (updatedAt != null) {
             builder.tag(Long.toString(updatedAt.getTime())).lastModified(updatedAt);

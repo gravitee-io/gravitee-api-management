@@ -26,6 +26,8 @@ import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDa
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -39,6 +41,7 @@ import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQuer
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.slug.model.Slug;
 import io.gravitee.common.utils.TimeProvider;
+import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -64,6 +67,7 @@ public class PortalNavigationItemDomainService {
     private final PortalPageContentQueryService pageContentQueryService;
     private final ApiCrudService apiCrudService;
     private final PortalNavigationItemSourceDomainService sourceDomainService;
+    private final ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
 
     public PortalNavigationItem create(String organizationId, String environmentId, CreatePortalNavigationItem createPortalNavigationItem) {
         int sanitizedOrder = this.sanitizeOrderForInsertion(
@@ -292,6 +296,75 @@ public class PortalNavigationItemDomainService {
         }
     }
 
+    /**
+     * Works out where an update places a page, folder or link, before it is validated. The parent a caller
+     * sends is the one the item is displayed under, which for the documentation of an API is not always
+     * the stored one, and the place decides who owns the item.
+     *
+     * The displayed parent is kept as renderedParentId so that validation checks the parent the caller chose.
+     * An item saved under the parent it is already stored under is not being moved and keeps its owner, so
+     * a page the editor once stored below a listing is left as it is. So is a root of an API's documentation
+     * sent with no parent, which is what a read of it returns.
+     *
+     * @param ownerFixed the caller only ever handles items of one API: the owner never changes, and no
+     *                   parent on a nested item means the root of that API's documentation rather than the
+     *                   portal's top level
+     */
+    public UpdatePortalNavigationItem resolveDestination(
+        UpdatePortalNavigationItem requested,
+        PortalNavigationItem existing,
+        boolean ownerFixed
+    ) {
+        var resolved = requested.toBuilder().renderedParentId(null).reference(null).build();
+        if (!apiOwnedNavigationDomainService.isDocumentation(existing)) {
+            return resolved;
+        }
+        if (Objects.equals(requested.getParentId(), existing.getParentId())) {
+            return resolved;
+        }
+        if (requested.getParentId() == null) {
+            if (!ownerFixed) {
+                resolved.setReference(newOwnerAt(DocumentationDestination.under(null), null, existing));
+            }
+            return resolved;
+        }
+        var parent = queryService.findByIdAndEnvironmentId(existing.getEnvironmentId(), requested.getParentId());
+        if (parent == null) {
+            return resolved;
+        }
+        var destination = apiOwnedNavigationDomainService.destinationUnder(existing.getEnvironmentId(), parent);
+        var newOwner = newOwnerAt(destination, parent, existing);
+        if (newOwner != null && ownerFixed) {
+            return resolved;
+        }
+        resolved.setParentId(destination.storedParentId());
+        resolved.setRenderedParentId(destination.renderedParentId());
+        resolved.setReference(newOwner);
+        return resolved;
+    }
+
+    /**
+     * @return the owner the item takes at the destination, null when it keeps the one it has. An item of the
+     *         portal stays with its portal wherever it goes in the portal: only an API takes or gives an item,
+     *         and an item an API gives up joins the portal of the parent it lands under.
+     */
+    @Nullable
+    private static NavigationItemReference newOwnerAt(
+        DocumentationDestination destination,
+        @Nullable PortalNavigationItem parent,
+        PortalNavigationItem existing
+    ) {
+        if (destination.apiOwner() != null) {
+            return destination.apiOwner().equals(existing.getReference()) ? null : destination.apiOwner();
+        }
+        if (!(existing.getReference() instanceof NavigationItemReference.ApiReference)) {
+            return null;
+        }
+        return parent != null && parent.getReference() instanceof NavigationItemReference.PortalReference
+            ? parent.getReference()
+            : NavigationItemReference.defaultReference();
+    }
+
     public PortalNavigationItem update(UpdatePortalNavigationItem toUpdate, PortalNavigationItem originalItem) {
         return update(toUpdate, originalItem, false);
     }
@@ -309,33 +382,40 @@ public class PortalNavigationItemDomainService {
         final var changedPublished = !Objects.equals(originalItem.getPublished(), toUpdate.getPublished()) ? toUpdate.getPublished() : null;
         final var publishedToPropagate = resolvePublishedToPropagate(changedPublished, propagatePublishToChildren);
 
-        boolean isMoveToNewParent = !Objects.equals(originalParentId, toUpdate.getParentId());
+        final var newOwner = toUpdate.getReference();
+        // Items without a stored parent are listed by owner, so the list an item leaves is found with the
+        // owner it had and the list it joins with the owner it gets.
+        final var originOwner = originalItem.getReference();
+        final var destinationOwner = toUpdate.ownerAfter(originalItem);
+        // An item that changes owner without changing its stored parent, such as a top-level portal page
+        // handed to an API, has still left one list for another: its descendants follow.
+        boolean changesList = !Objects.equals(originalParentId, toUpdate.getParentId()) || newOwner != null;
 
-        int sanitizedOrder = isMoveToNewParent
+        int sanitizedOrder = changesList
             ? this.sanitizeOrderForInsertion(
                 toUpdate.getParentId(),
                 originalItem.getEnvironmentId(),
                 originalItem.getArea(),
                 toUpdate.getOrder(),
-                originalItem.getReference()
+                destinationOwner
             )
             : this.sanitizeOrderForReordering(
                 toUpdate.getParentId(),
                 originalItem.getEnvironmentId(),
                 originalItem.getArea(),
                 toUpdate.getOrder(),
-                originalItem.getReference()
+                destinationOwner
             );
 
         toUpdate.setOrder(sanitizedOrder);
 
         if (toUpdate.getSegment() == null) {
-            var targetParentId = isMoveToNewParent ? toUpdate.getParentId() : originalItem.getParentId();
+            var targetParentId = changesList ? toUpdate.getParentId() : originalItem.getParentId();
             var usedSegments = retrieveSiblingItems(
                 targetParentId,
                 originalItem.getEnvironmentId(),
                 originalItem.getArea(),
-                originalItem.getReference()
+                destinationOwner
             )
                 .stream()
                 .filter(sibling -> !Objects.equals(sibling.getId(), originalItem.getId()))
@@ -345,8 +425,11 @@ public class PortalNavigationItemDomainService {
         }
 
         originalItem.update(toUpdate);
+        if (newOwner != null) {
+            originalItem.changeOwner(newOwner);
+        }
 
-        if (isMoveToNewParent) {
+        if (changesList) {
             if (toUpdate.getParentId() != null) {
                 originalItem.updateParent(resolveParentContainer(toUpdate.getParentId(), originalItem.getEnvironmentId()));
             } else {
@@ -358,23 +441,18 @@ public class PortalNavigationItemDomainService {
 
         final var visibilityToPropagate = PortalVisibility.PRIVATE.equals(changedVisibility) ? PortalVisibility.PRIVATE : null;
         if (visibilityToPropagate != null || publishedToPropagate != null) {
-            propagateAttributesToDescendants(
-                updatedItem.getId(),
-                updatedItem.getEnvironmentId(),
-                visibilityToPropagate,
-                publishedToPropagate
-            );
+            propagateAttributesToDescendants(updatedItem, visibilityToPropagate, publishedToPropagate);
         }
-        if (isMoveToNewParent) {
-            propagateRootIdToDescendants(updatedItem.getId(), updatedItem.getEnvironmentId());
+        if (changesList) {
+            propagateMoveToDescendants(updatedItem.getId(), updatedItem.getEnvironmentId(), newOwner);
         }
 
         List<PortalNavigationItem> siblingsToUpdate = new ArrayList<>();
-        if (!Objects.equals(originalParentId, updatedItem.getParentId())) {
-            siblingsToUpdate.addAll(this.reorderDestinationSiblingsOnInsertion(updatedItem));
-            siblingsToUpdate.addAll(this.reorderOriginSiblings(originalOrder, updatedItem, originalParentId));
+        if (changesList) {
+            siblingsToUpdate.addAll(this.reorderDestinationSiblingsOnInsertion(updatedItem, destinationOwner));
+            siblingsToUpdate.addAll(this.reorderOriginSiblings(originalOrder, updatedItem, originalParentId, originOwner));
         } else if (!Objects.equals(originalOrder, updatedItem.getOrder())) {
-            siblingsToUpdate.addAll(this.reorderDestinationSiblings(originalOrder, updatedItem));
+            siblingsToUpdate.addAll(this.reorderDestinationSiblings(originalOrder, updatedItem, destinationOwner));
         }
         siblingsToUpdate.forEach(crudService::update);
 
@@ -409,14 +487,26 @@ public class PortalNavigationItemDomainService {
         return resolveRootId(parent.getParentId(), environmentId);
     }
 
-    private void propagateRootIdToDescendants(PortalNavigationItemId parentId, String environmentId) {
-        propagateRootIdToDescendants(parentId, environmentId, 0);
+    /**
+     * @param newOwner the owner the moved item took, null when the move did not change it
+     */
+    private void propagateMoveToDescendants(
+        PortalNavigationItemId parentId,
+        String environmentId,
+        @Nullable NavigationItemReference newOwner
+    ) {
+        propagateMoveToDescendants(parentId, environmentId, newOwner, 0);
     }
 
-    private void propagateRootIdToDescendants(PortalNavigationItemId parentId, String environmentId, int currentNestingLevel) {
+    private void propagateMoveToDescendants(
+        PortalNavigationItemId parentId,
+        String environmentId,
+        @Nullable NavigationItemReference newOwner,
+        int currentNestingLevel
+    ) {
         if (currentNestingLevel > MAX_PROPAGATION_NESTING_LEVEL) {
             throw new IllegalStateException(
-                "Maximum portal navigation nesting level of %d exceeded while propagating rootId".formatted(MAX_PROPAGATION_NESTING_LEVEL)
+                "Maximum portal navigation nesting level of %d exceeded while propagating a move".formatted(MAX_PROPAGATION_NESTING_LEVEL)
             );
         }
         var children = queryService.findByParentIdAndEnvironmentId(environmentId, parentId);
@@ -427,25 +517,35 @@ public class PortalNavigationItemDomainService {
         }
         for (PortalNavigationItem child : children) {
             child.updateParent(parentContainer);
+            if (newOwner != null && apiOwnedNavigationDomainService.isDocumentation(child)) {
+                child.changeOwner(newOwner);
+            }
             crudService.update(child);
-            propagateRootIdToDescendants(child.getId(), environmentId, currentNestingLevel + 1);
+            propagateMoveToDescendants(child.getId(), environmentId, newOwner, currentNestingLevel + 1);
         }
     }
 
     private void propagateAttributesToDescendants(
-        PortalNavigationItemId parentId,
-        String environmentId,
+        PortalNavigationItem parent,
         PortalVisibility changedVisibility,
         Boolean changedPublished
     ) {
-        propagateAttributesToDescendants(parentId, environmentId, changedVisibility, changedPublished, 0);
+        propagateAttributesToDescendants(
+            parent,
+            changedVisibility,
+            changedPublished,
+            changedPublished != null && apiOwnedNavigationDomainService.isInApiProductContext(parent.getEnvironmentId(), parent),
+            new HashSet<>(),
+            0
+        );
     }
 
     private void propagateAttributesToDescendants(
-        PortalNavigationItemId parentId,
-        String environmentId,
+        PortalNavigationItem parent,
         PortalVisibility changedVisibility,
         Boolean changedPublished,
+        boolean inApiProductContext,
+        Set<PortalNavigationItemId> visited,
         int currentNestingLevel
     ) {
         if (currentNestingLevel > MAX_PROPAGATION_NESTING_LEVEL) {
@@ -456,23 +556,51 @@ public class PortalNavigationItemDomainService {
             );
         }
 
-        final var children = queryService.findByParentIdAndEnvironmentId(environmentId, parentId);
+        if (!visited.add(parent.getId())) {
+            return;
+        }
+
+        final var children = new ArrayList<>(queryService.findByParentIdAndEnvironmentId(parent.getEnvironmentId(), parent.getId()));
+        if (changedPublished != null && parent instanceof PortalNavigationApi api && !inApiProductContext) {
+            children.addAll(
+                queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
+                    parent.getEnvironmentId(),
+                    parent.getArea(),
+                    new NavigationItemReference.ApiReference(api.getApiId())
+                )
+            );
+        }
         for (PortalNavigationItem child : children) {
-            final boolean shouldUpdateVisibility = changedVisibility != null && !Objects.equals(child.getVisibility(), changedVisibility);
+            if (visited.contains(child.getId())) {
+                continue;
+            }
+            // API-owned roots are projected below the API; only publication crosses that boundary.
+            final var childVisibility = parent.getId().equals(child.getParentId()) ? changedVisibility : null;
+            final boolean shouldUpdateVisibility = childVisibility != null && !Objects.equals(child.getVisibility(), childVisibility);
             final boolean shouldUpdatePublished = changedPublished != null && !Objects.equals(child.getPublished(), changedPublished);
 
-            if (!shouldUpdateVisibility && !shouldUpdatePublished) {
+            if (!shouldUpdateVisibility && changedPublished == null) {
                 continue;
             }
 
             if (shouldUpdateVisibility) {
-                child.setVisibility(changedVisibility);
+                child.setVisibility(childVisibility);
             }
             if (shouldUpdatePublished) {
                 child.setPublished(changedPublished);
             }
-            crudService.update(child);
-            propagateAttributesToDescendants(child.getId(), environmentId, changedVisibility, changedPublished, currentNestingLevel + 1);
+            if (shouldUpdateVisibility || shouldUpdatePublished) {
+                crudService.update(child);
+            }
+            // An unchanged intermediate node can still contain descendants with a different publication status.
+            propagateAttributesToDescendants(
+                child,
+                childVisibility,
+                changedPublished,
+                inApiProductContext || child instanceof PortalNavigationApiProduct,
+                visited,
+                currentNestingLevel + 1
+            );
         }
     }
 
@@ -505,14 +633,10 @@ public class PortalNavigationItemDomainService {
     private List<PortalNavigationItem> reorderOriginSiblings(
         Integer originalOrder,
         PortalNavigationItem updatedItem,
-        PortalNavigationItemId originalParentId
+        PortalNavigationItemId originalParentId,
+        NavigationItemReference originOwner
     ) {
-        return this.retrieveSiblingItems(
-                originalParentId,
-                updatedItem.getEnvironmentId(),
-                updatedItem.getArea(),
-                updatedItem.getReference()
-            )
+        return this.retrieveSiblingItems(originalParentId, updatedItem.getEnvironmentId(), updatedItem.getArea(), originOwner)
             .stream()
             .filter(sibling -> sibling.getOrder() > originalOrder)
             .peek(sibling -> {
@@ -521,13 +645,11 @@ public class PortalNavigationItemDomainService {
             .toList();
     }
 
-    private List<PortalNavigationItem> reorderDestinationSiblingsOnInsertion(PortalNavigationItem updatedItem) {
-        return this.retrieveSiblingItems(
-                updatedItem.getParentId(),
-                updatedItem.getEnvironmentId(),
-                updatedItem.getArea(),
-                updatedItem.getReference()
-            )
+    private List<PortalNavigationItem> reorderDestinationSiblingsOnInsertion(
+        PortalNavigationItem updatedItem,
+        NavigationItemReference destinationOwner
+    ) {
+        return this.retrieveSiblingItems(updatedItem.getParentId(), updatedItem.getEnvironmentId(), updatedItem.getArea(), destinationOwner)
             .stream()
             .filter(sibling -> !Objects.equals(sibling.getId(), updatedItem.getId()) && sibling.getOrder() >= updatedItem.getOrder())
             .peek(sibling -> {
@@ -536,19 +658,18 @@ public class PortalNavigationItemDomainService {
             .toList();
     }
 
-    private List<PortalNavigationItem> reorderDestinationSiblings(Integer originalOrder, PortalNavigationItem updatedItem) {
+    private List<PortalNavigationItem> reorderDestinationSiblings(
+        Integer originalOrder,
+        PortalNavigationItem updatedItem,
+        NavigationItemReference destinationOwner
+    ) {
         Predicate<PortalNavigationItem> shouldBeDecremented = sibling ->
             sibling.getOrder() > originalOrder && sibling.getOrder() <= updatedItem.getOrder();
 
         Predicate<PortalNavigationItem> shouldBeIncremented = sibling ->
             sibling.getOrder() >= updatedItem.getOrder() && sibling.getOrder() < originalOrder;
 
-        return this.retrieveSiblingItems(
-                updatedItem.getParentId(),
-                updatedItem.getEnvironmentId(),
-                updatedItem.getArea(),
-                updatedItem.getReference()
-            )
+        return this.retrieveSiblingItems(updatedItem.getParentId(), updatedItem.getEnvironmentId(), updatedItem.getArea(), destinationOwner)
             .stream()
             .filter(
                 sibling ->
