@@ -77,7 +77,7 @@ public class ApiLinksResource extends AbstractResource {
         var auditInfo = getAuditInfo();
         var apiId = HRIDToUUID.api().context(auditInfo).hrid(apiHrid).id();
         var linkId = PortalNavigationItemId.forApiLink(auditInfo, apiId, spec.getHrid());
-        requireCreateOrUpdate(
+        requireCreateOrUpdateOn(
             RolePermission.API_DOCUMENTATION,
             apiId,
             portalNavigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), linkId) != null
