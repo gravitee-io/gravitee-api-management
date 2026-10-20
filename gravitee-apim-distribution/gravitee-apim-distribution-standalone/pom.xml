@@ -1367,6 +1367,11 @@
                     <version>${gravitee-apim-release-manifest-maven-plugin.version}</version>
                     <configuration>
                         <distributionDirectory>${project.build.directory}/slim</distributionDirectory>
+                        <!-- Built by APIM itself and published nowhere: no download -->
+                        <unpublishedPlugins>
+                            <unpublishedPlugin>io.gravitee.apim.*</unpublishedPlugin>
+                            <unpublishedPlugin>io.gravitee.gamma.*</unpublishedPlugin>
+                        </unpublishedPlugins>
                     </configuration>
                     <executions>
                         <execution>
