@@ -140,13 +140,15 @@ class CreateApiOverviewPageUseCaseTest {
 
     @Test
     void should_create_it_first_when_the_api_has_only_folders_and_links() {
-        var folder = aFolder("Guides").toBuilder().reference(ownedBy(API_ID)).build();
+        var folder = aFolder("Guides").toBuilder().reference(ownedBy(API_ID)).order(0).build();
         var link = aLink(PortalNavigationItemId.random().json(), "Status", null).toBuilder().reference(ownedBy(API_ID)).order(1).build();
         queryService.initWith(List.of(folder, link));
 
         var output = createOverviewPage();
 
         assertThat(stored(output.page().getId()).getOrder()).isZero();
+        assertThat(stored(folder.getId()).getOrder()).isEqualTo(1);
+        assertThat(stored(link.getId()).getOrder()).isEqualTo(2);
         assertThat(storage).hasSize(3);
     }
 
