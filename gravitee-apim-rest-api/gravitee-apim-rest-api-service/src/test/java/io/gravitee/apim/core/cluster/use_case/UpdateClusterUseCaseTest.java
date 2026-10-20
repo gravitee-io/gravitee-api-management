@@ -29,13 +29,17 @@ import inmemory.ClusterCrudServiceInMemory;
 import inmemory.ClusterQueryServiceInMemory;
 import inmemory.EventCrudInMemory;
 import inmemory.EventLatestCrudInMemory;
+import inmemory.EventLatestQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterBoundApisQueryService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationAccessDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterInUseDomainService;
+import io.gravitee.apim.core.cluster.domain_service.DeployedClustersDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ValidateClusterService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
@@ -52,6 +56,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.json.validation.JsonSchemaValidatorImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.exceptions.ClusterInUseException;
 import io.gravitee.rest.api.service.impl.JsonSchemaServiceImpl;
 import java.time.ZoneId;
 import java.util.List;
@@ -88,7 +93,12 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
             auditService,
             permissionDomainService,
             objectMapper,
-            new ClusterConfigurationAccessDomainService(permissionDomainService)
+            new ClusterConfigurationAccessDomainService(permissionDomainService),
+            new ClusterInUseDomainService(
+                new ClusterBoundApisQueryService(apiQueryService, objectMapper),
+                new DeployedClustersDomainService(new EventLatestQueryServiceInMemory(), objectMapper),
+                objectMapper
+            )
         );
         clusterQueryService.reset();
         apiQueryService.reset();
@@ -379,6 +389,61 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
         assertThat(output.cluster().getLifecycleState()).isEqualTo(ClusterLifecycleState.UNDEPLOYED);
         // The plain update path ran: no UNDEPLOY_CLUSTER event was emitted.
         assertThat(eventCrudInMemory.storage()).isEmpty();
+    }
+
+    @Test
+    void should_refuse_removing_a_connection_a_started_api_uses() {
+        seedRegisteredCluster(connection("sasl"), connection("plain"));
+        apiQueryService.initWith(
+            List.of(ApiFixtures.aMessageApiBoundToCluster("started-api", ENV_ID, Api.LifecycleState.STARTED, "kafka-1", "sasl"))
+        );
+
+        var toUpdate = UpdateCluster.builder().configuration(Map.of("connections", List.of(connection("plain")))).build();
+
+        assertThatThrownBy(() -> updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO)))
+            .isInstanceOf(ClusterInUseException.class)
+            .hasMessage(
+                "Cannot save cluster 'My Cluster': it removes connection 'sasl', and 1 started API (started-api) uses it. Stop it first."
+            );
+        assertThat(clusterCrudService.findByIdAndEnvironmentId(GENERATED_UUID, ENV_ID).getLifecycleState()).isEqualTo(
+            ClusterLifecycleState.DEPLOYED
+        );
+    }
+
+    @Test
+    void should_accept_removing_a_connection_only_stopped_apis_use() {
+        seedRegisteredCluster(connection("sasl"), connection("plain"));
+        apiQueryService.initWith(
+            List.of(
+                ApiFixtures.aMessageApiBoundToCluster("stopped-api", ENV_ID, Api.LifecycleState.STOPPED, "kafka-1", "sasl"),
+                ApiFixtures.aMessageApiBoundToCluster("started-api", ENV_ID, Api.LifecycleState.STARTED, "kafka-1", "plain")
+            )
+        );
+
+        var toUpdate = UpdateCluster.builder().configuration(Map.of("connections", List.of(connection("plain")))).build();
+
+        var output = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
+
+        assertThat(output.cluster().getLifecycleState()).isEqualTo(ClusterLifecycleState.PENDING);
+    }
+
+    private void seedRegisteredCluster(Map<String, Object>... connections) {
+        Cluster cluster = Cluster.builder()
+            .id(GENERATED_UUID)
+            .crossId("kafka-1")
+            .type(ClusterType.KAFKA_CLUSTER)
+            .name("My Cluster")
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .lifecycleState(ClusterLifecycleState.DEPLOYED)
+            .version(1)
+            .configuration(Map.of("connections", List.of(connections)))
+            .build();
+        ((ClusterCrudServiceInMemory) clusterCrudService).initWith(List.of(cluster));
+    }
+
+    private static Map<String, Object> connection(String crossId) {
+        return Map.of("crossId", crossId, "name", crossId, "bootstrapServers", "kafka:9092", "security", Map.of("protocol", "PLAINTEXT"));
     }
 
     private void seedVirtualCluster(ClusterLifecycleState lifecycleState, Object configuration) {

@@ -70,6 +70,7 @@ public class ApiSearchCriteriaAdapter {
                 .environments(criteria.getEnvironments())
                 .crossId(criteria.getCrossId())
                 .integrationId(criteria.getIntegrationId())
+                .apiTypes(criteria.getApiTypes())
                 .notApiTypes(criteria.getNotApiTypes());
             if (criteria.getUpdatedAtFrom() != null) {
                 builder.updatedAtFrom(Date.from(criteria.getUpdatedAtFrom()));

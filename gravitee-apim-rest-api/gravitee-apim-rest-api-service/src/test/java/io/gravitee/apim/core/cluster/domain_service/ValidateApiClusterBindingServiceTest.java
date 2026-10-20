@@ -88,6 +88,24 @@ class ValidateApiClusterBindingServiceTest {
     }
 
     @Test
+    void should_throw_when_native_api_registered_cluster_is_not_deployed() {
+        clusterQueryService.initWith(List.of(registeredCluster(ClusterLifecycleState.UNDEPLOYED)));
+
+        assertThatThrownBy(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, registeredClusterBoundDefinition("prod")))
+            .isInstanceOf(ApiNotDeployableException.class)
+            .hasMessage("The API {api-1} cannot be deployed or started because its cluster {prod} is not deployed");
+    }
+
+    @Test
+    void should_pass_when_native_api_registered_cluster_is_deployed() {
+        clusterQueryService.initWith(List.of(registeredCluster(ClusterLifecycleState.DEPLOYED)));
+
+        assertThatCode(() ->
+            service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, registeredClusterBoundDefinition("prod"))
+        ).doesNotThrowAnyException();
+    }
+
+    @Test
     void should_be_noop_for_non_native_api() {
         assertThatCode(() ->
             service.validateDeployable("api-1", ENV_ID, ApiType.PROXY, boundDefinition(VC_CROSS_ID))
@@ -219,7 +237,26 @@ class ValidateApiClusterBindingServiceTest {
             .build();
     }
 
+    private Cluster registeredCluster(ClusterLifecycleState lifecycleState) {
+        return Cluster.builder()
+            .id("registered-cluster-id")
+            .crossId("prod")
+            .type(ClusterType.KAFKA_CLUSTER)
+            .name("Production")
+            .environmentId(ENV_ID)
+            .lifecycleState(lifecycleState)
+            .build();
+    }
+
+    private String registeredClusterBoundDefinition(String clusterCrossId) {
+        return nativeDefinition("native-kafka-cluster", "{\"clusterCrossId\":\"" + clusterCrossId + "\",\"connectionCrossId\":\"sasl\"}");
+    }
+
     private String boundDefinition(String vcCrossId) {
+        return nativeDefinition("native-kafka-virtual-cluster", "{\"virtualClusterCrossId\":\"" + vcCrossId + "\"}");
+    }
+
+    private String nativeDefinition(String endpointType, String endpointConfiguration) {
         try {
             return objectMapper.writeValueAsString(
                 NativeApi.builder()
@@ -227,12 +264,7 @@ class ValidateApiClusterBindingServiceTest {
                         List.of(
                             NativeEndpointGroup.builder()
                                 .endpoints(
-                                    List.of(
-                                        NativeEndpoint.builder()
-                                            .type("native-kafka-virtual-cluster")
-                                            .configuration("{\"virtualClusterCrossId\":\"" + vcCrossId + "\"}")
-                                            .build()
-                                    )
+                                    List.of(NativeEndpoint.builder().type(endpointType).configuration(endpointConfiguration).build())
                                 )
                                 .build()
                         )

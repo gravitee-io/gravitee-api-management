@@ -26,6 +26,8 @@ import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationAccessDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterInUseDomainService;
+import io.gravitee.apim.core.cluster.domain_service.DeployedClustersDomainService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
@@ -49,6 +51,8 @@ public class DeployClusterUseCase {
     private final AuditDomainService auditService;
     private final ObjectMapper objectMapper;
     private final ClusterConfigurationAccessDomainService clusterConfigurationAccessDomainService;
+    private final DeployedClustersDomainService deployedClustersDomainService;
+    private final ClusterInUseDomainService clusterInUseDomainService;
 
     public record Input(String clusterId, AuditInfo auditInfo) {}
 
@@ -62,6 +66,22 @@ public class DeployClusterUseCase {
             if (configuration == null || configuration.backends() == null || configuration.backends().isEmpty()) {
                 throw new InvalidDataException("A virtual cluster cannot be deployed without at least one backend.");
             }
+        }
+
+        // Saving a cluster only checks the connections it removes from the saved version; deploying removes them from the
+        // gateway, and an API may have been started on one of them meanwhile.
+        if (cluster.getType() == ClusterType.KAFKA_CLUSTER && cluster.getCrossId() != null) {
+            deployedClustersDomainService
+                .findByCrossId(input.auditInfo().environmentId(), cluster.getCrossId())
+                .ifPresent(deployed ->
+                    clusterInUseDomainService.checkRemovedConnectionsNotUsed(
+                        cluster,
+                        deployed.getKafkaClusterConfiguration(objectMapper),
+                        cluster.getKafkaClusterConfiguration(objectMapper),
+                        input.auditInfo().environmentId(),
+                        "deploy"
+                    )
+                );
         }
 
         Cluster beforeDeploy = Cluster.builder()

@@ -24,7 +24,6 @@ import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
-import java.util.Optional;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -33,7 +32,8 @@ import lombok.RequiredArgsConstructor;
  * deployed. Otherwise the API would sit at the gateway pointing at a cluster it cannot resolve:
  * <ul>
  *     <li>a Kafka Native API bound to a virtual cluster via a {@code native-kafka-virtual-cluster} endpoint
- *     ({@code configuration.virtualClusterCrossId});</li>
+ *     ({@code configuration.virtualClusterCrossId}), or to a registered cluster via a {@code native-kafka-cluster}
+ *     endpoint ({@code configuration.clusterCrossId});</li>
  *     <li>a Message API whose {@code kafka} endpoint group is in {@code CLUSTER} mode ({@code clusterCrossId}).</li>
  * </ul>
  */
@@ -62,22 +62,20 @@ public class ValidateApiClusterBindingService {
             nativeDefinition = objectMapper.readValue(apiDefinition, NativeApi.class);
         } catch (JsonProcessingException e) {
             // Unparseable definition: leave existing start/deploy behaviour unchanged, but trace it —
-            // a corrupted definition silently bypasses the virtual-cluster binding guard.
-            log.warn("Unable to parse native API definition of API {}; skipping virtual cluster binding validation", apiId, e);
+            // a corrupted definition silently bypasses the cluster binding guard.
+            log.warn("Unable to parse native API definition of API {}; skipping cluster binding validation", apiId, e);
             return;
         }
-        Optional<String> virtualClusterCrossId = VirtualClusterBoundApisQueryService.extractVirtualClusterCrossId(
-            nativeDefinition,
-            objectMapper
-        );
-        if (virtualClusterCrossId.isEmpty()) {
-            return;
-        }
-        String crossId = virtualClusterCrossId.get();
-        if (!isDeployed(crossId, environmentId)) {
-            throw new ApiNotDeployableException(
-                "The API {" + apiId + "} cannot be deployed or started because its virtual cluster {" + crossId + "} is not deployed"
-            );
+        for (ClusterBoundApisQueryService.ClusterUse use : ClusterBoundApisQueryService.clusterUses(nativeDefinition, objectMapper)) {
+            if (!isDeployed(use.clusterCrossId(), environmentId)) {
+                throw new ApiNotDeployableException(
+                    "The API {" +
+                        apiId +
+                        "} cannot be deployed or started because its cluster {" +
+                        use.clusterCrossId() +
+                        "} is not deployed"
+                );
+            }
         }
     }
 

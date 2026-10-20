@@ -28,14 +28,17 @@ import inmemory.AuditCrudServiceInMemory;
 import inmemory.ClusterCrudServiceInMemory;
 import inmemory.EventCrudInMemory;
 import inmemory.EventLatestCrudInMemory;
+import inmemory.EventLatestQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.cluster.domain_service.ClusterBoundApisQueryService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationAccessDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterInUseDomainService;
+import io.gravitee.apim.core.cluster.domain_service.DeployedClustersDomainService;
 import io.gravitee.apim.core.cluster.domain_service.UndeployClusterDomainService;
-import io.gravitee.apim.core.cluster.domain_service.VirtualClusterBoundApisQueryService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.event.model.Event;
@@ -47,7 +50,7 @@ import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.exceptions.ClusterInUseException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -104,12 +107,16 @@ class UndeployClusterUseCaseTest {
             eventLatestCrudInMemory,
             auditService
         );
-        var virtualClusterBoundApisQueryService = new VirtualClusterBoundApisQueryService(apiQueryService, objectMapper);
+        var clusterInUseDomainService = new ClusterInUseDomainService(
+            new ClusterBoundApisQueryService(apiQueryService, objectMapper),
+            new DeployedClustersDomainService(new EventLatestQueryServiceInMemory(), objectMapper),
+            objectMapper
+        );
         apiQueryService.reset();
         useCase = new UndeployClusterUseCase(
             clusterCrudService,
             undeployClusterDomainService,
-            virtualClusterBoundApisQueryService,
+            clusterInUseDomainService,
             new ClusterConfigurationAccessDomainService(permissionDomainService)
         );
     }
@@ -224,11 +231,41 @@ class UndeployClusterUseCaseTest {
         );
 
         assertThatThrownBy(() -> useCase.execute(new UndeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO)))
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessageContaining("Cannot undeploy virtual cluster")
+            .isInstanceOf(ClusterInUseException.class)
+            .hasMessageContaining("Cannot undeploy cluster 'My Virtual Cluster'")
             .hasMessageContaining("started-api");
 
         // The block must have no side effect: the cluster stays deployed and no undeploy event is emitted.
+        assertThat(clusterCrudService.storage().get(0).getLifecycleState()).isEqualTo(ClusterLifecycleState.DEPLOYED);
+        assertThat(eventCrudInMemory.storage()).isEmpty();
+    }
+
+    @Test
+    void should_throw_when_undeploying_a_registered_cluster_a_started_api_uses() {
+        Cluster existing = Cluster.builder()
+            .id(CLUSTER_ID)
+            .crossId(CLUSTER_CROSS_ID)
+            .type(ClusterType.KAFKA_CLUSTER)
+            .name("My Cluster")
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .lifecycleState(ClusterLifecycleState.DEPLOYED)
+            .version(1)
+            .configuration(Map.of("connections", List.of()))
+            .build();
+        clusterCrudService.initWith(List.of(existing));
+        apiQueryService.initWith(
+            List.of(
+                ApiFixtures.aMessageApiBoundToCluster("started-api", ENV_ID, Api.LifecycleState.STARTED, CLUSTER_CROSS_ID, "sasl"),
+                ApiFixtures.aMessageApiBoundToCluster("stopped-api", ENV_ID, Api.LifecycleState.STOPPED, CLUSTER_CROSS_ID, "sasl")
+            )
+        );
+
+        assertThatThrownBy(() -> useCase.execute(new UndeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO)))
+            .isInstanceOf(ClusterInUseException.class)
+            .extracting(error -> ((ClusterInUseException) error).getParameters())
+            .isEqualTo(Map.of("started-api", "started-api"));
+
         assertThat(clusterCrudService.storage().get(0).getLifecycleState()).isEqualTo(ClusterLifecycleState.DEPLOYED);
         assertThat(eventCrudInMemory.storage()).isEmpty();
     }

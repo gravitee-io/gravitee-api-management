@@ -18,17 +18,12 @@ package io.gravitee.apim.core.cluster.use_case;
 import static java.util.Objects.requireNonNull;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationAccessDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterInUseDomainService;
 import io.gravitee.apim.core.cluster.domain_service.UndeployClusterDomainService;
-import io.gravitee.apim.core.cluster.domain_service.VirtualClusterBoundApisQueryService;
 import io.gravitee.apim.core.cluster.model.Cluster;
-import io.gravitee.definition.model.cluster.ClusterType;
-import io.gravitee.rest.api.service.exceptions.InvalidDataException;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 
 @UseCase
@@ -37,7 +32,7 @@ public class UndeployClusterUseCase {
 
     private final ClusterCrudService clusterCrudService;
     private final UndeployClusterDomainService undeployClusterDomainService;
-    private final VirtualClusterBoundApisQueryService virtualClusterBoundApisQueryService;
+    private final ClusterInUseDomainService clusterInUseDomainService;
     private final ClusterConfigurationAccessDomainService clusterConfigurationAccessDomainService;
 
     public record Input(String clusterId, AuditInfo auditInfo) {}
@@ -49,25 +44,8 @@ public class UndeployClusterUseCase {
 
         requireNonNull(cluster.getCrossId(), "Cluster crossId must not be null to undeploy");
 
-        // A started native API bound to this virtual cluster must never be left pointing at an
-        // undeployed cluster. Block the undeploy and ask the operator to stop those APIs first.
-        if (cluster.getType() == ClusterType.KAFKA_VIRTUAL_CLUSTER) {
-            List<Api> startedApis = virtualClusterBoundApisQueryService.findStartedBoundApis(
-                input.auditInfo().environmentId(),
-                cluster.getCrossId()
-            );
-            if (!startedApis.isEmpty()) {
-                throw new InvalidDataException(
-                    "Cannot undeploy virtual cluster '" +
-                        cluster.getName() +
-                        "': " +
-                        startedApis.size() +
-                        " started API(s) are bound to it. Stop them first: " +
-                        startedApis.stream().map(Api::getName).collect(Collectors.joining(", ")) +
-                        "."
-                );
-            }
-        }
+        // A started API using this cluster must never be left pointing at an undeployed cluster.
+        clusterInUseDomainService.checkNotUsed(cluster, input.auditInfo().environmentId(), "undeploy");
 
         Cluster updatedCluster = undeployClusterDomainService.undeploy(cluster, input.auditInfo());
 

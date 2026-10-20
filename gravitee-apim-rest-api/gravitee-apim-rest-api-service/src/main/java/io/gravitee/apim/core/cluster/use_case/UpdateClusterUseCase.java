@@ -23,6 +23,7 @@ import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationAccessDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterInUseDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ValidateClusterService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
@@ -50,6 +51,7 @@ public class UpdateClusterUseCase {
     private final PermissionDomainService permissionDomainService;
     private final ObjectMapper objectMapper;
     private final ClusterConfigurationAccessDomainService clusterConfigurationAccessDomainService;
+    private final ClusterInUseDomainService clusterInUseDomainService;
 
     public record Input(String clusterId, UpdateCluster updateCluster, AuditInfo auditInfo) {}
 
@@ -72,6 +74,13 @@ public class UpdateClusterUseCase {
 
         if (input.updateCluster().getConfiguration() != null && clusterToUpdate.getType() == ClusterType.KAFKA_CLUSTER) {
             input.updateCluster().setConfiguration(generateConnectionCrossIds(input.updateCluster().getConfiguration()));
+            clusterInUseDomainService.checkRemovedConnectionsNotUsed(
+                clusterToUpdate,
+                clusterToUpdate.getKafkaClusterConfiguration(objectMapper),
+                objectMapper.convertValue(input.updateCluster().getConfiguration(), KafkaClusterConfiguration.class),
+                input.auditInfo.environmentId(),
+                "save"
+            );
         }
 
         // Emptying the backends of a virtual cluster is a plain edit: a DEPLOYED cluster flips to

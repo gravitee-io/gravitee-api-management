@@ -117,13 +117,15 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
                         isNull(apiCriteria.getGroups()) ||
                         apiCriteria.getGroups().isEmpty() ||
                         (api.getGroups() != null && !Collections.disjoint(api.getGroups(), apiCriteria.getGroups()));
+                    var matchesApiType = isNull(apiCriteria.getApiTypes()) || apiCriteria.getApiTypes().contains(api.getType());
                     return (
                         matchesIntegrationId &&
                         matchesApiId &&
                         matchesLifecycleState &&
                         matchesApiDefinitionVersion &&
                         matchesEnvironmentId &&
-                        matchesGroups
+                        matchesGroups &&
+                        matchesApiType
                     );
                 });
         }

@@ -22,15 +22,22 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fixtures.core.model.ApiFixtures;
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.ClusterCrudServiceInMemory;
 import inmemory.EventCrudInMemory;
 import inmemory.EventLatestCrudInMemory;
+import inmemory.EventLatestQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.cluster.domain_service.ClusterBoundApisQueryService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationAccessDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterInUseDomainService;
+import io.gravitee.apim.core.cluster.domain_service.DeployedClustersDomainService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.event.model.Event;
@@ -42,12 +49,15 @@ import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.ClusterInUseException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -73,6 +83,9 @@ class DeployClusterUseCaseTest {
     private final EventLatestCrudInMemory eventLatestCrudInMemory = new EventLatestCrudInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
+    private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
+    private final EventLatestQueryServiceInMemory eventLatestQueryService = new EventLatestQueryServiceInMemory();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private DeployClusterUseCase useCase;
 
@@ -90,15 +103,73 @@ class DeployClusterUseCaseTest {
 
     @BeforeEach
     void setUp() {
+        var deployedClustersDomainService = new DeployedClustersDomainService(eventLatestQueryService, objectMapper);
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         useCase = new DeployClusterUseCase(
             clusterCrudService,
             eventCrudInMemory,
             eventLatestCrudInMemory,
             auditService,
-            new ObjectMapper(),
-            new ClusterConfigurationAccessDomainService(permissionDomainService)
+            objectMapper,
+            new ClusterConfigurationAccessDomainService(permissionDomainService),
+            deployedClustersDomainService,
+            new ClusterInUseDomainService(
+                new ClusterBoundApisQueryService(apiQueryService, objectMapper),
+                deployedClustersDomainService,
+                objectMapper
+            )
         );
+        apiQueryService.reset();
+        eventLatestQueryService.reset();
+    }
+
+    @Test
+    void should_not_deploy_a_cluster_that_removes_a_connection_a_started_api_uses() throws Exception {
+        Cluster deployed = Cluster.builder()
+            .id(CLUSTER_ID)
+            .crossId(CLUSTER_CROSS_ID)
+            .type(ClusterType.KAFKA_CLUSTER)
+            .name("My Cluster")
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .lifecycleState(ClusterLifecycleState.DEPLOYED)
+            .version(1)
+            .configuration(Map.of("connections", List.of(connection("sasl"), connection("plain"))))
+            .build();
+        eventLatestQueryService.initWith(
+            List.of(
+                Event.builder()
+                    .id("deploy-event")
+                    .type(EventType.DEPLOY_CLUSTER)
+                    .payload(objectMapper.writeValueAsString(deployed))
+                    .environments(Set.of(ENV_ID))
+                    .properties(new EnumMap<>(Map.of(Event.EventProperties.CLUSTER_ID, CLUSTER_CROSS_ID)))
+                    .build()
+            )
+        );
+        // Saved while no started API used "sasl"; an API was started on it before the redeploy.
+        clusterCrudService.initWith(
+            List.of(
+                deployed
+                    .toBuilder()
+                    .lifecycleState(ClusterLifecycleState.PENDING)
+                    .configuration(Map.of("connections", List.of(connection("plain"))))
+                    .build()
+            )
+        );
+        apiQueryService.initWith(
+            List.of(ApiFixtures.aMessageApiBoundToCluster("started-api", ENV_ID, Api.LifecycleState.STARTED, CLUSTER_CROSS_ID, "sasl"))
+        );
+
+        assertThatThrownBy(() -> useCase.execute(new DeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO)))
+            .isInstanceOf(ClusterInUseException.class)
+            .hasMessageContaining("Cannot deploy cluster 'My Cluster': it removes connection 'sasl'");
+        assertThat(clusterCrudService.storage().get(0).getLifecycleState()).isEqualTo(ClusterLifecycleState.PENDING);
+        assertThat(eventCrudInMemory.storage()).isEmpty();
+    }
+
+    private static Map<String, Object> connection(String crossId) {
+        return Map.of("crossId", crossId, "name", crossId, "bootstrapServers", "kafka:9092");
     }
 
     @Test
