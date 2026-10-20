@@ -1954,7 +1954,7 @@ class ImportApiCRDUseCaseTest {
             var pages = Map.of("markdown", aMarkdownPageCRD("foreign-page-id", null));
             var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build())));
 
-            assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining("page id [foreign-page-id]");
             assertThat(pageCrudService.storage()).containsExactly(aStoredPage("foreign-page-id", "other-api-id", Page.ReferenceType.API));
             assertThat(auditCrudService.storage()).isEmpty();
         }
@@ -1972,7 +1972,7 @@ class ImportApiCRDUseCaseTest {
             var pages = Map.of("markdown", aMarkdownPageCRD("markdown-page-id", "foreign-folder-id"));
             var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build())));
 
-            assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining("parent page [foreign-folder-id]");
             assertThat(pageCrudService.storage()).containsExactly(foreignFolder);
             assertThat(auditCrudService.storage()).isEmpty();
         }
