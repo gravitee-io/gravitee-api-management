@@ -209,6 +209,7 @@ import io.gravitee.apim.core.portal_page.domain_service.OpenApiPortalPageContent
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosingApiDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
@@ -1595,6 +1596,27 @@ public class ResourceContextConfiguration {
             portalPageContentQueryService,
             apiCrudService,
             portalNavigationItemSourceDomainService,
+            apiOwnedNavigationDomainService
+        );
+    }
+
+    @Bean
+    public PortalNavigationDefaultPageDomainService portalNavigationDefaultPageDomainService(
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        PortalNavigationItemDomainService portalNavigationItemDomainService,
+        PortalPageContentCrudService portalPageContentCrudService,
+        ApiCrudService apiCrudService,
+        PortalNavigationItemCreationExpansionDomainService portalNavigationItemCreationExpansionDomainService,
+        PortalNavigationItemValidatorService portalNavigationItemValidatorService,
+        ApiOwnedNavigationDomainService apiOwnedNavigationDomainService
+    ) {
+        return new PortalNavigationDefaultPageDomainService(
+            portalNavigationItemsQueryService,
+            portalNavigationItemDomainService,
+            portalPageContentCrudService,
+            apiCrudService,
+            portalNavigationItemCreationExpansionDomainService,
+            portalNavigationItemValidatorService,
             apiOwnedNavigationDomainService
         );
     }

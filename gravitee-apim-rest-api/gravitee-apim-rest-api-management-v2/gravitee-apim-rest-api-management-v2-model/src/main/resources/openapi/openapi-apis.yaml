@@ -3548,6 +3548,31 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/portal-navigation-items/_overview-page:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - API Documentation
+            summary: Create the Overview page of an API
+            description: |-
+                Creates an unpublished, public Gravitee Markdown page titled "Overview" at the top of the API's
+                documentation, from the template the portal editor uses for an API's starter page. The template is
+                kept as written: the portal fills in the API's details each time it displays the page.
+
+                User must have the API_DOCUMENTATION[CREATE] permission.
+            operationId: createApiOverviewPage
+            responses:
+                "201":
+                    description: Overview page created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "./openapi-environments.yaml#/components/schemas/PortalNavigationItem"
+                default:
+                    $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/portal-navigation-items/_publish-locations:
         parameters:
             - $ref: "#/components/parameters/envIdParam"

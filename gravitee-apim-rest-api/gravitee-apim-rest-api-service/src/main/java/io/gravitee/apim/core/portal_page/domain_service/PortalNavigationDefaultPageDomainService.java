@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
@@ -100,14 +101,42 @@ public class PortalNavigationDefaultPageDomainService {
             return false;
         }
 
+        createWithTemplate(organizationId, environmentId, normalized, templatePath);
+        return true;
+    }
+
+    /**
+     * Gives an API the Overview page, unpublished, for the author to review before publishing the API. The template
+     * is kept as written: the portal fills in the API's details each time it displays the page.
+     */
+    public PortalNavigationPage createApiOverviewPage(String organizationId, String environmentId, String apiId) {
+        var candidate = apiOwnedNavigationDomainService.claimForApi(
+            environmentId,
+            apiId,
+            CreatePortalNavigationItem.builder()
+                .title(DEFAULT_PAGE_TITLE)
+                .type(PortalNavigationItemType.PAGE)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .order(0)
+                .visibility(PortalVisibility.PUBLIC)
+                .build()
+        );
+        var normalized = creationExpansionDomainService.expand(List.of(candidate), environmentId).itemsToCreate().getFirst();
+        return (PortalNavigationPage) createWithTemplate(organizationId, environmentId, normalized, apiOverviewTemplatePath(apiId));
+    }
+
+    private PortalNavigationItem createWithTemplate(
+        String organizationId,
+        String environmentId,
+        CreatePortalNavigationItem page,
+        String templatePath
+    ) {
         var content = GraviteeMarkdownPageContent.create(organizationId, environmentId, loadContent(templatePath));
-        var toCreate = normalized.toBuilder().portalPageContentId(content.getId()).build();
+        var toCreate = page.toBuilder().portalPageContentId(content.getId()).build();
 
         validatorService.validateOne(toCreate, environmentId, Set.of(content.getId()), Set.of());
         portalPageContentCrudService.create(content);
-        portalNavigationItemDomainService.create(organizationId, environmentId, toCreate);
-
-        return true;
+        return portalNavigationItemDomainService.create(organizationId, environmentId, toCreate);
     }
 
     private boolean hasDocumentation(String environmentId, PortalNavigationItemId navigationItemId, NavigationItemReference reference) {
@@ -162,16 +191,20 @@ public class PortalNavigationDefaultPageDomainService {
 
     private String resolveTemplatePath(PortalNavigationItem navigationItem) {
         if (navigationItem instanceof PortalNavigationApi apiNavigationItem) {
-            return apiCrudService
-                .findById(apiNavigationItem.getApiId())
-                .filter(api -> ApiType.MCP_PROXY == api.getType())
-                .map(api -> MCP_PROXY_OVERVIEW_TEMPLATE)
-                .orElse(DEFAULT_OVERVIEW_TEMPLATE);
+            return apiOverviewTemplatePath(apiNavigationItem.getApiId());
         }
         if (navigationItem instanceof PortalNavigationApiProduct) {
             return API_PRODUCT_OVERVIEW_TEMPLATE;
         }
         return null;
+    }
+
+    private String apiOverviewTemplatePath(String apiId) {
+        return apiCrudService
+            .findById(apiId)
+            .filter(api -> ApiType.MCP_PROXY == api.getType())
+            .map(api -> MCP_PROXY_OVERVIEW_TEMPLATE)
+            .orElse(DEFAULT_OVERVIEW_TEMPLATE);
     }
 
     private String loadContent(String contentPath) {
