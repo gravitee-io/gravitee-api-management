@@ -112,7 +112,7 @@ todos:
     status: completed
   - id: STORY-33-BIS
     content: "Configure the OpenAPI viewer of a page (Swagger UI or Redoc, and its options) under API documentation permission, as the portal editor's Configure dialog does."
-    status: pending
+    status: completed
   - id: STORY-34
     content: "Link an external source for a page or a whole folder."
     status: completed
@@ -1377,6 +1377,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 2. AsyncAPI.
 
 #### STORY-33 Bis — Configure the OpenAPI viewer of a page
+**Status:** Done under [PORTAL-276](https://gravitee.atlassian.net/browse/PORTAL-276), as [#21279](https://github.com/gravitee-io/gravitee-api-management/pull/21279), through `PATCH …/portal-navigation-items/{navId}/content/configuration` under `API_DOCUMENTATION` UPDATE. Only an OpenAPI page owned by the API of the path is reachable; another API's, a portal-owned or a non-OpenAPI page is reported as not found.
 **Why:** the portal renders an OpenAPI page with the viewer and options stored in its content's configuration. The portal editor sets them through its Configure dialog, which uses `PATCH /portal-page-contents/{id}/configuration` and needs `ENVIRONMENT_DOCUMENTATION`. Without this story, a Gamma user cannot choose between Swagger UI and Redoc, enable "Try it", or set a base URL, and every page written in Gamma stays on the server default, Redoc with no options.
 **Acceptance criteria:**
 - A "Configure" action on the editor screen of an OpenAPI page opens a dialog with the portal editor's fields, labels and validation:
@@ -1749,7 +1750,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | A product's own documentation dies with its listing row, unlike an API's | Low (accepted) | Documented asymmetry |
 | Schema-driven fetcher forms in React | Medium | Raw editor fallback (STORY-34) |
 | A sourced item linked in Gamma can be neither changed nor deleted there, as the server refuses to delete an item with a source | High | Closed: STORY-34 Bis ([#21251](https://github.com/gravitee-io/gravitee-api-management/pull/21251)); deleting directly, without removing the source first: STORY-34 Ter |
-| A Gamma user cannot choose the OpenAPI viewer or its options, so pages written in Gamma stay on Redoc with no "Try it" | Medium | STORY-33 Bis |
+| A Gamma user cannot choose the OpenAPI viewer or its options, so pages written in Gamma stay on Redoc with no "Try it" | Medium | Closed: STORY-33 Bis ([#21279](https://github.com/gravitee-io/gravitee-api-management/pull/21279)) |
 | Angular runtime shipped into Gamma for one widget | Low | Lazy-load on the documentation screen only (STORY-22) |
 | Gamma's theme does not reach inside the preview | Low (accepted) | Already true in the classic console |
 
