@@ -45,23 +45,47 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ClusterInUseDomainService {
 
+    /** Names at most this many APIs in an error message: {@link ClusterInUseException#getParameters()} lists them all. */
+    private static final int NAMED_APIS = 3;
+
     private final ClusterBoundApisQueryService clusterBoundApisQueryService;
     private final DeployedClustersDomainService deployedClustersDomainService;
     private final ObjectMapper objectMapper;
+
+    /** The started APIs using {@code cluster}, sorted by name: those that block undeploying or deleting it. */
+    public List<Api> startedApisUsing(Cluster cluster, String environmentId) {
+        if (cluster.getCrossId() == null) {
+            return List.of();
+        }
+        Set<String> virtualClusters = virtualClustersWithBackendOn(environmentId, cluster, backend -> true);
+        return clusterBoundApisQueryService.findStartedApisUsing(
+            environmentId,
+            use -> cluster.getCrossId().equals(use.clusterCrossId()) || virtualClusters.contains(use.clusterCrossId())
+        );
+    }
+
+    /**
+     * The started APIs using one of {@code connectionCrossIds}, connections of {@code cluster}, sorted by name: those that
+     * block removing them.
+     */
+    public List<Api> startedApisUsingConnections(Cluster cluster, Set<String> connectionCrossIds, String environmentId) {
+        if (cluster.getCrossId() == null || connectionCrossIds.isEmpty() || cluster.getType() != ClusterType.KAFKA_CLUSTER) {
+            return List.of();
+        }
+        Set<String> virtualClusters = virtualClustersWithBackendOn(environmentId, cluster, connectionCrossIds::contains);
+        // An API naming the cluster but no connection does not block: the gateway cannot connect it to any connection.
+        Predicate<ClusterUse> usesConnectionDirectly = use ->
+            cluster.getCrossId().equals(use.clusterCrossId()) && connectionCrossIds.contains(use.connectionCrossId());
+        Predicate<ClusterUse> usesItThroughVirtualCluster = use -> virtualClusters.contains(use.clusterCrossId());
+        return clusterBoundApisQueryService.findStartedApisUsing(environmentId, usesConnectionDirectly.or(usesItThroughVirtualCluster));
+    }
 
     /**
      * @param operation how the refused change is named in the error message, e.g. {@code "undeploy"}
      * @throws ClusterInUseException when a started API uses {@code cluster}
      */
     public void checkNotUsed(Cluster cluster, String environmentId, String operation) {
-        if (cluster.getCrossId() == null) {
-            return;
-        }
-        Set<String> virtualClusters = virtualClustersWithBackendOn(environmentId, cluster, backend -> true);
-        List<Api> apis = clusterBoundApisQueryService.findStartedApisUsing(
-            environmentId,
-            use -> cluster.getCrossId().equals(use.clusterCrossId()) || virtualClusters.contains(use.clusterCrossId())
-        );
+        List<Api> apis = startedApisUsing(cluster, environmentId);
         if (!apis.isEmpty()) {
             throw inUse("Cannot " + operation + " cluster '" + cluster.getName() + "': " + startedApis(apis) + " it.", apis);
         }
@@ -81,15 +105,8 @@ public class ClusterInUseDomainService {
         String operation
     ) {
         List<KafkaClusterConnection> removedConnections = removedConnections(before, after);
-        if (cluster.getCrossId() == null || removedConnections.isEmpty()) {
-            return;
-        }
         Set<String> removedCrossIds = removedConnections.stream().map(KafkaClusterConnection::crossId).collect(Collectors.toSet());
-        Set<String> virtualClusters = virtualClustersWithBackendOn(environmentId, cluster, removedCrossIds::contains);
-        Predicate<ClusterUse> usesRemovedConnection = use ->
-            (cluster.getCrossId().equals(use.clusterCrossId()) && removedCrossIds.contains(use.connectionCrossId())) ||
-            virtualClusters.contains(use.clusterCrossId());
-        List<Api> apis = clusterBoundApisQueryService.findStartedApisUsing(environmentId, usesRemovedConnection);
+        List<Api> apis = startedApisUsingConnections(cluster, removedCrossIds, environmentId);
         if (!apis.isEmpty()) {
             String names = removedConnections
                 .stream()
@@ -153,15 +170,13 @@ public class ClusterInUseDomainService {
             .collect(Collectors.toSet());
     }
 
-    /** {@code "2 started APIs (Orders, Payments) use"}: the subject and verb of the error message. */
+    /** {@code "5 started APIs (Audit, Orders, Payments and 2 more) use"}: the subject and verb of the error message. */
     private static String startedApis(List<Api> apis) {
-        return (
-            apis.size() +
-            (apis.size() == 1 ? " started API" : " started APIs") +
-            " (" +
-            apis.stream().map(Api::getName).collect(Collectors.joining(", ")) +
-            (apis.size() == 1 ? ") uses" : ") use")
-        );
+        String names = apis.stream().limit(NAMED_APIS).map(Api::getName).collect(Collectors.joining(", "));
+        if (apis.size() > NAMED_APIS) {
+            names += " and " + (apis.size() - NAMED_APIS) + " more";
+        }
+        return apis.size() + (apis.size() == 1 ? " started API" : " started APIs") + " (" + names + (apis.size() == 1 ? ") uses" : ") use");
     }
 
     private static ClusterInUseException inUse(String message, List<Api> apis) {

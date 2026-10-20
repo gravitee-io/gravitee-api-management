@@ -19,6 +19,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.DeployClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.GetClusterStartedApisUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.UndeployClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterGroupsUseCase;
@@ -26,6 +27,9 @@ import io.gravitee.apim.core.cluster.use_case.UpdateClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ClusterMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ApiType;
+import io.gravitee.rest.api.management.v2.rest.model.ClusterStartedApi;
+import io.gravitee.rest.api.management.v2.rest.model.ClusterStartedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateCluster;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -44,6 +48,7 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
@@ -80,6 +85,9 @@ public class ClusterResource extends AbstractResource {
 
     @Inject
     private UndeployClusterUseCase undeployClusterUseCase;
+
+    @Inject
+    private GetClusterStartedApisUseCase getClusterStartedApisUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -179,6 +187,27 @@ public class ClusterResource extends AbstractResource {
         );
 
         return Response.ok().entity(output.groups()).build();
+    }
+
+    @GET
+    @Path("started-apis")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.CLUSTER_DEFINITION, acls = { RolePermissionAction.READ }) })
+    public ClusterStartedApisResponse getClusterStartedApis(@QueryParam("connectionCrossId") List<String> connectionCrossIds) {
+        var output = getClusterStartedApisUseCase.execute(
+            new GetClusterStartedApisUseCase.Input(
+                clusterId,
+                GraviteeContext.getExecutionContext().getEnvironmentId(),
+                connectionCrossIds == null ? Set.of() : Set.copyOf(connectionCrossIds)
+            )
+        );
+        return new ClusterStartedApisResponse().data(
+            output
+                .apis()
+                .stream()
+                .map(api -> new ClusterStartedApi().id(api.getId()).name(api.getName()).type(ApiType.valueOf(api.getType().name())))
+                .toList()
+        );
     }
 
     @GET

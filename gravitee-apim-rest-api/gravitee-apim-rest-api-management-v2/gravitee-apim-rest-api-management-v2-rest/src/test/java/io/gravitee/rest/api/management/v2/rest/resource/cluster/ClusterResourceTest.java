@@ -31,17 +31,22 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.DeployClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.GetClusterStartedApisUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.UndeployClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterGroupsUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCase;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.management.v2.rest.model.ApiType;
+import io.gravitee.rest.api.management.v2.rest.model.ClusterStartedApi;
+import io.gravitee.rest.api.management.v2.rest.model.ClusterStartedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateCluster;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -89,6 +94,9 @@ class ClusterResourceTest extends AbstractResourceTest {
     @Inject
     private UndeployClusterUseCase undeployClusterUseCase;
 
+    @Inject
+    private GetClusterStartedApisUseCase getClusterStartedApisUseCase;
+
     @Autowired
     private UpdateClusterGroupsUseCase updateClusterGroupsUseCase;
 
@@ -122,7 +130,8 @@ class ClusterResourceTest extends AbstractResourceTest {
             deleteClusterUseCase,
             getClusterPermissionsUseCase,
             deployClusterUseCase,
-            undeployClusterUseCase
+            undeployClusterUseCase,
+            getClusterStartedApisUseCase
         );
     }
 
@@ -406,6 +415,55 @@ class ClusterResourceTest extends AbstractResourceTest {
                 () -> assertThat(permissionsResponse.size()).isEqualTo(2),
                 () -> assertThat(permissionsResponse.get(ClusterPermission.MEMBER.getName())).isEqualTo("CRUD"),
                 () -> assertThat(permissionsResponse.get(ClusterPermission.DEFINITION.getName())).isEqualTo("R")
+            );
+        }
+    }
+
+    @Nested
+    class GetClusterStartedApisTest {
+
+        @Test
+        void should_list_the_started_apis_using_the_cluster() {
+            when(getClusterStartedApisUseCase.execute(any())).thenReturn(
+                new GetClusterStartedApisUseCase.Output(
+                    List.of(
+                        Api.builder().id("api-1").name("Orders").type(io.gravitee.definition.model.v4.ApiType.NATIVE).build(),
+                        Api.builder().id("api-2").name("Payments").type(io.gravitee.definition.model.v4.ApiType.MESSAGE).build()
+                    )
+                )
+            );
+
+            try (Response response = rootTarget().path("started-apis").request().get()) {
+                assertThat(response.getStatus()).isEqualTo(OK_200);
+                var body = response.readEntity(ClusterStartedApisResponse.class);
+                assertThat(body.getData()).containsExactly(
+                    new ClusterStartedApi().id("api-1").name("Orders").type(ApiType.NATIVE),
+                    new ClusterStartedApi().id("api-2").name("Payments").type(ApiType.MESSAGE)
+                );
+            }
+
+            var captor = ArgumentCaptor.forClass(GetClusterStartedApisUseCase.Input.class);
+            verify(getClusterStartedApisUseCase).execute(captor.capture());
+            assertThat(captor.getValue()).isEqualTo(new GetClusterStartedApisUseCase.Input(CLUSTER_ID, ENV_ID, Set.of()));
+        }
+
+        @Test
+        void should_restrict_the_apis_to_the_given_connections() {
+            when(getClusterStartedApisUseCase.execute(any())).thenReturn(new GetClusterStartedApisUseCase.Output(List.of()));
+
+            try (Response response = rootTarget().path("started-apis").queryParam("connectionCrossId", "main,spare").request().get()) {
+                assertThat(response.getStatus()).isEqualTo(OK_200);
+            }
+
+            var captor = ArgumentCaptor.forClass(GetClusterStartedApisUseCase.Input.class);
+            verify(getClusterStartedApisUseCase).execute(captor.capture());
+            assertThat(captor.getValue().connectionCrossIds()).containsExactlyInAnyOrder("main", "spare");
+        }
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            shouldReturn403(RolePermission.CLUSTER_DEFINITION, CLUSTER_ID, RolePermissionAction.READ, () ->
+                rootTarget().path("started-apis").request().get()
             );
         }
     }
