@@ -26,23 +26,29 @@
         <shared-policy-groups-state-badge [lifecycleState]="sharedPolicyGroup.lifecycleState"></shared-policy-groups-state-badge>
       </mat-card-title>
       <mat-card-subtitle>{{ sharedPolicyGroup.description }}</mat-card-subtitle>
-      <div class="shared-policy-group-history__headerRightBtn">
-        <button
-          mat-stroked-button
-          matTooltip="Compare last selected version with the current Pending one"
-          [disabled]="sharedPolicyGroup.lifecycleState !== 'PENDING' || disableComparePendingSPG"
-          (click)="openComparePendingSPGDialog()"
-        >
-          <mat-icon svgIcon="gio:git-pull-request">comparePendingSPG</mat-icon>
-          {{ comparePendingSPGLabel }}
-        </button>
-        <span [matTooltip]="compareSPG ? 'Compare selected versions' : 'Select two versions to compare'">
-          <button mat-stroked-button [disabled]="disableCompareTwoSPG" (click)="openCompareTwoSPGDialog()">
-            <mat-icon svgIcon="gio:git-pull-request">compareTwoSPG</mat-icon> {{ compareTwoSPGLabel }}
+      @if (canReadSteps) {
+        <div class="shared-policy-group-history__headerRightBtn">
+          <button
+            mat-stroked-button
+            matTooltip="Compare last selected version with the current Pending one"
+            [disabled]="sharedPolicyGroup.lifecycleState !== 'PENDING' || disableComparePendingSPG"
+            (click)="openComparePendingSPGDialog()"
+          >
+            <mat-icon svgIcon="gio:git-pull-request">comparePendingSPG</mat-icon>
+            {{ comparePendingSPGLabel }}
           </button>
-        </span>
-      </div>
+          <span [matTooltip]="compareSPG ? 'Compare selected versions' : 'Select two versions to compare'">
+            <button mat-stroked-button [disabled]="disableCompareTwoSPG" (click)="openCompareTwoSPGDialog()">
+              <mat-icon svgIcon="gio:git-pull-request">compareTwoSPG</mat-icon> {{ compareTwoSPGLabel }}
+            </button>
+          </span>
+        </div>
+      }
     </mat-card-header>
+  }
+
+  @if (!canReadSteps) {
+    <gio-banner-info>The policies of a shared policy group are only shown to users who can edit shared policy groups.</gio-banner-info>
   }
 
   @if (pageTableVM$ | async; as pageTableVM) {
