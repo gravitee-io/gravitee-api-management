@@ -901,7 +901,8 @@ public class ResourceContextConfiguration {
                 new ValidatePagesDomainService(
                     validatePageSourceDomainService,
                     validatePageAccessControlsDomainService,
-                    validationDomainService
+                    validationDomainService,
+                    pageCrudService
                 ),
                 new ValidatePlanDomainService(
                     new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService),
