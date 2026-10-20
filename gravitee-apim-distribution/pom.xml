@@ -107,7 +107,7 @@
         <maven-antrun-plugin.version>3.2.0</maven-antrun-plugin.version>
         <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
         <flatten-maven-plugin.version>1.8.0</flatten-maven-plugin.version>
-        <gravitee-apim-release-manifest-maven-plugin.version>3.0.0-SNAPSHOT</gravitee-apim-release-manifest-maven-plugin.version>
+        <gravitee-apim-release-manifest-maven-plugin.version>3.0.0</gravitee-apim-release-manifest-maven-plugin.version>
 
         <!-- ===== Bundled plugin version catalog (moved from the root pom) ===== -->
         <!-- This is the plugin contract: bumping a bundled plugin = editing one line here. -->
