@@ -320,10 +320,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     ) {
         LOGGER.debug("Find applicationIds for user and permission {}, {}, {}", username, rolePermission, acl);
         Set<String> grantedApplicationIds = findApplicationIdsGrantingPermission(executionContext, username, rolePermission, acl);
-        // searchIds reads an empty id set as "no restriction", so no grant must short-circuit here.
-        if (grantedApplicationIds.isEmpty()) {
-            return emptySet();
-        }
 
         ApplicationQuery applicationQuery = new ApplicationQuery();
         applicationQuery.setIds(grantedApplicationIds);
