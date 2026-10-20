@@ -750,7 +750,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             auditService.createApiAuditLog(
                 executionContext,
                 AuditService.AuditLogData.builder()
-                    .properties(EncryptedPropertyAuditProperties.ofChange(apiEntity.getProperties(), null))
+                    .properties(Collections.emptyMap())
                     .event(API_DELETED)
                     .createdAt(new Date())
                     .oldValue(api)
