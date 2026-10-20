@@ -37,6 +37,7 @@ import io.gravitee.apim.core.application.use_case.ImportApplicationCRDUseCase;
 import io.gravitee.apim.core.application_certificate.domain_service.MtlsSubscriptionSyncDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
+import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.apim.core.membership.model.Role;
@@ -62,6 +63,7 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.SequencedSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -258,6 +260,27 @@ class ImportApplicationCRDUseCaseTest {
             var expected = expectedApplication();
             expected.setDescription(appDescriptionUpdated);
             SoftAssertions.assertSoftly(soft -> soft.assertThat(importApplicationCRDDomainService.storage()).contains(expected));
+        }
+
+        @Test
+        void should_not_attach_a_group_of_another_environment() {
+            groupQueryService.initWith(
+                List.of(Group.builder().id("other-environment-group-id").environmentId("other-environment-id").build())
+            );
+
+            ApplicationCRDSpec crd = anApplicationCRD();
+            crd.setGroups(Set.of("other-environment-group-id"));
+            var result = useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd));
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft
+                    .assertThat(importApplicationCRDDomainService.storage())
+                    .flatExtracting(application -> Optional.ofNullable(application.getGroups()).orElse(Set.of()))
+                    .isEmpty();
+                soft
+                    .assertThat(result.status().getErrors().warning())
+                    .containsExactly("Group [other-environment-group-id] could not be found in environment [" + ENVIRONMENT_ID + "]");
+            });
         }
 
         @Test
