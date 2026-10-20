@@ -100,7 +100,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             .metadata(spec.getMetadata())
             .build();
 
-        requireCreateOrUpdate(
+        requireCreateOrUpdateOn(
             RolePermission.API_SUBSCRIPTION,
             subscriptionCRDSpec.getReferenceId(),
             subscriptionQueryService
