@@ -40,3 +40,8 @@ annotations:
       links:
         - name: Github PR
           url: https://github.com/gravitee-io/gravitee-api-management/pull/19977
+    - kind: changed
+      description: "With federation enabled, the Management API installs its Hazelcast cache and cluster plugins from the release manifest of its own image, at the version that image ships with, instead of downloading URLs pinned in values.yaml"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/21756

@@ -22,32 +22,74 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].ports[1].containerPort
           value: 8072
-  - it: Check cluster plugins are downloaded
+  - it: Check cluster plugins are installed from the release manifest of the Management API image
     template: api/api-deployment.yaml
     set:
       api:
+        image:
+          tag: 4.14.0
+          pullPolicy: IfNotPresent
         federation:
           enabled: true
     asserts:
       - hasDocuments:
           count: 1
-      - equal:
+      - lengthEqual:
           path: spec.template.spec.initContainers
+          count: 1
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: install-plugins
+      - equal:
+          path: spec.template.spec.initContainers[0].image
+          value: graviteeio/apim-management-api:4.14.0
+      - equal:
+          path: spec.template.spec.initContainers[0].imagePullPolicy
+          value: IfNotPresent
+      - equal:
+          path: spec.template.spec.initContainers[0].securityContext
           value:
-            - command:
-                - sh
-                - -c
-                - mkdir -p /tmp/plugins && cd /tmp/plugins && ( rm  gravitee-node-cache-plugin-hazelcast-9.14.1.zip  2>/dev/null || true ) && wget https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-9.14.1.zip && ( rm  gravitee-node-cluster-plugin-hazelcast-9.14.1.zip  2>/dev/null || true ) && wget https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-9.14.1.zip
-              env: [ ]
-              image: alpine:latest
-              imagePullPolicy: Always
-              name: get-plugins
-              securityContext:
-                runAsNonRoot: true
-                runAsUser: 1001
-              volumeMounts:
-                - mountPath: /tmp/plugins
-                  name: graviteeio-apim-plugins
+            runAsNonRoot: true
+            runAsUser: 1001
+      - equal:
+          path: spec.template.spec.initContainers[0].command[0]
+          value: sh
+      - equal:
+          path: spec.template.spec.initContainers[0].command[1]
+          value: -c
+      - matchRegex:
+          path: spec.template.spec.initContainers[0].command[2]
+          pattern: 'exec /opt/graviteeio-management-api/bin/install-plugins\.sh --manifest /opt/graviteeio-management-api/release-manifest\.json --home /tmp/install "\$@"'
+      - matchRegex:
+          path: spec.template.spec.initContainers[0].command[2]
+          pattern: 'ERROR: image graviteeio/apim-management-api:4\.14\.0 has no release manifest'
+      - lengthEqual:
+          path: spec.template.spec.initContainers[0].command
+          count: 6
+      - equal:
+          path: spec.template.spec.initContainers[0].command[3]
+          value: install-plugins
+      - equal:
+          path: spec.template.spec.initContainers[0].command[4]
+          value: gravitee-node-cache-plugin-hazelcast
+      - equal:
+          path: spec.template.spec.initContainers[0].command[5]
+          value: gravitee-node-cluster-plugin-hazelcast
+      - equal:
+          path: spec.template.spec.initContainers[0].volumeMounts
+          value:
+            - mountPath: /tmp/install/plugins
+              name: graviteeio-apim-plugins
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /opt/graviteeio-management-api/plugins-ext
+            name: graviteeio-apim-plugins
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: graviteeio-apim-plugins
+            emptyDir: {}
       - equal:
           path: spec.template.spec.containers[0].env[0].name
           value: GRAVITEE_PLUGINS_PATH_0
@@ -60,6 +102,61 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].env[1].value
           value: ${gravitee.home}/plugins-ext
+  - it: Download the cluster plugins given as URLs, as before
+    template: api/api-deployment.yaml
+    set:
+      api:
+        federation:
+          enabled: true
+      cluster:
+        plugins:
+          - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-9.14.1.zip
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.initContainers
+          count: 1
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: get-plugins
+      - equal:
+          path: spec.template.spec.initContainers[0].command[2]
+          value: mkdir -p /tmp/plugins && cd /tmp/plugins && ( rm  gravitee-node-cluster-plugin-hazelcast-9.14.1.zip  2>/dev/null || true ) && wget https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-9.14.1.zip
+  - it: Install the cluster plugins next to the additional plugins
+    template: api/api-deployment.yaml
+    set:
+      api:
+        federation:
+          enabled: true
+        additionalPlugins:
+          - https://path_to_plugin/my-plugin-1.0.0.zip
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.initContainers
+          count: 2
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: install-plugins
+      - equal:
+          path: spec.template.spec.initContainers[1].name
+          value: get-plugins
+      - equal:
+          path: spec.template.spec.initContainers[1].volumeMounts
+          value:
+            - mountPath: /tmp/plugins
+              name: graviteeio-apim-plugins
+      - lengthEqual:
+          path: spec.template.spec.volumes
+          count: 2
+  - it: Install no cluster plugin without federation
+    template: api/api-deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GRAVITEE_PLUGINS_PATH_1
+            value: ${gravitee.home}/plugins-ext
   - it: Adapt plugin initContainer SecurityContext for OpenShift
     template: api/api-deployment.yaml
     set:
