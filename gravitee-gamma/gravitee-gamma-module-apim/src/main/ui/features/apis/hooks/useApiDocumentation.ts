@@ -20,6 +20,7 @@ import { type Query, useMutation, useQuery, useQueryClient } from '@tanstack/rea
 import { type DocumentationItemChanges, toUpdatePayload } from '../components/detail/documentation/toUpdatePayload';
 import {
     createApiDocumentationItem,
+    createApiOverviewPage,
     deleteApiDocumentationItem,
     fetchApiDocumentationItem,
     getApiDocumentationPageContent,
@@ -166,6 +167,10 @@ export function useImportApiDocumentation(apiId: string) {
 
 export function usePublishApiToPortal(apiId: string) {
     return useApiDocumentationMutation(apiId, publishApiToPortal);
+}
+
+export function useCreateApiOverviewPage(apiId: string) {
+    return useApiDocumentationMutation(apiId, (envId, id, _variables: void) => createApiOverviewPage(envId, id));
 }
 
 export function useUnpublishApiFromPortal(apiId: string) {

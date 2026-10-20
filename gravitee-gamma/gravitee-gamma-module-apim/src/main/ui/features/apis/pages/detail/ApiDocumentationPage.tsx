@@ -86,6 +86,8 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     // A page is created, then its content is saved: with create alone it would stay empty.
     const canAdd = useHasPermission({ allOf: ['api-documentation-c', 'api-documentation-u'] });
     const canEdit = useHasPermission({ anyOf: ['api-documentation-u'] });
+    // Enough for the Overview page, which the server creates with its content.
+    const canCreate = useHasPermission({ anyOf: ['api-documentation-c'] });
     const { api } = useApiDetailContext();
     const { data, isLoading, isError } = useApiDocumentation(apiId);
     const deleteMutation = useDeleteApiDocumentationItem(apiId);
@@ -261,6 +263,12 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                 open={isPublishing}
                 apiId={apiId}
                 publications={data?.publications ?? []}
+                hasPage={items.some(item => item.type === 'PAGE')}
+                canCreatePage={canCreate}
+                onOverviewPageCreated={pageId => {
+                    setIsPublishing(false);
+                    navigate(`${pageId}/edit`);
+                }}
                 onClose={() => setIsPublishing(false)}
             />
 
