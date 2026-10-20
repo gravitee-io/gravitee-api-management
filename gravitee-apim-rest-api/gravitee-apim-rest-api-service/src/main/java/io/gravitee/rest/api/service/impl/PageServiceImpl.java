@@ -2917,7 +2917,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             }
 
             try {
-                findById(pageEntityToImport.getId());
+                var existingPage = findById(pageEntityToImport.getId());
+                // Page ids in an imported definition are lookup keys: an import only writes pages of the API it imports
+                if (!PageReferenceType.API.name().equals(existingPage.getReferenceType()) || !apiId.equals(existingPage.getReferenceId())) {
+                    throw new PageActionException(PageType.valueOf(existingPage.getType()), "be imported into this API");
+                }
                 createdOrUpdatedPage = update(
                     executionContext,
                     pageEntityToImport.getId(),
