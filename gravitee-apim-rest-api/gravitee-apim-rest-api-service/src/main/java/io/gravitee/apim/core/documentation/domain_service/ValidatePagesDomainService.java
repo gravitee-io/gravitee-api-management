@@ -29,7 +29,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -77,14 +76,20 @@ public class ValidatePagesDomainService implements Validator<ValidatePagesDomain
                     page.setParentId(IdBuilder.builder(input.auditInfo, input.apiHrid).withExtraId(v.getParentHrid()).buildId());
                 }
 
-                Stream.of(page.getId(), page.getParentId())
-                    .filter(Objects::nonNull)
-                    .filter(pageId -> belongsToAnotherReference(pageId, input.apiId()))
-                    .forEach(pageId ->
-                        errors.add(
-                            Error.severe("invalid documentation page [%s]. Error: page [%s] does not belong to this API", k, pageId)
+                if (belongsToAnotherReference(page.getId(), input.apiId())) {
+                    errors.add(
+                        Error.severe("invalid documentation page [%s]. Error: page id [%s] does not belong to this API", k, page.getId())
+                    );
+                }
+                if (belongsToAnotherReference(page.getParentId(), input.apiId())) {
+                    errors.add(
+                        Error.severe(
+                            "invalid documentation page [%s]. Error: parent page [%s] does not belong to this API",
+                            k,
+                            page.getParentId()
                         )
                     );
+                }
 
                 pageSourceValidator
                     .validateAndSanitize(new ValidatePageSourceDomainService.Input(k, page.getSource()))
@@ -116,6 +121,9 @@ public class ValidatePagesDomainService implements Validator<ValidatePagesDomain
 
     // Page ids in a spec are lookup keys: an import only writes pages of the API it imports
     private boolean belongsToAnotherReference(String pageId, String apiId) {
+        if (pageId == null) {
+            return false;
+        }
         return pageCrudService
             .findById(pageId)
             .map(existing -> existing.getReferenceType() != Page.ReferenceType.API || !Objects.equals(existing.getReferenceId(), apiId))
