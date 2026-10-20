@@ -17,18 +17,24 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.model.NewTicketEntity;
 import io.gravitee.rest.api.model.TicketEntity;
 import io.gravitee.rest.api.model.api.TicketQuery;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.TicketMapper;
 import io.gravitee.rest.api.portal.rest.model.TicketInput;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.resource.param.TicketsParam;
 import io.gravitee.rest.api.service.TicketService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -36,6 +42,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -53,14 +60,34 @@ public class TicketsResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(@Valid @NotNull(message = "Input must not be null.") final TicketInput ticketInput) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final NewTicketEntity ticketEntity = ticketMapper.convert(ticketInput);
+        checkApiAccess(executionContext, ticketEntity.getApi());
+        checkApplicationAccess(executionContext, ticketEntity.getApplication());
+
         ticketService.create(
-            GraviteeContext.getExecutionContext(),
+            executionContext,
             getAuthenticatedUser(),
-            ticketMapper.convert(ticketInput),
+            ticketEntity,
             GraviteeContext.getCurrentEnvironment(),
             ParameterReferenceType.ENVIRONMENT
         );
         return Response.status(Response.Status.CREATED).build();
+    }
+
+    private void checkApiAccess(ExecutionContext executionContext, String apiId) {
+        if (StringUtils.isNotEmpty(apiId) && !accessControlService.canAccessApiFromPortal(executionContext, apiId)) {
+            throw new ApiNotFoundException(apiId);
+        }
+    }
+
+    private void checkApplicationAccess(ExecutionContext executionContext, String applicationId) {
+        if (
+            StringUtils.isNotEmpty(applicationId) &&
+            !hasPermission(executionContext, RolePermission.APPLICATION_DEFINITION, applicationId, RolePermissionAction.READ)
+        ) {
+            throw new ForbiddenAccessException();
+        }
     }
 
     @GET
