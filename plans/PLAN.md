@@ -109,7 +109,7 @@ todos:
     status: cancelled
   - id: STORY-33
     content: "Preview OpenAPI and AsyncAPI content."
-    status: pending
+    status: completed
   - id: STORY-33-BIS
     content: "Configure the OpenAPI viewer of a page (Swagger UI or Redoc, and its options) under API documentation permission, as the portal editor's Configure dialog does."
     status: pending
@@ -1359,6 +1359,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 6. The keyboard-accessible equivalent.
 
 #### STORY-33 — Preview OpenAPI and AsyncAPI content
+**Status:** Done under [PORTAL-275](https://gravitee.atlassian.net/browse/PORTAL-275), as [#21219](https://github.com/gravitee-io/gravitee-api-management/pull/21219), with the viewers and versions the portal already ships. The editor and the preview can be resized against each other, by dragging or with the arrow keys. The previews render on a light surface in Gamma's dark theme too, as in the portal ([PORTAL-298](https://gravitee.atlassian.net/browse/PORTAL-298), [#21595](https://github.com/gravitee-io/gravitee-api-management/pull/21595)).
 **Why:** a rendered preview is how an author catches a broken or misleading spec before customers see it. Gravitee Markdown already gets its preview from STORY-22, and the other two content types should not be authored blind by comparison.
 **Acceptance criteria:**
 - A spec renders in the preview panel for both types; a malformed spec shows an error rather than breaking the screen.
