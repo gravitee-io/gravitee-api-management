@@ -67,25 +67,25 @@ Three flags, each of which fails quietly rather than loudly:
 Each component is built in two steps, both in the `package` phase of `gravitee-apim-distribution-standalone-{gateway,rest-api}`:
 
 1. the assembly builds the **slim** distribution in `target/slim`, from the dependencies declared outside any profile;
-2. the `flavor` goal of `gravitee-apim-release-manifest-maven-plugin` copies it to `target/distribution` and adds the plugins its **flavor file** names.
+2. the `flavor` goal of `gravitee-apim-release-manifest-maven-plugin` copies it to `target/distribution` and adds the plugins its **layer files** name. Each flavor stacks layers of `flavors/` (`<flavors>` of the goal, in `gravitee-apim-distribution-standalone/pom.xml`).
 
-| Build | Flavor file | Ships |
-|---|---|---|
-| no `-Dbundle` | `flavors/community.txt` | open-source plugins only |
-| `-Dbundle` | `flavors/bundle-default.txt` | the released zip and images |
-| `-Dbundle=dev` | `flavors/bundle-dev.txt` | our dev and test images |
+| Build | Flavor | Layers | Ships |
+|---|---|---|---|
+| no `-Dbundle` | `community` | `community.txt` | open-source plugins only |
+| `-Dbundle` | `bundle-default` | `community.txt` + `enterprise.txt` | the released zip and images |
+| `-Dbundle=dev` | `bundle-dev` | `community.txt` + `enterprise.txt` + `dev.txt` | our dev and test images |
 
-- **The flavors nest:** community ⊂ bundle-default ⊂ bundle-dev. A plugin listed in a flavor file is also listed in every bigger one.
+- **The flavors nest:** community ⊂ bundle-default ⊂ bundle-dev. Each flavor stacks the layers of the smaller one and adds its own, so a name is written in one layer only.
 - **Adding a plugin takes three edits:**
   1. its version, in a property of `gravitee-apim-distribution/pom.xml` named after its artifactId (`<gravitee-policy-foo.version>`);
   2. its declaration, with `<type>zip</type>` and `<scope>runtime</scope>`, in `gravitee-apim-distribution-standalone/pom.xml`: outside any profile when every distribution ships it, otherwise in the `catalog` profile;
-  3. its artifactId in the flavor file of the smallest flavor that ships it, and in every bigger one.
+  3. its artifactId in **one** layer: the one of the smallest flavor that ships it.
 
   Declared in `catalog` but listed nowhere, it ships in no image: the release manifest still lists it, for custom images.
 - **Both components get every plugin their assembly accepts.** The `plugins` dependencySet of each `plugin-assembly-distribution.xml` is an exclude list: a plugin meant for one component only is excluded from the other's assembly. Policies stay in both: the Management API loads them too.
 - **Check where it landed.** A name no component accepts, a typo included, is only logged as skipped (`not part of the catalog of <component>`) and ships nowhere. After a build, look for the zip in `target/distribution/plugins` and in `target/release-manifest.json` of each component.
 - **The `catalog` profile is never activated.** `-Pcatalog` would put every plugin into the slim distribution, and so into every flavor.
-- **One file per flavor, for both components.** Each component takes the names its assembly accepts and logs the others as skipped: a typo shows up there, not as a failure.
+- **One set of layers for both components.** Each component takes the names its assembly accepts and logs the others as skipped: a typo shows up there, not as a failure.
 - `target/distribution` keeps its path and its content: the Dockerfiles, `task docker-backend` and the CI read it as before.
 
 ## Running the inference plugin on a Mac
