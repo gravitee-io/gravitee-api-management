@@ -43,35 +43,35 @@
 
         The distribution of a component is built in two steps:
          1. the assembly builds the slim distribution, target/slim, from the dependencies declared outside any profile;
-         2. the flavor goal copies it to target/distribution and adds the plugins its flavor file names, resolved from
-            the catalog profile: one file per flavor in flavors/, next to this pom, one artifactId per line.
+         2. the flavor goal copies it to target/distribution and adds the plugins its layer files name, resolved from
+            the catalog profile. The layers are in flavors/, next to this pom, one artifactId per line, and each flavor
+            stacks some of them (<flavors> of the flavor goal): community, then enterprise, then dev.
 
         To add a new dependency in the bundle:
          1. Add the version in the <properties> section of the parent pom.xml, in a property named after its artifactId.
          2. Declare it, with <type>zip</type> and <scope>runtime</scope>:
            - in the <dependencies> section of this pom.xml if it is open source and part of every distribution;
            - otherwise in the <dependencies> section of the `catalog` profile.
-         3. Add its artifactId to the flavor files that ship it. The flavors nest, community within bundle-default within
-            bundle-dev: a plugin listed in flavors/community.txt is also in flavors/bundle-default.txt and
-            flavors/bundle-dev.txt, one in bundle-default also in bundle-dev. A plugin in the catalog and in no flavor
-            file is only listed by the release manifest, for custom images.
+         3. Add its artifactId to one layer, the one of the smallest flavor that ships it: flavors/community.txt,
+            flavors/enterprise.txt or flavors/dev.txt. A plugin in the catalog and in no layer is only listed by the
+            release manifest, for custom images.
          Both components get the plugin unless an assembly above excludes it: to keep it out of one component, add an
          exclude to that component's `plugins` dependencySet. Policies stay in both, the Management API loads them too.
     -->
     <!--
         TO MAKE A DISTRIBUTION
-        There are 3 flavors for the distribution, one file each in flavors/:
+        There are 3 flavors for the distribution, each stacking layers of flavors/:
 
-        - "community", full OSS.
+        - "community", full OSS: community.txt.
           It can be built with `mvn clean install`.
           Every single user is able to make this distribution, as it requires only OSS plugins.
 
-        - "bundle-default", the released one: community plus a couple of EE plugins.
+        - "bundle-default", the released one: community plus a couple of EE plugins, enterprise.txt.
           It can be built with `mvn clean install -Dbundle`.
           Only Gravitee members are able to make this distribution, as it requires access to an internal repository.
 
-        - "bundle-dev", bundle-default plus almost all available OSS & EE plugins. This distribution is used internally
-          for our dev & test environments.
+        - "bundle-dev", bundle-default plus almost all available OSS & EE plugins, dev.txt. This distribution is used
+          internally for our dev & test environments.
           It can be built with `mvn clean install -Dbundle=dev`.
           Only Gravitee members are able to make this distribution, as it requires access to an internal repository.
 
@@ -79,7 +79,7 @@
     -->
 
     <properties>
-        <!-- The flavor to ship, one of ../flavors/*.txt: set by the bundle-default and bundle-dev profiles -->
+        <!-- The flavor to ship, one of the <flavors> below: set by the bundle-default and bundle-dev profiles -->
         <apim.flavor>community</apim.flavor>
     </properties>
 
@@ -1385,6 +1385,12 @@
                             </goals>
                             <configuration>
                                 <flavorsDirectory>${project.basedir}/../flavors</flavorsDirectory>
+                                <!-- Each flavor stacks layers, so that a plugin is listed once -->
+                                <flavors>
+                                    <community>community.txt</community>
+                                    <bundle-default>community.txt, enterprise.txt</bundle-default>
+                                    <bundle-dev>community.txt, enterprise.txt, dev.txt</bundle-dev>
+                                </flavors>
                                 <flavor>${apim.flavor}</flavor>
                                 <flavorDirectory>${project.build.directory}/distribution</flavorDirectory>
                             </configuration>
@@ -1456,7 +1462,7 @@
         <!--
             Catalog: every plugin a flavor can add to the slim distribution, with its version. Never activated:
             the flavor goal of gravitee-apim-release-manifest-maven-plugin reads it to resolve the names of the
-            flavor files (../flavors/*.txt), and the release manifest lists it for custom images.
+            layer files (../flavors/*.txt), and the release manifest lists it for custom images.
         -->
         <profile>
             <id>catalog</id>
