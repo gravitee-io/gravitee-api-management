@@ -140,7 +140,8 @@ class MembershipService_CreateNewMembershipForApiProductTest {
             commandRepository,
             null,
             null,
-            apiProductGroupService
+            apiProductGroupService,
+            null
         );
 
         mockRole();

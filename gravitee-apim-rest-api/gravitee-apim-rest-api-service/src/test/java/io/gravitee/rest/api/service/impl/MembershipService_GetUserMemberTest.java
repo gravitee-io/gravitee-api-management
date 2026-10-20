@@ -100,13 +100,10 @@ public class MembershipService_GetUserMemberTest {
             null,
             null,
             null,
-<<<<<<< HEAD
             null,
             null,
-            null
-=======
+            null,
             clusterRepository
->>>>>>> e4c7f77 (fix(rest-api): grant cluster permissions to users reaching a cluster through a group)
         );
     }
 

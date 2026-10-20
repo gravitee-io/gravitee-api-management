@@ -119,6 +119,7 @@ public class MembershipService_UpdateMembershipForApiTest {
             commandRepository,
             null,
             null,
+            null,
             null
         );
         mockApi();

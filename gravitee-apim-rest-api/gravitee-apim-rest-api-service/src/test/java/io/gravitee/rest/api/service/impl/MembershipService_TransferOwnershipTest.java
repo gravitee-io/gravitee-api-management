@@ -165,11 +165,8 @@ public class MembershipService_TransferOwnershipTest {
             commandRepository,
             apiMetadataService,
             searchEngineService,
-<<<<<<< HEAD
-            apiProductGroupService
-=======
+            apiProductGroupService,
             null
->>>>>>> e4c7f77 (fix(rest-api): grant cluster permissions to users reaching a cluster through a group)
         );
 
         // Stub API_PRODUCT lookup for tests that exercise getUserMember(API_PRODUCT, ...). Returning an
