@@ -30,8 +30,13 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author Guillaume GILLON
@@ -105,6 +110,87 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
             MediaCriteria.builder().api("apiId").organization(ORG_ID).environment(ENV_ID).build()
         );
         assertTrue(optionalAfter.isPresent(), "Image saved not found");
+    }
+
+    @ParameterizedTest
+    @MethodSource("portalMediaLookups")
+    public void should_not_find_api_media_without_api_criteria(MediaCriteria criteria, boolean withContent) throws Exception {
+        String fileName = "stars.png";
+        byte[] fileBytes = getFileBytes(fileName);
+        String hash = getHashString(fileBytes);
+
+        createMedia(ORG_ID, ENV_ID, fileName, fileBytes, fileBytes.length, hash, "api-media", "api-id");
+
+        assertTrue(mediaRepository.findByHash(hash, criteria, withContent).isEmpty());
+    }
+
+    @ParameterizedTest
+    @MethodSource("portalMediaLookups")
+    public void should_find_only_portal_media_when_api_media_has_the_same_hash(MediaCriteria criteria, boolean withContent)
+        throws Exception {
+        String fileName = "stars.png";
+        byte[] fileBytes = getFileBytes(fileName);
+        String hash = getHashString(fileBytes);
+
+        createMedia(ORG_ID, ENV_ID, fileName, fileBytes, fileBytes.length, hash, "api-media", "api-id");
+        createMedia(ORG_ID, ENV_ID, fileName, fileBytes, fileBytes.length, hash, "portal-media", null);
+
+        Media media = mediaRepository.findByHash(hash, criteria, withContent).orElseThrow();
+
+        assertEquals("portal-media", media.getId());
+        assertNull(media.getApi());
+        assertArrayEquals(withContent ? fileBytes : null, media.getData());
+    }
+
+    @Test
+    public void should_find_only_portal_media_using_hash_only_lookup() throws Exception {
+        String fileName = "stars.png";
+        byte[] fileBytes = getFileBytes(fileName);
+        String hash = getHashString(fileBytes);
+
+        createMedia(ORG_ID, ENV_ID, fileName, fileBytes, fileBytes.length, hash, "api-media", "api-id");
+        assertTrue(mediaRepository.findByHash(hash).isEmpty());
+
+        createMedia(ORG_ID, ENV_ID, fileName, fileBytes, fileBytes.length, hash, "portal-media", null);
+        assertEquals("portal-media", mediaRepository.findByHash(hash).orElseThrow().getId());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
+    public void should_find_only_requested_api_media_when_other_media_has_the_same_hash(boolean withContent) throws Exception {
+        String fileName = "stars.png";
+        byte[] fileBytes = getFileBytes(fileName);
+        String hash = getHashString(fileBytes);
+
+        createMedia(ORG_ID, ENV_ID, fileName, fileBytes, fileBytes.length, hash, "portal-media", null);
+        createMedia(ORG_ID, ENV_ID, fileName, fileBytes, fileBytes.length, hash, "other-api-media", "other-api-id");
+        createMedia(ORG_ID, ENV_ID, fileName, fileBytes, fileBytes.length, hash, "api-media", "api-id");
+
+        Media media = mediaRepository
+            .findByHash(hash, MediaCriteria.builder().api("api-id").organization(ORG_ID).environment(ENV_ID).build(), withContent)
+            .orElseThrow();
+
+        assertEquals("api-media", media.getId());
+        assertEquals("api-id", media.getApi());
+        assertArrayEquals(withContent ? fileBytes : null, media.getData());
+        assertTrue(
+            mediaRepository
+                .findByHash(
+                    hash,
+                    MediaCriteria.builder().api("missing-api-id").organization(ORG_ID).environment(ENV_ID).build(),
+                    withContent
+                )
+                .isEmpty()
+        );
+    }
+
+    private static Stream<Arguments> portalMediaLookups() {
+        return Stream.of(
+            null,
+            MediaCriteria.builder().build(),
+            MediaCriteria.builder().organization(ORG_ID).environment(ENV_ID).build(),
+            MediaCriteria.builder().organization(ORG_ID).environment(ENV_ID).mediaType("image").build()
+        ).flatMap(criteria -> Stream.of(Arguments.of(criteria, true), Arguments.of(criteria, false)));
     }
 
     @Test
@@ -236,7 +322,7 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
 
         Optional<Media> image = mediaRepository.findByHash(
             hashString,
-            MediaCriteria.builder().mediaType("image").organization(ORG_ID).environment(ENV_ID).build()
+            MediaCriteria.builder().api(apiId).mediaType("image").organization(ORG_ID).environment(ENV_ID).build()
         );
         assertFalse(image.isPresent(), "Invalid asset found");
     }
