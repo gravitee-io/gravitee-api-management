@@ -14,10 +14,12 @@
 # limitations under the License.
 #
 
-# Flavor community: built without -Dbundle. Open-source plugins only: anyone can build it.
+# Layer community: open-source plugins only, anyone can build it (no -Dbundle). Every flavor starts with it.
+# The flavors stack layers (flavor goal in gravitee-apim-distribution-standalone/pom.xml): community = community;
+# bundle-default = community + enterprise; bundle-dev = community + enterprise + dev. Write a name in one layer only.
 # One artifactId per line, declared in gravitee-apim-distribution-standalone/pom.xml with its version property in
 # gravitee-apim-distribution/pom.xml. Each component (gateway, rest-api) takes the names its assembly accepts and logs
-# the others as skipped. The flavors nest: community within bundle-default within bundle-dev.
+# the others as skipped.
 
 # Clusters
 gravitee-node-cache-plugin-standalone

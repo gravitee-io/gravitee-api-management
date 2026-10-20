@@ -1,0 +1,56 @@
+#
+# Copyright © 2015 The Gravitee team (http://gravitee.io)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# Layer dev: what the images of our dev and test environments add (-Dbundle=dev).
+# The flavors stack layers (flavor goal in gravitee-apim-distribution-standalone/pom.xml): community = community;
+# bundle-default = community + enterprise; bundle-dev = community + enterprise + dev. Write a name in one layer only.
+# One artifactId per line, declared in gravitee-apim-distribution-standalone/pom.xml with its version property in
+# gravitee-apim-distribution/pom.xml. Each component (gateway, rest-api) takes the names its assembly accepts and logs
+# the others as skipped.
+
+# Endpoints
+gravitee-endpoint-solace
+
+# Policies
+gravitee-policy-transform-avro-protobuf
+gravitee-policy-aws-lambda
+gravitee-policy-basic-authentication
+gravitee-policy-circuit-breaker
+gravitee-policy-custom-query-parameters-parser
+gravitee-policy-geoip-filtering
+gravitee-policy-graphql-rate-limit
+gravitee-policy-js
+gravitee-policy-wssecurity-authentication
+gravitee-policy-interrupt
+gravitee-policy-interops-a-sp
+gravitee-policy-interops-r-sp
+
+# Resources
+gravitee-resource-auth-provider-http
+gravitee-resource-auth-provider-inline
+gravitee-resource-auth-provider-ldap
+gravitee-resource-cache-redis
+gravitee-resource-oauth2-provider-keycloak
+gravitee-resource-storage-azure-blob
+gravitee-node-cluster-plugin-hazelcast
+
+# Secret Providers
+gravitee-secret-provider-aws
+gravitee-secret-provider-azure-keyvault
+
+# Libraries
+mongodb-crypt
+jna
