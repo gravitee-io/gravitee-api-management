@@ -153,11 +153,8 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
             commandRepository,
             null,
             null,
-<<<<<<< HEAD
-            apiProductGroupService
-=======
+            apiProductGroupService,
             null
->>>>>>> e4c7f77 (fix(rest-api): grant cluster permissions to users reaching a cluster through a group)
         );
     }
 

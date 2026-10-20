@@ -223,11 +223,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         @Autowired @Lazy CommandRepository commandRepository,
         @Autowired @Lazy ApiMetadataService apiMetadataService,
         @Autowired @Lazy SearchEngineService searchEngineService,
-<<<<<<< HEAD
-        @Autowired @Lazy ApiProductGroupService apiProductGroupService
-=======
+        @Autowired @Lazy ApiProductGroupService apiProductGroupService,
         @Autowired @Lazy ClusterRepository clusterRepository
->>>>>>> e4c7f77 (fix(rest-api): grant cluster permissions to users reaching a cluster through a group)
     ) {
         this.identityService = identityService;
         this.userService = userService;
@@ -253,11 +250,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         this.commandRepository = commandRepository;
         this.apiMetadataService = apiMetadataService;
         this.searchEngineService = searchEngineService;
-<<<<<<< HEAD
         this.apiProductGroupService = apiProductGroupService;
-=======
         this.clusterRepository = clusterRepository;
->>>>>>> e4c7f77 (fix(rest-api): grant cluster permissions to users reaching a cluster through a group)
     }
 
     @Override
