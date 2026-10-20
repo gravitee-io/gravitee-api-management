@@ -31,7 +31,7 @@
   </section>
 
   <section *ngIf="!empty">
-    <gv-card-list [items]="applications"></gv-card-list>
+    <gv-card-list data-testid="applications-list" [items]="applications"></gv-card-list>
   </section>
 
   <div class="page__content__pagination">
