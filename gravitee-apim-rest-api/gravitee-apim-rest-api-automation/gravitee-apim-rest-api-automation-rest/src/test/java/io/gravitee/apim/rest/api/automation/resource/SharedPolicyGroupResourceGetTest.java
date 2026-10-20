@@ -16,16 +16,22 @@
 package io.gravitee.apim.rest.api.automation.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.rest.api.automation.model.SharedPolicyGroupState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
 import jakarta.inject.Inject;
 import java.util.List;
+import java.util.Map;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -80,6 +86,23 @@ class SharedPolicyGroupResourceGetTest extends AbstractResourceTest {
             assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
             assertThat(state.getSteps()).isNotEmpty();
         });
+    }
+
+    @Test
+    void should_hide_steps_from_a_caller_who_cannot_update_shared_policy_groups() {
+        when(
+            permissionService.hasPermission(
+                any(),
+                eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP),
+                eq(ENVIRONMENT),
+                eq(RolePermissionAction.UPDATE)
+            )
+        ).thenReturn(false);
+
+        try (var response = rootTarget().path(HRID).request().get()) {
+            assertThat(response.getStatus()).isEqualTo(200);
+            assertThat(response.readEntity(Map.class)).containsEntry("hrid", HRID).doesNotContainKey("steps");
+        }
     }
 
     @Test
