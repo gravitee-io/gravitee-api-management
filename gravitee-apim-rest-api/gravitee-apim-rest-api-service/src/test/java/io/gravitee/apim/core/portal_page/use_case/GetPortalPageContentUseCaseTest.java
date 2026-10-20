@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
+import static fixtures.core.model.PortalPageContentFixtures.ENVIRONMENT_ID;
+import static fixtures.core.model.PortalPageContentFixtures.ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -45,10 +47,8 @@ class GetPortalPageContentUseCaseTest {
 
     @Test
     void should_return_portal_page_content_when_found() {
-        // Given
-        // When
-        var result = useCase.execute(new GetPortalPageContentUseCase.Input(CONTENT_ID));
-        // Then
+        var result = useCase.execute(new GetPortalPageContentUseCase.Input(ORGANIZATION_ID, ENVIRONMENT_ID, CONTENT_ID));
+
         assertThat(result.content()).isInstanceOf(GraviteeMarkdownPageContent.class);
         assertThat(result.content().getId()).isEqualTo(CONTENT_ID);
         assertThat(((GraviteeMarkdownPageContent) result.content()).getContent().value()).isEqualTo(
@@ -58,14 +58,30 @@ class GetPortalPageContentUseCaseTest {
 
     @Test
     void should_throw_when_content_not_found() {
-        // Given
         var unknownId = PortalPageContentId.of("00000000-0000-0000-0000-000000000002");
 
-        // When & Then
-        assertThatThrownBy(() -> useCase.execute(new GetPortalPageContentUseCase.Input(unknownId)))
+        assertThatThrownBy(() -> useCase.execute(new GetPortalPageContentUseCase.Input(ORGANIZATION_ID, ENVIRONMENT_ID, unknownId)))
             .isInstanceOf(PageContentNotFoundException.class)
             .hasMessage("Page content not found")
             .extracting(ex -> ((PageContentNotFoundException) ex).getId())
             .isEqualTo(unknownId.json());
+    }
+
+    @Test
+    void should_throw_when_content_belongs_to_another_environment() {
+        assertThatThrownBy(() -> useCase.execute(new GetPortalPageContentUseCase.Input(ORGANIZATION_ID, "other-env", CONTENT_ID)))
+            .isInstanceOf(PageContentNotFoundException.class)
+            .hasMessage("Page content not found")
+            .extracting(ex -> ((PageContentNotFoundException) ex).getId())
+            .isEqualTo(CONTENT_ID.json());
+    }
+
+    @Test
+    void should_throw_when_content_belongs_to_another_organization() {
+        assertThatThrownBy(() -> useCase.execute(new GetPortalPageContentUseCase.Input("other-org", ENVIRONMENT_ID, CONTENT_ID)))
+            .isInstanceOf(PageContentNotFoundException.class)
+            .hasMessage("Page content not found")
+            .extracting(ex -> ((PageContentNotFoundException) ex).getId())
+            .isEqualTo(CONTENT_ID.json());
     }
 }

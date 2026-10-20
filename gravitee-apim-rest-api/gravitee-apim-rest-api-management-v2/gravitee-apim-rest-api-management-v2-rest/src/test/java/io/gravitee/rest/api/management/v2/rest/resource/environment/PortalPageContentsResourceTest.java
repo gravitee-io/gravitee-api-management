@@ -19,7 +19,10 @@ import static assertions.MAPIAssertions.assertThat;
 import static fixtures.core.model.PortalPageContentFixtures.CONTENT_ID;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
@@ -55,6 +58,8 @@ import org.junit.jupiter.api.Test;
 class PortalPageContentsResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "environment-id";
+    private static final String ENVIRONMENT_HRID = "environment-hrid";
+    private static final String FOREIGN_CONTENT = "Content from another tenant";
 
     @Inject
     private GetPortalPageContentUseCase getPortalPageContentUseCase;
@@ -69,7 +74,7 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/environments/" + ENVIRONMENT + "/portal-page-contents";
+        return "/environments/" + ENVIRONMENT_HRID + "/portal-page-contents";
     }
 
     @BeforeEach
@@ -79,12 +84,16 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
         EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_HRID)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
         portalPageContentQueryService.initWith(PortalPageContentFixtures.samplePortalPageContents());
         portalPageContentCrudService.initWith(PortalPageContentFixtures.samplePortalPageContents());
+        reset(getPortalPageContentUseCase);
+        var useCase = new GetPortalPageContentUseCase(portalPageContentQueryService);
+        when(getPortalPageContentUseCase.execute(any())).thenAnswer(invocation -> useCase.execute(invocation.getArgument(0)));
     }
 
     @AfterEach
@@ -93,6 +102,7 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
         portalPageContentQueryService.reset();
         portalPageContentCrudService.reset();
         portalNavigationItemsQueryService.reset();
+        reset(getPortalPageContentUseCase);
     }
 
     @Test
@@ -105,9 +115,7 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
             PortalPageContentFixtures.CONTENT
         );
 
-        when(getPortalPageContentUseCase.execute(new GetPortalPageContentUseCase.Input(PortalPageContentId.of(CONTENT_ID)))).thenReturn(
-            new GetPortalPageContentUseCase.Output(content)
-        );
+        portalPageContentQueryService.initWith(List.of(content));
 
         when(
             permissionService.hasPermission(
@@ -133,6 +141,54 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
                     io.gravitee.rest.api.management.v2.rest.model.PortalPageContentType.GRAVITEE_MARKDOWN
                 );
             });
+    }
+
+    @Test
+    void should_return_404_when_content_belongs_to_another_environment() {
+        assertContentIsNotAccessible(ORGANIZATION, "other-environment");
+    }
+
+    @Test
+    void should_return_404_when_content_belongs_to_another_organization() {
+        assertContentIsNotAccessible("other-organization", ENVIRONMENT);
+    }
+
+    @Test
+    void should_return_404_when_content_does_not_exist() {
+        grantContentReadPermission();
+        portalPageContentQueryService.reset();
+
+        try (Response response = target.path(CONTENT_ID).request().get()) {
+            assertThat(response).hasStatus(NOT_FOUND_404);
+            assertThat(response.readEntity(String.class)).doesNotContain(FOREIGN_CONTENT);
+        }
+    }
+
+    private void assertContentIsNotAccessible(String organizationId, String environmentId) {
+        grantContentReadPermission();
+        var content = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
+            PortalPageContentId.of(CONTENT_ID),
+            organizationId,
+            environmentId,
+            FOREIGN_CONTENT
+        );
+        portalPageContentQueryService.initWith(List.of(content));
+
+        try (Response response = target.path(CONTENT_ID).request().get()) {
+            assertThat(response).hasStatus(NOT_FOUND_404);
+            assertThat(response.readEntity(String.class)).doesNotContain(FOREIGN_CONTENT);
+        }
+    }
+
+    private void grantContentReadPermission() {
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.ENVIRONMENT_DOCUMENTATION,
+                ENVIRONMENT,
+                RolePermissionAction.READ
+            )
+        ).thenReturn(true);
     }
 
     @Test
