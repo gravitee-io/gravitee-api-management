@@ -20,6 +20,7 @@ import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.use_case.CreateApiOverviewPageUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ImportPortalNavigationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListApiDocumentationUseCase;
@@ -75,6 +76,9 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
 
     @Inject
     private UnpublishApiFromPortalUseCase unpublishApiFromPortalUseCase;
+
+    @Inject
+    private CreateApiOverviewPageUseCase createApiOverviewPageUseCase;
 
     @Inject
     private ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
@@ -163,6 +167,19 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
         requireApi(apiId);
         unpublishApiFromPortalUseCase.execute(new UnpublishApiFromPortalUseCase.Input(GraviteeContext.getCurrentEnvironment(), apiId));
         return Response.noContent().build();
+    }
+
+    @Path("_overview-page")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.CREATE }) })
+    public Response createApiOverviewPage(@PathParam("apiId") String apiId) {
+        requireApi(apiId);
+        var executionContext = GraviteeContext.getExecutionContext();
+        var output = createApiOverviewPageUseCase.execute(
+            new CreateApiOverviewPageUseCase.Input(executionContext.getOrganizationId(), executionContext.getEnvironmentId(), apiId)
+        );
+        return Response.created(this.getLocationHeader(output.page().getId().toString())).entity(mapper.map(output.page())).build();
     }
 
     @Path("_import")
