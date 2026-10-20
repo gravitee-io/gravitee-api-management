@@ -17,7 +17,15 @@ export type { GammaModule, GammaModuleResponse } from './modules.types';
 export { HOME_ICON, MODULE_ICONS } from './modules.icons';
 export { useGammaModules } from './hooks/useGammaModules';
 export { useModulesStore } from './modules.store';
-export { MODULE_CATALOG, PORTALS_MODULE_ID, findModuleProduct, getModuleLabel, orderByCatalog, type ModuleId } from './modules.catalog';
+export {
+    ACCOUNT_MANAGEMENT,
+    MODULE_CATALOG,
+    PORTALS_MODULE_ID,
+    findModuleProduct,
+    getModuleLabel,
+    orderByCatalog,
+    type ModuleId,
+} from './modules.catalog';
 export { ModulesLoadFailed } from './components/ModulesLoadFailed';
 export { RemoteModuleRoute } from './components/RemoteModuleRoute';
 export { PortalNextEditorRedirect } from './components/PortalNextEditorRedirect';
