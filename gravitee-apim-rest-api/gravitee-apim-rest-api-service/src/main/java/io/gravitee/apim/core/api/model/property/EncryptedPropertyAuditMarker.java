@@ -59,9 +59,11 @@ public final class EncryptedPropertyAuditMarker {
         return newCiphertextByKey
             .entrySet()
             .stream()
-            .anyMatch(
-                ciphertext -> ciphertext.getValue() != null && !ciphertext.getValue().equals(oldCiphertextByKey.get(ciphertext.getKey()))
-            );
+            .anyMatch(property -> isNewCiphertext(property.getValue(), oldCiphertextByKey.get(property.getKey())));
+    }
+
+    private static boolean isNewCiphertext(String ciphertext, String storedCiphertext) {
+        return ciphertext != null && !ciphertext.equals(storedCiphertext);
     }
 
     public static boolean holdsEncryptedProperty(List<? extends Property> properties) {
