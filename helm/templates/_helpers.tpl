@@ -161,6 +161,28 @@ Render an initContainer base spec with OpenShift-adapted securityContext.
 Create initContainers for downloading plugins ext plugin-ext
 */}}
 {{- define "deployment.pluginInitContainers" -}}
+{{- if .installPlugins }}
+{{- $home := printf "/opt/%s" .appName }}
+- name: install-plugins
+  {{- include "gravitee.renderInitContainerSpec" (dict "context" .context "initContainer" (merge (dict "image" .image "imagePullPolicy" .imagePullPolicy) .initContainers)) | nindent 2 }}
+  {{- /* Runs the component's own image, so that the plugins come at the version its release manifest gives */}}
+  command:
+    - sh
+    - -c
+    - |
+      if [ ! -f {{ $home }}/release-manifest.json ] || [ ! -x {{ $home }}/bin/install-plugins.sh ]; then
+        echo "ERROR: image {{ .image }} has no release manifest to install plugins by name from: $*. Use an image that ships {{ $home }}/release-manifest.json, or give these plugins as download URLs instead of names." >&2
+        exit 1
+      fi
+      exec {{ $home }}/bin/install-plugins.sh --manifest {{ $home }}/release-manifest.json --home /tmp/install "$@"
+    - install-plugins
+    {{- range .installPlugins }}
+    - {{ . | quote }}
+    {{- end }}
+  volumeMounts:
+    - name: graviteeio-apim-plugins
+      mountPath: /tmp/install/plugins
+{{- end }}
 {{- if .plugins }}
 - name: get-plugins
   {{- include "gravitee.renderInitContainerSpec" (dict "context" .context "initContainer" .initContainers) | nindent 2 }}
@@ -185,7 +207,7 @@ Create initContainers for downloading plugins ext plugin-ext
 Create volumeMounts for plugins
 */}}
 {{- define "deployment.pluginVolumeMounts" -}}
-{{- if or .plugins .extPlugins }}
+{{- if or .plugins .installPlugins .extPlugins }}
 - name: graviteeio-apim-plugins
   mountPath: /opt/{{ .appName }}/plugins-ext
 {{- end }}
@@ -200,7 +222,7 @@ Create volumeMounts for plugins
 Create volumes for plugins
 */}}
 {{- define "deployment.pluginVolumes" -}}
-{{- if or .plugins .extPlugins }}
+{{- if or .plugins .installPlugins .extPlugins }}
 - name: graviteeio-apim-plugins
   emptyDir: {}
 {{- end }}
