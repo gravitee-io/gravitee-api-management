@@ -21,6 +21,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterInUseDomainService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
 import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
@@ -35,6 +36,7 @@ public class DeleteClusterUseCase {
 
     private final ClusterCrudService clusterCrudService;
     private final AuditDomainService auditService;
+    private final ClusterInUseDomainService clusterInUseDomainService;
 
     public record Input(String clusterId, AuditInfo auditInfo) {}
 
@@ -46,6 +48,8 @@ public class DeleteClusterUseCase {
         if (cluster.getLifecycleState() == ClusterLifecycleState.DEPLOYED || cluster.getLifecycleState() == ClusterLifecycleState.PENDING) {
             throw new InvalidDataException("Cluster must be undeployed before deletion.");
         }
+
+        clusterInUseDomainService.checkNotUsed(cluster, input.auditInfo.environmentId(), "delete");
 
         clusterCrudService.delete(input.clusterId, input.auditInfo.environmentId());
 

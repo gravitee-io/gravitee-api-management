@@ -523,4 +523,40 @@ public class ApiFixtures {
             )
             .build();
     }
+
+    public static Api aNativeApiBoundToCluster(
+        String id,
+        String environmentId,
+        Api.LifecycleState lifecycleState,
+        String clusterCrossId,
+        String connectionCrossId
+    ) {
+        Api api = aNativeApiBoundToVirtualCluster(id, environmentId, lifecycleState, clusterCrossId);
+        NativeEndpoint endpoint = ((NativeApi) api.getApiDefinitionValue()).getEndpointGroups().get(0).getEndpoints().get(0);
+        endpoint.setType("native-kafka-cluster");
+        endpoint.setConfiguration(
+            connectionCrossId == null
+                ? "{\"clusterCrossId\":\"" + clusterCrossId + "\"}"
+                : "{\"clusterCrossId\":\"" + clusterCrossId + "\",\"connectionCrossId\":\"" + connectionCrossId + "\"}"
+        );
+        return api;
+    }
+
+    /** A Message API whose {@code kafka} endpoint group is bound to a connection of a registered cluster. */
+    public static Api aMessageApiBoundToCluster(
+        String id,
+        String environmentId,
+        Api.LifecycleState lifecycleState,
+        String clusterCrossId,
+        String connectionCrossId
+    ) {
+        Api api = aMessageApiV4().toBuilder().id(id).name(id).environmentId(environmentId).lifecycleState(lifecycleState).build();
+        EndpointGroup group = ((io.gravitee.definition.model.v4.Api) api.getApiDefinitionValue()).getEndpointGroups().get(0);
+        group.setType("kafka");
+        group.setSharedConfiguration("{\"mode\":\"CLUSTER\",\"clusterCrossId\":\"" + clusterCrossId + "\"}");
+        Endpoint endpoint = group.getEndpoints().get(0);
+        endpoint.setType("kafka");
+        endpoint.setConfiguration("{\"connectionCrossId\":\"" + connectionCrossId + "\"}");
+        return api;
+    }
 }

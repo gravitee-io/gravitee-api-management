@@ -601,6 +601,9 @@ paths:
         `PENDING`: the gateway keeps serving the previous configuration, and the emptied
         configuration cannot be deployed until at least one backend is added back (the deploy
         endpoint rejects virtual clusters without backends).
+
+        Kafka cluster: removing a connection a started API uses (directly, or through a deployed
+        virtual cluster) is rejected with 409 `cluster.inUse`. Stopped APIs never block.
       operationId: updateCluster
       requestBody:
         content:
@@ -615,6 +618,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Cluster"
+        "409":
+          description: |-
+            The configuration removes a connection that started APIs use. `technicalCode` is
+            `cluster.inUse` and `parameters` maps the id of each of those APIs to its name.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
     delete:
@@ -629,6 +640,14 @@ paths:
       responses:
         "204":
           description: Cluster deleted
+        "409":
+          description: |-
+            Started APIs still use the cluster. `technicalCode` is `cluster.inUse` and `parameters`
+            maps the id of each of those APIs to its name.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
   /clusters/{clusterId}/_deploy:
@@ -653,6 +672,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "409":
+          description: |-
+            The cluster removes, from the version deployed at the gateway, a connection that started
+            APIs use. `technicalCode` is `cluster.inUse` and `parameters` maps the id of each of those
+            APIs to its name.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
   /clusters/{clusterId}/_undeploy:
@@ -665,9 +693,11 @@ paths:
       description: |-
         Undeploy the cluster from the gateway. Sets lifecycle state to UNDEPLOYED.
 
-        A Kafka virtual cluster cannot be undeployed while a started Kafka Native API is bound to it
-        (via a `native-kafka-virtual-cluster` endpoint): the request is rejected with 400 so the
-        started API is never left pointing at an undeployed cluster.
+        A cluster cannot be undeployed while a started API uses it: a Kafka Native API (through a
+        `native-kafka-cluster` or `native-kafka-virtual-cluster` endpoint), a Message API (through a
+        `kafka` endpoint in `CLUSTER` mode), or a Kafka Native API using a deployed virtual cluster with
+        a backend on it. The request is rejected with 409 so a started API is never left pointing at an
+        undeployed cluster. Stopped APIs never block.
       operationId: undeployCluster
       responses:
         "200":
@@ -676,10 +706,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Cluster"
-        "400":
+        "409":
           description: |-
-            The Kafka virtual cluster cannot be undeployed because one or more started Kafka Native
-            APIs are bound to it. Stop those APIs first.
+            Started APIs use the cluster. Stop them first. `technicalCode` is `cluster.inUse` and
+            `parameters` maps the id of each of those APIs to its name.
           content:
             application/json:
               schema:

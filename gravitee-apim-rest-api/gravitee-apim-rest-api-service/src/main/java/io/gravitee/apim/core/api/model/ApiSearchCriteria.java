@@ -41,6 +41,7 @@ public class ApiSearchCriteria {
     private String crossId;
     private Collection<DefinitionVersion> definitionVersion;
     private String integrationId;
+    private List<ApiType> apiTypes;
     private List<ApiType> notApiTypes;
     private Instant updatedAtFrom;
 }

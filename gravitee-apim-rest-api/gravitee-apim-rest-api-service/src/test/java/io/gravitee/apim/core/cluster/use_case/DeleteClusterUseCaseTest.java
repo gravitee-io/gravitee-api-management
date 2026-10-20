@@ -18,15 +18,25 @@ package io.gravitee.apim.core.cluster.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fixtures.core.model.ApiFixtures;
 import inmemory.AbstractUseCaseTest;
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.ClusterCrudServiceInMemory;
+import inmemory.EventLatestQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
+import io.gravitee.apim.core.cluster.domain_service.ClusterBoundApisQueryService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterInUseDomainService;
+import io.gravitee.apim.core.cluster.domain_service.DeployedClustersDomainService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
 import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.definition.model.cluster.ClusterType;
+import io.gravitee.rest.api.service.exceptions.ClusterInUseException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.time.ZoneId;
 import java.util.List;
@@ -38,12 +48,20 @@ class DeleteClusterUseCaseTest extends AbstractUseCaseTest {
 
     private DeleteClusterUseCase deleteClusterUseCase;
     private final ClusterCrudServiceInMemory clusterCrudService = new ClusterCrudServiceInMemory();
+    private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
     private Cluster existingCluster;
 
     @BeforeEach
     void setUp() {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
-        deleteClusterUseCase = new DeleteClusterUseCase(clusterCrudService, auditService);
+        var objectMapper = new ObjectMapper();
+        var clusterInUseDomainService = new ClusterInUseDomainService(
+            new ClusterBoundApisQueryService(apiQueryService, objectMapper),
+            new DeployedClustersDomainService(new EventLatestQueryServiceInMemory(), objectMapper),
+            objectMapper
+        );
+        apiQueryService.reset();
+        deleteClusterUseCase = new DeleteClusterUseCase(clusterCrudService, auditService, clusterInUseDomainService);
 
         existingCluster = Cluster.builder()
             .id(GENERATED_UUID)
@@ -65,6 +83,21 @@ class DeleteClusterUseCaseTest extends AbstractUseCaseTest {
 
         // Then
         assertThat(((ClusterCrudServiceInMemory) clusterCrudService).storage()).isEmpty();
+    }
+
+    @Test
+    void should_not_delete_a_cluster_a_started_api_still_uses() {
+        // An API started before the cluster binding guards existed may still use an undeployed cluster.
+        Cluster used = existingCluster.toBuilder().crossId("cluster-1").type(ClusterType.KAFKA_CLUSTER).build();
+        clusterCrudService.initWith(List.of(used));
+        apiQueryService.initWith(
+            List.of(ApiFixtures.aMessageApiBoundToCluster("started-api", ENV_ID, Api.LifecycleState.STARTED, "cluster-1", "sasl"))
+        );
+
+        assertThatThrownBy(() -> deleteClusterUseCase.execute(new DeleteClusterUseCase.Input(used.getId(), AUDIT_INFO)))
+            .isInstanceOf(ClusterInUseException.class)
+            .hasMessage("Cannot delete cluster 'Cluster 1': 1 started API (started-api) uses it. Stop it first.");
+        assertThat(clusterCrudService.storage()).hasSize(1);
     }
 
     @Test
