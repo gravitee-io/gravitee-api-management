@@ -370,27 +370,34 @@ class ApiResourceTest extends AbstractResourceTest {
         @ParameterizedTest
         @MethodSource("setHridHeaderValues")
         void should_never_export_an_api_the_caller_has_no_permission_on(List<String> setHridHeaderValues) throws Exception {
-            var victimId = UUID.randomUUID().toString();
-            var decoyId = HRIDToUUID.api().context(auditInfo).hrid(victimId).id();
-            when(
-                permissionService.hasPermission(any(), eq(RolePermission.API_DEFINITION), any(), any(RolePermissionAction[].class))
-            ).thenReturn(false);
-            when(
-                permissionService.hasPermission(any(), eq(RolePermission.API_DEFINITION), eq(decoyId), any(RolePermissionAction[].class))
-            ).thenReturn(true);
+            var uuid = UUID.randomUUID().toString();
+            var hridDerivedId = HRIDToUUID.api().context(auditInfo).hrid(uuid).id();
+            grantApiDefinitionOnlyOn(hridDerivedId);
             when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class))).thenReturn(
-                new ExportApiCRDUseCase.Output(ApiCRDSpec.builder().id(decoyId).crossId(API_CROSS_ID).hrid(victimId).name("decoy").build())
+                new ExportApiCRDUseCase.Output(ApiCRDSpec.builder().id(hridDerivedId).crossId(API_CROSS_ID).hrid(uuid).name("api").build())
             );
 
             // java.net.http sends each value on its own header line; the JAX-RS client would join them into one
-            var request = HttpRequest.newBuilder(rootTarget().path(victimId).getUri()).GET();
+            var request = HttpRequest.newBuilder(rootTarget().path(uuid).getUri()).GET();
             setHridHeaderValues.forEach(value -> request.header(HRIDHelper.HEADER_X_GRAVITEE_SET_HRID, value));
             try (var client = HttpClient.newHttpClient()) {
                 var status = client.send(request.build(), HttpResponse.BodyHandlers.discarding()).statusCode();
                 assertThat(status).isIn(200, 403);
             }
 
-            verify(exportApiCRDUseCase, never()).execute(argThat(input -> victimId.equals(input.apiId())));
+            verify(exportApiCRDUseCase, never()).execute(argThat(input -> uuid.equals(input.apiId())));
+        }
+
+        @Test
+        void should_never_export_an_api_the_caller_has_no_permission_on_with_hrid_contains_uuid() {
+            var uuid = UUID.randomUUID().toString();
+            grantApiDefinitionOnlyOn(HRIDToUUID.api().context(auditInfo).hrid(uuid).id());
+
+            try (var response = rootTarget().queryParam("hridContainsUUID", true).path(uuid).request().get()) {
+                assertThat(response.getStatus()).isEqualTo(403);
+            }
+
+            verify(exportApiCRDUseCase, never()).execute(argThat(input -> uuid.equals(input.apiId())));
         }
 
         private static Stream<Arguments> setHridHeaderValues() {
@@ -485,6 +492,18 @@ class ApiResourceTest extends AbstractResourceTest {
             verify(apiService, never()).delete(any(), any(), anyBoolean());
         }
 
+        @Test
+        void should_never_delete_an_api_the_caller_has_no_permission_on() {
+            var uuid = UUID.randomUUID().toString();
+            grantApiDefinitionOnlyOn(HRIDToUUID.api().context(auditInfo).hrid(uuid).id());
+
+            try (var response = rootTarget().queryParam("hridContainsUUID", true).path(uuid).request().delete()) {
+                assertThat(response.getStatus()).isEqualTo(403);
+            }
+
+            verify(apiService, never()).delete(any(), eq(uuid), anyBoolean());
+        }
+
         private void expectNoContent(String hrid) {
             expectNoContent(hrid, false);
         }
@@ -500,6 +519,15 @@ class ApiResourceTest extends AbstractResourceTest {
                 assertThat(response.getStatus()).isEqualTo(404);
             }
         }
+    }
+
+    private void grantApiDefinitionOnlyOn(String apiId) {
+        when(
+            permissionService.hasPermission(any(), eq(RolePermission.API_DEFINITION), any(), any(RolePermissionAction[].class))
+        ).thenReturn(false);
+        when(
+            permissionService.hasPermission(any(), eq(RolePermission.API_DEFINITION), eq(apiId), any(RolePermissionAction[].class))
+        ).thenReturn(true);
     }
 
     @Override
