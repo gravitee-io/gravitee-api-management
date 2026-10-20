@@ -20,14 +20,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.NewTicketEntity;
 import io.gravitee.rest.api.model.TicketEntity;
 import io.gravitee.rest.api.model.api.TicketQuery;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.model.TicketInput;
 import io.gravitee.rest.api.portal.rest.model.TicketsResponse;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -44,6 +48,9 @@ import org.mockito.Mockito;
  */
 public class TicketsResourceTest extends AbstractResourceTest {
 
+    private static final String API = "my-api";
+    private static final String APPLICATION = "my-application";
+
     @Override
     protected String contextPath() {
         return "tickets";
@@ -52,6 +59,7 @@ public class TicketsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldCreate() {
         resetAllMocks();
+        mapTicketInputs();
 
         TicketInput input = new TicketInput().subject("A").content("B");
         final Response response = target().request().post(Entity.json(input));
@@ -60,6 +68,7 @@ public class TicketsResourceTest extends AbstractResourceTest {
         assertNull(response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
         verify(ticketMapper).convert(input);
+        verifyNoInteractions(accessControlService, permissionService);
         verify(ticketService).create(
             eq(GraviteeContext.getExecutionContext()),
             eq(USER_NAME),
@@ -67,6 +76,88 @@ public class TicketsResourceTest extends AbstractResourceTest {
             eq("DEFAULT"),
             eq(ParameterReferenceType.ENVIRONMENT)
         );
+    }
+
+    @Test
+    public void shouldCreateWhenApiIsAccessibleFromPortal() {
+        resetAllMocks();
+        mapTicketInputs();
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
+
+        final Response response = target().request().post(Entity.json(new TicketInput().subject("A").content("B").api(API)));
+
+        assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
+        verify(ticketService).create(any(), eq(USER_NAME), argThat(ticket -> API.equals(ticket.getApi())), any(), any());
+    }
+
+    @Test
+    public void shouldNotCreateWhenApiIsNotAccessibleFromPortal() {
+        resetAllMocks();
+        mapTicketInputs();
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(false);
+
+        final Response response = target().request().post(Entity.json(new TicketInput().subject("A").content("B").api(API)));
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+        verifyNoInteractions(ticketService);
+    }
+
+    @Test
+    public void shouldCreateWhenApplicationIsReadable() {
+        resetAllMocks();
+        mapTicketInputs();
+        allowApplicationRead(true);
+
+        final Response response = target()
+            .request()
+            .post(Entity.json(new TicketInput().subject("A").content("B").application(APPLICATION)));
+
+        assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
+        verify(ticketService).create(any(), eq(USER_NAME), argThat(ticket -> APPLICATION.equals(ticket.getApplication())), any(), any());
+    }
+
+    @Test
+    public void shouldNotCreateWhenApplicationIsNotReadable() {
+        resetAllMocks();
+        mapTicketInputs();
+        allowApplicationRead(false);
+
+        final Response response = target()
+            .request()
+            .post(Entity.json(new TicketInput().subject("A").content("B").application(APPLICATION)));
+
+        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+        verifyNoInteractions(ticketService);
+    }
+
+    @Test
+    public void shouldNotCreateWhenApiIsAccessibleButApplicationIsNotReadable() {
+        resetAllMocks();
+        mapTicketInputs();
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
+        allowApplicationRead(false);
+
+        final Response response = target()
+            .request()
+            .post(Entity.json(new TicketInput().subject("A").content("B").api(API).application(APPLICATION)));
+
+        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+        verifyNoInteractions(ticketService);
+    }
+
+    @Test
+    public void shouldNotCreateWhenApplicationIsReadableButApiIsNotAccessible() {
+        resetAllMocks();
+        mapTicketInputs();
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(false);
+        allowApplicationRead(true);
+
+        final Response response = target()
+            .request()
+            .post(Entity.json(new TicketInput().subject("A").content("B").api(API).application(APPLICATION)));
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+        verifyNoInteractions(ticketService);
     }
 
     @Test
@@ -141,5 +232,28 @@ public class TicketsResourceTest extends AbstractResourceTest {
 
         TicketsResponse ticketsResponse = response.readEntity(TicketsResponse.class);
         assertEquals(1, ticketsResponse.getData().size(), "Ticket list had not the good size");
+    }
+
+    private void mapTicketInputs() {
+        when(ticketMapper.convert(any())).thenAnswer(invocation -> {
+            TicketInput input = invocation.getArgument(0);
+            NewTicketEntity ticket = new NewTicketEntity();
+            ticket.setApi(input.getApi());
+            ticket.setApplication(input.getApplication());
+            ticket.setSubject(input.getSubject());
+            ticket.setContent(input.getContent());
+            return ticket;
+        });
+    }
+
+    private void allowApplicationRead(boolean allowed) {
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.APPLICATION_DEFINITION,
+                APPLICATION,
+                RolePermissionAction.READ
+            )
+        ).thenReturn(allowed);
     }
 }
