@@ -359,6 +359,27 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
     }
 
     @Test
+    public void should_find_no_application_when_search_is_restricted_to_no_id() throws Exception {
+        final Page<Application> appsPage = applicationRepository.search(
+            ApplicationCriteria.builder().environmentIds(Set.of("DEV", "TEST", "PROD")).restrictedToIds(Set.of()).build(),
+            null
+        );
+
+        assertThat(appsPage.getContent()).isEmpty();
+        assertThat(appsPage.getTotalElements()).isZero();
+    }
+
+    @Test
+    public void should_find_no_application_id_when_search_is_restricted_to_no_id() throws Exception {
+        final Set<String> appIds = applicationRepository.searchIds(
+            ApplicationCriteria.builder().environmentIds(Set.of("DEV", "TEST", "PROD")).restrictedToIds(Set.of()).build(),
+            null
+        );
+
+        assertThat(appIds).isEmpty();
+    }
+
+    @Test
     public void shouldSearchByEnvironmentIds() throws Exception {
         final Page<Application> appsPage = applicationRepository.search(
             ApplicationCriteria.builder().environmentIds(Set.of("DEV", "TEST", "PROD")).build(),

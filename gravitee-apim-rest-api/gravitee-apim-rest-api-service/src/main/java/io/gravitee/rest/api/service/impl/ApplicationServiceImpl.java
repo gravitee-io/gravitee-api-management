@@ -1747,6 +1747,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 criteriaBuilder.status(applicationStatus);
             }
 
+            if (applicationQuery.getIds() != null && applicationQuery.getIds().isEmpty()) {
+                return null;
+            }
             criteriaBuilder.restrictedToIds(applicationQuery.getIds());
 
             if (StringUtils.isNotBlank(applicationQuery.getUser())) {

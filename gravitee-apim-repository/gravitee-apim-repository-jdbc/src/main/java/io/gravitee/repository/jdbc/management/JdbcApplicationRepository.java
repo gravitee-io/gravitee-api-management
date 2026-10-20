@@ -512,6 +512,14 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
 
     private List<Application> search(ApplicationCriteria applicationCriteria, Sortable sortable) {
         log.debug("JdbcApplicationRepository.search({})", applicationCriteria);
+        // An empty restriction matches nothing, and must not reach the query: "in ()" is not valid SQL.
+        if (
+            applicationCriteria != null &&
+            applicationCriteria.getRestrictedToIds() != null &&
+            isEmpty(applicationCriteria.getRestrictedToIds())
+        ) {
+            return List.of();
+        }
         final JdbcHelper.CollatingRowMapper<Application> rowMapper = new JdbcHelper.CollatingRowMapper<>(
             getOrm().getRowMapper(),
             CHILD_ADDER,
