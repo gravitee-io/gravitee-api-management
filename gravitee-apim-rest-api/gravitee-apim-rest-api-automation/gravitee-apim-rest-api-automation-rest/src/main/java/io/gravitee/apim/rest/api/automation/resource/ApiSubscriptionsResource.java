@@ -97,7 +97,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             spec.getEndingAt() != null ? spec.getEndingAt().toZonedDateTime() : null
         );
 
-        requireCreateOrUpdate(
+        requireCreateOrUpdateOn(
             RolePermission.API_SUBSCRIPTION,
             subscriptionCRDSpec.getApiId(),
             subscriptionQueryService.findByIdAndApiId(subscriptionCRDSpec.getId(), subscriptionCRDSpec.getApiId()).isPresent()
