@@ -1,0 +1,53 @@
+{
+    "id": "my-api",
+    "name": "my-api",
+    "apiVersion": "1.0",
+    "definitionVersion": "4.0.0",
+    "type": "message",
+    "description": "api v4 using HTTP POST entrypoint and a kafka endpoint bound to a registered cluster",
+    "listeners": [
+        {
+            "type": "http",
+            "paths": [
+                {
+                    "path": "/test"
+                }
+            ],
+            "entrypoints": [
+                {
+                    "type": "http-post",
+                    "configuration": {}
+                }
+            ]
+        }
+    ],
+    "endpointGroups": [
+        {
+            "name": "default-group",
+            "type": "kafka",
+            "sharedConfiguration": {
+                "mode": "CLUSTER",
+                "clusterCrossId": "my-cluster",
+                "producer": {
+                    "enabled": true,
+                    "topics": ["cluster-topic"]
+                }
+            },
+            "endpoints": [
+                {
+                    "name": "default",
+                    "type": "kafka",
+                    "weight": 1,
+                    "inheritConfiguration": true,
+                    "configuration": {
+                        "connectionCrossId": "sasl"
+                    }
+                }
+            ]
+        }
+    ],
+    "flows": [],
+    "analytics": {
+        "enabled": false
+    }
+}
