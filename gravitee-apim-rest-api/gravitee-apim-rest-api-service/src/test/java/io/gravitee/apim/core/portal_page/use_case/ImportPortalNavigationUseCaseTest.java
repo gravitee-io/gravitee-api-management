@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
 
+import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
@@ -27,10 +28,15 @@ import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalNavigationManifestParserInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemRenderingDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.validation.SourcedAncestorFinder;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ValidationDepth;
@@ -40,9 +46,12 @@ import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemSo
 import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
@@ -66,11 +75,13 @@ class ImportPortalNavigationUseCaseTest {
     private PortalNavigationItemsQueryServiceInMemory queryService;
     private PortalPageContentCrudServiceInMemory pageContentCrudService;
     private PortalNavigationItemSourceDomainServiceInMemory sourceDomainService;
+    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private PortalNavigationManifestParserInMemory manifestParser;
 
     @BeforeEach
     void setUp() {
         var storage = new ArrayList<PortalNavigationItem>();
+        apiCrudService.initWith(List.of(Api.builder().id("api-id").name("My API").environmentId(ENV_ID).build()));
         crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
         pageContentCrudService = new PortalPageContentCrudServiceInMemory();
@@ -84,13 +95,15 @@ class ImportPortalNavigationUseCaseTest {
             pageContentCrudService,
             pageContentQueryService,
             new ApiCrudServiceInMemory(),
-            sourceDomainService
+            sourceDomainService,
+            new ApiOwnedNavigationDomainService(queryService, crudService)
         );
         var validatorService = new PortalNavigationItemValidatorService(
             queryService,
             pageContentQueryService,
             new ApiProductQueryServiceInMemory(),
-            sourceDomainService
+            sourceDomainService,
+            apiCrudService
         );
         var bulkImportDomainService = new PortalNavigationBulkImportDomainService(
             sourceDomainService,
@@ -106,7 +119,9 @@ class ImportPortalNavigationUseCaseTest {
             domainService,
             sourceDomainService,
             bulkImportDomainService,
-            queryService
+            queryService,
+            new PortalNavigationItemCreationExpansionDomainService(new ApiProductQueryServiceInMemory(), apiCrudService, queryService),
+            new PortalNavigationItemRenderingDomainService(queryService)
         );
     }
 
@@ -125,6 +140,27 @@ class ImportPortalNavigationUseCaseTest {
                 .source(aSource())
                 .build()
         );
+    }
+
+    private PortalNavigationBulkImportDomainService.BulkImportResult reimportSubtree(PortalNavigationItemId rootId) {
+        var bulkImportDomainService = new PortalNavigationBulkImportDomainService(
+            sourceDomainService,
+            manifestParser,
+            new PortalNavigationItemDomainService(
+                crudService,
+                queryService,
+                pageContentCrudService,
+                PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
+                new ApiCrudServiceInMemory(),
+                sourceDomainService,
+                new ApiOwnedNavigationDomainService(queryService, crudService)
+            ),
+            queryService,
+            crudService,
+            pageContentCrudService,
+            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage())
+        );
+        return bulkImportDomainService.importSubtree((PortalNavigationFolder) queryService.findByIdAndEnvironmentId(ENV_ID, rootId));
     }
 
     private PortalNavigationItemSource aSource() {
@@ -604,7 +640,278 @@ class ImportPortalNavigationUseCaseTest {
     }
 
     @Nested
+    class OwnedByAnApi {
+
+        private static final NavigationItemReference API_REFERENCE = new NavigationItemReference.ApiReference("api-id");
+
+        private ImportPortalNavigationUseCase.Output importForApi(PortalNavigationItemId parentId) {
+            return useCase.execute(
+                ImportPortalNavigationUseCase.Input.builder()
+                    .organizationId(ORG_ID)
+                    .environmentId(ENV_ID)
+                    .title("Imported Docs")
+                    .parentId(parentId)
+                    .visibility(PortalVisibility.PRIVATE)
+                    .source(aSource())
+                    .reference(API_REFERENCE)
+                    .build()
+            );
+        }
+
+        @Test
+        void should_store_the_imported_root_folder_and_every_descendant_as_owned_by_the_api() {
+            sourceDomainService.givenRemoteFile("/docs/getting-started.md", "# Getting started");
+            sourceDomainService.givenRemoteFile("/docs/advanced/tuning.md", "# Tuning");
+
+            var root = importForApi(null).rootFolder();
+
+            assertThat(root.getReference()).isEqualTo(API_REFERENCE);
+            assertThat(root.getParentId()).isNull();
+            // root, docs, advanced, getting-started, tuning
+            assertThat(crudService.storage())
+                .hasSize(5)
+                .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(API_REFERENCE));
+        }
+
+        @Test
+        void should_import_under_a_folder_the_api_owns() {
+            var apiFolder = PortalNavigationFolder.builder()
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title("Guides")
+                .segment("guides")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(false)
+                .visibility(PortalVisibility.PRIVATE)
+                .reference(API_REFERENCE)
+                .build();
+            crudService.create(apiFolder);
+            sourceDomainService.givenRemoteFile("/docs/getting-started.md", "# Getting started");
+
+            var root = importForApi(apiFolder.getId()).rootFolder();
+
+            assertThat(root.getParentId()).isEqualTo(apiFolder.getId());
+            assertThat(crudService.storage()).allSatisfy(item -> assertThat(item.getReference()).isEqualTo(API_REFERENCE));
+        }
+
+        @Test
+        void should_import_everything_unpublished() {
+            sourceDomainService.givenRemoteFile("/docs/getting-started.md", "# Getting started");
+
+            importForApi(null);
+
+            assertThat(crudService.storage())
+                .isNotEmpty()
+                .allSatisfy(item -> assertThat(item.getPublished()).isFalse());
+        }
+
+        @Test
+        void should_keep_a_portal_import_owned_by_the_portal() {
+            sourceDomainService.givenRemoteFile("/docs/advanced/tuning.md", "# Tuning");
+
+            execute("Imported Docs");
+
+            assertThat(crudService.storage())
+                .isNotEmpty()
+                .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference()));
+        }
+    }
+
+    /**
+     * The portal editor sends no owner: an imported folder belongs to whoever owns the place it is imported
+     * into, as an item created there by hand does.
+     */
+    @Nested
+    class OwnedThroughTheParent {
+
+        private static final NavigationItemReference API_REFERENCE = new NavigationItemReference.ApiReference("api-id");
+        private static final NavigationItemReference PORTAL = NavigationItemReference.defaultReference();
+
+        private PortalNavigationFolder section;
+        private PortalNavigationApi listing;
+
+        @BeforeEach
+        void setUp() {
+            section = store(PortalNavigationItemFixtures.aFolder("Section"));
+            listing = store(
+                PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().json(), "My API", section.getId(), "api-id")
+            );
+            sourceDomainService.givenRemoteFile("/docs/getting-started.md", "# Getting started");
+            sourceDomainService.givenRemoteFile("/docs/advanced/tuning.md", "# Tuning");
+        }
+
+        @Test
+        void should_store_the_root_as_documentation_of_the_api_when_imported_under_its_listing() {
+            var returned = execute("Imported Docs", listing.getId()).rootFolder();
+
+            var stored = queryService.findByIdAndEnvironmentId(ENV_ID, returned.getId());
+            assertThat(stored.getReference()).isEqualTo(API_REFERENCE);
+            assertThat(stored.getParentId()).isNull();
+            assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, listing.getId())).isEmpty();
+        }
+
+        @Test
+        void should_store_every_descendant_as_owned_by_the_api_when_imported_under_its_listing() {
+            var root = execute("Imported Docs", listing.getId()).rootFolder();
+
+            // root, docs, advanced, getting-started, tuning
+            assertThat(importedBelow(root))
+                .hasSize(5)
+                .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(API_REFERENCE));
+        }
+
+        @Test
+        void should_return_the_listing_as_the_parent_of_the_imported_root() {
+            var returned = execute("Imported Docs", listing.getId()).rootFolder();
+
+            assertThat(returned.getParentId()).isEqualTo(listing.getId());
+            assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, returned.getId()).getParentId()).isNull();
+        }
+
+        @Test
+        void should_store_the_root_as_owned_by_the_api_when_imported_under_a_folder_the_api_owns() {
+            var apiFolder = store(PortalNavigationItemFixtures.aFolder("Api guides").toBuilder().reference(API_REFERENCE).build());
+
+            var root = execute("Imported Docs", apiFolder.getId()).rootFolder();
+
+            assertThat(root.getParentId()).isEqualTo(apiFolder.getId());
+            assertThat(importedBelow(root))
+                .hasSize(5)
+                .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(API_REFERENCE));
+        }
+
+        @Test
+        void should_keep_the_portal_as_owner_when_imported_under_a_portal_folder() {
+            var root = execute("Imported Docs", section.getId()).rootFolder();
+
+            assertThat(root.getParentId()).isEqualTo(section.getId());
+            assertThat(importedBelow(root))
+                .hasSize(5)
+                .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(PORTAL));
+        }
+
+        @Test
+        void should_keep_the_portal_as_owner_when_imported_at_the_top_level() {
+            var root = execute("Imported Docs", null).rootFolder();
+
+            assertThat(root.getParentId()).isNull();
+            assertThat(importedBelow(root))
+                .hasSize(5)
+                .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(PORTAL));
+        }
+
+        @Test
+        void should_keep_the_portal_as_owner_when_imported_under_a_listing_placed_in_an_api_product() {
+            var product = store(
+                PortalNavigationItemFixtures.anApiProduct(PortalNavigationItemId.random().json(), "Product", section.getId(), "product-ref")
+            );
+            var member = store(
+                PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().json(), "Member", product.getId(), "api-id")
+            );
+
+            var root = execute("Imported Docs", member.getId()).rootFolder();
+
+            assertThat(root.getParentId()).isEqualTo(member.getId());
+            assertThat(importedBelow(root))
+                .hasSize(5)
+                .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(PORTAL));
+        }
+
+        @Test
+        void should_refuse_an_import_under_the_listing_of_an_api_that_does_not_exist() {
+            var orphanListing = store(
+                PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().json(), "Deleted API", section.getId(), "deleted-api")
+            );
+            var itemsBefore = List.copyOf(crudService.storage());
+
+            assertThatThrownBy(() -> execute("Imported Docs", orphanListing.getId())).isInstanceOf(ApiNotFoundException.class);
+            assertThat(crudService.storage()).containsExactlyElementsOf(itemsBefore);
+        }
+
+        /** An import sends a title, never a segment: the segment is generated, unique where the folder ends up. */
+        @Test
+        void should_give_the_root_a_segment_unique_among_the_roots_of_the_api() {
+            var rootOfTheApi = store(PortalNavigationItemFixtures.aFolder("Guides").toBuilder().reference(API_REFERENCE).build());
+
+            var root = execute("Guides", listing.getId()).rootFolder();
+
+            assertThat(root.getSegment()).isNotEqualTo(rootOfTheApi.getSegment());
+        }
+
+        @Test
+        void should_not_count_a_name_used_only_at_the_portal_top_level() {
+            var portalFolder = store(PortalNavigationItemFixtures.aFolder("Guides"));
+
+            var root = execute("Guides", listing.getId()).rootFolder();
+
+            assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, root.getId()).getReference()).isEqualTo(API_REFERENCE);
+            assertThat(root.getSegment()).isEqualTo(portalFolder.getSegment());
+        }
+
+        @Test
+        void should_keep_the_owner_of_an_api_owned_import_when_refreshed() {
+            var root = execute("Imported Docs", listing.getId()).rootFolder();
+            sourceDomainService.givenRemoteFile("/docs/added.md", "# Added");
+
+            reimportSubtree(root.getId());
+
+            // root, docs, advanced, getting-started, tuning, added
+            assertThat(importedBelow(root))
+                .hasSize(6)
+                .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(API_REFERENCE));
+        }
+
+        private <T extends PortalNavigationItem> T store(T item) {
+            if (item.getParentId() == null) {
+                item.markAsRoot();
+            } else {
+                item.updateParent((PortalNavigationItemContainer) queryService.findByIdAndEnvironmentId(ENV_ID, item.getParentId()));
+            }
+            crudService.create(item);
+            return item;
+        }
+
+        /** The imported root and everything stored below it. */
+        private List<PortalNavigationItem> importedBelow(PortalNavigationFolder root) {
+            var imported = new ArrayList<PortalNavigationItem>();
+            var toVisit = new ArrayList<PortalNavigationItem>(List.of(queryService.findByIdAndEnvironmentId(ENV_ID, root.getId())));
+            while (!toVisit.isEmpty()) {
+                var item = toVisit.removeLast();
+                imported.add(item);
+                toVisit.addAll(queryService.findByParentIdAndEnvironmentId(ENV_ID, item.getId()));
+            }
+            return imported;
+        }
+    }
+
+    @Nested
     class Reimport {
+
+        @Test
+        void should_keep_pages_added_by_a_re_import_owned_by_the_api() {
+            var apiReference = new NavigationItemReference.ApiReference("api-id");
+            sourceDomainService.givenRemoteFile("/docs/kept.md", "# Kept");
+            var root = useCase
+                .execute(
+                    ImportPortalNavigationUseCase.Input.builder()
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .title("Imported Docs")
+                        .visibility(PortalVisibility.PRIVATE)
+                        .source(aSource())
+                        .reference(apiReference)
+                        .build()
+                )
+                .rootFolder();
+            sourceDomainService.givenRemoteFile("/docs/added.md", "# Added");
+
+            reimportSubtree(root.getId());
+
+            var added = childPage(childFolder(root.getId(), "docs").getId(), "added");
+            assertThat(added.getReference()).isEqualTo(apiReference);
+        }
 
         @Test
         void should_update_create_and_delete_pages_to_mirror_the_remote_listing() {
@@ -734,26 +1041,6 @@ class ImportPortalNavigationUseCaseTest {
             assertThat(childPage(docsFolder.getId(), "kept")).isNotNull();
             var refreshedRoot = (PortalNavigationFolder) queryService.findByIdAndEnvironmentId(ENV_ID, root.getId());
             assertThat(refreshedRoot.getSource().getLastFetchError()).contains("no importable files");
-        }
-
-        private PortalNavigationBulkImportDomainService.BulkImportResult reimportSubtree(PortalNavigationItemId rootId) {
-            var bulkImportDomainService = new PortalNavigationBulkImportDomainService(
-                sourceDomainService,
-                manifestParser,
-                new PortalNavigationItemDomainService(
-                    crudService,
-                    queryService,
-                    pageContentCrudService,
-                    PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
-                    new ApiCrudServiceInMemory(),
-                    sourceDomainService
-                ),
-                queryService,
-                crudService,
-                pageContentCrudService,
-                PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage())
-            );
-            return bulkImportDomainService.importSubtree((PortalNavigationFolder) queryService.findByIdAndEnvironmentId(ENV_ID, rootId));
         }
     }
 

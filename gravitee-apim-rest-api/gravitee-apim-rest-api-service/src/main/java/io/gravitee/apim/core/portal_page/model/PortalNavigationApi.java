@@ -62,6 +62,10 @@ public final class PortalNavigationApi extends PortalNavigationItem implements P
         return TYPE;
     }
 
+    public boolean appliesToApiId(String apiId) {
+        return this.apiId.equals(apiId);
+    }
+
     @Override
     public void update(UpdatePortalNavigationItem navItem) {
         super.update(navItem);

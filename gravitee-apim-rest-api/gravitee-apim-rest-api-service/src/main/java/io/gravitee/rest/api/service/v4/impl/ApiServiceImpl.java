@@ -32,6 +32,7 @@ import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProductsDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProductComposition;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationCleanupDomainService;
 import io.gravitee.apim.core.subscription_form.domain_service.RemoveApiFromSubscriptionFormDomainService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionContext;
@@ -165,6 +166,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final SubscriptionService subscriptionService;
     private final EventService eventService;
     private final PageService pageService;
+    private final ApiDocumentationCleanupDomainService apiDocumentationCleanupDomainService;
     private final TopApiService topApiService;
     private final PortalNotificationConfigService portalNotificationConfigService;
     private final AlertService alertService;
@@ -204,6 +206,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         @Lazy final SubscriptionService subscriptionService,
         final EventService eventService,
         @Lazy final PageService pageService,
+        final ApiDocumentationCleanupDomainService apiDocumentationCleanupDomainService,
         @Lazy final TopApiService topApiService,
         final PortalNotificationConfigService portalNotificationConfigService,
         @Lazy final AlertService alertService,
@@ -239,6 +242,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.subscriptionService = subscriptionService;
         this.eventService = eventService;
         this.pageService = pageService;
+        this.apiDocumentationCleanupDomainService = apiDocumentationCleanupDomainService;
         this.topApiService = topApiService;
         this.portalNotificationConfigService = portalNotificationConfigService;
         this.alertService = alertService;
@@ -710,6 +714,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // Delete pages
             pageService.deleteAllByApi(executionContext, apiId);
+            apiDocumentationCleanupDomainService.cleanupForApi(api.getEnvironmentId(), apiId);
 
             // Delete top API
             topApiService.delete(executionContext, apiId);

@@ -26,6 +26,7 @@ import static fixtures.core.model.PortalNavigationItemFixtures.LINK1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -39,33 +40,48 @@ import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
+import io.gravitee.apim.core.portal_page.exception.ParentAreaMismatchException;
 import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference.ApiReference;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class UpdatePortalNavigationItemUseCaseTest {
@@ -99,7 +115,8 @@ class UpdatePortalNavigationItemUseCaseTest {
             queryService,
             pageContentQueryService,
             apiProductQueryService,
-            sourceDomainService
+            sourceDomainService,
+            apiCrudService
         );
         domainService = new PortalNavigationItemDomainService(
             crudService,
@@ -107,11 +124,96 @@ class UpdatePortalNavigationItemUseCaseTest {
             pageContentCrudService,
             PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
             apiCrudService,
-            sourceDomainService
+            sourceDomainService,
+            new ApiOwnedNavigationDomainService(queryService, crudService)
         );
         useCase = new UpdatePortalNavigationItemUseCase(queryService, validatorService, domainService, sourceDomainService);
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
+    }
+
+    /**
+     * The API-scoped endpoint returns stored parents, so its callers send them back as they are, unlike
+     * the portal editor, which sends the parent the item is displayed under.
+     */
+    @Nested
+    class ApiOwnedDocumentationSentWithItsStoredParent {
+
+        private static final NavigationItemReference API_REFERENCE = new NavigationItemReference.ApiReference("api-id");
+
+        private PortalNavigationPage anOwnedPage(String title, int order) {
+            var page = PortalNavigationItemFixtures.aPage(title, null).toBuilder().reference(API_REFERENCE).order(order).build();
+            page.markAsRoot();
+            crudService.create(page);
+            return page;
+        }
+
+        private PortalNavigationItem update(PortalNavigationItem existing, UpdatePortalNavigationItem toUpdate) {
+            return useCase
+                .execute(
+                    UpdatePortalNavigationItemUseCase.Input.builder()
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .navigationItemId(existing.getId().json())
+                        .updatePortalNavigationItem(toUpdate)
+                        .build()
+                )
+                .updatedItem();
+        }
+
+        private UpdatePortalNavigationItem.UpdatePortalNavigationItemBuilder anUpdateOf(PortalNavigationItem existing) {
+            return UpdatePortalNavigationItem.builder()
+                .type(existing.getType())
+                .title(existing.getTitle())
+                .order(existing.getOrder())
+                .parentId(existing.getParentId())
+                .published(existing.getPublished())
+                .visibility(existing.getVisibility());
+        }
+
+        @Test
+        void should_keep_the_owner_and_empty_stored_parent_of_a_top_level_api_owned_item_on_rename() {
+            var page = anOwnedPage("Overview", 0);
+
+            update(page, anUpdateOf(page).title("Introduction").build());
+
+            var stored = queryService.findByIdAndEnvironmentId(ENV_ID, page.getId());
+            assertThat(stored.getTitle()).isEqualTo("Introduction");
+            assertThat(stored.getReference()).isEqualTo(API_REFERENCE);
+            assertThat(stored.getParentId()).isNull();
+        }
+
+        @Test
+        void should_flip_only_the_published_flag_of_the_updated_item() {
+            var page = anOwnedPage("Overview", 0);
+            var sibling = anOwnedPage("Guide", 1);
+
+            update(page, anUpdateOf(page).published(false).build());
+
+            assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, page.getId()).getPublished()).isFalse();
+            assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, sibling.getId()).getPublished()).isTrue();
+        }
+
+        @Test
+        void should_reorder_among_the_api_owned_siblings_only() {
+            var first = anOwnedPage("Overview", 0);
+            var second = anOwnedPage("Guide", 1);
+            var portalRootOrders = topLevelPortalOrders();
+
+            update(second, anUpdateOf(second).order(0).build());
+
+            assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, second.getId()).getOrder()).isZero();
+            assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, first.getId()).getOrder()).isEqualTo(1);
+            assertThat(topLevelPortalOrders()).isEqualTo(portalRootOrders);
+        }
+
+        private Map<PortalNavigationItemId, Integer> topLevelPortalOrders() {
+            return queryService
+                .findTopLevelItemsByEnvironmentIdAndPortalArea(ENV_ID, PortalArea.TOP_NAVBAR)
+                .stream()
+                .filter(item -> !(item.getReference() instanceof NavigationItemReference.ApiReference))
+                .collect(Collectors.toMap(PortalNavigationItem::getId, PortalNavigationItem::getOrder));
+        }
     }
 
     @Test
@@ -260,6 +362,59 @@ class UpdatePortalNavigationItemUseCaseTest {
         );
 
         assertThat(exception.getMessage()).isEqualTo("Parent hierarchy cannot include API items.");
+    }
+
+    @ParameterizedTest
+    @CsvSource({ "API, 0", "API, 2", "API_PRODUCT, 0", "API_PRODUCT, 2" })
+    void should_reject_moving_api_or_api_product_under_persisted_api_owned_folder(PortalNavigationItemType type, int nestedFolderCount) {
+        var parent = PortalNavigationItemFixtures.aFolder("API documentation").toBuilder().reference(new ApiReference("api-1")).build();
+        parent.markAsRoot();
+        crudService.create(parent);
+        for (int depth = 0; depth < nestedFolderCount; depth++) {
+            var nestedFolder = PortalNavigationItemFixtures.aFolder("Section " + depth)
+                .toBuilder()
+                .reference(parent.getReference())
+                .build();
+            nestedFolder.updateParent(parent);
+            crudService.create(nestedFolder);
+            parent = nestedFolder;
+        }
+        PortalNavigationItem existing;
+        if (type == PortalNavigationItemType.API) {
+            existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API2_ID));
+        } else {
+            existing = PortalNavigationItemFixtures.anApiProduct(
+                API_PRODUCT_ID,
+                "Product",
+                PortalNavigationItemId.of(APIS_ID),
+                "product-id"
+            );
+            crudService.create(existing);
+        }
+        var originalParentId = existing.getParentId();
+        var originalRootId = existing.getRootId();
+        var toUpdate = UpdatePortalNavigationItem.builder()
+            .type(type)
+            .title(existing.getTitle())
+            .order(existing.getOrder())
+            .parentId(parent.getId())
+            .published(existing.getPublished())
+            .visibility(existing.getVisibility())
+            .build();
+        var input = UpdatePortalNavigationItemUseCase.Input.builder()
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .navigationItemId(existing.getId().json())
+            .updatePortalNavigationItem(toUpdate)
+            .build();
+
+        var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
+
+        assertThat(exception.getMessage()).isEqualTo(InvalidPortalNavigationItemDataException.parentHierarchyContainsApi().getMessage());
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, existing.getId())).satisfies(item -> {
+            assertThat(item.getParentId()).isEqualTo(originalParentId);
+            assertThat(item.getRootId()).isEqualTo(originalRootId);
+        });
     }
 
     @Test
@@ -609,7 +764,7 @@ class UpdatePortalNavigationItemUseCaseTest {
     }
 
     @Test
-    void should_add_parent_api_to_page_item() {
+    void should_hand_a_page_to_the_api_when_moved_under_its_listing() {
         var existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(PAGE11_ID));
         assertThat(existing).isNotNull();
 
@@ -631,15 +786,15 @@ class UpdatePortalNavigationItemUseCaseTest {
         var result = useCase.execute(input);
         assertThat(result).isNotNull();
         assertThat(result.updatedItem()).isNotNull();
-        assertThat(result.updatedItem().getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
 
         var updated = queryService.findByIdAndEnvironmentId(ENV_ID, existing.getId());
         assertThat(updated).isNotNull();
-        assertThat(updated.getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
+        assertThat(updated.getParentId()).isNull();
+        assertThat(updated.getReference()).isEqualTo(new ApiReference("api-1"));
     }
 
     @Test
-    void should_add_parent_api_to_folder_item() {
+    void should_keep_a_folder_stored_under_a_listing_when_saved_in_place() {
         var existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_FOLDER_ID));
         assertThat(existing).isNotNull();
 
@@ -669,7 +824,7 @@ class UpdatePortalNavigationItemUseCaseTest {
     }
 
     @Test
-    void should_add_parent_api_to_link_item() {
+    void should_hand_a_link_to_the_api_when_moved_under_its_listing() {
         var existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(LINK1_ID));
         assertThat(existing).isNotNull();
 
@@ -692,14 +847,13 @@ class UpdatePortalNavigationItemUseCaseTest {
         var result = useCase.execute(input);
         assertThat(result).isNotNull();
         assertThat(result.updatedItem()).isNotNull();
-        assertThat(result.updatedItem().getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
-        // LINK1 was a root item (rootId = LINK1_ID), moving under API1 (rootId = APIS_ID) changes rootId
-        assertThat(result.updatedItem().getRootId()).isEqualTo(PortalNavigationItemId.of(APIS_ID));
 
+        // LINK1 was a root item of the portal and is now a root of the API's documentation: no stored parent
         var updated = queryService.findByIdAndEnvironmentId(ENV_ID, existing.getId());
         assertThat(updated).isNotNull();
-        assertThat(updated.getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
-        assertThat(updated.getRootId()).isEqualTo(PortalNavigationItemId.of(APIS_ID));
+        assertThat(updated.getParentId()).isNull();
+        assertThat(updated.getRootId()).isEqualTo(existing.getId());
+        assertThat(updated.getReference()).isEqualTo(new ApiReference("api-1"));
     }
 
     @Nested
@@ -898,6 +1052,1075 @@ class UpdatePortalNavigationItemUseCaseTest {
     }
 
     @Nested
+    class ApiOwnedDocumentation {
+
+        private static final String DOCUMENT_ID = "00000000-0000-0000-0000-00000000d001";
+        private static final String FOLDER_ID = "00000000-0000-0000-0000-00000000d002";
+        private static final String OTHER_DOCUMENT_ID = "00000000-0000-0000-0000-00000000d003";
+        private final ApiReference owner = new ApiReference("api-1");
+
+        @ParameterizedTest
+        @EnumSource(value = PortalNavigationItemType.class, names = { "PAGE", "FOLDER", "LINK" })
+        void should_keep_api_owned_root_when_renamed_from_navigation(PortalNavigationItemType type) {
+            var document = givenRoot(type);
+            var command = updateUnder(document, PortalNavigationItemId.of(API1_ID)).title("Renamed").build();
+
+            var saved = execute(document, command);
+
+            assertThat(saved.getTitle()).isEqualTo("Renamed");
+            assertRoot(document);
+            assertThat(command.getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
+        }
+
+        @ParameterizedTest
+        @CsvSource({ "false, PUBLIC", "true, PRIVATE" })
+        void should_keep_api_owned_root_when_publication_or_visibility_changes(boolean published, PortalVisibility visibility) {
+            var document = givenRoot(PortalNavigationItemType.PAGE);
+
+            var saved = execute(
+                document,
+                updateUnder(document, PortalNavigationItemId.of(API1_ID)).published(published).visibility(visibility).build()
+            );
+
+            assertThat(saved.getPublished()).isEqualTo(published);
+            assertThat(saved.getVisibility()).isEqualTo(visibility);
+            assertRoot(document);
+        }
+
+        @Test
+        void should_reorder_only_roots_of_the_same_api() {
+            var document = givenRoot(PortalNavigationItemType.PAGE);
+            var sibling = PortalNavigationItemFixtures.aFolder(FOLDER_ID, "Sibling").toBuilder().reference(owner).order(1).build();
+            sibling.markAsRoot();
+            var otherApiRoot = PortalNavigationItemFixtures.aFolder(OTHER_DOCUMENT_ID, "Other API")
+                .toBuilder()
+                .reference(new ApiReference("api-2"))
+                .order(0)
+                .build();
+            otherApiRoot.markAsRoot();
+            queryService.storage().addAll(List.of(sibling, otherApiRoot));
+            var physicalChild = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_FOLDER_ID));
+            var physicalChildOrder = physicalChild.getOrder();
+            var portalRoot = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(APIS_ID));
+            var portalRootOrder = portalRoot.getOrder();
+
+            execute(document, updateUnder(document, PortalNavigationItemId.of(API1_ID)).order(1).build());
+
+            assertRoot(document);
+            assertThat(document.getOrder()).isEqualTo(1);
+            assertThat(sibling.getOrder()).isZero();
+            assertThat(otherApiRoot.getOrder()).isZero();
+            assertThat(physicalChild.getOrder()).isEqualTo(physicalChildOrder);
+            assertThat(portalRoot.getOrder()).isEqualTo(portalRootOrder);
+        }
+
+        @Test
+        void should_accept_another_listing_of_the_same_api_without_reparenting() {
+            var document = givenRoot(PortalNavigationItemType.PAGE);
+            var listing = PortalNavigationItemFixtures.anApi(
+                OTHER_DOCUMENT_ID,
+                "Another listing",
+                PortalNavigationItemId.of(CATEGORY1_ID),
+                owner.apiId()
+            );
+            queryService.storage().add(listing);
+
+            execute(document, updateUnder(document, listing.getId()).build());
+
+            assertRoot(document);
+        }
+
+        @Test
+        void should_validate_segments_in_the_api_root_namespace() {
+            var document = givenRoot(PortalNavigationItemType.FOLDER);
+            var sibling = PortalNavigationItemFixtures.aFolder(FOLDER_ID, "Sibling").toBuilder().reference(owner).build();
+            sibling.markAsRoot();
+            queryService.storage().add(sibling);
+
+            assertThatThrownBy(() ->
+                execute(document, updateUnder(document, PortalNavigationItemId.of(API1_ID)).segment(sibling.getSegment()).build())
+            ).isInstanceOf(PathConflictException.class);
+
+            assertRoot(document);
+            assertThat(document.getSegment()).isEqualTo("document");
+        }
+
+        @Test
+        void should_discard_a_rendered_parent_not_resolved_by_the_server() {
+            var document = givenRoot(PortalNavigationItemType.PAGE);
+            var command = updateUnder(document, null)
+                .renderedParentId(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000ffff"))
+                .build();
+
+            execute(document, command);
+
+            assertRoot(document);
+        }
+
+        @Test
+        void should_move_nested_documentation_to_the_api_root() {
+            var folder = givenRoot(PortalNavigationItemType.FOLDER);
+            var document = PortalNavigationItemFixtures.aFolder(FOLDER_ID, "Nested folder").toBuilder().reference(owner).build();
+            document.updateParent((PortalNavigationFolder) folder);
+            var child = PortalNavigationItemFixtures.aPage(OTHER_DOCUMENT_ID, "Child", document.getId())
+                .toBuilder()
+                .reference(owner)
+                .build();
+            child.updateParent(document);
+            queryService.storage().addAll(List.of(document, child));
+
+            execute(document, updateUnder(document, PortalNavigationItemId.of(API1_ID)).order(0).build());
+
+            assertRoot(document);
+            assertThat(document.getOrder()).isZero();
+            assertThat(folder.getOrder()).isEqualTo(1);
+            assertThat(child.getParentId()).isEqualTo(document.getId());
+            assertThat(child.getRootId()).isEqualTo(document.getId());
+            assertThat(child.getReference()).isEqualTo(owner);
+        }
+
+        @Test
+        void should_keep_a_real_move_into_an_api_owned_folder() {
+            var document = givenRoot(PortalNavigationItemType.PAGE);
+            var folder = PortalNavigationItemFixtures.aFolder(FOLDER_ID, "Target").toBuilder().reference(owner).order(1).build();
+            folder.markAsRoot();
+            queryService.storage().add(folder);
+
+            var saved = execute(document, updateUnder(document, folder.getId()).build());
+
+            assertThat(saved.getParentId()).isEqualTo(folder.getId());
+            assertThat(saved.getRootId()).isEqualTo(folder.getId());
+            assertThat(saved.getReference()).isEqualTo(owner);
+            assertThat(folder.getOrder()).isZero();
+        }
+
+        @Test
+        void should_validate_publication_against_the_displayed_parent() {
+            var document = givenRoot(PortalNavigationItemType.PAGE);
+            queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID)).setPublished(false);
+
+            assertThatThrownBy(() -> execute(document, updateUnder(document, PortalNavigationItemId.of(API1_ID)).build()))
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                .hasMessageContaining("published");
+            assertRoot(document);
+        }
+
+        @Test
+        void should_validate_visibility_against_the_displayed_parent() {
+            var document = givenRoot(PortalNavigationItemType.PAGE);
+            queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID)).setVisibility(PortalVisibility.PRIVATE);
+
+            assertThatThrownBy(() -> execute(document, updateUnder(document, PortalNavigationItemId.of(API1_ID)).build()))
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                .hasMessageContaining("public");
+            assertRoot(document);
+        }
+
+        @Test
+        void should_validate_area_against_the_displayed_parent() {
+            var document = givenRoot(PortalNavigationItemType.PAGE);
+            queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID)).setArea(PortalArea.HOMEPAGE);
+
+            assertThatThrownBy(() -> execute(document, updateUnder(document, PortalNavigationItemId.of(API1_ID)).build())).isInstanceOf(
+                ParentAreaMismatchException.class
+            );
+            assertRoot(document);
+        }
+
+        @Test
+        void should_not_resolve_a_listing_from_another_environment() {
+            var document = givenRoot(PortalNavigationItemType.PAGE);
+            queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID)).setEnvironmentId("other-env");
+
+            assertThatThrownBy(() -> execute(document, updateUnder(document, PortalNavigationItemId.of(API1_ID)).build())).isInstanceOf(
+                ParentNotFoundException.class
+            );
+            assertRoot(document);
+        }
+
+        private PortalNavigationItem givenRoot(PortalNavigationItemType type) {
+            PortalNavigationItem document = switch (type) {
+                case PAGE -> PortalNavigationItemFixtures.aPage(DOCUMENT_ID, "Document", null).toBuilder().reference(owner).build();
+                case FOLDER -> PortalNavigationItemFixtures.aFolder(DOCUMENT_ID, "Document").toBuilder().reference(owner).build();
+                case LINK -> PortalNavigationLink.builder()
+                    .id(PortalNavigationItemId.of(DOCUMENT_ID))
+                    .organizationId(ORG_ID)
+                    .environmentId(ENV_ID)
+                    .reference(owner)
+                    .title("Document")
+                    .segment("document")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .url("https://example.com")
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build();
+                default -> throw new IllegalArgumentException("Not a documentation type: " + type);
+            };
+            document.markAsRoot();
+            queryService.storage().add(document);
+            return document;
+        }
+
+        private UpdatePortalNavigationItem.UpdatePortalNavigationItemBuilder updateUnder(
+            PortalNavigationItem document,
+            PortalNavigationItemId parentId
+        ) {
+            return UpdatePortalNavigationItem.builder()
+                .type(document.getType())
+                .title(document.getTitle())
+                .segment(document.getSegment())
+                .order(document.getOrder())
+                .parentId(parentId)
+                .published(document.getPublished())
+                .visibility(document.getVisibility())
+                .source(document.getSource())
+                .url(document instanceof PortalNavigationLink link ? link.getUrl() : null);
+        }
+
+        private PortalNavigationItem execute(PortalNavigationItem document, UpdatePortalNavigationItem command) {
+            return useCase
+                .execute(
+                    UpdatePortalNavigationItemUseCase.Input.builder()
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .navigationItemId(document.getId().json())
+                        .updatePortalNavigationItem(command)
+                        .build()
+                )
+                .updatedItem();
+        }
+
+        private void assertRoot(PortalNavigationItem document) {
+            var stored = queryService.findByIdAndEnvironmentId(ENV_ID, document.getId());
+            assertThat(stored.getParentId()).isNull();
+            assertThat(stored.getRootId()).isEqualTo(document.getId());
+            assertThat(stored.getReference()).isEqualTo(owner);
+        }
+    }
+
+    /**
+     * The portal editor's path: the owner of a page, folder or link follows the place it is moved to.
+     */
+    @Nested
+    class OwnerChangeOnMove {
+
+        private static final ApiReference API_A = new ApiReference("api-a");
+        private static final ApiReference API_B = new ApiReference("api-b");
+        private static final NavigationItemReference PORTAL = NavigationItemReference.defaultReference();
+
+        private PortalNavigationFolder section;
+
+        @BeforeEach
+        void setUp() {
+            section = store(PortalNavigationItemFixtures.aFolder("Documentation section"));
+        }
+
+        @Test
+        void should_make_a_portal_page_api_owned_when_moved_onto_a_listing_row() {
+            var listing = aListingOf(API_A);
+            var page = store(PortalNavigationItemFixtures.aPage("Guide", section.getId()));
+
+            move(page, listing.getId());
+
+            assertOwnedRootOf(API_A, page);
+        }
+
+        @Test
+        void should_make_a_top_level_portal_page_api_owned_when_moved_onto_a_listing_row() {
+            var listing = aListingOf(API_A);
+            var page = store(PortalNavigationItemFixtures.aPage("Guide", null));
+
+            move(page, listing.getId());
+
+            assertOwnedRootOf(API_A, page);
+        }
+
+        @Test
+        void should_validate_the_move_against_the_listing_row_it_is_dropped_on() {
+            var hiddenListing = aListingOf(API_A);
+            hiddenListing.setPublished(false);
+            crudService.update(hiddenListing);
+            var page = store(PortalNavigationItemFixtures.aPage("Guide", null));
+
+            assertThatThrownBy(() -> move(page, hiddenListing.getId())).isInstanceOf(InvalidPortalNavigationItemDataException.class);
+            assertThat(find(page).getReference()).isEqualTo(PORTAL);
+        }
+
+        @Test
+        void should_make_a_portal_page_api_owned_when_moved_into_a_folder_the_api_owns() {
+            var apiFolder = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Api guides")));
+            var page = store(PortalNavigationItemFixtures.aPage("Guide", section.getId()));
+
+            move(page, apiFolder.getId());
+
+            assertThat(find(page).getReference()).isEqualTo(API_A);
+            assertThat(find(page).getParentId()).isEqualTo(apiFolder.getId());
+        }
+
+        @Test
+        void should_carry_the_new_owner_down_a_three_level_subtree() {
+            var listing = aListingOf(API_A);
+            var folder = store(PortalNavigationItemFixtures.aFolder("Tutorials", section.getId()));
+            var subFolder = store(PortalNavigationItemFixtures.aFolder("Advanced", folder.getId()));
+            var page = store(PortalNavigationItemFixtures.aPage("Tuning", subFolder.getId()));
+
+            move(folder, listing.getId());
+
+            assertOwnedRootOf(API_A, folder);
+            assertThat(List.of(find(subFolder), find(page))).allSatisfy(descendant -> {
+                assertThat(descendant.getReference()).isEqualTo(API_A);
+                assertThat(descendant.getRootId()).isEqualTo(folder.getId());
+            });
+            assertThat(find(subFolder).getParentId()).isEqualTo(folder.getId());
+            assertThat(find(page).getParentId()).isEqualTo(subFolder.getId());
+        }
+
+        @Test
+        void should_revert_the_whole_subtree_when_moved_back_to_a_portal_folder() {
+            var listing = aListingOf(API_A);
+            var folder = store(PortalNavigationItemFixtures.aFolder("Tutorials", section.getId()));
+            var subFolder = store(PortalNavigationItemFixtures.aFolder("Advanced", folder.getId()));
+            var page = store(PortalNavigationItemFixtures.aPage("Tuning", subFolder.getId()));
+            move(folder, listing.getId());
+
+            move(find(folder), section.getId());
+
+            assertThat(List.of(find(folder), find(subFolder), find(page))).allSatisfy(item -> {
+                assertThat(item.getReference()).isEqualTo(PORTAL);
+                assertThat(item.getRootId()).isEqualTo(section.getId());
+            });
+            assertThat(find(folder).getParentId()).isEqualTo(section.getId());
+        }
+
+        @Test
+        void should_take_the_portal_of_the_folder_it_lands_in_when_it_leaves_an_api() {
+            var otherPortal = new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-0000000000aa"));
+            var portalFolder = store(
+                PortalNavigationItemFixtures.aFolder("Other portal guides").toBuilder().reference(otherPortal).build()
+            );
+            var folder = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Tutorials")));
+            var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", folder.getId())));
+
+            move(folder, portalFolder.getId());
+
+            assertThat(List.of(find(folder), find(page))).extracting(PortalNavigationItem::getReference).containsOnly(otherPortal);
+            assertThat(find(folder).getParentId()).isEqualTo(portalFolder.getId());
+        }
+
+        @Test
+        void should_take_the_other_api_as_owner_when_moved_onto_its_listing_row() {
+            aListingOf(API_A);
+            var listingOfB = aListingOf(API_B);
+            var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", null)));
+
+            move(page, listingOfB.getId());
+
+            assertOwnedRootOf(API_B, page);
+        }
+
+        @Test
+        void should_take_the_other_api_as_owner_when_moved_into_its_folder() {
+            var folderOfB = store(ownedBy(API_B, PortalNavigationItemFixtures.aFolder("Guides of B")));
+            var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", null)));
+
+            move(page, folderOfB.getId());
+
+            assertThat(find(page).getReference()).isEqualTo(API_B);
+            assertThat(find(page).getParentId()).isEqualTo(folderOfB.getId());
+        }
+
+        @Test
+        void should_leave_no_mixed_owners_in_a_moved_subtree() {
+            var listing = aListingOf(API_A);
+            var folder = store(PortalNavigationItemFixtures.aFolder("Tutorials", section.getId()));
+            var portalPage = store(PortalNavigationItemFixtures.aPage("Portal page", folder.getId()));
+            var pageOfB = store(ownedBy(API_B, PortalNavigationItemFixtures.aPage("Page of B", folder.getId())));
+
+            move(folder, listing.getId());
+
+            assertThat(List.of(find(folder), find(portalPage), find(pageOfB)))
+                .extracting(PortalNavigationItem::getReference)
+                .containsOnly(API_A);
+        }
+
+        @Test
+        void should_become_portal_owned_when_moved_under_an_api_product() {
+            var product = store(
+                PortalNavigationItemFixtures.anApiProduct(PortalNavigationItemId.random().json(), "Product", section.getId(), "product-ref")
+            );
+            var productFolder = store(PortalNavigationItemFixtures.aFolder("Product guides", product.getId()));
+            var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", null)));
+
+            move(page, productFolder.getId());
+
+            assertThat(find(page).getReference()).isEqualTo(PORTAL);
+            assertThat(find(page).getParentId()).isEqualTo(productFolder.getId());
+        }
+
+        @Test
+        void should_not_change_the_owner_of_a_listing_row() {
+            var listing = aListingOf(API_A);
+            var otherSection = store(PortalNavigationItemFixtures.aFolder("Other section"));
+
+            move(listing, otherSection.getId());
+
+            assertThat(find(listing).getReference()).isEqualTo(PORTAL);
+            assertThat(find(listing).getParentId()).isEqualTo(otherSection.getId());
+        }
+
+        @Test
+        void should_keep_the_owner_and_the_descendants_when_only_the_title_changes() {
+            var folder = store(PortalNavigationItemFixtures.aFolder("Tutorials", section.getId()));
+            var pageOfB = store(ownedBy(API_B, PortalNavigationItemFixtures.aPage("Page of B", folder.getId())));
+
+            execute(folder, updateOf(folder).title("Handbooks").build(), false);
+
+            assertThat(find(folder).getReference()).isEqualTo(PORTAL);
+            assertThat(find(pageOfB).getReference()).isEqualTo(API_B);
+        }
+
+        @Test
+        void should_keep_the_owner_when_moved_between_two_folders_of_the_same_api() {
+            var from = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Basics")));
+            var to = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Advanced")));
+            var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", from.getId())));
+
+            move(page, to.getId());
+
+            assertThat(find(page).getReference()).isEqualTo(API_A);
+            assertThat(find(page).getParentId()).isEqualTo(to.getId());
+        }
+
+        @Test
+        void should_not_treat_a_move_between_two_portal_references_as_a_change_of_owner() {
+            var otherPortal = new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-0000000000aa"));
+            var managed = store(
+                automationManaged(PortalNavigationItemFixtures.aPage("Managed page", null)).toBuilder().reference(otherPortal).build()
+            );
+
+            move(managed, section.getId());
+
+            assertThat(find(managed).getParentId()).isEqualTo(section.getId());
+            assertThat(find(managed).getReference()).isEqualTo(otherPortal);
+        }
+
+        @Test
+        void should_keep_a_portal_owned_item_stored_under_a_listing_row_when_saved_in_place() {
+            var listing = aListingOf(API_A);
+            var legacyPage = store(PortalNavigationItemFixtures.aPage("Legacy page", listing.getId()));
+
+            execute(legacyPage, updateOf(legacyPage).title("Renamed legacy page").build(), false);
+
+            assertThat(find(legacyPage).getReference()).isEqualTo(PORTAL);
+            assertThat(find(legacyPage).getParentId()).isEqualTo(listing.getId());
+        }
+
+        @Test
+        void should_make_a_nested_api_owned_item_portal_owned_when_moved_to_the_portal_top_level() {
+            var apiRoot = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Tutorials")));
+            var folder = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Advanced", apiRoot.getId())));
+            var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", folder.getId())));
+
+            move(folder, null);
+
+            assertThat(List.of(find(folder), find(page))).extracting(PortalNavigationItem::getReference).containsOnly(PORTAL);
+            assertThat(find(folder).getParentId()).isNull();
+            assertThat(find(apiRoot).getReference()).isEqualTo(API_A);
+        }
+
+        /**
+         * A root of an API's documentation is stored with no parent, and that is what a read of it returns:
+         * sent back as it is, it has not moved.
+         */
+        @Test
+        void should_keep_an_api_owned_root_and_its_descendants_when_saved_with_no_parent() {
+            var folder = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Tutorials")));
+            var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", folder.getId())));
+
+            execute(folder, updateOf(folder).title("Handbooks").build(), false);
+
+            assertThat(find(folder).getTitle()).isEqualTo("Handbooks");
+            assertThat(List.of(find(folder), find(page))).extracting(PortalNavigationItem::getReference).containsOnly(API_A);
+        }
+
+        @Test
+        void should_still_rename_an_automation_managed_api_root_saved_with_no_parent() {
+            var managed = store(
+                ownedBy(API_A, PortalNavigationItemFixtures.aPage("Managed page", null))
+                    .toBuilder()
+                    .automationMetadata(
+                        new AutomationMetadata(
+                            AutomationMetadata.ReferenceType.API,
+                            API_A.apiId(),
+                            "Managed page",
+                            Optional.empty(),
+                            Optional.empty()
+                        )
+                    )
+                    .build()
+            );
+
+            execute(managed, updateOf(managed).title("Renamed managed page").build(), false);
+
+            assertThat(find(managed).getTitle()).isEqualTo("Renamed managed page");
+            assertThat(find(managed).getReference()).isEqualTo(API_A);
+        }
+
+        @Test
+        void should_keep_the_owner_at_the_api_root_when_the_owner_is_fixed() {
+            var folder = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Tutorials")));
+            var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", folder.getId())));
+
+            execute(page, updateOf(page).parentId(null).build(), true);
+
+            assertOwnedRootOf(API_A, page);
+        }
+
+        @Test
+        void should_refuse_moving_a_folder_holding_a_listing_row_onto_an_api() {
+            var listingOfA = aListingOf(API_A);
+            var folder = store(PortalNavigationItemFixtures.aFolder("Partner APIs", section.getId()));
+            var nestedListing = store(
+                PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().json(), "Api B", folder.getId(), API_B.apiId())
+            );
+
+            assertThatThrownBy(() -> move(folder, listingOfA.getId()))
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                .hasMessageContaining("cannot be moved into the documentation of an API");
+            assertThat(find(folder).getReference()).isEqualTo(PORTAL);
+            assertThat(find(nestedListing).getParentId()).isEqualTo(folder.getId());
+        }
+
+        @Test
+        void should_refuse_moving_a_folder_holding_an_api_product_into_a_folder_an_api_owns() {
+            var apiFolder = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Api guides")));
+            var folder = store(PortalNavigationItemFixtures.aFolder("Products", section.getId()));
+            store(
+                PortalNavigationItemFixtures.anApiProduct(PortalNavigationItemId.random().json(), "Product", folder.getId(), "product-ref")
+            );
+
+            assertThatThrownBy(() -> move(folder, apiFolder.getId()))
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                .hasMessageContaining("cannot be moved into the documentation of an API");
+            assertThat(find(folder).getReference()).isEqualTo(PORTAL);
+            assertThat(find(folder).getParentId()).isEqualTo(section.getId());
+        }
+
+        @Test
+        void should_refuse_changing_the_owner_of_an_automation_managed_item() {
+            var listing = aListingOf(API_A);
+            var managed = store(automationManaged(PortalNavigationItemFixtures.aPage("Managed page", section.getId())));
+
+            assertThatThrownBy(() -> move(managed, listing.getId()))
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                .hasMessageContaining("automation");
+            assertThat(find(managed).getReference()).isEqualTo(PORTAL);
+        }
+
+        @Test
+        void should_refuse_changing_the_owner_of_a_folder_holding_an_automation_managed_item() {
+            var listing = aListingOf(API_A);
+            var folder = store(PortalNavigationItemFixtures.aFolder("Tutorials", section.getId()));
+            store(automationManaged(PortalNavigationItemFixtures.aPage("Managed page", folder.getId())));
+
+            assertThatThrownBy(() -> move(folder, listing.getId()))
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                .hasMessageContaining("automation");
+            assertThat(find(folder).getReference()).isEqualTo(PORTAL);
+        }
+
+        @Test
+        void should_still_move_an_automation_managed_item_when_the_owner_does_not_change() {
+            var otherSection = store(PortalNavigationItemFixtures.aFolder("Other section"));
+            var managed = store(automationManaged(PortalNavigationItemFixtures.aPage("Managed page", section.getId())));
+
+            move(managed, otherSection.getId());
+
+            assertThat(find(managed).getParentId()).isEqualTo(otherSection.getId());
+            assertThat(find(managed).getReference()).isEqualTo(PORTAL);
+        }
+
+        /**
+         * The documentation of an API is shown under each of its standalone listings, so taking an item out of
+         * the API takes it out of all of them, while the caller pointed at one.
+         */
+        @Nested
+        class OutOfAnApiListedInMoreThanOnePlace {
+
+            private static final String LISTED_IN_MORE_THAN_ONE_PLACE = "listed in more than one place";
+
+            @Test
+            void should_refuse_moving_an_item_out_of_an_api_listed_in_two_places() {
+                listedInTwoPlaces(API_A);
+                var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", null)));
+
+                assertThatThrownBy(() -> move(page, section.getId()))
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                    .hasMessageContaining(LISTED_IN_MORE_THAN_ONE_PLACE);
+                assertOwnedRootOf(API_A, page);
+            }
+
+            @Test
+            void should_refuse_moving_a_nested_item_out_of_an_api_listed_in_two_places() {
+                listedInTwoPlaces(API_A);
+                var folder = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Tutorials")));
+                var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", folder.getId())));
+
+                assertThatThrownBy(() -> move(page, null))
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                    .hasMessageContaining(LISTED_IN_MORE_THAN_ONE_PLACE);
+                assertThat(find(page).getReference()).isEqualTo(API_A);
+                assertThat(find(page).getParentId()).isEqualTo(folder.getId());
+            }
+
+            @Test
+            void should_refuse_moving_an_item_to_another_api_when_the_api_it_leaves_is_listed_in_two_places() {
+                listedInTwoPlaces(API_A);
+                var listingOfB = aListingOf(API_B);
+                var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", null)));
+
+                assertThatThrownBy(() -> move(page, listingOfB.getId()))
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                    .hasMessageContaining(LISTED_IN_MORE_THAN_ONE_PLACE);
+                assertOwnedRootOf(API_A, page);
+            }
+
+            @Test
+            void should_move_an_item_out_of_an_api_listed_once() {
+                aListingOf(API_A);
+                var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", null)));
+
+                move(page, section.getId());
+
+                assertThat(find(page).getReference()).isEqualTo(PORTAL);
+                assertThat(find(page).getParentId()).isEqualTo(section.getId());
+            }
+
+            @Test
+            void should_move_an_item_out_of_an_api_listed_once_and_inside_an_api_product() {
+                aListingOf(API_A);
+                var product = store(
+                    PortalNavigationItemFixtures.anApiProduct(
+                        PortalNavigationItemId.random().json(),
+                        "Product",
+                        section.getId(),
+                        "product-ref"
+                    )
+                );
+                store(PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().json(), "Member", product.getId(), API_A.apiId()));
+                var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", null)));
+
+                move(page, section.getId());
+
+                assertThat(find(page).getReference()).isEqualTo(PORTAL);
+            }
+
+            @Test
+            void should_move_an_item_out_of_an_api_that_is_not_listed() {
+                var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", null)));
+
+                move(page, section.getId());
+
+                assertThat(find(page).getReference()).isEqualTo(PORTAL);
+            }
+
+            @Test
+            void should_still_move_an_item_into_an_api_listed_in_two_places() {
+                var listing = listedInTwoPlaces(API_A);
+                var page = store(PortalNavigationItemFixtures.aPage("Guide", section.getId()));
+
+                move(page, listing.getId());
+
+                assertOwnedRootOf(API_A, page);
+            }
+
+            @Test
+            void should_still_move_an_item_between_two_folders_of_an_api_listed_in_two_places() {
+                listedInTwoPlaces(API_A);
+                var from = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Basics")));
+                var to = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Advanced")));
+                var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", from.getId())));
+
+                move(page, to.getId());
+
+                assertThat(find(page).getParentId()).isEqualTo(to.getId());
+                assertThat(find(page).getReference()).isEqualTo(API_A);
+            }
+
+            /** No validated path can create a second standalone listing, so it is stored as older data would be. */
+            private PortalNavigationApi listedInTwoPlaces(ApiReference api) {
+                var otherSection = store(PortalNavigationItemFixtures.aFolder("Other section"));
+                store(
+                    PortalNavigationItemFixtures.anApi(
+                        PortalNavigationItemId.random().json(),
+                        "Second listing of " + api.apiId(),
+                        otherSection.getId(),
+                        api.apiId()
+                    )
+                );
+                return aListingOf(api);
+            }
+        }
+
+        private PortalNavigationApi aListingOf(ApiReference api) {
+            return store(
+                PortalNavigationItemFixtures.anApi(
+                    PortalNavigationItemId.random().json(),
+                    "Listing of " + api.apiId(),
+                    section.getId(),
+                    api.apiId()
+                )
+            );
+        }
+
+        private <T extends PortalNavigationItem> T store(T item) {
+            if (item.getParentId() == null) {
+                item.markAsRoot();
+            } else {
+                item.updateParent((PortalNavigationItemContainer) queryService.findByIdAndEnvironmentId(ENV_ID, item.getParentId()));
+            }
+            crudService.create(item);
+            return item;
+        }
+
+        private static PortalNavigationFolder ownedBy(ApiReference api, PortalNavigationFolder folder) {
+            return folder.toBuilder().reference(api).build();
+        }
+
+        private static PortalNavigationPage ownedBy(ApiReference api, PortalNavigationPage page) {
+            return page.toBuilder().reference(api).build();
+        }
+
+        private static PortalNavigationPage automationManaged(PortalNavigationPage page) {
+            return page
+                .toBuilder()
+                .automationMetadata(
+                    new AutomationMetadata(
+                        AutomationMetadata.ReferenceType.PORTAL,
+                        "portal-id",
+                        page.getTitle(),
+                        Optional.empty(),
+                        Optional.empty()
+                    )
+                )
+                .build();
+        }
+
+        private PortalNavigationItem find(PortalNavigationItem item) {
+            return queryService.findByIdAndEnvironmentId(ENV_ID, item.getId());
+        }
+
+        private void move(PortalNavigationItem item, PortalNavigationItemId parentId) {
+            execute(item, updateOf(item).parentId(parentId).build(), false);
+        }
+
+        private UpdatePortalNavigationItem.UpdatePortalNavigationItemBuilder updateOf(PortalNavigationItem item) {
+            return UpdatePortalNavigationItem.builder()
+                .type(item.getType())
+                .title(item.getTitle())
+                .segment(item.getSegment())
+                .order(item.getOrder())
+                .parentId(item.getParentId())
+                .published(item.getPublished())
+                .visibility(item.getVisibility());
+        }
+
+        private void execute(PortalNavigationItem item, UpdatePortalNavigationItem command, boolean ownerFixed) {
+            useCase.execute(
+                UpdatePortalNavigationItemUseCase.Input.builder()
+                    .organizationId(ORG_ID)
+                    .environmentId(ENV_ID)
+                    .navigationItemId(item.getId().json())
+                    .updatePortalNavigationItem(command)
+                    .ownerFixed(ownerFixed)
+                    .build()
+            );
+        }
+
+        private void assertOwnedRootOf(ApiReference api, PortalNavigationItem item) {
+            var stored = find(item);
+            assertThat(stored.getReference()).isEqualTo(api);
+            assertThat(stored.getParentId()).isNull();
+            assertThat(stored.getRootId()).isEqualTo(item.getId());
+        }
+    }
+
+    /**
+     * Items with no stored parent are grouped by owner: the top level of the portal is one list, the root
+     * documentation of each API another. A move that changes the owner leaves one of these lists and joins
+     * another, and each has to stay without a gap or a shared position.
+     */
+    @Nested
+    class OrderingAcrossOwners {
+
+        private static final ApiReference API_A = new ApiReference("api-a");
+        private static final ApiReference API_B = new ApiReference("api-b");
+
+        private PortalNavigationFolder section;
+        private PortalNavigationApi listingOfA;
+
+        @BeforeEach
+        void setUp() {
+            // The sample tree has every item at position 0 and could not show a gap or a duplicate.
+            queryService.initWith(List.of());
+            section = store(0, PortalNavigationItemFixtures.aFolder("Section"));
+            listingOfA = store(0, aListing(API_A));
+        }
+
+        @Nested
+        class APageInAPortalFolderDroppedOnAListing {
+
+            private PortalNavigationFolder portalFolder;
+            private PortalNavigationPage moved;
+
+            @BeforeEach
+            void setUp() {
+                // More items at the portal top level than roots of the API, so that the two lists cannot be confused
+                portalFolder = store(1, PortalNavigationItemFixtures.aFolder("Portal folder"));
+                for (int position = 2; position <= 5; position++) {
+                    store(position, PortalNavigationItemFixtures.aPage("T" + position, null));
+                }
+                store(0, PortalNavigationItemFixtures.aPage("P0", portalFolder.getId()));
+                moved = store(1, PortalNavigationItemFixtures.aPage("Moved", portalFolder.getId()));
+                store(2, PortalNavigationItemFixtures.aPage("P2", portalFolder.getId()));
+                store(0, ownedBy(API_A, PortalNavigationItemFixtures.aPage("A0", null)));
+                store(1, ownedBy(API_A, PortalNavigationItemFixtures.aPage("A1", null)));
+            }
+
+            @Test
+            void should_insert_at_the_requested_position_among_the_roots_of_the_api() {
+                execute(moved, updateOf(moved).parentId(listingOfA.getId()).order(1));
+
+                assertThat(rootsOf(API_A)).containsExactlyInAnyOrderEntriesOf(Map.of("A0", 0, "Moved", 1, "A1", 2));
+            }
+
+            @Test
+            void should_close_the_gap_in_the_folder_it_left() {
+                execute(moved, updateOf(moved).parentId(listingOfA.getId()).order(1));
+
+                assertThat(childrenOf(portalFolder)).containsExactlyInAnyOrderEntriesOf(Map.of("P0", 0, "P2", 1));
+            }
+
+            @Test
+            void should_append_when_the_requested_position_is_past_the_end_of_the_destination() {
+                execute(moved, updateOf(moved).parentId(listingOfA.getId()).order(7));
+
+                assertThat(rootsOf(API_A)).containsExactlyInAnyOrderEntriesOf(Map.of("A0", 0, "A1", 1, "Moved", 2));
+            }
+
+            @Test
+            void should_append_when_no_position_is_sent() {
+                execute(moved, updateOf(moved).parentId(listingOfA.getId()).order(null));
+
+                assertThat(rootsOf(API_A)).containsExactlyInAnyOrderEntriesOf(Map.of("A0", 0, "A1", 1, "Moved", 2));
+            }
+        }
+
+        @Nested
+        class ATopLevelPortalPageDroppedOnAListing {
+
+            private PortalNavigationPage moved;
+
+            @BeforeEach
+            void setUp() {
+                // Dropped at the position it already had in the list it leaves: nothing but the owner changes
+                moved = store(1, PortalNavigationItemFixtures.aPage("Moved", null));
+                store(2, PortalNavigationItemFixtures.aPage("T2", null));
+                store(3, PortalNavigationItemFixtures.aPage("T3", null));
+                store(0, ownedBy(API_A, PortalNavigationItemFixtures.aPage("A0", null)));
+                store(1, ownedBy(API_A, PortalNavigationItemFixtures.aPage("A1", null)));
+            }
+
+            @Test
+            void should_make_room_among_the_roots_of_the_api() {
+                execute(moved, updateOf(moved).parentId(listingOfA.getId()).order(1));
+
+                assertThat(rootsOf(API_A)).containsExactlyInAnyOrderEntriesOf(Map.of("A0", 0, "Moved", 1, "A1", 2));
+            }
+
+            @Test
+            void should_close_the_gap_in_the_portal_top_level() {
+                execute(moved, updateOf(moved).parentId(listingOfA.getId()).order(1));
+
+                assertThat(portalTopLevel()).containsExactlyInAnyOrderEntriesOf(Map.of("Section", 0, "T2", 1, "T3", 2));
+            }
+
+            @Test
+            void should_make_room_when_dropped_at_another_position() {
+                execute(moved, updateOf(moved).parentId(listingOfA.getId()).order(0));
+
+                assertThat(rootsOf(API_A)).containsExactlyInAnyOrderEntriesOf(Map.of("Moved", 0, "A0", 1, "A1", 2));
+                assertThat(portalTopLevel()).containsExactlyInAnyOrderEntriesOf(Map.of("Section", 0, "T2", 1, "T3", 2));
+            }
+        }
+
+        @Test
+        void should_not_renumber_the_portal_top_level_when_an_api_root_moves_into_a_portal_folder() {
+            var portalFolder = store(1, PortalNavigationItemFixtures.aFolder("Portal folder"));
+            store(2, PortalNavigationItemFixtures.aPage("T2", null));
+            store(3, PortalNavigationItemFixtures.aPage("T3", null));
+            store(0, ownedBy(API_A, PortalNavigationItemFixtures.aPage("A0", null)));
+            var moved = store(1, ownedBy(API_A, PortalNavigationItemFixtures.aPage("Moved", null)));
+            store(2, ownedBy(API_A, PortalNavigationItemFixtures.aPage("A2", null)));
+
+            execute(moved, updateOf(moved).parentId(portalFolder.getId()).order(0));
+
+            assertThat(portalTopLevel()).containsExactlyInAnyOrderEntriesOf(Map.of("Section", 0, "Portal folder", 1, "T2", 2, "T3", 3));
+            assertThat(rootsOf(API_A)).containsExactlyInAnyOrderEntriesOf(Map.of("A0", 0, "A2", 1));
+            assertThat(childrenOf(portalFolder)).containsExactlyInAnyOrderEntriesOf(Map.of("Moved", 0));
+        }
+
+        @Test
+        void should_insert_among_the_portal_top_level_when_a_nested_api_item_moves_out() {
+            store(1, PortalNavigationItemFixtures.aPage("T1", null));
+            store(2, PortalNavigationItemFixtures.aPage("T2", null));
+            var apiFolder = store(0, ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Api folder")));
+            store(0, ownedBy(API_A, PortalNavigationItemFixtures.aPage("C0", apiFolder.getId())));
+            var moved = store(1, ownedBy(API_A, PortalNavigationItemFixtures.aPage("Moved", apiFolder.getId())));
+            store(2, ownedBy(API_A, PortalNavigationItemFixtures.aPage("C2", apiFolder.getId())));
+
+            execute(moved, updateOf(moved).parentId(null).order(2));
+
+            assertThat(portalTopLevel()).containsExactlyInAnyOrderEntriesOf(Map.of("Section", 0, "T1", 1, "Moved", 2, "T2", 3));
+            assertThat(childrenOf(apiFolder)).containsExactlyInAnyOrderEntriesOf(Map.of("C0", 0, "C2", 1));
+        }
+
+        @Test
+        void should_keep_both_lists_contiguous_when_an_item_moves_from_one_api_to_another() {
+            var listingOfB = store(1, aListing(API_B));
+            store(0, ownedBy(API_A, PortalNavigationItemFixtures.aPage("A0", null)));
+            var moved = store(1, ownedBy(API_A, PortalNavigationItemFixtures.aPage("Moved", null)));
+            store(2, ownedBy(API_A, PortalNavigationItemFixtures.aPage("A2", null)));
+            store(0, ownedBy(API_B, PortalNavigationItemFixtures.aPage("B0", null)));
+            store(1, ownedBy(API_B, PortalNavigationItemFixtures.aPage("B1", null)));
+
+            execute(moved, updateOf(moved).parentId(listingOfB.getId()).order(1));
+
+            assertThat(rootsOf(API_A)).containsExactlyInAnyOrderEntriesOf(Map.of("A0", 0, "A2", 1));
+            assertThat(rootsOf(API_B)).containsExactlyInAnyOrderEntriesOf(Map.of("B0", 0, "Moved", 1, "B1", 2));
+        }
+
+        @Test
+        void should_accept_a_name_used_at_the_portal_top_level_when_moved_onto_a_listing() {
+            store(1, PortalNavigationItemFixtures.aFolder("Guides"));
+            var portalFolder = store(2, PortalNavigationItemFixtures.aFolder("Portal folder"));
+            var moved = store(0, PortalNavigationItemFixtures.aFolder("Guides", portalFolder.getId()));
+
+            execute(moved, updateOf(moved).parentId(listingOfA.getId()));
+
+            assertThat(rootsOf(API_A)).containsExactlyInAnyOrderEntriesOf(Map.of("Guides", 0));
+        }
+
+        @Test
+        void should_refuse_a_name_already_used_among_the_roots_of_the_api() {
+            store(0, ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Guides")));
+            var portalFolder = store(1, PortalNavigationItemFixtures.aFolder("Portal folder"));
+            var moved = store(0, PortalNavigationItemFixtures.aFolder("Guides", portalFolder.getId()));
+
+            assertThatThrownBy(() -> execute(moved, updateOf(moved).parentId(listingOfA.getId()))).isInstanceOf(
+                PathConflictException.class
+            );
+            assertThat(childrenOf(portalFolder)).containsExactlyInAnyOrderEntriesOf(Map.of("Guides", 0));
+        }
+
+        @Test
+        void should_refuse_a_name_already_used_at_the_portal_top_level_when_moved_out_of_an_api() {
+            store(1, PortalNavigationItemFixtures.aFolder("Guides"));
+            var apiFolder = store(0, ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Api folder")));
+            var moved = store(0, ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Guides", apiFolder.getId())));
+
+            assertThatThrownBy(() -> execute(moved, updateOf(moved).parentId(null))).isInstanceOf(PathConflictException.class);
+            assertThat(childrenOf(apiFolder)).containsExactlyInAnyOrderEntriesOf(Map.of("Guides", 0));
+        }
+
+        @Test
+        void should_generate_a_segment_unique_among_the_roots_of_the_api() {
+            var rootOfTheApi = store(0, ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Docs")));
+            var portalFolder = store(1, PortalNavigationItemFixtures.aFolder("Portal folder"));
+            var moved = store(0, PortalNavigationItemFixtures.aFolder("Docs", portalFolder.getId()));
+
+            execute(moved, updateOf(moved).parentId(listingOfA.getId()).segment(null));
+
+            var stored = queryService.findByIdAndEnvironmentId(ENV_ID, moved.getId());
+            assertThat(stored.getReference()).isEqualTo(API_A);
+            assertThat(stored.getSegment()).isNotEqualTo(rootOfTheApi.getSegment());
+        }
+
+        private PortalNavigationApi aListing(ApiReference api) {
+            return PortalNavigationItemFixtures.anApi(
+                PortalNavigationItemId.random().json(),
+                "Listing of " + api.apiId(),
+                section.getId(),
+                api.apiId()
+            );
+        }
+
+        private <T extends PortalNavigationItem> T store(int position, T item) {
+            item.setOrder(position);
+            if (item.getParentId() == null) {
+                item.markAsRoot();
+            } else {
+                item.updateParent((PortalNavigationItemContainer) queryService.findByIdAndEnvironmentId(ENV_ID, item.getParentId()));
+            }
+            crudService.create(item);
+            return item;
+        }
+
+        private static PortalNavigationFolder ownedBy(ApiReference api, PortalNavigationFolder folder) {
+            return folder.toBuilder().reference(api).build();
+        }
+
+        private static PortalNavigationPage ownedBy(ApiReference api, PortalNavigationPage page) {
+            return page.toBuilder().reference(api).build();
+        }
+
+        private Map<String, Integer> rootsOf(ApiReference api) {
+            return positions(queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(ENV_ID, PortalArea.TOP_NAVBAR, api));
+        }
+
+        private Map<String, Integer> portalTopLevel() {
+            return positions(
+                queryService
+                    .findTopLevelItemsByEnvironmentIdAndPortalArea(ENV_ID, PortalArea.TOP_NAVBAR)
+                    .stream()
+                    .filter(item -> !(item.getReference() instanceof ApiReference))
+                    .toList()
+            );
+        }
+
+        private Map<String, Integer> childrenOf(PortalNavigationItem parent) {
+            return positions(queryService.findByParentIdAndEnvironmentId(ENV_ID, parent.getId()));
+        }
+
+        private static Map<String, Integer> positions(List<PortalNavigationItem> items) {
+            return items.stream().collect(Collectors.toMap(PortalNavigationItem::getTitle, PortalNavigationItem::getOrder));
+        }
+
+        private UpdatePortalNavigationItem.UpdatePortalNavigationItemBuilder updateOf(PortalNavigationItem item) {
+            return UpdatePortalNavigationItem.builder()
+                .type(item.getType())
+                .title(item.getTitle())
+                .segment(item.getSegment())
+                .order(item.getOrder())
+                .parentId(item.getParentId())
+                .published(item.getPublished())
+                .visibility(item.getVisibility());
+        }
+
+        private void execute(PortalNavigationItem item, UpdatePortalNavigationItem.UpdatePortalNavigationItemBuilder command) {
+            useCase.execute(
+                UpdatePortalNavigationItemUseCase.Input.builder()
+                    .organizationId(ORG_ID)
+                    .environmentId(ENV_ID)
+                    .navigationItemId(item.getId().json())
+                    .updatePortalNavigationItem(command.build())
+                    .build()
+            );
+        }
+    }
+
+    @Nested
     class SourcedItems {
 
         private static final String SOURCED_FOLDER_ID = "00000000-0000-0000-0000-00000000f001";
@@ -976,6 +2199,60 @@ class UpdatePortalNavigationItemUseCaseTest {
             var error = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
 
             assertThat(error).hasMessageContaining("cannot be renamed or moved");
+        }
+
+        @Test
+        void should_update_publication_of_a_sourced_api_root_without_moving_it() {
+            var source = aSourceWithSecret(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA);
+            source.setSubtreeImport(true);
+            var page = PortalNavigationItemFixtures.aPage(SOURCED_PAGE_ID, "Sourced API page", null)
+                .toBuilder()
+                .reference(new ApiReference("api-1"))
+                .source(source)
+                .build();
+            page.markAsRoot();
+            queryService.storage().add(page);
+
+            var output = useCase.execute(
+                anUpdateInput(
+                    page,
+                    anUpdateKeeping(page).parentId(PortalNavigationItemId.of(API1_ID)).published(false).source(aMaskedSource()).build()
+                )
+            );
+
+            assertThat(output.updatedItem().getParentId()).isNull();
+            assertThat(output.updatedItem().getRootId()).isEqualTo(page.getId());
+            assertThat(output.updatedItem().getReference()).isEqualTo(new ApiReference("api-1"));
+            assertThat(output.updatedItem().getPublished()).isFalse();
+            assertThat(sourceDomainService.lastValidatedConfiguration()).contains(
+                PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA
+            );
+            assertThat(output.updatedItem().getSource().getSourceConfiguration())
+                .contains(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT)
+                .doesNotContain(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA);
+            assertThat(output.updatedItem().getSource().isSubtreeImport()).isTrue();
+        }
+
+        @Test
+        void should_still_reject_renaming_a_sourced_api_root() {
+            var page = PortalNavigationItemFixtures.aPage(SOURCED_PAGE_ID, "Sourced API page", null)
+                .toBuilder()
+                .reference(new ApiReference("api-1"))
+                .source(aSource())
+                .build();
+            page.markAsRoot();
+            queryService.storage().add(page);
+            var input = anUpdateInput(
+                page,
+                anUpdateKeeping(page).parentId(PortalNavigationItemId.of(API1_ID)).title("Renamed").source(aSource()).build()
+            );
+
+            assertThatThrownBy(() -> useCase.execute(input))
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                .hasMessageContaining("cannot be renamed or moved");
+
+            assertThat(page.getParentId()).isNull();
+            assertThat(page.getTitle()).isEqualTo("Sourced API page");
         }
 
         @Test
@@ -1216,6 +2493,145 @@ class UpdatePortalNavigationItemUseCaseTest {
             );
 
             assertThat(error).hasMessageContaining("not-a-cron");
+        }
+    }
+
+    @Nested
+    class FolderVisibilityChange {
+
+        private static final String FOLDER_ID = "00000000-0000-0000-0000-0000000a0001";
+        private static final String PAGE_ID = "00000000-0000-0000-0000-0000000a0002";
+        private static final String NESTED_FOLDER_ID = "00000000-0000-0000-0000-0000000a0003";
+        private static final String LINK_ID = "00000000-0000-0000-0000-0000000a0004";
+
+        /** The folder, a page and a folder inside it, and a link inside that folder, all as visible as the folder. */
+        private List<PortalNavigationItem> givenATree(PortalNavigationFolder folder) {
+            folder.markAsRoot();
+            var page = PortalNavigationItemFixtures.aPage(PAGE_ID, "Getting started", folder.getId());
+            var nestedFolder = PortalNavigationItemFixtures.aFolder(NESTED_FOLDER_ID, "Guides", folder.getId())
+                .toBuilder()
+                .order(1)
+                .build();
+            var link = PortalNavigationItemFixtures.aLink(LINK_ID, "Status", nestedFolder.getId());
+            List<PortalNavigationItem> tree = List.of(folder, page, nestedFolder, link);
+            tree.forEach(item -> item.setVisibility(folder.getVisibility()));
+            queryService.storage().addAll(tree);
+            return tree;
+        }
+
+        /** A folder imported from a source that can list files, as the import endpoint creates it. */
+        private PortalNavigationFolder aSyncedFolder() {
+            sourceDomainService.givenRemoteFile("getting-started.md", "# Getting started");
+            var source = PortalNavigationItemSource.builder()
+                .sourceType("http-fetcher")
+                .sourceConfiguration("{\"url\":\"https://example.com/docs\"}")
+                .subtreeImport(true)
+                .build();
+            return PortalNavigationItemFixtures.aFolder(FOLDER_ID, "Synced docs").toBuilder().source(source).build();
+        }
+
+        private PortalNavigationItem changeVisibility(PortalNavigationItem item, PortalVisibility visibility) {
+            return useCase
+                .execute(
+                    UpdatePortalNavigationItemUseCase.Input.builder()
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .navigationItemId(item.getId().json())
+                        .updatePortalNavigationItem(
+                            UpdatePortalNavigationItem.builder()
+                                .type(item.getType())
+                                .title(item.getTitle())
+                                .order(item.getOrder())
+                                .parentId(item.getParentId())
+                                .published(item.getPublished())
+                                .visibility(visibility)
+                                .source(item.getSource())
+                                .build()
+                        )
+                        .build()
+                )
+                .updatedItem();
+        }
+
+        private List<PortalVisibility> storedVisibilities(List<PortalNavigationItem> items) {
+            return items
+                .stream()
+                .map(item -> queryService.findByIdAndEnvironmentId(ENV_ID, item.getId()).getVisibility())
+                .toList();
+        }
+
+        @Test
+        void should_make_everything_inside_private_when_a_folder_holding_public_items_becomes_private() {
+            var tree = givenATree(PortalNavigationItemFixtures.aFolder(FOLDER_ID, "Docs"));
+
+            var saved = changeVisibility(tree.getFirst(), PortalVisibility.PRIVATE);
+
+            assertThat(saved.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
+            assertThat(storedVisibilities(tree)).containsOnly(PortalVisibility.PRIVATE);
+        }
+
+        @Test
+        void should_make_everything_inside_private_when_an_api_owned_folder_holding_public_items_becomes_private() {
+            var tree = givenATree(
+                PortalNavigationItemFixtures.aFolder(FOLDER_ID, "API docs").toBuilder().reference(new ApiReference("api-1")).build()
+            );
+
+            changeVisibility(tree.getFirst(), PortalVisibility.PRIVATE);
+
+            assertThat(storedVisibilities(tree)).containsOnly(PortalVisibility.PRIVATE);
+        }
+
+        @Test
+        void should_make_everything_inside_private_when_a_synced_folder_holding_public_items_becomes_private() {
+            var tree = givenATree(aSyncedFolder());
+
+            changeVisibility(tree.getFirst(), PortalVisibility.PRIVATE);
+
+            assertThat(storedVisibilities(tree)).containsOnly(PortalVisibility.PRIVATE);
+        }
+
+        @Test
+        void should_leave_the_items_inside_private_when_a_private_synced_folder_becomes_public() {
+            var folder = aSyncedFolder();
+            folder.setVisibility(PortalVisibility.PRIVATE);
+            var tree = givenATree(folder);
+
+            changeVisibility(folder, PortalVisibility.PUBLIC);
+
+            assertThat(storedVisibilities(tree)).containsExactly(
+                PortalVisibility.PUBLIC,
+                PortalVisibility.PRIVATE,
+                PortalVisibility.PRIVATE,
+                PortalVisibility.PRIVATE
+            );
+        }
+
+        @Test
+        void should_leave_the_items_inside_private_when_a_private_folder_becomes_public() {
+            var folder = PortalNavigationItemFixtures.aFolder(FOLDER_ID, "Docs");
+            folder.setVisibility(PortalVisibility.PRIVATE);
+            var tree = givenATree(folder);
+
+            changeVisibility(folder, PortalVisibility.PUBLIC);
+
+            assertThat(storedVisibilities(tree)).containsExactly(
+                PortalVisibility.PUBLIC,
+                PortalVisibility.PRIVATE,
+                PortalVisibility.PRIVATE,
+                PortalVisibility.PRIVATE
+            );
+        }
+
+        @Test
+        void should_still_refuse_making_an_item_public_inside_a_private_folder() {
+            var folder = PortalNavigationItemFixtures.aFolder(FOLDER_ID, "Docs");
+            folder.setVisibility(PortalVisibility.PRIVATE);
+            var page = givenATree(folder).get(1);
+
+            assertThatThrownBy(() -> changeVisibility(page, PortalVisibility.PUBLIC))
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                .hasMessageContaining("must be PUBLIC");
+            assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, page.getId()).getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
         }
     }
 }

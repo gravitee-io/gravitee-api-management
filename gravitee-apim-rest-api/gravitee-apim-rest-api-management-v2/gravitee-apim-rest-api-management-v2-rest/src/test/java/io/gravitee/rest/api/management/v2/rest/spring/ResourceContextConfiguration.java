@@ -204,14 +204,18 @@ import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal_listing.domain_service.ValidatePortalListingDomainService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
+import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.GraviteePortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.OpenApiContentTransformer;
 import io.gravitee.apim.core.portal_page.domain_service.OpenApiPortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosingApiDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemRenderingDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
@@ -224,10 +228,15 @@ import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationI
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.DeletePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.FetchPortalNavigationItemUseCase;
+import io.gravitee.apim.core.portal_page.use_case.GetApiPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ImportPortalNavigationUseCase;
+import io.gravitee.apim.core.portal_page.use_case.ListApiDocumentationUseCase;
+import io.gravitee.apim.core.portal_page.use_case.ListApiPublishLocationsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
+import io.gravitee.apim.core.portal_page.use_case.PublishApiToPortalUseCase;
 import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForPortalNavigationItemsUseCase;
+import io.gravitee.apim.core.portal_page.use_case.UnpublishApiFromPortalUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageContentConfigurationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageContentUseCase;
@@ -1427,6 +1436,66 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public ApiOwnedNavigationDomainService apiOwnedNavigationDomainService(
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        PortalNavigationItemCrudService portalNavigationItemCrudService
+    ) {
+        return new ApiOwnedNavigationDomainService(portalNavigationItemsQueryService, portalNavigationItemCrudService);
+    }
+
+    @Bean
+    public UnpublishApiFromPortalUseCase unpublishApiFromPortalUseCase(
+        ApiOwnedNavigationDomainService apiOwnedNavigationDomainService,
+        PortalNavigationItemValidatorService portalNavigationItemValidatorService,
+        PortalNavigationItemDomainService portalNavigationItemDomainService
+    ) {
+        return new UnpublishApiFromPortalUseCase(
+            apiOwnedNavigationDomainService,
+            portalNavigationItemValidatorService,
+            portalNavigationItemDomainService
+        );
+    }
+
+    @Bean
+    public PublishApiToPortalUseCase publishApiToPortalUseCase(
+        ApiOwnedNavigationDomainService apiOwnedNavigationDomainService,
+        PortalNavigationItemValidatorService portalNavigationItemValidatorService,
+        PortalNavigationItemDomainService portalNavigationItemDomainService
+    ) {
+        return new PublishApiToPortalUseCase(
+            apiOwnedNavigationDomainService,
+            portalNavigationItemValidatorService,
+            portalNavigationItemDomainService
+        );
+    }
+
+    @Bean
+    public ListApiPublishLocationsUseCase listApiPublishLocationsUseCase(ApiOwnedNavigationDomainService apiOwnedNavigationDomainService) {
+        return new ListApiPublishLocationsUseCase(apiOwnedNavigationDomainService);
+    }
+
+    @Bean
+    public GetApiPortalNavigationItemUseCase getApiPortalNavigationItemUseCase(
+        ApiOwnedNavigationDomainService apiOwnedNavigationDomainService,
+        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService
+    ) {
+        return new GetApiPortalNavigationItemUseCase(apiOwnedNavigationDomainService, portalNavigationItemSourceDomainService);
+    }
+
+    @Bean
+    public ListApiDocumentationUseCase listApiDocumentationUseCase(
+        ApiOwnedNavigationDomainService apiOwnedNavigationDomainService,
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService
+    ) {
+        return new ListApiDocumentationUseCase(
+            apiOwnedNavigationDomainService,
+            portalNavigationItemsQueryService,
+            portalNavigationItemSourceDomainService
+        );
+    }
+
+    @Bean
     public PortalNavigationSourcedItemsDomainService portalNavigationSourcedItemsDomainService(
         PortalNavigationItemsQueryService portalNavigationItemsQueryService
     ) {
@@ -1438,13 +1507,15 @@ public class ResourceContextConfiguration {
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
         PortalPageContentQueryService portalPageContentQueryService,
         io.gravitee.apim.core.api_product.query_service.ApiProductQueryService apiProductQueryService,
-        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService
+        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService,
+        ApiCrudServiceInMemory apiCrudServiceInMemory
     ) {
         return new PortalNavigationItemValidatorService(
             portalNavigationItemsQueryService,
             portalPageContentQueryService,
             apiProductQueryService,
-            portalNavigationItemSourceDomainService
+            portalNavigationItemSourceDomainService,
+            apiCrudServiceInMemory
         );
     }
 
@@ -1506,14 +1577,18 @@ public class ResourceContextConfiguration {
         PortalNavigationItemDomainService domainService,
         PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService,
         PortalNavigationBulkImportDomainService portalNavigationBulkImportDomainService,
-        PortalNavigationItemsQueryService portalNavigationItemsQueryService
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        PortalNavigationItemCreationExpansionDomainService portalNavigationItemCreationExpansionDomainService,
+        PortalNavigationItemRenderingDomainService portalNavigationItemRenderingDomainService
     ) {
         return new ImportPortalNavigationUseCase(
             portalNavigationItemValidatorService,
             domainService,
             portalNavigationItemSourceDomainService,
             portalNavigationBulkImportDomainService,
-            portalNavigationItemsQueryService
+            portalNavigationItemsQueryService,
+            portalNavigationItemCreationExpansionDomainService,
+            portalNavigationItemRenderingDomainService
         );
     }
 
@@ -1524,7 +1599,8 @@ public class ResourceContextConfiguration {
         PortalPageContentCrudService portalPageContentCrudService,
         PortalPageContentQueryService portalPageContentQueryService,
         ApiCrudService apiCrudService,
-        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService
+        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService,
+        ApiOwnedNavigationDomainService apiOwnedNavigationDomainService
     ) {
         return new PortalNavigationItemDomainService(
             portalNavigationItemCrudService,
@@ -1532,7 +1608,29 @@ public class ResourceContextConfiguration {
             portalPageContentCrudService,
             portalPageContentQueryService,
             apiCrudService,
-            portalNavigationItemSourceDomainService
+            portalNavigationItemSourceDomainService,
+            apiOwnedNavigationDomainService
+        );
+    }
+
+    @Bean
+    public PortalNavigationDefaultPageDomainService portalNavigationDefaultPageDomainService(
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        PortalNavigationItemDomainService portalNavigationItemDomainService,
+        PortalPageContentCrudService portalPageContentCrudService,
+        ApiCrudService apiCrudService,
+        PortalNavigationItemCreationExpansionDomainService portalNavigationItemCreationExpansionDomainService,
+        PortalNavigationItemValidatorService portalNavigationItemValidatorService,
+        ApiOwnedNavigationDomainService apiOwnedNavigationDomainService
+    ) {
+        return new PortalNavigationDefaultPageDomainService(
+            portalNavigationItemsQueryService,
+            portalNavigationItemDomainService,
+            portalPageContentCrudService,
+            apiCrudService,
+            portalNavigationItemCreationExpansionDomainService,
+            portalNavigationItemValidatorService,
+            apiOwnedNavigationDomainService
         );
     }
 
@@ -1590,13 +1688,16 @@ public class ResourceContextConfiguration {
         PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService,
         PortalNavigationApiProductVisibilityDomainService portalNavigationApiProductVisibilityDomainService,
         PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService,
-        ApiPortalSearchQueryService apiPortalSearchQueryService
+        ApiPortalSearchQueryService apiPortalSearchQueryService,
+        ApiOwnedNavigationDomainService apiOwnedNavigationDomainService
     ) {
         return new ListPortalNavigationItemsUseCase(
             portalNavigationItemsQueryService,
             List.of(portalNavigationApiVisibilityDomainService, portalNavigationApiProductVisibilityDomainService),
             portalNavigationItemSourceDomainService,
-            apiPortalSearchQueryService
+            apiPortalSearchQueryService,
+            apiOwnedNavigationDomainService,
+            new PortalNavigationItemRenderingDomainService(portalNavigationItemsQueryService)
         );
     }
 

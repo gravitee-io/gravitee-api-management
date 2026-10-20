@@ -19,6 +19,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemRenderingDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
@@ -39,6 +40,7 @@ public class BulkCreatePortalNavigationItemUseCase {
     private final PortalNavigationItemCreationExpansionDomainService creationExpansionDomainService;
     private final PortalNavigationDefaultPageDomainService defaultPageDomainService;
     private final PortalNavigationItemSourceDomainService sourceDomainService;
+    private final PortalNavigationItemRenderingDomainService renderingDomainService;
 
     public Output execute(Input input) {
         final var organizationId = input.organizationId();
@@ -48,6 +50,7 @@ public class BulkCreatePortalNavigationItemUseCase {
         List<PortalNavigationItem> result = new LinkedList<>();
 
         validatorService.validateAll(expansion.itemsToCreate(), environmentId);
+        var renderedParents = renderingDomainService.prepareRenderingParents(environmentId, expansion.itemsToCreate());
 
         for (CreatePortalNavigationItem itemToCreate : expansion.itemsToCreate()) {
             result.add(domainService.create(organizationId, environmentId, itemToCreate));
@@ -59,7 +62,8 @@ public class BulkCreatePortalNavigationItemUseCase {
         ).toList();
         defaultPageDomainService.seedDefaultPages(organizationId, environmentId, defaultPageNavigationItemIds);
 
-        var createdItems = expansion.selectRequestedItems(result);
+        var renderedItems = renderingDomainService.renderCreatedItems(expansion.itemsToCreate(), result, renderedParents);
+        var createdItems = expansion.selectRequestedItems(renderedItems);
         createdItems
             .stream()
             .map(PortalNavigationItem::getSource)

@@ -24,9 +24,11 @@ import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
@@ -60,7 +62,8 @@ public class DeletePortalNavigationItemUseCaseTest {
             portalPageContentCrudService,
             PortalPageContentQueryServiceInMemory.sharing(portalPageContentCrudService.storage()),
             apiCrudService,
-            new PortalNavigationItemSourceDomainServiceInMemory()
+            new PortalNavigationItemSourceDomainServiceInMemory(),
+            new ApiOwnedNavigationDomainService(portalNavigationItemsQueryService, portalNavigationItemsCrudService)
         );
 
         deletePortalNavigationItemUseCase = new DeletePortalNavigationItemUseCase(
@@ -95,6 +98,35 @@ public class DeletePortalNavigationItemUseCaseTest {
 
         // Then
         assertThat(portalNavigationItemsCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_delete_an_api_owned_folder_with_its_contents_and_nothing_else_the_api_owns() {
+        var apiReference = new NavigationItemReference.ApiReference("api-id");
+        var folder = PortalNavigationItemFixtures.aFolder("Auth").toBuilder().reference(apiReference).order(0).build();
+        folder.markAsRoot();
+        var nestedPage = PortalNavigationItemFixtures.aPage("Setup", folder.getId()).toBuilder().reference(apiReference).build();
+        nestedPage.updateParent(folder);
+        var otherPage = PortalNavigationItemFixtures.aPage("Overview", null).toBuilder().reference(apiReference).order(1).build();
+        otherPage.markAsRoot();
+        var portalSection = PortalNavigationItemFixtures.aFolder("APIs").toBuilder().order(0).build();
+        portalSection.markAsRoot();
+        portalNavigationItemsCrudService.initWith(List.of(folder, nestedPage, otherPage, portalSection));
+
+        deletePortalNavigationItemUseCase.execute(
+            new DeletePortalNavigationItemUseCase.Input(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                folder.getId()
+            )
+        );
+
+        assertThat(portalNavigationItemsCrudService.storage())
+            .extracting(PortalNavigationItem::getId)
+            .containsExactlyInAnyOrder(otherPage.getId(), portalSection.getId());
+        // Only the API's own siblings close the gap: the portal section keeps its position
+        assertThat(otherPage.getOrder()).isZero();
+        assertThat(portalSection.getOrder()).isZero();
     }
 
     @Test
@@ -214,7 +246,7 @@ public class DeletePortalNavigationItemUseCaseTest {
     }
 
     @Test
-    void should_reject_delete_of_sourced_item() {
+    void should_delete_a_sourced_page_without_removing_its_source_first() {
         var sourcedPage = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "page11", null)
             .toBuilder()
             .source(aSource())
@@ -223,20 +255,38 @@ public class DeletePortalNavigationItemUseCaseTest {
         portalNavigationItemsCrudService.initWith(List.of(sourcedPage));
         portalNavigationItemsQueryService.initWith(List.of(sourcedPage));
 
-        var error = org.junit.jupiter.api.Assertions.assertThrows(
-            io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException.class,
-            () ->
-                deletePortalNavigationItemUseCase.execute(
-                    new DeletePortalNavigationItemUseCase.Input(
-                        PortalNavigationItemFixtures.ORG_ID,
-                        PortalNavigationItemFixtures.ENV_ID,
-                        sourcedPage.getId()
-                    )
-                )
+        deletePortalNavigationItemUseCase.execute(
+            new DeletePortalNavigationItemUseCase.Input(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                sourcedPage.getId()
+            )
         );
 
-        assertThat(error).hasMessageContaining("cannot be deleted");
-        assertThat(portalNavigationItemsCrudService.storage()).hasSize(1);
+        assertThat(portalNavigationItemsCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_delete_an_imported_folder_with_everything_it_holds() {
+        var importedFolder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemFixtures.FOLDER_ID, "Imported Folder")
+            .toBuilder()
+            .source(aSource().toBuilder().subtreeImport(true).build())
+            .build();
+        importedFolder.markAsRoot();
+        var child = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "Child Page", importedFolder.getId());
+        child.updateParent(importedFolder);
+        portalNavigationItemsCrudService.initWith(List.of(importedFolder, child));
+        portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
+
+        deletePortalNavigationItemUseCase.execute(
+            new DeletePortalNavigationItemUseCase.Input(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                importedFolder.getId()
+            )
+        );
+
+        assertThat(portalNavigationItemsCrudService.storage()).isEmpty();
     }
 
     @Test

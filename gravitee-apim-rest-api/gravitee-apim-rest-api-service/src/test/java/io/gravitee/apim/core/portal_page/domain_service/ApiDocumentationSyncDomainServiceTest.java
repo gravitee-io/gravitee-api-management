@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
@@ -198,7 +199,8 @@ class ApiDocumentationSyncDomainServiceTest {
                 navItemQuery,
                 PortalPageContentQueryServiceInMemory.sharing(pageContentQuery.storage()),
                 new ApiProductQueryServiceInMemory(),
-                new PortalNavigationItemSourceDomainServiceInMemory()
+                new PortalNavigationItemSourceDomainServiceInMemory(),
+                new ApiCrudServiceInMemory()
             )
         );
         var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides");
@@ -269,89 +271,6 @@ class ApiDocumentationSyncDomainServiceTest {
 
         // Only the seeded nav-api row remains; no page rows were ever created.
         assertThat(navItemCrud.storage()).hasSize(1);
-    }
-
-    @Test
-    void cleanupForApi_removes_child_pages_but_keeps_nav_api_rows() {
-        var navApiIdA = PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
-        var navApiIdB = PortalNavigationItemId.of("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
-        seedNavApi(navApiIdA);
-        seedNavApi(navApiIdB);
-        var doc = aDocumentation();
-        pageContentQuery.initWith(java.util.List.of(doc));
-        syncService.rematerialize(AUDIT_INFO, doc);
-
-        syncService.cleanupForApi(AUDIT_INFO, API_ID);
-
-        assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).containsExactlyInAnyOrder(navApiIdA, navApiIdB);
-    }
-
-    @Test
-    void cleanupForApi_also_removes_the_apis_folder_subtree() {
-        var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides");
-        var folder = PortalNavigationFolder.builder()
-            .id(folderId)
-            .organizationId(AUDIT_INFO.organizationId())
-            .environmentId(AUDIT_INFO.environmentId())
-            .title("guides")
-            .segment("guides")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .reference(new NavigationItemReference.ApiReference(API_ID))
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
-        navItemCrud.create(folder);
-
-        syncService.cleanupForApi(AUDIT_INFO, API_ID);
-
-        assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).doesNotContain(folderId);
-    }
-
-    @Test
-    void cleanupForApi_removes_root_level_link() {
-        var linkSyncService = new PortalLinkSyncDomainService(navItemCrud, navItemQuery);
-        var link = linkSyncService.materializeForApi(AUDIT_INFO, API_ID, "docs-link", "Docs", "https://example.com", null, 0, null);
-
-        syncService.cleanupForApi(AUDIT_INFO, API_ID);
-
-        assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).doesNotContain(link.getId());
-    }
-
-    @Test
-    void cleanupForApi_removes_nested_link_under_folder() {
-        var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides");
-        var folder = PortalNavigationFolder.builder()
-            .id(folderId)
-            .organizationId(AUDIT_INFO.organizationId())
-            .environmentId(AUDIT_INFO.environmentId())
-            .title("guides")
-            .segment("guides")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .reference(new NavigationItemReference.ApiReference(API_ID))
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
-        navItemCrud.create(folder);
-        var linkSyncService = new PortalLinkSyncDomainService(navItemCrud, navItemQuery);
-        var link = linkSyncService.materializeForApi(AUDIT_INFO, API_ID, "docs-link", "Docs", "https://example.com", "/guides", 0, null);
-
-        syncService.cleanupForApi(AUDIT_INFO, API_ID);
-
-        assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).doesNotContain(link.getId());
-    }
-
-    @Test
-    void cleanupForApi_leaves_other_api_rows_untouched() {
-        var ownNavApiId = PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
-        var otherApiNavId = PortalNavigationItemId.of("cccccccc-cccc-cccc-cccc-cccccccccccc");
-        seedNavApi(ownNavApiId);
-        seedNavApi(otherApiNavId, "another-api-id");
-
-        syncService.cleanupForApi(AUDIT_INFO, API_ID);
-
-        assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).containsExactlyInAnyOrder(ownNavApiId, otherApiNavId);
     }
 
     @Test

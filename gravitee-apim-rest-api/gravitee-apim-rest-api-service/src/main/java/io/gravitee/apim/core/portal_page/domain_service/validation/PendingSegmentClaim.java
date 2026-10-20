@@ -43,7 +43,13 @@ public record PendingSegmentClaim(
     }
 
     public static PendingSegmentClaim forUpdate(PortalNavigationItem existing, UpdatePortalNavigationItem update) {
-        return new PendingSegmentClaim(existing.getId(), update.getParentId(), update.getSegment(), existing.getReference(), Intent.CLAIM);
+        return new PendingSegmentClaim(
+            existing.getId(),
+            update.getParentId(),
+            update.getSegment(),
+            update.ownerAfter(existing),
+            Intent.CLAIM
+        );
     }
 
     public static PendingSegmentClaim forRelease(PortalNavigationItem existing) {

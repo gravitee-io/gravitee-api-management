@@ -206,6 +206,44 @@ class SegmentConflictRuleTest {
     }
 
     @Test
+    void validate_update_checks_the_root_namespace_of_the_owner_the_item_is_moving_to() {
+        var api = new NavigationItemReference.ApiReference("api-1");
+        var rootOfTheApi = existingFolder(OTHER_ID, null, "guides").toBuilder().reference(api).build();
+        var portalRoot = existingFolder(PortalNavigationItemId.of("55555555-5555-5555-5555-5555555555a5"), null, "faq");
+        navigationItemsQueryService.storage().addAll(List.of(rootOfTheApi, portalRoot));
+
+        assertThatThrownBy(() ->
+            rule.validate(aMoveToTheRoot("guides", api), existingFolder(ITEM_ID, PARENT_ID, "guides"), UpdateValidationContext.empty())
+        ).isInstanceOf(PathConflictException.class);
+        assertThatCode(() ->
+            rule.validate(aMoveToTheRoot("faq", api), existingFolder(ITEM_ID, PARENT_ID, "faq"), UpdateValidationContext.empty())
+        ).doesNotThrowAnyException();
+    }
+
+    @Test
+    void validate_update_keeps_the_existing_owner_when_the_update_carries_none() {
+        var portalRoot = existingFolder(OTHER_ID, null, "faq");
+        navigationItemsQueryService.storage().add(portalRoot);
+
+        assertThatThrownBy(() ->
+            rule.validate(aMoveToTheRoot("faq", null), existingFolder(ITEM_ID, PARENT_ID, "faq"), UpdateValidationContext.empty())
+        ).isInstanceOf(PathConflictException.class);
+    }
+
+    private static UpdatePortalNavigationItem aMoveToTheRoot(String segment, NavigationItemReference newOwner) {
+        return UpdatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.FOLDER)
+            .title(segment)
+            .segment(segment)
+            .parentId(null)
+            .reference(newOwner)
+            .visibility(PortalVisibility.PUBLIC)
+            .published(true)
+            .order(0)
+            .build();
+    }
+
+    @Test
     void validate_falls_back_to_segment_as_location_when_automation_metadata_absent() {
         navigationItemsQueryService.storage().add(existingFolder(OTHER_ID, PARENT_ID, "help"));
 

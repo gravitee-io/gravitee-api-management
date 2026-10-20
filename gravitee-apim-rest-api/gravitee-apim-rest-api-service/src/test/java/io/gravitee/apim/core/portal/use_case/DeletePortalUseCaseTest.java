@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.mock;
 
 import fixtures.core.model.PortalFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalListingCrudServiceInMemory;
@@ -95,7 +96,8 @@ class DeletePortalUseCaseTest {
                 navQueryService,
                 pageContentQueryService,
                 new ApiProductQueryServiceInMemory(),
-                new PortalNavigationItemSourceDomainServiceInMemory()
+                new PortalNavigationItemSourceDomainServiceInMemory(),
+                new ApiCrudServiceInMemory()
             )
         );
         var scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService, () -> false);

@@ -29,6 +29,8 @@ import fixtures.PortalNavigationItemsFixtures;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApiProduct;
@@ -125,6 +127,21 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
     }
 
     @Test
+    void should_ignore_the_page_content_id_of_the_request_so_that_a_new_content_is_always_created() {
+        final var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
+        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(
+            new CreatePortalNavigationItemUseCase.Output(PortalNavigationItemsFixtures.aPortalNavigationPage(ORGANIZATION, ENVIRONMENT))
+        );
+
+        Response response = target.request().post(json(page));
+
+        assertThat(response).hasStatus(CREATED_201);
+        var captor = ArgumentCaptor.forClass(CreatePortalNavigationItemUseCase.Input.class);
+        Mockito.verify(createPortalNavigationItemUseCase).execute(captor.capture());
+        assertThat(captor.getValue().item().getPortalPageContentId()).isNull();
+    }
+
+    @Test
     void should_create_portal_navigation_page() {
         // Given
         final var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
@@ -150,6 +167,41 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
             .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
             .hasFieldOrPropertyWithValue("published", false)
             .hasFieldOrPropertyWithValue("visibility", io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
+    }
+
+    @Test
+    void should_return_rendered_api_documentation_from_the_use_case() {
+        final var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
+        final var rootId = PortalNavigationItemId.of(PortalNavigationItemFixtures.APIS_ID);
+        final var output = PortalNavigationItemFixtures.aPage(
+            page.getId().toString(),
+            page.getTitle(),
+            PortalNavigationItemId.of(page.getParentId().toString())
+        )
+            .toBuilder()
+            .rootId(rootId)
+            .reference(new NavigationItemReference.ApiReference("api-id"))
+            .organizationId(ORGANIZATION)
+            .environmentId(ENVIRONMENT)
+            .published(false)
+            .build();
+        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
+
+        Response response = target.request().post(json(page));
+
+        assertThat(response).hasStatus(CREATED_201);
+        var captor = ArgumentCaptor.forClass(CreatePortalNavigationItemUseCase.Input.class);
+        Mockito.verify(createPortalNavigationItemUseCase).execute(captor.capture());
+        assertThat(captor.getValue().item().getParentId().id()).isEqualTo(page.getParentId());
+        assertThat(captor.getValue().item().getRenderedParentId()).isNull();
+        assertThat(captor.getValue().item().getReference()).isEqualTo(NavigationItemReference.defaultReference());
+
+        final var item = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage.class);
+        assertThat(item.getId()).isEqualTo(output.getId().id());
+        assertThat(item.getParentId()).isEqualTo(page.getParentId());
+        assertThat(item.getRootId()).isEqualTo(rootId.id());
+        assertThat(item.getPortalPageContentId()).isEqualTo(output.getPortalPageContentId().id());
+        assertThat(item.getPublished()).isFalse();
     }
 
     @Test

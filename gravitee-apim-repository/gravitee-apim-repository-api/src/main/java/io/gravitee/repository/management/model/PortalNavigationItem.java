@@ -17,6 +17,7 @@ package io.gravitee.repository.management.model;
 
 import jakarta.annotation.Nonnull;
 import java.util.List;
+import java.util.function.Predicate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -51,6 +52,14 @@ public class PortalNavigationItem {
         PUBLIC,
         PRIVATE,
     }
+
+    /** A listing row: the item that places an API in the portal's navigation. */
+    public static final Predicate<PortalNavigationItem> IS_API_ITEM_PREDICATE = item ->
+        item.getType() == Type.API && item.getApiId() != null;
+
+    /** The starter page seeded when an API or API product is added to the navigation, matched by its title. */
+    public static final Predicate<PortalNavigationItem> IS_OVERVIEW_PAGE_PREDICATE = item ->
+        item.getType() == Type.PAGE && "Overview".equals(item.getTitle());
 
     @EqualsAndHashCode.Include
     private String id;

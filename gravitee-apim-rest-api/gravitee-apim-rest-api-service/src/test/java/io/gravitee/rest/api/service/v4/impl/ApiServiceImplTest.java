@@ -52,6 +52,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import ch.qos.logback.classic.Logger;
@@ -64,7 +66,9 @@ import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
 import io.gravitee.apim.core.api.exception.ApiPropertyNotCiphertextException;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProductsDomainService;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationCleanupDomainService;
 import io.gravitee.apim.core.subscription_form.domain_service.RemoveApiFromSubscriptionFormDomainService;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpMethod;
@@ -320,6 +324,9 @@ public class ApiServiceImplTest {
     private RemoveApiFromSubscriptionFormDomainService removeApiFromSubscriptionFormDomainService;
 
     @Mock
+    private ApiDocumentationCleanupDomainService apiDocumentationCleanupDomainService;
+
+    @Mock
     private ApiMetadataQueryService apiMetadataQueryService;
 
     @Mock
@@ -386,6 +393,7 @@ public class ApiServiceImplTest {
             subscriptionService,
             eventService,
             pageService,
+            apiDocumentationCleanupDomainService,
             topApiService,
             portalNotificationConfigService,
             alertService,
@@ -459,6 +467,79 @@ public class ApiServiceImplTest {
         when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(ApiEntity.class))).thenAnswer(invocation ->
             invocation.getArgument(1)
         );
+    }
+
+    @Test
+    public void should_cleanup_api_documentation_in_the_api_environment_before_deleting_the_api() throws TechnicalException {
+        api.setEnvironmentId("api-environment");
+        api.setLifecycleState(LifecycleState.STOPPED);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
+
+        var inOrder = inOrder(pageService, apiDocumentationCleanupDomainService, apiRepository);
+        inOrder.verify(pageService).deleteAllByApi(GraviteeContext.getExecutionContext(), API_ID);
+        inOrder.verify(apiDocumentationCleanupDomainService).cleanupForApi("api-environment", API_ID);
+        inOrder.verify(apiRepository).delete(API_ID);
+        verifyNoMoreInteractions(apiDocumentationCleanupDomainService);
+    }
+
+    @Test
+    public void should_not_delete_the_api_when_documentation_cleanup_fails() throws TechnicalException {
+        api.setEnvironmentId("api-environment");
+        api.setLifecycleState(LifecycleState.STOPPED);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        var failure = new TechnicalDomainException("Unable to delete API documentation");
+        doThrow(failure).when(apiDocumentationCleanupDomainService).cleanupForApi("api-environment", API_ID);
+
+        assertThatThrownBy(() -> apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false)).isSameAs(failure);
+
+        verify(apiRepository, never()).delete(anyString());
+    }
+
+    @Test
+    public void should_not_cleanup_documentation_when_the_api_is_missing() throws TechnicalException {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false)).isInstanceOf(
+            ApiNotFoundException.class
+        );
+
+        verifyNoInteractions(apiDocumentationCleanupDomainService);
+        verify(apiRepository, never()).delete(anyString());
+    }
+
+    @Test
+    public void should_not_cleanup_documentation_when_the_api_is_running() throws TechnicalException {
+        api.setLifecycleState(LifecycleState.STARTED);
+        api.setOrigin(ORIGIN_MANAGEMENT);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        assertThatThrownBy(() -> apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false)).isInstanceOf(
+            ApiRunningStateException.class
+        );
+
+        verifyNoInteractions(apiDocumentationCleanupDomainService);
+        verify(apiRepository, never()).delete(anyString());
+    }
+
+    @Test
+    public void should_not_cleanup_documentation_when_the_api_has_a_published_plan() throws TechnicalException {
+        api.setLifecycleState(LifecycleState.STOPPED);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        var plan = new PlanEntity();
+        plan.setId(PLAN_ID);
+        plan.setStatus(PlanStatus.PUBLISHED);
+        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false))).thenReturn(
+            singleton(plan)
+        );
+
+        assertThatThrownBy(() -> apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false)).isInstanceOf(
+            ApiNotDeletableException.class
+        );
+
+        verifyNoInteractions(apiDocumentationCleanupDomainService);
+        verify(apiRepository, never()).delete(anyString());
     }
 
     @Test
@@ -630,6 +711,7 @@ public class ApiServiceImplTest {
         verify(apiRepository).findById(eq(API_ID));
         verify(apiRepository).delete(eq(API_ID));
         verify(pageService).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
+        verify(apiDocumentationCleanupDomainService).cleanupForApi(api.getEnvironmentId(), API_ID);
         verify(topApiService).delete(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
         verify(searchEngineService).delete(eq(GraviteeContext.getExecutionContext()), argThat(_api -> _api.getId().equals(API_ID)));
         verify(membershipService).deleteReference(eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.API), eq(API_ID));

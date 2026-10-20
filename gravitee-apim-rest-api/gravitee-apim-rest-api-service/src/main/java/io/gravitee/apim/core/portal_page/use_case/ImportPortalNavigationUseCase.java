@@ -19,11 +19,14 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemRenderingDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemSourceException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
@@ -49,23 +52,29 @@ public class ImportPortalNavigationUseCase {
     private final PortalNavigationItemSourceDomainService sourceDomainService;
     private final PortalNavigationBulkImportDomainService bulkImportDomainService;
     private final PortalNavigationItemsQueryService queryService;
+    private final PortalNavigationItemCreationExpansionDomainService creationExpansionDomainService;
+    private final PortalNavigationItemRenderingDomainService renderingDomainService;
 
     public Output execute(Input input) {
         // The caller never picks an area: under a parent it can only be the parent's, and the
         // area validators would otherwise reject a mismatch the caller has no way to understand.
-        // An unknown parent falls back to the default so ParentRule reports it, instead of an NPE here.
+        // An unknown parent falls back to the default so that it is reported as missing, instead of an NPE here.
         var parent = input.parentId() == null ? null : queryService.findByIdAndEnvironmentId(input.environmentId(), input.parentId());
         var area = parent == null ? PortalArea.TOP_NAVBAR : parent.getArea();
-        var itemToCreate = CreatePortalNavigationItem.builder()
+        var requestedRoot = CreatePortalNavigationItem.builder()
             .title(input.title())
             .type(PortalNavigationItemType.FOLDER)
             .area(area)
             .parentId(input.parentId())
+            .reference(input.reference() == null ? NavigationItemReference.defaultReference() : input.reference())
             .visibility(input.visibility() == null ? PortalVisibility.PRIVATE : input.visibility())
             .published(false)
             .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
             .source(input.source())
             .build();
+        // An imported folder belongs to whoever owns the place it is imported into, as an item created there
+        // by hand does: the same step decides, unless the caller named the owner.
+        var itemToCreate = creationExpansionDomainService.expand(List.of(requestedRoot), input.environmentId()).itemsToCreate().getFirst();
 
         validatorService.validateAll(List.of(itemToCreate), input.environmentId());
         if (!sourceDomainService.supportsFileListing(input.source())) {
@@ -73,6 +82,7 @@ public class ImportPortalNavigationUseCase {
         }
         // The marker is what later routes a fetch of this folder to a re-import
         input.source().setSubtreeImport(true);
+        var renderedParents = renderingDomainService.prepareRenderingParents(input.environmentId(), List.of(itemToCreate));
 
         var rootFolder = (PortalNavigationFolder) domainService.create(input.organizationId(), input.environmentId(), itemToCreate);
         var result = bulkImportDomainService.importSubtree(rootFolder);
@@ -82,17 +92,25 @@ public class ImportPortalNavigationUseCase {
         if (importedRoot.getSource() != null) {
             sourceDomainService.removeSensitiveData(importedRoot.getSource());
         }
-        return new Output(importedRoot, result);
+        // The documentation of an API is stored without a parent and shown under the API's listing
+        var renderedRoot = (PortalNavigationFolder) renderingDomainService
+            .renderCreatedItems(List.of(itemToCreate), List.of(importedRoot), renderedParents)
+            .getFirst();
+        return new Output(renderedRoot, result);
     }
 
-    @Builder
+    /**
+     * @param reference who owns the imported subtree; the portal when null
+     */
+    @Builder(toBuilder = true)
     public record Input(
         String organizationId,
         String environmentId,
         String title,
         @Nullable PortalNavigationItemId parentId,
         @Nullable PortalVisibility visibility,
-        PortalNavigationItemSource source
+        PortalNavigationItemSource source,
+        @Nullable NavigationItemReference reference
     ) {}
 
     public record Output(PortalNavigationFolder rootFolder, PortalNavigationBulkImportDomainService.BulkImportResult result) {}

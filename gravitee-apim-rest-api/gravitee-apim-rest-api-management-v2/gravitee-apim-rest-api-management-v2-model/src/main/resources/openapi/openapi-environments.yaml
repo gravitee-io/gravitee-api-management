@@ -1017,7 +1017,9 @@ paths:
       tags:
         - Portal Navigation Items
       summary: Get portal navigation items
-      description: User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
+        Returns the rendered navigation hierarchy. API-owned documentation roots may be displayed under an API navigation item with rendered parentId and rootId values, while retaining their navigation item and page content IDs.
       operationId: getPortalNavigationItems
       parameters:
         - $ref: '#/components/parameters/portalArea'
@@ -1053,7 +1055,11 @@ paths:
       tags:
         - Portal Navigation Items
       summary: Create a portal navigation item
-      description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        PAGE, FOLDER, and LINK items created under a standalone API navigation item or an API-owned documentation folder inherit the API documentation owner.
+        An API navigation item is standalone only when it has no API Product ancestor, including through intermediate folders.
+        An API-owned documentation root created under a standalone API navigation item is returned with the same rendered parentId and rootId values as GET for that selected navigation item. Its navigation item and page content IDs are unchanged. The stored root remains API-owned with no parentId and its own ID as rootId; items created under an API-owned documentation folder retain that folder as their parent.
       operationId: createPortalNavigationItem
       requestBody:
         content:
@@ -1063,7 +1069,7 @@ paths:
         required: true
       responses:
         "201":
-          description: Portal navigation item created. Newly created items are unpublished by default.
+          description: Portal navigation item created in the selected navigation context. Newly created items are unpublished by default.
           content:
             application/json:
               schema:
@@ -1094,7 +1100,11 @@ paths:
       tags:
         - Portal Navigation Items
       summary: Create portal navigation items in bulk
-      description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        PAGE, FOLDER, and LINK items inherit API documentation ownership from a standalone API navigation item or an API-owned documentation folder, including a parent created in the same request. Parents must precede their children in the request.
+        An API navigation item is standalone only when it has no API Product ancestor, including through intermediate folders.
+        An API-owned documentation root created under a standalone API navigation item is returned with the same rendered parentId and rootId values as GET for that selected navigation item, including when the parent is created in the same request. Its navigation item and page content IDs are unchanged. The stored root remains API-owned with no parentId and its own ID as rootId; items created under an API-owned documentation folder retain that folder as their parent.
       operationId: createPortalNavigationItemsInBulk
       requestBody:
         content:
@@ -1199,6 +1209,10 @@ paths:
         When publishing a container, descendants are published only if `propagatePublishToChildren=true`.
         If `propagatePublishToChildren` is omitted or false, only the selected item is published.
         When unpublishing a container, descendants are always unpublished according to the business rule; `propagatePublishToChildren` is ignored and may be omitted.
+        Descendants include physically nested navigation items and, for APIs outside an API Product, API-owned documentation and its nested items.
+        APIs inside an API Product propagate publication only through their physically nested documentation; matching an API ID does not propagate publication between standalone and product contexts.
+        Traversal continues through intermediate containers that already have the target publication status.
+        Publication propagation does not change documentation ownership, hierarchy, ordering, or visibility.
       operationId: updatePortalNavigationItem
       parameters:
         - name: navId
@@ -1216,6 +1230,7 @@ paths:
             If omitted or false, publishing affects only the selected item.
             If true, publishing also affects descendants.
             Ignored for unpublish; container descendants are always unpublished according to the business rule.
+            For APIs outside an API Product, descendants also include API-owned documentation. APIs inside an API Product retain their independent documentation publication lifecycle.
           required: false
           schema:
             type: boolean
@@ -2875,7 +2890,8 @@ components:
             portalPageContentId:
               type: string
               format: uuid
-              description: The UUID of the portal page content
+              deprecated: true
+              description: Ignored. A new page content is always created for the page.
               example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
             contentType:
               $ref: "#/components/schemas/PortalPageContentType"
@@ -3000,7 +3016,10 @@ components:
         parentId:
           type: string
           format: uuid
-          description: The parent ID of the navigation item, if not provided item is moved to the root level
+          description: >-
+            The parent ID of the navigation item. If omitted, the item is moved to the root level of its existing owner.
+            For API-owned pages, folders, and links, an API navigation item referencing the same API represents that API's
+            documentation root. Sending its ID preserves API ownership and does not physically attach the document to that navigation item.
           example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
         published:
           type: boolean

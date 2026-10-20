@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalListingCrudServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
@@ -138,7 +139,8 @@ class PortalLinkSyncDomainServiceTest {
                 navItemQuery,
                 new PortalPageContentQueryServiceInMemory(),
                 new ApiProductQueryServiceInMemory(),
-                new PortalNavigationItemSourceDomainServiceInMemory()
+                new PortalNavigationItemSourceDomainServiceInMemory(),
+                new ApiCrudServiceInMemory()
             )
         );
 
