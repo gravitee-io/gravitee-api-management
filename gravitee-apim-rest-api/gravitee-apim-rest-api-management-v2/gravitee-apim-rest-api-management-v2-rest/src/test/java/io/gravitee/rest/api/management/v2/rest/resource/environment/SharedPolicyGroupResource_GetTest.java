@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static assertions.MAPIAssertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -24,10 +25,14 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.SharedPolicyGroupFixtures;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupNotFoundException;
 import io.gravitee.apim.core.shared_policy_group.use_case.GetSharedPolicyGroupUseCase;
+import io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroup;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,6 +87,41 @@ public class SharedPolicyGroupResource_GetTest extends AbstractResourceTest {
     }
 
     @Test
+    void should_return_steps_to_a_caller_who_can_update_shared_policy_groups() {
+        // Given
+        when(getSharedPolicyGroupUseCase.execute(any())).thenReturn(
+            new GetSharedPolicyGroupUseCase.Output(SharedPolicyGroupFixtures.aSharedPolicyGroup())
+        );
+
+        // When
+        var response = rootTarget().request().get();
+
+        // Then
+        assertThat(response)
+            .hasStatus(200)
+            .asEntity(SharedPolicyGroup.class)
+            .satisfies(sharedPolicyGroup -> assertThat(sharedPolicyGroup.getSteps()).hasSize(1));
+    }
+
+    @Test
+    void should_hide_steps_from_a_caller_who_cannot_update_shared_policy_groups() {
+        // Given
+        when(getSharedPolicyGroupUseCase.execute(any())).thenReturn(
+            new GetSharedPolicyGroupUseCase.Output(SharedPolicyGroupFixtures.aSharedPolicyGroup())
+        );
+        givenNoSharedPolicyGroupUpdatePermission();
+
+        // When
+        var response = rootTarget().request().get();
+
+        // Then
+        assertThat(response)
+            .hasStatus(200)
+            .asEntity(Map.class)
+            .satisfies(sharedPolicyGroup -> assertThat(sharedPolicyGroup).containsKey("name").doesNotContainKey("steps"));
+    }
+
+    @Test
     void should_not_get_shared_policy_group_when_not_found() {
         // Given
         when(getSharedPolicyGroupUseCase.execute(any())).thenThrow(new SharedPolicyGroupNotFoundException(SHARED_POLICY_GROUP_ID));
@@ -92,5 +132,16 @@ public class SharedPolicyGroupResource_GetTest extends AbstractResourceTest {
         // Then
         assertThat(response).hasStatus(404).asError().hasMessage("SharedPolicyGroup [" + SHARED_POLICY_GROUP_ID + "] cannot be found.");
         verify(getSharedPolicyGroupUseCase).execute(new GetSharedPolicyGroupUseCase.Input(ENV_ID, SHARED_POLICY_GROUP_ID));
+    }
+
+    private void givenNoSharedPolicyGroupUpdatePermission() {
+        when(
+            permissionService.hasPermission(
+                any(),
+                eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP),
+                eq(ENV_ID),
+                eq(RolePermissionAction.UPDATE)
+            )
+        ).thenReturn(false);
     }
 }

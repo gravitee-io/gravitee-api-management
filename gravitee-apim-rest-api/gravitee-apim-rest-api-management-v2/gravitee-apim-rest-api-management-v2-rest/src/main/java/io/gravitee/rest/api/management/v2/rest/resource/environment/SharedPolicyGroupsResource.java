@@ -26,6 +26,7 @@ import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGrou
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.SharedPolicyGroupMapper;
 import io.gravitee.rest.api.management.v2.rest.model.CreateSharedPolicyGroup;
+import io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroup;
 import io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroupCRD;
 import io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroupsResponse;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
@@ -35,6 +36,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -50,6 +52,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import lombok.CustomLog;
 
 /**
@@ -168,7 +171,7 @@ public class SharedPolicyGroupsResource extends AbstractResource {
         );
 
         return new SharedPolicyGroupsResponse()
-            .data(SharedPolicyGroupMapper.INSTANCE.map(result.result().getContent()))
+            .data(withReadableSteps(executionContext, SharedPolicyGroupMapper.INSTANCE.map(result.result().getContent())))
             .pagination(
                 PaginationInfo.computePaginationInfo(
                     result.result().getTotalElements(),
@@ -193,5 +196,25 @@ public class SharedPolicyGroupsResource extends AbstractResource {
         return Response.ok()
             .entity(SharedPolicyGroupMapper.INSTANCE.mapToSharedPolicyGroupPolicyPlugins(result.sharedPolicyGroupPolicyList()))
             .build();
+    }
+
+    /**
+     * The steps hold the policy configuration, inline credentials included: only a caller who may edit shared policy groups
+     * reads them.
+     */
+    private boolean canReadSteps(ExecutionContext executionContext) {
+        return hasPermission(
+            executionContext,
+            RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+            executionContext.getEnvironmentId(),
+            RolePermissionAction.UPDATE
+        );
+    }
+
+    private List<SharedPolicyGroup> withReadableSteps(ExecutionContext executionContext, List<SharedPolicyGroup> sharedPolicyGroups) {
+        if (!canReadSteps(executionContext)) {
+            sharedPolicyGroups.forEach(sharedPolicyGroup -> sharedPolicyGroup.setSteps(null));
+        }
+        return sharedPolicyGroups;
     }
 }

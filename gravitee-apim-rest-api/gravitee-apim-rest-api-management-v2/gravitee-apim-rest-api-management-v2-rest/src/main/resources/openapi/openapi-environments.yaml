@@ -1364,7 +1364,9 @@ components:
           $ref: "#/components/schemas/BaseOriginContext"
         steps:
           type: array
-          description: The list of steps (policies) in the shared policy group
+          description: |-
+            The list of steps (policies) in the shared policy group.
+            Only returned to a caller with the `SHARED_POLICY_GROUP` `UPDATE` permission on the environment.
           items:
             $ref: "#/components/schemas/StepV4"
         phase:
