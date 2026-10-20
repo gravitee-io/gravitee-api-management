@@ -13,7 +13,7 @@ inputs:
   - { path: ".ai/rules/apim-automation-signpost-definition.md", hash: "sha256:e855c57a8a9492a406a97a0c310ce995734d9e7ef69b6bcb50f815a94d99f9de" }
   - { path: ".ai/rules/apim-automation-signpost-repository.md", hash: "sha256:7e989bd60fed34f02f1e4766e9d5716c069d424576d87306b13d45e0a29a4f47" }
   - { path: ".ai/rules/apim-automation-signpost-restapi.md", hash: "sha256:037be833b5ab453ab884d81bd73de22414c9f0862d8880f22ff025d6ecb61ef7" }
-  - { path: ".ai/rules/apim-distribution-build.md", hash: "sha256:f65d1c7e853b993bc1536efeee90d2e9a3ed9ee4c89a516401ca40100b513b83" }
+  - { path: ".ai/rules/apim-distribution-build.md", hash: "sha256:6ac94230c604bc673e6f2faae12aab45c8eecd3aa04115f4b4f95bf60dcea065" }
   - { path: ".ai/rules/apim-java.md", hash: "sha256:037362a2a791c844ecefd9e990020d1b857dd1ed81a2158c0cf59c2b174c8695" }
   - { path: ".ai/rules/apim-jsonnode.md", hash: "sha256:0dbaec902740b64b750be53ff03062a59e4de0171a4a52576253e20ed6e2b777" }
   - { path: ".ai/rules/apim-two-reactors.md", hash: "sha256:e8e036c1f0d1064a21c16360fd1a30a71761d0432789ea6deecee8e7416f2141" }
@@ -44,12 +44,12 @@ inputs:
   - { dir: "gravitee-apim-webui-libs/gravitee-kafka-explorer", buildFiles: ["ng-package.json","package.json","project.json"] }
   - { path: "gravitee-apim-webui-libs/gravitee-kafka-explorer/project.json", hash: "sha256:ce2317d584b45428274e1c4c5f44bc0f3a01f2cec8d46028eac440e4f63fb423" }
   - { dir: "gravitee-apim-webui-libs/gravitee-markdown", buildFiles: ["ng-package.json","package.json","project.json"] }
-  - { path: "gravitee-apim-webui-libs/gravitee-markdown/project.json", hash: "sha256:1b0ad60d0fd3bbb21d714b6e194a98c636ba0e74ae3a0b6aa2b0721db2991c8c" }
+  - { path: "gravitee-apim-webui-libs/gravitee-markdown/project.json", hash: "sha256:2f261b0e84bfbf106dfa476d9ef04ea24c27f9c09042d0073fb3fad576dd4d49" }
   - { dir: "gravitee-gamma/gravitee-gamma-control-plane-webui", buildFiles: ["project.json"] }
   - { path: "gravitee-gamma/gravitee-gamma-control-plane-webui/project.json", hash: "sha256:70fd903be5c9e0426dbd6d83f1a374b4a7852ad06c04dcfe63a88201fc30e5f1" }
   - { dir: "gravitee-gamma/gravitee-gamma-definition-model", buildFiles: ["pom.xml"] }
   - { dir: "gravitee-gamma/gravitee-gamma-module-apim", buildFiles: ["package.json","pom.xml","project.json"] }
-  - { path: "gravitee-gamma/gravitee-gamma-module-apim/project.json", hash: "sha256:b0c6d1a502ad2a4138a9e9ee68a248482cde1a1bb4c75c97ec366a6edf7f855b" }
+  - { path: "gravitee-gamma/gravitee-gamma-module-apim/project.json", hash: "sha256:82cb7d3333c59a7ad132ffa29c0f4e987a9ffbfe03fbc3968bce8d837be095b4" }
   - { dir: "gravitee-gamma/gravitee-gamma-module-platform", buildFiles: ["package.json","pom.xml","project.json"] }
   - { path: "gravitee-gamma/gravitee-gamma-module-platform/project.json", hash: "sha256:90be49af03bd78c037c81ae4a73faed6c32949b9a4ca1b4dced015b001a4f10a" }
   - { dir: "gravitee-gamma/gravitee-gamma-module-portals", buildFiles: ["package.json","pom.xml","project.json"] }
@@ -106,7 +106,7 @@ entries:
     status: generated
     scope: committed
   - path: "gravitee-apim-distribution/AGENTS.md"
-    hash: sha256:ceb05ed1a49a79fb9d544a39a3cfebb40e88c7d4ed1e75f65256ebd24d2801ef
+    hash: sha256:52323b3a503f2e06a3167e234c683849e9cf5b801dbb89533464af0284717a76
     status: generated
     scope: committed
   - path: "gravitee-apim-distribution/CLAUDE.md"
@@ -114,7 +114,7 @@ entries:
     status: generated
     scope: committed
   - path: "gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/AGENTS.md"
-    hash: sha256:484d26e2a7c70798e94563766f940357258268789edbea52814dbbd7047eae36
+    hash: sha256:51dfdf4383d28a3967cc7a9ce04b0e44f4291d682ef99d81f625bf72c38c073c
     status: generated
     scope: committed
   - path: "gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/CLAUDE.md"
@@ -257,4 +257,4 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-record: sha256:7754a699d5ad7055ac67836983fb8e951774333e41c63f9a5e890fe7ac27a9b5
+record: sha256:17f7e28f1719bfe558b77981b19f77d1a5fb3ef766280685acfd8ade224dd6d3
