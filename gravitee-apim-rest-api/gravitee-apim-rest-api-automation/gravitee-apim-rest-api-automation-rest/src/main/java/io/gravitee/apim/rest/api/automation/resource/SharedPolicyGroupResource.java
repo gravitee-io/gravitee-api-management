@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
 import jakarta.inject.Inject;
@@ -49,6 +50,9 @@ public class SharedPolicyGroupResource extends AbstractResource {
     @Inject
     private DeleteSharedPolicyGroupUseCase deleteSharedPolicyGroupUseCase;
 
+    @Inject
+    private PermissionService permissionService;
+
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
     public Response get(@PathParam("hrid") String hrid, @QueryParam("legacy") boolean legacy) {
@@ -59,7 +63,19 @@ public class SharedPolicyGroupResource extends AbstractResource {
                 executionContext.getEnvironmentId(),
                 legacy ? hrid : IdBuilder.builder(executionContext, hrid).buildId()
             );
-            return Response.ok(SharedPolicyGroupMapper.INSTANCE.toState(sharedPolicyGroup)).build();
+            var state = SharedPolicyGroupMapper.INSTANCE.toState(sharedPolicyGroup);
+            // The steps hold the policy configuration, inline credentials included: only a caller who may edit reads them.
+            if (
+                !permissionService.hasPermission(
+                    executionContext,
+                    RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+                    executionContext.getEnvironmentId(),
+                    RolePermissionAction.UPDATE
+                )
+            ) {
+                state.setSteps(null);
+            }
+            return Response.ok(state).build();
         } catch (SharedPolicyGroupNotFoundException e) {
             log.warn("SharedPolicyGroup not found for hrid: {}, operation: get", hrid);
             throw new HRIDNotFoundException(hrid);
