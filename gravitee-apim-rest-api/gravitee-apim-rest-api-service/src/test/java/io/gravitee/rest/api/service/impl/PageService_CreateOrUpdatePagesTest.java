@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,6 +32,7 @@ import io.gravitee.rest.api.service.PageRevisionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.PageConverter;
+import io.gravitee.rest.api.service.exceptions.PageActionException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.util.Collections;
 import java.util.List;
@@ -131,5 +133,41 @@ public class PageService_CreateOrUpdatePagesTest {
         List<Page> updatedPages = updatedPageCaptor.getAllValues();
         assertThat(updatedPages.size()).isEqualTo(1);
         assertThat(updatedPages).extracting(Page::getName, Page::getId).containsExactly(tuple("Page 1", updatedPageId));
+    }
+
+    @Test
+    public void shouldRejectAPageOfAnotherApi() throws TechnicalException {
+        assertAPageNotOwnedByTheApiIsRejected(PageReferenceType.API, "other-api");
+    }
+
+    @Test
+    public void shouldRejectAnEnvironmentPage() throws TechnicalException {
+        assertAPageNotOwnedByTheApiIsRejected(PageReferenceType.ENVIRONMENT, ENVIRONMENT_ID);
+    }
+
+    private void assertAPageNotOwnedByTheApiIsRejected(PageReferenceType referenceType, String referenceId) throws TechnicalException {
+        Page existingPage = new Page();
+        existingPage.setId("existing-page-id");
+        existingPage.setName("Existing page");
+        existingPage.setType("MARKDOWN");
+        existingPage.setReferenceType(referenceType);
+        existingPage.setReferenceId(referenceId);
+        existingPage.setVisibility("PUBLIC");
+        when(pageRepository.findById("existing-page-id")).thenReturn(Optional.of(existingPage));
+        lenient().when(pageConverter.toUpdatePageEntity(any())).thenCallRealMethod();
+        lenient().when(pageRepository.update(any(Page.class))).thenAnswer(returnsFirstArg());
+
+        PageEntity imported = new PageEntity();
+        imported.setId("existing-page-id");
+        imported.setName("Imported page");
+        imported.setType("MARKDOWN");
+
+        var throwable = catchThrowable(() ->
+            pageService.createOrUpdatePages(GraviteeContext.getExecutionContext(), List.of(imported), API_ID)
+        );
+
+        assertThat(throwable).isInstanceOf(PageActionException.class);
+        verify(pageRepository, never()).update(any());
+        verify(pageRepository, never()).create(any());
     }
 }
