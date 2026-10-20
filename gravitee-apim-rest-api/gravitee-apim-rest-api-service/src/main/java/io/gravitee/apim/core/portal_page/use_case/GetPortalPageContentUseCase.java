@@ -29,11 +29,18 @@ public class GetPortalPageContentUseCase {
     private final PortalPageContentQueryService queryService;
 
     public Output execute(Input input) {
-        var content = queryService.findById(input.portalPageContentId());
-        return new Output(content.orElseThrow(() -> new PageContentNotFoundException(input.portalPageContentId().json())));
+        var content = queryService
+            .findById(input.portalPageContentId())
+            .orElseThrow(() -> new PageContentNotFoundException(input.portalPageContentId().json()));
+
+        if (!content.getOrganizationId().equals(input.organizationId()) || !content.getEnvironmentId().equals(input.environmentId())) {
+            throw new PageContentNotFoundException(input.portalPageContentId().json());
+        }
+
+        return new Output(content);
     }
 
     public record Output(PortalPageContent<?> content) {}
 
-    public record Input(PortalPageContentId portalPageContentId) {}
+    public record Input(String organizationId, String environmentId, PortalPageContentId portalPageContentId) {}
 }
