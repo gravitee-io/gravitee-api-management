@@ -401,7 +401,7 @@ class ImportApiCRDUseCaseTest {
             new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
             new ValidateGroupsDomainService(groupQueryService),
             validateResourceDomainService,
-            new ValidatePagesDomainService(pageSourceValidator, accessControlValidator, validationDomainService),
+            new ValidatePagesDomainService(pageSourceValidator, accessControlValidator, validationDomainService, pageCrudService),
             new ValidatePlanDomainService(planValidatorService, verifyPlanPortRanges),
             new ValidatePortalNotificationDomainService(new ValidateGroupsDomainService(groupQueryService)),
             new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
@@ -950,6 +950,19 @@ class ImportApiCRDUseCaseTest {
             var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build())));
 
             assertThat(throwable).isInstanceOf(InvalidPageParentException.class);
+        }
+
+        @Test
+        void should_reject_a_page_id_of_another_api() {
+            pageCrudService.initWith(List.of(aStoredPage("foreign-page-id", "other-api-id", Page.ReferenceType.API)));
+            givenPagesPassValidation();
+
+            var pages = Map.of("markdown", aMarkdownPageCRD("foreign-page-id", null));
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build())));
+
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+            assertThat(apiCrudService.storage()).isEmpty();
+            assertThat(pageCrudService.storage()).containsExactly(aStoredPage("foreign-page-id", "other-api-id", Page.ReferenceType.API));
         }
 
         @Test
@@ -1815,6 +1828,54 @@ class ImportApiCRDUseCaseTest {
         }
 
         @Test
+        void should_reject_a_page_id_of_another_api() {
+            givenExistingApi();
+            pageCrudService.initWith(List.of(aStoredPage("foreign-page-id", "other-api-id", Page.ReferenceType.API)));
+            givenPagesPassValidation();
+
+            var pages = Map.of("markdown", aMarkdownPageCRD("foreign-page-id", null));
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build())));
+
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+            assertThat(pageCrudService.storage()).containsExactly(aStoredPage("foreign-page-id", "other-api-id", Page.ReferenceType.API));
+            assertThat(auditCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_reject_a_parent_id_of_another_api() {
+            givenExistingApi();
+            var foreignFolder = aStoredPage("foreign-folder-id", "other-api-id", Page.ReferenceType.API)
+                .toBuilder()
+                .type(Page.Type.FOLDER)
+                .build();
+            pageCrudService.initWith(List.of(foreignFolder));
+            givenPagesPassValidation();
+
+            var pages = Map.of("markdown", aMarkdownPageCRD("markdown-page-id", "foreign-folder-id"));
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build())));
+
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+            assertThat(pageCrudService.storage()).containsExactly(foreignFolder);
+            assertThat(auditCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_reject_a_page_id_of_an_environment_page() {
+            givenExistingApi();
+            pageCrudService.initWith(List.of(aStoredPage("portal-page-id", ENVIRONMENT_ID, Page.ReferenceType.ENVIRONMENT)));
+            givenPagesPassValidation();
+
+            var pages = Map.of("markdown", aMarkdownPageCRD("portal-page-id", null));
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build())));
+
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+            assertThat(pageCrudService.storage()).containsExactly(
+                aStoredPage("portal-page-id", ENVIRONMENT_ID, Page.ReferenceType.ENVIRONMENT)
+            );
+            assertThat(auditCrudService.storage()).isEmpty();
+        }
+
+        @Test
         void should_delete_pages_not_present_in_crd_anymore() {
             givenExistingApi();
 
@@ -2521,6 +2582,35 @@ class ImportApiCRDUseCaseTest {
             .type(PageCRD.Type.MARKDOWN)
             .parentId("markdowns-folder-id")
             .content("Hello world!")
+            .visibility(PageCRD.Visibility.PUBLIC)
+            .build();
+    }
+
+    private void givenPagesPassValidation() {
+        when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean())).thenAnswer(call ->
+            call.getArgument(0)
+        );
+    }
+
+    private static Page aStoredPage(String id, String referenceId, Page.ReferenceType referenceType) {
+        return Page.builder()
+            .id(id)
+            .name("stored-page")
+            .type(Page.Type.MARKDOWN)
+            .content("stored content")
+            .referenceId(referenceId)
+            .referenceType(referenceType)
+            .visibility(Page.Visibility.PUBLIC)
+            .build();
+    }
+
+    private static PageCRD aMarkdownPageCRD(String id, String parentId) {
+        return PageCRD.builder()
+            .id(id)
+            .name("imported-page")
+            .type(PageCRD.Type.MARKDOWN)
+            .parentId(parentId)
+            .content("imported content")
             .visibility(PageCRD.Visibility.PUBLIC)
             .build();
     }
