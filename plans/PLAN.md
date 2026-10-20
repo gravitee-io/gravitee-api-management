@@ -100,7 +100,7 @@ todos:
     status: completed
   - id: STORY-30-BIS
     content: "Ask for a page before publishing an API that has none, offering to create an Overview page."
-    status: pending
+    status: completed
   - id: STORY-31
     content: "Show or hide an individual page, folder or link."
     status: completed
@@ -1290,6 +1290,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 3. The no-sections-available state, per decision 3.
 
 #### STORY-30 Bis — Ask for a page before publishing an API that has none
+**Status:** Done under [PORTAL-301](https://gravitee.atlassian.net/browse/PORTAL-301), as [#21614](https://github.com/gravitee-io/gravitee-api-management/pull/21614). The Overview page is created through `POST …/portal-navigation-items/_overview-page`, under `API_DOCUMENTATION` CREATE.
 **Why:** publishing an API that has no page lists it in the portal menu with nothing to open, so developers cannot subscribe to it from the portal. The portal editor avoids this by seeding an Overview starter page when it adds an API (STORY-09), while Gamma's publish creates the listing row directly and seeds nothing (the STORY-16 row of the [PHASE 3 differences](#where-the-implementation-differs-from-the-stories)). Seeding on publish would put a page live that nobody has read, so Gamma asks for a page first and offers to create the Overview page, which opens in the editor before the API is published.
 **Acceptance criteria:**
 - Publish on an API that has no page opens "Add a page before publishing" instead of the section picker. Gamma decides from the documentation list: any page counts, at any depth and whether published or not, since publishing shows them all; folders and links do not, so an API with only those has no page.
