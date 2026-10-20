@@ -44,6 +44,7 @@ import io.gravitee.apim.rest.api.automation.spring.GammaAutomationPorts;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
@@ -315,19 +316,6 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_return_403_and_never_call_the_module_when_permission_is_denied() {
-            when(
-                permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_AI_CATALOG), any(), eq(CREATE), eq(UPDATE))
-            ).thenReturn(false);
-
-            try (var response = put(MODULE + "/" + KIND_PATH, "module-spec.json", false)) {
-                assertThat(response.getStatus()).isEqualTo(403);
-                verify(port, never()).upsert(any(), any(), any(), any());
-                verify(port, never()).validate(any(), any(), any(), any());
-            }
-        }
-
-        @Test
         void should_check_read_acl_on_get_and_delete_acl_on_delete() {
             clearInvocations(permissionService);
             when(port.findById(any(), any(), any())).thenReturn(Optional.of(view("github-mcp")));
@@ -352,6 +340,88 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
                 assertThat(response.getStatus()).isEqualTo(500);
                 verify(port, never()).upsert(any(), any(), any(), any());
             }
+        }
+    }
+
+    @Nested
+    class Authorization {
+
+        private final String id = derivedId(KIND_PATH, "github-mcp");
+
+        @BeforeEach
+        void setUp() {
+            when(port.findById(any(), eq(KIND), eq(id))).thenReturn(Optional.empty());
+            when(port.upsert(any(), any(), any(), any())).thenReturn(UpsertResult.of(view("github-mcp")));
+            when(port.validate(any(), any(), any(), any())).thenReturn(UpsertResult.of(view("github-mcp")));
+        }
+
+        @AfterEach
+        void tearDown() {
+            reset(permissionService);
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_update_the_existing_object() {
+            givenExistingObject();
+            denyCatalogPermission(UPDATE);
+
+            try (var response = put(MODULE + "/" + KIND_PATH, "module-spec.json", false)) {
+                assertThat(response.getStatus()).isEqualTo(403);
+            }
+            verify(port, never()).upsert(any(), any(), any(), any());
+        }
+
+        @Test
+        void should_return_403_on_dry_run_when_the_caller_cannot_update_the_existing_object() {
+            givenExistingObject();
+            denyCatalogPermission(UPDATE);
+
+            try (var response = put(MODULE + "/" + KIND_PATH, "module-spec.json", true)) {
+                assertThat(response.getStatus()).isEqualTo(403);
+            }
+            verify(port, never()).validate(any(), any(), any(), any());
+        }
+
+        @Test
+        void should_update_the_existing_object_with_update_and_no_create() {
+            givenExistingObject();
+            denyCatalogPermission(CREATE);
+
+            try (var response = put(MODULE + "/" + KIND_PATH, "module-spec.json", false)) {
+                assertThat(response.getStatus()).isEqualTo(200);
+            }
+            verify(port).upsert(any(), eq(KIND), eq(id), any());
+        }
+
+        @Test
+        void should_create_a_new_object_with_create_and_no_update() {
+            denyCatalogPermission(UPDATE);
+
+            try (var response = put(MODULE + "/" + KIND_PATH, "module-spec.json", false)) {
+                assertThat(response.getStatus()).isEqualTo(200);
+            }
+            verify(port).upsert(any(), eq(KIND), eq(id), any());
+        }
+
+        @Test
+        void should_return_403_and_never_call_the_module_when_the_caller_cannot_create_a_new_object() {
+            denyCatalogPermission(CREATE);
+
+            try (var response = put(MODULE + "/" + KIND_PATH, "module-spec.json", false)) {
+                assertThat(response.getStatus()).isEqualTo(403);
+            }
+            verify(port, never()).upsert(any(), any(), any(), any());
+            verify(port, never()).validate(any(), any(), any(), any());
+        }
+
+        private void givenExistingObject() {
+            when(port.findById(any(), eq(KIND), eq(id))).thenReturn(Optional.of(view("github-mcp")));
+        }
+
+        private void denyCatalogPermission(RolePermissionAction action) {
+            when(permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_AI_CATALOG), eq(ENVIRONMENT), eq(action))).thenReturn(
+                false
+            );
         }
     }
 

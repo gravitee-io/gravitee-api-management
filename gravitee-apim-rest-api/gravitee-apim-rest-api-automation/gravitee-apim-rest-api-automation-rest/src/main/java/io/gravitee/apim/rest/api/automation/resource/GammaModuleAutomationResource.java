@@ -108,6 +108,7 @@ public class GammaModuleAutomationResource extends AbstractResource {
         var audit = getAuditInfo();
         var id = idOf(audit, module, kind.path(), hrid);
         var context = context(audit, module);
+        requireCreateOrUpdate(kind.permission(), kind.permission(), port.findById(context, kind, id).isPresent() ? id : null);
 
         var result = dryRun ? port.validate(context, kind, id, spec) : port.upsert(context, kind, id, spec);
         var state = stamp(result.view(), id, hrid, audit, result.issues());
