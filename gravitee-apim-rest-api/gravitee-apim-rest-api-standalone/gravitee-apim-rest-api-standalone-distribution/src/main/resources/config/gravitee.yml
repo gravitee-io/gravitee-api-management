@@ -434,7 +434,17 @@ security:
 #      lookup:
          # The user search (used to add members) never returns the user email unless this is set to true.
          # Be careful, it may be contrary to the user privacy.
-#         allow-email-in-search-results: false
+#        allow-email-in-search-results: false
+         # Restrict the user search to the listed organizations and environments, by request scope: an organization id
+         # for organization-level requests (the console user search of that organization), or
+         # <organization id>:<environment id> for environment-level requests (the portal user search of that
+         # environment). Ids, not hrids. An organization entry does not cover the portals of its environments: list
+         # both forms when both are needed. Without this list the directory is searchable from every organization and
+         # portal. Unknown ids never match. Authentication is not affected. A comma-separated string is accepted as
+         # well, for example through an environment variable.
+#        activations:
+#          - DEFAULT
+#          - DEFAULT:DEFAULT
 #        user:
           # Search base for user searches. Defaults to "". Only used with user filter.
           # It should be relative to the Base DN. If the whole DN is o=user accounts,c=io,o=gravitee then the base should be like this:
