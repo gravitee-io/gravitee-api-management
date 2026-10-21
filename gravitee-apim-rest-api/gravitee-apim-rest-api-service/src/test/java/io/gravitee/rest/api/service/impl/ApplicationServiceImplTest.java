@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -203,6 +204,35 @@ public class ApplicationServiceImplTest {
             membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.GROUP)
         ).thenReturn(Set.of());
         ApplicationCriteria criteria = applicationService.buildSearchCriteria(executionContext, query);
+        assertNull(criteria);
+    }
+
+    @Test
+    public void should_build_no_criteria_when_restricted_to_no_id() {
+        ExecutionContext executionContext = new ExecutionContext("org1", "env1");
+        ApplicationQuery query = ApplicationQuery.builder().ids(Set.of()).build();
+
+        ApplicationCriteria criteria = applicationService.buildSearchCriteria(executionContext, query);
+
+        assertNull(criteria);
+    }
+
+    @Test
+    public void should_build_no_criteria_when_user_query_is_restricted_to_no_id() {
+        ExecutionContext executionContext = new ExecutionContext("org1", "env1");
+        ApplicationQuery query = ApplicationQuery.builder().user("user1").ids(Set.of()).build();
+        lenient()
+            .when(
+                membershipService.getReferenceIdsByMemberAndReference(
+                    MembershipMemberType.USER,
+                    "user1",
+                    MembershipReferenceType.APPLICATION
+                )
+            )
+            .thenReturn(Set.of("app1", "app2"));
+
+        ApplicationCriteria criteria = applicationService.buildSearchCriteria(executionContext, query);
+
         assertNull(criteria);
     }
 }
