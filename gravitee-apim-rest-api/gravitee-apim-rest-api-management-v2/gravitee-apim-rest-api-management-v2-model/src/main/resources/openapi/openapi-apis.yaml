@@ -10192,9 +10192,8 @@ components:
         auditEncrypted:
             name: encrypted
             description: |-
-                Only return audit entries of a V4 API whose recorded change can contain an encrypted property value: entries that record the API definition while it holds an encrypted property.
-                Also returns the API_ENCRYPTED_PROPERTIES_ACCESSED entry recorded each time a V4 API holding an encrypted property is deployed, and the API_ENCRYPTED_PROPERTIES_REFRESHED entry recorded when it is redeployed after a dynamic properties sync. Their patch lists each encrypted property as an "access" operation whose value is a SHA-256 fingerprint of the ciphertext.
-                Entries of V2 APIs, entries of other changes that leave the definition untouched (such as start, stop or a picture change), and entries written before this filter existed are not returned.
+                Only return audit entries of a V4 API whose action wrote an encrypted value: creating an API that holds an encrypted property, adding or renaming one, giving one a new value, or encrypting a plain property, including through a dynamic properties sync.
+                Entries of V2 APIs, entries of actions that write no encrypted value (such as removing an encrypted property, deleting an API, start, stop, a migration to V4, or a change to the name, tags, plans or plain properties), the API_ENCRYPTED_PROPERTIES_ACCESSED and API_ENCRYPTED_PROPERTIES_REFRESHED entries, and entries written before this filter existed are not returned. Entries written by earlier versions keep the tag they were written with, so some of them may still be returned for an action that wrote no encrypted value.
                 Only 'true' is supported.
             in: query
             required: false

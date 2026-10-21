@@ -24,14 +24,12 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.ApiTagService;
-import java.util.Map;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -99,7 +97,6 @@ public class ApiTagServiceImpl implements ApiTagService {
         try {
             Api previousApi = new Api(api);
             Api updated = null;
-            Map<Audit.AuditProperties, String> auditProperties = emptyMap();
             if (api.getDefinitionVersion() != DefinitionVersion.V4) {
                 final io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
                     api.getDefinition(),
@@ -117,7 +114,6 @@ public class ApiTagServiceImpl implements ApiTagService {
                 if (apiDefinition.getTags().remove(tagKey)) {
                     api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
                     updated = apiRepository.update(api);
-                    auditProperties = EncryptedPropertyAuditProperties.of(apiDefinition.getProperties(), apiDefinition.getProperties());
                     log.debug("API '{}' updated successfully after removing tag '{}'", api.getId(), tagKey);
                 }
             }
@@ -126,7 +122,7 @@ public class ApiTagServiceImpl implements ApiTagService {
                 auditService.createApiAuditLog(
                     executionContext,
                     AuditService.AuditLogData.builder()
-                        .properties(auditProperties)
+                        .properties(emptyMap())
                         .event(API_UPDATED)
                         .createdAt(api.getUpdatedAt())
                         .oldValue(previousApi)

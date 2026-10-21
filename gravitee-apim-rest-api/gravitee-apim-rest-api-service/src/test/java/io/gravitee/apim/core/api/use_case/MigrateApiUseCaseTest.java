@@ -807,7 +807,7 @@ class MigrateApiUseCaseTest {
     }
 
     @Test
-    void should_mark_the_audit_when_the_migrated_api_holds_an_encrypted_property() {
+    void should_not_mark_the_audit_when_the_migration_carries_the_encrypted_properties_over() {
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
         v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
         v2Api.getApiDefinition().setProperties(new Properties(List.of(new Property("secret", "ciphertext", true))));
@@ -822,7 +822,7 @@ class MigrateApiUseCaseTest {
 
         assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
         assertThat(auditCrudService.storage()).hasSize(1);
-        assertThat(auditCrudService.storage().getFirst().getProperties()).isEqualTo(Map.of("API", API_ID, "ENCRYPTED", "true"));
+        assertThat(auditCrudService.storage().getFirst().getProperties()).isEqualTo(Map.of("API", API_ID));
     }
 
     @Test
