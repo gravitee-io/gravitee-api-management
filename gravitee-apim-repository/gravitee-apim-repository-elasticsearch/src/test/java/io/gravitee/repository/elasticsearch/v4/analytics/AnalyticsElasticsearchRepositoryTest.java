@@ -108,6 +108,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
     private static final String API_ID_SSE = "43276d60-7058-4588-8023-52bf1154f903";
     private static final String API_ID_UNCOMMITTED_STATUS = "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d";
     private static final String API_ID_NATIVE_KAFKA = "kafka-api-001";
+    private static final String API_ID_AUTHZ = "authz-traffic-api-001";
 
     @Autowired
     private AnalyticsElasticsearchRepository cut;
@@ -955,6 +956,52 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     .filter(v -> v > 0)
                     .count()
             ).isEqualTo(2);
+        }
+
+        @Test
+        void should_count_authzen_requests_in_status_histogram_of_an_authz_api() {
+            var now = TimeProvider.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var query = new HistogramQuery(
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID_AUTHZ),
+                new TimeRange(from, to, Duration.ofMinutes(30)),
+                List.of(new Aggregation("status", AggregationType.FIELD)),
+                Optional.empty(),
+                null
+            );
+
+            var result = cut.searchHistogram(new QueryContext("org#1", "env#1"), query);
+
+            var histogram = (HistogramAggregate.Counts) result.getFirst();
+            assertThat(histogram.counts().keySet()).containsExactly("200");
+            assertThat(histogram.counts().get("200").stream().mapToLong(Long::longValue).sum()).isEqualTo(4L);
+        }
+
+        @Test
+        void should_average_authzen_response_times_in_histogram_of_an_authz_api() {
+            var now = TimeProvider.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var query = new HistogramQuery(
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID_AUTHZ),
+                new TimeRange(from, to, Duration.ofMinutes(30)),
+                List.of(new Aggregation("gateway-response-time-ms", AggregationType.AVG)),
+                Optional.empty(),
+                null
+            );
+
+            var result = cut.searchHistogram(new QueryContext("org#1", "env#1"), query);
+
+            var histogram = (HistogramAggregate.Metric) result.getFirst();
+            assertThat(
+                histogram
+                    .values()
+                    .stream()
+                    .filter(v -> v > 0)
+            ).containsExactly(10.5);
         }
 
         @Test
