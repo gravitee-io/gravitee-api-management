@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_DEFINITION;
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_API;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
@@ -182,6 +184,10 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
     @Override
     public ApiEntity createWithImportedDefinition(final ExecutionContext executionContext, Object apiDefinitionOrURL) {
+        if (isImportFromUrl(apiDefinitionOrURL)) {
+            assertCanCreateEnvironmentApis(executionContext);
+        }
+
         String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
         try {
             // Read the whole input API definition, and recalculate its ID
@@ -217,6 +223,14 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
     @Override
     public ApiEntity updateWithImportedDefinition(final ExecutionContext executionContext, String urlApiId, Object apiDefinitionOrURL) {
+        if (isImportFromUrl(apiDefinitionOrURL)) {
+            if (urlApiId != null) {
+                assertCanUpdateApiDefinition(executionContext, urlApiId);
+            } else {
+                assertCanUpdateEnvironmentApis(executionContext);
+            }
+        }
+
         String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
 
         try {
@@ -233,13 +247,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 throw new ApiDefinitionVersionNotSupportedException(importedApi.getGraviteeDefinitionVersion());
             }
 
-            // ensure user has required permission to update target API
-            if (
-                !isAuthenticated() ||
-                !(isEnvironmentAdmin() || permissionService.hasPermission(executionContext, API_DEFINITION, apiJsonNode.getId(), UPDATE))
-            ) {
-                throw new ForbiddenAccessException();
-            }
+            assertCanUpdateApiDefinition(executionContext, apiJsonNode.getId());
 
             // check API consistency before import
             checkApiJsonConsistency(executionContext, apiJsonNode, urlApiId);
@@ -411,6 +419,40 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         if (search.isEmpty()) {
             pageService.createAsideFolder(executionContext, createdApiEntity.getId());
         }
+    }
+
+    private void assertCanCreateEnvironmentApis(ExecutionContext executionContext) {
+        if (
+            !isAuthenticated() ||
+            !(isEnvironmentAdmin() ||
+                permissionService.hasPermission(executionContext, ENVIRONMENT_API, executionContext.getEnvironmentId(), CREATE))
+        ) {
+            throw new ForbiddenAccessException();
+        }
+    }
+
+    private void assertCanUpdateEnvironmentApis(ExecutionContext executionContext) {
+        if (
+            !isAuthenticated() ||
+            !(isEnvironmentAdmin() ||
+                permissionService.hasPermission(executionContext, ENVIRONMENT_API, executionContext.getEnvironmentId(), UPDATE))
+        ) {
+            throw new ForbiddenAccessException();
+        }
+    }
+
+    private void assertCanUpdateApiDefinition(ExecutionContext executionContext, String apiId) {
+        if (
+            !isAuthenticated() ||
+            !(isEnvironmentAdmin() || permissionService.hasPermission(executionContext, API_DEFINITION, apiId, UPDATE))
+        ) {
+            throw new ForbiddenAccessException();
+        }
+    }
+
+    private boolean isImportFromUrl(Object apiDefinitionOrURL) {
+        String definitionOrURL = stringifyApiDefinitionFromJackson(apiDefinitionOrURL);
+        return definitionOrURL != null && definitionOrURL.toUpperCase().startsWith("HTTP");
     }
 
     private String fetchApiDefinitionContentFromURL(Object apiDefinitionOrURL) {

@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static assertions.MAPIAssertions.assertThat;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ScoringReportFixture;
@@ -32,6 +34,8 @@ import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.inject.Inject;
@@ -193,6 +197,26 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
                         .next(scoringApisTarget.queryParam("page", 3).queryParam("perPage", pageSize).getUri().toString())
                 );
         }
+
+        @Test
+        void should_return_403_without_environment_api_read() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.ENVIRONMENT_API),
+                    eq(ENVIRONMENT),
+                    eq(RolePermissionAction.READ)
+                )
+            ).thenReturn(false);
+
+            final Response response = scoringApisTarget.request().get();
+
+            assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
     }
 
     @Nested
@@ -217,6 +241,26 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(EnvironmentScoringOverview.class)
                 .isEqualTo(new EnvironmentScoringOverview().id(ENVIRONMENT).score(0.84).errors(3).warnings(3).infos(3).hints(3));
+        }
+
+        @Test
+        void should_return_403_without_environment_api_read() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.ENVIRONMENT_API),
+                    eq(ENVIRONMENT),
+                    eq(RolePermissionAction.READ)
+                )
+            ).thenReturn(false);
+
+            final Response response = scoringOverviewTarget.request().get();
+
+            assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
         }
     }
 

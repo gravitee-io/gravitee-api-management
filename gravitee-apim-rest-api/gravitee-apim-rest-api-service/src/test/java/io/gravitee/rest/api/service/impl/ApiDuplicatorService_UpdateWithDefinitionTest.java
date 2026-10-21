@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_DEFINITION;
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_API;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -729,5 +730,31 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any(), any())).then(AdditionalAnswers.returnsSecondArg());
 
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
+    }
+
+    @Test(expected = ForbiddenAccessException.class)
+    public void shouldNotFetchUrlWhenEnvironmentUpdateDenied() {
+        when(permissionService.hasPermission(any(), eq(ENVIRONMENT_API), any(), eq(UPDATE))).thenReturn(false);
+
+        try {
+            apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), "https://example.com/api.json");
+        } finally {
+            verifyNoInteractions(httpClientService);
+        }
+    }
+
+    @Test(expected = ForbiddenAccessException.class)
+    public void shouldNotFetchUrlWhenApiDefinitionUpdateDenied() {
+        when(permissionService.hasPermission(any(), eq(API_DEFINITION), eq(API_ID), eq(UPDATE))).thenReturn(false);
+
+        try {
+            apiDuplicatorService.updateWithImportedDefinition(
+                GraviteeContext.getExecutionContext(),
+                API_ID,
+                "https://example.com/api.json"
+            );
+        } finally {
+            verifyNoInteractions(httpClientService);
+        }
     }
 }
