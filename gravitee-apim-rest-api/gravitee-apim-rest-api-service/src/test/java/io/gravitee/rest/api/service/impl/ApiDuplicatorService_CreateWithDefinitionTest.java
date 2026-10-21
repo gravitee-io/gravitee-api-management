@@ -15,7 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_API;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.argThat;
@@ -24,6 +27,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -54,6 +58,7 @@ import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
@@ -61,6 +66,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.converter.PlanConverter;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
@@ -144,6 +150,9 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
     private HttpClientService httpClientService;
 
     @Mock
+    private PermissionService permissionService;
+
+    @Mock
     private ImportConfiguration importConfiguration;
 
     @Mock
@@ -161,6 +170,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         final UserDetails userDetails = new UserDetails("admin", "PASSWORD", Collections.emptyList());
         when(authentication.getPrincipal()).thenReturn(userDetails);
         SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
         GraviteeContext.cleanContext();
     }
 
@@ -908,5 +918,16 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
             eq("user"),
             eq(USER_ROLE_ID)
         );
+    }
+
+    @Test
+    public void shouldNotFetchUrlWhenEnvironmentCreateDenied() {
+        when(permissionService.hasPermission(any(), eq(ENVIRONMENT_API), any(), eq(CREATE))).thenReturn(false);
+
+        assertThrows(ForbiddenAccessException.class, () ->
+            apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), "https://example.com/api.json")
+        );
+
+        verifyNoInteractions(httpClientService);
     }
 }
