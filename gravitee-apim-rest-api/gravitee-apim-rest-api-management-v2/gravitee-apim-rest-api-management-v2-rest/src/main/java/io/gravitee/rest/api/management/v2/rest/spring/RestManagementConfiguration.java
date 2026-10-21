@@ -22,6 +22,7 @@ import io.gravitee.apim.infra.domain_service.analytics_engine.processors.Managem
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.rest.api.management.v2.rest.resource.environment.NewtAIRateLimiter;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
@@ -56,5 +57,10 @@ public class RestManagementConfiguration {
         @Lazy ApiRepository apiRepository
     ) {
         return new ManagementFilterPreProcessor(apiAuthorizationService, apiRepository);
+    }
+
+    @Bean
+    public NewtAIRateLimiter newtAIRateLimiter() {
+        return new NewtAIRateLimiter();
     }
 }

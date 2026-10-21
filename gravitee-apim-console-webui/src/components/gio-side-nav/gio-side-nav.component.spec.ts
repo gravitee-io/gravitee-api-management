@@ -208,7 +208,7 @@ describe('GioSideNavComponent', () => {
         category: 'API Score',
         displayName: 'API Score',
         icon: 'gio:shield-check',
-        permissions: ['environment-integration-r'],
+        permissions: ['environment-api-r'],
         routerLink: './api-score',
       });
     });

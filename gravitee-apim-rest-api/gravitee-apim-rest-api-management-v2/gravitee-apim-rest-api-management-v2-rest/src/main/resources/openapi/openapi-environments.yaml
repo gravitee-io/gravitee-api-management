@@ -328,6 +328,7 @@ paths:
         - Scoring
       summary: Get the scoring of all APIs
       operationId: getApisScoring
+      description: User must have the ENVIRONMENT_API[READ] permission.
       parameters:
         - $ref: "#/components/parameters/pageParam"
         - $ref: "#/components/parameters/perPageParam"
@@ -342,6 +343,7 @@ paths:
         - Scoring
       summary: Get Scoring Environment Overview
       operationId: getScoringEnvironmentOverview
+      description: User must have the ENVIRONMENT_API[READ] permission.
       responses:
         "200":
           description: Scoring overview of the environment
@@ -719,6 +721,8 @@ paths:
       summary: Generate Expression Language
       description: |-
         Generate Expression Language.
+
+        User must have the ENVIRONMENT_API[READ] permission. Generate calls are rate-limited per user on each Management API node.
       operationId: generateEl
       requestBody:
         content:
@@ -729,6 +733,17 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/GenerateExpressionLanguageResponse"
+        "429":
+          description: Too many Newt AI requests for this user
+          headers:
+            Retry-After:
+              description: Seconds until this user's window resets on this Management API node
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
 
