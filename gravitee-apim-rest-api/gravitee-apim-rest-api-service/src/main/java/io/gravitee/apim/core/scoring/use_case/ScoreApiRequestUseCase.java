@@ -71,7 +71,6 @@ public class ScoreApiRequestUseCase {
     private final ScoringFunctionQueryService scoringFunctionQueryService;
 
     public Completable execute(Input input) {
-        // Resolve and check environment membership before loading pages or exporting the definition.
         return Maybe.fromOptional(apiCrudService.findById(input.apiId()))
             .subscribeOn(Schedulers.io())
             .switchIfEmpty(Single.error(new ApiNotFoundException(input.apiId())))

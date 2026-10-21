@@ -39,6 +39,7 @@ import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -493,6 +494,38 @@ public class ApiResourceTest extends AbstractResourceTest {
             .put(Entity.text("http://localhost:8080/api/my-api-id"));
 
         assertEquals(OK_200, response.getStatus());
+    }
+
+    @Test
+    public void shouldRejectDeprecatedImportWithoutEnvironmentApiCreate() {
+        reset(apiDuplicatorService);
+        when(permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_API), any(), any())).thenReturn(false);
+
+        ApiEntity createdApi = new ApiEntity();
+        createdApi.setId("created-api");
+        createdApi.setUpdatedAt(new Date());
+        doReturn(createdApi).when(apiDuplicatorService).createWithImportedDefinition(any(), any());
+
+        final Response response = envTarget().path(API + "/import").request().post(Entity.json("{\"name\":\"imported\"}"));
+
+        assertEquals(FORBIDDEN_403, response.getStatus());
+        verify(apiDuplicatorService, never()).createWithImportedDefinition(any(), any());
+    }
+
+    @Test
+    public void shouldImportApiFromDeprecatedCreateEndpointWhenEnvironmentApiCreateIsGranted() {
+        reset(apiDuplicatorService);
+
+        ApiEntity createdApi = new ApiEntity();
+        createdApi.setId("created-api");
+        createdApi.setUpdatedAt(new Date());
+        createdApi.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
+        doReturn(createdApi).when(apiDuplicatorService).createWithImportedDefinition(any(), any());
+
+        final Response response = envTarget().path(API + "/import").request().post(Entity.json("{\"name\":\"imported\"}"));
+
+        assertEquals(OK_200, response.getStatus());
+        verify(apiDuplicatorService).createWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
