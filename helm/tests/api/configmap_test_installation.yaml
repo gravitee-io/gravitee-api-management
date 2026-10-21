@@ -428,3 +428,85 @@ tests:
       - notMatchRegex:
           path: data["gravitee.yml"]
           pattern: "https://route.example.com/httpRoute-portal"
+  - it: Do NOT set installation.standalone.edge-reactor by default
+    template: api/api-configmap.yaml
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "edge-reactor:"
+
+  - it: Do NOT set installation.standalone.edge-reactor when it is set to null
+    template: api/api-configmap.yaml
+    set:
+      installation:
+        standalone:
+          edge-reactor: null
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "edge-reactor:"
+
+  - it: Set installation.standalone.edge-reactor.urls when provided
+    template: api/api-configmap.yaml
+    set:
+      installation:
+        standalone:
+          edge-reactor:
+            urls:
+              - envId: DEFAULT
+                url: https://edge.example.com
+              - envId: prod
+                url: https://edge-prod.example.com
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "standalone:[\\S\\s\\n]*\\n {4}edge-reactor:\\n {6}urls:\\n {6}- envId: DEFAULT\\n {8}url: https://edge.example.com\\n {6}- envId: prod\\n {8}url: https://edge-prod.example.com\\n"
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "edge-reactor:\\n( {6,}.*\\n)* {6}url:"
+
+  - it: Set installation.standalone.edge-reactor.url when provided
+    template: api/api-configmap.yaml
+    set:
+      installation:
+        standalone:
+          edge-reactor:
+            url: https://edge.example.com
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "standalone:[\\S\\s\\n]*\\n {4}edge-reactor:\\n {6}url: \"https://edge.example.com\"\\n"
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "edge-reactor:\\n\\s+urls:"
+
+  - it: Set both installation.standalone.edge-reactor.urls and url when provided
+    template: api/api-configmap.yaml
+    set:
+      installation:
+        standalone:
+          edge-reactor:
+            url: https://edge.example.com
+            urls:
+              - envId: prod
+                url: https://edge-prod.example.com
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "standalone:[\\S\\s\\n]*\\n {4}edge-reactor:\\n {6}urls:\\n {6}- envId: prod\\n {8}url: https://edge-prod.example.com\\n {6}url: \"https://edge.example.com\"\\n"
+
+  - it: Do NOT set installation.standalone.edge-reactor with installation type multi-tenant
+    template: api/api-configmap.yaml
+    set:
+      installation:
+        type: multi-tenant
+        standalone:
+          edge-reactor:
+            url: https://edge.example.com
+            urls:
+              - envId: DEFAULT
+                url: https://edge.example.com
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "edge-reactor:"
