@@ -17,6 +17,7 @@ package io.gravitee.repository.jdbc.management;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.isPostgreSql;
 import static io.gravitee.repository.jdbc.utils.FieldUtils.toSnakeCase;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -34,6 +35,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +43,7 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Repository;
 
@@ -122,10 +125,9 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         try {
             findById(apiKey.getId()).orElseThrow(() -> new IllegalStateException("Trying to update a non existing key")); //NOSONAR It's just an existence check so we will not use the result of this call
 
+            // The links in key_subscriptions are only changed by addSubscription(s): rewriting them from the given copy
+            // of the key would drop the links added since that copy was read.
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(apiKey, apiKey.getId()));
-            if (!isEmpty(apiKey.getSubscriptions())) {
-                storeSubscriptions(apiKey);
-            }
 
             return findById(apiKey.getId()).orElse(null);
         } catch (IllegalStateException e) {
@@ -376,13 +378,59 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     @Override
     public Optional<ApiKey> addSubscription(String id, String subscriptionId) throws TechnicalException {
         log.debug("JdbcApiKeyRepository.addSubscription({}, {})", id, subscriptionId);
-        Optional<ApiKey> apiKey = findById(id);
-        if (apiKey.isEmpty()) {
-            return apiKey;
+        if (!exists(id)) {
+            return Optional.empty();
         }
-        jdbcTemplate.update("insert into " + keySubscriptions + " ( key_id, subscription_id ) values ( ?, ? )", id, subscriptionId);
-        jdbcTemplate.update("update " + escapeReservedWord(this.tableName) + " set updated_at=? where id=?", new Date(), id);
+        insertLinkIfAbsent(id, subscriptionId);
+        touch(id);
         return findById(id);
+    }
+
+    @Override
+    public Optional<ApiKey> addSubscriptions(String id, Collection<String> subscriptionIds) throws TechnicalException {
+        log.debug("JdbcApiKeyRepository.addSubscriptions({}, {})", id, subscriptionIds);
+        if (!exists(id)) {
+            return Optional.empty();
+        }
+        subscriptionIds
+            .stream()
+            .distinct()
+            .forEach(subscriptionId -> insertLinkIfAbsent(id, subscriptionId));
+        touch(id);
+        return findById(id);
+    }
+
+    private boolean exists(String id) {
+        Integer count = jdbcTemplate.queryForObject(
+            "select count(*) from " + escapeReservedWord(this.tableName) + " where id = ?",
+            Integer.class,
+            id
+        );
+        return count != null && count > 0;
+    }
+
+    /**
+     * Inserts the (key, subscription) link unless it already exists. An existing link must neither fail nor abort the
+     * surrounding transaction (subscribing runs in one transaction): PostgreSQL aborts a transaction on any failed
+     * statement, so the conflict is skipped by the statement itself. MySQL, MariaDB and SQL Server only roll back the
+     * failing statement, so the duplicate can be ignored there.
+     */
+    private void insertLinkIfAbsent(String id, String subscriptionId) {
+        String insert = "insert into " + keySubscriptions + " ( key_id, subscription_id ) values ( ?, ? )";
+        if (isPostgreSql()) {
+            jdbcTemplate.update(insert + " on conflict do nothing", id, subscriptionId);
+            return;
+        }
+        try {
+            jdbcTemplate.update(insert, id, subscriptionId);
+        } catch (DuplicateKeyException e) {
+            log.debug("Subscription {} is already linked to API Key {}", subscriptionId, id);
+        }
+    }
+
+    /** Gateways synchronise keys by {@code updated_at}: every link change must move it. */
+    private void touch(String id) {
+        jdbcTemplate.update("update " + escapeReservedWord(this.tableName) + " set updated_at=? where id=?", new Date(), id);
     }
 
     @Override

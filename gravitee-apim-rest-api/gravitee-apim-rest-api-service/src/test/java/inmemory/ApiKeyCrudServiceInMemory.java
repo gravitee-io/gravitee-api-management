@@ -17,9 +17,11 @@ package inmemory;
 
 import io.gravitee.apim.core.api_key.crud_service.ApiKeyCrudService;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
+import io.gravitee.common.utils.TimeProvider;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalInt;
 
 public class ApiKeyCrudServiceInMemory implements ApiKeyCrudService, InMemoryAlternative<ApiKeyEntity> {
@@ -32,15 +34,33 @@ public class ApiKeyCrudServiceInMemory implements ApiKeyCrudService, InMemoryAlt
         return apiKey;
     }
 
+    /** Like the repositories: every field but the subscriptions, which are kept as stored. */
     @Override
     public ApiKeyEntity update(ApiKeyEntity entity) {
         OptionalInt index = this.findIndex(this.storage, apiKey -> apiKey.getId().equals(entity.getId()));
         if (index.isPresent()) {
-            storage.set(index.getAsInt(), entity);
-            return entity;
+            var updated = entity.toBuilder().subscriptions(storage.get(index.getAsInt()).getSubscriptions()).build();
+            storage.set(index.getAsInt(), updated);
+            return updated;
         }
 
         throw new IllegalStateException("ApiKey not found");
+    }
+
+    @Override
+    public Optional<ApiKeyEntity> addSubscription(String apiKeyId, String subscriptionId) {
+        OptionalInt index = this.findIndex(this.storage, apiKey -> apiKey.getId().equals(apiKeyId));
+        if (index.isEmpty()) {
+            return Optional.empty();
+        }
+        var stored = storage.get(index.getAsInt());
+        var subscriptions = new ArrayList<>(stored.getSubscriptions());
+        if (!subscriptions.contains(subscriptionId)) {
+            subscriptions.add(subscriptionId);
+        }
+        var updated = stored.toBuilder().subscriptions(subscriptions).updatedAt(TimeProvider.now()).build();
+        storage.set(index.getAsInt(), updated);
+        return Optional.of(updated);
     }
 
     @Override
