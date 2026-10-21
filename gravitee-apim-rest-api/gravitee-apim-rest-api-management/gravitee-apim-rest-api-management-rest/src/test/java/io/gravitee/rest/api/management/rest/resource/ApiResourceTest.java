@@ -40,8 +40,10 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
@@ -421,6 +423,27 @@ public class ApiResourceTest extends AbstractResourceTest {
             .request()
             .post(null);
         assertEquals(OK_200, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotImportApiPathMappingsFromPageNotOwnedByApi() {
+        when(apiService.importPathMappingsFromPage(eq(GraviteeContext.getExecutionContext()), any(), eq("Foo"), any())).thenThrow(
+            new PageNotFoundException("Foo")
+        );
+
+        final Response response = envTarget(API + "/import-path-mappings").queryParam("page", "Foo").request().post(null);
+        assertEquals(NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotImportApiPathMappingsFromPageWithoutApiDefinitionUpdate() {
+        when(
+            permissionService.hasPermission(any(), eq(RolePermission.API_DEFINITION), eq(API), eq(RolePermissionAction.UPDATE))
+        ).thenReturn(false);
+
+        final Response response = envTarget(API + "/import-path-mappings").queryParam("page", "Foo").request().post(null);
+        assertEquals(FORBIDDEN_403, response.getStatus());
+        verify(apiService, never()).importPathMappingsFromPage(any(), any(), any(), any());
     }
 
     @Test
