@@ -47,13 +47,16 @@
             the catalog profile: one file per flavor in flavors/, next to this pom, one artifactId per line.
 
         To add a new dependency in the bundle:
-         1. Add the version in the <properties> section of the parent pom.xml
+         1. Add the version in the <properties> section of the parent pom.xml, in a property named after its artifactId.
          2. Declare it, with <type>zip</type> and <scope>runtime</scope>:
            - in the <dependencies> section of this pom.xml if it is open source and part of every distribution;
            - otherwise in the <dependencies> section of the `catalog` profile.
-         3. Add its artifactId to the flavor files that ship it: flavors/community.txt, flavors/bundle-default.txt,
-            flavors/bundle-dev.txt. A plugin in the catalog and in no flavor file is only listed by the release manifest,
-            for custom images.
+         3. Add its artifactId to the flavor files that ship it. The flavors nest, community within bundle-default within
+            bundle-dev: a plugin listed in flavors/community.txt is also in flavors/bundle-default.txt and
+            flavors/bundle-dev.txt, one in bundle-default also in bundle-dev. A plugin in the catalog and in no flavor
+            file is only listed by the release manifest, for custom images.
+         Both components get the plugin unless an assembly above excludes it: to keep it out of one component, add an
+         exclude to that component's `plugins` dependencySet. Policies stay in both, the Management API loads them too.
     -->
     <!--
         TO MAKE A DISTRIBUTION
