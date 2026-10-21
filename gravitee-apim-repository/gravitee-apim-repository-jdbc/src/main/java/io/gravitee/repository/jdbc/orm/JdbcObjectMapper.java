@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import lombok.CustomLog;
 import lombok.Getter;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -247,6 +248,14 @@ public class JdbcObjectMapper<T> {
 
     public PreparedStatementCreator buildInsertPreparedStatementCreator(T item) {
         return new Psc(insertSql, item);
+    }
+
+    /**
+     * Same as {@link #buildInsertPreparedStatementCreator(Object)}, with the insert statement adapted to a dialect, e.g. to skip
+     * a row that conflicts with an existing one.
+     */
+    public PreparedStatementCreator buildInsertPreparedStatementCreator(T item, UnaryOperator<String> dialect) {
+        return new Psc(dialect.apply(insertSql), item);
     }
 
     public PreparedStatementCreator buildUpdatePreparedStatementCreator(T item, Object... ids) {
