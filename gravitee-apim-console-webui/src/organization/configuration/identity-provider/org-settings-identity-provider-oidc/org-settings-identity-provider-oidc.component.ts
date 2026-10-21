@@ -16,7 +16,7 @@
 import { Component } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
-import { CLIENT_AUTHENTICATION_METHODS } from '../../../../entities/identity-provider';
+import { CLIENT_AUTHENTICATION_METHODS, clientSecretRequiredUnlessPublicClient } from '../../../../entities/identity-provider';
 import { ProviderConfiguration } from '../org-settings-identity-provider.component';
 
 @Component({
@@ -32,7 +32,8 @@ export class OrgSettingsIdentityProviderOidcComponent implements ProviderConfigu
 
   configurationFormGroup: UntypedFormGroup = new UntypedFormGroup({
     clientId: new UntypedFormControl(null, Validators.required),
-    clientSecret: new UntypedFormControl(null, Validators.required),
+    // Validated in the parent Client Secret field; public clients (auth method none) need no secret.
+    clientSecret: new UntypedFormControl(null, clientSecretRequiredUnlessPublicClient),
     tokenEndpoint: new UntypedFormControl(null, Validators.required),
     tokenIntrospectionEndpoint: new UntypedFormControl(),
     tokenEndpointAuthMethod: new UntypedFormControl(),
