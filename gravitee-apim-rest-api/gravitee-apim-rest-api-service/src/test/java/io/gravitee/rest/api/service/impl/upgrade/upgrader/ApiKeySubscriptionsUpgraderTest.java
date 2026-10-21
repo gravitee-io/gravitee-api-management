@@ -92,6 +92,24 @@ public class ApiKeySubscriptionsUpgraderTest {
     }
 
     @Test
+    public void upgrade_should_attach_the_legacy_subscription_to_the_subscriptions_of_the_key() throws Exception {
+        ApiKey legacyOnly = apiKeyWithSubscription("subscription-1");
+        ApiKey legacyNotMergedYet = apiKeyWithSubscription("subscription-4", new ArrayList<>(List.of("subscription-2", "subscription-3")));
+        ApiKey legacyAlreadyMerged = apiKeyWithSubscription("subscription-3", new ArrayList<>(List.of("subscription-2", "subscription-3")));
+        ApiKey withoutLegacy = apiKeyWithSubscription(null, new ArrayList<>(List.of("subscription-2")));
+        ApiKey empty = apiKeyWithSubscription(null, null);
+        when(apiKeyRepository.findAll()).thenReturn(Set.of(legacyOnly, legacyNotMergedYet, legacyAlreadyMerged, withoutLegacy, empty));
+
+        upgrader.upgrade();
+
+        verify(apiKeyRepository).addSubscription(legacyOnly.getId(), "subscription-1");
+        verify(apiKeyRepository).addSubscription(legacyNotMergedYet.getId(), "subscription-4");
+        verify(apiKeyRepository, never()).addSubscription(eq(legacyAlreadyMerged.getId()), any());
+        verify(apiKeyRepository, never()).addSubscription(eq(withoutLegacy.getId()), any());
+        verify(apiKeyRepository, never()).addSubscription(eq(empty.getId()), any());
+    }
+
+    @Test
     public void test_order() {
         Assertions.assertEquals(UpgraderOrder.API_KEY_SUBSCRIPTIONS_UPGRADER, upgrader.getOrder());
     }
