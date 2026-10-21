@@ -370,11 +370,21 @@ public class ApiSubscriptionsResource extends AbstractResource {
         { @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }) }
     )
     public Response importSubscriptionSpec(@Valid SubscriptionCRDSpec spec) {
-        requireCreateOrUpdate(
-            RolePermission.API_SUBSCRIPTION,
-            apiId,
-            subscriptionQueryService.findByIdAndApiId(spec.getId(), apiId).isPresent()
-        );
+        var existing = subscriptionQueryService.findByIdAndApiId(spec.getId(), apiId);
+        requireCreateOrUpdate(RolePermission.API_SUBSCRIPTION, apiId, existing.isPresent());
+        // Creating a subscription gives the application access, so the caller must be allowed to subscribe it. An import never
+        // restores a closed subscription on this version, so updates of any existing one keep the API_SUBSCRIPTION check alone
+        if (
+            existing.isEmpty() &&
+            !hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.APPLICATION_SUBSCRIPTION,
+                spec.getApplicationId(),
+                RolePermissionAction.CREATE
+            )
+        ) {
+            throw new ForbiddenAccessException();
+        }
         return Response.ok(
             importSubscriptionSpecUseCase.execute(new ImportSubscriptionSpecUseCase.Input(getAuditInfo(), apiId, spec)).status()
         ).build();

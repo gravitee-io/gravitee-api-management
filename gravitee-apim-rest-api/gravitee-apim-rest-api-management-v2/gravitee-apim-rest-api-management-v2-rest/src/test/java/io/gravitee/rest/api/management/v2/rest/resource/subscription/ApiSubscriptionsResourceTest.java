@@ -315,6 +315,61 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             assertThat(doImport().getStatus()).isEqualTo(Status.ACCEPTED);
         }
 
+        @Test
+        void should_return_403_when_the_caller_cannot_subscribe_the_application() {
+            subscriptionCrudService.initWith(List.of());
+            denyApplicationSubscription();
+
+            try (var response = target.request(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON()))) {
+                assertThat(response.getStatus()).isEqualTo(403);
+            }
+            verify(subscriptionService, never()).create(any(), any(), any(), any());
+        }
+
+        @Test
+        void should_update_a_closed_subscription_without_the_application_permission() {
+            subscriptionCrudService.initWith(
+                List.of(
+                    builder().id(SUBSCRIPTION_ID).planId(PLAN_ID).applicationId(APPLICATION_ID).status(Status.CLOSED).apiId(API_ID).build()
+                )
+            );
+            when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(
+                io.gravitee.rest.api.model.SubscriptionEntity.builder()
+                    .id(SUBSCRIPTION_ID)
+                    .api(API_ID)
+                    .plan(PLAN_ID)
+                    .application(APPLICATION_ID)
+                    .status(SubscriptionStatus.CLOSED)
+                    .build()
+            );
+            denyApplicationSubscription();
+
+            try (var response = target.request(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON()))) {
+                assertThat(response.getStatus()).isEqualTo(200);
+            }
+            verify(subscriptionService, never()).restore(any(), any());
+            verify(subscriptionService).update(any(), any(UpdateSubscriptionEntity.class));
+        }
+
+        @Test
+        void should_update_an_open_subscription_without_the_application_permission() {
+            givenExistingAcceptedSubscription();
+            denyApplicationSubscription();
+
+            assertThat(doImport().getStatus()).isEqualTo(Status.ACCEPTED);
+        }
+
+        private void denyApplicationSubscription() {
+            when(
+                permissionService.hasPermission(
+                    any(),
+                    eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                    eq(APPLICATION_ID),
+                    eq(RolePermissionAction.CREATE)
+                )
+            ).thenReturn(false);
+        }
+
         private void givenExistingAcceptedSubscription() {
             when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(
                 io.gravitee.rest.api.model.SubscriptionEntity.builder()
