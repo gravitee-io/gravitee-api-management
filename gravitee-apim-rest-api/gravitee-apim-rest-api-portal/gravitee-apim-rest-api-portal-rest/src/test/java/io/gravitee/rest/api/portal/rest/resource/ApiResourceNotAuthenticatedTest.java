@@ -15,18 +15,23 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.portal.rest.model.Api;
@@ -40,6 +45,8 @@ import java.util.List;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -65,7 +72,10 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
 
         mockApi = new ApiEntity();
         mockApi.setId(API);
+        mockApi.setVisibility(Visibility.PUBLIC);
+        mockApi.setLifecycleState(ApiLifecycleState.PUBLISHED);
         doReturn(mockApi).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API, false, false, true);
+        doReturn(mockApi).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false);
 
         when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
         when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), mockApi)).thenReturn(true);
@@ -109,6 +119,45 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
         // For pages
         doReturn(false).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), any());
         callResourceAndCheckResult(0, 0);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "metrics", "links" })
+    public void should_allow_anonymous_access_to_public_api_data(String resource) {
+        final Response response = target(API).path(resource).request().get();
+
+        assertEquals(OK_200, response.getStatus());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "metrics", "links" })
+    public void should_deny_anonymous_access_to_private_api_data(String resource) {
+        mockApi.setVisibility(Visibility.PRIVATE);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(false);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), mockApi)).thenReturn(false);
+
+        final Response response = target(API).path(resource).request().get();
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
+        verifyNoInteractions(pageService, analyticsService, healthCheckService, subscriptionService);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "metrics", "links" })
+    public void should_require_authentication_for_api_data_when_portal_login_is_forced(String resource) {
+        when(configService.portalLoginForced(GraviteeContext.getExecutionContext())).thenReturn(true);
+
+        final Response response = target(API).path(resource).request().get();
+
+        assertEquals(UNAUTHORIZED_401, response.getStatus());
+        verifyNoInteractions(
+            apiSearchService,
+            accessControlService,
+            pageService,
+            analyticsService,
+            healthCheckService,
+            subscriptionService
+        );
     }
 
     private void callResourceAndCheckResult(Integer expectedTotalPage, Integer expectedTotalPlan) {
