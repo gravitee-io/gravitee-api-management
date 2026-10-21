@@ -101,7 +101,7 @@ const managementRoutes: Routes = [
         canActivate: [ApiScoringGuard],
         data: {
           permissions: {
-            anyOf: ['environment-integration-r'],
+            anyOf: ['environment-api-r'],
           },
         },
       },
