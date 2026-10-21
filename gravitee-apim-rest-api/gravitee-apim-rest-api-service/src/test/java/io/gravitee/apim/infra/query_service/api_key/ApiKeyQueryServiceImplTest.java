@@ -181,6 +181,35 @@ public class ApiKeyQueryServiceImplTest {
     }
 
     @Nested
+    class FindLatestByApplicationId {
+
+        @Test
+        void should_read_the_latest_api_keys_of_the_application() throws TechnicalException {
+            var applicationId = "application-id";
+            when(apiKeyRepository.findLatestByApplication(applicationId)).thenReturn(
+                List.of(anApiKeyForApplication(applicationId).build())
+            );
+
+            var result = service.findLatestByApplication(applicationId);
+
+            assertThat(result)
+                .extracting(ApiKeyEntity::getId, ApiKeyEntity::getApplicationId)
+                .containsExactly(org.assertj.core.groups.Tuple.tuple("api-key-id", applicationId));
+            Mockito.verify(apiKeyRepository, Mockito.never()).findByApplication(any());
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            String applicationId = "application-id";
+            when(apiKeyRepository.findLatestByApplication(applicationId)).thenThrow(TechnicalException.class);
+
+            Throwable throwable = catchThrowable(() -> service.findLatestByApplication(applicationId));
+
+            assertThat(throwable).isInstanceOf(TechnicalManagementException.class).hasMessageContaining(applicationId);
+        }
+    }
+
+    @Nested
     class FindByKeyAndApiId {
 
         @Test
