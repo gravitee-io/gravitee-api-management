@@ -17,7 +17,13 @@ import { Command, Config, Job, commands, reusable } from '../../circleci-config'
 import { config } from '../../config';
 import { OpenJdkNodeExecutor } from '../../executors';
 import { CircleCIEnvironment } from '../../pipelines';
-import { AzureArtifactsTokenCommand, PrepareGpgCmd, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import {
+  AzureArtifactsTokenCommand,
+  InstallYarnCommand,
+  PrepareGpgCmd,
+  RestoreMavenJobCacheCommand,
+  SaveMavenJobCacheCommand,
+} from '../../commands';
 import { keeper } from '../../orbs/keeper';
 
 export class PublishReleaseJob {
@@ -39,6 +45,11 @@ export class PublishReleaseJob {
     const saveMavenCacheCmd = SaveMavenJobCacheCommand.get();
     dynamicConfig.addReusableCommand(saveMavenCacheCmd);
     dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
+
+    // The deploy builds the Gamma UI, whose `yarn install` would otherwise run with the image's
+    // yarn 1: it ignores the berry lockfile and lets swagger-ui's React 18 into the shared React.
+    const installYarnCmd = InstallYarnCommand.get();
+    dynamicConfig.addReusableCommand(installYarnCmd);
 
     // A rehearsal has nothing to publish here: the release commit and its tag were pushed with
     // `--dry-run`, so `${checkoutRef}` does not exist and the branch head still carries -SNAPSHOT.
@@ -63,6 +74,7 @@ export class PublishReleaseJob {
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: PublishReleaseJob.jobName }),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(prepareGpgCmd),
+      new reusable.ReusedCommand(installYarnCmd),
       new reusable.ReusedCommand(azureArtifactsTokenCmd),
       new commands.Run({
         name: 'Maven deploy to the Azure feed (releases)',
