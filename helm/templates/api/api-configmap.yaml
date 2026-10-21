@@ -258,6 +258,17 @@ data:
           url: {{ include "gammaUi.consoleUrl" . }}
           {{- end }}
         {{- end}}
+        {{- $edgeReactor := index .Values.installation.standalone "edge-reactor" }}
+        {{- if or $edgeReactor.urls $edgeReactor.url }}
+        edge-reactor:
+          {{- with $edgeReactor.urls }}
+          urls:
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+          {{- with $edgeReactor.url }}
+          url: {{ . | quote }}
+          {{- end }}
+        {{- end }}
       {{ else }}
       multi-tenant:
         {{- toYaml (index .Values "installation" "multi-tenant") | nindent 8 }}
