@@ -41,6 +41,7 @@ import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExistingException;
+import io.gravitee.rest.api.service.exceptions.ApiKeyNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -166,14 +167,11 @@ public class GenerateApiKeyDomainService {
      * the gateway only resolves a key through its active subscriptions, so the closed one stays inert.
      */
     private ApiKeyEntity reuseExistingKey(ApiKeyEntity existingKey, SubscriptionEntity subscription, AuditInfo auditInfo) {
-        var reused = existingKey
-            .reactivate()
-            .addSubscription(subscription.getId())
-            .toBuilder()
-            .expireAt(subscription.getEndingAt())
-            .build();
+        // The update writes the reactivation fields only; the link is added atomically so that links written since the key
+        // was read are kept.
+        apiKeyCrudService.update(existingKey.reactivate().toBuilder().expireAt(subscription.getEndingAt()).build());
+        var reused = apiKeyCrudService.addSubscription(existingKey.getId(), subscription.getId()).orElseThrow(ApiKeyNotFoundException::new);
 
-        apiKeyCrudService.update(reused);
         createAuditLog(reused, subscription, auditInfo, ApiKeyAuditEvent.APIKEY_REACTIVATED);
 
         return reused;
@@ -186,15 +184,23 @@ public class GenerateApiKeyDomainService {
         String customApiKey,
         boolean federated
     ) {
+        // Every key of the application gets the subscription, revoked and expired ones included, so that the previous key
+        // keeps working on the new subscription during the overlap that follows a shared key renewal.
         return apiKeyQueryService
             .findByApplication(application.getId())
-            .peek(apiKey -> addSubscription(apiKey, subscription))
+            .flatMap(apiKey -> addSubscription(apiKey, subscription).stream())
             .max(comparing(ApiKeyEntity::isRevoked, reverseOrder()).thenComparing(ApiKeyEntity::getExpireAt, nullsLast(naturalOrder())))
             .orElseGet(() -> generate(auditInfo, subscription, customApiKey, federated));
     }
 
-    private void addSubscription(ApiKeyEntity apiKey, SubscriptionEntity subscription) {
-        apiKeyCrudService.update(apiKey.addSubscription(subscription.getId()));
+    /**
+     * Attaches the subscription to the key atomically: the key read by {@link #findOrGenerate} may already be outdated (other
+     * Management API nodes attach subscriptions to the same shared key concurrently), so it must not be written back.
+     *
+     * @return the key as stored after the change, or empty when it was deleted in the meantime
+     */
+    private Optional<ApiKeyEntity> addSubscription(ApiKeyEntity apiKey, SubscriptionEntity subscription) {
+        return apiKeyCrudService.addSubscription(apiKey.getId(), subscription.getId());
     }
 
     private void createAuditLog(
