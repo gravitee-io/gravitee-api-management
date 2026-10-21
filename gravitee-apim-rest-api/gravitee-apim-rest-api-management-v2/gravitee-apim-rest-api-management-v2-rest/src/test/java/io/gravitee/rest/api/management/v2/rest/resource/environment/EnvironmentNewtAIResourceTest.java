@@ -22,9 +22,12 @@ import static org.mockito.Mockito.when;
 import inmemory.NewtAIProviderInMemory;
 import io.gravitee.apim.core.newtai.exception.NewtAiSubmitFeedbackException;
 import io.gravitee.apim.core.newtai.model.ELGenReply;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.GenerateExpressionLanguageResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
@@ -42,6 +45,9 @@ class EnvironmentNewtAIResourceTest extends AbstractResourceTest {
 
     @Inject
     protected NewtAIProviderInMemory newtAIProvider;
+
+    @Inject
+    NewtAIRateLimiter rateLimiter;
 
     private static final String ENVIRONMENT = "fake-env";
 
@@ -68,6 +74,8 @@ class EnvironmentNewtAIResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         newtAIProvider.reset();
+        rateLimiter.clear();
+        rateLimiter.overrideLimit(NewtAIRateLimiter.DEFAULT_MAX_REQUESTS_PER_MINUTE);
         GraviteeContext.cleanContext();
     }
 
@@ -132,6 +140,54 @@ class EnvironmentNewtAIResourceTest extends AbstractResourceTest {
             assertThat(body.getMessage()).isEqualTo("Simple expression: {#request.timestamp}");
             assertThat(body.getFeedbackRequestId()).isNotNull();
             assertThat(body.getFeedbackRequestId().getChatId()).isEqualTo("chat-456");
+        }
+
+        @Test
+        void should_return_403_without_environment_api_read() {
+            shouldReturn403(RolePermission.ENVIRONMENT_API, ENVIRONMENT, RolePermissionAction.READ, () ->
+                rootTarget("el/_generate")
+                    .request()
+                    .post(
+                        Entity.json(
+                            """
+                            {
+                                "message": "Generate an expression",
+                                "context": {}
+                            }
+                            """
+                        )
+                    )
+            );
+        }
+
+        @Test
+        void should_return_429_when_rate_limit_exceeded() {
+            rateLimiter.overrideLimit(1);
+            newtAIProvider.initWith(
+                List.of(
+                    new NewtAIProviderInMemory.Tuple.Success(
+                        "Generate an expression",
+                        new TestELGenReply("ok", new TestELGenReply.TestFeedbackId("c", "u", "a"))
+                    )
+                )
+            );
+            String requestJson = """
+                {
+                    "message": "Generate an expression",
+                    "context": {}
+                }
+                """;
+
+            assertThat(rootTarget("el/_generate").request().post(Entity.json(requestJson)).getStatus()).isEqualTo(OK_200);
+
+            final Response response = rootTarget("el/_generate").request().post(Entity.json(requestJson));
+            assertThat(response.getStatus()).isEqualTo(429);
+            assertThat(response.getHeaderString("Retry-After")).isNotBlank();
+            assertThat(Long.parseLong(response.getHeaderString("Retry-After"))).isBetween(1L, 60L);
+            var error = response.readEntity(Error.class);
+            assertThat(error.getHttpStatus()).isEqualTo(429);
+            assertThat(error.getTechnicalCode()).isEqualTo("newtAI.rateLimitExceeded");
+            assertThat(error.getMessage()).isEqualTo("Newt AI rate limit exceeded");
         }
     }
 
@@ -201,6 +257,28 @@ class EnvironmentNewtAIResourceTest extends AbstractResourceTest {
 
             // Then
             assertThat(response.getStatus()).isEqualTo(INTERNAL_SERVER_ERROR_500);
+        }
+
+        @Test
+        void should_return_403_without_environment_api_read() {
+            shouldReturn403(RolePermission.ENVIRONMENT_API, ENVIRONMENT, RolePermissionAction.READ, () ->
+                rootTarget("el/feedback")
+                    .request()
+                    .post(
+                        Entity.json(
+                            """
+                            {
+                                "feedbackRequestId": {
+                                    "chatId": "chat-123",
+                                    "userMessageId": "user-msg-456",
+                                    "agentMessageId": "agent-msg-789"
+                                },
+                                "answerHelpful": true
+                            }
+                            """
+                        )
+                    )
+            );
         }
     }
 
