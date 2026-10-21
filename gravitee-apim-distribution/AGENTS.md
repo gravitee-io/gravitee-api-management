@@ -75,7 +75,15 @@ Each component is built in two steps, both in the `package` phase of `gravitee-a
 | `-Dbundle` | `flavors/bundle-default.txt` | the released zip and images |
 | `-Dbundle=dev` | `flavors/bundle-dev.txt` | our dev and test images |
 
-- **A plugin needs two edits:** its declaration with its version (outside any profile when every distribution ships it, otherwise in the `catalog` profile of `gravitee-apim-distribution-standalone/pom.xml`), and its artifactId in each flavor file that ships it. Declared in `catalog` but listed nowhere, it ships in no image: the release manifest still lists it, for custom images.
+- **The flavors nest:** community ⊂ bundle-default ⊂ bundle-dev. A plugin listed in a flavor file is also listed in every bigger one.
+- **Adding a plugin takes three edits:**
+  1. its version, in a property of `gravitee-apim-distribution/pom.xml` named after its artifactId (`<gravitee-policy-foo.version>`);
+  2. its declaration, with `<type>zip</type>` and `<scope>runtime</scope>`, in `gravitee-apim-distribution-standalone/pom.xml`: outside any profile when every distribution ships it, otherwise in the `catalog` profile;
+  3. its artifactId in the flavor file of the smallest flavor that ships it, and in every bigger one.
+
+  Declared in `catalog` but listed nowhere, it ships in no image: the release manifest still lists it, for custom images.
+- **Both components get every plugin their assembly accepts.** The `plugins` dependencySet of each `plugin-assembly-distribution.xml` is an exclude list: a plugin meant for one component only is excluded from the other's assembly. Policies stay in both: the Management API loads them too.
+- **Check where it landed.** A name no component accepts, a typo included, is only logged as skipped (`not part of the catalog of <component>`) and ships nowhere. After a build, look for the zip in `target/distribution/plugins` and in `target/release-manifest.json` of each component.
 - **The `catalog` profile is never activated.** `-Pcatalog` would put every plugin into the slim distribution, and so into every flavor.
 - **One file per flavor, for both components.** Each component takes the names its assembly accepts and logs the others as skipped: a typo shows up there, not as a failure.
 - `target/distribution` keeps its path and its content: the Dockerfiles, `task docker-backend` and the CI read it as before.
