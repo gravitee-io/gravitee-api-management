@@ -15,7 +15,7 @@
  */
 import { Command, Config, Job, commands, reusable } from '../../circleci-config';
 import { OpenJdkNodeExecutor } from '../../executors';
-import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import { InstallYarnCommand, NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { CircleCIEnvironment } from '../../pipelines';
 import { computeApimVersion, mavenParallelism } from '../../utils';
 
@@ -26,13 +26,18 @@ export class CommunityBuildBackendJob {
     const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig, environment);
+    // The root build runs the Gamma UI's `yarn install`; with the image's yarn 1 it would ignore the
+    // berry lockfile and let swagger-ui's React 18 into the shared React.
+    const installYarnCmd = InstallYarnCommand.get();
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(saveMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
+    dynamicConfig.addReusableCommand(installYarnCmd);
 
     const steps: Command[] = [
       new commands.Checkout(),
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: jobName }),
+      new reusable.ReusedCommand(installYarnCmd),
       new commands.Run({
         name: 'Build project',
         command: `mvn clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false ${mavenParallelism('large')}`,
