@@ -2076,6 +2076,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         DefinitionVersion definitionVersion
     ) {
         final PageEntity pageEntity = pageService.findById(page);
+        if (!PageReferenceType.API.name().equals(pageEntity.getReferenceType()) || !apiEntity.getId().equals(pageEntity.getReferenceId())) {
+            throw new PageNotFoundException(page);
+        }
         if (SWAGGER.name().equals(pageEntity.getType())) {
             final ImportSwaggerDescriptorEntity importSwaggerDescriptorEntity = new ImportSwaggerDescriptorEntity();
             importSwaggerDescriptorEntity.setPayload(pageEntity.getContent());
