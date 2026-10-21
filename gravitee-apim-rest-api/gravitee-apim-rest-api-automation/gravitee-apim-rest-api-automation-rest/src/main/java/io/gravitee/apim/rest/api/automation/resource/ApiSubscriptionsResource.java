@@ -32,6 +32,7 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -97,11 +98,15 @@ public class ApiSubscriptionsResource extends AbstractResource {
             spec.getEndingAt() != null ? spec.getEndingAt().toZonedDateTime() : null
         );
 
-        requireCreateOrUpdateOn(
-            RolePermission.API_SUBSCRIPTION,
-            subscriptionCRDSpec.getApiId(),
-            subscriptionQueryService.findByIdAndApiId(subscriptionCRDSpec.getId(), subscriptionCRDSpec.getApiId()).isPresent()
-        );
+        var existing = subscriptionQueryService.findByIdAndApiId(subscriptionCRDSpec.getId(), subscriptionCRDSpec.getApiId());
+        requireCreateOrUpdateOn(RolePermission.API_SUBSCRIPTION, subscriptionCRDSpec.getApiId(), existing.isPresent());
+        // Creating or restoring a subscription gives the application access, so the caller must be allowed to subscribe it
+        if (
+            existing.map(subscription -> subscription.isClosed()).orElse(true) &&
+            !hasPermission(executionContext, RolePermission.APPLICATION_SUBSCRIPTION, subscriptionCRDSpec.getApplicationId(), CREATE)
+        ) {
+            throw new ForbiddenAccessException();
+        }
 
         SubscriptionCRDStatus status = importSubscriptionSpecUseCase
             .execute(new ImportSubscriptionSpecUseCase.Input(auditInfo, subscriptionCRDSpec.getApiId(), subscriptionCRDSpec))
