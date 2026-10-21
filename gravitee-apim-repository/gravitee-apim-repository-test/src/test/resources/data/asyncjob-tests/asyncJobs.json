@@ -109,5 +109,19 @@
     "createdAt": 1470157767009,
     "updatedAt": 1470157767009,
     "deadLine": 1470157767009
+  },
+  {
+    "id": "6e0c5e0a-3f4b-4d7e-8c1a-2b9d0f6a7c51",
+    "sourceId": "progress-source-id",
+    "environmentId": "my-progress-env",
+    "initiatorId": "initiator-id",
+    "type": "SCORING_REQUEST",
+    "status": "PARTIAL",
+    "upperLimit": 40,
+    "processed": 40,
+    "details": "{\"imported\":37,\"failed\":3}",
+    "errors": "[{\"code\":\"slug_conflict\",\"message\":\"Slug already used\",\"itemId\":\"agent-1\"}]",
+    "createdAt": 1470157767000,
+    "updatedAt": 1470157767010
   }
 ]

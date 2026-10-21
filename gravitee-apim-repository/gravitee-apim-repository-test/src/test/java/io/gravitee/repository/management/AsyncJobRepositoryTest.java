@@ -48,6 +48,20 @@ public class AsyncJobRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(createdIntegration).isEqualTo(job);
     }
 
+    @Test
+    public void should_create_a_job_with_progress_details_and_errors() throws TechnicalException {
+        var job = aJob(UUID.random().toString(), new Date())
+            .toBuilder()
+            .processed(12L)
+            .details("{\"imported\":12}")
+            .errors("[{\"code\":\"fetch_failed\",\"message\":\"Provider unavailable\"}]")
+            .build();
+
+        asyncJobRepository.create(job);
+
+        assertThat(asyncJobRepository.findById(job.getId())).hasValue(job);
+    }
+
     // Find by id
     @Test
     public void should_get_job_by_id() throws TechnicalException {
@@ -58,6 +72,19 @@ public class AsyncJobRepositoryTest extends AbstractManagementRepositoryTest {
         var result = asyncJobRepository.findById(id);
 
         assertThat(result).hasValue(expectedIntegration);
+    }
+
+    @Test
+    public void should_get_job_with_progress_details_and_errors_by_id() throws TechnicalException {
+        var result = asyncJobRepository.findById("6e0c5e0a-3f4b-4d7e-8c1a-2b9d0f6a7c51");
+
+        assertThat(result).hasValueSatisfying(job -> {
+            assertThat(job.getProcessed()).isEqualTo(40L);
+            assertThat(job.getDetails()).isEqualTo("{\"imported\":37,\"failed\":3}");
+            assertThat(job.getErrors()).isEqualTo(
+                "[{\"code\":\"slug_conflict\",\"message\":\"Slug already used\",\"itemId\":\"agent-1\"}]"
+            );
+        });
     }
 
     @Test
@@ -78,6 +105,22 @@ public class AsyncJobRepositoryTest extends AbstractManagementRepositoryTest {
 
         var result = asyncJobRepository.update(toUpdate);
         assertThat(result).isEqualTo(toUpdate);
+    }
+
+    @Test
+    public void should_update_progress_details_and_errors() throws TechnicalException {
+        var id = "459a022c-e79c-4411-9a02-2ce79c141165";
+        var toUpdate = aJob(id, new Date(1470157767000L))
+            .toBuilder()
+            .status("SUCCESS")
+            .processed(100L)
+            .details("{\"imported\":99,\"failed\":1}")
+            .errors("[{\"code\":\"fetch_failed\",\"message\":\"Provider unavailable\",\"itemId\":\"agent-7\"}]")
+            .build();
+
+        asyncJobRepository.update(toUpdate);
+
+        assertThat(asyncJobRepository.findById(id)).hasValue(toUpdate);
     }
 
     @Test
@@ -122,6 +165,11 @@ public class AsyncJobRepositoryTest extends AbstractManagementRepositoryTest {
     public void should_return_empty_when_no_pending_job_found() throws TechnicalException {
         assertThat(asyncJobRepository.findPendingJobFor("459a022c-e79c-4411-9a02-2ce79c141165")).isNotPresent();
         assertThat(asyncJobRepository.findPendingJobFor("unknown")).isNotPresent();
+    }
+
+    @Test
+    public void should_not_return_partial_job_as_pending() throws TechnicalException {
+        assertThat(asyncJobRepository.findPendingJobFor("progress-source-id")).isEmpty();
     }
 
     // Search

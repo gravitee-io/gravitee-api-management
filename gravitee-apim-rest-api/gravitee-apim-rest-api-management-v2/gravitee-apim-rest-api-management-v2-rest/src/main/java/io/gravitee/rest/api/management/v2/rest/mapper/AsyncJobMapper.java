@@ -15,11 +15,18 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.management.v2.rest.model.AsyncJob;
 import io.gravitee.rest.api.management.v2.rest.model.AsyncJobStatus;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
+import java.util.Map;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 
@@ -27,10 +34,25 @@ import org.slf4j.Logger;
 public interface AsyncJobMapper {
     Logger log = NodeLoggerFactory.getLogger(AsyncJobMapper.class);
     AsyncJobMapper INSTANCE = Mappers.getMapper(AsyncJobMapper.class);
+    GraviteeMapper DETAILS_JSON = new GraviteeMapper();
 
+    @Mapping(target = "details", source = "details", qualifiedByName = "deserializeDetails")
     AsyncJob map(io.gravitee.apim.core.async_job.model.AsyncJob source);
+
     List<AsyncJob> map(List<io.gravitee.apim.core.async_job.model.AsyncJob> source);
 
     io.gravitee.apim.core.async_job.model.AsyncJob.Type map(AsyncJob.TypeEnum source);
     io.gravitee.apim.core.async_job.model.AsyncJob.Status map(AsyncJobStatus source);
+
+    @Named("deserializeDetails")
+    default Map<String, Object> deserializeDetails(String details) {
+        if (details == null) {
+            return null;
+        }
+        try {
+            return DETAILS_JSON.readValue(details, new TypeReference<>() {});
+        } catch (JsonProcessingException e) {
+            throw new TechnicalManagementException("Failed to parse async job details", e);
+        }
+    }
 }

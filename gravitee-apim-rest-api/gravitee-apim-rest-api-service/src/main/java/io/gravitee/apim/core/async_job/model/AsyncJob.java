@@ -18,6 +18,7 @@ package io.gravitee.apim.core.async_job.model;
 import io.gravitee.common.utils.TimeProvider;
 import jakarta.annotation.Nullable;
 import java.time.ZonedDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -65,11 +66,24 @@ public class AsyncJob {
      */
     Long upperLimit;
 
+    /** How many items have been processed so far, from 0 up to {@link #upperLimit}. */
+    Long processed;
+
+    /** Job-specific state as a JSON document; its shape is owned by whoever creates the job. */
+    @Nullable
+    String details;
+
+    /** Per-item failures; the failure of the job itself goes to {@link #errorMessage}. */
+    @Builder.Default
+    List<AsyncJobError> errors = List.of();
+
     public enum Status {
         PENDING,
         SUCCESS,
         TIMEOUT,
-        ERROR;
+        ERROR,
+        /** Some items failed, but at least one result was written. */
+        PARTIAL;
 
         public boolean isFinal() {
             return this != PENDING;
@@ -80,10 +94,16 @@ public class AsyncJob {
         FEDERATED_APIS_INGESTION,
         SCORING_REQUEST,
         AM_USER_SYNC,
+        AIM_AGENT_DISCOVERY,
+        AIM_AGENT_IMPORT,
     }
 
     public AsyncJob complete() {
         return toBuilder().status(Status.SUCCESS).updatedAt(TimeProvider.now()).build();
+    }
+
+    public AsyncJob partial() {
+        return toBuilder().status(Status.PARTIAL).updatedAt(TimeProvider.now()).build();
     }
 
     public AsyncJob timeout() {

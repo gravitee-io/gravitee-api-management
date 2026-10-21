@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.AsyncJobFixture;
+import io.gravitee.apim.core.async_job.model.AsyncJobError;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AsyncJobRepository;
 import io.gravitee.repository.management.model.AsyncJob;
@@ -32,6 +33,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -164,6 +166,31 @@ public class AsyncJobCrudServiceImplTest {
                         .updatedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
                         .build()
                 );
+        }
+
+        @Test
+        @SneakyThrows
+        void should_update_progress_details_and_errors() {
+            var job = AsyncJobFixture.aPendingFederatedApiIngestionJob()
+                .toBuilder()
+                .processed(4L)
+                .details("{\"imported\":3}")
+                .errors(List.of(new AsyncJobError("fetch_failed", "Provider unavailable", "agent-4")))
+                .build();
+            when(repository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            var updated = service.update(job);
+
+            var captor = ArgumentCaptor.forClass(AsyncJob.class);
+            verify(repository).update(captor.capture());
+            assertThat(captor.getValue())
+                .extracting(AsyncJob::getProcessed, AsyncJob::getDetails, AsyncJob::getErrors)
+                .containsExactly(
+                    4L,
+                    "{\"imported\":3}",
+                    "[{\"code\":\"fetch_failed\",\"message\":\"Provider unavailable\",\"itemId\":\"agent-4\"}]"
+                );
+            assertThat(updated).isEqualTo(job);
         }
 
         @Test

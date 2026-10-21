@@ -38,5 +38,8 @@ public class AsyncJobMongo extends DeprecatedAuditable {
     private String status;
     private String errorMessage;
     private Long upperLimit;
+    private Long processed;
+    private String details;
+    private String errors;
     private Date deadLine;
 }
