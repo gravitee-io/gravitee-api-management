@@ -16,8 +16,10 @@
 package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.SubscriptionUniqueActiveKey;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
@@ -46,6 +48,13 @@ import org.springframework.stereotype.Component;
 @CustomLog
 @Component
 public class MongoSubscriptionRepository implements SubscriptionRepository {
+
+    public static final String UNIQUE_ACTIVE_KEY_FIELD = "uniqueActiveKey";
+
+    /**
+     * Unique index on {@link #UNIQUE_ACTIVE_KEY_FIELD}, created once every node maintains the key.
+     */
+    public static final String UNIQUE_ACTIVE_KEY_INDEX = "uak1_unique";
 
     @Autowired
     private GraviteeMapper mapper;
@@ -106,8 +115,15 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
 
     @Override
     public Subscription create(Subscription subscription) throws TechnicalException {
-        SubscriptionMongo subscriptionMongo = mapper.map(subscription);
-        subscriptionMongo = internalSubscriptionRepository.insert(subscriptionMongo);
+        SubscriptionMongo subscriptionMongo = toMongo(subscription);
+        try {
+            subscriptionMongo = internalSubscriptionRepository.insert(subscriptionMongo);
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            if (isActiveSubscriptionConflict(e)) {
+                throw activeSubscriptionConflict(subscription, e);
+            }
+            throw e;
+        }
         return map(subscriptionMongo);
     }
 
@@ -123,9 +139,46 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
             throw new IllegalStateException(String.format("No subscription found with id [%s]", subscription.getId()));
         }
 
-        subscriptionMongo = mapper.map(subscription);
-        subscriptionMongo = internalSubscriptionRepository.save(subscriptionMongo);
+        subscriptionMongo = toMongo(subscription);
+        try {
+            subscriptionMongo = internalSubscriptionRepository.save(subscriptionMongo);
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            if (isActiveSubscriptionConflict(e)) {
+                throw activeSubscriptionConflict(subscription, e);
+            }
+            throw e;
+        }
         return map(subscriptionMongo);
+    }
+
+    /**
+     * The key is computed on every write, from the subscription being written, so that no status, plan or channel
+     * change can leave it stale. Spring Data does not write {@code null} fields: the key is absent from inactive
+     * subscriptions, and a full replace removes it.
+     */
+    private SubscriptionMongo toMongo(Subscription subscription) {
+        SubscriptionMongo subscriptionMongo = mapper.map(subscription);
+        subscriptionMongo.setUniqueActiveKey(SubscriptionUniqueActiveKey.of(subscription));
+        return subscriptionMongo;
+    }
+
+    /**
+     * Only a violation of the unique index on active subscriptions is a duplicate the callers can act upon, any other
+     * conflict (a reused subscription id, typically) keeps being reported as it used to be.
+     */
+    private static boolean isActiveSubscriptionConflict(org.springframework.dao.DuplicateKeyException e) {
+        return e.getMessage() != null && e.getMessage().contains(UNIQUE_ACTIVE_KEY_INDEX);
+    }
+
+    private static DuplicateKeyException activeSubscriptionConflict(Subscription subscription, Exception cause) {
+        return new DuplicateKeyException(
+            String.format(
+                "Application [%s] already has an active subscription to plan [%s]",
+                subscription.getApplication(),
+                subscription.getPlan()
+            ),
+            cause
+        );
     }
 
     @Override
