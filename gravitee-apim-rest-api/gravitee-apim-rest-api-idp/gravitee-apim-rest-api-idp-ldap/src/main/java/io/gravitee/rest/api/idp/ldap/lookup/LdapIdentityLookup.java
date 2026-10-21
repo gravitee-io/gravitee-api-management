@@ -21,8 +21,11 @@ import io.gravitee.rest.api.idp.api.identity.User;
 import io.gravitee.rest.api.idp.ldap.LdapIdentityProvider;
 import io.gravitee.rest.api.idp.ldap.lookup.spring.LdapIdentityLookupConfiguration;
 import io.gravitee.rest.api.idp.ldap.utils.LdapUtils;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import javax.naming.ldap.LdapName;
 import lombok.CustomLog;
 import org.springframework.beans.factory.InitializingBean;
@@ -68,6 +71,7 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
     private LdapName baseDn;
 
     private String[] userAttributes;
+    private Set<String> lookupActivations;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -101,10 +105,17 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
             .build();
 
         log.info("User search is based on DN [{}]", baseDn);
+        lookupActivations = readLookupActivations();
+        if (!lookupActivations.isEmpty()) {
+            log.info("User search is restricted to the activations {}", lookupActivations);
+        }
     }
 
     @Override
     public Collection<User> search(String query) {
+        if (!activatedForCurrentRequest()) {
+            return Collections.emptyList();
+        }
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
@@ -138,6 +149,9 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
 
     @Override
     public User retrieve(IdentityReference identityReference) {
+        if (!activatedForCurrentOrganization()) {
+            return null;
+        }
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
@@ -153,6 +167,58 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
     public boolean allowEmailInSearchResults() {
         Boolean allow = environment.getProperty("lookup.allow-email-in-search-results", Boolean.class, false);
         return allow != null && allow;
+    }
+
+    private boolean activatedForCurrentRequest() {
+        return lookupActivations.isEmpty() || activated(currentTarget());
+    }
+
+    // The console searches at organization level but adds members at environment level, so a reference
+    // found by an organization-level search must stay resolvable from the environments of that organization.
+    private boolean activatedForCurrentOrganization() {
+        return lookupActivations.isEmpty() || activated(GraviteeContext.getCurrentOrganization()) || activated(currentTarget());
+    }
+
+    private boolean activated(String target) {
+        if (lookupActivations.contains(target)) {
+            return true;
+        }
+        log.debug("Lookup is not activated for [{}], the directory is not queried", target);
+        return false;
+    }
+
+    private Set<String> readLookupActivations() {
+        Set<String> activations = new LinkedHashSet<>();
+        String commaSeparated = environment.getProperty("lookup.activations");
+        if (commaSeparated != null) {
+            for (String activation : commaSeparated.split(",")) {
+                addActivation(activations, activation);
+            }
+        }
+        for (int i = 0; ; i++) {
+            String activation = environment.getProperty("lookup.activations[" + i + "]");
+            if (activation == null) {
+                return activations;
+            }
+            addActivation(activations, activation);
+        }
+    }
+
+    private static void addActivation(Set<String> activations, String activation) {
+        if (activation.isBlank()) {
+            log.warn("Ignoring a blank entry in lookup.activations");
+        } else {
+            activations.add(activation.strip());
+        }
+    }
+
+    // Same targets as the activations of the other identity providers: an organization id for an
+    // organization-level request (console user search), organization:environment for an
+    // environment-level request (portal user search).
+    private static String currentTarget() {
+        String organizationId = GraviteeContext.getCurrentOrganization();
+        String environmentId = GraviteeContext.getCurrentEnvironment();
+        return environmentId == null ? organizationId : organizationId + ":" + environmentId;
     }
 
     private final ContextMapper<User> USER_CONTEXT_MAPPER = new AbstractContextMapper<User>() {
