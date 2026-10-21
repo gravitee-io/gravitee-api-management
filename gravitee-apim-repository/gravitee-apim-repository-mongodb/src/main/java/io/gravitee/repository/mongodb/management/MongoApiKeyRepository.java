@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import com.mongodb.client.result.UpdateResult;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
@@ -53,7 +54,12 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
     @Override
     public ApiKey create(ApiKey apiKey) throws TechnicalException {
         ApiKeyMongo apiKeyMongo = mapper.map(apiKey);
-        apiKeyMongo = internalApiKeyRepo.insert(apiKeyMongo);
+        try {
+            apiKeyMongo = internalApiKeyRepo.insert(apiKeyMongo);
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            // The only unique index of the collection is the one on _id.
+            throw new DuplicateKeyException(String.format("An API Key with id [%s] already exists", apiKey.getId()), e);
+        }
         return toApiKey(apiKeyMongo);
     }
 
