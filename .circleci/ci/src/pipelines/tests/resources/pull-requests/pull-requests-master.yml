@@ -537,6 +537,7 @@ jobs:
       - cmd-restore-maven-job-cache:
           jobName: job-publish-snapshot
       - cmd-azure-artifacts-token
+      - cmd-install-yarn
       - run:
           name: Maven deploy to the Azure feed (snapshots)
           command: |-

@@ -15,7 +15,13 @@
  */
 import { Command, Config, Job, commands, reusable } from '../../circleci-config';
 import { config } from '../../config';
-import { AzureArtifactsTokenCommand, NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import {
+  AzureArtifactsTokenCommand,
+  InstallYarnCommand,
+  NotifyOnFailureCommand,
+  RestoreMavenJobCacheCommand,
+  SaveMavenJobCacheCommand,
+} from '../../commands';
 import { OpenJdkNodeExecutor } from '../../executors';
 import { CircleCIEnvironment } from '../../pipelines';
 import { mavenParallelism } from '../../utils';
@@ -28,16 +34,21 @@ export class PublishJob {
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig, environment);
     const azureArtifactsTokenCmd = AzureArtifactsTokenCommand.get(dynamicConfig);
+    // The Gamma UI build runs `yarn install`; with the image's yarn 1 it would ignore the berry
+    // lockfile and let swagger-ui's React 18 into the shared React.
+    const installYarnCmd = InstallYarnCommand.get();
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(saveMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
     dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
+    dynamicConfig.addReusableCommand(installYarnCmd);
 
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName }),
       new reusable.ReusedCommand(azureArtifactsTokenCmd),
+      new reusable.ReusedCommand(installYarnCmd),
       // The profile is still active for what it carries besides the repository — signing and
       // the other deploy settings — while altDeploymentRepository points the deploy at the
       // Azure feed.
