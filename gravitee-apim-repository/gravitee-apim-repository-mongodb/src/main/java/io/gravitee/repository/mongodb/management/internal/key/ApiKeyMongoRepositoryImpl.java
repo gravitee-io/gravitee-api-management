@@ -22,12 +22,14 @@ import static com.mongodb.client.model.Filters.gte;
 import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Filters.lte;
 import static com.mongodb.client.model.Filters.or;
+import static com.mongodb.client.model.Updates.addEachToSet;
+import static com.mongodb.client.model.Updates.addToSet;
 import static com.mongodb.client.model.Updates.combine;
-import static com.mongodb.client.model.Updates.push;
 import static com.mongodb.client.model.Updates.set;
 import static com.mongodb.client.model.Updates.unset;
 
 import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.result.UpdateResult;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
@@ -37,6 +39,7 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import org.bson.Document;
@@ -45,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.util.CollectionUtils;
@@ -54,6 +58,8 @@ import org.springframework.util.CollectionUtils;
  * @author GraviteeSource Team
  */
 public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
+
+    private static final String SUBSCRIPTIONS = "subscriptions";
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -249,9 +255,44 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
 
     @Override
     public UpdateResult addSubscription(String id, String subscriptionId) {
-        return mongoTemplate
-            .getCollection(mongoTemplate.getCollectionName(ApiKeyMongo.class))
-            .updateOne(eq("_id", id), combine(push("subscriptions", subscriptionId), set("updatedAt", new Date())));
+        return keys().updateOne(eq("_id", id), combine(addToSet(SUBSCRIPTIONS, subscriptionId), set("updatedAt", new Date())));
+    }
+
+    @Override
+    public UpdateResult addSubscriptions(String id, Collection<String> subscriptionIds) {
+        return keys().updateOne(
+            eq("_id", id),
+            combine(addEachToSet(SUBSCRIPTIONS, List.copyOf(subscriptionIds)), set("updatedAt", new Date()))
+        );
+    }
+
+    /**
+     * Writes every mapped field of the key, as a full save would, except {@code subscriptions}: links are only changed by
+     * {@link #addSubscription(String, String)}, so an update made from an outdated copy of the key cannot drop them.
+     * Fields that are {@code null} are removed, as a full save would do.
+     */
+    @Override
+    public UpdateResult updateAllButSubscriptions(ApiKeyMongo apiKey) {
+        Document mapped = new Document();
+        mongoTemplate.getConverter().write(apiKey, mapped);
+
+        List<Bson> updates = new ArrayList<>();
+        for (MongoPersistentProperty property : mongoTemplate
+            .getConverter()
+            .getMappingContext()
+            .getRequiredPersistentEntity(ApiKeyMongo.class)) {
+            String field = property.getFieldName();
+            if (property.isIdProperty() || SUBSCRIPTIONS.equals(field)) {
+                continue;
+            }
+            Object value = mapped.get(field);
+            updates.add(value == null ? unset(field) : set(field, value));
+        }
+        return keys().updateOne(eq("_id", apiKey.getId()), combine(updates));
+    }
+
+    private MongoCollection<Document> keys() {
+        return mongoTemplate.getCollection(mongoTemplate.getCollectionName(ApiKeyMongo.class));
     }
 
     private List<ApiKeyMongo> getListFromAggregate(AggregateIterable<Document> aggregate) {
