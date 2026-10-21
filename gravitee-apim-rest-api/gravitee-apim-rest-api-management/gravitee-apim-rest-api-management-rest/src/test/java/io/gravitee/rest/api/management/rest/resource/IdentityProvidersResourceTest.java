@@ -16,19 +16,24 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.configuration.identity.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import javax.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -109,6 +114,54 @@ public class IdentityProvidersResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void should_omit_client_secret_from_get_response() {
+        Map<String, Object> configuration = configurationWithSecret();
+        IdentityProviderEntity entity = new IdentityProviderEntity();
+        entity.setId(ID);
+        entity.setOrganization(GraviteeContext.getCurrentOrganization());
+        entity.setConfiguration(configuration);
+        when(identityProviderService.findById(ID)).thenReturn(entity);
+
+        final Response response = envTarget(ID).request().get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        assertClientSecretOmitted(response, configuration);
+    }
+
+    @Test
+    public void should_omit_client_secret_from_create_response() {
+        Map<String, Object> configuration = configurationWithSecret();
+        IdentityProviderEntity created = new IdentityProviderEntity();
+        created.setId(ID);
+        created.setConfiguration(configuration);
+        doReturn(created).when(identityProviderService).create(eq(GraviteeContext.getExecutionContext()), any());
+
+        NewIdentityProviderEntity newIdentityProviderEntity = new NewIdentityProviderEntity();
+        newIdentityProviderEntity.setName("my-idp-name");
+        newIdentityProviderEntity.setType(IdentityProviderType.GITHUB);
+        newIdentityProviderEntity.setConfiguration(Collections.emptyMap());
+
+        final Response response = envTarget().request().post(Entity.json(newIdentityProviderEntity));
+
+        assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
+        assertClientSecretOmitted(response, configuration);
+    }
+
+    @Test
+    public void should_omit_client_secret_from_update_response() {
+        Map<String, Object> configuration = configurationWithSecret();
+        IdentityProviderEntity updated = new IdentityProviderEntity();
+        updated.setId(ID);
+        updated.setConfiguration(configuration);
+        doReturn(updated).when(identityProviderService).update(eq(GraviteeContext.getExecutionContext()), eq(ID), any());
+
+        final Response response = envTarget(ID).request().put(Entity.json(buildIdpForUpdate()));
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        assertClientSecretOmitted(response, configuration);
+    }
+
+    @Test
     public void should_update_idp() {
         UpdateIdentityProviderEntity updateIdentityProviderEntity = buildIdpForUpdate();
 
@@ -138,6 +191,21 @@ public class IdentityProvidersResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
+    private static Map<String, Object> configurationWithSecret() {
+        Map<String, Object> configuration = new HashMap<>();
+        configuration.put("clientId", "client-id");
+        configuration.put("clientSecret", "stored-secret");
+        return configuration;
+    }
+
+    private static void assertClientSecretOmitted(Response response, Map<String, Object> storedConfiguration) {
+        JsonNode configuration = response.readEntity(JsonNode.class).get("configuration");
+        assertEquals("client-id", configuration.get("clientId").asText());
+        assertFalse(configuration.has("clientSecret"));
+        assertEquals("stored-secret", storedConfiguration.get("clientSecret"));
+    }
+
+    @NotNull
     private UpdateIdentityProviderEntity buildIdpForUpdate() {
         UpdateIdentityProviderEntity updateIdentityProviderEntity = new UpdateIdentityProviderEntity();
         updateIdentityProviderEntity.setName("my-idp-name");

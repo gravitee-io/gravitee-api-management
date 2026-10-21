@@ -70,6 +70,8 @@ describe('OrgSettingsIdentityProviderOidcComponent', () => {
       userInfoEndpoint: 'https://idp.example/userinfo',
       tokenEndpointAuthMethod: 'none',
     });
+    // Re-run validators that depend on tokenEndpointAuthMethod (sibling control).
+    component.configurationFormGroup.get('clientSecret').updateValueAndValidity();
     fixture.detectChanges();
 
     expect(component.configurationFormGroup.get('clientSecret').valid).toBe(true);
@@ -85,10 +87,12 @@ describe('OrgSettingsIdentityProviderOidcComponent', () => {
       userInfoEndpoint: 'https://idp.example/userinfo',
       tokenEndpointAuthMethod: 'client_secret_basic',
     });
+    component.configurationFormGroup.get('clientSecret').updateValueAndValidity();
     component.configurationFormGroup.get('clientSecret').markAsTouched();
     fixture.detectChanges();
 
+    // Client Secret UI lives on the parent form; this provider form still carries the validator.
     expect(component.configurationFormGroup.get('clientSecret').valid).toBe(false);
-    expect(fixture.nativeElement.textContent).toContain('Client Secret is required.');
+    expect(component.configurationFormGroup.get('clientSecret').hasError('required')).toBe(true);
   });
 });
