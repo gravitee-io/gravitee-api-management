@@ -1,0 +1,38 @@
+suite: Test Management API default configmap - LDAP identity provider
+templates:
+  - "api/api-configmap.yaml"
+tests:
+  - it: Doesn't restrict the LDAP user search by default
+    template: api/api-configmap.yaml
+    set:
+      ldap:
+        enabled: true
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            lookup:
+                    allow-email-in-search-results: false
+                    user:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "activations:"
+  - it: Restricts the LDAP user search to the activations
+    template: api/api-configmap.yaml
+    set:
+      ldap:
+        enabled: true
+        lookup:
+          activations:
+            - DEFAULT
+            - DEFAULT:DEFAULT
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            lookup:
+                    allow-email-in-search-results: false
+                    activations:
+                      - "DEFAULT"
+                      - "DEFAULT:DEFAULT"
+                    user:
