@@ -24,7 +24,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiKeyFixtures;
+import io.gravitee.apim.core.api_key.exception.ApiKeyIdAlreadyExistsException;
 import io.gravitee.apim.infra.adapter.ApiKeyAdapter;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
@@ -108,6 +110,15 @@ public class ApiKeyCrudServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalManagementException.class)
                 .hasMessage("An error occurs while trying to create the api key: api-key-id");
+        }
+
+        @Test
+        void should_report_an_existing_id_apart_from_other_errors() throws TechnicalException {
+            when(apiKeyRepository.create(any())).thenThrow(new DuplicateKeyException("duplicate id"));
+
+            Throwable throwable = catchThrowable(() -> service.create(ApiKeyFixtures.anApiKey()));
+
+            assertThat(throwable).isInstanceOf(ApiKeyIdAlreadyExistsException.class).hasMessageContaining("api-key-id");
         }
     }
 
