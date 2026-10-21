@@ -19,12 +19,14 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -379,6 +381,27 @@ public class ApiSearchServiceImplTest {
         assertThat(indexableApi).isNotNull();
         assertThat(indexableApi).isInstanceOf(io.gravitee.rest.api.model.api.ApiEntity.class);
         Assertions.assertThat(indexableApi.getCategories()).containsExactlyInAnyOrder(categoryKey1, categoryKey2);
+    }
+
+    @Test
+    public void should_not_find_generic_api_from_another_environment() throws TechnicalException {
+        api.setEnvironmentId("other-environment");
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        assertThrows(ApiNotFoundException.class, () ->
+            apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID, false, false, false)
+        );
+        verifyNoInteractions(primaryOwnerService, integrationRepository);
+    }
+
+    @Test
+    public void should_not_enrich_missing_generic_api() throws TechnicalException {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
+
+        assertThrows(ApiNotFoundException.class, () ->
+            apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID, false, false, false)
+        );
+        verifyNoInteractions(primaryOwnerService, integrationRepository);
     }
 
     @Test(expected = ApiNotFoundException.class)
