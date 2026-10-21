@@ -516,7 +516,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
         if (
             applicationCriteria != null &&
             applicationCriteria.getRestrictedToIds() != null &&
-            isEmpty(applicationCriteria.getRestrictedToIds())
+            applicationCriteria.getRestrictedToIds().isEmpty()
         ) {
             return List.of();
         }
