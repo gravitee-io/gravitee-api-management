@@ -30,11 +30,24 @@ public class ApiKeyCrudServiceInMemory implements ApiKeyCrudService, InMemoryAlt
     /** Writes are atomic, like on a database, so that tests can run several requests at once (writes lock the storage). */
     final ArrayList<ApiKeyEntity> storage = new ArrayList<>();
 
-    /** Like the repositories: an existing id is rejected. */
+    private final boolean rejectsExistingIds;
+
+    public ApiKeyCrudServiceInMemory() {
+        this(false);
+    }
+
+    /**
+     * @param rejectsExistingIds whether {@link #create(ApiKeyEntity)} rejects an existing id, like the repositories. Off by
+     * default: some tests create several keys with the same generated id.
+     */
+    public ApiKeyCrudServiceInMemory(boolean rejectsExistingIds) {
+        this.rejectsExistingIds = rejectsExistingIds;
+    }
+
     @Override
     public ApiKeyEntity create(ApiKeyEntity apiKey) {
         synchronized (storage) {
-            if (this.findIndex(this.storage, stored -> stored.getId().equals(apiKey.getId())).isPresent()) {
+            if (rejectsExistingIds && this.findIndex(this.storage, stored -> stored.getId().equals(apiKey.getId())).isPresent()) {
                 throw new ApiKeyIdAlreadyExistsException(apiKey.getId(), null);
             }
             storage.add(apiKey);

@@ -96,7 +96,7 @@ class GenerateApiKeyDomainServiceTest {
         .build();
     private static final AuditInfo AUDIT_INFO = anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
-    ApiKeyCrudServiceInMemory apiKeyCrudService = new ApiKeyCrudServiceInMemory();
+    ApiKeyCrudServiceInMemory apiKeyCrudService = new ApiKeyCrudServiceInMemory(true);
     ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
