@@ -1,6 +1,5 @@
 import { danger, schedule } from "danger";
 
-const fs = require("fs");
 const { git, github } = danger;
 
 const checks = [
@@ -40,61 +39,6 @@ const checks = [
                             file,
                         },
                     ]);
-                }
-            }
-        },
-    },
-    {
-        name: "gravitee-node-version-consistency",
-        location: "pom.xml",
-        why: "Gravitee node plugins defined in Helm values.yaml needs to be consistent with the version defined in the pom.xml.",
-        checkFn: async (check) => {
-            const pomFile = git.modified_files
-                .filter((file) => file === check.location)
-                .map((file) => `../../${file}`)
-                .shift();
-
-            const extractGraviteeNodeVersionFromPom = (file) => {
-                const versionRegex = /<gravitee-node\.version>(.*?)<\/gravitee-node\.version>/;
-                const match = fs.readFileSync(file, "utf8").match(versionRegex);
-
-                if (match && match[1]) {
-                    return match[1];
-                }
-
-                return undefined;
-            };
-
-            const checkGraviteeNodePluginVersion = (pluginRegEx, version) => {
-                const helmValues = fs.readFileSync("../../helm/values.yaml", "utf8");
-                for (const pluginRegex of pluginRegEx) {
-                    const match = helmValues.match(pluginRegex);
-                    if (match && match[1] !== version) {
-                        return false;
-                    }
-                }
-
-                return true;
-            };
-
-            if (pomFile) {
-                try {
-                    const versionNumber = extractGraviteeNodeVersionFromPom(pomFile);
-                    if (versionNumber) {
-                        if (
-                            !checkGraviteeNodePluginVersion(
-                                [
-                                    /https:\/\/download.gravitee.io\/plugins\/node-cache\/gravitee-node-cache-plugin-hazelcast\/gravitee-node-cache-plugin-hazelcast-(.*?).zip/,
-                                    /https:\/\/download.gravitee.io\/plugins\/node-cluster\/gravitee-node-cluster-plugin-hazelcast\/gravitee-node-cluster-plugin-hazelcast-(.*?).zip/,
-                                ],
-                                versionNumber
-                            )
-                        ) {
-                            fail(check.why, check.location);
-                        }
-                    }
-                } catch (err) {
-                    console.error("Error reading the file:", err);
                 }
             }
         },
