@@ -34,6 +34,7 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -112,17 +113,19 @@ public class ApiSubscriptionsResource extends AbstractResource {
             .consumerConfiguration(SubscriptionMapper.INSTANCE.toConsumerConfiguration(spec.getConsumerConfiguration()))
             .build();
 
-        requireCreateOrUpdateOn(
-            RolePermission.API_SUBSCRIPTION,
+        var existing = subscriptionQueryService.findByIdAndReferenceIdAndReferenceType(
+            subscriptionCRDSpec.getId(),
             subscriptionCRDSpec.getReferenceId(),
-            subscriptionQueryService
-                .findByIdAndReferenceIdAndReferenceType(
-                    subscriptionCRDSpec.getId(),
-                    subscriptionCRDSpec.getReferenceId(),
-                    SubscriptionReferenceType.API
-                )
-                .isPresent()
+            SubscriptionReferenceType.API
         );
+        requireCreateOrUpdateOn(RolePermission.API_SUBSCRIPTION, subscriptionCRDSpec.getReferenceId(), existing.isPresent());
+        // Creating or restoring a subscription gives the application access, so the caller must be allowed to subscribe it
+        if (
+            existing.map(subscription -> subscription.isClosed()).orElse(true) &&
+            !hasPermission(executionContext, RolePermission.APPLICATION_SUBSCRIPTION, subscriptionCRDSpec.getApplicationId(), CREATE)
+        ) {
+            throw new ForbiddenAccessException();
+        }
 
         SubscriptionCRDStatus status = importSubscriptionCRDUseCase
             .execute(new ImportSubscriptionCRDUseCase.Input(auditInfo, subscriptionCRDSpec.getReferenceId(), subscriptionCRDSpec))
