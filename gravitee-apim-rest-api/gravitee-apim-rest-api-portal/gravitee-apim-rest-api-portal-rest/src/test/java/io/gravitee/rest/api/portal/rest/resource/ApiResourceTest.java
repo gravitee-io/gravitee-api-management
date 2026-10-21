@@ -20,6 +20,7 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import inmemory.MembershipQueryServiceInMemory;
@@ -40,6 +41,8 @@ import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
 import io.gravitee.rest.api.portal.rest.resource.param.PortalApiViewParam;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -50,6 +53,9 @@ import java.util.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
@@ -240,14 +246,50 @@ public class ApiResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldGetApiLinks() {
+    public void should_return_not_found_for_api_links_when_access_is_denied() {
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(false);
+
+        final Response response = target(API).path("links").request().get();
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        assertEquals(1, errorResponse.getErrors().size());
+        assertEquals("errors.api.notFound", errorResponse.getErrors().getFirst().getCode());
+        verifyNoInteractions(pageService);
+    }
+
+    @Test
+    public void should_return_not_found_for_api_links_when_api_lookup_fails() {
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenThrow(
+            new ApiNotFoundException(API)
+        );
+
+        final Response response = target(API).path("links").request().get();
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        assertEquals(1, errorResponse.getErrors().size());
+        assertEquals("errors.api.notFound", errorResponse.getErrors().getFirst().getCode());
+        verifyNoInteractions(pageService);
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = "fr")
+    public void should_get_accessible_api_links(String locale) {
         resetAllMocks();
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
 
         PageEntity sysFolder = new PageEntity();
         sysFolder.setId("SYS_FOLDER");
         sysFolder.setType("SYSTEM_FOLDER");
         sysFolder.setName("SYSTEM_FOLDER");
         sysFolder.setPublished(true);
+
+        PageEntity unpublishedSysFolder = new PageEntity();
+        unpublishedSysFolder.setId("UNPUBLISHED_SYS_FOLDER");
+        unpublishedSysFolder.setType("SYSTEM_FOLDER");
+        unpublishedSysFolder.setPublished(false);
 
         PageEntity linkSysFolder = new PageEntity();
         linkSysFolder.setId("LINK_SYS_FOLDER");
@@ -288,13 +330,20 @@ public class ApiResourceTest extends AbstractResourceTest {
         markdownTemplate.setName("MARKDOWN_TEMPLATE");
         markdownTemplate.setPublished(true);
 
-        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(PageQuery.class), isNull())).thenAnswer(
+        PageEntity inaccessiblePage = new PageEntity();
+        inaccessiblePage.setId("INACCESSIBLE_PAGE");
+        inaccessiblePage.setParentId("SYS_FOLDER");
+        inaccessiblePage.setType("MARKDOWN");
+        inaccessiblePage.setName("INACCESSIBLE_PAGE");
+        inaccessiblePage.setPublished(true);
+
+        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(PageQuery.class), eq(locale))).thenAnswer(
             (Answer<List<PageEntity>>) invocation -> {
                 PageQuery pq = invocation.getArgument(1);
                 if (PageType.SYSTEM_FOLDER.equals(pq.getType()) && API.equals(pq.getApi())) {
-                    return Collections.singletonList(sysFolder);
+                    return Arrays.asList(sysFolder, unpublishedSysFolder);
                 } else if ("SYS_FOLDER".equals(pq.getParent()) && API.equals(pq.getApi())) {
-                    return Arrays.asList(linkSysFolder, swaggerSysFolder, folderSysFolder, markdownTemplate);
+                    return Arrays.asList(linkSysFolder, swaggerSysFolder, folderSysFolder, markdownTemplate, inaccessiblePage);
                 } else if ("FOLDER_SYS_FOLDER".equals(pq.getParent()) && API.equals(pq.getApi())) {
                     return Collections.singletonList(markdownFolderSysFolder);
                 }
@@ -303,8 +352,9 @@ public class ApiResourceTest extends AbstractResourceTest {
         );
 
         when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(true);
+        when(accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), inaccessiblePage)).thenReturn(false);
 
-        final Response response = target(API).path("links").request().get();
+        final Response response = target(API).path("links").request().header(HttpHeaders.ACCEPT_LANGUAGE, locale).get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         final LinksResponse links = response.readEntity(LinksResponse.class);
