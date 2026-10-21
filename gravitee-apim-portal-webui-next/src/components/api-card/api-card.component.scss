@@ -33,6 +33,49 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   }
 
+  &__layout {
+    display: flex;
+    gap: 12px;
+  }
+
+  &__image {
+    display: flex;
+    flex: 0 0 48px;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    overflow: hidden;
+    border-radius: 8px;
+    background: theme.$primary-highlight-color;
+    color: theme.$primary-main-color;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  &__version {
+    color: theme.$paragraph-color;
+  }
+
+  &__details {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: theme.$paragraph-color;
+  }
+
   &__header {
     display: flex;
     flex-wrap: nowrap;

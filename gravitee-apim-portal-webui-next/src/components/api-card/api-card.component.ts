@@ -20,10 +20,11 @@ import { MatTooltip } from '@angular/material/tooltip';
 
 import { MatTooltipOnEllipsisDirective } from '../../directives/mat-tooltip-on-ellipsis.directive';
 import { BadgeComponent } from '../badge/badge.component';
+import { PictureComponent } from '../picture/picture.component';
 
 @Component({
   selector: 'app-api-card',
-  imports: [MatButtonModule, MatCardModule, MatTooltip, MatTooltipOnEllipsisDirective, BadgeComponent],
+  imports: [MatButtonModule, MatCardModule, MatTooltip, MatTooltipOnEllipsisDirective, BadgeComponent, PictureComponent],
   templateUrl: './api-card.component.html',
   styleUrl: './api-card.component.scss',
 })
@@ -32,6 +33,13 @@ export class ApiCardComponent {
   readonly showNotificationBell = input(false);
   readonly notificationsSubscribed = input(false);
   readonly notificationBusy = input(false);
+  readonly showName = input(true);
+  readonly showType = input(true);
+  readonly showImage = input(true);
+  readonly showVersion = input(true);
+  readonly showDescription = input(true);
+  readonly showStatus = input(true);
+  readonly showOwner = input(true);
 
   @Input({ required: true })
   apiId!: string;
@@ -45,6 +53,10 @@ export class ApiCardComponent {
   isEnabledMcpServer: boolean = false;
   @Input()
   content?: string;
+  @Input()
+  status?: string;
+  @Input()
+  ownerName?: string;
 
   cardSelect = output<string>();
   notificationToggle = output<string>();

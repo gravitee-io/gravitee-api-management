@@ -1,0 +1,88 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<portal-header
+  title="Catalog"
+  subtitle="Choose which details appear on API tiles in the next-gen portal catalog."
+/>
+
+@if (settingsResource.isLoading() && !tileForm()) {
+  <div class="loading" data-testid="catalog-tile-loading"><gio-loader /></div>
+} @else if (settingsResource.error() && !tileForm()) {
+  <gio-banner-error data-testid="catalog-tile-load-error">
+    Catalog tile settings could not be loaded.
+    <span gioBannerBody>Retry the request or contact your administrator if the problem persists.</span>
+    <div gioBannerAction>
+      <button mat-stroked-button type="button" (click)="retry()">Retry</button>
+    </div>
+  </gio-banner-error>
+} @else if (tileForm(); as form) {
+  <form class="catalog-tile" [formGroup]="form" (ngSubmit)="save()">
+    <div class="catalog-tile__layout">
+      <mat-card appearance="outlined" class="catalog-tile__fields">
+        <mat-card-header>
+          <mat-card-title>Tile fields</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @for (field of fields; track field.key) {
+            <mat-checkbox [formControlName]="field.key">{{ field.label }}</mat-checkbox>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <section class="catalog-tile__preview" aria-label="Catalog tile preview">
+        <h2 class="catalog-tile__preview-title">Preview</h2>
+        <p class="catalog-tile__preview-hint">How an API tile looks in the next-gen portal catalog.</p>
+        <article class="tile">
+          @if (form.controls.image.value) {
+            <div class="tile__image" aria-hidden="true">
+              <span class="material-icons">api</span>
+            </div>
+          }
+          <div class="tile__body">
+            <div class="tile__header">
+              @if (form.controls.name.value) {
+                <h3 class="tile__name">{{ preview.name }}</h3>
+              }
+              @if (form.controls.type.value) {
+                <span class="tile__badge">{{ preview.type }}</span>
+              }
+            </div>
+            @if (form.controls.version.value) {
+              <div class="tile__meta">Version {{ preview.version }}</div>
+            }
+            @if (form.controls.description.value) {
+              <p class="tile__description">{{ preview.description }}</p>
+            }
+            @if (form.controls.status.value || form.controls.owner.value) {
+              <div class="tile__footer">
+                @if (form.controls.status.value) {
+                  <span>{{ preview.status }}</span>
+                }
+                @if (form.controls.owner.value) {
+                  <span>{{ preview.owner }}</span>
+                }
+              </div>
+            }
+          </div>
+        </article>
+      </section>
+    </div>
+
+    <gio-save-bar [form]="form" [formInitialValues]="formInitialValues()" (resetClicked)="reset()" />
+  </form>
+}

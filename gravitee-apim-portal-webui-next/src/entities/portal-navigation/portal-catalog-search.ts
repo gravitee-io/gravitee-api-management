@@ -16,6 +16,7 @@
 
 import type { PortalNavigationSearchMetadata } from './portal-navigation-apis-search';
 import { ApiLinks } from '../api/api-links';
+import { ApiType } from '../api/api';
 import { Mcp } from '../api/mcp';
 import { ApiProductApi } from '../api-product/api-product';
 import { Links } from '../pagination/links';
@@ -38,6 +39,9 @@ export interface PortalCatalogApiSearchItem {
   _links?: ApiLinks;
   mcp?: Mcp;
   labels?: string[];
+  apiType?: ApiType;
+  running?: boolean;
+  ownerName?: string;
   rootId: string;
   navItemId: string;
   categoryIds?: string[];

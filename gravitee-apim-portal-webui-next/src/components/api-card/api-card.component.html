@@ -25,28 +25,55 @@
   (keydown.space)="$event.preventDefault(); cardSelect.emit(apiId)"
 >
   <mat-card-content class="api-card__content">
-    <div class="api-card__header">
-      <div class="api-card__header__content">
-        <div class="api-card__title next-gen-h5" data-testid="api-card-title" [matTooltip]="title" appMatTooltipOnEllipsis>
-          {{ title }}
+    <div class="api-card__layout">
+      @if (showImage()) {
+        <div class="api-card__image">
+          <app-picture [picture]="picture" [hashValue]="title + ' ' + version" [size]="48" />
         </div>
-      </div>
-      <div class="api-card__badges">
-        @if (typeLabel()) {
-          <app-badge data-testid="api-type-badge" [label]="typeLabel()!" />
-        }
-        @if (isEnabledMcpServer) {
-          <app-badge data-testid="api-mcp-badge" i18n-label label="MCP" i18n-matTooltip matTooltip="MCP available for this API" />
-        }
-      </div>
-    </div>
-
-    <div class="api-card__description next-gen-body">
-      @if (content) {
-        {{ content }}
-      } @else {
-        <span i18n="@@apiDescriptionMissing">Description for this API is missing.</span>
       }
+      <div class="api-card__body">
+        <div class="api-card__header">
+          <div class="api-card__header__content">
+            @if (showName()) {
+              <div class="api-card__title next-gen-h5" data-testid="api-card-title" [matTooltip]="title" appMatTooltipOnEllipsis>
+                {{ title }}
+              </div>
+            }
+            @if (showVersion() && version) {
+              <div class="api-card__version next-gen-small" data-testid="api-card-version">{{ version }}</div>
+            }
+          </div>
+          <div class="api-card__badges">
+            @if (showType() && typeLabel()) {
+              <app-badge data-testid="api-type-badge" [label]="typeLabel()!" />
+            }
+            @if (isEnabledMcpServer) {
+              <app-badge data-testid="api-mcp-badge" i18n-label label="MCP" i18n-matTooltip matTooltip="MCP available for this API" />
+            }
+          </div>
+        </div>
+
+        @if (showDescription()) {
+          <div class="api-card__description next-gen-body">
+            @if (content) {
+              {{ content }}
+            } @else {
+              <span i18n="@@apiDescriptionMissing">Description for this API is missing.</span>
+            }
+          </div>
+        }
+
+        @if ((showStatus() && status) || (showOwner() && ownerName)) {
+          <div class="api-card__details next-gen-small">
+            @if (showStatus() && status) {
+              <span data-testid="api-card-status">{{ status }}</span>
+            }
+            @if (showOwner() && ownerName) {
+              <span data-testid="api-card-owner">{{ ownerName }}</span>
+            }
+          </div>
+        }
+      </div>
     </div>
 
     @if (showNotificationBell()) {

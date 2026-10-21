@@ -41,6 +41,16 @@
         margin: 0;
       }
     }
+
+    &__controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+
+      app-search-bar {
+        width: 280px;
+      }
+    }
   }
 
   &__content {

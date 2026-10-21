@@ -20,6 +20,7 @@ import { PortalNavigationComponent } from './navigation/portal-navigation.compon
 import { PortalThemeComponent } from './theme/portal-theme.component';
 import { PortalNavigationItemsComponent } from './navigation-items/portal-navigation-items.component';
 import { PortalCatalogComponent } from './catalog/portal-catalog.component';
+import { CatalogTileComponent } from './catalog-tile/catalog-tile.component';
 import { CategoryCatalogComponent } from './catalog/category/category.component';
 import { CategoryListComponent } from './catalog/category-list/category-list.component';
 import { HomepageComponent } from './homepage/homepage.component';
@@ -82,6 +83,16 @@ const portalRoutes: Routes = [
             },
           },
         ],
+      },
+      {
+        path: 'api-catalog',
+        component: CatalogTileComponent,
+        canDeactivate: [HasUnsavedChangesGuard],
+        data: {
+          permissions: {
+            anyOf: ['environment-settings-r', 'environment-settings-u'],
+          },
+        },
       },
       {
         path: 'theme',

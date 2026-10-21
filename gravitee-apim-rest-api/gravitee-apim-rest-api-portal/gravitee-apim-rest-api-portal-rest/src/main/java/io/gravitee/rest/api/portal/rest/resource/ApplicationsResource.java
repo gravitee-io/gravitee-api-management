@@ -155,7 +155,8 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
     public Response getApplications(
         @BeanParam PaginationParam paginationParam,
         @QueryParam("forSubscription") final boolean forSubscription,
-        @QueryParam("order") @DefaultValue("name") final ApplicationsOrderParam applicationsOrderParam
+        @QueryParam("order") @DefaultValue("name") final ApplicationsOrderParam applicationsOrderParam,
+        @QueryParam("query") final String query
     ) {
         if (!paginationParam.hasPagination()) {
             return getAllApplications(applicationsOrderParam);
@@ -176,6 +177,7 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
             ApplicationQuery applicationQuery = ApplicationQuery.builder()
                 .user(getAuthenticatedUser())
                 .status(ApplicationStatus.ACTIVE.name())
+                .query(query != null && !query.isBlank() ? query : null)
                 .build();
             Page<ApplicationListItem> applicationPage = applicationService.search(
                 executionContext,

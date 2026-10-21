@@ -54,7 +54,7 @@ export class ApplicationService {
       .pipe(map(response => response.data ?? []));
   }
 
-  list(page?: number, size?: number, forSubscription?: boolean): Observable<ApplicationsResponse> {
+  list(page?: number, size?: number, forSubscription?: boolean, query?: string): Observable<ApplicationsResponse> {
     const pageParam = page ? 'page=' + page : 'page=1';
     const perPageParam = size ? 'size=' + size : 'size=10';
 
@@ -62,6 +62,11 @@ export class ApplicationService {
 
     if (forSubscription !== undefined) {
       paramList.push('forSubscription=' + forSubscription);
+    }
+
+    const trimmedQuery = query?.trim();
+    if (trimmedQuery) {
+      paramList.push('query=' + encodeURIComponent(trimmedQuery));
     }
 
     return this.http.get<ApplicationsResponse>(`${this.configService.baseURL}/applications?${paramList.join('&')}`);

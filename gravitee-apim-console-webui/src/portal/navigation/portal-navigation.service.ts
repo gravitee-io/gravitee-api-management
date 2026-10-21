@@ -39,10 +39,16 @@ export class PortalNavigationService {
 
   private allMenuItems: MenuItemConfig[] = [
     {
-      displayName: 'Catalog',
+      displayName: 'Category',
       routerLink: 'catalog',
       icon: 'gio:report-columns',
       permissions: ['environment-category-r', 'environment-category-u'],
+    },
+    {
+      displayName: 'Catalog',
+      routerLink: 'api-catalog',
+      icon: 'gio:dashboard-dots',
+      permissions: ['environment-settings-r', 'environment-settings-u'],
     },
     {
       displayName: 'Navigation',

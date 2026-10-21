@@ -71,7 +71,16 @@
       }
     },
     "catalog": {
-      "viewMode": "TABS"
+      "viewMode": "TABS",
+      "tile": {
+        "name": { "enabled": true },
+        "type": { "enabled": true },
+        "image": { "enabled": true },
+        "version": { "enabled": true },
+        "description": { "enabled": true },
+        "status": { "enabled": true },
+        "owner": { "enabled": true }
+      }
     }
   },
   "authentication" : {

@@ -153,6 +153,35 @@ public class ConfigurationMapper {
         ConfigurationPortalNextCatalog configuration = new ConfigurationPortalNextCatalog();
         if (!Objects.isNull(catalog)) {
             configuration.setViewMode(catalog.getViewMode());
+            if (catalog.getTile() != null) {
+                configuration.setTile(convert(catalog.getTile()));
+            }
+        }
+        return configuration;
+    }
+
+    private ConfigurationPortalNextCatalogTile convert(PortalNext.Catalog.Tile tile) {
+        ConfigurationPortalNextCatalogTile configuration = new ConfigurationPortalNextCatalogTile();
+        if (tile.getName() != null) {
+            configuration.setName(convert(tile.getName()));
+        }
+        if (tile.getType() != null) {
+            configuration.setType(convert(tile.getType()));
+        }
+        if (tile.getImage() != null) {
+            configuration.setImage(convert(tile.getImage()));
+        }
+        if (tile.getVersion() != null) {
+            configuration.setVersion(convert(tile.getVersion()));
+        }
+        if (tile.getDescription() != null) {
+            configuration.setDescription(convert(tile.getDescription()));
+        }
+        if (tile.getStatus() != null) {
+            configuration.setStatus(convert(tile.getStatus()));
+        }
+        if (tile.getOwner() != null) {
+            configuration.setOwner(convert(tile.getOwner()));
         }
         return configuration;
     }

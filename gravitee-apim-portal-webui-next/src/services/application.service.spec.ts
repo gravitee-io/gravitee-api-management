@@ -51,6 +51,18 @@ describe('ApplicationService', () => {
     req.flush(applicationResponse);
   });
 
+  it('should search applications by name', done => {
+    const applicationResponse: ApplicationsResponse = fakeApplicationsResponse();
+    service.list(1, 20, undefined, 'Payments').subscribe(response => {
+      expect(response).toMatchObject(applicationResponse);
+      done();
+    });
+
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications?page=1&size=20&query=Payments`);
+    expect(req.request.method).toEqual('GET');
+    req.flush(applicationResponse);
+  });
+
   it('should return application', done => {
     const application: Application = fakeApplication();
     service.get(applicationId).subscribe(response => {

@@ -285,7 +285,18 @@ export interface PortalSettingsPortalNext {
   catalog?: {
     viewMode?: string;
     fuzzySearch?: { enabled?: boolean };
+    tile?: PortalCatalogTileSettings;
   };
+}
+
+export interface PortalCatalogTileSettings {
+  name?: { enabled?: boolean };
+  type?: { enabled?: boolean };
+  image?: { enabled?: boolean };
+  version?: { enabled?: boolean };
+  description?: { enabled?: boolean };
+  status?: { enabled?: boolean };
+  owner?: { enabled?: boolean };
 }
 
 export interface BannerButton {

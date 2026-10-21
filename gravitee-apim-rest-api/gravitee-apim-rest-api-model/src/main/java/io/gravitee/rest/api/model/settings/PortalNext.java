@@ -15,12 +15,17 @@
  */
 package io.gravitee.rest.api.model.settings;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author Sergii ILLICHEVSKYI (sergii.illichevskyi at graviteesource.com)
@@ -157,5 +162,113 @@ public class PortalNext {
 
         @ParameterKey(Key.PORTAL_NEXT_SEARCH_FUZZY)
         private Enabled fuzzySearch;
+
+        // Stored on Catalog itself so the existing settings loader, which only walks this object,
+        // persists them. JSON still exposes the nested "tile" object the console and portal use.
+        @JsonIgnore
+        @Getter(AccessLevel.NONE)
+        @Setter(AccessLevel.NONE)
+        @ParameterKey(Key.PORTAL_NEXT_CATALOG_TILE_NAME_ENABLED)
+        private Enabled tileName;
+
+        @JsonIgnore
+        @Getter(AccessLevel.NONE)
+        @Setter(AccessLevel.NONE)
+        @ParameterKey(Key.PORTAL_NEXT_CATALOG_TILE_TYPE_ENABLED)
+        private Enabled tileType;
+
+        @JsonIgnore
+        @Getter(AccessLevel.NONE)
+        @Setter(AccessLevel.NONE)
+        @ParameterKey(Key.PORTAL_NEXT_CATALOG_TILE_IMAGE_ENABLED)
+        private Enabled tileImage;
+
+        @JsonIgnore
+        @Getter(AccessLevel.NONE)
+        @Setter(AccessLevel.NONE)
+        @ParameterKey(Key.PORTAL_NEXT_CATALOG_TILE_VERSION_ENABLED)
+        private Enabled tileVersion;
+
+        @JsonIgnore
+        @Getter(AccessLevel.NONE)
+        @Setter(AccessLevel.NONE)
+        @ParameterKey(Key.PORTAL_NEXT_CATALOG_TILE_DESCRIPTION_ENABLED)
+        private Enabled tileDescription;
+
+        @JsonIgnore
+        @Getter(AccessLevel.NONE)
+        @Setter(AccessLevel.NONE)
+        @ParameterKey(Key.PORTAL_NEXT_CATALOG_TILE_STATUS_ENABLED)
+        private Enabled tileStatus;
+
+        @JsonIgnore
+        @Getter(AccessLevel.NONE)
+        @Setter(AccessLevel.NONE)
+        @ParameterKey(Key.PORTAL_NEXT_CATALOG_TILE_OWNER_ENABLED)
+        private Enabled tileOwner;
+
+        public Catalog() {
+            this.tileName = new Enabled(true);
+            this.tileType = new Enabled(true);
+            this.tileImage = new Enabled(true);
+            this.tileVersion = new Enabled(true);
+            this.tileDescription = new Enabled(true);
+            this.tileStatus = new Enabled(true);
+            this.tileOwner = new Enabled(true);
+        }
+
+        @JsonProperty("tile")
+        public Tile getTile() {
+            Tile tile = new Tile();
+            tile.setName(tileName);
+            tile.setType(tileType);
+            tile.setImage(tileImage);
+            tile.setVersion(tileVersion);
+            tile.setDescription(tileDescription);
+            tile.setStatus(tileStatus);
+            tile.setOwner(tileOwner);
+            return tile;
+        }
+
+        @JsonProperty("tile")
+        public void setTile(Tile tile) {
+            if (tile == null) {
+                return;
+            }
+            if (tile.getName() != null) {
+                this.tileName = tile.getName();
+            }
+            if (tile.getType() != null) {
+                this.tileType = tile.getType();
+            }
+            if (tile.getImage() != null) {
+                this.tileImage = tile.getImage();
+            }
+            if (tile.getVersion() != null) {
+                this.tileVersion = tile.getVersion();
+            }
+            if (tile.getDescription() != null) {
+                this.tileDescription = tile.getDescription();
+            }
+            if (tile.getStatus() != null) {
+                this.tileStatus = tile.getStatus();
+            }
+            if (tile.getOwner() != null) {
+                this.tileOwner = tile.getOwner();
+            }
+        }
+
+        @Data
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        public static class Tile {
+
+            private Enabled name;
+            private Enabled type;
+            private Enabled image;
+            private Enabled version;
+            private Enabled description;
+            private Enabled status;
+            private Enabled owner;
+        }
     }
 }

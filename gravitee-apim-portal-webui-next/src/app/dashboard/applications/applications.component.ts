@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Signal, computed, inject, signal } from '@angular/core';
+import { Component, Signal, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
@@ -26,6 +26,7 @@ import { ApplicationCardComponent } from '../../../components/application-card/a
 import { CardsGridComponent } from '../../../components/cards-grid/cards-grid.component';
 import { LoaderComponent } from '../../../components/loader/loader.component';
 import { PaginationComponent } from '../../../components/pagination/pagination.component';
+import { SearchBarComponent } from '../../../components/search-bar/search-bar.component';
 import { ApplicationService } from '../../../services/application.service';
 import { BreadcrumbService } from '../../../services/breadcrumb.service';
 import { CurrentUserService } from '../../../services/current-user.service';
@@ -42,7 +43,16 @@ export interface ApplicationPaginatorVM {
 
 @Component({
   selector: 'app-applications',
-  imports: [ApplicationCardComponent, CardsGridComponent, MatButton, MatIcon, PaginationComponent, RouterLink, LoaderComponent],
+  imports: [
+    ApplicationCardComponent,
+    CardsGridComponent,
+    MatButton,
+    MatIcon,
+    PaginationComponent,
+    RouterLink,
+    LoaderComponent,
+    SearchBarComponent,
+  ],
   templateUrl: './applications.component.html',
   styleUrl: './applications.component.scss',
 })
@@ -56,6 +66,7 @@ export default class ApplicationsComponent {
   canCreate = computed(() => this.currentUser().permissions?.APPLICATION?.includes('C') || false);
 
   private readonly activatedRoute = inject(ActivatedRoute);
+  protected readonly query = toSignal(this.activatedRoute.queryParams.pipe(map(params => params['query'] ?? '')), { initialValue: '' });
   private readonly applicationService = inject(ApplicationService);
   private readonly router = inject(Router);
   private readonly breadcrumbService = inject(BreadcrumbService);
@@ -67,6 +78,10 @@ export default class ApplicationsComponent {
 
   constructor() {
     this.breadcrumbService.set([applicationListBreadcrumb()]);
+    effect(() => {
+      this.query();
+      this.page$.next(1);
+    });
   }
 
   onPageChange(page: number) {
@@ -82,12 +97,24 @@ export default class ApplicationsComponent {
     this.router.navigate([id], { relativeTo: this.activatedRoute });
   }
 
+  onSearchResults(searchInput: string) {
+    if (searchInput !== this.query()) {
+      this.router.navigate([], {
+        relativeTo: this.activatedRoute,
+        queryParams: { query: searchInput || null },
+        queryParamsHandling: 'merge',
+      });
+    }
+  }
+
   private loadApplications$() {
     return this.page$.pipe(
-      map(currentPage => ({ currentPage, pageSize: this.pageSize })),
-      distinctUntilChanged((prev, curr) => prev.currentPage === curr.currentPage && prev.pageSize === curr.pageSize),
+      map(currentPage => ({ currentPage, pageSize: this.pageSize, query: this.query() })),
+      distinctUntilChanged(
+        (prev, curr) => prev.currentPage === curr.currentPage && prev.pageSize === curr.pageSize && prev.query === curr.query,
+      ),
       tap(_ => this.loadingPage.set(true)),
-      switchMap(({ currentPage, pageSize }) => this.applicationService.list(currentPage, pageSize)),
+      switchMap(({ currentPage, pageSize, query }) => this.applicationService.list(currentPage, pageSize, undefined, query)),
       map(resp => {
         const data = resp.data
           ? resp.data.map(application => ({

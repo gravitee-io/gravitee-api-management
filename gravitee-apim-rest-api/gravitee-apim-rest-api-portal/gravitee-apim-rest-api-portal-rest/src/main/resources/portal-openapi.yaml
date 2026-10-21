@@ -850,6 +850,12 @@ paths:
                 - $ref: "#/components/parameters/pageSizeParam"
                 - $ref: "#/components/parameters/forSubscriptionParam"
                 - $ref: "#/components/parameters/applicationOrderQueryParam"
+                - name: query
+                  in: query
+                  description: Filter applications by name. The match is case-insensitive.
+                  required: false
+                  schema:
+                      type: string
             summary: List all the applications accessible to authenticated user. Default order is by *name* ASC.
             description: |
                 List all the applications accessible to authenticated user.
@@ -7452,6 +7458,26 @@ components:
                     description: View mode used by the Catalog. If the value is invalid, the TABS view will be shown by default.
                     type: string
                     example: TABS
+                tile:
+                    $ref: "#/components/schemas/ConfigurationPortalNextCatalogTile"
+        ConfigurationPortalNextCatalogTile:
+            type: object
+            description: Fields displayed on an API tile in the Portal Next catalog
+            properties:
+                name:
+                    $ref: "#/components/schemas/Enabled"
+                type:
+                    $ref: "#/components/schemas/Enabled"
+                image:
+                    $ref: "#/components/schemas/Enabled"
+                version:
+                    $ref: "#/components/schemas/Enabled"
+                description:
+                    $ref: "#/components/schemas/Enabled"
+                status:
+                    $ref: "#/components/schemas/Enabled"
+                owner:
+                    $ref: "#/components/schemas/Enabled"
         ConfigurationPortalApis:
             properties:
                 tilesMode:

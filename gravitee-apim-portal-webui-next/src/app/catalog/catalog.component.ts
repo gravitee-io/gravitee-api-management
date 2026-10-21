@@ -41,6 +41,8 @@ import { PaginationComponent } from '../../components/pagination/pagination.comp
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { MobileClassDirective } from '../../directives/mobile-class.directive';
 import { PortalCategory } from '../../entities/categories/portal-category';
+import { catalogTileVisibility } from '../../entities/configuration/configuration-portal-next';
+import { ConfigService } from '../../services/config.service';
 import { ApiCatalogNotificationService } from '../../services/api-catalog-notification.service';
 import { CurrentUserService } from '../../services/current-user.service';
 import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
@@ -63,6 +65,9 @@ interface CatalogApiVM extends CatalogItemVM {
   isEnabledMcpServer: boolean;
   picture?: string;
   labels?: string[];
+  apiTypeLabel: string;
+  status?: string;
+  ownerName?: string;
 }
 
 interface CatalogApiProductVM extends CatalogItemVM {
@@ -115,6 +120,7 @@ export class CatalogComponent {
   viewMode = signal<'grid' | 'list'>('grid');
 
   private readonly portalNavigationItemsService = inject(PortalNavigationItemsService);
+  private readonly configService = inject(ConfigService);
   private readonly portalCategoriesService = inject(PortalCategoriesService);
   private readonly breakpointService = inject(ObservabilityBreakpointService);
   private readonly currentUserService = inject(CurrentUserService);
@@ -125,6 +131,7 @@ export class CatalogComponent {
   private readonly route = inject(ActivatedRoute);
   protected readonly isMobile = this.breakpointService.isMobile;
   protected readonly isAuthenticated = this.currentUserService.isUserAuthenticated;
+  protected readonly catalogTile = catalogTileVisibility(this.configService.configuration.portalNext?.catalog?.tile);
 
   private readonly page$ = new BehaviorSubject<number>(1);
   protected readonly query = toSignal(this.route.queryParams.pipe(map(p => p['query'] ?? '')), { initialValue: '' });
@@ -327,6 +334,9 @@ export class CatalogComponent {
               picture: item._links?.picture,
               isEnabledMcpServer: !!item.mcp,
               labels: item.labels,
+              apiTypeLabel: apiTypeLabel(item.apiType),
+              status: apiStatusLabel(item.running),
+              ownerName: item.ownerName,
               rootId: item.rootId,
               navItemId: item.navItemId,
               categoryIds: item.categoryIds,
@@ -358,4 +368,30 @@ export class CatalogComponent {
       tap(_ => this.loadingPage.set(false)),
     );
   }
+}
+
+function apiTypeLabel(apiType?: string): string {
+  switch (apiType) {
+    case 'PROXY':
+      return 'Proxy';
+    case 'MESSAGE':
+      return 'Message';
+    case 'NATIVE':
+      return 'Native';
+    case 'LLM_PROXY':
+      return 'LLM Proxy';
+    case 'MCP_PROXY':
+      return 'MCP Proxy';
+    case 'A2A_PROXY':
+      return 'A2A Proxy';
+    default:
+      return 'API';
+  }
+}
+
+function apiStatusLabel(running?: boolean): string | undefined {
+  if (running === undefined) {
+    return undefined;
+  }
+  return running ? 'Started' : 'Stopped';
 }

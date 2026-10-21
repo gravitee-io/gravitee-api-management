@@ -24,12 +24,20 @@
     </p>
   </div>
 
-  @if (canCreate()) {
-    <button mat-stroked-button class="secondary-button create-button" [routerLink]="['create']">
-      <mat-icon>add</mat-icon>
-      <span i18n="@@applicationsCreateButton">Create</span>
-    </button>
-  }
+  <div class="apps-list__header__controls">
+    <app-search-bar
+      (searchTerm)="onSearchResults($event)"
+      [searchParam]="query()"
+      i18n-placeholder="@@applicationsSearchPlaceholder"
+      placeholder="Search applications"
+    />
+    @if (canCreate()) {
+      <button mat-stroked-button class="secondary-button create-button" [routerLink]="['create']">
+        <mat-icon>add</mat-icon>
+        <span i18n="@@applicationsCreateButton">Create</span>
+      </button>
+    }
+  </div>
 </div>
 
 <div class="apps-list__content">
@@ -45,8 +53,15 @@
 
     <ng-container slot="empty-state">
       <span class="material-icons icon-with-background" aria-hidden="true">search</span>
-      <h2 class="next-gen-h5" i18n="@@noAppsAvailable">No applications available yet</h2>
-      <p class="next-gen-body" i18n="@@noAppsDescription">You haven't created any applications yet.</p>
+      @if (query()) {
+        <h2 class="next-gen-h5" i18n="@@noFilteredAppsAvailable">No applications found</h2>
+        <p class="next-gen-body" i18n="@@noFilteredAppsDescription">
+          Your search didn't return any applications. Try a different name.
+        </p>
+      } @else {
+        <h2 class="next-gen-h5" i18n="@@noAppsAvailable">No applications available yet</h2>
+        <p class="next-gen-body" i18n="@@noAppsDescription">You haven't created any applications yet.</p>
+      }
     </ng-container>
   </app-cards-grid>
   @if (loadingPage()) {

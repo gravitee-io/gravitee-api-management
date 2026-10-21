@@ -496,7 +496,27 @@ public enum Key {
     EXTERNAL_AUTH_ACCOUNT_DELETION_ENABLED("auth.external.allowAccountDeletion", "true", Set.of(SYSTEM)),
     USER_GROUP_REQUIRED_ENABLED("userGroup.required.enabled", Boolean.FALSE.toString(), Set.of(ORGANIZATION, ENVIRONMENT)),
 
-    KAFKA_CONSOLE_ENABLED("kafka.console.enabled", Boolean.FALSE.toString(), Set.of(KeyScope.SYSTEM));
+    KAFKA_CONSOLE_ENABLED("kafka.console.enabled", Boolean.FALSE.toString(), Set.of(KeyScope.SYSTEM)),
+
+    PORTAL_NEXT_CATALOG_TILE_NAME_ENABLED("portal.next.catalog.tile.name.enabled", "true", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_CATALOG_TILE_TYPE_ENABLED("portal.next.catalog.tile.type.enabled", "true", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_CATALOG_TILE_IMAGE_ENABLED("portal.next.catalog.tile.image.enabled", "true", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_CATALOG_TILE_VERSION_ENABLED(
+        "portal.next.catalog.tile.version.enabled",
+        "true",
+        new HashSet<>(singletonList(ENVIRONMENT))
+    ),
+    PORTAL_NEXT_CATALOG_TILE_DESCRIPTION_ENABLED(
+        "portal.next.catalog.tile.description.enabled",
+        "true",
+        new HashSet<>(singletonList(ENVIRONMENT))
+    ),
+    PORTAL_NEXT_CATALOG_TILE_STATUS_ENABLED(
+        "portal.next.catalog.tile.status.enabled",
+        "true",
+        new HashSet<>(singletonList(ENVIRONMENT))
+    ),
+    PORTAL_NEXT_CATALOG_TILE_OWNER_ENABLED("portal.next.catalog.tile.owner.enabled", "true", new HashSet<>(singletonList(ENVIRONMENT)));
 
     final String key;
     String defaultValue;

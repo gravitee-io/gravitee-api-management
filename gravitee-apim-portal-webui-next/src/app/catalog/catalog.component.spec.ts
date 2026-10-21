@@ -139,7 +139,7 @@ describe('CatalogComponent', () => {
 
     expect(apiCards).toHaveLength(2);
     expect(await apiCards[0].getTitle()).toBe('Weather API');
-    expect(await apiCards[0].getType()).toBe('API');
+    expect(await apiCards[0].getType()).toBe('Proxy');
     expect(await apiCards[1].isMcpServer()).toBe(true);
     expect(productCards).toHaveLength(1);
     expect(await productCards[0].getTitle()).toBe('AI Workspace');

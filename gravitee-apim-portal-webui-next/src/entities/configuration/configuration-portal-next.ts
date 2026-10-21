@@ -30,6 +30,7 @@ export class ConfigurationPortalNext {
   };
   catalog?: {
     viewMode?: 'TABS' | 'CATEGORIES';
+    tile?: PortalCatalogTileSettings;
   };
   analytics?: {
     enabled?: boolean;
@@ -40,6 +41,40 @@ export class ConfigurationPortalNext {
       transferOwnership?: { enabled?: boolean };
       invitations?: { enabled?: boolean };
     };
+  };
+}
+
+export interface PortalCatalogTileSettings {
+  name?: { enabled?: boolean };
+  type?: { enabled?: boolean };
+  image?: { enabled?: boolean };
+  version?: { enabled?: boolean };
+  description?: { enabled?: boolean };
+  status?: { enabled?: boolean };
+  owner?: { enabled?: boolean };
+}
+
+export interface CatalogTileVisibility {
+  name: boolean;
+  type: boolean;
+  image: boolean;
+  version: boolean;
+  description: boolean;
+  status: boolean;
+  owner: boolean;
+}
+
+/** Missing flags stay visible so existing portals keep the current tile until a setting is saved. */
+export function catalogTileVisibility(tile?: PortalCatalogTileSettings): CatalogTileVisibility {
+  const shown = (field?: { enabled?: boolean }) => field?.enabled !== false;
+  return {
+    name: shown(tile?.name),
+    type: shown(tile?.type),
+    image: shown(tile?.image),
+    version: shown(tile?.version),
+    description: shown(tile?.description),
+    status: shown(tile?.status),
+    owner: shown(tile?.owner),
   };
 }
 
