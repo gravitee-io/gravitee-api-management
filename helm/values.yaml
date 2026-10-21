@@ -169,6 +169,10 @@ ldap:
   lookup:
     allowEmailInSearchResults: false
     # Note that personal information can be exposed without user consentment
+    # Restrict the user search to the listed organizations (organization id, console user search) or
+    # environments (organization id:environment id, portal user search). Empty: searchable from every
+    # organization and portal. Authentication is not affected.
+    activations: []
     user:
       # Base to lookup user, must be relative to context.base
       base: ou=users

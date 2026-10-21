@@ -346,6 +346,12 @@ data:
                 }
           lookup:
             allow-email-in-search-results: {{ .Values.ldap.lookup.allowEmailInSearchResults }}
+            {{- if .Values.ldap.lookup.activations }}
+            activations:
+              {{- range .Values.ldap.lookup.activations }}
+              - {{ . | quote }}
+              {{- end }}
+            {{- end }}
             user:
               base: {{ .Values.ldap.lookup.user.base | quote }}
               filter: {{ .Values.ldap.lookup.user.filter | quote }}
