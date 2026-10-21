@@ -21,9 +21,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.StatsQuery;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
@@ -55,6 +57,8 @@ class ApiMetricsResourceTest extends AbstractResourceTest {
     private static final Double API_HEALTHCHECK_RATIO = 92.9999991199;
     private static final Number EXPECTED_API_HEALTHCHECK_RATIO = 0.9299;
 
+    private ApiEntity mockApi;
+
     protected String contextPath() {
         return "apis/";
     }
@@ -63,11 +67,12 @@ class ApiMetricsResourceTest extends AbstractResourceTest {
     void init() throws IOException {
         resetAllMocks();
 
-        ApiEntity mockApi = new ApiEntity();
+        mockApi = new ApiEntity();
         mockApi.setId(API);
         mockApi.setLifecycleState(ApiLifecycleState.PUBLISHED);
+        mockApi.setVisibility(Visibility.PUBLIC);
         when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(mockApi);
-        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), mockApi)).thenReturn(true);
     }
 
     @Test
@@ -88,6 +93,21 @@ class ApiMetricsResourceTest extends AbstractResourceTest {
         assertEquals("errors.api.notFound", error.getCode());
         assertEquals("404", error.getStatus());
         assertEquals("Api [" + API + "] cannot be found.", error.getMessage());
+        verifyNoInteractions(accessControlService, analyticsService, healthCheckService, subscriptionService);
+    }
+
+    @Test
+    void should_not_return_metrics_when_api_access_is_denied() {
+        mockApi.setVisibility(Visibility.PRIVATE);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), mockApi)).thenReturn(false);
+
+        final Response response = target(API).path("metrics").request().get();
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        assertEquals(1, errorResponse.getErrors().size());
+        assertEquals("errors.api.notFound", errorResponse.getErrors().getFirst().getCode());
+        verifyNoInteractions(analyticsService, healthCheckService, subscriptionService);
     }
 
     @Test
