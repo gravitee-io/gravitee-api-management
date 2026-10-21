@@ -125,8 +125,8 @@
   {
     "id":"sub-api-product-2",
     "plan": "plan4",
-    "application": "app4",
-    "applicationName": "app4 name",
+    "application": "app5",
+    "applicationName": "app5 name",
     "environmentId" : "other-env-2",
     "status": "PENDING",
     "createdAt": 1300000000002,
