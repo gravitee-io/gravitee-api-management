@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.security.CreateOrUpdateAuthorization;
 import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.impl.PermissionServiceImpl;
@@ -34,6 +35,15 @@ public abstract class AbstractResource {
 
     @Inject
     private PermissionService permissionService;
+
+    protected boolean hasPermission(
+        ExecutionContext executionContext,
+        RolePermission permission,
+        String referenceId,
+        RolePermissionAction... acls
+    ) {
+        return permissionService.hasPermission(executionContext, permission, referenceId, acls);
+    }
 
     /**
      * @param existingId the id of the object the import targets, or {@code null} when it does not exist yet
@@ -55,7 +65,7 @@ public abstract class AbstractResource {
      */
     protected void requireCreateOrUpdateOn(RolePermission permission, String referenceId, boolean exists) {
         var action = exists ? RolePermissionAction.UPDATE : RolePermissionAction.CREATE;
-        if (!permissionService.hasPermission(GraviteeContext.getExecutionContext(), permission, referenceId, action)) {
+        if (!hasPermission(GraviteeContext.getExecutionContext(), permission, referenceId, action)) {
             throw new ForbiddenAccessException();
         }
     }
