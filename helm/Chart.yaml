@@ -30,6 +30,11 @@ annotations:
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
   artifacthub.io/changes: |
+    - kind: added
+      description: "`ldap.lookup.activations` restricts where the LDAP user search of the Management API is allowed: a list of organization ids or `organization id:environment id` pairs, empty by default"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/21733
     - kind: deprecated
       description: "The `mongodb` and `elasticsearch` subcharts are deprecated and will be removed in 4.15: they run Bitnami images that no longer receive security updates"
       links:
