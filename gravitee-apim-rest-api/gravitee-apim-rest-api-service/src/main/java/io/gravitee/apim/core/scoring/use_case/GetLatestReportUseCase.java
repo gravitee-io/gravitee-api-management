@@ -16,20 +16,32 @@
 package io.gravitee.apim.core.scoring.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.scoring.model.ScoringReportView;
 import io.gravitee.apim.core.scoring.query_service.ScoringReportQueryService;
+import java.util.Objects;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
+@CustomLog
 @RequiredArgsConstructor
 @UseCase
 public class GetLatestReportUseCase {
 
     private final ScoringReportQueryService scoringReportQueryService;
     private final PageCrudService pageCrudService;
+    private final ApiCrudService apiCrudService;
 
     public Output execute(Input input) {
+        var api = apiCrudService.findById(input.apiId()).orElseThrow(() -> new ApiNotFoundException(input.apiId()));
+        if (!Objects.equals(api.getEnvironmentId(), input.environmentId())) {
+            log.warn("Rejecting scoring report for API [{}] because it is not in environment [{}]", input.apiId(), input.environmentId());
+            throw new ApiNotFoundException(input.apiId());
+        }
+
         var report = scoringReportQueryService.findLatestByApiId(input.apiId).orElse(null);
 
         if (report == null) {
@@ -58,7 +70,7 @@ public class GetLatestReportUseCase {
         return new Output(new ScoringReportView(report.id(), report.apiId(), report.createdAt(), assets, summary));
     }
 
-    public record Input(String apiId) {}
+    public record Input(String apiId, String environmentId) {}
 
     public record Output(ScoringReportView report) {}
 }

@@ -2910,6 +2910,8 @@ paths:
             summary: Trigger API Scoring
             description: |-
                 Trigger API Scoring.
+
+                User must have the API_DEFINITION[UPDATE] permission.
             operationId: triggerApiScoring
             responses:
                 "202":
@@ -2931,6 +2933,7 @@ paths:
             description: |-
                 Get API Scoring.
 
+                User must have the API_DEFINITION[READ] permission.
                 Return a 404 HTTP Response status if API was never evaluated.
             operationId: getApiScoring
             responses:

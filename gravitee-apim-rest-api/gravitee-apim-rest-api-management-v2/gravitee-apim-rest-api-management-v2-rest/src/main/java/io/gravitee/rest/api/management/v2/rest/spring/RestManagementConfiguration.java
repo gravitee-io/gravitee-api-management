@@ -30,6 +30,7 @@ import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.kafkaexplorer.spring.KafkaExplorerSpringConfiguration;
+import io.gravitee.rest.api.management.v2.rest.resource.environment.NewtAIRateLimiter;
 import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.UserService;
@@ -94,5 +95,10 @@ public class RestManagementConfiguration {
         @Lazy ApiRepository apiRepository
     ) {
         return new ManagementContextLoader(apiAuthorizationService, apiRepository);
+    }
+
+    @Bean
+    public NewtAIRateLimiter newtAIRateLimiter() {
+        return new NewtAIRateLimiter();
     }
 }
