@@ -93,6 +93,14 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
         return SQLSERVER_DRIVER_TYPE.equals(driverType);
     }
 
+    /**
+     * Returns {@code true} when the JDBC driver detected from the configured {@code jdbc.url} is PostgreSQL. Used by
+     * repositories that rely on PostgreSQL-only syntax such as {@code INSERT ... ON CONFLICT DO NOTHING}.
+     */
+    public static boolean isPostgreSql() {
+        return POSTGRESQL_DRIVER_TYPE.equals(driverType);
+    }
+
     public static String escapeReservedWord(final String word) {
         return escapeReservedWordsPrefixChar + word + escapeReservedWordsSufixChar;
     }
