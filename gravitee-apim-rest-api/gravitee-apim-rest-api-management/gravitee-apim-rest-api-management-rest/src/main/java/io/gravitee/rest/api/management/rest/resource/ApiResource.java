@@ -471,7 +471,7 @@ public class ApiResource extends AbstractResource {
     @Path("import")
     @Operation(
         summary = "Deprecated, Update the API with an existing API definition in JSON format either with json or via an URL",
-        description = "User must have the MANAGE_API permission to use this service"
+        description = "Requires ENVIRONMENT_API[CREATE]. The definition is imported as a new API."
     )
     @ApiResponse(
         responseCode = "200",
@@ -479,7 +479,7 @@ public class ApiResource extends AbstractResource {
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
     public Response deprecated_updateApiWithDefinition(@RequestBody @Valid @NotNull Object apiDefinitionOrUrl) {
         ApiEntity updatedApi = apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), apiDefinitionOrUrl);
         return Response.ok(updatedApi)

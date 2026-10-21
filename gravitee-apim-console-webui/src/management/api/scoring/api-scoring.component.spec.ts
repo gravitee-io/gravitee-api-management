@@ -27,6 +27,7 @@ import { ApiScoringModule } from './api-scoring.module';
 import { fakeApiScoring, fakeApiScoringTriggerResponse } from './api-scoring.fixture';
 import { ApiScoring, ScoringAssetType, ScoringSeverity } from './api-scoring.model';
 
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeApiFederated } from '../../../entities/management-api-v2';
 import { AsyncJob, fakeAsyncJob } from '../../../entities/async-job';
@@ -44,7 +45,7 @@ describe('ApiScoringComponent', () => {
   let componentHarness: ApiScoringHarness;
   let httpTestingController: HttpTestingController;
 
-  const init = async () => {
+  const init = async (permissions: string[] = ['api-definition-u']) => {
     await TestBed.configureTestingModule({
       declarations: [ApiScoringComponent],
       imports: [ApiScoringModule, GioTestingModule, BrowserAnimationsModule, NoopAnimationsModule],
@@ -61,6 +62,7 @@ describe('ApiScoringComponent', () => {
           provide: SnackBarService,
           useValue: fakeSnackBarService,
         },
+        { provide: GioTestingPermissionProvider, useValue: permissions },
       ],
     })
       .overrideProvider(InteractivityChecker, {
@@ -143,6 +145,43 @@ Path: rules,api-key-security-scheme,then,function`;
   });
 
   describe('evaluate', () => {
+    it('hides evaluate without api definition update', fakeAsync(async () => {
+      await init([]);
+      tick(1);
+      expectAsyncJobGetRequest(API_ID, []);
+      expectApiGetRequest(API_ID);
+      expectApiScoreGetRequest(API_ID);
+
+      expect(await componentHarness.evaluateButton()).toBeNull();
+      fixture.destroy();
+    }));
+
+    it('keeps the evaluate hint for a caller who can score an API that has never been scored', fakeAsync(async () => {
+      await init(['api-definition-u']);
+      tick(1);
+      expectAsyncJobGetRequest(API_ID, []);
+      expectApiGetRequest(API_ID);
+      expectApiScoreNeverEvaluated(API_ID);
+
+      expect(await componentHarness.emptyStateText()).toContain('Click on the Evaluate button to get the first score.');
+      fixture.destroy();
+    }));
+
+    it('omits the evaluate hint when a caller who cannot score opens an API that has never been scored', fakeAsync(async () => {
+      await init([]);
+      tick(1);
+      expectAsyncJobGetRequest(API_ID, []);
+      expectApiGetRequest(API_ID);
+      expectApiScoreNeverEvaluated(API_ID);
+
+      expect(await componentHarness.evaluateButton()).toBeNull();
+      const emptyState = await componentHarness.emptyStateText();
+      expect(emptyState).toContain('This API has never been scored before');
+      expect(emptyState).toContain('This API has not been evaluated yet.');
+      expect(emptyState).not.toContain('Evaluate button');
+      fixture.destroy();
+    }));
+
     it('should trigger API scoring on click', fakeAsync(async () => {
       await init();
       tick(1);
@@ -265,6 +304,15 @@ Path: rules,api-key-security-scheme,then,function`;
         method: 'GET',
       })
       .flush(fakeApiFederated({ id: apiId }));
+  }
+
+  function expectApiScoreNeverEvaluated(apiId: string) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/scoring`,
+        method: 'GET',
+      })
+      .flush(null, { status: 404, statusText: 'Not Found' });
   }
 
   function expectApiScoreGetRequest(apiId: string, payload: ApiScoring = fakeApiScoring()) {
