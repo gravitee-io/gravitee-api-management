@@ -17,8 +17,11 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.scoring;
 
 import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.ACCEPTED_202;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
 import fixtures.core.model.ApiFixtures;
@@ -40,6 +43,8 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiScoringSummary;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringTriggerResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ScoringStatus;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
@@ -107,7 +112,7 @@ public class ApiScoringResourceTest extends ApiResourceTest {
 
         @Test
         void should_return_202_response() {
-            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).build()));
+            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).environmentId(ENVIRONMENT).build()));
 
             final Response response = evaluateTarget.request().post(null);
 
@@ -115,6 +120,26 @@ public class ApiScoringResourceTest extends ApiResourceTest {
                 .hasStatus(ACCEPTED_202)
                 .asEntity(ApiScoringTriggerResponse.class)
                 .isEqualTo(new ApiScoringTriggerResponse().status(ScoringStatus.PENDING));
+        }
+
+        @Test
+        void should_return_403_without_update_permission() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.API_DEFINITION),
+                    eq(API),
+                    eq(RolePermissionAction.UPDATE)
+                )
+            ).thenReturn(false);
+
+            final Response response = evaluateTarget.request().post(null);
+
+            MAPIAssertions.assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
         }
     }
 
@@ -129,8 +154,28 @@ public class ApiScoringResourceTest extends ApiResourceTest {
         }
 
         @Test
+        void should_return_403_without_read_permission() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.API_DEFINITION),
+                    eq(API),
+                    eq(RolePermissionAction.READ)
+                )
+            ).thenReturn(false);
+
+            final Response response = latestReportTarget.request().get();
+
+            MAPIAssertions.assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
         void should_return_200_response_with_diagnostics_asset() {
-            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).build()));
+            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).environmentId(ENVIRONMENT).build()));
             pageCrudService.initWith(List.of(PageFixtures.aPage().toBuilder().referenceId(API).build()));
             scoringReportQueryService.initWith(List.of(ScoringReportFixture.aScoringReport().toBuilder().apiId(API).build()));
 
@@ -171,7 +216,7 @@ public class ApiScoringResourceTest extends ApiResourceTest {
 
         @Test
         void should_return_200_response_with_errors_asset() {
-            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).build()));
+            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).environmentId(ENVIRONMENT).build()));
             pageCrudService.initWith(List.of(PageFixtures.aPage().toBuilder().referenceId(API).build()));
             scoringReportQueryService.initWith(List.of(ScoringReportFixture.anErrorAssertScoringReport().toBuilder().apiId(API).build()));
 

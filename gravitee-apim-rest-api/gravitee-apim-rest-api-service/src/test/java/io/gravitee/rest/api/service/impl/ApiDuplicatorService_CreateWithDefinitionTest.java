@@ -15,7 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_API;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.anyString;
@@ -25,6 +28,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -55,6 +59,7 @@ import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
@@ -62,6 +67,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.converter.PlanConverter;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
@@ -152,6 +158,9 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
     @Mock
     private CategoryMapper categoryMapper;
+
+    @Mock
+    private PermissionService permissionService;
 
     @Before
     public void mockAuthenticatedUser() {
@@ -906,5 +915,17 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
             eq("user"),
             eq(USER_ROLE_ID)
         );
+    }
+
+    @Test
+    public void shouldNotFetchUrlWhenEnvironmentCreateDenied() {
+        when(permissionService.hasPermission(any(), eq(ENVIRONMENT_API), any(), eq(CREATE))).thenReturn(false);
+
+        try {
+            apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), "https://example.com/api.json");
+            fail("expected ForbiddenAccessException");
+        } catch (ForbiddenAccessException expected) {
+            verifyNoInteractions(httpClientService);
+        }
     }
 }

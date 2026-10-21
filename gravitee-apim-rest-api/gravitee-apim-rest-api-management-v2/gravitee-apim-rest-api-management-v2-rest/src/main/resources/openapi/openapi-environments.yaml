@@ -321,6 +321,7 @@ paths:
             tags:
                 - Scoring
             summary: Get the scoring of all APIs
+            description: User must have the ENVIRONMENT_API[READ] permission.
             operationId: getApisScoring
             parameters:
                 - $ref: "#/components/parameters/pageParam"
@@ -335,6 +336,7 @@ paths:
             tags:
                 - Scoring
             summary: Get Scoring Environment Overview
+            description: User must have the ENVIRONMENT_API[READ] permission.
             operationId: getScoringEnvironmentOverview
             responses:
                 "200":
