@@ -27,6 +27,7 @@ import { ApiScoringModule } from './api-scoring.module';
 import { fakeApiScoring, fakeApiScoringTriggerResponse } from './api-scoring.fixture';
 import { ApiScoring, ScoringAssetType, ScoringSeverity } from './api-scoring.model';
 
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeApiFederated } from '../../../entities/management-api-v2';
 import { AsyncJob, fakeAsyncJob } from '../../../entities/async-job';
@@ -44,7 +45,7 @@ describe('ApiScoringComponent', () => {
   let componentHarness: ApiScoringHarness;
   let httpTestingController: HttpTestingController;
 
-  const init = async () => {
+  const init = async (permissions: string[] = ['api-definition-u']) => {
     await TestBed.configureTestingModule({
       declarations: [ApiScoringComponent],
       imports: [ApiScoringModule, GioTestingModule, BrowserAnimationsModule, NoopAnimationsModule],
@@ -61,6 +62,7 @@ describe('ApiScoringComponent', () => {
           provide: SnackBarService,
           useValue: fakeSnackBarService,
         },
+        { provide: GioTestingPermissionProvider, useValue: permissions },
       ],
     })
       .overrideProvider(InteractivityChecker, {
@@ -143,6 +145,17 @@ Path: rules,api-key-security-scheme,then,function`;
   });
 
   describe('evaluate', () => {
+    it('hides evaluate without api definition update', fakeAsync(async () => {
+      await init([]);
+      tick(1);
+      expectAsyncJobGetRequest(API_ID, []);
+      expectApiGetRequest(API_ID);
+      expectApiScoreGetRequest(API_ID);
+
+      expect(await componentHarness.evaluateButton()).toBeNull();
+      fixture.destroy();
+    }));
+
     it('should trigger API scoring on click', fakeAsync(async () => {
       await init();
       tick(1);

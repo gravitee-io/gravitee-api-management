@@ -54,7 +54,14 @@
       }
 
       <div class="card-header__actions">
-        <button mat-raised-button color="primary" data-testid="evaluate-button" [disabled]="pendingScoreRequest" (click)="evaluate()">
+        <button
+          *gioPermission="{ anyOf: ['api-definition-u'] }"
+          mat-raised-button
+          color="primary"
+          data-testid="evaluate-button"
+          [disabled]="pendingScoreRequest"
+          (click)="evaluate()"
+        >
           Evaluate
         </button>
       </div>

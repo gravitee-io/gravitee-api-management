@@ -22,6 +22,11 @@ import io.gravitee.rest.api.management.v2.rest.mapper.ScoringReportMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringTriggerResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ScoringStatus;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -46,6 +51,7 @@ public class ApiScoringResource extends AbstractResource {
     @POST
     @Path("/_evaluate")
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
     public void scoreAPI(@Suspended final AsyncResponse response) {
         scoreApiRequestUseCase
             .execute(new ScoreApiRequestUseCase.Input(apiId, getAuditInfo()))
@@ -57,8 +63,11 @@ public class ApiScoringResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = { RolePermissionAction.READ }) })
     public Response getApiScoring() {
-        var report = getLatestReportUseCase.execute(new GetLatestReportUseCase.Input(apiId)).report();
+        var report = getLatestReportUseCase
+            .execute(new GetLatestReportUseCase.Input(apiId, GraviteeContext.getExecutionContext().getEnvironmentId()))
+            .report();
         if (report == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }

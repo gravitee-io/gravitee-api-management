@@ -26,6 +26,7 @@ export class ApiScoringHarness extends ComponentHarness {
   private loaderPanelLocator = this.locatorForOptional('[data-testid=loader-spinner]');
   private summaryGroupLocator = this.locatorFor(MatButtonToggleGroupHarness);
   private evaluateButtonLocator = this.locatorFor(MatButtonHarness.with({ selector: "[data-testid='evaluate-button']" }));
+  private evaluateButtonOptionalLocator = this.locatorForOptional(MatButtonHarness.with({ selector: "[data-testid='evaluate-button']" }));
   private accordionLocator = this.locatorForAll(MatAccordionHarness);
   private tablesLocator = this.locatorForOptional(MatTableHarness);
   public filterButtons = this.locatorForOptional(MatButtonToggleGroupHarness);
@@ -45,6 +46,7 @@ export class ApiScoringHarness extends ComponentHarness {
     return await this.accordionLocator();
   };
 
+  public evaluateButton = () => this.evaluateButtonOptionalLocator();
   public evaluateButtonDisabled = () => this.evaluateButtonLocator().then(button => button.isDisabled());
   public clickEvaluate = () => this.evaluateButtonLocator().then(button => button.click());
 
