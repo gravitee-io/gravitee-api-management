@@ -31,6 +31,11 @@ annotations:
   ###########
   artifacthub.io/changes: |
     - kind: added
+      description: "`ldap.lookup.activations` restricts where the LDAP user search of the Management API is allowed: a list of organization ids or `organization id:environment id` pairs, empty by default"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/21733
+    - kind: added
       description: "`gateway.edge` exposes the Edge Reactor server configuration: `port`, `host`, `secured` and `ssl.*` (clientAuth, keystore, truststore). `gateway.edge.server.port` is deprecated in favour of `gateway.edge.port`"
       links:
         - name: Github PR
