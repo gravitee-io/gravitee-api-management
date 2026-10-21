@@ -16,8 +16,24 @@
 package io.gravitee.apim.core.api_key.crud_service;
 
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
+import java.util.Optional;
 
 public interface ApiKeyCrudService {
     ApiKeyEntity create(ApiKeyEntity apiKey);
+
+    /**
+     * Updates every field of the key except its subscriptions, which only {@link #addSubscription(String, String)} changes.
+     *
+     * @return the key as stored after the update
+     */
     ApiKeyEntity update(ApiKeyEntity apiKey);
+
+    /**
+     * Attaches a subscription to a key in one atomic operation, without rewriting the rest of the key, so that concurrent
+     * writers (other Management API nodes, other requests) cannot lose each other's links. Attaching a subscription that is
+     * already attached is a no-op for the links. The key's {@code updatedAt} moves in both cases.
+     *
+     * @return the key as stored after the change, or empty when no key has this id
+     */
+    Optional<ApiKeyEntity> addSubscription(String apiKeyId, String subscriptionId);
 }

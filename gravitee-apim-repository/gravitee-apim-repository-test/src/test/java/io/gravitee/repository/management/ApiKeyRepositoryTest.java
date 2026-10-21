@@ -586,6 +586,24 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void addSubscriptions_should_attach_every_subscription_once_and_change_updatedAt() throws Exception {
+        Date initial = givenSharedKey(SHARED_KEY_ID, "sub-initial").getUpdatedAt();
+
+        Optional<ApiKey> result = apiKeyRepository.addSubscriptions(SHARED_KEY_ID, List.of("sub-initial", "sub-1", "sub-2", "sub-1"));
+
+        assertThat(result).isPresent();
+        ApiKey stored = apiKeyRepository.findById(SHARED_KEY_ID).orElseThrow();
+        assertThat(stored.getSubscriptions()).containsExactlyInAnyOrder("sub-initial", "sub-1", "sub-2");
+        assertThat(stored.getUpdatedAt()).isAfter(initial);
+    }
+
+    @Test
+    public void addSubscriptions_should_return_empty_if_apikey_does_not_exist() throws Exception {
+        assertThat(apiKeyRepository.addSubscriptions("unknown_apikey_id", List.of("sub-1"))).isEmpty();
+        assertThat(apiKeyRepository.findById("unknown_apikey_id")).isEmpty();
+    }
+
+    @Test
     public void update_should_not_drop_a_subscription_added_since_the_key_was_read() throws Exception {
         givenSharedKey(SHARED_KEY_ID, "sub-initial");
         ApiKey readBeforeTheAdd = apiKeyRepository.findById(SHARED_KEY_ID).orElseThrow();
