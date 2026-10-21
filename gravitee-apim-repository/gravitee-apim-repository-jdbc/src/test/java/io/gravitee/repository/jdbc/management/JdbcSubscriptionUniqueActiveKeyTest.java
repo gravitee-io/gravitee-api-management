@@ -228,6 +228,8 @@ public class JdbcSubscriptionUniqueActiveKeyTest extends AbstractManagementRepos
         subscription.setReferenceId("api-1");
         subscription.setApi("api-1");
         subscription.setApplication("app-1");
+        // NOT NULL column.
+        subscription.setApplicationName("app-1 name");
         subscription.setPlan(plan);
         subscription.setStatus(status);
         subscription.setCreatedAt(new Date());
