@@ -584,7 +584,7 @@ public class ApisResource extends AbstractResource {
     @Path("import")
     @Operation(
         summary = "Update the API from the API definition",
-        description = "Update the API from the API definition in JSON format either with json or via an URL"
+        description = "Requires API_DEFINITION[UPDATE] on the API in the definition. A URL body also requires ENVIRONMENT_API[UPDATE] before it is fetched."
     )
     @ApiResponse(
         responseCode = "200",

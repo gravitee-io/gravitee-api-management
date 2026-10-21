@@ -54,7 +54,14 @@
       }
 
       <div class="card-header__actions">
-        <button mat-raised-button color="primary" data-testid="evaluate-button" [disabled]="pendingScoreRequest" (click)="evaluate()">
+        <button
+          *gioPermission="{ anyOf: ['api-definition-u'] }"
+          mat-raised-button
+          color="primary"
+          data-testid="evaluate-button"
+          [disabled]="pendingScoreRequest"
+          (click)="evaluate()"
+        >
           Evaluate
         </button>
       </div>
@@ -99,10 +106,18 @@
       <section class="api-scores-lists">
         @if (apiScoreNeverEvaluated) {
           <gio-card-empty-state
+            *gioPermission="{ anyOf: ['api-definition-u'] }; else neverScoredReadOnly"
             icon="search"
             title="This API has never been scored before"
             [subtitle]="'Click on the Evaluate button to get the first score.'"
           ></gio-card-empty-state>
+          <ng-template #neverScoredReadOnly>
+            <gio-card-empty-state
+              icon="search"
+              title="This API has never been scored before"
+              subtitle="This API has not been evaluated yet."
+            ></gio-card-empty-state>
+          </ng-template>
         } @else if (apiScoreAvailable && apiScoring.summary.all === 0 && apiScoring.summary.score === 1) {
           <gio-card-empty-state
             icon="rocket"
