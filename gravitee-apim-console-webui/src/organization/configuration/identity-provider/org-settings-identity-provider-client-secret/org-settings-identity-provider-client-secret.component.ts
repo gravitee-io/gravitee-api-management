@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ControlContainer, FormGroupDirective } from '@angular/forms';
 
@@ -25,24 +25,50 @@ import { clientSecretRequiredUnlessPublicClient } from '../../../../entities/ide
   standalone: false,
   viewProviders: [{ provide: ControlContainer, useExisting: FormGroupDirective }],
 })
-export class OrgSettingsIdentityProviderClientSecretComponent implements OnInit {
+export class OrgSettingsIdentityProviderClientSecretComponent implements OnInit, OnChanges {
   private readonly destroyRef = inject(DestroyRef);
+
+  /**
+   * When true (edit mode), a blank secret is allowed so the Management API can keep the stored value.
+   * Create mode still requires a secret unless the provider is a public client (token_endpoint_auth_method=none).
+   */
+  @Input() secretOptional = false;
 
   constructor(private readonly controlContainer: ControlContainer) {}
 
   ngOnInit(): void {
-    const secret = this.controlContainer.control?.get('clientSecret');
+    this.applyValidators();
     const authMethod = this.controlContainer.control?.get('tokenEndpointAuthMethod');
-    secret?.setValidators(clientSecretRequiredUnlessPublicClient);
-    secret?.updateValueAndValidity();
-    authMethod?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => secret?.updateValueAndValidity());
+    authMethod?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.applyValidators());
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['secretOptional'] && !changes['secretOptional'].firstChange) {
+      this.applyValidators();
+    }
   }
 
   get clientSecretRequired(): boolean {
+    if (this.secretOptional) {
+      return false;
+    }
     return this.controlContainer.control?.get('tokenEndpointAuthMethod')?.value !== 'none';
   }
 
   get clientSecretMissing(): boolean {
     return !!this.controlContainer.control?.get('clientSecret')?.hasError('required');
+  }
+
+  private applyValidators(): void {
+    const secret = this.controlContainer.control?.get('clientSecret');
+    if (!secret) {
+      return;
+    }
+    if (this.secretOptional) {
+      secret.clearValidators();
+    } else {
+      secret.setValidators(clientSecretRequiredUnlessPublicClient);
+    }
+    secret.updateValueAndValidity({ emitEvent: false });
   }
 }

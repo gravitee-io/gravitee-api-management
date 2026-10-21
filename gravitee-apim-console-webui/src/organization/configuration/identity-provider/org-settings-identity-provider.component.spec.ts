@@ -85,6 +85,28 @@ describe('OrgSettingsIdentityProviderComponent', () => {
       expect(component.mode).toEqual('new');
     });
 
+    it('should require a client secret when creating an identity provider', async () => {
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
+      await nameInput.setValue('Name');
+
+      const clientIdInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=clientId]' }));
+      await clientIdInput.setValue('Client Id');
+
+      const serverURLInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=serverURL]' }));
+      await serverURLInput.setValue('ServerURL');
+
+      const domainInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=domain]' }));
+      await domainInput.setValue('Domain');
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(true);
+
+      const clientSecretInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=clientSecret]' }));
+      await clientSecretInput.setValue('Client Secret');
+
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+    });
+
     it('should change provider type', async () => {
       const formCardGroup = await loader.getHarness(GioFormSelectionInlineHarness.with({ selector: '[formControlName=type]' }));
 
@@ -633,14 +655,14 @@ describe('OrgSettingsIdentityProviderComponent', () => {
     });
 
     it('should be in edit mode', async () => {
-      expectIdentityProviderGetRequest(fakeIdentityProvider({ id: 'providerId' }));
+      expectIdentityProviderGetRequest(withoutStoredClientSecret(fakeIdentityProvider({ id: 'providerId' })));
       expectEnvironmentListRequest([]);
 
       expect(component.mode).toEqual('edit');
     });
 
     it('should not allow to change the provider type', async () => {
-      expectIdentityProviderGetRequest(fakeIdentityProvider({ id: 'providerId' }));
+      expectIdentityProviderGetRequest(withoutStoredClientSecret(fakeIdentityProvider({ id: 'providerId' })));
       expectEnvironmentListRequest([]);
 
       expect(component.mode).toEqual('edit');
@@ -658,7 +680,6 @@ describe('OrgSettingsIdentityProviderComponent', () => {
           groupMappings: [{ condition: 'A', groups: ['groupAId'] }],
           configuration: {
             clientId: 'Client Id',
-            clientSecret: 'Client Secret',
             color: null,
             domain: 'Domain',
             scopes: null,
@@ -748,6 +769,48 @@ describe('OrgSettingsIdentityProviderComponent', () => {
       httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/providerId`);
     });
 
+    it('should omit a blank client secret when saving other fields', async () => {
+      const identityProvider = fakeIdentityProvider({
+        id: 'providerId',
+        type: 'GRAVITEEIO_AM',
+        name: 'Name',
+        description: 'Description',
+        configuration: {
+          clientId: 'Client Id',
+          color: null,
+          domain: 'Domain',
+          scopes: null,
+          serverURL: 'ServerURL',
+          tokenEndpointAuthMethod: null,
+        },
+        userProfileMapping: {
+          email: null,
+          firstname: null,
+          id: 'Id',
+          lastname: null,
+          picture: null,
+        },
+      });
+      expectIdentityProviderGetRequest(identityProvider);
+      expectEnvironmentListRequest([]);
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=description]' }));
+      await descriptionInput.setValue('Updated Description');
+
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      await saveBar.clickSubmit();
+
+      expectIdentityProviderUpdateRequest('providerId', {
+        ...identityProvider,
+        description: 'Updated Description',
+        groupMappings: [],
+        roleMappings: [],
+      });
+
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/providerId`);
+    });
+
     describe('group mappings', () => {
       let identityProviderToUpdate;
       let groupMappingsCard: MatCardHarness;
@@ -761,7 +824,6 @@ describe('OrgSettingsIdentityProviderComponent', () => {
           groupMappings: [{ condition: 'foo', groups: ['groupAId'] }],
           configuration: {
             clientId: 'Client Id',
-            clientSecret: 'Client Secret',
             color: null,
             domain: 'Domain',
             scopes: null,
@@ -879,7 +941,6 @@ describe('OrgSettingsIdentityProviderComponent', () => {
           ],
           configuration: {
             clientId: 'Client Id',
-            clientSecret: 'Client Secret',
             color: null,
             domain: 'Domain',
             scopes: null,
@@ -1072,6 +1133,11 @@ describe('OrgSettingsIdentityProviderComponent', () => {
     expect(req.request.method).toEqual('PUT');
     expect(req.request.body).toStrictEqual({ persistedClaimsWhitelist: [], ...omit(identityProvider, ['id', 'type']) });
     req.flush({ id, identityProvider });
+  }
+
+  function withoutStoredClientSecret(identityProvider: IdentityProvider): IdentityProvider {
+    const { clientSecret: _stored, ...configuration } = identityProvider.configuration ?? {};
+    return { ...identityProvider, configuration };
   }
 
   function expectIdentityProviderGetRequest(identityProvider: IdentityProvider) {
