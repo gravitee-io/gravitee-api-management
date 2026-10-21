@@ -75,6 +75,18 @@ public class ApiKeyQueryServiceImpl implements ApiKeyQueryService {
     }
 
     @Override
+    public Stream<ApiKeyEntity> findLatestByApplication(String applicationId) {
+        try {
+            return apiKeyRepository.findLatestByApplication(applicationId).stream().map(ApiKeyAdapter.INSTANCE::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                "An error occurs while trying to find the latest API keys by application id: " + applicationId,
+                e
+            );
+        }
+    }
+
+    @Override
     public Optional<ApiKeyEntity> findByKeyAndApiId(String key, String apiId) {
         try {
             return apiKeyRepository.findByKeyAndApi(key, apiId).map(ApiKeyAdapter.INSTANCE::toEntity);
