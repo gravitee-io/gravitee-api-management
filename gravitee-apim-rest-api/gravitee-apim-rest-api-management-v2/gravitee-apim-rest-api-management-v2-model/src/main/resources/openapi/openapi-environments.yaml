@@ -751,6 +751,42 @@ paths:
                 $ref: "#/components/schemas/ClusterStartedApisResponse"
         default:
           $ref: "#/components/responses/Error"
+  /clusters/{clusterId}/apis:
+    parameters:
+      - $ref: "#/components/parameters/clusterId"
+    get:
+      tags:
+        - Clusters
+      summary: List the APIs that use a cluster
+      description: |-
+        User must have the CLUSTER_DEFINITION[READ] permission.
+
+        Every API that uses the cluster, whatever its state, sorted by name: a Kafka Native API (through a
+        `native-kafka-cluster` or `native-kafka-virtual-cluster` endpoint), a Message API (through a `kafka`
+        endpoint in `CLUSTER` mode), or a Kafka Native API using a deployed virtual cluster with a backend on it.
+
+        APIs the user cannot read are listed too, with `readable: false`: whoever can read the cluster has to know
+        what uses it. Only their name, version, type and state are exposed, with the connections and virtual
+        clusters of the cluster they use; never their definition, plans, members or any other API data.
+      operationId: getClusterApis
+      parameters:
+        - name: q
+          in: query
+          description: Only the APIs whose name contains this text, ignoring case.
+          schema:
+            type: string
+            example: orders
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/perPageParam"
+      responses:
+        "200":
+          description: Page of the APIs that use the cluster
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClusterApisResponse"
+        default:
+          $ref: "#/components/responses/Error"
   /clusters/{clusterId}/groups:
     parameters:
       - $ref: "#/components/parameters/clusterId"
@@ -2043,6 +2079,66 @@ components:
         configuration:
           type: object
       required: [ "type", "name", "configuration" ]
+    ClusterApisResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClusterApi"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+        links:
+          $ref: "#/components/schemas/Links"
+    ClusterApi:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+          description: The version of the API.
+        type:
+          $ref: "#/components/schemas/ApiType"
+        state:
+          type: string
+          description: State regarding the gateway(s).
+          enum:
+            - STARTED
+            - STOPPED
+        connections:
+          type: array
+          description: The connections of the cluster the API uses, directly or through `virtualClusters`. Empty for a virtual cluster, which has no connection.
+          items:
+            $ref: "#/components/schemas/ClusterApiConnection"
+        virtualClusters:
+          type: array
+          description: The deployed virtual clusters the API reaches the cluster through. Empty when it only uses the cluster directly.
+          items:
+            $ref: "#/components/schemas/ClusterApiVirtualCluster"
+        readable:
+          type: boolean
+          description: Whether the user can read the API (organization admin, or member of the API). Every user who can read the cluster sees every API using it, readable or not.
+      required: [ "id", "name", "version", "type", "state", "connections", "virtualClusters", "readable" ]
+    ClusterApiConnection:
+      type: object
+      properties:
+        crossId:
+          type: string
+        name:
+          type: string
+          description: The name of the connection in the cluster. Absent when the cluster no longer has the connection.
+      required: [ "crossId" ]
+    ClusterApiVirtualCluster:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      required: [ "id", "name" ]
     ClusterStartedApisResponse:
       type: object
       properties:

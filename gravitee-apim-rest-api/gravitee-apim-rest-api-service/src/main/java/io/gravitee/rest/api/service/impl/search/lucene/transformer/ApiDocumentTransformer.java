@@ -19,7 +19,10 @@ import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static org.apache.lucene.document.Field.Store.NO;
 import static org.apache.lucene.document.Field.Store.YES;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.cluster.domain_service.ClusterBoundApisQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.gravitee.definition.model.v4.listener.ListenerType;
@@ -42,6 +45,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -112,6 +116,11 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
     public static final String FIELD_VISIBILITY = "visibility";
     public static final String FIELD_VISIBILITY_SORTED = "visibility_sorted";
     public static final String FIELD_ALLOW_IN_API_PRODUCTS = "allow_in_api_products";
+    /** The cross ids of the clusters, registered or virtual, the endpoints of a v4 Native or Message API use. */
+    public static final String FIELD_CLUSTERS = "clusters";
+
+    // Only reads endpoint configurations as trees.
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final ApiService apiService;
     private final Collator collator = Collator.getInstance(Locale.ENGLISH);
@@ -154,6 +163,8 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
             doc.add(new StringField(FIELD_API_TYPE, apiType, Field.Store.NO));
             doc.add(new SortedDocValuesField(FIELD_API_TYPE_SORTED, toSortedValue(apiType)));
         }
+
+        clusterUses(api).forEach(crossId -> doc.add(new StringField(FIELD_CLUSTERS, crossId, NO)));
 
         if (api.getReferenceId() != null) {
             doc.add(new StringField(FIELD_REFERENCE_TYPE, api.getReferenceType(), Field.Store.NO));
@@ -274,6 +285,21 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
             case ApiEntity v2 -> apiService.hasHealthCheckEnabled(v2, false);
             default -> false;
         };
+    }
+
+    private Set<String> clusterUses(GenericApiEntity api) {
+        return ClusterBoundApisQueryService.clusterCrossIds(
+            switch (api) {
+                case NativeApiEntity nativeApi -> ClusterBoundApisQueryService.nativeClusterUses(
+                    nativeApi.getEndpointGroups(),
+                    OBJECT_MAPPER
+                );
+                case io.gravitee.rest.api.model.v4.api.ApiEntity v4 when (
+                    v4.getType() == ApiType.MESSAGE
+                ) -> ClusterBoundApisQueryService.messageClusterUses(v4.getEndpointGroups(), OBJECT_MAPPER);
+                default -> List.of();
+            }
+        );
     }
 
     private boolean isAllowedInApiProduct(GenericApiEntity api) {
