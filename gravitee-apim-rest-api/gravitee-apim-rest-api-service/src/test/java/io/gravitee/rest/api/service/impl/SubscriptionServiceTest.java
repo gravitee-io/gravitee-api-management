@@ -63,6 +63,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.plan.PlanMode;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApiProductsRepository;
@@ -119,6 +120,7 @@ import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
+import io.gravitee.rest.api.service.exceptions.PlanAlreadySubscribedException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionAcceptedException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionRevisionException;
 import io.gravitee.rest.api.service.exceptions.PlanMtlsAlreadySubscribedException;
@@ -3486,6 +3488,120 @@ public class SubscriptionServiceTest {
         assertThat(result.get().getName()).isEqualTo("My Product");
         assertThat(result.get().getOwnerId()).isEqualTo(USER_ID);
         assertThat(result.get().getOwnerDisplayName()).isEmpty();
+    }
+
+    @Test
+    public void should_reject_with_plan_already_subscribed_the_request_losing_a_concurrent_subscription() throws Exception {
+        // Both requests read the subscriptions of the application before any of them is stored, only the
+        // repository sees the second one as a duplicate.
+        planEntity.setValidation(PlanValidationType.MANUAL);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
+        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(List.of());
+        when(subscriptionRepository.create(any()))
+            .thenAnswer(returnsFirstArg())
+            .thenThrow(new DuplicateKeyException("unique active subscription"));
+        SecurityContextHolder.setContext(generateSecurityContext());
+
+        var winner = subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+        var loser = Assertions.catchThrowable(() ->
+            subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID))
+        );
+
+        assertThat(winner.getPlan()).isEqualTo(PLAN_ID);
+        assertThat(loser).isInstanceOf(PlanAlreadySubscribedException.class);
+        assertThat(((PlanAlreadySubscribedException) loser).getHttpStatusCode()).isEqualTo(400);
+        assertThat(((PlanAlreadySubscribedException) loser).getTechnicalCode()).isEqualTo("plan.subscribed");
+    }
+
+    @Test
+    public void should_reject_with_plan_already_subscribed_a_transfer_onto_a_plan_the_application_subscribed() throws Exception {
+        final String targetPlan = "target-plan";
+        final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
+        transferSubscription.setId(SUBSCRIPTION_ID);
+        transferSubscription.setPlan(targetPlan);
+        Subscription toTransfer = buildTestSubscription(SUBSCRIPTION_ID, API_ID, ACCEPTED, PLAN_ID, APPLICATION_ID, SUBSCRIBER_ID);
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(toTransfer));
+        when(subscriptionRepository.update(any())).thenThrow(new DuplicateKeyException("unique active subscription"));
+        planEntity.setStatus(PlanStatus.PUBLISHED);
+        planEntity.setSecurity(PlanSecurityType.API_KEY);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        PlanEntity target = new PlanEntity();
+        target.setId(targetPlan);
+        target.setApi(API_ID);
+        target.setReferenceId(API_ID);
+        target.setReferenceType(GenericPlanEntity.ReferenceType.API);
+        target.setStatus(PlanStatus.PUBLISHED);
+        target.setSecurity(PlanSecurityType.API_KEY);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), targetPlan)).thenReturn(target);
+
+        assertThatThrownBy(() ->
+            subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID)
+        ).isInstanceOfSatisfying(PlanAlreadySubscribedException.class, e ->
+            assertThat(e.getParameters()).isEqualTo(Map.of("plan", targetPlan))
+        );
+        verify(apiKeyRepository, never()).update(any());
+    }
+
+    @Test
+    public void should_reject_with_plan_already_subscribed_a_configuration_update_onto_a_channel_already_subscribed() throws Exception {
+        io.gravitee.rest.api.model.v4.plan.PlanEntity pushPlan = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        pushPlan.setId(PLAN_ID);
+        pushPlan.setValidation(AUTO);
+        pushPlan.setMode(PlanMode.PUSH);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(pushPlan);
+        Subscription pushSubscription = buildTestSubscription(SUBSCRIPTION_ID, API_ID, ACCEPTED, PLAN_ID, APPLICATION_ID, SUBSCRIBER_ID);
+        pushSubscription.setType(Subscription.Type.PUSH);
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(pushSubscription));
+        when(subscriptionRepository.update(any())).thenThrow(new DuplicateKeyException("unique active subscription"));
+        UpdateSubscriptionConfigurationEntity update = new UpdateSubscriptionConfigurationEntity();
+        update.setSubscriptionId(SUBSCRIPTION_ID);
+        SubscriptionConfigurationEntity configuration = new SubscriptionConfigurationEntity();
+        configuration.setEntrypointId("webhook");
+        configuration.setChannel("already-subscribed-channel");
+        update.setConfiguration(configuration);
+
+        assertThatThrownBy(() -> subscriptionService.update(GraviteeContext.getExecutionContext(), update)).isInstanceOf(
+            PlanAlreadySubscribedException.class
+        );
+    }
+
+    @Test
+    public void should_reject_with_plan_already_subscribed_a_subscription_update_onto_a_channel_already_subscribed() throws Exception {
+        Subscription pushSubscription = buildTestSubscription(SUBSCRIPTION_ID, API_ID, ACCEPTED, PLAN_ID, APPLICATION_ID, SUBSCRIBER_ID);
+        pushSubscription.setType(Subscription.Type.PUSH);
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(pushSubscription));
+        when(subscriptionRepository.update(any())).thenThrow(new DuplicateKeyException("unique active subscription"));
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        UpdateSubscriptionEntity update = new UpdateSubscriptionEntity();
+        update.setId(SUBSCRIPTION_ID);
+        SubscriptionConfigurationEntity configuration = new SubscriptionConfigurationEntity();
+        configuration.setEntrypointId("webhook");
+        configuration.setChannel("already-subscribed-channel");
+        update.setConfiguration(configuration);
+
+        assertThatThrownBy(() -> subscriptionService.update(GraviteeContext.getExecutionContext(), update)).isInstanceOf(
+            PlanAlreadySubscribedException.class
+        );
+    }
+
+    @Test
+    public void should_reject_with_plan_already_subscribed_the_restore_of_a_subscription_to_a_plan_subscribed_again() throws Exception {
+        Subscription closed = buildTestSubscription(
+            SUBSCRIPTION_ID,
+            API_ID,
+            Subscription.Status.CLOSED,
+            PLAN_ID,
+            APPLICATION_ID,
+            SUBSCRIBER_ID
+        );
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(closed));
+        when(subscriptionRepository.update(any())).thenThrow(new DuplicateKeyException("unique active subscription"));
+
+        assertThatThrownBy(() -> subscriptionService.restore(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).isInstanceOf(
+            PlanAlreadySubscribedException.class
+        );
     }
 
     private Map<String, Map<String, Object>> prepareMetadata() {
