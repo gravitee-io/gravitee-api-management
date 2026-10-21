@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management.upgrade.upgrader.subscription;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.CountOptions;
 import com.mongodb.client.model.Filters;
 import io.gravitee.repository.management.AbstractManagementRepositoryTest;
 import io.gravitee.repository.management.api.SubscriptionUniqueActiveKey;
@@ -112,7 +113,8 @@ public class SubscriptionUniqueActiveKeyUpgraderTest extends AbstractManagementR
 
         assertThat(upgrader.upgrade()).isTrue();
 
-        assertThat(subscriptions().countDocuments(Filters.exists(FIELD))).isEqualTo(count);
+        // The test database refuses collection scans (notablescan).
+        assertThat(subscriptions().countDocuments(Filters.exists(FIELD), new CountOptions().hint(new Document("_id", 1)))).isEqualTo(count);
         assertThat(storedKey("sub-" + (count - 1))).isEqualTo(
             expectedKey("sub-" + (count - 1), Subscription.Status.ACCEPTED, "plan-" + (count - 1))
         );
