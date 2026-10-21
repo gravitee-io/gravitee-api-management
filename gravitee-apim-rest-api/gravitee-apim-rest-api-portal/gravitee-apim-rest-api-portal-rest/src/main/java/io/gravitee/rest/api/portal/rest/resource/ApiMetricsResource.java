@@ -21,7 +21,6 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.StatsQuery;
-import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -69,7 +68,7 @@ public class ApiMetricsResource extends AbstractResource {
     public Response getApiMetricsByApiId(@Context Request request, @PathParam("apiId") String apiId) {
         GenericApiEntity api = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), apiId, false, false, false);
 
-        if (api.getLifecycleState() != ApiLifecycleState.PUBLISHED) {
+        if (!accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), api)) {
             throw new ApiNotFoundException(apiId);
         }
 
