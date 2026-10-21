@@ -231,7 +231,8 @@ public class ApiKeyServiceTest {
         assertEquals("existing-id", reused.getId());
         assertFalse(reused.isRevoked());
         assertNull(reused.getRevokedAt());
-        assertTrue(reused.getSubscriptions().contains(SUBSCRIPTION_ID));
+        // update does not write the links: the new subscription is linked atomically
+        verify(apiKeyRepository).addSubscription("existing-id", SUBSCRIPTION_ID);
     }
 
     @Test
@@ -1288,16 +1289,12 @@ public class ApiKeyServiceTest {
 
         apiKeyService.renew(GraviteeContext.getExecutionContext(), application);
 
-        // the new key has been updated with 3 subscriptions from expired keys
-        verify(apiKeyRepository, times(1)).update(
-            argThat(
-                apiKey ->
-                    apiKey.getId().equals("apiKey-X") &&
-                    apiKey.getSubscriptions().contains("sub1") &&
-                    apiKey.getSubscriptions().contains("sub2") &&
-                    apiKey.getSubscriptions().contains("sub3")
-            )
+        // the 3 subscriptions of the expired keys have been linked to the new key, atomically
+        verify(apiKeyRepository, times(1)).addSubscriptions(
+            eq("apiKey-X"),
+            argThat(subscriptions -> subscriptions.containsAll(List.of("sub1", "sub2", "sub3")))
         );
+        verify(apiKeyRepository, never()).update(argThat(apiKey -> apiKey.getId().equals("apiKey-X")));
     }
 
     @Test

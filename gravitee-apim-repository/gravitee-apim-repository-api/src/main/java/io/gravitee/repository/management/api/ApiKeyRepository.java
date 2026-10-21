@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.api.search.ApiKeyCursor;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.ApiKey;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -65,10 +66,12 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
     ApiKey create(ApiKey apiKey) throws TechnicalException;
 
     /**
-     * Update an API Key
+     * Update an API Key: every field except {@link ApiKey#getSubscriptions() subscriptions}, which is ignored. Links to
+     * subscriptions are only changed by {@link #addSubscription(String, String)} and {@link #addSubscriptions(String, Collection)},
+     * so that an update made from a copy of the key read earlier cannot drop links added in the meantime.
      *
      * @param key The API Key to update
-     * @return Updated API Key
+     * @return Updated API Key, as stored (with its current subscriptions)
      */
     ApiKey update(ApiKey key) throws TechnicalException;
 
@@ -129,6 +132,9 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
     List<ApiKey> searchAfter(ApiKeyCriteria criteria, Sortable sortable, ApiKeyCursor after, int pageSize) throws TechnicalException;
 
     /**
+     * Atomically link a subscription to an API Key, without rewriting the rest of the key, and move its {@code updatedAt}
+     * (gateways synchronise keys by {@code updatedAt}). Idempotent: linking a subscription that is already linked keeps a
+     * single link and does not fail, nor does it abort a surrounding transaction.
      *
      * @param id apikey ID
      * @param subscriptionId subscription ID to add to this shared apikey
@@ -136,6 +142,25 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
      * @throws TechnicalException
      */
     Optional<ApiKey> addSubscription(String id, String subscriptionId) throws TechnicalException;
+
+    /**
+     * Same as {@link #addSubscription(String, String)} for several subscriptions.
+     *
+     * @param id apikey ID
+     * @param subscriptionIds subscription IDs to add to this apikey
+     * @return the updated apikey if found
+     * @throws TechnicalException
+     */
+    default Optional<ApiKey> addSubscriptions(String id, Collection<String> subscriptionIds) throws TechnicalException {
+        Optional<ApiKey> apiKey = findById(id);
+        for (String subscriptionId : subscriptionIds) {
+            if (apiKey.isEmpty()) {
+                break;
+            }
+            apiKey = addSubscription(id, subscriptionId);
+        }
+        return apiKey;
+    }
 
     /**
      * Delete api key by environment ID
