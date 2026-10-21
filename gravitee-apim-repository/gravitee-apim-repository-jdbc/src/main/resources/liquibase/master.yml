@@ -389,3 +389,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_12_0/21_add_am_organization_id_to_am_connections.yml
     - include:
         - file: liquibase/changelogs/v4_12_25/00_add_subscriptions_unique_active_key.yml
+    - include:
+        - file: liquibase/changelogs/v4_12_25/00_add_subscriptions_unique_active_key_index.yml

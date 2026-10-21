@@ -129,7 +129,64 @@ public class SubscriptionUniqueActiveKeyBackfill implements CustomTaskChange {
         } while (read == BATCH_SIZE);
 
         log.info("Unique active key of subscriptions backfilled: {} scanned, {} fixed", scanned, fixed);
+        reportDuplicates(connection, table);
         return fixed;
+    }
+
+    /**
+     * Subscriptions already duplicated cannot be arbitrated here, both may be in use: they prevent the creation of the
+     * unique index until an operator closes the extra ones.
+     */
+    private static void reportDuplicates(Connection connection, String table) throws SQLException {
+        String duplicatedKeys =
+            "select " +
+            UNIQUE_ACTIVE_KEY_COLUMN +
+            " from " +
+            table +
+            " where " +
+            UNIQUE_ACTIVE_KEY_COLUMN +
+            " is not null group by " +
+            UNIQUE_ACTIVE_KEY_COLUMN +
+            " having count(*) > 1";
+        String duplicates =
+            "select id, application, " +
+            escapeReservedWord("plan") +
+            " from " +
+            table +
+            " where " +
+            UNIQUE_ACTIVE_KEY_COLUMN +
+            " = ? order by id";
+
+        List<String> keys = new ArrayList<>();
+        try (PreparedStatement statement = connection.prepareStatement(duplicatedKeys); ResultSet resultSet = statement.executeQuery()) {
+            while (resultSet.next()) {
+                keys.add(resultSet.getString(1));
+            }
+        }
+        if (keys.isEmpty()) {
+            return;
+        }
+
+        log.warn(
+            "{} application(s) have several active subscriptions to the same plan: the unique index on active subscriptions cannot be created until the extra subscriptions are closed",
+            keys.size()
+        );
+        try (PreparedStatement statement = connection.prepareStatement(duplicates)) {
+            for (String key : keys) {
+                statement.setString(1, key);
+                List<String> ids = new ArrayList<>();
+                String application = null;
+                String plan = null;
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        ids.add(resultSet.getString("id"));
+                        application = resultSet.getString("application");
+                        plan = resultSet.getString("plan");
+                    }
+                }
+                log.warn("Application [{}] has {} active subscriptions to plan [{}]: {}", application, ids.size(), plan, ids);
+            }
+        }
     }
 
     private static List<Row> readBatch(Connection connection, String select, String afterId) throws SQLException {
