@@ -19,15 +19,22 @@ import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.ACCEPTED_202;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
 import fixtures.core.model.ApiFixtures;
+import fixtures.core.model.GraviteeDefinitionFixtures;
 import fixtures.core.model.PageFixtures;
 import fixtures.core.model.ScoringReportFixture;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.ScoringReportQueryServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.audit.model.Excludable;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoring;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringAsset;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringAssetType;
@@ -40,12 +47,15 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiScoringSummary;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringTriggerResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ScoringStatus;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
@@ -63,6 +73,9 @@ public class ApiScoringResourceTest extends ApiResourceTest {
 
     @Inject
     ScoringReportQueryServiceInMemory scoringReportQueryService;
+
+    @Inject
+    ApiExportDomainService exportDomainService;
 
     @Inject
     PageCrudServiceInMemory pageCrudService;
@@ -107,7 +120,10 @@ public class ApiScoringResourceTest extends ApiResourceTest {
 
         @Test
         void should_return_202_response() {
-            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).build()));
+            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).environmentId(ENVIRONMENT).build()));
+            when(exportDomainService.export(eq(API), any(AuditInfo.class), eq(EnumSet.noneOf(Excludable.class)))).thenReturn(
+                GraviteeDefinitionFixtures.aGraviteeDefinitionProxy()
+            );
 
             final Response response = evaluateTarget.request().post(null);
 
@@ -116,6 +132,11 @@ public class ApiScoringResourceTest extends ApiResourceTest {
                 .asEntity(ApiScoringTriggerResponse.class)
                 .isEqualTo(new ApiScoringTriggerResponse().status(ScoringStatus.PENDING));
         }
+
+        @Test
+        void should_return_403_without_update_permission() {
+            shouldReturn403(RolePermission.API_DEFINITION, API, RolePermissionAction.UPDATE, () -> evaluateTarget.request().post(null));
+        }
     }
 
     @Nested
@@ -123,14 +144,20 @@ public class ApiScoringResourceTest extends ApiResourceTest {
 
         @Test
         void should_return_404_response_if_no_report_found() {
+            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).environmentId(ENVIRONMENT).build()));
             final Response response = latestReportTarget.request().get();
 
             MAPIAssertions.assertThat(response).hasStatus(NOT_FOUND_404);
         }
 
         @Test
+        void should_return_403_without_read_permission() {
+            shouldReturn403(RolePermission.API_DEFINITION, API, RolePermissionAction.READ, () -> latestReportTarget.request().get());
+        }
+
+        @Test
         void should_return_200_response_with_diagnostics_asset() {
-            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).build()));
+            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).environmentId(ENVIRONMENT).build()));
             pageCrudService.initWith(List.of(PageFixtures.aPage().toBuilder().referenceId(API).build()));
             scoringReportQueryService.initWith(List.of(ScoringReportFixture.aScoringReport().toBuilder().apiId(API).build()));
 
@@ -171,7 +198,7 @@ public class ApiScoringResourceTest extends ApiResourceTest {
 
         @Test
         void should_return_200_response_with_errors_asset() {
-            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).build()));
+            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).environmentId(ENVIRONMENT).build()));
             pageCrudService.initWith(List.of(PageFixtures.aPage().toBuilder().referenceId(API).build()));
             scoringReportQueryService.initWith(List.of(ScoringReportFixture.anErrorAssertScoringReport().toBuilder().apiId(API).build()));
 

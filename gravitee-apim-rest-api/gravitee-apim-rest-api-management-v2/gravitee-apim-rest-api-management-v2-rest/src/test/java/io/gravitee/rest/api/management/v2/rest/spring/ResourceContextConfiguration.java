@@ -155,6 +155,7 @@ import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.rest.api.management.v2.rest.resource.environment.NewtAIRateLimiter;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApiMetadataService;
@@ -815,6 +816,11 @@ public class ResourceContextConfiguration {
     @Bean
     public NewtAIProvider newtAIProvider() {
         return new NewtAIProviderInMemory();
+    }
+
+    @Bean
+    public NewtAIRateLimiter newtAIRateLimiter() {
+        return new NewtAIRateLimiter();
     }
 
     @Bean

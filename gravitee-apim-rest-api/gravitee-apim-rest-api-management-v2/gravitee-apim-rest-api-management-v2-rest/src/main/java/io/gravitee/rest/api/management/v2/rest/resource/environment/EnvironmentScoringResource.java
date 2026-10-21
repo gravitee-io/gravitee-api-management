@@ -26,6 +26,10 @@ import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -59,6 +63,7 @@ public class EnvironmentScoringResource extends AbstractResource {
     @Path("apis")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public EnvironmentApisScoringResponse getApisScoring(@BeanParam @Valid PaginationParam paginationParam) {
         var executionContext = GraviteeContext.getExecutionContext();
         var result = getEnvironmentReportsUseCase.execute(
@@ -85,6 +90,7 @@ public class EnvironmentScoringResource extends AbstractResource {
     @Path("overview")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public EnvironmentScoringOverview getScoringEnvironmentOverview() {
         var executionContext = GraviteeContext.getExecutionContext();
         var overview = getEnvironmentScoringOverviewUseCase

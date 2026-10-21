@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.spring;
 
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.el.ExpressionLanguageInitializer;
+import io.gravitee.rest.api.management.v2.rest.resource.environment.NewtAIRateLimiter;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,5 +36,10 @@ public class RestManagementConfiguration {
     @Bean
     public ExpressionLanguageInitializer expressionLanguageInitializer() {
         return new ExpressionLanguageInitializer();
+    }
+
+    @Bean
+    public NewtAIRateLimiter newtAIRateLimiter() {
+        return new NewtAIRateLimiter();
     }
 }

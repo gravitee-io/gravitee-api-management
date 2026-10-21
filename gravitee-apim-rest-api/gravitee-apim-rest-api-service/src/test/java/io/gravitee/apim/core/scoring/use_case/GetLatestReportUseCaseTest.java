@@ -15,11 +15,14 @@
  */
 package io.gravitee.apim.core.scoring.use_case;
 
+import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.PageFixtures;
 import fixtures.core.model.ScoringReportFixture;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.ScoringReportQueryServiceInMemory;
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.scoring.model.ScoringAssetType;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
@@ -38,6 +41,7 @@ class GetLatestReportUseCaseTest {
 
     private static final String REPORT_ID = "report-id";
     private static final String API_ID = "api-id";
+    private static final String ENVIRONMENT_ID = "environment-id";
     private static final ZonedDateTime CREATED_AT = Instant.parse("2023-10-22T10:15:30Z").atZone(ZoneId.systemDefault());
     private static final String PAGE_ID = "page-id";
     private static final String PAGE_NAME = "echo-oas.json";
@@ -85,17 +89,19 @@ class GetLatestReportUseCaseTest {
 
     ScoringReportQueryServiceInMemory scoringReportQueryService = new ScoringReportQueryServiceInMemory();
     PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
+    ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
 
     GetLatestReportUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        useCase = new GetLatestReportUseCase(scoringReportQueryService, pageCrudService);
+        useCase = new GetLatestReportUseCase(scoringReportQueryService, pageCrudService, apiCrudService);
+        apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API_ID).environmentId(ENVIRONMENT_ID).build()));
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(pageCrudService, scoringReportQueryService).forEach(InMemoryAlternative::reset);
+        Stream.of(pageCrudService, scoringReportQueryService, apiCrudService).forEach(InMemoryAlternative::reset);
     }
 
     @Test
@@ -105,7 +111,7 @@ class GetLatestReportUseCaseTest {
         givenExistingPage(PageFixtures.aPage().toBuilder().id(PAGE_ID).name(PAGE_NAME).build());
 
         // When
-        var report = useCase.execute(new GetLatestReportUseCase.Input(API_ID));
+        var report = useCase.execute(new GetLatestReportUseCase.Input(API_ID, ENVIRONMENT_ID));
 
         // Then
         Assertions.assertThat(report)
@@ -126,7 +132,7 @@ class GetLatestReportUseCaseTest {
         // Given
 
         // When
-        var report = useCase.execute(new GetLatestReportUseCase.Input(API_ID));
+        var report = useCase.execute(new GetLatestReportUseCase.Input(API_ID, ENVIRONMENT_ID));
 
         // Then
         Assertions.assertThat(report).extracting(GetLatestReportUseCase.Output::report).isNull();
@@ -138,7 +144,7 @@ class GetLatestReportUseCaseTest {
         givenExistingScoringReports(aReport());
 
         // When
-        var report = useCase.execute(new GetLatestReportUseCase.Input(API_ID));
+        var report = useCase.execute(new GetLatestReportUseCase.Input(API_ID, ENVIRONMENT_ID));
 
         // Then
         Assertions.assertThat(report)
@@ -160,7 +166,7 @@ class GetLatestReportUseCaseTest {
         givenExistingScoringReports(aScoringErrorReport());
 
         // When
-        var report = useCase.execute(new GetLatestReportUseCase.Input(API_ID));
+        var report = useCase.execute(new GetLatestReportUseCase.Input(API_ID, ENVIRONMENT_ID));
 
         // Then
         Assertions.assertThat(report)
@@ -189,12 +195,23 @@ class GetLatestReportUseCaseTest {
         givenExistingScoringReports(noScoreableAssetReport());
 
         // When
-        var report = useCase.execute(new GetLatestReportUseCase.Input(API_ID));
+        var report = useCase.execute(new GetLatestReportUseCase.Input(API_ID, ENVIRONMENT_ID));
 
         // Then
         Assertions.assertThat(report)
             .extracting(GetLatestReportUseCase.Output::report)
             .isEqualTo(new ScoringReportView(REPORT_ID, API_ID, CREATED_AT, List.of(), null));
+    }
+
+    @Test
+    void should_reject_api_from_another_environment() {
+        apiCrudService.reset();
+        apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API_ID).environmentId("other-env").build()));
+        givenExistingScoringReports(aReport());
+
+        Assertions.assertThatThrownBy(() -> useCase.execute(new GetLatestReportUseCase.Input(API_ID, ENVIRONMENT_ID))).isInstanceOf(
+            ApiNotFoundException.class
+        );
     }
 
     private static ScoringReport aReport() {
