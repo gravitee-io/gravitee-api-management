@@ -222,7 +222,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         icon: 'gio:shield-check',
         routerLink: './api-score',
         displayName: 'API Score',
-        permissions: ['environment-integration-r'],
+        permissions: ['environment-api-r'],
         category: 'API Score',
       });
     }

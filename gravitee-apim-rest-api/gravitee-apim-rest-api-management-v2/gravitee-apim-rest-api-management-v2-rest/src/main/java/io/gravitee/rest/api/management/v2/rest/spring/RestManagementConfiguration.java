@@ -39,6 +39,7 @@ import io.gravitee.rest.api.management.v2.rest.adapter.PatchPlanFlowsDeserialize
 import io.gravitee.rest.api.management.v2.rest.mapper.FlowMapper;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.resource.api.RemoteApiDefinitionParser;
+import io.gravitee.rest.api.management.v2.rest.resource.environment.NewtAIRateLimiter;
 import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.UserService;
@@ -121,5 +122,10 @@ public class RestManagementConfiguration {
     @Bean
     public ManagementContextLoader managementContextLoader(EnvironmentAnalyticsApisDomainService environmentAnalyticsApisDomainService) {
         return new ManagementContextLoader(environmentAnalyticsApisDomainService);
+    }
+
+    @Bean
+    public NewtAIRateLimiter newtAIRateLimiter() {
+        return new NewtAIRateLimiter();
     }
 }
