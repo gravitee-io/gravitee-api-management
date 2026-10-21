@@ -17,6 +17,7 @@ package io.gravitee.apim.rest.api.automation.resource;
 
 import static io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED;
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_SUBSCRIPTION;
+import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_SUBSCRIPTION;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -31,6 +32,7 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.SubscriptionFixtures;
 import inmemory.SubscriptionCrudServiceInMemory;
+import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDStatus;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
@@ -144,6 +146,7 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         private final ExecutionContext executionContext = new ExecutionContext(ORGANIZATION, ENVIRONMENT);
         private final String apiId = IdBuilder.builder(executionContext, API_HRID).buildId();
         private final String subscriptionId = IdBuilder.builder(executionContext, API_HRID).withExtraId("subscription_hrid").buildId();
+        private final String applicationId = IdBuilder.builder(executionContext, "application_hrid").buildId();
 
         @BeforeEach
         void setUp() {
@@ -199,7 +202,37 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             verify(importSubscriptionSpecUseCase).execute(any());
         }
 
+        @Test
+        void should_return_403_when_the_caller_cannot_subscribe_the_application() {
+            denyApplicationSubscription();
+
+            assertThat(put()).isEqualTo(403);
+            verify(importSubscriptionSpecUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_403_when_the_caller_cannot_subscribe_the_application_of_a_closed_subscription() {
+            givenExistingSubscription(SubscriptionEntity.Status.CLOSED);
+            denyApplicationSubscription();
+
+            assertThat(put()).isEqualTo(403);
+            verify(importSubscriptionSpecUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_update_an_open_subscription_without_the_application_permission() {
+            givenExistingSubscription();
+            denyApplicationSubscription();
+
+            assertThat(put()).isEqualTo(200);
+            verify(importSubscriptionSpecUseCase).execute(any());
+        }
+
         private void givenExistingSubscription() {
+            givenExistingSubscription(SubscriptionEntity.Status.ACCEPTED);
+        }
+
+        private void givenExistingSubscription(SubscriptionEntity.Status status) {
             subscriptionCrudService.initWith(
                 List.of(
                     SubscriptionFixtures.aSubscription()
@@ -207,9 +240,15 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                         .id(subscriptionId)
                         .referenceId(apiId)
                         .referenceType(SubscriptionReferenceType.API)
+                        .applicationId(applicationId)
+                        .status(status)
                         .build()
                 )
             );
+        }
+
+        private void denyApplicationSubscription() {
+            when(permissionService.hasPermission(any(), eq(APPLICATION_SUBSCRIPTION), eq(applicationId), eq(CREATE))).thenReturn(false);
         }
 
         private void deny(RolePermissionAction action) {
