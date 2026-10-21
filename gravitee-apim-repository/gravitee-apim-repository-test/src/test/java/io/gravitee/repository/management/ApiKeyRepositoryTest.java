@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.api.search.ApiKeyCursor;
@@ -435,6 +436,35 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         ApiKey apiKey4 = apiKeys.get(1);
         assertEquals("id-of-apikey-4", apiKey4.getId());
         assertEquals(List.of("sub3"), apiKey4.getSubscriptions());
+    }
+
+    @Test
+    public void findLatestByApplication_should_find_the_same_api_keys_as_findByApplication() throws TechnicalException {
+        assertThat(apiKeyRepository.findLatestByApplication("app1"))
+            .extracting(ApiKey::getId, ApiKey::getSubscriptions)
+            .containsExactlyInAnyOrder(tuple("id-of-apikey-5", List.of("sub3")), tuple("id-of-apikey-4", List.of("sub3")));
+    }
+
+    @Test
+    public void create_should_reject_an_existing_id_and_write_nothing() throws Exception {
+        givenSharedKey(SHARED_KEY_ID, "sub-of-the-first-create");
+        ApiKey sameId = ApiKey.builder()
+            .id(SHARED_KEY_ID)
+            .key("value-of-the-second-create")
+            .environmentId("DEFAULT")
+            .application("shared-app")
+            .subscriptions(new ArrayList<>(List.of("sub-of-the-second-create")))
+            .createdAt(new Date())
+            .updatedAt(new Date())
+            .build();
+
+        Throwable thrown = Assertions.catchThrowable(() -> apiKeyRepository.create(sameId));
+
+        assertThat(thrown).isInstanceOf(DuplicateKeyException.class);
+        ApiKey stored = apiKeyRepository.findById(SHARED_KEY_ID).orElseThrow();
+        assertThat(stored.getKey()).isEqualTo("shared-key-value");
+        assertThat(stored.getSubscriptions()).containsExactly("sub-of-the-first-create");
+        assertThat(apiKeyRepository.findBySubscription("sub-of-the-second-create")).isEmpty();
     }
 
     @Test
