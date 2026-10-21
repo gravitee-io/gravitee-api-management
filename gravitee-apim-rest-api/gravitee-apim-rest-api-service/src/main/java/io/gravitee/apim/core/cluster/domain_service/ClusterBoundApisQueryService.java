@@ -25,13 +25,18 @@ import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -44,7 +49,8 @@ import lombok.RequiredArgsConstructor;
  * </ul>
  *
  * <p>Backing service for the cluster lifecycle guards: a started API must never be left pointing at a cluster, or a
- * connection, that gets undeployed or removed.
+ * connection, that gets undeployed or removed. {@link #clusterCrossIds} also feeds the API search index, which lists the
+ * APIs using a cluster.
  */
 @CustomLog
 @DomainService
@@ -98,22 +104,40 @@ public class ClusterBoundApisQueryService {
             return clusterUses(definition, objectMapper);
         }
         if (api.getType() == ApiType.MESSAGE && api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api definition) {
-            return KafkaClusterBindings.of(definition.getEndpointGroups(), objectMapper)
-                .stream()
-                .filter(binding -> binding.isCluster() && !binding.clusterCrossId().isEmpty())
-                .map(binding -> new ClusterUse(binding.clusterCrossId(), binding.connectionCrossId()))
-                .toList();
+            return messageClusterUses(definition.getEndpointGroups(), objectMapper);
         }
         return List.of();
     }
 
+    /**
+     * The cross ids of the clusters, registered or virtual, the endpoints of a v4 API use, as the API search index records
+     * them. The APIs reaching a registered cluster through a virtual cluster are found through the virtual cluster's.
+     */
+    public static Set<String> clusterCrossIds(List<ClusterUse> uses) {
+        return uses.stream().map(ClusterUse::clusterCrossId).filter(Objects::nonNull).collect(Collectors.toCollection(TreeSet::new));
+    }
+
+    /** The clusters the {@code kafka} endpoints in {@code CLUSTER} mode of a Message API use. */
+    public static List<ClusterUse> messageClusterUses(List<EndpointGroup> endpointGroups, ObjectMapper objectMapper) {
+        return KafkaClusterBindings.of(endpointGroups, objectMapper)
+            .stream()
+            .filter(binding -> binding.isCluster() && !binding.clusterCrossId().isEmpty())
+            .map(binding -> new ClusterUse(binding.clusterCrossId(), binding.connectionCrossId()))
+            .toList();
+    }
+
     /** The clusters the endpoints of a Kafka Native API definition use. */
     public static List<ClusterUse> clusterUses(NativeApi definition, ObjectMapper objectMapper) {
+        return definition == null ? new ArrayList<>() : nativeClusterUses(definition.getEndpointGroups(), objectMapper);
+    }
+
+    /** The clusters the endpoints of a Kafka Native API use. */
+    public static List<ClusterUse> nativeClusterUses(List<NativeEndpointGroup> endpointGroups, ObjectMapper objectMapper) {
         List<ClusterUse> uses = new ArrayList<>();
-        if (definition == null || definition.getEndpointGroups() == null) {
+        if (endpointGroups == null) {
             return uses;
         }
-        for (NativeEndpointGroup group : definition.getEndpointGroups()) {
+        for (NativeEndpointGroup group : endpointGroups) {
             if (group == null || group.getEndpoints() == null) {
                 continue;
             }

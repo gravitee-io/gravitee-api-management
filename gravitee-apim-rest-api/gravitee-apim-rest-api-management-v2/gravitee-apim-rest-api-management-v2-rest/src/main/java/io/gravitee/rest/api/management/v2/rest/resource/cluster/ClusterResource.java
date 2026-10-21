@@ -15,10 +15,12 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.cluster;
 
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.DeployClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.GetClusterApisUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetClusterStartedApisUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.UndeployClusterUseCase;
@@ -28,10 +30,16 @@ import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCa
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ClusterMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
+import io.gravitee.rest.api.management.v2.rest.model.ClusterApi;
+import io.gravitee.rest.api.management.v2.rest.model.ClusterApiConnection;
+import io.gravitee.rest.api.management.v2.rest.model.ClusterApiVirtualCluster;
+import io.gravitee.rest.api.management.v2.rest.model.ClusterApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ClusterStartedApi;
 import io.gravitee.rest.api.management.v2.rest.model.ClusterStartedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateCluster;
+import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
@@ -40,6 +48,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -55,6 +64,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class ClusterResource extends AbstractResource {
@@ -88,6 +98,9 @@ public class ClusterResource extends AbstractResource {
 
     @Inject
     private GetClusterStartedApisUseCase getClusterStartedApisUseCase;
+
+    @Inject
+    private GetClusterApisUseCase getClusterApisUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -208,6 +221,62 @@ public class ClusterResource extends AbstractResource {
                 .map(api -> new ClusterStartedApi().id(api.getId()).name(api.getName()).type(ApiType.valueOf(api.getType().name())))
                 .toList()
         );
+    }
+
+    @GET
+    @Path("apis")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.CLUSTER_DEFINITION, acls = { RolePermissionAction.READ }) })
+    public ClusterApisResponse getClusterApis(@QueryParam("q") String q, @BeanParam @Valid PaginationParam paginationParam) {
+        var output = getClusterApisUseCase.execute(
+            new GetClusterApisUseCase.Input(
+                clusterId,
+                q,
+                paginationParam.toPageable(),
+                GraviteeContext.getExecutionContext(),
+                getAuthenticatedUser(),
+                isAdmin()
+            )
+        );
+        var page = output.apis();
+        long totalCount = page.getTotalElements();
+        return new ClusterApisResponse()
+            .data(
+                page
+                    .getContent()
+                    .stream()
+                    .map(item -> toClusterApi(item, output.connectionNames()))
+                    .toList()
+            )
+            .pagination(PaginationInfo.computePaginationInfo(totalCount, page.getContent().size(), paginationParam))
+            .links(computePaginationLinks(totalCount, paginationParam));
+    }
+
+    private static ClusterApi toClusterApi(GetClusterApisUseCase.Item item, Map<String, String> connectionNames) {
+        var api = item.clusterApi().api();
+        return new ClusterApi()
+            .id(api.getId())
+            .name(api.getName())
+            .version(api.getVersion())
+            .type(ApiType.valueOf(api.getType().name()))
+            .state(api.getLifecycleState() == Api.LifecycleState.STARTED ? ClusterApi.StateEnum.STARTED : ClusterApi.StateEnum.STOPPED)
+            .connections(
+                item
+                    .clusterApi()
+                    .connectionCrossIds()
+                    .stream()
+                    .map(crossId -> new ClusterApiConnection().crossId(crossId).name(connectionNames.get(crossId)))
+                    .toList()
+            )
+            .virtualClusters(
+                item
+                    .clusterApi()
+                    .virtualClusters()
+                    .stream()
+                    .map(virtualCluster -> new ClusterApiVirtualCluster().id(virtualCluster.getId()).name(virtualCluster.getName()))
+                    .toList()
+            )
+            .readable(item.readable());
     }
 
     @GET

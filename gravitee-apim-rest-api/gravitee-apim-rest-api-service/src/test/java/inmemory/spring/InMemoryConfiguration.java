@@ -564,6 +564,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public ClusterApiSearchQueryServiceInMemory clusterApiSearchQueryService() {
+        return new ClusterApiSearchQueryServiceInMemory();
+    }
+
+    @Bean
     public PortalNavigationItemsCrudServiceInMemory portalNavigationItemsCrudService() {
         return new PortalNavigationItemsCrudServiceInMemory();
     }

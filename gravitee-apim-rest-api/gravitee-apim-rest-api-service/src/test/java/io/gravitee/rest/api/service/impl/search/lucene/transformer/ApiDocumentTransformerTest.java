@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ALLOW_IN_API_PRODUCTS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CLUSTERS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ID_SORTED;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_STATUS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_STATUS_SORTED;
@@ -37,6 +38,8 @@ import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
@@ -44,6 +47,7 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.federation.FederatedApiAgentEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -81,6 +85,74 @@ class ApiDocumentTransformerTest {
         ApiEntity toTransform = getApiEntity();
         Document transformed = cut.transform(toTransform);
         assertDocumentMatchesInputApiEntity(toTransform, transformed);
+    }
+
+    @Test
+    void should_index_the_clusters_the_endpoints_of_a_native_api_use() {
+        var api = new NativeApiEntity();
+        api.setId("api-uuid");
+        api.setName("Orders");
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.NATIVE);
+        api.setEndpointGroups(
+            List.of(
+                NativeEndpointGroup.builder()
+                    .endpoints(
+                        List.of(
+                            NativeEndpoint.builder()
+                                .type("native-kafka-cluster")
+                                .configuration("{\"clusterCrossId\":\"prod\",\"connectionCrossId\":\"sasl\"}")
+                                .build(),
+                            NativeEndpoint.builder()
+                                .type("native-kafka-virtual-cluster")
+                                .configuration("{\"virtualClusterCrossId\":\"mesh\"}")
+                                .build()
+                        )
+                    )
+                    .build()
+            )
+        );
+
+        Document doc = cut.transform(api);
+
+        assertThat(doc.getValues(FIELD_CLUSTERS)).containsExactlyInAnyOrder("prod", "mesh");
+    }
+
+    @Test
+    void should_index_the_cluster_of_a_message_api_kafka_endpoint_in_cluster_mode() {
+        var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+        api.setId("api-uuid");
+        api.setName("Payments");
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.MESSAGE);
+        api.setEndpointGroups(
+            List.of(
+                EndpointGroup.builder()
+                    .type("kafka")
+                    .sharedConfiguration("{\"mode\":\"CLUSTER\",\"clusterCrossId\":\"prod\"}")
+                    .endpoints(
+                        List.of(
+                            Endpoint.builder()
+                                .type("kafka")
+                                .inheritConfiguration(true)
+                                .configuration("{\"connectionCrossId\":\"sasl\"}")
+                                .build()
+                        )
+                    )
+                    .build()
+            )
+        );
+
+        Document doc = cut.transform(api);
+
+        assertThat(doc.getValues(FIELD_CLUSTERS)).containsExactly("prod");
+    }
+
+    @Test
+    void should_index_no_cluster_for_a_proxy_api() {
+        Document doc = cut.transform(getApiEntity());
+
+        assertThat(doc.getValues(FIELD_CLUSTERS)).isEmpty();
     }
 
     @Test

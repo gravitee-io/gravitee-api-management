@@ -72,7 +72,11 @@ public class ClusterInUseDomainService {
         if (cluster.getCrossId() == null || connectionCrossIds.isEmpty() || cluster.getType() != ClusterType.KAFKA_CLUSTER) {
             return List.of();
         }
-        Set<String> virtualClusters = virtualClustersWithBackendOn(environmentId, cluster, connectionCrossIds::contains);
+        Set<String> virtualClusters = virtualClustersWithBackendOn(
+            environmentId,
+            cluster,
+            connection -> connection != null && connectionCrossIds.contains(connection)
+        );
         // An API naming the cluster but no connection does not block: the gateway cannot connect it to any connection.
         Predicate<ClusterUse> usesConnectionDirectly = use ->
             cluster.getCrossId().equals(use.clusterCrossId()) && connectionCrossIds.contains(use.connectionCrossId());
@@ -144,30 +148,47 @@ public class ClusterInUseDomainService {
 
     /** Cross ids of the virtual clusters deployed at the gateway with a backend on a matching connection of {@code cluster}. */
     private Set<String> virtualClustersWithBackendOn(String environmentId, Cluster cluster, Predicate<String> connectionCrossId) {
-        if (cluster.getType() != ClusterType.KAFKA_CLUSTER) {
-            return Set.of();
-        }
-        return deployedClustersDomainService
-            .findAll(environmentId)
+        return virtualClustersOn(environmentId, cluster)
+            .values()
             .stream()
-            .filter(deployed -> deployed.getType() == ClusterType.KAFKA_VIRTUAL_CLUSTER)
-            .filter(deployed -> {
-                KafkaVirtualClusterConfiguration configuration = deployed.getKafkaVirtualClusterConfiguration(objectMapper);
-                return (
-                    configuration != null &&
-                    configuration.backends() != null &&
-                    configuration
-                        .backends()
-                        .stream()
-                        .filter(Objects::nonNull)
-                        .anyMatch(
-                            backend ->
-                                cluster.getCrossId().equals(backend.clusterCrossId()) && connectionCrossId.test(backend.connectionCrossId())
-                        )
-                );
-            })
-            .map(Cluster::getCrossId)
+            .filter(on -> on.backendConnectionCrossIds().stream().anyMatch(connectionCrossId))
+            .map(on -> on.virtualCluster().getCrossId())
             .collect(Collectors.toSet());
+    }
+
+    /**
+     * A deployed virtual cluster with backends on a registered cluster.
+     *
+     * @param backendConnectionCrossIds the connections of the registered cluster its backends use; an element is
+     *     {@code null} for a backend naming no connection
+     */
+    public record VirtualClusterOn(Cluster virtualCluster, List<String> backendConnectionCrossIds) {}
+
+    /** The virtual clusters deployed at the gateway with a backend on {@code cluster}, by cross id. */
+    public Map<String, VirtualClusterOn> virtualClustersOn(String environmentId, Cluster cluster) {
+        if (cluster.getType() != ClusterType.KAFKA_CLUSTER) {
+            return Map.of();
+        }
+        Map<String, VirtualClusterOn> virtualClusters = new LinkedHashMap<>();
+        for (Cluster deployed : deployedClustersDomainService.findAll(environmentId)) {
+            if (deployed.getType() != ClusterType.KAFKA_VIRTUAL_CLUSTER) {
+                continue;
+            }
+            KafkaVirtualClusterConfiguration configuration = deployed.getKafkaVirtualClusterConfiguration(objectMapper);
+            if (configuration == null || configuration.backends() == null) {
+                continue;
+            }
+            List<String> connections = configuration
+                .backends()
+                .stream()
+                .filter(backend -> backend != null && cluster.getCrossId().equals(backend.clusterCrossId()))
+                .map(backend -> backend.connectionCrossId())
+                .toList();
+            if (!connections.isEmpty()) {
+                virtualClusters.put(deployed.getCrossId(), new VirtualClusterOn(deployed, connections));
+            }
+        }
+        return virtualClusters;
     }
 
     /** {@code "5 started APIs (Audit, Orders, Payments and 2 more) use"}: the subject and verb of the error message. */
