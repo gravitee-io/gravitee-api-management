@@ -137,6 +137,24 @@
       </mat-card-content>
     </mat-card>
 
+    <mat-card
+      *ngIf="identityProviderFormGroup.get('configuration') as configurationGroup"
+      class="identity-provider__card"
+      [formGroup]="$any(configurationGroup)"
+    >
+      <mat-card-content>
+        <h2 gioTableOfContents>Configuration</h2>
+
+        <mat-form-field class="identity-provider__card__form-field">
+          <mat-label>Client Id</mat-label>
+          <input matInput name="configurationClientId" formControlName="clientId" required />
+          <mat-error *ngIf="configurationGroup.get('clientId').hasError('required')">Client Id is required.</mat-error>
+        </mat-form-field>
+
+        <org-settings-identity-provider-client-secret [secretOptional]="mode === 'edit'"></org-settings-identity-provider-client-secret>
+      </mat-card-content>
+    </mat-card>
+
     <ng-container [ngSwitch]="identityProviderType">
       <org-settings-identity-provider-oidc *ngSwitchCase="'OIDC'" #providerConfiguration></org-settings-identity-provider-oidc>
       <org-settings-identity-provider-google *ngSwitchCase="'GOOGLE'" #providerConfiguration></org-settings-identity-provider-google>

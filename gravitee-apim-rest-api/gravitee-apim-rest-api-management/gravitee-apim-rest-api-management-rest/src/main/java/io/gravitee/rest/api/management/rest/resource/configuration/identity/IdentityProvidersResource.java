@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource.configuration.identity;
 
+import static io.gravitee.rest.api.model.configuration.identity.IdentityProviderClientSecret.omitClientSecret;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.configuration.identity.IdentityProviderListItem;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
@@ -120,7 +122,9 @@ public class IdentityProvidersResource extends AbstractResource {
         );
 
         if (newIdentityProvider != null) {
-            return Response.created(this.getLocationHeader(newIdentityProvider.getId())).entity(newIdentityProvider).build();
+            return Response.created(this.getLocationHeader(newIdentityProvider.getId()))
+                .entity(omitClientSecret(newIdentityProvider))
+                .build();
         }
 
         return Response.serverError().build();
