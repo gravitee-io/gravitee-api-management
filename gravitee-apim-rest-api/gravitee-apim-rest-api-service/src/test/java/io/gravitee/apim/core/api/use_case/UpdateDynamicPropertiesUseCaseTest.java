@@ -636,6 +636,39 @@ class UpdateDynamicPropertiesUseCaseTest {
         }
 
         @Test
+        void should_not_mark_the_audit_when_only_a_plain_property_changes_beside_an_unchanged_encrypted_one()
+            throws GeneralSecurityException {
+            var api = givenApi(buildApiWithProperties(List.of(encryptedDynamic("secret", "s3cret"), fetched("other", "v1"))));
+
+            cut.execute(
+                new UpdateDynamicPropertiesUseCase.Input(
+                    api.getId(),
+                    HTTP_DYNAMIC_PROPERTIES,
+                    List.of(fetched("secret", "s3cret"), fetched("other", "v2")),
+                    false
+                )
+            );
+
+            assertThat(auditCrudServiceInMemory.storage())
+                .singleElement()
+                .satisfies(audit -> assertThat(audit.getProperties()).doesNotContainKey("ENCRYPTED"));
+            verify(apiStateDomainService).redeployWithSyncedDynamicProperties(any(), any(String.class), any());
+        }
+
+        @Test
+        void should_not_mark_the_audit_when_a_sync_drops_an_encrypted_property() throws GeneralSecurityException {
+            var api = givenApi(buildApiWithProperties(List.of(encryptedDynamic("secret", "s3cret"), fetched("other", "v1"))));
+
+            cut.execute(
+                new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(fetched("other", "v1")), false)
+            );
+
+            assertThat(auditCrudServiceInMemory.storage())
+                .singleElement()
+                .satisfies(audit -> assertThat(audit.getProperties()).doesNotContainKey("ENCRYPTED"));
+        }
+
+        @Test
         void should_store_a_changed_value_encrypted_and_redeploy_ciphertext_only() throws GeneralSecurityException {
             var api = givenApi(buildApiWithProperties(List.of(encryptedDynamic("secret", "s3cret"))));
 

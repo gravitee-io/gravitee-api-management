@@ -65,7 +65,9 @@ public class AuditParam {
     private int page;
 
     @QueryParam("encrypted")
-    @Parameter(description = "Filter on audit entries that involve an encrypted property. Only 'true' is supported.")
+    @Parameter(
+        description = "Filter on audit entries whose action wrote an encrypted value. Only entries of V4 APIs and dictionaries carry this tag, so V2 API entries are never returned. Only 'true' is supported."
+    )
     private Boolean encrypted;
 
     public void applyEncryptedFilterTo(AuditQuery query) {

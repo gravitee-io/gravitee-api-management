@@ -22,6 +22,7 @@ import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCR
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.apim.core.api.model.property.EncryptedPropertyAuditMarker;
 import io.gravitee.apim.infra.json.jackson.EncryptedPropertyAccessPatch;
 import io.gravitee.apim.infra.json.jackson.EncryptedPropertyAuditRedaction;
 import io.gravitee.common.component.Lifecycle;
@@ -499,7 +500,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
         Map<Audit.AuditProperties, String> auditProperties = new EnumMap<>(Audit.AuditProperties.class);
         auditProperties.put(DICTIONARY, dictionaryName);
-        if (hasEncryptedProperty(oldValue) || hasEncryptedProperty(newValue)) {
+        if (writesEncryptedValue(oldValue, newValue)) {
             auditProperties.put(ENCRYPTED, Boolean.TRUE.toString());
         }
 
@@ -550,7 +551,6 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         }
         Map<Audit.AuditProperties, String> auditProperties = new EnumMap<>(Audit.AuditProperties.class);
         auditProperties.put(DICTIONARY, deployedDictionary.getName());
-        auditProperties.put(ENCRYPTED, Boolean.TRUE.toString());
 
         auditService.createAuditLog(
             executionContext,
@@ -563,7 +563,14 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         );
     }
 
+    private static boolean writesEncryptedValue(Dictionary oldValue, Dictionary newValue) {
+        return EncryptedPropertyAuditMarker.holdsNewCiphertext(ciphertextByKey(oldValue), ciphertextByKey(newValue));
+    }
+
     private static Map<String, String> ciphertextByKey(Dictionary dictionary) {
+        if (dictionary == null) {
+            return Map.of();
+        }
         return encryptedPropertyKeys(dictionary).collect(
             HashMap::new,
             (ciphertextByKey, key) -> ciphertextByKey.put(key, dictionary.getProperties().get(key).value()),

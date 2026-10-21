@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -33,7 +32,6 @@ import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.ApiTagService;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -132,7 +130,7 @@ public class ApiTagServiceImplTest {
     }
 
     @Test
-    public void should_mark_the_audit_when_removing_a_tag_from_a_v4_api_holding_an_encrypted_property()
+    public void should_not_mark_the_audit_when_removing_a_tag_from_a_v4_api_holding_an_encrypted_property()
         throws TechnicalException, JsonProcessingException {
         final ExecutionContext executionContext = new ExecutionContext("DEFAULT", null);
 
@@ -159,7 +157,7 @@ public class ApiTagServiceImplTest {
 
         verify(auditService, times(1)).createApiAuditLog(
             any(),
-            argThat(auditLogData -> auditLogData.getProperties().equals(Map.of(ENCRYPTED, "true"))),
+            argThat(auditLogData -> auditLogData.getProperties().isEmpty()),
             eq("api-id")
         );
     }

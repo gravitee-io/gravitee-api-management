@@ -24,6 +24,7 @@ import static java.util.Comparator.comparing;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.model.property.EncryptedPropertyAuditMarker;
 import io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.infra.json.jackson.EncryptedPropertyAccessPatch;
@@ -36,7 +37,6 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.EventEntity;
@@ -260,32 +260,20 @@ public class ApiStateServiceImpl implements ApiStateService {
         Api.AuditEvent event
     ) {
         List<Property> properties = v4Properties(deployedApi);
-        Map<Audit.AuditProperties, String> encryptedMarker = EncryptedPropertyAuditProperties.of(null, properties);
-        if (encryptedMarker.isEmpty()) {
+        if (!EncryptedPropertyAuditMarker.holdsEncryptedProperty(properties)) {
             return;
         }
         auditService.createApiAuditLog(
             executionContext,
             AuditService.AuditLogData.builder()
-                .properties(encryptedMarker)
+                .properties(emptyMap())
                 .event(event)
                 .createdAt(deployedAt)
-                .patch(EncryptedPropertyAccessPatch.of(ciphertextByKey(properties)))
+                .patch(EncryptedPropertyAccessPatch.of(EncryptedPropertyAuditMarker.ciphertextByKey(properties)))
                 .build(),
             deployedApi.getId(),
             authenticatedUser
         );
-    }
-
-    private static Map<String, String> ciphertextByKey(List<Property> properties) {
-        return properties
-            .stream()
-            .filter(Property::isEncrypted)
-            .collect(
-                HashMap::new,
-                (ciphertextByKey, property) -> ciphertextByKey.put(property.getKey(), property.getValue()),
-                HashMap::putAll
-            );
     }
 
     private static List<Property> v4Properties(GenericApiEntity api) {

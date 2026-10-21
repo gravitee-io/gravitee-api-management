@@ -631,14 +631,50 @@ public class DictionaryServiceImpl_UpdateTest {
     }
 
     @Test
-    public void should_mark_audit_as_encrypted_when_the_update_clears_the_last_encrypted_property() throws TechnicalException {
+    public void should_not_mark_audit_as_encrypted_when_the_update_clears_the_last_encrypted_property() throws TechnicalException {
         Map<String, DictionaryProperty> stored = new HashMap<>();
         stored.put("secret", new DictionaryProperty("cipher", true));
         given_stored_dictionary(stored);
 
         dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, anUpdate(Map.of(), null));
 
+        verify(auditService).createAuditLog(any(), argThat(data -> !data.getProperties().containsKey(ENCRYPTED)));
+    }
+
+    @Test
+    public void should_mark_audit_as_encrypted_when_the_update_renews_an_encrypted_value()
+        throws TechnicalException, GeneralSecurityException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("cipher", true));
+        given_stored_dictionary(stored);
+        when(dataEncryptor.encrypt("renewed-plaintext")).thenReturn("renewed-cipher");
+
+        dictionaryService.update(
+            GraviteeContext.getExecutionContext(),
+            DICTIONARY_ID,
+            anUpdate(Map.of("secret", "renewed-plaintext"), null)
+        );
+
         verify(auditService).createAuditLog(any(), argThat(data -> "true".equals(data.getProperties().get(ENCRYPTED))));
+    }
+
+    @Test
+    public void should_not_mark_audit_as_encrypted_when_only_plain_properties_change_beside_an_unchanged_encrypted_one()
+        throws TechnicalException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("cipher", true));
+        stored.put("edited", new DictionaryProperty("v1", false));
+        stored.put("removed", new DictionaryProperty("v1", false));
+        given_stored_dictionary(stored);
+
+        dictionaryService.update(
+            GraviteeContext.getExecutionContext(),
+            DICTIONARY_ID,
+            anUpdate(Map.of("secret", ENCRYPTED_VALUE_MASK, "edited", "v2", "plain-c", "plain-c"), null)
+        );
+
+        verify(dictionaryRepository).update(argThat(dict -> dict.getProperties().get("secret").value().equals("cipher")));
+        verify(auditService).createAuditLog(any(), argThat(data -> !data.getProperties().containsKey(ENCRYPTED)));
     }
 
     @Test
@@ -887,6 +923,7 @@ public class DictionaryServiceImpl_UpdateTest {
             )
         );
         assertThat(patch.toString()).doesNotContain("NEW-CIPHER").doesNotContain("was-plain");
+        verify(auditService).createAuditLog(any(), argThat(data -> "true".equals(data.getProperties().get(ENCRYPTED))));
     }
 
     @Test
@@ -919,6 +956,7 @@ public class DictionaryServiceImpl_UpdateTest {
                 )
             );
         });
+        verify(auditService).createAuditLog(any(), argThat(data -> "true".equals(data.getProperties().get(ENCRYPTED))));
     }
 
     @Test
