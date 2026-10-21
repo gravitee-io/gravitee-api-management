@@ -87,14 +87,14 @@ public class DictionaryServiceImpl_DeleteTest {
     }
 
     @Test
-    public void should_mark_the_deletion_as_encrypted_when_a_property_is_encrypted() throws TechnicalException {
+    public void should_not_mark_the_deletion_as_encrypted_when_a_property_is_encrypted() throws TechnicalException {
         given_stored_dictionary(Map.of("secret", new DictionaryProperty("cipher", true)));
 
         dictionaryService.delete(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
 
         verify(auditService).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> "true".equals(auditLogData.getProperties().get(ENCRYPTED)))
+            argThat(auditLogData -> !auditLogData.getProperties().containsKey(ENCRYPTED))
         );
     }
 

@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_ENCRYPTED_PROPERTIES_ACCESSED;
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_ENCRYPTED_PROPERTIES_REFRESHED;
-import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -576,7 +575,7 @@ public class ApiStateServiceImpl_DeployTest {
             argThat(
                 auditLogData ->
                     auditLogData.getEvent() == event &&
-                    auditLogData.getProperties().equals(Map.of(ENCRYPTED, "true")) &&
+                    auditLogData.getProperties().isEmpty() &&
                     auditLogData.getCreatedAt().equals(api.getDeployedAt()) &&
                     auditLogData.getOldValue() == null &&
                     auditLogData.getNewValue() == null &&

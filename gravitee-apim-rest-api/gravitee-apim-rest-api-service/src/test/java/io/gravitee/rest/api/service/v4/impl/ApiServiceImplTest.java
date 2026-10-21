@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static io.gravitee.definition.model.DefinitionContext.MODE_FULLY_MANAGED;
 import static io.gravitee.definition.model.DefinitionContext.ORIGIN_KUBERNETES;
 import static io.gravitee.definition.model.DefinitionContext.ORIGIN_MANAGEMENT;
@@ -199,6 +200,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.slf4j.LoggerFactory;
+import org.springframework.mock.env.MockEnvironment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -211,6 +213,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @MockitoSettings(strictness = Strictness.WARN)
 public class ApiServiceImplTest {
 
+    private static final DataEncryptor REAL_DATA_ENCRYPTOR = new DataEncryptor(
+        new MockEnvironment(),
+        "api.properties.encryption.secret",
+        "vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6"
+    );
     private static final String API_ID = "id-api";
     private static final String API_NAME = "myAPI";
     private static final String USER_NAME = "myUser";
@@ -804,7 +811,7 @@ public class ApiServiceImplTest {
     }
 
     @Test
-    public void should_mark_the_deletion_audit_when_the_api_held_an_encrypted_property() throws Exception {
+    public void should_not_mark_the_deletion_audit_when_the_api_held_an_encrypted_property() throws Exception {
         givenStoredProperties(List.of(new Property("secret-key", "ciphertext", true, false)));
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
@@ -812,7 +819,7 @@ public class ApiServiceImplTest {
 
         verify(auditService).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            argThat(data -> data.getEvent().equals(API_DELETED) && "true".equals(data.getProperties().get(ENCRYPTED))),
+            argThat(data -> data.getEvent().equals(API_DELETED) && !data.getProperties().containsKey(ENCRYPTED)),
             eq(API_ID)
         );
     }
@@ -1296,6 +1303,144 @@ public class ApiServiceImplTest {
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
 
+        verify(auditService).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(data -> data.getEvent().equals(API_UPDATED) && !data.getProperties().containsKey(ENCRYPTED)),
+            eq(API_ID)
+        );
+    }
+
+    @Test
+    public void should_not_mark_the_update_audit_when_a_plain_property_is_added_beside_an_unchanged_encrypted_one() throws Exception {
+        prepareUpdate();
+        givenStoredProperties(List.of(new Property("secret-key", "ciphertext", true, false)));
+        when(propertiesService.encryptProperties(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        updateApiEntity.setProperties(
+            List.of(new PropertyEntity("secret-key", "ciphertext", false, true), new PropertyEntity("plain-c", "plain-c", false, false))
+        );
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        verify(auditService).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(data -> data.getEvent().equals(API_UPDATED) && !data.getProperties().containsKey(ENCRYPTED)),
+            eq(API_ID)
+        );
+    }
+
+    @Test
+    public void should_not_mark_the_update_audit_when_the_mask_is_sent_back_beside_a_new_plain_property() throws Exception {
+        prepareUpdate();
+        givenStoredProperties(List.of(new Property("secret-key", "ciphertext", true, false)));
+        PropertiesService realPropertiesService = new PropertiesServiceImpl(dataEncryptor);
+        when(propertiesService.encryptProperties(any(), any())).thenAnswer(invocation ->
+            realPropertiesService.encryptProperties(invocation.getArgument(0), invocation.getArgument(1))
+        );
+        updateApiEntity.setProperties(
+            List.of(
+                new PropertyEntity("secret-key", ENCRYPTED_VALUE_MASK, false, true),
+                new PropertyEntity("plain-c", "plain-c", false, false)
+            )
+        );
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        verify(apiRepository).update(
+            argThat(
+                persisted -> persisted.getDefinition().contains("ciphertext") && !persisted.getDefinition().contains(ENCRYPTED_VALUE_MASK)
+            )
+        );
+        verify(auditService).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(data -> data.getEvent().equals(API_UPDATED) && !data.getProperties().containsKey(ENCRYPTED)),
+            eq(API_ID)
+        );
+    }
+
+    @Test
+    public void should_not_mark_the_update_audit_when_an_encrypted_value_is_resubmitted_as_the_same_plaintext() throws Exception {
+        prepareUpdate();
+        String storedCiphertext = REAL_DATA_ENCRYPTOR.encrypt("s3cret");
+        givenStoredProperties(List.of(new Property("secret-key", storedCiphertext, true, false)));
+        PropertiesService realPropertiesService = new PropertiesServiceImpl(REAL_DATA_ENCRYPTOR);
+        when(propertiesService.encryptProperties(any(), any())).thenAnswer(invocation ->
+            realPropertiesService.encryptProperties(invocation.getArgument(0), invocation.getArgument(1))
+        );
+        updateApiEntity.setProperties(List.of(new PropertyEntity("secret-key", "s3cret", true, false)));
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        verify(apiRepository).update(argThat(persisted -> persisted.getDefinition().contains(storedCiphertext)));
+        verify(auditService).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(data -> data.getEvent().equals(API_UPDATED) && !data.getProperties().containsKey(ENCRYPTED)),
+            eq(API_ID)
+        );
+    }
+
+    @Test
+    public void should_not_mark_the_update_audit_when_only_the_name_of_an_api_holding_an_encrypted_property_changes() throws Exception {
+        prepareUpdate();
+        givenStoredProperties(List.of(new Property("secret-key", "ciphertext", true, false)));
+        when(propertiesService.encryptProperties(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        updateApiEntity.setName("renamed");
+        updateApiEntity.setProperties(List.of(new PropertyEntity("secret-key", "ciphertext", false, true)));
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        verify(auditService).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(data -> data.getEvent().equals(API_UPDATED) && !data.getProperties().containsKey(ENCRYPTED)),
+            eq(API_ID)
+        );
+    }
+
+    @Test
+    public void should_not_mark_the_update_audit_when_an_encrypted_property_is_removed() throws Exception {
+        prepareUpdate();
+        givenStoredProperties(List.of(new Property("secret-key", "ciphertext", true, false), new Property("plain", "value", false, false)));
+        when(propertiesService.encryptProperties(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        updateApiEntity.setProperties(List.of(new PropertyEntity("plain", "value", false, false)));
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        verify(auditService).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(data -> data.getEvent().equals(API_UPDATED) && !data.getProperties().containsKey(ENCRYPTED)),
+            eq(API_ID)
+        );
+    }
+
+    @Test
+    public void should_not_mark_the_update_audit_when_only_the_tags_of_an_api_holding_an_encrypted_property_change() throws Exception {
+        prepareUpdate();
+        givenStoredProperties(List.of(new Property("secret-key", "ciphertext", true, false)));
+        when(propertiesService.encryptProperties(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        updateApiEntity.setTags(Set.of("new-tag"));
+        updateApiEntity.setProperties(List.of(new PropertyEntity("secret-key", "ciphertext", false, true)));
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        verify(auditService).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(data -> data.getEvent().equals(API_UPDATED) && !data.getProperties().containsKey(ENCRYPTED)),
+            eq(API_ID)
+        );
+    }
+
+    @Test
+    public void should_not_mark_the_update_audit_when_only_the_plans_of_an_api_holding_an_encrypted_property_change() throws Exception {
+        prepareUpdate();
+        givenStoredProperties(List.of(new Property("secret-key", "ciphertext", true, false)));
+        when(propertiesService.encryptProperties(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        PlanEntity plan = new PlanEntity();
+        plan.setId("plan");
+        updateApiEntity.setPlans(Set.of(plan));
+        updateApiEntity.setProperties(List.of(new PropertyEntity("secret-key", "ciphertext", false, true)));
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        verify(planService).createOrUpdatePlan(any(), same(plan));
         verify(auditService).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
             argThat(data -> data.getEvent().equals(API_UPDATED) && !data.getProperties().containsKey(ENCRYPTED)),

@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.DICTIONARY;
-import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -80,7 +79,7 @@ public class DictionaryServiceImpl_DeployTest {
             argThat(
                 auditLogData ->
                     auditLogData.getEvent() == DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED &&
-                    auditLogData.getProperties().equals(Map.of(DICTIONARY, "my-dict", ENCRYPTED, "true")) &&
+                    auditLogData.getProperties().equals(Map.of(DICTIONARY, "my-dict")) &&
                     auditLogData.getCreatedAt().equals(stored.getDeployedAt()) &&
                     auditLogData.getOldValue() == null &&
                     auditLogData.getNewValue() == null &&

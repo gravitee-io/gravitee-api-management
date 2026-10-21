@@ -217,7 +217,7 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
             argThat(
                 auditLogData ->
                     auditLogData.getEvent() == DICTIONARY_ENCRYPTED_PROPERTIES_REFRESHED &&
-                    "true".equals(auditLogData.getProperties().get(ENCRYPTED)) &&
+                    !auditLogData.getProperties().containsKey(ENCRYPTED) &&
                     auditLogData.getCreatedAt().equals(dictionaryInDb.getDeployedAt()) &&
                     auditLogData
                         .getPatch()
@@ -447,7 +447,7 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
     }
 
     @Test
-    public void should_mark_audit_as_encrypted_when_the_refresh_drops_the_last_encrypted_property() throws TechnicalException {
+    public void should_not_mark_audit_as_encrypted_when_the_refresh_drops_the_last_encrypted_property() throws TechnicalException {
         Dictionary existing = startedDynamicDictionaryWith(
             Map.of("secret", new DictionaryProperty("ENC(secret)", true), "plain", new DictionaryProperty("value", false))
         );
@@ -457,7 +457,50 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
         dictionaryService.updateProperties(DICTIONARY_ID, Map.of("plain", "value"));
 
-        verify(auditService).createAuditLog(any(), argThat(data -> "true".equals(data.getProperties().get(ENCRYPTED))));
+        verify(auditService).createAuditLog(any(), argThat(data -> !data.getProperties().containsKey(ENCRYPTED)));
+    }
+
+    @Test
+    public void should_mark_the_update_audit_as_encrypted_when_a_refresh_renews_an_encrypted_value()
+        throws TechnicalException, GeneralSecurityException {
+        Dictionary existing = startedDynamicDictionaryWith(Map.of("secret", new DictionaryProperty("ENC(old)", true)));
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
+        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(dataEncryptor.decrypt("ENC(old)")).thenReturn("old");
+        when(dataEncryptor.encrypt("new")).thenReturn("ENC(new)");
+        given_environment();
+
+        dictionaryService.updateProperties(DICTIONARY_ID, Map.of("secret", "new"));
+
+        verify(auditService).createAuditLog(
+            any(),
+            argThat(data -> DICTIONARY_UPDATED.equals(data.getEvent()) && "true".equals(data.getProperties().get(ENCRYPTED)))
+        );
+    }
+
+    @Test
+    public void should_not_mark_the_update_audit_as_encrypted_when_a_refresh_changes_only_a_plain_property()
+        throws TechnicalException, GeneralSecurityException {
+        Dictionary existing = startedDynamicDictionaryWith(
+            Map.of("secret", new DictionaryProperty("ENC(secret)", true), "plain", new DictionaryProperty("v1", false))
+        );
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
+        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(dataEncryptor.decrypt("ENC(secret)")).thenReturn("secret-plaintext");
+        given_environment();
+
+        dictionaryService.updateProperties(DICTIONARY_ID, Map.of("secret", "secret-plaintext", "plain", "v2"));
+
+        verify(auditService).createAuditLog(
+            any(),
+            argThat(data -> DICTIONARY_UPDATED.equals(data.getEvent()) && !data.getProperties().containsKey(ENCRYPTED))
+        );
+        verify(auditService).createAuditLog(
+            any(),
+            argThat(
+                data -> DICTIONARY_ENCRYPTED_PROPERTIES_REFRESHED.equals(data.getEvent()) && !data.getProperties().containsKey(ENCRYPTED)
+            )
+        );
     }
 
     @Test
