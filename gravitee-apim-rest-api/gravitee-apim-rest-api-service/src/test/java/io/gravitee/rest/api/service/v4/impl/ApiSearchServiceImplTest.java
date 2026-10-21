@@ -25,6 +25,7 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -381,7 +382,32 @@ public class ApiSearchServiceImplTest {
         Assertions.assertThat(indexableApi.getCategories()).containsExactlyInAnyOrder(categoryKey1, categoryKey2);
     }
 
+<<<<<<< HEAD
     @Test(expected = ApiNotFoundException.class)
+=======
+    @Test
+    void should_not_find_generic_api_from_another_environment() throws TechnicalException {
+        api.setEnvironmentId("other-environment");
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        assertThrows(ApiNotFoundException.class, () ->
+            apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID, false, false, false)
+        );
+        verifyNoInteractions(primaryOwnerService, integrationRepository);
+    }
+
+    @Test
+    void should_not_enrich_missing_generic_api() throws TechnicalException {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
+
+        assertThrows(ApiNotFoundException.class, () ->
+            apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID, false, false, false)
+        );
+        verifyNoInteractions(primaryOwnerService, integrationRepository);
+    }
+
+    @Test
+>>>>>>> 1e07b7b (fix(portal): enforce API access checks for metrics and links)
     public void shouldNotFindBecauseNotExists() throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
 
