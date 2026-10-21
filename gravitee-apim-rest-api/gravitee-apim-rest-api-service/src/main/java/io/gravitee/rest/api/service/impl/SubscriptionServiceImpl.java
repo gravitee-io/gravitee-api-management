@@ -51,6 +51,7 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApiProductsRepository;
@@ -762,7 +763,12 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 subscription.setType(Subscription.Type.STANDARD);
             }
 
-            subscription = subscriptionRepository.create(subscription);
+            try {
+                subscription = subscriptionRepository.create(subscription);
+            } catch (DuplicateKeyException e) {
+                // Created meanwhile by a concurrent request, which the check of the existing subscriptions above cannot see.
+                throw planAlreadySubscribed(plan, e);
+            }
 
             createAudit(
                 executionContext,
@@ -1117,7 +1123,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             setSubscriptionConfig(subscriptionConfigEntity.getConfiguration(), subscription);
             subscription.setMetadata(subscriptionConfigEntity.getMetadata());
 
-            subscription = subscriptionRepository.update(subscription);
+            subscription = updateUnlessAlreadySubscribed(subscription, subscription.getPlan());
             String referenceId = planEntity.getReferenceId();
             createAudit(
                 executionContext,
@@ -1140,6 +1146,25 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 ex
             );
         }
+    }
+
+    /**
+     * For the updates that can make a subscription collide with another active one: a transfer to another plan, a
+     * change of PUSH channel, a restore. The repository refuses a second active subscription of the application to the
+     * plan (and channel).
+     */
+    private Subscription updateUnlessAlreadySubscribed(Subscription subscription, String plan) throws TechnicalException {
+        try {
+            return subscriptionRepository.update(subscription);
+        } catch (DuplicateKeyException e) {
+            throw planAlreadySubscribed(plan, e);
+        }
+    }
+
+    private static PlanAlreadySubscribedException planAlreadySubscribed(String plan, DuplicateKeyException cause) {
+        PlanAlreadySubscribedException exception = new PlanAlreadySubscribedException(plan);
+        exception.initCause(cause);
+        return exception;
     }
 
     private void setSubscriptionConfig(final SubscriptionConfigurationEntity subscriptionConfigEntity, final Subscription subscription) {
@@ -1210,7 +1235,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 subscription.setDaysToExpirationOnLastNotification(null);
                 subscriptionTransformer.accept(subscription);
 
-                subscription = subscriptionRepository.update(subscription);
+                subscription = updateUnlessAlreadySubscribed(subscription, subscription.getPlan());
                 String referenceId = genericPlanEntity.getReferenceId();
                 createAudit(
                     executionContext,
@@ -1783,7 +1808,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 subscription.setPausedAt(null);
                 subscription.setStatus(Subscription.Status.PENDING);
 
-                subscription = subscriptionRepository.update(subscription);
+                subscription = updateUnlessAlreadySubscribed(subscription, subscription.getPlan());
 
                 createAudit(
                     executionContext,
@@ -2076,7 +2101,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setUpdatedAt(new Date());
             subscription.setPlan(transferSubscription.getPlan());
 
-            subscription = subscriptionRepository.update(subscription);
+            subscription = updateUnlessAlreadySubscribed(subscription, transferSubscription.getPlan());
             // Properly update underlying api key to redeploy them on the gateway
             Set<ApiKey> apiKeys = apiKeyRepository.findBySubscription(subscription.getId());
             if (apiKeys != null) {
