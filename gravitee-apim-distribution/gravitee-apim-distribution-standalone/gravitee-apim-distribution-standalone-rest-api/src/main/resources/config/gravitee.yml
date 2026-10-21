@@ -909,6 +909,15 @@ notifiers:
 #           url: http://localhost:4200
 #         - orgId: example
 #           url: http:/localhost:4201
+#    # URL of the Edge reactor per environment, proposed to the Edge module when an environment is set up (the per-environment value stays authoritative).
+#    # Resolution for an environment: the urls entry whose envId matches, then url (DEFAULT environment only), then installation.edge.reactorUrl (any environment).
+#    edge-reactor:
+#      url: https://edge-reactor.example.com
+#      urls:
+#         - envId: DEFAULT
+#           url: https://edge-reactor.example.com
+#         - envId: example
+#           url: https://edge-reactor-example.example.com
 #  multi-tenant:
 #    # Specify the access points of your installation, mandatory if you want to connect it to Cockpit with a multi-tenant installation
 #    # You can use template variable such as {account}, {organization} or {environment}
