@@ -26,6 +26,12 @@ import java.util.stream.Stream;
 public interface ApiKeyQueryService {
     Optional<ApiKeyEntity> findById(String apiKeyId);
     Stream<ApiKeyEntity> findByApplication(String applicationId);
+
+    /**
+     * Same as {@link #findByApplication(String)}, but also finds the keys created by other requests since the current one
+     * started reading, e.g. the key another request created while this one failed to create it.
+     */
+    Stream<ApiKeyEntity> findLatestByApplication(String applicationId);
     Optional<ApiKeyEntity> findByKeyAndApiId(String key, String apiId);
     Stream<ApiKeyEntity> findBySubscription(String subscriptionId);
 
