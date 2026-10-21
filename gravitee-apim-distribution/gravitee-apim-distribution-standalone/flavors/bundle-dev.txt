@@ -15,8 +15,9 @@
 #
 
 # Flavor bundle-dev: built with -Dbundle=dev: the images of our dev and test environments. Default plus almost every other plugin.
-# One artifactId per line. The versions come from the catalog profile of the standalone poms; each component
-# (gateway, rest-api) takes the names its assembly accepts and skips the others.
+# One artifactId per line, declared in gravitee-apim-distribution-standalone/pom.xml with its version property in
+# gravitee-apim-distribution/pom.xml. Each component (gateway, rest-api) takes the names its assembly accepts and logs
+# the others as skipped. The flavors nest: community within bundle-default within bundle-dev.
 
 # ==== Community
 
