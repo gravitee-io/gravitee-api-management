@@ -19,6 +19,8 @@ import static io.gravitee.repository.management.model.Audit.AuditProperties.IDEN
 import static io.gravitee.repository.management.model.IdentityProvider.AuditEvent.IDENTITY_PROVIDER_CREATED;
 import static io.gravitee.repository.management.model.IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DELETED;
 import static io.gravitee.repository.management.model.IdentityProvider.AuditEvent.IDENTITY_PROVIDER_UPDATED;
+import static io.gravitee.rest.api.model.configuration.identity.IdentityProviderClientSecret.CLIENT_SECRET;
+import static io.gravitee.rest.api.model.configuration.identity.IdentityProviderClientSecret.withoutClientSecret;
 import static java.util.Collections.singletonMap;
 
 import io.gravitee.common.utils.IdGenerator;
@@ -66,7 +68,6 @@ import org.springframework.stereotype.Component;
 public class IdentityProviderServiceImpl extends AbstractService implements IdentityProviderService {
 
     private static final String CLIENT_ID = "clientId";
-    private static final String CLIENT_SECRET = "clientSecret";
 
     @Lazy
     @Autowired
@@ -125,7 +126,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                     .event(IDENTITY_PROVIDER_CREATED)
                     .createdAt(createdIdentityProvider.getUpdatedAt())
                     .oldValue(null)
-                    .newValue(createdIdentityProvider)
+                    .newValue(forAudit(createdIdentityProvider))
                     .build()
             );
 
@@ -164,6 +165,9 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
             if (updateIdentityProvider.getPersistedClaimsWhitelist() == null) {
                 identityProvider.setPersistedClaimsWhitelist(identityProviderToUpdate.getPersistedClaimsWhitelist());
             }
+            identityProvider.setConfiguration(
+                preserveClientSecret(identityProvider.getConfiguration(), identityProviderToUpdate.getConfiguration())
+            );
             IdentityProvider updatedIdentityProvider = identityProviderRepository.update(identityProvider);
 
             // Audit
@@ -173,8 +177,8 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                     .properties(singletonMap(IDENTITY_PROVIDER, id))
                     .event(IDENTITY_PROVIDER_UPDATED)
                     .createdAt(identityProvider.getUpdatedAt())
-                    .oldValue(identityProviderToUpdate)
-                    .newValue(updatedIdentityProvider)
+                    .oldValue(forAudit(identityProviderToUpdate))
+                    .newValue(forAudit(updatedIdentityProvider))
                     .build()
             );
 
@@ -219,7 +223,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                     .properties(singletonMap(IDENTITY_PROVIDER, id))
                     .event(IDENTITY_PROVIDER_DELETED)
                     .createdAt(new Date())
-                    .oldValue(identityProvider)
+                    .oldValue(forAudit(identityProvider))
                     .newValue(null)
                     .build()
             );
@@ -336,6 +340,8 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         identityProviderEntity.setType(
             io.gravitee.rest.api.model.configuration.identity.IdentityProviderType.valueOf(identityProvider.getType().name().toUpperCase())
         );
+        // In-process callers, including login, read clientSecret from this configuration.
+        // Management API resources omit it before writing the HTTP response.
         identityProviderEntity.setConfiguration(identityProvider.getConfiguration());
 
         if (identityProvider.getGroupMappings() != null && !identityProvider.getGroupMappings().isEmpty()) {
@@ -367,7 +373,6 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
             );
         }
 
-        identityProviderEntity.setConfiguration(identityProvider.getConfiguration());
         identityProviderEntity.setCreatedAt(identityProvider.getCreatedAt());
         identityProviderEntity.setUpdatedAt(identityProvider.getUpdatedAt());
         identityProviderEntity.setUserProfileMapping(identityProvider.getUserProfileMapping());
@@ -465,5 +470,51 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         }
 
         return identityProvider;
+    }
+
+    /**
+     * Audit serializes the provider it is given. The copy drops clientSecret so the persisted
+     * provider, which login still reads, is not modified.
+     */
+    private static IdentityProvider forAudit(IdentityProvider source) {
+        if (source == null) {
+            return null;
+        }
+        IdentityProvider copy = new IdentityProvider();
+        copy.setId(source.getId());
+        copy.setOrganizationId(source.getOrganizationId());
+        copy.setName(source.getName());
+        copy.setDescription(source.getDescription());
+        copy.setEnabled(source.isEnabled());
+        copy.setType(source.getType());
+        copy.setConfiguration(withoutClientSecret(source.getConfiguration()));
+        copy.setGroupMappings(source.getGroupMappings());
+        copy.setRoleMappings(source.getRoleMappings());
+        copy.setUserProfileMapping(source.getUserProfileMapping());
+        copy.setEmailRequired(source.getEmailRequired());
+        copy.setSyncMappings(source.getSyncMappings());
+        copy.setCreatedAt(source.getCreatedAt());
+        copy.setUpdatedAt(source.getUpdatedAt());
+        return copy;
+    }
+
+    /**
+     * Keeps the stored client secret when an update omits it or sends a blank value. A null configuration
+     * still clears the stored configuration.
+     */
+    private static Map<String, Object> preserveClientSecret(Map<String, Object> incoming, Map<String, Object> stored) {
+        if (incoming == null) {
+            return null;
+        }
+        Object incomingSecret = incoming.get(CLIENT_SECRET);
+        if (incomingSecret instanceof String secret && !secret.isBlank()) {
+            return incoming;
+        }
+        if (stored == null || !stored.containsKey(CLIENT_SECRET)) {
+            return incoming;
+        }
+        Map<String, Object> merged = new HashMap<>(incoming);
+        merged.put(CLIENT_SECRET, stored.get(CLIENT_SECRET));
+        return merged;
     }
 }

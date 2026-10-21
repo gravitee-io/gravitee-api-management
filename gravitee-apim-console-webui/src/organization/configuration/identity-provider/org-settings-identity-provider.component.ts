@@ -170,11 +170,15 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
     // For the edit mode
     // Initializes the form value when the sub-form linked to the idP type is added
     if (this.mode === 'edit') {
+      // clientSecret is write-only from the Management API; keep the field optional unless rotating it.
+      formGroups['configuration']?.get('clientSecret')?.clearValidators();
+      formGroups['configuration']?.get('clientSecret')?.updateValueAndValidity({ emitEvent: false });
       this.identityProviderFormGroup.patchValue(this.initialIdentityProviderValue, { emitEvent: false });
       this.identityProviderFormGroup.markAsPristine();
       this.identityProviderFormGroup.markAsUntouched();
-      this.changeDetectorRef.detectChanges();
     }
+
+    this.changeDetectorRef.detectChanges();
   }
 
   onSubmit() {
@@ -183,6 +187,11 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
     }
 
     const formSettingsValue = this.identityProviderFormGroup.getRawValue();
+    if (this.mode === 'edit' && !formSettingsValue.configuration?.clientSecret) {
+      // Omit a blank secret so the backend keeps the stored value.
+      const { clientSecret: _omitted, ...configurationWithoutSecret } = formSettingsValue.configuration ?? {};
+      formSettingsValue.configuration = configurationWithoutSecret;
+    }
 
     const upsertIdentityProvider$ =
       this.mode === 'new'
