@@ -47,6 +47,8 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiScoringSummary;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringTriggerResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ScoringStatus;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
@@ -118,7 +120,7 @@ public class ApiScoringResourceTest extends ApiResourceTest {
 
         @Test
         void should_return_202_response() {
-            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).build()));
+            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).environmentId(ENVIRONMENT).build()));
             when(exportDomainService.export(eq(API), any(AuditInfo.class), eq(EnumSet.noneOf(Excludable.class)))).thenReturn(
                 GraviteeDefinitionFixtures.aGraviteeDefinitionProxy()
             );
@@ -130,6 +132,11 @@ public class ApiScoringResourceTest extends ApiResourceTest {
                 .asEntity(ApiScoringTriggerResponse.class)
                 .isEqualTo(new ApiScoringTriggerResponse().status(ScoringStatus.PENDING));
         }
+
+        @Test
+        void should_return_403_without_update_permission() {
+            shouldReturn403(RolePermission.API_DEFINITION, API, RolePermissionAction.UPDATE, () -> evaluateTarget.request().post(null));
+        }
     }
 
     @Nested
@@ -137,14 +144,20 @@ public class ApiScoringResourceTest extends ApiResourceTest {
 
         @Test
         void should_return_404_response_if_no_report_found() {
+            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).environmentId(ENVIRONMENT).build()));
             final Response response = latestReportTarget.request().get();
 
             MAPIAssertions.assertThat(response).hasStatus(NOT_FOUND_404);
         }
 
         @Test
+        void should_return_403_without_read_permission() {
+            shouldReturn403(RolePermission.API_DEFINITION, API, RolePermissionAction.READ, () -> latestReportTarget.request().get());
+        }
+
+        @Test
         void should_return_200_response_with_diagnostics_asset() {
-            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).build()));
+            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).environmentId(ENVIRONMENT).build()));
             pageCrudService.initWith(List.of(PageFixtures.aPage().toBuilder().referenceId(API).build()));
             scoringReportQueryService.initWith(List.of(ScoringReportFixture.aScoringReport().toBuilder().apiId(API).build()));
 
@@ -185,7 +198,7 @@ public class ApiScoringResourceTest extends ApiResourceTest {
 
         @Test
         void should_return_200_response_with_errors_asset() {
-            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).build()));
+            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).environmentId(ENVIRONMENT).build()));
             pageCrudService.initWith(List.of(PageFixtures.aPage().toBuilder().referenceId(API).build()));
             scoringReportQueryService.initWith(List.of(ScoringReportFixture.anErrorAssertScoringReport().toBuilder().apiId(API).build()));
 

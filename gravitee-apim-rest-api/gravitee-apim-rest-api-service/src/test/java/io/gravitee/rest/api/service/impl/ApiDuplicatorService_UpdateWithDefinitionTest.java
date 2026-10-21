@@ -16,11 +16,13 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_DEFINITION;
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_API;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
@@ -730,5 +732,27 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
         verify(planService, times(2)).findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
+    }
+
+    @Test
+    public void shouldNotFetchUrlWhenEnvironmentUpdateDenied() {
+        when(permissionService.hasPermission(any(), eq(ENVIRONMENT_API), any(), eq(UPDATE))).thenReturn(false);
+
+        assertThrows(ForbiddenAccessException.class, () ->
+            apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), "https://example.com/api.json")
+        );
+
+        verifyNoInteractions(httpClientService);
+    }
+
+    @Test
+    public void shouldNotFetchUrlWhenApiDefinitionUpdateDenied() {
+        when(permissionService.hasPermission(any(), eq(API_DEFINITION), eq(API_ID), eq(UPDATE))).thenReturn(false);
+
+        assertThrows(ForbiddenAccessException.class, () ->
+            apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), API_ID, "https://example.com/api.json")
+        );
+
+        verifyNoInteractions(httpClientService);
     }
 }
