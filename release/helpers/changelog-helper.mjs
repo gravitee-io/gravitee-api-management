@@ -150,3 +150,40 @@ export function getTicketSections(issues, ticketType) {
     getTicketsFor(issues, 'Other', ticketType),
   ].filter(Boolean);
 }
+
+/**
+ * The changelog page of a line that has none yet, as GitBook expects it: its front matter, then the
+ * heading every release of the line is written under.
+ *
+ * @param branch {string} the support line, for example '4.13.x'
+ * @returns {string}
+ */
+export function newChangelogPage(branch) {
+  return `---
+hidden: false
+noIndex: false
+---
+
+# APIM ${branch}
+`;
+}
+
+/**
+ * Lists the changelog page of a line in a SUMMARY.md, first under Changelog since lines are listed
+ * newest first. A page already listed is left where it is.
+ *
+ * @param summary {string} the content of the SUMMARY.md
+ * @param branch {string} the support line, for example '4.13.x'
+ * @returns {string}
+ */
+export function addChangelogToSummary(summary, branch) {
+  const page = `release-information/changelog/apim-${branch}.md`;
+  if (summary.includes(`(${page})`)) {
+    return summary;
+  }
+  const anchor = /^( *)\* \[Changelog\]\(release-information\/changelog\/README\.md\)$/m;
+  if (!anchor.test(summary)) {
+    throw new Error('No Changelog entry in SUMMARY.md to list the new page under.');
+  }
+  return summary.replace(anchor, (line, indent) => `${line}\n${indent}  * [APIM ${branch}](${page})`);
+}
