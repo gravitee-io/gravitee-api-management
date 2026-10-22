@@ -5,6 +5,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 
 ### 4.12.24
 - Add `ldap.lookup.activations`, a list of organization ids or `organization id:environment id` pairs that restricts where the LDAP user search of the Management API is allowed, mirroring the `lookup.activations` key of the `ldap` identity provider in `gravitee.yml` (FOUND-370). Empty by default, so the directory stays searchable from every organization and portal as before. Authentication is not affected.
+- Bump the Gravitee node Hazelcast cache and cluster plugins to 9.14.2, to stay consistent with `gravitee-node.version` in the APIM `pom.xml`.
 
 ### 4.12.21
 - Always render `otel-traces` and `otel-logs` in the Management API `gravitee.yml`, with `type: none` when `api.otelTraces.type` / `api.otelLogs.type` are `none` (the default), empty, unset, or when the whole scope block is null. The chart omitted both blocks for `none`, and since the configmap replaces the whole `gravitee.yml` the scopes ended up with no type at all: the Management API then loads no repository for them, not even the no-op one, and the Gamma trace explorer answered every search and trace detail with a 500 (`No qualifying bean of type 'io.gravitee.repository.tracing.api.TracingRepository'`). Searches now return empty results and trace details a 404, until a tracing backend is configured. The `elasticsearch` rendering is unchanged.
