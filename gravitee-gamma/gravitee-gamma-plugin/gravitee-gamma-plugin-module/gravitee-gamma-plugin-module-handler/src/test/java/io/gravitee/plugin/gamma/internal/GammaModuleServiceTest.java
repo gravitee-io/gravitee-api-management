@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.core.api.PluginManifest;
 import jakarta.ws.rs.core.Response;
@@ -28,6 +29,7 @@ import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -261,11 +263,72 @@ class GammaModuleServiceTest {
         }
     }
 
+    // -- scope --
+
+    @Test
+    void should_be_an_account_module_when_declared() throws IOException {
+        GammaModulePlugin module = aModule("account", "Account Management", "1.0.0", Map.of("scope", "account"));
+        when(gammaModuleManager.findAll()).thenReturn(List.of(module));
+
+        List<GammaModuleDefinition> result = service.list();
+
+        assertThat(result.get(0).getScope()).isEqualTo(GammaModuleScope.ACCOUNT);
+    }
+
+    @Test
+    void should_read_the_scope_whatever_its_case_and_spaces() throws IOException {
+        GammaModulePlugin module = aModule("account", "Account Management", "1.0.0", Map.of("scope", " Account "));
+        when(gammaModuleManager.findAll()).thenReturn(List.of(module));
+
+        List<GammaModuleDefinition> result = service.list();
+
+        assertThat(result.get(0).getScope()).isEqualTo(GammaModuleScope.ACCOUNT);
+    }
+
+    @Test
+    void should_write_the_scope_as_the_console_reads_it() throws IOException {
+        GammaModulePlugin module = aModule("account", "Account Management", "1.0.0", Map.of("scope", "account"));
+        when(gammaModuleManager.findAll()).thenReturn(List.of(module));
+
+        String json = new ObjectMapper().writeValueAsString(service.list().get(0));
+
+        assertThat(json).contains("\"scope\":\"account\"");
+    }
+
+    @Test
+    void should_be_an_environment_module_when_no_scope_is_declared() throws IOException {
+        GammaModulePlugin module = aModule("chat", "Chat", "1.0.0");
+        when(gammaModuleManager.findAll()).thenReturn(List.of(module));
+
+        List<GammaModuleDefinition> result = service.list();
+
+        assertThat(result.get(0).getScope()).isEqualTo(GammaModuleScope.ENVIRONMENT);
+    }
+
+    @Test
+    void should_be_an_environment_module_when_the_scope_is_unknown() throws IOException {
+        GammaModulePlugin module = aModule("chat", "Chat", "1.0.0", Map.of("scope", "galaxy"));
+        when(gammaModuleManager.findAll()).thenReturn(List.of(module));
+
+        List<GammaModuleDefinition> result = service.list();
+
+        assertThat(result.get(0).getScope()).isEqualTo(GammaModuleScope.ENVIRONMENT);
+    }
+
     // -- helpers --
 
     private GammaModulePlugin aModule(String id, String name, String version) throws IOException {
+        return aModule(id, name, version, null);
+    }
+
+    private GammaModulePlugin aModule(String id, String name, String version, Map<String, String> properties) throws IOException {
         Path path = Files.createDirectories(pluginDir.resolve(id));
         PluginManifest manifest = new PluginManifest() {
+            @Override
+            public Map<String, String> properties() {
+                return properties;
+            }
+
             @Override
             public String id() {
                 return id;

@@ -135,6 +135,7 @@ public class GammaModuleService {
             .id(module.id())
             .name(module.manifest().name())
             .version(module.manifest().version())
+            .scope(GammaModuleScope.of(module.manifest()))
             .mfManifest(manifest)
             .build();
     }
