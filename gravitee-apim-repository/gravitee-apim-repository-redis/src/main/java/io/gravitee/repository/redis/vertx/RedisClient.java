@@ -25,7 +25,9 @@ import io.vertx.core.Vertx;
 import io.vertx.core.internal.ContextInternal;
 import io.vertx.redis.client.Redis;
 import io.vertx.redis.client.RedisAPI;
+import io.vertx.redis.client.RedisConnection;
 import io.vertx.redis.client.Response;
+import io.vertx.redis.client.impl.PooledRedisConnection;
 import java.io.InputStream;
 import java.net.SocketException;
 import java.nio.channels.ClosedChannelException;
@@ -64,6 +66,7 @@ public class RedisClient {
     private final Map<String, String> scriptsSource = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Integer, LoopRedis> loops = new ConcurrentHashMap<>();
     private final AtomicBoolean roleCheckSkippedLogged = new AtomicBoolean();
+    private volatile boolean closed;
 
     public RedisClient(
         final Vertx vertx,
@@ -91,6 +94,9 @@ public class RedisClient {
     }
 
     public Future<RedisAPI> redisApi() {
+        if (closed) {
+            return Future.failedFuture("Redis client is closed");
+        }
         LoopRedis loop = resolveLoop();
         synchronized (loop.monitor) {
             if (loop.redisAPIFuture == null) {
@@ -129,6 +135,25 @@ public class RedisClient {
         }
         final LoopRedis loop = resolveLoop();
         context.runOnContext(v -> invalidateConnection(loop));
+    }
+
+    /**
+     * Closes the Vert.x Redis clients. Spring calls it when the repository context stops.
+     */
+    public void close() {
+        closed = true;
+        loops
+            .values()
+            .forEach(loop -> {
+                synchronized (loop.monitor) {
+                    loop.generation.incrementAndGet();
+                    loop.redisAPIFuture = null;
+                    loop.connected.set(false);
+                    loop.connecting.set(false);
+                    loop.connection = null;
+                    closeClient(loop);
+                }
+            });
     }
 
     public String scriptSha1(final String key) {
@@ -171,23 +196,34 @@ public class RedisClient {
 
     private void startConnectLoop(final LoopRedis loop, final int retry) {
         final long connectionGeneration;
+        final Redis redisClient;
         synchronized (loop.monitor) {
-            if (!loop.connecting.compareAndSet(false, true)) {
+            if (closed || !loop.connecting.compareAndSet(false, true)) {
                 return;
             }
-            closeClient(loop);
+            discardConnection(loop);
             loop.connected.set(false);
             loop.redisAPIFuture = null;
             connectionGeneration = loop.generation.incrementAndGet();
+            // [vertx-5.0-close-future-leak] Vert.x 5.0.x keeps every closed client registered on its context close future: keep the
+            // client across reconnects and only open new connections. A discarded sentinel or cluster connection
+            // still drops its client with it (see discardConnection), so these modes recreate one per lost connection.
+            if (loop.redis == null) {
+                loop.redis = factory.createClient(clientOptions);
+            }
+            redisClient = loop.redis;
         }
 
-        final Redis redisClient = factory.createClient(clientOptions);
         final Future<RedisAPI> connectFuture = redisClient
             .connect()
-            .onSuccess(conn -> {
+            .compose(conn -> {
+                if (!keepConnection(loop, connectionGeneration, conn)) {
+                    return Future.failedFuture("Redis connection attempt is outdated");
+                }
                 log.debug("Connected to Redis on event loop {}", currentLoopKey());
                 conn.exceptionHandler(e -> handleConnectionLost(loop, connectionGeneration));
                 conn.endHandler(v -> handleConnectionLost(loop, connectionGeneration));
+                return Future.succeededFuture(conn);
             })
             .flatMap(redisConnection -> {
                 RedisAPI api = RedisAPI.api(redisConnection);
@@ -216,12 +252,41 @@ public class RedisClient {
 
         synchronized (loop.monitor) {
             if (connectionGeneration == loop.generation.get()) {
-                loop.redis = redisClient;
                 loop.redisAPIFuture = connectFuture;
             } else {
                 loop.connecting.set(false);
-                redisClient.close();
             }
+        }
+    }
+
+    private boolean keepConnection(final LoopRedis loop, final long connectionGeneration, final RedisConnection connection) {
+        synchronized (loop.monitor) {
+            if (!closed && connectionGeneration == loop.generation.get()) {
+                loop.connection = connection;
+                return true;
+            }
+        }
+        connection.close();
+        return false;
+    }
+
+    /**
+     * Drops the current connection when it may still be open (failed handshake, half-open socket, READONLY node).
+     */
+    private void discardConnection(final LoopRedis loop) {
+        final RedisConnection connection = loop.connection;
+        if (connection == null) {
+            return;
+        }
+        loop.connection = null;
+        if (connection instanceof PooledRedisConnection pooled) {
+            // close() would hand the socket back to the pool and the next connect() would get it again.
+            pooled.actual().forceClose();
+        } else {
+            // Sentinel and cluster connections do not expose their sockets: drop them with their client. [vertx-5.0-close-future-leak] On Vert.x 5.0.x
+            // that client stays registered on its context close future, so each lost connection still costs one client
+            // in these modes. A failed connect attempt carries no connection and keeps the client.
+            closeClient(loop);
         }
     }
 
@@ -244,6 +309,12 @@ public class RedisClient {
                 return;
             }
             loop.redisAPIFuture = null;
+            // The pool already evicted the dead socket; closing returns the healthy ones of a cluster connection.
+            final RedisConnection lost = loop.connection;
+            loop.connection = null;
+            if (lost != null) {
+                lost.close();
+            }
         }
         scheduleReconnectAfterFailure(loop, 0);
     }
@@ -254,7 +325,7 @@ public class RedisClient {
             loop.redisAPIFuture = null;
             loop.connected.set(false);
             loop.connecting.set(false);
-            closeClient(loop);
+            discardConnection(loop);
             if (!scheduleReconnectIfAbsent(loop)) {
                 return;
             }
@@ -472,6 +543,7 @@ public class RedisClient {
         private final AtomicLong generation = new AtomicLong(0);
         private final Map<String, String> scriptsSha = new ConcurrentHashMap<>();
         private volatile Redis redis;
+        private volatile RedisConnection connection;
         private volatile Future<RedisAPI> redisAPIFuture;
     }
 }
