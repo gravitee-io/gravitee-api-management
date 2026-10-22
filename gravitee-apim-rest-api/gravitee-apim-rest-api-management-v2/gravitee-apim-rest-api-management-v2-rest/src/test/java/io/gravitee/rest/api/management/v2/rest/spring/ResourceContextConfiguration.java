@@ -381,6 +381,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public io.gravitee.rest.api.management.v2.rest.resource.kafka_console.KafkaConsoleClient kafkaConsoleClient() {
+        return mock(io.gravitee.rest.api.management.v2.rest.resource.kafka_console.KafkaConsoleClient.class);
+    }
+
+    @Bean
     public io.gravitee.rest.api.management.v2.rest.resource.api.RemoteApiDefinitionParser remoteApiDefinitionParser(
         ObjectMapper objectMapper
     ) {
