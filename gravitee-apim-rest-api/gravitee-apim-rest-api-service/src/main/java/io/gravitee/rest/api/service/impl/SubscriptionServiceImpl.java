@@ -1518,7 +1518,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         genericApiModel,
                         genericPlanEntity,
                         application,
-                        null,
+                        convert(subscription),
                         null,
                         ApiHook.SUBSCRIPTION_PAUSED
                     );
@@ -1733,7 +1733,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         genericApiModel,
                         genericPlanEntity,
                         application,
-                        null,
+                        convert(subscription),
                         null,
                         ApiHook.SUBSCRIPTION_RESUMED
                     );
