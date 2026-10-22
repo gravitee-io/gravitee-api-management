@@ -16,6 +16,7 @@
 
 package io.gravitee.plugin.endpoint.http.proxy.client;
 
+import io.gravitee.apim.common.lifecycle.LazyCloseable;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.vertx.client.http.VertxWebSocketClientFactory;
@@ -26,7 +27,6 @@ import io.gravitee.plugin.mappers.HttpProxyOptionsMapper;
 import io.gravitee.plugin.mappers.SslOptionsMapper;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.WebSocketClient;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Remi Baptiste (remi.baptiste at graviteesource.com)
@@ -34,22 +34,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class WebSocketClientFactory {
 
-    private WebSocketClient webSocketClient;
-    private final AtomicBoolean webSocketClientCreated = new AtomicBoolean(false);
+    // Built on an event loop by the first request, closed by the thread that stops the endpoint.
+    @SuppressWarnings("ReactiveStreamsUnusedPublisher")
+    private final LazyCloseable<WebSocketClient> webSocketClient = new LazyCloseable<>(client -> client.close());
 
     public WebSocketClient getOrBuildWebSocketClient(
         final HttpExecutionContext ctx,
         final HttpProxyEndpointConnectorConfiguration configuration,
         final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
     ) {
-        if (webSocketClient == null) {
-            synchronized (this) {
-                if (webSocketClientCreated.compareAndSet(false, true)) {
-                    webSocketClient = buildWebSocketClient(ctx, configuration, sharedConfiguration).build().createWebSocketClient();
-                }
-            }
-        }
-        return webSocketClient;
+        return webSocketClient.getOrBuild(() ->
+            buildWebSocketClient(ctx, configuration, sharedConfiguration).build().createWebSocketClient()
+        );
     }
 
     protected VertxWebSocketClientFactory.VertxWebSocketClientFactoryBuilder buildWebSocketClient(
@@ -66,11 +62,7 @@ public class WebSocketClientFactory {
             .proxyOptions(HttpProxyOptionsMapper.INSTANCE.map(sharedConfiguration.getProxyOptions()));
     }
 
-    @SuppressWarnings("ReactiveStreamsUnusedPublisher")
     public void close() {
-        if (webSocketClient != null) {
-            webSocketClient.close();
-            webSocketClient = null;
-        }
+        webSocketClient.close();
     }
 }
