@@ -222,6 +222,25 @@ class ApiTest {
     }
 
     @Test
+    void getPluginsForApiV4WithInternalFlow() {
+        io.gravitee.definition.model.v4.Api apiWithInternalFlow = ApiDefinitionFixtures.anApiV4();
+        io.gravitee.definition.model.v4.flow.Flow internalFlow = io.gravitee.definition.model.v4.flow.Flow.builder().build();
+        internalFlow.setRequest(List.of(io.gravitee.definition.model.v4.flow.step.Step.builder().policy("guardian-policy").build()));
+        apiWithInternalFlow.setInternalFlow(internalFlow);
+        assertThat(apiWithInternalFlow.getPlugins()).containsOnly(new Plugin("policy", "guardian-policy"));
+    }
+
+    @Test
+    void getPluginsForApiV4WithDisabledInternalFlow() {
+        io.gravitee.definition.model.v4.Api apiWithDisabledInternalFlow = ApiDefinitionFixtures.anApiV4();
+        io.gravitee.definition.model.v4.flow.Flow internalFlow = io.gravitee.definition.model.v4.flow.Flow.builder().build();
+        internalFlow.setEnabled(false);
+        internalFlow.setRequest(List.of(io.gravitee.definition.model.v4.flow.step.Step.builder().policy("guardian-policy").build()));
+        apiWithDisabledInternalFlow.setInternalFlow(internalFlow);
+        assertThat(apiWithDisabledInternalFlow.getPlugins()).isEmpty();
+    }
+
+    @Test
     void getPluginsForApiV4WithProxyFlows() {
         io.gravitee.definition.model.v4.Api apiWithProxyFlows = ApiDefinitionFixtures.anApiV4();
         io.gravitee.definition.model.v4.flow.Flow proxyFlow = FlowFixtures.aProxyFlowV4();
