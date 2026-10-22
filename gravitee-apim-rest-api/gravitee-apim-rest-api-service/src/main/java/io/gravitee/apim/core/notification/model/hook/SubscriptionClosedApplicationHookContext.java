@@ -26,17 +26,19 @@ import lombok.ToString;
 @ToString(callSuper = true)
 public class SubscriptionClosedApplicationHookContext extends ApplicationHookContext {
 
-    String apiId;
-    String planId;
+    private String apiId;
+    private String planId;
+    private String subscriptionId;
 
-    public SubscriptionClosedApplicationHookContext(String applicationId, String apiId, String planId) {
+    public SubscriptionClosedApplicationHookContext(String applicationId, String apiId, String planId, String subscriptionId) {
         super(ApplicationHook.SUBSCRIPTION_CLOSED, applicationId);
         this.apiId = apiId;
         this.planId = planId;
+        this.subscriptionId = subscriptionId;
     }
 
     @Override
     protected Map<HookContextEntry, String> getChildProperties() {
-        return Map.of(HookContextEntry.API_ID, apiId, HookContextEntry.PLAN_ID, planId);
+        return Map.of(HookContextEntry.API_ID, apiId, HookContextEntry.PLAN_ID, planId, HookContextEntry.SUBSCRIPTION_ID, subscriptionId);
     }
 }

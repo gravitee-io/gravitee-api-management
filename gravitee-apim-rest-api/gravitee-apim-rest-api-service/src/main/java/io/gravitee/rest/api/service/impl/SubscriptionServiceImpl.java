@@ -1071,7 +1071,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     .owner(owner)
                     .api(genericApiModel)
                     .plan(genericPlanEntity)
-                    .application(application);
+                    .application(application)
+                    .subscription(convert(subscription));
                 addSubscribedByUserIfPresent(executionContext, paramsBuilder, subscription.getSubscribedBy());
                 final Map<String, Object> params = paramsBuilder.build();
 
@@ -1252,7 +1253,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     .owner(owner)
                     .api(genericApiModel)
                     .plan(genericPlanEntity)
-                    .application(application);
+                    .application(application)
+                    .subscription(convert(subscription));
                 addSubscribedByUserIfPresent(executionContext, paramsBuilder, subscription.getSubscribedBy());
                 final Map<String, Object> params = paramsBuilder.build();
 
