@@ -22,7 +22,9 @@ import io.gravitee.repository.redis.ratelimit.RedisRateLimitRepository;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.internal.CloseFuture;
 import io.vertx.core.internal.ContextInternal;
+import io.vertx.core.internal.VertxInternal;
 import io.vertx.redis.client.Redis;
 import io.vertx.redis.client.RedisAPI;
 import io.vertx.redis.client.RedisConnection;
@@ -205,11 +207,8 @@ public class RedisClient {
             loop.connected.set(false);
             loop.redisAPIFuture = null;
             connectionGeneration = loop.generation.incrementAndGet();
-            // [vertx-5.0-close-future-leak] Vert.x 5.0.x keeps every closed client registered on its context close future: keep the
-            // client across reconnects and only open new connections. A discarded sentinel or cluster connection
-            // still drops its client with it (see discardConnection), so these modes recreate one per lost connection.
             if (loop.redis == null) {
-                loop.redis = factory.createClient(clientOptions);
+                loop.redis = createClient();
             }
             redisClient = loop.redis;
         }
@@ -283,10 +282,35 @@ public class RedisClient {
             // close() would hand the socket back to the pool and the next connect() would get it again.
             pooled.actual().forceClose();
         } else {
-            // Sentinel and cluster connections do not expose their sockets: drop them with their client. [vertx-5.0-close-future-leak] On Vert.x 5.0.x
-            // that client stays registered on its context close future, so each lost connection still costs one client
-            // in these modes. A failed connect attempt carries no connection and keeps the client.
+            // A cluster connection does not expose its sockets: drop it with its client.
             closeClient(loop);
+        }
+    }
+
+    /**
+     * Creates a Vert.x Redis client that this class alone owns.
+     *
+     * <p>[{@code vertx-5.0-close-future-leak}] Vert.x 5.0.x registers the {@code NetClient} of every Redis client on the
+     * close future of the creating context and never removes it: {@code close()} only tears the connections down. A cluster
+     * client is dropped with each discarded connection, so it would pile up until Vert.x stops. The client is therefore
+     * created under a context of its own whose close future is only reachable from that client, and goes away with it.
+     * {@link #close()} must be called when the repository stops, which Spring does. The leak is fixed upstream in 5.2:
+     * create the client directly when upgrading, {@code RedisClientCloseFutureRetentionTest} fails once this is no longer
+     * needed.
+     */
+    private Redis createClient() {
+        final VertxInternal vertxInternal = (VertxInternal) vertx;
+        final ContextInternal current = vertxInternal.getContext();
+        final ContextInternal owner = vertxInternal
+            .contextBuilder()
+            .withEventLoop(current != null ? current.nettyEventLoop() : vertxInternal.nettyEventLoopGroup().next())
+            .withCloseFuture(new CloseFuture())
+            .build();
+        final ContextInternal previous = owner.beginDispatch();
+        try {
+            return factory.createClient(clientOptions);
+        } finally {
+            owner.endDispatch(previous);
         }
     }
 
