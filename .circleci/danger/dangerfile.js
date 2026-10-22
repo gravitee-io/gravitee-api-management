@@ -1,5 +1,6 @@
 import { danger, schedule } from "danger";
 
+const fs = require("fs");
 const { git, github } = danger;
 
 const checks = [
@@ -43,6 +44,22 @@ const checks = [
             }
         },
     },
+    {
+        name: "gravitee-node-version-consistency",
+        location: "gravitee-apim-distribution/pom.xml",
+        why: "gravitee-node.version must be the same in pom.xml and gravitee-apim-distribution/pom.xml: the distribution ships the Hazelcast cache and cluster plugins of gravitee-node at its own copy of that version.",
+        checkFn: async (check) => {
+            const poms = ["pom.xml", check.location];
+            if (!git.modified_files.some((file) => poms.includes(file))) {
+                return;
+            }
+
+            const [engineVersion, distributionVersion] = poms.map((pom) => readGraviteeNodeVersion(`../../${pom}`));
+            if (engineVersion !== distributionVersion) {
+                fail(`${check.why} Found ${engineVersion} in pom.xml and ${distributionVersion} in ${check.location}.`, check.location);
+            }
+        },
+    },
 ];
 
 schedule(check);
@@ -71,6 +88,11 @@ async function addPrComment(message) {
         path: message.file,
         position: 1,
     });
+}
+
+function readGraviteeNodeVersion(pom) {
+    const match = fs.readFileSync(pom, "utf8").match(/<gravitee-node\.version>(.*?)<\/gravitee-node\.version>/);
+    return match ? match[1] : undefined;
 }
 
 function getModifiedFiles(path) {
