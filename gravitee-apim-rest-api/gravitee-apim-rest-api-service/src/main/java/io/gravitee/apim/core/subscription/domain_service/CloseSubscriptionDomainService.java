@@ -122,7 +122,8 @@ public class CloseSubscriptionDomainService {
             new SubscriptionClosedApiHookContext(
                 closedSubscriptionEntity.getApiId(),
                 closedSubscriptionEntity.getApplicationId(),
-                closedSubscriptionEntity.getPlanId()
+                closedSubscriptionEntity.getPlanId(),
+                closedSubscriptionEntity.getId()
             )
         );
         triggerNotificationDomainService.triggerApplicationNotification(
@@ -131,7 +132,8 @@ public class CloseSubscriptionDomainService {
             new SubscriptionClosedApplicationHookContext(
                 closedSubscriptionEntity.getApplicationId(),
                 closedSubscriptionEntity.getApiId(),
-                closedSubscriptionEntity.getPlanId()
+                closedSubscriptionEntity.getPlanId(),
+                closedSubscriptionEntity.getId()
             )
         );
     }
