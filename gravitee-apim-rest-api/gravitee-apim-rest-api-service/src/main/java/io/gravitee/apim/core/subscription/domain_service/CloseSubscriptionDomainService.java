@@ -151,7 +151,8 @@ public class CloseSubscriptionDomainService {
             referenceType,
             referenceId,
             closedSubscriptionEntity.getApplicationId(),
-            closedSubscriptionEntity.getPlanId()
+            closedSubscriptionEntity.getPlanId(),
+            closedSubscriptionEntity.getId()
         );
         triggerNotificationDomainService.triggerSubscriptionReferenceNotification(
             auditInfo.organizationId(),
@@ -167,7 +168,8 @@ public class CloseSubscriptionDomainService {
                 closedSubscriptionEntity.getApplicationId(),
                 referenceType,
                 referenceId,
-                closedSubscriptionEntity.getPlanId()
+                closedSubscriptionEntity.getPlanId(),
+                closedSubscriptionEntity.getId()
             )
         );
     }
