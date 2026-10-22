@@ -31,6 +31,7 @@ import io.vertx.rxjava3.core.Vertx;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.CustomLog;
 import org.springframework.core.env.Environment;
@@ -111,6 +112,12 @@ public class ConsulServiceDiscoveryService implements ApiService {
 
     private Watch<ServiceEntryList> initWatcher(EndpointGroup group, ConsulServiceDiscoveryServiceConfiguration configuration) {
         var options = ConsulOptionsBuilder.from(configuration);
+        // [vertx-5.0-close-future-leak] Vert.x 5.0 keeps a non-shared client registered on the close future of the context that created it even after
+        // close(), so the client of every redeployed endpoint group piles up until the node stops. A shared client is
+        // registered through a nested close future that unregisters itself on close; the unique name keeps it from
+        // sharing a pool. Fixed in Vert.x 5.2: drop both settings when upgrading.
+        options.setShared(true);
+        options.setName("service-discovery-consul-" + UUID.randomUUID());
 
         Watch<ServiceEntryList> service = Watch.service(configuration.getService(), vertx.getDelegate(), options);
         service.setHandler(event -> new ConsulEventHandler(endpointManager, group, configuration, pendingRequestsTimeout).handle(event));
