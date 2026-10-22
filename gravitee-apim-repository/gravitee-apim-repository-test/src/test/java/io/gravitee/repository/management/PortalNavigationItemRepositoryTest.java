@@ -504,6 +504,45 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     }
 
     @Test
+    public void should_return_nothing_when_the_api_id_filter_is_empty() throws Exception {
+        PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder().environmentId("env-1").apiIds(Set.of()).build();
+
+        assertThat(portalNavigationItemRepository.searchByCriteria(criteria)).isEmpty();
+    }
+
+    @Test
+    public void should_return_nothing_when_the_api_product_id_filter_is_empty() throws Exception {
+        PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+            .environmentId("env-1")
+            .apiProductIds(Set.of())
+            .build();
+
+        assertThat(portalNavigationItemRepository.searchByCriteria(criteria)).isEmpty();
+    }
+
+    @Test
+    public void should_return_nothing_when_both_id_filters_are_empty() throws Exception {
+        PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+            .environmentId("env-1")
+            .apiIds(Set.of())
+            .apiProductIds(Set.of())
+            .build();
+
+        assertThat(portalNavigationItemRepository.searchByCriteria(criteria)).isEmpty();
+    }
+
+    @Test
+    public void should_not_filter_when_the_id_filters_are_null() throws Exception {
+        PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+            .environmentId("env-1")
+            .apiIds(null)
+            .apiProductIds(null)
+            .build();
+
+        assertThat(portalNavigationItemRepository.searchByCriteria(criteria)).hasSize(8);
+    }
+
+    @Test
     public void should_search_by_environment_id_and_parent_id() throws Exception {
         PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
             .environmentId("env-1")

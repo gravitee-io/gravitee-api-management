@@ -102,13 +102,21 @@ class FilterValueNameResolverImplTest {
         @Test
         void should_resolve_api_names() {
             var ids = List.of("api-1", "api-2");
-            when(apiCrudService.findByIds(ids)).thenReturn(
+            when(apiCrudService.findByIds(argThat(apiIds -> Set.copyOf(apiIds).equals(Set.copyOf(ids))), eq(ENVIRONMENT_ID))).thenReturn(
                 List.of(Api.builder().id("api-1").name("My API 1").build(), Api.builder().id("api-2").name("My API 2").build())
             );
 
             var result = resolver.resolveNames(ENVIRONMENT_ID, FilterSpec.Name.API, ids);
 
             assertThat(result).containsEntry("api-1", "My API 1").containsEntry("api-2", "My API 2").hasSize(2);
+        }
+
+        @Test
+        void should_not_resolve_api_names_without_environment() {
+            var result = resolver.resolveNames(null, FilterSpec.Name.API, List.of("api-1"));
+
+            assertThat(result).isEmpty();
+            verifyNoInteractions(apiCrudService);
         }
 
         @Test
@@ -148,7 +156,9 @@ class FilterValueNameResolverImplTest {
             when(planCrudService.findByIds(ids)).thenReturn(
                 List.of(anApiPlan("plan-1", "Test", "api-1"), anApiPlan("plan-2", "Test", "api-2"))
             );
-            when(apiCrudService.findByIds(argThat(apiIds -> Set.copyOf(apiIds).equals(Set.of("api-1", "api-2"))))).thenReturn(
+            when(
+                apiCrudService.findByIds(argThat(apiIds -> Set.copyOf(apiIds).equals(Set.of("api-1", "api-2"))), eq(ENVIRONMENT_ID))
+            ).thenReturn(
                 List.of(Api.builder().id("api-1").name("Payments API").build(), Api.builder().id("api-2").name("Petstore API").build())
             );
 
@@ -178,7 +188,7 @@ class FilterValueNameResolverImplTest {
         @Test
         void should_keep_the_bare_name_of_a_plan_whose_api_is_gone() {
             var plan = anApiPlan("plan-1", "Test", "deleted-api");
-            when(apiCrudService.findByIds(List.of("deleted-api"))).thenReturn(List.of());
+            when(apiCrudService.findByIds(List.of("deleted-api"), ENVIRONMENT_ID)).thenReturn(List.of());
 
             var result = resolver.planLabels(ENVIRONMENT_ID, List.of(plan));
 
