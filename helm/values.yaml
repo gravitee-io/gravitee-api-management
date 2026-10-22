@@ -515,11 +515,7 @@ cloud:
           #    configMapKeyRef:
 
 cluster:
-  # Plugins added to the Management API when api.federation.enabled.
-  # A name is installed by an init container running the Management API image, at the version given by the release
-  # manifest of that image: no version to keep in line with the image here. It needs an image shipping
-  # release-manifest.json (APIM 4.14 and later); with an older one, the init container fails and asks for URLs.
-  # A download URL is downloaded as is, like api.additionalPlugins.
+  # Plugins added to the Management API when api.federation.enabled, given like api.additionalPlugins.
   plugins:
     - gravitee-node-cache-plugin-hazelcast
     - gravitee-node-cluster-plugin-hazelcast
@@ -742,7 +738,11 @@ api:
   #       configMapKeyRef:
   #         name: special-config
   #         key: SPECIAL_LEVEL
+  # Plugins added to plugins-ext. A name (artifactId) is installed by an init container running the Management API
+  # image, at the version given by the release manifest of that image: it needs an image shipping release-manifest.json
+  # (APIM 4.14 and later), see bin/install-plugins.sh --list. A download URL is downloaded as is.
   additionalPlugins:
+#    - gravitee-policy-geoip-filtering
 #    - https://path_to_plugin
   ssl:
     enabled: false
@@ -1877,7 +1877,11 @@ gateway:
   # https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#priorityclass
   priorityClassName: ""
 
+  # Plugins added to plugins-ext. A name (artifactId) is installed by an init container running the gateway image, at
+  # the version given by the release manifest of that image: it needs an image shipping release-manifest.json (APIM 4.14
+  # and later), see bin/install-plugins.sh --list. A download URL is downloaded as is.
   additionalPlugins:
+#    - gravitee-policy-geoip-filtering
 #    - https://path_to_plugin
 
 

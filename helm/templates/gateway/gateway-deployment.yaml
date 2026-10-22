@@ -109,7 +109,7 @@ spec:
         {{- $plugins = concat $plugins .Values.gateway.additionalPlugins -}}
       {{- end -}}
 
-      {{- $pluginParams := dict "plugins" $plugins "appName" "graviteeio-gateway" "initContainers" $initContainers "context" . -}}
+      {{- $pluginParams := dict "plugins" $plugins "image" (printf "%s:%s" .Values.gateway.image.repository $dockerImageTag) "imagePullPolicy" .Values.gateway.image.pullPolicy "appName" "graviteeio-gateway" "initContainers" $initContainers "context" . -}}
       {{- $shouldDownloadJdbcDriver := eq (include "apim.shouldDownloadJdbcDriver" .) "true" -}}
       {{- $shouldCopyJdbcDriverFromImage := eq (include "apim.shouldCopyJdbcDriverFromImage" .) "true" -}}
       {{- $shouldProvisionJdbcDriver := eq (include "apim.shouldProvisionJdbcDriver" .) "true" -}}
