@@ -1664,13 +1664,56 @@ public class SubscriptionServiceTest {
             eq(ApiHook.SUBSCRIPTION_PAUSED),
             eq(NotificationReferenceType.API),
             eq(API_ID),
-            anyMap()
+            argThat(params ->
+                SUBSCRIPTION_ID.equals(((SubscriptionEntity) params.get(NotificationParamsBuilder.PARAM_SUBSCRIPTION)).getId())
+            )
         );
         verify(notifierService).trigger(
             eq(GraviteeContext.getExecutionContext()),
             eq(ApplicationHook.SUBSCRIPTION_PAUSED),
             anyString(),
-            anyMap()
+            argThat(params ->
+                SUBSCRIPTION_ID.equals(((SubscriptionEntity) params.get(NotificationParamsBuilder.PARAM_SUBSCRIPTION)).getId())
+            )
+        );
+    }
+
+    @Test
+    public void shouldResumeSubscription() throws Exception {
+        Subscription subscription = buildTestSubscription(PAUSED);
+        subscription.setPausedAt(new Date());
+
+        final ApiKeyEntity apiKey = new ApiKeyEntity();
+        apiKey.setKey("api-key");
+        apiKey.setRevoked(false);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(subscription)).thenReturn(subscription);
+        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).thenReturn(singletonList(apiKey));
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        application.setPrimaryOwner(new PrimaryOwnerEntity());
+
+        subscriptionService.resume(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+
+        verify(apiKeyService).update(GraviteeContext.getExecutionContext(), apiKey);
+        verify(notifierService).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApiHook.SUBSCRIPTION_RESUMED),
+            eq(NotificationReferenceType.API),
+            eq(API_ID),
+            argThat(params ->
+                SUBSCRIPTION_ID.equals(((SubscriptionEntity) params.get(NotificationParamsBuilder.PARAM_SUBSCRIPTION)).getId())
+            )
+        );
+        verify(notifierService).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApplicationHook.SUBSCRIPTION_RESUMED),
+            anyString(),
+            argThat(params ->
+                SUBSCRIPTION_ID.equals(((SubscriptionEntity) params.get(NotificationParamsBuilder.PARAM_SUBSCRIPTION)).getId())
+            )
         );
     }
 
