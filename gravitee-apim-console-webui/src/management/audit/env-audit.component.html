@@ -20,8 +20,8 @@
 </div>
 
 <mat-card class="org-settings-audit__filters">
-  <mat-card-content [formGroup]="filtersForm">
-    <mat-form-field class="org-settings-audit__filters__field">
+  <mat-card-content class="org-settings-audit__filters__content" [formGroup]="filtersForm">
+    <mat-form-field class="org-settings-audit__filters__field org-settings-audit__filters__field--event">
       <mat-label>Event</mat-label>
       <mat-select formControlName="event">
         <mat-option></mat-option>
