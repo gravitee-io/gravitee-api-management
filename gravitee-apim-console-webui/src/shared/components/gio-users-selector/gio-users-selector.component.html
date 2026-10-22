@@ -36,7 +36,8 @@
           {{ option.displayName }}
         </mat-option>
         <mat-option *ngIf="(users | async)?.length === 0 && userSearchTerm.value?.length > 0" disabled
-          >No user matching the term or user already selected</mat-option
+          >No user matching the term or user already selected — try a different search, or type a full display name or login for an exact
+          match</mat-option
         >
       </mat-autocomplete>
     </mat-form-field>
