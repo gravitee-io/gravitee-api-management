@@ -17,6 +17,10 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import io.gravitee.apim.core.scoring.use_case.DeleteEnvironmentFunctionUseCase;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.PathParam;
@@ -33,6 +37,7 @@ public class EnvironmentScoringFunctionResource extends AbstractResource {
     private DeleteEnvironmentFunctionUseCase deleteEnvironmentFunctionUseCase;
 
     @DELETE
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.DELETE }) })
     public Response deleteFunction() {
         deleteEnvironmentFunctionUseCase.execute(new DeleteEnvironmentFunctionUseCase.Input(functionName, getAuditInfo()));
         return Response.noContent().build();

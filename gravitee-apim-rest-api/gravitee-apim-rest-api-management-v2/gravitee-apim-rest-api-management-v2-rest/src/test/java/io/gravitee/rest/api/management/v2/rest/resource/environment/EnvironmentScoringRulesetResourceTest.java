@@ -29,6 +29,8 @@ import io.gravitee.rest.api.management.v2.rest.model.ScoringRulesetReferenceType
 import io.gravitee.rest.api.management.v2.rest.model.UpdateScoringRuleset;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.inject.Inject;
@@ -97,6 +99,17 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
             assertThat(response).hasStatus(HttpStatusCode.NO_CONTENT_204);
             assertThat(scoringRulesetCrudService.storage()).isEmpty();
         }
+
+        @Test
+        void should_return_403_without_environment_api_delete() {
+            var existing = ScoringRulesetFixture.aRuleset("ruleset-id").withReferenceId(ENVIRONMENT);
+            scoringRulesetCrudService.initWith(List.of(existing));
+
+            shouldReturn403(RolePermission.ENVIRONMENT_API, ENVIRONMENT, RolePermissionAction.DELETE, () ->
+                rootTarget.path("ruleset-id").request().delete()
+            );
+            assertThat(scoringRulesetCrudService.storage()).containsExactly(existing);
+        }
     }
 
     @Nested
@@ -135,6 +148,13 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
 
             // Then
             assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        void should_return_403_without_environment_api_read() {
+            shouldReturn403(RolePermission.ENVIRONMENT_API, ENVIRONMENT, RolePermissionAction.READ, () ->
+                rootTarget.path("ruleset-id").request().get()
+            );
         }
     }
 
@@ -192,6 +212,18 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
 
             //Then
             assertThat(response).hasStatus(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_403_without_environment_api_update() {
+            var existing = ScoringRulesetFixture.aRuleset().withReferenceId(ENVIRONMENT);
+            scoringRulesetCrudService.initWith(List.of(existing));
+            var update = new UpdateScoringRuleset().name("updated-name").description("updated-description");
+
+            shouldReturn403(RolePermission.ENVIRONMENT_API, ENVIRONMENT, RolePermissionAction.UPDATE, () ->
+                rootTarget.path("ruleset-id").request().put(Entity.json(update))
+            );
+            assertThat(scoringRulesetCrudService.storage()).containsExactly(existing);
         }
     }
 }
