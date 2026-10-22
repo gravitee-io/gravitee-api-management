@@ -289,6 +289,36 @@ class DebugReactorEventListenerTest {
         }
 
         @Test
+        void should_reuse_one_http_client_across_debug_runs() throws TechnicalException, JsonProcessingException {
+            io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
+            debugApiModel.setRequest(new HttpRequest("/path1", "GET"));
+            when(objectMapper.readValue(anyString(), any(DebugApiV2.class.getClass()))).thenReturn(debugApiModel);
+
+            Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
+            final ReactableEvent<Event> reactableWrapper = new ReactableEvent<>(anEvent.getId(), anEvent);
+
+            when(reactorHandlerRegistry.contains(any(DebugApiV2.class))).thenReturn(false);
+            final HttpClientAgent mockHttpClient = mock(HttpClientAgent.class);
+            when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
+
+            final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
+            when(httpClientResponse.statusCode()).thenReturn(200);
+            when(httpClientResponse.rxBody()).thenReturn(Single.just(Buffer.buffer("response body")));
+
+            final HttpClientRequest httpClientRequest = mock(HttpClientRequest.class);
+            when(mockHttpClient.rxRequest(any())).thenReturn(Single.just(httpClientRequest));
+            when(httpClientRequest.setChunked(true)).thenReturn(httpClientRequest);
+            when(httpClientRequest.rxSend()).thenReturn(Single.just(httpClientResponse));
+
+            debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
+            verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApiV2.class));
+            debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
+            verify(reactorHandlerRegistry, timeout(10000).times(2)).remove(any(DebugApiV2.class));
+
+            verify(vertx, times(1)).createHttpClient(any(HttpClientOptions.class));
+        }
+
+        @Test
         void should_remove_reactor_handler_if_body_do_not_complete_successfully() throws TechnicalException, JsonProcessingException {
             io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
             final HttpRequest httpRequest = new HttpRequest("/path1", "GET", "request body");
@@ -916,6 +946,28 @@ class DebugReactorEventListenerTest {
             assertThat(eventCaptor.getValue().getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.DEBUGGING.name());
             // the reload runs on its own scheduler: leave it a window in which it could have written
             verify(eventRepository, after(500).never()).createOrPatch(any());
+        }
+
+        @Test
+        void should_reset_the_request_when_the_debug_times_out() throws Exception {
+            when(objectMapper.readValue(anyString(), any(DebugApiV2.class.getClass()))).thenAnswer(invocation -> anApiDefinition());
+            final HttpClientAgent httpClient = mock(HttpClientAgent.class);
+            when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(httpClient);
+            final HttpClientRequest request = mock(HttpClientRequest.class);
+            when(httpClient.rxRequest(any())).thenReturn(Single.just(request));
+            when(request.setChunked(true)).thenReturn(request);
+            when(request.rxSend(anyString())).thenReturn(Single.never());
+            final DebugReactorEventListener listener = listenerWith(registry, aConfiguration(200));
+
+            listener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, aReactableEvent(EVENT_ID)));
+
+            // The client is shared by every debug run: a stalled run must give its connection back.
+            await()
+                .atMost(10, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    verify(request).reset();
+                    verify(registry).remove(any(DebugApiV2.class));
+                });
         }
 
         /**
