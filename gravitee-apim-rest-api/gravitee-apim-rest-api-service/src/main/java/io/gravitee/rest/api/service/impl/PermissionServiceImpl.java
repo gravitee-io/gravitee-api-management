@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.*;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.PermissionService.MemberSearchAccess;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -112,16 +113,36 @@ public class PermissionServiceImpl extends AbstractService implements Permission
     }
 
     @Override
-    public boolean canManageMembers(final ExecutionContext executionContext, String userId) {
+    public MemberSearchAccess memberSearchAccess(final ExecutionContext executionContext, String userId) {
         if (isOrganizationAdmin()) {
-            log.debug("User [{}] can manage members because of its ORGANIZATION ADMIN role", userId);
-            return true;
+            log.debug("User [{}] can search the full directory because of its ORGANIZATION ADMIN role", userId);
+            return MemberSearchAccess.FULL;
         }
         Set<String> roleIds = membershipService.getRoleIdsByMember(MembershipMemberType.USER, userId);
         if (roleIds.isEmpty()) {
-            return false;
+            return MemberSearchAccess.NONE;
         }
-        return roleService.findByIds(roleIds).values().stream().anyMatch(this::grantsMemberManagement);
+        var roles = roleService.findByIds(roleIds).values();
+        boolean hasApplicationScope = false;
+        boolean hasNonApplicationScope = false;
+        for (var role : roles) {
+            if (grantsMemberManagement(role)) {
+                if (role.getScope() == RoleScope.APPLICATION) {
+                    hasApplicationScope = true;
+                } else {
+                    hasNonApplicationScope = true;
+                }
+            }
+        }
+        if (hasNonApplicationScope) {
+            return MemberSearchAccess.FULL;
+        }
+        return hasApplicationScope ? MemberSearchAccess.APPLICATION_ONLY : MemberSearchAccess.NONE;
+    }
+
+    @Override
+    public boolean canManageMembers(final ExecutionContext executionContext, String userId) {
+        return memberSearchAccess(executionContext, userId) != MemberSearchAccess.NONE;
     }
 
     // Roles are checked where they are held, whatever reference they apply to: a group role is the one its members
