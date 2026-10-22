@@ -22,24 +22,55 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ApiScoreRulesetsComponent } from './api-score-rulesets.component';
 import { ApiScoreRulesetsHarness } from './api-score-rulesets.harness';
 
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { ApiScoreModule } from '../api-score.module';
 import { fakeRulesetsList, fakeScoringFunction } from '../../../entities/management-api-v2/api/v4/ruleset.fixture';
 import { ScoringFunction, RulesetFormat, ScoringRulesetsResponse } from '../../../entities/management-api-v2/api/v4/ruleset';
+
+function expectListRulesets(httpTestingController: HttpTestingController, res = fakeRulesetsList()) {
+  const url = `${CONSTANTS_TESTING.env.v2BaseURL}/scoring/rulesets`;
+  const req = httpTestingController.expectOne(req => {
+    return req.method === 'GET' && req.url.startsWith(url);
+  });
+  req.flush(res);
+}
+
+function expectListFunctions(
+  httpTestingController: HttpTestingController,
+  res: { data: ScoringFunction[] } = { data: [fakeScoringFunction()] },
+) {
+  const url = `${CONSTANTS_TESTING.env.v2BaseURL}/scoring/functions`;
+  const req = httpTestingController.expectOne({ method: 'GET', url: url });
+  req.flush(res);
+}
+
+async function initTestBed(permissions: string[]): Promise<{
+  fixture: ComponentFixture<ApiScoreRulesetsComponent>;
+  httpTestingController: HttpTestingController;
+  componentHarness: ApiScoreRulesetsHarness;
+}> {
+  await TestBed.configureTestingModule({
+    imports: [GioTestingModule, ApiScoreModule, BrowserAnimationsModule, NoopAnimationsModule],
+    providers: [{ provide: GioTestingPermissionProvider, useValue: permissions }],
+  }).compileComponents();
+
+  const fixture = TestBed.createComponent(ApiScoreRulesetsComponent);
+  const httpTestingController = TestBed.inject(HttpTestingController);
+  const componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiScoreRulesetsHarness);
+
+  return { fixture, httpTestingController, componentHarness };
+}
 
 describe('ApiScoreRulesetsComponent', () => {
   let fixture: ComponentFixture<ApiScoreRulesetsComponent>;
   let httpTestingController: HttpTestingController;
   let componentHarness: ApiScoreRulesetsHarness;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [GioTestingModule, ApiScoreModule, BrowserAnimationsModule, NoopAnimationsModule],
-    }).compileComponents();
+  const allPermissions = ['environment-api-c', 'environment-api-r', 'environment-api-u', 'environment-api-d'];
 
-    fixture = TestBed.createComponent(ApiScoreRulesetsComponent);
-    httpTestingController = TestBed.inject(HttpTestingController);
-    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiScoreRulesetsHarness);
+  beforeEach(async () => {
+    ({ fixture, httpTestingController, componentHarness } = await initTestBed(allPermissions));
     fixture.detectChanges();
   });
 
@@ -67,8 +98,8 @@ describe('ApiScoreRulesetsComponent', () => {
           },
         ],
       };
-      expectListRulesets(fakeRulesetsList(rulesetResponse));
-      expectListFunctions();
+      expectListRulesets(httpTestingController, fakeRulesetsList(rulesetResponse));
+      expectListFunctions(httpTestingController);
 
       const matExpansionPanel = await componentHarness.getMatExpansionPanelHarness();
       const title = await matExpansionPanel.getTitle();
@@ -82,26 +113,137 @@ describe('ApiScoreRulesetsComponent', () => {
     });
   });
 
+  it('shows import, edit, and delete when the user can change scoring configuration', async () => {
+    expectListRulesets(httpTestingController);
+    expectListFunctions(httpTestingController);
+    fixture.detectChanges();
+    await componentHarness.expandAllPanels();
+
+    expect(await componentHarness.getImportRulesetButton()).toBeTruthy();
+    expect(await componentHarness.getImportFunctionButton()).toBeTruthy();
+    expect(await componentHarness.getEditRulesetButton()).toBeTruthy();
+    expect(await componentHarness.getDeleteRulesetButton()).toBeTruthy();
+    expect(await componentHarness.getDeleteFunctionButton()).toBeTruthy();
+  });
+
   it('should display no functions info if backend returns empty list of rulesets', async () => {
     const emptyFunctionsRes = { data: [] };
-    expectListRulesets();
-    expectListFunctions(emptyFunctionsRes);
+    expectListRulesets(httpTestingController);
+    expectListFunctions(httpTestingController, emptyFunctionsRes);
 
     const matCardHarness = await componentHarness.getFunctionsEmpty();
     expect(matCardHarness).toBeTruthy();
   });
+});
 
-  function expectListRulesets(res = fakeRulesetsList()) {
-    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/scoring/rulesets`;
-    const req = httpTestingController.expectOne(req => {
-      return req.method === 'GET' && req.url.startsWith(url);
-    });
-    req.flush(res);
-  }
+describe('ApiScoreRulesetsComponent without write permission', () => {
+  let fixture: ComponentFixture<ApiScoreRulesetsComponent>;
+  let httpTestingController: HttpTestingController;
+  let componentHarness: ApiScoreRulesetsHarness;
 
-  function expectListFunctions(res: { data: ScoringFunction[] } = { data: [fakeScoringFunction()] }) {
-    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/scoring/functions`;
-    const req = httpTestingController.expectOne({ method: 'GET', url: url });
-    req.flush(res);
-  }
+  beforeEach(async () => {
+    ({ fixture, httpTestingController, componentHarness } = await initTestBed(['environment-api-r']));
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
+  it('hides import, edit, and delete', async () => {
+    expectListRulesets(httpTestingController);
+    expectListFunctions(httpTestingController);
+    fixture.detectChanges();
+    await componentHarness.expandAllPanels();
+
+    expect(await componentHarness.getImportRulesetButton()).toBeNull();
+    expect(await componentHarness.getImportFunctionButton()).toBeNull();
+    expect(await componentHarness.getEditRulesetButton()).toBeNull();
+    expect(await componentHarness.getDeleteRulesetButton()).toBeNull();
+    expect(await componentHarness.getDeleteFunctionButton()).toBeNull();
+  });
+});
+
+describe('ApiScoreRulesetsComponent with update permission only', () => {
+  let fixture: ComponentFixture<ApiScoreRulesetsComponent>;
+  let httpTestingController: HttpTestingController;
+  let componentHarness: ApiScoreRulesetsHarness;
+
+  beforeEach(async () => {
+    ({ fixture, httpTestingController, componentHarness } = await initTestBed(['environment-api-r', 'environment-api-u']));
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
+  it('shows function import and ruleset edit, hides create and delete', async () => {
+    expectListRulesets(httpTestingController);
+    expectListFunctions(httpTestingController);
+    fixture.detectChanges();
+    await componentHarness.expandAllPanels();
+
+    expect(await componentHarness.getImportRulesetButton()).toBeNull();
+    expect(await componentHarness.getImportFunctionButton()).toBeTruthy();
+    expect(await componentHarness.getEditRulesetButton()).toBeTruthy();
+    expect(await componentHarness.getDeleteRulesetButton()).toBeNull();
+    expect(await componentHarness.getDeleteFunctionButton()).toBeNull();
+  });
+});
+
+describe('ApiScoreRulesetsComponent with create permission only', () => {
+  let fixture: ComponentFixture<ApiScoreRulesetsComponent>;
+  let httpTestingController: HttpTestingController;
+  let componentHarness: ApiScoreRulesetsHarness;
+
+  beforeEach(async () => {
+    ({ fixture, httpTestingController, componentHarness } = await initTestBed(['environment-api-r', 'environment-api-c']));
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
+  it('shows import ruleset and import function, hides edit and delete', async () => {
+    expectListRulesets(httpTestingController);
+    expectListFunctions(httpTestingController);
+    fixture.detectChanges();
+    await componentHarness.expandAllPanels();
+
+    expect(await componentHarness.getImportRulesetButton()).toBeTruthy();
+    expect(await componentHarness.getImportFunctionButton()).toBeTruthy();
+    expect(await componentHarness.getEditRulesetButton()).toBeNull();
+    expect(await componentHarness.getDeleteRulesetButton()).toBeNull();
+    expect(await componentHarness.getDeleteFunctionButton()).toBeNull();
+  });
+});
+
+describe('ApiScoreRulesetsComponent with delete permission only', () => {
+  let fixture: ComponentFixture<ApiScoreRulesetsComponent>;
+  let httpTestingController: HttpTestingController;
+  let componentHarness: ApiScoreRulesetsHarness;
+
+  beforeEach(async () => {
+    ({ fixture, httpTestingController, componentHarness } = await initTestBed(['environment-api-r', 'environment-api-d']));
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
+  it('shows delete buttons, hides import and edit', async () => {
+    expectListRulesets(httpTestingController);
+    expectListFunctions(httpTestingController);
+    fixture.detectChanges();
+    await componentHarness.expandAllPanels();
+
+    expect(await componentHarness.getImportRulesetButton()).toBeNull();
+    expect(await componentHarness.getImportFunctionButton()).toBeNull();
+    expect(await componentHarness.getEditRulesetButton()).toBeNull();
+    expect(await componentHarness.getDeleteRulesetButton()).toBeTruthy();
+    expect(await componentHarness.getDeleteFunctionButton()).toBeTruthy();
+  });
 });
