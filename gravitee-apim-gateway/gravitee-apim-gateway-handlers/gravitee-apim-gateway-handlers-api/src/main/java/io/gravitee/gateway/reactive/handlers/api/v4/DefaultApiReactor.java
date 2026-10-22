@@ -564,7 +564,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
         }
     }
 
-    private Completable processOrganizationFlowError(final MutableExecutionContext ctx, final Throwable throwable) {
+    protected Completable processOrganizationFlowError(final MutableExecutionContext ctx, final Throwable throwable) {
         if (InterruptionHelper.isInterruptionWithFailure(throwable)) {
             return executeProcessorChain(ctx, onErrorProcessors, RESPONSE);
         } else if (InterruptionHelper.isInterruption(throwable)) {
@@ -803,7 +803,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
      * it, and one that fails is logged rather than replacing the failure the client is being told about — a
      * reconciliation going wrong must not become the answer.
      */
-    private Completable executeActionsOnTerminate(final MutableExecutionContext ctx) {
+    protected Completable executeActionsOnTerminate(final MutableExecutionContext ctx) {
         return Completable.defer(() -> {
             var actions = ctx.drainOnTerminateActions();
             if (actions.isEmpty()) {
