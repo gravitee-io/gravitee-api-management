@@ -1,5 +1,7 @@
 @use '../../scss/gio-layout' as gio-layout;
 
+$event-field-width-fitting-longest-event-name: 416px;
+
 :host {
   @include gio-layout.gio-responsive-content-container;
 }
@@ -8,11 +10,22 @@
   &__filters {
     margin-bottom: 8px;
 
+    &__content {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
     &__field {
       margin-right: 16px;
 
       &.right {
-        float: right;
+        margin-right: 0;
+        margin-left: auto;
+      }
+
+      &--event {
+        flex: 1 1 $event-field-width-fitting-longest-event-name;
       }
     }
   }
