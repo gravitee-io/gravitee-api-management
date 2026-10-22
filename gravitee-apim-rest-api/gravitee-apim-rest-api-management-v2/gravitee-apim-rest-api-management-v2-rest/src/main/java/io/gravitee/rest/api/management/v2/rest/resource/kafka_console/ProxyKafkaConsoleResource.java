@@ -34,14 +34,12 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.RequestOptions;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.GET;
@@ -50,18 +48,16 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.UriInfo;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.core.env.Environment;
 
 /**
@@ -81,22 +77,7 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
     private Environment environment;
 
     @Inject
-    private Vertx vertx;
-
-    private final List<String> headerNamesToRemove = List.of("Authorization", "Host");
-
-    private @NotNull MultivaluedMap<String, String> getFilteredHeaders(HttpServletRequest httpRequest) {
-        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
-        httpRequest
-            .getHeaderNames()
-            .asIterator()
-            .forEachRemaining(headerName -> {
-                if (!headerNamesToRemove.contains(headerName)) {
-                    headers.putSingle(headerName, httpRequest.getHeader(headerName));
-                }
-            });
-        return headers;
-    }
+    private KafkaConsoleClient kafkaConsoleClient;
 
     @POST
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
@@ -154,18 +135,7 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
         String kafbatServerHost = environment.getProperty("kafka.console.server.host", "localhost");
         Integer kafbatServerPort = environment.getProperty("kafka.console.server.port", Integer.class, 8080);
 
-        HttpClientOptions options = new HttpClientOptions();
-        options.setDefaultHost(kafbatServerHost);
-        options.setDefaultPort(kafbatServerPort);
-        options.setDecompressionSupported(true);
-        if (kafbatServerScheme.equalsIgnoreCase("https")) {
-            options.setSsl(true);
-            options.setVerifyHost(false);
-        }
-
-        log.debug("HttpClient options: {}", options);
-
-        HttpClient httpClient = vertx.createHttpClient(options);
+        HttpClient httpClient = kafkaConsoleClient.client(kafbatServerHost, kafbatServerPort, kafbatServerScheme.equalsIgnoreCase("https"));
 
         String kafbatToken = computeKafbatToken(jwtSecret);
 
@@ -176,17 +146,34 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
 
         log.debug("Request proxied to '{}://{}:{}{}'", kafbatServerScheme, kafbatServerHost, kafbatServerPort, kafbatURI);
 
-        Future<HttpClientRequest> requestFuture = httpClient.request(httpMethod, kafbatURI);
+        long timeout = kafkaConsoleClient.idleTimeout();
+        // The idle timeout does not bound a response that keeps trickling in: bound the whole exchange too. The 504 only
+        // frees the browser, so the Kafbat request is reset as well to give its connection back to the shared pool.
+        AtomicReference<HttpClientRequest> kafbatRequest = new AtomicReference<>();
+        finalResponse.setTimeoutHandler(response -> {
+            response.resume(Response.status(Response.Status.GATEWAY_TIMEOUT).build());
+            HttpClientRequest request = kafbatRequest.get();
+            if (request != null) {
+                request.reset();
+            }
+        });
+        finalResponse.setTimeout(2 * timeout, TimeUnit.MILLISECONDS);
+        Future<HttpClientRequest> requestFuture = httpClient.request(
+            new RequestOptions().setMethod(httpMethod).setURI(kafbatURI).setIdleTimeout(timeout)
+        );
         requestFuture
             .onFailure(throwable -> {
                 log.error("Error on url '{}'", kafbatURI, throwable);
                 finalResponse.resume(throwable);
-
-                // Close client
-                httpClient.close();
             })
             .onSuccess(request -> {
-                getFilteredHeaders(httpRequest).forEach(request::putHeader);
+                kafbatRequest.set(request);
+                if (finalResponse.isDone()) {
+                    // Timed out while waiting for a connection: do not send a request nobody waits for.
+                    request.reset();
+                    return;
+                }
+                kafkaConsoleClient.forwardedHeaders(httpRequest).forEach(request::putHeader);
                 request.putHeader("Authorization", kafbatToken);
                 request.putHeader("Host", kafbatServerHost);
                 log.debug("Request headers:\n{}", formatHeaders(request.headers()));
@@ -196,6 +183,10 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
                         log.debug("Response status code: {}", response.statusCode());
                         log.debug("Response headers:\n{}", formatHeaders(response.headers()));
 
+                        response.exceptionHandler(throwable -> {
+                            log.error("Error while reading the response of url '{}'", kafbatURI, throwable);
+                            finalResponse.resume(Response.status(Response.Status.BAD_GATEWAY).build());
+                        });
                         response.bodyHandler(buffer -> {
                             Response.ResponseBuilder responseBuilder;
                             if (
@@ -250,22 +241,17 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
                                 );
                             }
                             finalResponse.resume(responseBuilder.build());
-
-                            // Close client
-                            httpClient.close();
                         });
                     })
                     .onFailure(throwable -> {
                         log.error("Error on url '{}'", kafbatURI, throwable);
                         finalResponse.resume(throwable);
-
-                        // Close client
-                        httpClient.close();
                     });
                 if (body != null) {
-                    request.write(body);
+                    request.end(body);
+                } else {
+                    request.end();
                 }
-                request.end();
             });
     }
 
