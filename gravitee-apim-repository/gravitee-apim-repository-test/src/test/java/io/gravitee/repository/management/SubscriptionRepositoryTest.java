@@ -172,6 +172,26 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     }
 
     @Test
+    public void should_return_nothing_when_the_id_filter_is_empty() throws TechnicalException {
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder().ids(List.of()).build());
+
+        assertTrue(subscriptions.isEmpty());
+    }
+
+    @Test
+    public void should_not_filter_when_the_id_filter_is_null() throws TechnicalException {
+        List<Subscription> unfiltered = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().environments(singleton("DEFAULT")).build()
+        );
+        List<Subscription> withNullIds = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().environments(singleton("DEFAULT")).ids(null).build()
+        );
+
+        assertFalse(unfiltered.isEmpty());
+        assertEquals(unfiltered.size(), withNullIds.size());
+    }
+
+    @Test
     public void shoulNotFindByIds() throws TechnicalException {
         List<Subscription> subscriptions = this.subscriptionRepository.search(
             SubscriptionCriteria.builder().ids(singleton("unknown-subscription")).build()

@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.management.JdbcHelper.addIdsInClause;
 import static java.lang.String.format;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.hasText;
@@ -275,6 +276,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     public Set<String> listCategories(ApiCriteria apiCriteria) throws TechnicalException {
         LOGGER.debug("JdbcApiRepository.listCategories({})", apiCriteria);
         try {
+            if (apiCriteria.getIds() != null && apiCriteria.getIds().isEmpty()) {
+                return Set.of();
+            }
             boolean hasInClause = apiCriteria.getIds() != null && !apiCriteria.getIds().isEmpty();
 
             StringBuilder queryBuilder = new StringBuilder("SELECT category from ").append(API_CATEGORIES);
@@ -552,9 +556,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         if (!isEmpty(apiCriteria.getGroups())) {
             clauses.add("ag.group_id in (" + getOrm().buildInClause(apiCriteria.getGroups()) + ")");
         }
-        if (!isEmpty(apiCriteria.getIds())) {
-            clauses.add("a.id in (" + getOrm().buildInClause(apiCriteria.getIds()) + ")");
-        }
+        addIdsInClause(apiCriteria.getIds(), "a.id", ids -> getOrm().buildInClause(ids), clauses);
         if (hasText(apiCriteria.getLabel())) {
             clauses.add("al.label = ?");
         }
