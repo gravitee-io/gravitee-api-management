@@ -83,7 +83,7 @@
             Copies on purpose, not moves: the engine still needs its own. Keep them aligned when
             bumping either side.
         -->
-        <gravitee-connector-http.version>6.0.4</gravitee-connector-http.version>
+        <gravitee-connector-http.version>6.0.5</gravitee-connector-http.version>
         <gravitee-node.version>9.14.2</gravitee-node.version>
         <jna.version>5.19.1</jna.version>
         <mariadb-java-client.version>3.5.10</mariadb-java-client.version>
