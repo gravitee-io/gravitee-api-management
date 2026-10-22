@@ -116,6 +116,17 @@ describe('GioUsersSelectorComponent', () => {
       expect(options.length).toBe(1);
       expect(await options[0].getText()).toBe('Flash2');
     });
+
+    it('should show hint when search returns no results', async () => {
+      const searchAutocomplete = await loader.getHarness(MatAutocompleteHarness);
+      await searchAutocomplete.enterText('nonexistent');
+
+      respondToUserSearchRequest('nonexistent', []);
+
+      const options = await searchAutocomplete.getOptions();
+      expect(options.length).toBe(1);
+      expect(await options[0].getText()).toContain('exact match');
+    });
   });
 
   it('should remove a selected user', async () => {
