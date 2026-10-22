@@ -20,6 +20,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.function.Function;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -115,5 +116,50 @@ public class JdbcHelper {
             started = true;
         }
         return started;
+    }
+
+    /**
+     * An empty id collection matches nothing. A null collection leaves the filter unset.
+     */
+    static boolean addIdsWhereClause(
+        final Collection<String> ids,
+        final String columnName,
+        final List<Object> argsList,
+        final StringBuilder builder,
+        boolean started
+    ) {
+        if (ids != null && ids.isEmpty()) {
+            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
+            builder.append("1 = 0 ");
+            return true;
+        }
+        return addStringsWhereClause(ids, columnName, argsList, builder, started);
+    }
+
+    static void addIdsInClause(
+        final Collection<String> ids,
+        final String columnName,
+        final Function<Collection<String>, String> inClause,
+        final List<String> clauses
+    ) {
+        addIdsInClause(ids, columnName, inClause, clauses, new ArrayList<>());
+    }
+
+    static void addIdsInClause(
+        final Collection<String> ids,
+        final String columnName,
+        final Function<Collection<String>, String> inClause,
+        final List<String> clauses,
+        final List<Object> args
+    ) {
+        if (ids == null) {
+            return;
+        }
+        if (ids.isEmpty()) {
+            clauses.add("1 = 0");
+            return;
+        }
+        clauses.add(columnName + " in (" + inClause.apply(ids) + ")");
+        args.addAll(ids);
     }
 }

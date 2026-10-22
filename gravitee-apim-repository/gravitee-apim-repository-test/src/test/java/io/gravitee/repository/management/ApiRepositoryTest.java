@@ -241,6 +241,18 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void should_return_nothing_when_the_id_filter_is_empty() {
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().ids(List.of()).build(), ApiFieldFilter.allFields());
+
+        assertThat(apis).isEmpty();
+    }
+
+    @Test
+    public void should_list_no_categories_when_the_id_filter_is_empty() throws TechnicalException {
+        assertThat(apiRepository.listCategories(new ApiCriteria.Builder().ids(List.of()).build())).isEmpty();
+    }
+
+    @Test
     public void findAllTestCriteriaEmpty() {
         List<Api> apis = apiRepository.search(new ApiCriteria.Builder().build(), ApiFieldFilter.allFields());
 

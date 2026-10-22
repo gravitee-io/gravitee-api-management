@@ -56,7 +56,11 @@ public class ValidatePortalListingDomainService implements Validator<ValidatePor
             .stream()
             .map(entry -> entry.apiId(input.auditInfo()))
             .toList();
-        Set<String> existingApiIds = apiCrudService.findByIds(apiIds).stream().map(Api::getId).collect(Collectors.toSet());
+        Set<String> existingApiIds = apiCrudService
+            .findByIds(apiIds, input.auditInfo().environmentId())
+            .stream()
+            .map(Api::getId)
+            .collect(Collectors.toSet());
         for (int i = 0; i < apis.size(); i++) {
             var entry = apis.get(i);
             errors.addAll(NavigationPathValidator.validate(entry.location(), "apis[" + i + "].location"));

@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.management.JdbcHelper.addIdsInClause;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration;
@@ -443,11 +445,7 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
 
     private String buildSearchIdsClause(ApiProductCriteria criteria, List<Object> args) {
         List<String> clauses = new ArrayList<>();
-        if (criteria.getIds() != null && !criteria.getIds().isEmpty()) {
-            List<String> idList = new ArrayList<>(criteria.getIds());
-            clauses.add("ap.id IN (" + getOrm().buildInClause(idList) + ")");
-            args.addAll(idList);
-        }
+        addIdsInClause(criteria.getIds(), "ap.id", ids -> getOrm().buildInClause(ids), clauses, args);
         if (criteria.getName() != null && !criteria.getName().isEmpty()) {
             clauses.add("ap.name = ?");
             args.add(criteria.getName());
@@ -465,10 +463,7 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
             clauses.add("ap.environment_id IN (" + getOrm().buildInClause(envList) + ")");
             args.addAll(envList);
         }
-        if (criteria.getApiIds() != null && !criteria.getApiIds().isEmpty()) {
-            clauses.add("apa.api_id IN (" + getOrm().buildInClause(new ArrayList<>(criteria.getApiIds())) + ")");
-            args.addAll(criteria.getApiIds());
-        }
+        addIdsInClause(criteria.getApiIds(), "apa.api_id", ids -> getOrm().buildInClause(ids), clauses, args);
         if (criteria.getGroups() != null && !criteria.getGroups().isEmpty()) {
             List<String> groupList = new ArrayList<>(criteria.getGroups());
             clauses.add(
