@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_listing.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -127,6 +128,30 @@ class ValidatePortalListingUseCaseTest {
     }
 
     @Test
+    void should_surface_error_when_referenced_api_belongs_to_another_environment() {
+        apiCrud.initWith(
+            List.of(
+                Api.builder()
+                    .id(HRIDToUUID.api().context(AUDIT_INFO).hrid("foreign-api").id())
+                    .name("foreign-api")
+                    .environmentId("another-environment-id")
+                    .build()
+            )
+        );
+
+        var output = useCase.execute(
+            new CreateOrUpdatePortalListingUseCase.Input(
+                AUDIT_INFO,
+                LISTING_ID,
+                PORTAL_ID,
+                List.of(new PortalListingApiEntry("foreign-api", "/projects/alpha", 1))
+            )
+        );
+
+        assertThat(output.errors()).anyMatch(e -> e.getMessage().contains("apis[0]") && e.getMessage().contains("foreign-api"));
+    }
+
+    @Test
     void should_check_api_existence_in_a_single_batched_call_for_multiple_entries() {
         ApiCrudService apiCrudSpy = spy(apiCrud);
         var spiedUseCase = new ValidatePortalListingUseCase(
@@ -148,7 +173,7 @@ class ValidatePortalListingUseCaseTest {
             )
         );
 
-        verify(apiCrudSpy).findByIds(anyList());
+        verify(apiCrudSpy).findByIds(anyList(), eq(AUDIT_INFO.environmentId()));
         verify(apiCrudSpy, never()).existsById(any());
     }
 

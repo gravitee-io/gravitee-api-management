@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -55,7 +56,7 @@ public class FilterValueNameResolverImpl implements FilterValueNameResolver {
         }
 
         return switch (filterName) {
-            case API -> apiCrudService.findByIds(ids).stream().collect(Collectors.toMap(api -> api.getId(), api -> api.getName()));
+            case API -> apiNamesOf(environmentId, new HashSet<>(ids));
             case APPLICATION -> {
                 var names = new HashMap<>(
                     applicationCrudService
@@ -99,5 +100,15 @@ public class FilterValueNameResolverImpl implements FilterValueNameResolver {
             .limit(perPage)
             .map(api -> new FilterValue(api.getName(), api.getId()))
             .toList();
+    }
+
+    private Map<String, String> apiNamesOf(String environmentId, Set<String> apiIds) {
+        if (environmentId == null || apiIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        return apiCrudService
+            .findByIds(List.copyOf(apiIds), environmentId)
+            .stream()
+            .collect(Collectors.toMap(api -> api.getId(), api -> api.getName(), (first, second) -> first));
     }
 }

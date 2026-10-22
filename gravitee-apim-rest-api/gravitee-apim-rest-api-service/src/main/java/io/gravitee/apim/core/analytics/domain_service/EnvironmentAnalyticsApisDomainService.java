@@ -98,7 +98,6 @@ public class EnvironmentAnalyticsApisDomainService {
         }
 
         var memberApiIds = apiAuthorizationDomainService.findMemberApiIds(executionContext, userId);
-        // An empty id list does not restrict the search: it would widen the scope to the whole environment.
         if (memberApiIds.isEmpty()) {
             return List.of();
         }

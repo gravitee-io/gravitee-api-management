@@ -255,6 +255,16 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
     }
 
     @Test
+    public void should_reject_a_page_size_of_zero() {
+        var apiSearchQuery = new ApiSearchQuery();
+        apiSearchQuery.setQuery("");
+
+        final Response response = rootTarget().queryParam("perPage", 0).request().post(Entity.json(apiSearchQuery));
+
+        assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
+    }
+
+    @Test
     public void should_return_error_with_wrong_value_for_sort_by_param() {
         var apiSearchQuery = new ApiSearchQuery();
         apiSearchQuery.setIds(List.of("id-1", "id-2"));
