@@ -40,4 +40,25 @@ describe('ModuleUnavailable', () => {
 
         expect(onReload).toHaveBeenCalledTimes(1);
     });
+
+    describe('when the app crashed', () => {
+        it('should say the app could not be opened, without blaming an update', () => {
+            render(<ModuleUnavailable moduleName="API Management" crashed onReload={jest.fn()} />);
+
+            expect(screen.getByRole('heading', { level: 1, name: "Couldn't open API Management" })).toBeTruthy();
+            const message = screen.getByRole('alert').textContent;
+            expect(message).toContain('Something went wrong while opening it. If this keeps happening, contact your administrator.');
+            expect(message).not.toMatch(/updat/i);
+        });
+
+        it('should still reload the page from its button', async () => {
+            const user = userEvent.setup();
+            const onReload = jest.fn();
+            render(<ModuleUnavailable moduleName="API Management" crashed onReload={onReload} />);
+
+            await user.click(screen.getByRole('button', { name: 'Reload page' }));
+
+            expect(onReload).toHaveBeenCalledTimes(1);
+        });
+    });
 });

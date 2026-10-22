@@ -17,11 +17,27 @@ import { Button } from '@gravitee/graphene-core';
 
 import { PageError } from '../../../shared/components/PageError';
 
-export function ModuleUnavailable({ moduleName, onReload }: { readonly moduleName: string; readonly onReload: () => void }) {
+/**
+ * A module whose files could not be fetched may open once the platform is updated. A crash of its code, while it
+ * starts or renders, has nothing to do with an update.
+ */
+export function ModuleUnavailable({
+    moduleName,
+    crashed = false,
+    onReload,
+}: {
+    readonly moduleName: string;
+    readonly crashed?: boolean;
+    readonly onReload: () => void;
+}) {
     return (
         <PageError
-            title={`${moduleName} isn't available right now`}
-            description="It may still be updating. Reload the page in a minute. If this keeps happening, contact your administrator."
+            title={crashed ? `Couldn't open ${moduleName}` : `${moduleName} isn't available right now`}
+            description={
+                crashed
+                    ? 'Something went wrong while opening it. If this keeps happening, contact your administrator.'
+                    : 'It may still be updating. Reload the page in a minute. If this keeps happening, contact your administrator.'
+            }
         >
             {/* Primary on purpose: the console has stopped retrying, so reloading is now the way forward. */}
             <Button onClick={onReload}>Reload page</Button>

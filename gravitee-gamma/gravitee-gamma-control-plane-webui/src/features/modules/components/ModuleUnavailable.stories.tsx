@@ -28,7 +28,7 @@ const meta: Meta<typeof ModuleUnavailable> = {
         docs: {
             description: {
                 component:
-                    'Shown in place of a module, inside the console shell, once every attempt to load it has failed or when it crashed while rendering.',
+                    'Shown in place of a module, inside the console shell, once every attempt to fetch its files has failed, or, with `crashed`, when its code failed while starting or rendering.',
             },
         },
     },
@@ -38,3 +38,10 @@ export default meta;
 type Story = StoryObj<typeof ModuleUnavailable>;
 
 export const Default: Story = {};
+
+export const Crashed: Story = {
+    args: {
+        moduleName: 'API Management',
+        crashed: true,
+    },
+};

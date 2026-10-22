@@ -78,3 +78,25 @@ export const TEST_ENVIRONMENTS: Environment[] = [
 export function buildChunkLoadError(chunkId = 8201): Error {
     return Object.assign(new Error(`Loading chunk ${chunkId} failed.`), { name: 'ChunkLoadError' });
 }
+
+/** What a module's own code can throw while it starts, here React 18's runtime against the console's React 19. */
+export function buildModuleCodeError(): TypeError {
+    return new TypeError("Cannot read properties of undefined (reading 'ReactCurrentOwner')");
+}
+
+/**
+ * What Module Federation throws when a module's entry file loads but throws while it runs: the script error, wrapped
+ * in the RUNTIME-008 it also gives to an entry file it could not load.
+ */
+export function buildEntryExecutionError(): Error {
+    const url = 'http://api.test/gamma/organizations/test-org/modules/aim/assets/remoteEntry.js';
+    return new Error(
+        [
+            '[ Federation Runtime ]: Failed to load script resources. #RUNTIME-008',
+            `args: {"remoteName":"aim","resourceUrl":"${url}"}`,
+            'View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-008',
+            'Original Error Message:',
+            ` ScriptExecutionError: Script "${url}" loaded but threw a runtime error during execution: Uncaught TypeError: render is not a function (${url}:1:42)`,
+        ].join('\n'),
+    );
+}
