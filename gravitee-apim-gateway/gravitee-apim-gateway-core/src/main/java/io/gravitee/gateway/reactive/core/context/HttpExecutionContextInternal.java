@@ -81,6 +81,18 @@ public interface HttpExecutionContextInternal extends HttpExecutionContext {
     Map<BasePolicy, Function<HttpExecutionContext, Completable>> drainOnTerminateActions();
 
     /**
+     * The actions registered to run just before the endpoint is invoked, in order of registration, forgotten as they
+     * are handed over so that an action runs at most once.
+     */
+    Map<BasePolicy, Function<HttpExecutionContext, Completable>> drainOnEndpointRequestActions();
+
+    /**
+     * The actions registered to run just before the entrypoint sends the response, in reverse order of registration,
+     * forgotten as they are handed over so that an action runs at most once.
+     */
+    Map<BasePolicy, Function<HttpExecutionContext, Completable>> drainOnEntrypointResponseActions();
+
+    /**
      * Sets the log entries for the current execution context.
      *
      * @param logEntries a set of log entries to be applied to the current execution context. Each log entry must be an instance
