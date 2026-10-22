@@ -28,6 +28,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.search.*;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
+import io.gravitee.repository.mongodb.utils.IdCriteria;
 import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -132,8 +133,8 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
                 .filter(Objects::nonNull)
                 .map(apiCriteria -> {
                     List<Criteria> criteria = new ArrayList<>();
-                    if (apiCriteria.getIds() != null && !apiCriteria.getIds().isEmpty()) {
-                        criteria.add(where("id").in(apiCriteria.getIds()));
+                    if (apiCriteria.getIds() != null) {
+                        criteria.add(IdCriteria.matching("id", apiCriteria.getIds()));
                     }
                     if (apiCriteria.getGroups() != null && !apiCriteria.getGroups().isEmpty()) {
                         criteria.add(where("groups").in(apiCriteria.getGroups()));
@@ -221,7 +222,10 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
     @Override
     public Set<String> listCategories(ApiCriteria apiCriteria) {
         List<Bson> aggregations = new ArrayList<>();
-        if (apiCriteria.getIds() != null && !apiCriteria.getIds().isEmpty()) {
+        if (apiCriteria.getIds() != null) {
+            if (apiCriteria.getIds().isEmpty()) {
+                return Set.of();
+            }
             aggregations.add(match(in("_id", apiCriteria.getIds())));
         }
         aggregations.add(unwind("$categories"));

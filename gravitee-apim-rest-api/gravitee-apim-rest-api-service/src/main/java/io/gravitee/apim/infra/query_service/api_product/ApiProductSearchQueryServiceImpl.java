@@ -62,7 +62,7 @@ public class ApiProductSearchQueryServiceImpl implements ApiProductSearchQuerySe
         if (query != null && !query.isBlank()) {
             queryBuilder.setQuery(query.trim());
         }
-        if (CollectionUtils.isNotEmpty(ids)) {
+        if (ids != null) {
             queryBuilder.addFilter(FILTER_TYPE_API_PRODUCT, ids);
         }
         if (sortable != null) {

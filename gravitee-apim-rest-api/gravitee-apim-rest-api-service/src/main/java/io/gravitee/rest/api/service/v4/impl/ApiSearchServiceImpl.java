@@ -288,6 +288,9 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
 
         // Step 3: create apiId page subset add filters to ApiCriteria to be used by the repository search
         List<String> apiIdPageSubset = this.getApiIdPageSubset(apiIds, pageable);
+        if (apiIdPageSubset.isEmpty()) {
+            return new Page<>(List.of(), 0, 0, 0);
+        }
 
         ApiCriteria.Builder apiCriteriaBuilder = new ApiCriteria.Builder()
             .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
