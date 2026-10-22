@@ -1041,6 +1041,29 @@ public class ApiServiceImplTest {
     }
 
     @Test
+    public void should_keep_the_stored_internal_flow_on_update() throws Exception {
+        prepareUpdate();
+        var internalFlow = Flow.builder()
+            .name("internal")
+            .request(List.of(Step.builder().policy("guardian-policy").configuration("{\"guardianId\":\"guardian-id\"}").build()))
+            .build();
+        io.gravitee.definition.model.v4.Api storedDefinition = new io.gravitee.definition.model.v4.Api();
+        storedDefinition.setId(API_ID);
+        storedDefinition.setInternalFlow(internalFlow);
+        api.setDefinition(objectMapper.writeValueAsString(storedDefinition));
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        ArgumentCaptor<Api> repositoryApiCaptor = ArgumentCaptor.forClass(Api.class);
+        verify(apiRepository).update(repositoryApiCaptor.capture());
+        var updatedDefinition = objectMapper.readValue(
+            repositoryApiCaptor.getValue().getDefinition(),
+            io.gravitee.definition.model.v4.Api.class
+        );
+        assertThat(updatedDefinition.getInternalFlow()).isEqualTo(internalFlow);
+    }
+
+    @Test
     public void should_use_hrid_from_update_entity_when_provided() throws TechnicalException {
         prepareUpdate();
         api.setHrid("old-hrid");
