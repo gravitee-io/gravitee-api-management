@@ -19,6 +19,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
 import { RemoteModuleRoute } from './RemoteModuleRoute';
 import { EnvironmentGuard } from '../../../features/environment';
+import { buildChunkLoadError } from '../../../testing/factories';
 import { resetAllStores, seedEnvironments } from '../../../testing/helpers';
 import { RETRY_DELAYS_MS } from '../modules.remotes';
 import type { GammaModule } from '../modules.types';
@@ -152,7 +153,7 @@ describe('RemoteModuleRoute', () => {
         }
 
         it('should keep the loading skeleton, without any message, when a retry succeeds right after a failure', async () => {
-            mockLoadRemote.mockRejectedValueOnce(new Error('Loading chunk 8201 failed.')).mockResolvedValue(mockRemoteExport);
+            mockLoadRemote.mockRejectedValueOnce(buildChunkLoadError()).mockResolvedValue(mockRemoteExport);
 
             render(<RemoteModuleRoute module={buildModule('blip')} />);
             await act(async () => {
@@ -170,7 +171,7 @@ describe('RemoteModuleRoute', () => {
         });
 
         it("should tell the user the app isn't ready yet once failures last, then open it by itself", async () => {
-            const chunkError = new Error('Loading chunk 8201 failed.');
+            const chunkError = buildChunkLoadError();
             mockLoadRemote
                 .mockRejectedValueOnce(chunkError)
                 .mockRejectedValueOnce(chunkError)
@@ -193,7 +194,7 @@ describe('RemoteModuleRoute', () => {
         });
 
         it('should announce that the app is not ready yet, then that it is ready', async () => {
-            const chunkError = new Error('Loading chunk 8201 failed.');
+            const chunkError = buildChunkLoadError();
             mockLoadRemote
                 .mockRejectedValueOnce(chunkError)
                 .mockRejectedValueOnce(chunkError)
@@ -217,7 +218,7 @@ describe('RemoteModuleRoute', () => {
         });
 
         it('should go from the waiting message straight to the module, without the skeleton in between', async () => {
-            const chunkError = new Error('Loading chunk 8201 failed.');
+            const chunkError = buildChunkLoadError();
             mockLoadRemote
                 .mockRejectedValueOnce(chunkError)
                 .mockRejectedValueOnce(chunkError)
@@ -261,7 +262,7 @@ describe('RemoteModuleRoute', () => {
                 openPage = () => setPageOpened(true);
                 return pageOpened ? <PendingPage /> : <div>Remote module</div>;
             }
-            const chunkError = new Error('Loading chunk 8201 failed.');
+            const chunkError = buildChunkLoadError();
             mockLoadRemote
                 .mockRejectedValueOnce(chunkError)
                 .mockRejectedValueOnce(chunkError)
@@ -287,7 +288,7 @@ describe('RemoteModuleRoute', () => {
             let aimAttempts = 0;
             mockLoadRemote.mockImplementation((id: string) =>
                 id === 'aim-revisited/App' && ++aimAttempts <= 3
-                    ? Promise.reject(new Error('Loading chunk 8201 failed.'))
+                    ? Promise.reject(buildChunkLoadError())
                     : Promise.resolve(mockRemoteExport),
             );
 
@@ -307,7 +308,7 @@ describe('RemoteModuleRoute', () => {
         it('should move the focus to the module area when the module opens while the user was on Retry now', async () => {
             let platformIsBack = false;
             mockLoadRemote.mockImplementation(() =>
-                platformIsBack ? Promise.resolve(mockRemoteExport) : Promise.reject(new Error('Loading chunk 8201 failed.')),
+                platformIsBack ? Promise.resolve(mockRemoteExport) : Promise.reject(buildChunkLoadError()),
             );
 
             render(<RemoteModuleRoute module={buildModule('focus-return')} />);
@@ -330,7 +331,7 @@ describe('RemoteModuleRoute', () => {
         it('should load the module at once when the user clicks Retry now', async () => {
             let platformIsBack = false;
             mockLoadRemote.mockImplementation(() =>
-                platformIsBack ? Promise.resolve(mockRemoteExport) : Promise.reject(new Error('Loading chunk 8201 failed.')),
+                platformIsBack ? Promise.resolve(mockRemoteExport) : Promise.reject(buildChunkLoadError()),
             );
 
             render(<RemoteModuleRoute module={buildModule('retry-now')} />);
@@ -349,7 +350,7 @@ describe('RemoteModuleRoute', () => {
         });
 
         it('should show a message in place of the module, and keep the rest of the page, once every attempt has failed', async () => {
-            mockLoadRemote.mockRejectedValue(new Error('Loading chunk 8201 failed.'));
+            mockLoadRemote.mockRejectedValue(buildChunkLoadError());
 
             render(
                 <>
@@ -368,7 +369,7 @@ describe('RemoteModuleRoute', () => {
         });
 
         it('should name the app in the message', async () => {
-            mockLoadRemote.mockRejectedValue(new Error('Loading chunk 8201 failed.'));
+            mockLoadRemote.mockRejectedValue(buildChunkLoadError());
 
             render(<RemoteModuleRoute module={{ ...buildModule('aim'), remoteName: 'aim-unreachable' }} />);
             await runAllRetries();
@@ -394,7 +395,7 @@ describe('RemoteModuleRoute', () => {
             const failing = buildModule('failing');
             const working = buildModule('working');
             mockLoadRemote.mockImplementation((id: string) =>
-                id === 'failing/App' ? Promise.reject(new Error('Loading chunk 8201 failed.')) : Promise.resolve(mockRemoteExport),
+                id === 'failing/App' ? Promise.reject(buildChunkLoadError()) : Promise.resolve(mockRemoteExport),
             );
 
             const router = renderTwoModulesUnderGuard(failing, working);
@@ -413,9 +414,7 @@ describe('RemoteModuleRoute', () => {
             const other = buildModule('other');
             let flakyIsBack = false;
             mockLoadRemote.mockImplementation((id: string) =>
-                id === 'flaky/App' && !flakyIsBack
-                    ? Promise.reject(new Error('Loading chunk 8201 failed.'))
-                    : Promise.resolve(mockRemoteExport),
+                id === 'flaky/App' && !flakyIsBack ? Promise.reject(buildChunkLoadError()) : Promise.resolve(mockRemoteExport),
             );
 
             const router = renderTwoModulesUnderGuard(flaky, other);
@@ -437,7 +436,7 @@ describe('RemoteModuleRoute', () => {
             let slowIsBack = false;
             mockLoadRemote.mockImplementation((id: string) => {
                 if (id !== 'slow-after-failure/App') return Promise.resolve(mockRemoteExport);
-                return slowIsBack ? new Promise(() => undefined) : Promise.reject(new Error('Loading chunk 8201 failed.'));
+                return slowIsBack ? new Promise(() => undefined) : Promise.reject(buildChunkLoadError());
             });
 
             const router = renderTwoModulesUnderGuard(slow, neighbor);
