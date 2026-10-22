@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static assertions.MAPIAssertions.assertThat;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.when;
@@ -29,6 +30,8 @@ import io.gravitee.rest.api.management.v2.rest.model.ImportScoringFunction;
 import io.gravitee.rest.api.management.v2.rest.model.ScoringFunctionsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.inject.Inject;
@@ -132,6 +135,74 @@ class EnvironmentScoringFunctionsResourceTest extends AbstractResourceTest {
                 .extracting(ScoringFunction::name, ScoringFunction::payload)
                 .containsExactly(tuple("function-name.js", "function-payload2"));
         }
+
+        @Test
+        void should_create_function_with_create_only() {
+            deny(RolePermissionAction.UPDATE);
+            var request = new ImportScoringFunction().name("function-name.js").payload("function-payload");
+
+            Response response = target.request().post(json(request));
+
+            assertThat(response).hasStatus(HttpStatusCode.CREATED_201);
+            assertThat(scoringFunctionCrudService.storage())
+                .extracting(ScoringFunction::name, ScoringFunction::payload)
+                .containsExactly(tuple("function-name.js", "function-payload"));
+        }
+
+        @Test
+        void should_replace_function_with_update_only() {
+            var existing = existingFunction("function-payload");
+            scoringFunctionCrudService.initWith(List.of(existing));
+            deny(RolePermissionAction.CREATE);
+            var request = new ImportScoringFunction().name("function-name.js").payload("function-payload2");
+
+            Response response = target.request().post(json(request));
+
+            assertThat(response).hasStatus(HttpStatusCode.CREATED_201);
+            assertThat(scoringFunctionCrudService.storage())
+                .hasSize(1)
+                .extracting(ScoringFunction::name, ScoringFunction::payload)
+                .containsExactly(tuple("function-name.js", "function-payload2"));
+        }
+
+        @Test
+        void should_return_403_without_environment_api_create() {
+            deny(RolePermissionAction.CREATE);
+            deny(RolePermissionAction.UPDATE);
+            var request = new ImportScoringFunction().name("function-name.js").payload("function-payload");
+            Response response = target.request().post(json(request));
+            assertThat(response).hasStatus(FORBIDDEN_403);
+            assertThat(scoringFunctionCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_return_403_when_replacing_without_update() {
+            var existing = existingFunction("function-payload");
+            scoringFunctionCrudService.initWith(List.of(existing));
+            deny(RolePermissionAction.UPDATE);
+            var request = new ImportScoringFunction().name("function-name.js").payload("function-payload2");
+
+            Response response = target.request().post(json(request));
+
+            assertThat(response).hasStatus(FORBIDDEN_403);
+            assertThat(scoringFunctionCrudService.storage()).containsExactly(existing);
+        }
+
+        private void deny(RolePermissionAction action) {
+            when(
+                permissionService.hasPermission(GraviteeContext.getExecutionContext(), RolePermission.ENVIRONMENT_API, ENVIRONMENT, action)
+            ).thenReturn(false);
+        }
+
+        private ScoringFunction existingFunction(String payload) {
+            return ScoringFunctionFixture.aFunction()
+                .toBuilder()
+                .id("function1")
+                .name("function-name.js")
+                .referenceId(ENVIRONMENT)
+                .payload(payload)
+                .build();
+        }
     }
 
     @Nested
@@ -170,6 +241,26 @@ class EnvironmentScoringFunctionsResourceTest extends AbstractResourceTest {
                         .referenceType(io.gravitee.rest.api.management.v2.rest.model.ScoringFunctionReferenceType.ENVIRONMENT)
                         .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
                 );
+        }
+
+        @Test
+        void should_return_403_without_environment_api_read() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_API,
+                    ENVIRONMENT,
+                    RolePermissionAction.READ
+                )
+            ).thenReturn(false);
+
+            Response response = target.request().get();
+
+            assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
         }
     }
 }

@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static assertions.MAPIAssertions.assertThat;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.when;
@@ -30,6 +31,8 @@ import io.gravitee.rest.api.management.v2.rest.model.ScoringAssetFormat;
 import io.gravitee.rest.api.management.v2.rest.model.ScoringRulesetsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.inject.Inject;
@@ -137,6 +140,32 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.CREATED_201)
                 .hasHeader("Location", target.path("generated-id").getUri().toString());
         }
+
+        @Test
+        void should_return_403_without_environment_api_create() {
+            var request = new ImportScoringRuleset()
+                .name("ruleset-name")
+                .payload("ruleset-payload")
+                .format(ScoringAssetFormat.GRAVITEE_PROXY);
+
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_API,
+                    ENVIRONMENT,
+                    RolePermissionAction.CREATE
+                )
+            ).thenReturn(false);
+
+            Response response = target.request().post(json(request));
+
+            assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+            assertThat(scoringRulesetCrudService.storage()).isEmpty();
+        }
     }
 
     @Nested
@@ -181,6 +210,26 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
                         .referenceType(io.gravitee.rest.api.management.v2.rest.model.ScoringRulesetReferenceType.ENVIRONMENT)
                         .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
                 );
+        }
+
+        @Test
+        void should_return_403_without_environment_api_read() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_API,
+                    ENVIRONMENT,
+                    RolePermissionAction.READ
+                )
+            ).thenReturn(false);
+
+            Response response = target.request().get();
+
+            assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
         }
     }
 }
