@@ -15,6 +15,7 @@
  */
 package io.gravitee.plugin.endpoint.http.proxy.client;
 
+import io.gravitee.apim.common.lifecycle.LazyCloseable;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.vertx.client.http.VertxHttpClientFactory;
@@ -25,7 +26,6 @@ import io.gravitee.plugin.mappers.HttpProxyOptionsMapper;
 import io.gravitee.plugin.mappers.SslOptionsMapper;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -33,23 +33,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class HttpClientFactory {
 
-    private HttpClient httpClient;
-    private final AtomicBoolean httpClientCreated = new AtomicBoolean(false);
+    // Built on an event loop by the first request, closed by the thread that stops the endpoint.
+    @SuppressWarnings("ReactiveStreamsUnusedPublisher")
+    private final LazyCloseable<HttpClient> httpClient = new LazyCloseable<>(client -> client.close());
 
     public HttpClient getOrBuildHttpClient(
         final HttpExecutionContext ctx,
         final HttpProxyEndpointConnectorConfiguration configuration,
         final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
     ) {
-        if (httpClient == null) {
-            synchronized (this) {
-                // Double-checked locking.
-                if (httpClientCreated.compareAndSet(false, true)) {
-                    httpClient = buildHttpClient(ctx, configuration, sharedConfiguration).build().createHttpClient();
-                }
-            }
-        }
-        return httpClient;
+        return httpClient.getOrBuild(() -> buildHttpClient(ctx, configuration, sharedConfiguration).build().createHttpClient());
     }
 
     protected VertxHttpClientFactory.VertxHttpClientFactoryBuilder buildHttpClient(
@@ -66,12 +59,7 @@ public class HttpClientFactory {
             .proxyOptions(HttpProxyOptionsMapper.INSTANCE.map(sharedConfiguration.getProxyOptions()));
     }
 
-    @SuppressWarnings("ReactiveStreamsUnusedPublisher")
-    // Use NOOP Subscriber on websocket close so return completable could be ignored
     public void close() {
-        if (httpClient != null) {
-            httpClient.close();
-            httpClient = null;
-        }
+        httpClient.close();
     }
 }
