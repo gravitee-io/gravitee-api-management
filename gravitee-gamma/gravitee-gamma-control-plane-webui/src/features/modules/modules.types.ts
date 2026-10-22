@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/** Account modules are served outside the environments. Absent means `environment`. */
+export type GammaModuleScope = 'account' | 'environment';
+
 export interface GammaModuleResponse {
     id: string;
     name: string;
     version: string;
+    scope?: GammaModuleScope;
     /** Module Federation manifest. Absent for backend-only modules that ship no UI. */
     mfManifest?: { name: string; exposes?: Array<{ name: string; [key: string]: unknown }>; [key: string]: unknown };
 }
@@ -25,8 +29,18 @@ export interface GammaModule {
     id: string;
     name: string;
     version: string;
+    scope?: GammaModuleScope;
     remoteName: string;
     exposedModule: string;
+}
+
+export function isAccountModule(module: Pick<GammaModule, 'scope'>): boolean {
+    return module.scope === 'account';
+}
+
+/** The module SDK reads the module's prefix from the address, so an account module's root is named after it. */
+export function modulePath(module: Pick<GammaModule, 'id' | 'scope'>, envHrid: string): string {
+    return isAccountModule(module) ? `/${module.id}` : `/environments/${envHrid}/${module.id}`;
 }
 
 /** A module that ships a UI, i.e. exposes a Module Federation manifest. */
@@ -45,6 +59,7 @@ export function parseModule(raw: UiGammaModuleResponse): GammaModule {
         id: raw.id,
         name: raw.name,
         version: raw.version,
+        scope: raw.scope,
         remoteName: raw.mfManifest.name,
         exposedModule,
     };

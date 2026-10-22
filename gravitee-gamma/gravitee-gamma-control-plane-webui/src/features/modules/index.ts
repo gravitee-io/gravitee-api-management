@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type { GammaModule, GammaModuleResponse } from './modules.types';
+export { isAccountModule, modulePath, type GammaModule, type GammaModuleResponse, type GammaModuleScope } from './modules.types';
 export { HOME_ICON, MODULE_ICONS } from './modules.icons';
 export { useGammaModules } from './hooks/useGammaModules';
 export { useModulesStore } from './modules.store';

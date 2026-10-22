@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export { AccountGuard } from './AccountGuard';
 export { EnvironmentGuard } from './EnvironmentGuard';
 export { RootRedirect } from './RootRedirect';
 export { useEnvironmentStore } from './environment.store';
 export type { Environment } from './environment.types';
 export { getPrimaryHrid, resolveEnvironmentFromSegment, shouldRewriteIdToHrid, useEnvHrid } from './environment.utils';
+export { useCurrentEnvHrid } from './useCurrentEnvHrid';

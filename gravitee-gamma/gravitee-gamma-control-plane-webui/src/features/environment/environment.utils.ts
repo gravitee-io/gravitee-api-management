@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useParams } from 'react-router-dom';
+import { useMatch } from 'react-router-dom';
 
 import type { Environment } from './environment.types';
+import { ENVIRONMENT_ROUTE } from '../../shared/config/routes';
 
+/** Read from the address rather than the route params, so the shell above the environment route sees it too. */
 export function useEnvHrid(): string {
-    const { envHrid = '' } = useParams();
-    return envHrid;
+    return useMatch(`${ENVIRONMENT_ROUTE}/*`)?.params.envHrid ?? '';
 }
 
 /**

@@ -39,12 +39,15 @@ interface GammaModuleResponse {
     id: string;
     name: string;
     version: string;
+    scope?: 'account' | 'environment';
     mfManifest: {
         name: string;
         exposes?: Array<{ name: string; [key: string]: unknown }>;
     };
 }
 ```
+
+`scope` comes from the module's `plugin.properties` and defaults to `environment` (see [Routing](#routing)).
 
 ### 2. Parse modules
 
@@ -140,12 +143,12 @@ If the console's own code fails to load (`import('./bootstrap')` in `main.ts`) o
 
 ### When the environments cannot be loaded
 
-Every page of the console belongs to an environment, so no page can be shown until `GET /environments` has answered. When it fails, the environment store keeps `loadFailed` true until a load succeeds, and `EnvironmentsLoadFailed` takes the place of the page: "Couldn't load your environments", saying the platform may be updating, with a primary **Retry** button. Primary on purpose: the console does not retry by itself.
+Every page of the console runs in an environment, even an account module whose address has none, so no page can be shown until `GET /environments` has answered. When it fails, the environment store keeps `loadFailed` true until a load succeeds, and `EnvironmentsLoadFailed` takes the place of the page: "Couldn't load your environments", saying the platform may be updating, with a primary **Retry** button. Primary on purpose: the console does not retry by itself.
 
-| Where the user is       | Shown                                                                                |
-| ----------------------- | ------------------------------------------------------------------------------------ |
-| A direct link to a page | The message inside the shell, in place of the page (`EnvironmentGuard`)              |
-| `/`, as after a sign-in | The message alone in the middle of the page, as its `main` landmark (`RootRedirect`) |
+| Where the user is       | Shown                                                                                   |
+| ----------------------- | --------------------------------------------------------------------------------------- |
+| A direct link to a page | The message inside the shell, in place of the page (`EnvironmentGuard`, `AccountGuard`) |
+| `/`, as after a sign-in | The message alone in the middle of the page, as its `main` landmark (`RootRedirect`)    |
 
 **Retry** calls `initialize()` again, without reloading the page. `loadFailed` stays true while it runs, so the message stays on screen and the button reads **Retrying…** for at least 600 ms. Once the environments are loaded, the page asked opens, or the home of the first environment from `/`. An empty list is an answer, not a failure: it keeps its own message, "No environment found!".
 
@@ -178,27 +181,34 @@ Dynamic routes are generated in `AppRoutes` from the discovered modules:
     </Route>
     <Route element={<ProtectedRoute />}>
         <Route element={<ShellLayout modules={modules} />}>
-            <Route element={<RouteLayout />}>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/about" element={<AboutPage />} />
+            <Route path="/environments/:envHrid" element={<EnvironmentGuard />}>
+                <Route element={<RouteLayout />}>
+                    <Route path="home" element={<HomePage />} />
+                </Route>
+                {environmentModules.map(m => (
+                    <Route key={m.id} path={`${m.id}/*`} element={<RemoteModuleRoute module={m} />} />
+                ))}
             </Route>
-            {modules.map(m => (
-                <Route key={m.id} path={`/${m.id}/*`} element={<RemoteModuleRoute module={m} />} />
-            ))}
+            <Route element={<AccountGuard />}>
+                {accountModules.map(m => (
+                    <Route key={m.id} path={`/${m.id}/*`} element={<RemoteModuleRoute module={m} />} />
+                ))}
+            </Route>
         </Route>
     </Route>
 </Routes>
 ```
 
-Each module gets a route at `/{moduleId}/*`:
+Each module gets a route at `/environments/{envHrid}/{moduleId}/*`, or at `/{moduleId}/*` when it declares `scope=account`:
 
 - The `/*` wildcard allows the remote module to define its own sub-routes.
-- Routes are nested inside `<ProtectedRoute />` (authentication guard) and `<ShellLayout />` (app shell).
+- Routes are nested inside `<ProtectedRoute />` (authentication guard) and `<ShellLayout />` (app shell). A single shell sits above both, so moving between an account module and the environment pages keeps it mounted.
+- An account module has no environment in its address, but the session still runs in one. `AccountGuard` waits for it, and links to other apps use the last environment visited.
 - `ShellLayout` provides the sidebar with an app switcher (to navigate between modules), a content header with breadcrumbs, and layout slots via `@gravitee/graphene-core`'s `LayoutSlotsProvider`.
 - `RouteLayout` provides breadcrumb and navigation slots for host-level pages.
 - Each module route renders its module inside its own `Suspense` and error boundary, so loading or failing never replaces the shell (see [When loading fails](#when-loading-fails)).
 
-The home page (`/`) lists all discovered modules as navigation links.
+The home page (`/environments/{envHrid}/home`) lists all discovered modules as navigation links.
 
 **Source:** `src/app/AppRoutes.tsx`, `src/shared/components/ShellLayout.tsx`
 

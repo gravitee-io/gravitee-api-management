@@ -302,7 +302,7 @@ describe('ShellLayout app switcher', () => {
 describe('ShellLayout with Account Management', () => {
     const MODULES_WITH_CLOUD: GammaModule[] = [
         { id: 'apim', name: 'API Management', version: '1.0.0', remoteName: 'apim', exposedModule: 'Module' },
-        { id: 'cloud', name: 'Account Management', version: '1.0.0', remoteName: 'cloud', exposedModule: 'Module' },
+        { id: 'account', name: 'Account Management', version: '1.0.0', scope: 'account', remoteName: 'cloud', exposedModule: 'Module' },
     ];
 
     beforeEach(() => {
@@ -316,6 +316,9 @@ describe('ShellLayout with Account Management', () => {
             <MemoryRouter initialEntries={[path]}>
                 <Routes>
                     <Route path="/environments/:envHrid" element={<ShellLayout modules={MODULES_WITH_CLOUD} />}>
+                        <Route path="*" element={null} />
+                    </Route>
+                    <Route path="/account" element={<ShellLayout modules={MODULES_WITH_CLOUD} />}>
                         <Route path="*" element={null} />
                     </Route>
                 </Routes>
@@ -358,21 +361,60 @@ describe('ShellLayout with Account Management', () => {
         expect(screen.queryByRole('menuitem', { name: /Account Management/ })).toBeNull();
     });
 
+    it('should pin any account module in place of Home, whatever its id', async () => {
+        const modules: GammaModule[] = [
+            { id: 'apim', name: 'API Management', version: '1.0.0', remoteName: 'apim', exposedModule: 'Module' },
+            { id: 'billing', name: 'Billing', version: '1.0.0', scope: 'account', remoteName: 'billing', exposedModule: 'Module' },
+        ];
+        render(
+            <MemoryRouter initialEntries={['/environments/env-1/home']}>
+                <Routes>
+                    <Route path="/environments/:envHrid" element={<ShellLayout modules={modules} />}>
+                        <Route path="*" element={null} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>,
+        );
+
+        await userEvent.setup().click(screen.getByRole('button', { name: 'Home' }));
+
+        const items = await screen.findAllByRole('menuitem');
+        expect(items.map(item => item.textContent)).toEqual(
+            ['Billing', 'Home', 'API Management'].map(label => expect.stringMatching(`^${label}`)),
+        );
+        expect(items[0].closest('a')?.getAttribute('href')).toBe('/billing');
+    });
+
     it('should link Account Management to the Cloud module', async () => {
         renderShellAt('/environments/env-1/home');
 
         await userEvent.setup().click(screen.getByRole('button', { name: 'Home' }));
 
-        expect((await screen.findByRole('menuitem', { name: /Account Management/ })).closest('a')?.getAttribute('href')).toBe(
-            '/environments/env-1/cloud',
-        );
+        expect((await screen.findByRole('menuitem', { name: /Account Management/ })).closest('a')?.getAttribute('href')).toBe('/account');
     });
 
     it('should hide the environment selector in Account Management', () => {
-        renderShellAt('/environments/env-1/cloud');
+        renderShellAt('/account/overview');
 
         expect(screen.getByRole('button', { name: 'Account Management' })).toBeTruthy();
         expect(screen.queryByRole('button', { name: /Switch environment/ })).toBeNull();
+    });
+
+    it('should link the other apps to the environment of the session from Account Management', async () => {
+        useEnvironmentStore.setState({ currentEnvironment: useEnvironmentStore.getState().environments[1] });
+        renderShellAt('/account/overview');
+
+        await userEvent.setup().click(screen.getByRole('button', { name: 'Account Management' }));
+
+        expect((await screen.findByRole('menuitem', { name: /^Home/ })).closest('a')?.getAttribute('href')).toBe(
+            '/environments/env-2/home',
+        );
+        expect(
+            screen
+                .getByRole('menuitem', { name: /API Management/ })
+                .closest('a')
+                ?.getAttribute('href'),
+        ).toBe('/environments/env-2/apim');
     });
 
     it('should keep the environment selector in the other apps', () => {

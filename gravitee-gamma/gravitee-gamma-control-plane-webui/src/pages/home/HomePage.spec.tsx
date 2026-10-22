@@ -144,7 +144,13 @@ describe('HomePage', () => {
     });
 
     it('should not list Account Management among the application cards', () => {
-        const cloud: GammaModule = { id: 'cloud', name: 'Account Management', version: '1.0.0', remoteName: 'cloud', exposedModule: 'App' };
+        const cloud: GammaModule = {
+            id: 'account',
+            name: 'Account Management',
+            version: '1.0.0',
+            remoteName: 'cloud',
+            exposedModule: 'App',
+        };
         renderHome([cloud, ...ALL_MODULES]);
 
         const appsSection = screen.getByRole('region', { name: /applications/i });
