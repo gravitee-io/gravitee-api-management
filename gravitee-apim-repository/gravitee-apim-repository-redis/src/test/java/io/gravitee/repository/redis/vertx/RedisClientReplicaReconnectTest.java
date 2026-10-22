@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -77,7 +76,7 @@ class RedisClientReplicaReconnectTest {
     void should_not_start_a_new_connect_on_every_redisApi_call_while_backoff_pending() throws Exception {
         GenericContainer<?> isolated = new GenericContainer<>(DockerImageName.parse("redis:7.4-alpine")).withExposedPorts(6379);
         isolated.start();
-        CountingRedisClientFactory factory = new CountingRedisClientFactory(vertx);
+        CountingConnectFactory factory = new CountingConnectFactory(vertx);
         RedisClientOptions options = RedisClientOptions.builder()
             .host(isolated.getHost())
             .port(isolated.getFirstMappedPort())
@@ -89,13 +88,13 @@ class RedisClientReplicaReconnectTest {
             isolated.stop();
             TimeUnit.MILLISECONDS.sleep(200);
 
-            int before = factory.creates.get();
+            int before = factory.connects.get();
             CountDownLatch done = new CountDownLatch(1);
             long deadline = System.currentTimeMillis() + 400;
             vertx.runOnContext(v -> hammer_redis_api(client, deadline, done));
             assertThat(done.await(5, TimeUnit.SECONDS)).isTrue();
 
-            assertThat(factory.creates.get() - before)
+            assertThat(factory.connects.get() - before)
                 .as("reconnects should follow backoff, not one connect per redisApi() call")
                 .isLessThan(12);
         } finally {
@@ -268,21 +267,6 @@ class RedisClientReplicaReconnectTest {
                 .onFailure(ping::completeExceptionally)
         );
         return ping.get(10, TimeUnit.SECONDS);
-    }
-
-    private static final class CountingRedisClientFactory extends VertxRedisClientFactory {
-
-        private final AtomicInteger creates = new AtomicInteger();
-
-        private CountingRedisClientFactory(Vertx vertx) {
-            super(vertx);
-        }
-
-        @Override
-        public Redis createClient(RedisClientOptions options) {
-            creates.incrementAndGet();
-            return super.createClient(options);
-        }
     }
 
     /**
