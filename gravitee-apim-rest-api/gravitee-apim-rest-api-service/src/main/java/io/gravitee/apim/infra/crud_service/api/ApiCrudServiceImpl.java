@@ -67,9 +67,25 @@ public class ApiCrudServiceImpl implements ApiCrudService {
 
     @Override
     public List<Api> findByIds(List<String> apiIds) {
+        if (apiIds == null || apiIds.isEmpty()) {
+            return List.of();
+        }
         logger.debug("Find all Api by ids : {}", apiIds);
         return apiRepository
             .search(new ApiCriteria.Builder().ids(apiIds).build(), ApiFieldFilter.defaultFields())
+            .stream()
+            .map(ApiAdapter.INSTANCE::toCoreModel)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Api> findByIds(List<String> apiIds, String environmentId) {
+        if (apiIds == null || apiIds.isEmpty() || environmentId == null) {
+            return List.of();
+        }
+        logger.debug("Find all Api by ids : {} in environment : {}", apiIds, environmentId);
+        return apiRepository
+            .search(new ApiCriteria.Builder().ids(apiIds).environmentId(environmentId).build(), ApiFieldFilter.defaultFields())
             .stream()
             .map(ApiAdapter.INSTANCE::toCoreModel)
             .collect(Collectors.toList());

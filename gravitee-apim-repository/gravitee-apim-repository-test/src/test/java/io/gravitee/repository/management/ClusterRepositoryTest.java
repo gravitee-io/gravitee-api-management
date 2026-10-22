@@ -141,6 +141,27 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void should_return_nothing_when_the_id_filter_is_empty() {
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
+        ClusterCriteria criteria = ClusterCriteria.builder().environmentId("env-1").ids(List.of()).build();
+
+        Page<Cluster> clusters = clusterRepository.search(criteria, pageable, Optional.empty());
+
+        assertThat(clusters.getTotalElements()).isZero();
+        assertThat(clusters.getContent()).isEmpty();
+    }
+
+    @Test
+    public void should_not_filter_when_the_id_filter_is_null() {
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
+        ClusterCriteria criteria = ClusterCriteria.builder().environmentId("env-1").ids(null).build();
+
+        Page<Cluster> clusters = clusterRepository.search(criteria, pageable, Optional.empty());
+
+        assertThat(clusters.getTotalElements()).isEqualTo(4);
+    }
+
+    @Test
     public void search_by_env_id_no_sortable() {
         Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(3).build();
         ClusterCriteria criteria = ClusterCriteria.builder().environmentId("env-1").build();
