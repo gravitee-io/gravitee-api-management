@@ -2,12 +2,14 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   BoardComponents,
+  addChangelogToSummary,
   ComponentTypes,
   ProductSections,
   getChangelogFor,
   getTicketSections,
   getTicketsFor,
   getTicketsForProduct,
+  newChangelogPage,
   productKeysOf,
 } from './changelog-helper.mjs';
 
@@ -324,4 +326,35 @@ describe('the grouping rule', () => {
       );
     });
   }
+});
+
+describe('newChangelogPage', () => {
+  it('carries the heading the release notes are written under', () => {
+    assert.match(newChangelogPage('4.13.x'), /^# APIM 4\.13\.x$/m);
+  });
+});
+
+describe('addChangelogToSummary', () => {
+  const summary =
+    '* [Release Notes](release-information/release-notes/README.md)\n' +
+    '  * [Changelog](release-information/changelog/README.md)\n' +
+    '    * [APIM 4.12.x](release-information/changelog/apim-4.12.x.md)\n';
+
+  it('lists the new line first under Changelog', () => {
+    assert.equal(
+      addChangelogToSummary(summary, '4.13.x'),
+      '* [Release Notes](release-information/release-notes/README.md)\n' +
+        '  * [Changelog](release-information/changelog/README.md)\n' +
+        '    * [APIM 4.13.x](release-information/changelog/apim-4.13.x.md)\n' +
+        '    * [APIM 4.12.x](release-information/changelog/apim-4.12.x.md)\n',
+    );
+  });
+
+  it('leaves a line already listed alone', () => {
+    assert.equal(addChangelogToSummary(summary, '4.12.x'), summary);
+  });
+
+  it('refuses a SUMMARY.md without a Changelog entry', () => {
+    assert.throws(() => addChangelogToSummary('* [Overview](README.md)\n', '4.13.x'), /No Changelog entry/);
+  });
 });

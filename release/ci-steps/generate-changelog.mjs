@@ -1,7 +1,7 @@
 import { syncProcessCwd } from 'zx';
 import { computeVersion, extractVersion } from '../helpers/version-helper.mjs';
 import { getJiraIssuesOfVersions, getJiraVersions } from '../helpers/jira-helper.mjs';
-import { ChangelogSections, getTicketSections } from '../helpers/changelog-helper.mjs';
+import { ChangelogSections, addChangelogToSummary, getTicketSections, newChangelogPage } from '../helpers/changelog-helper.mjs';
 
 syncProcessCwd(); // restores legacy v7 behavior
 
@@ -17,6 +17,7 @@ const docRepository = 'gravitee-platform-docs';
 const docRepositoryURL = `https://github.com/gravitee-io/${docRepository}`;
 const docApimChangelogFolder = `docs/apim/${versions.trimmed}/release-information/changelog/`;
 const docApimChangelogFile = `${docApimChangelogFolder}apim-${versions.branch}.md`;
+const docApimSummaryFile = `docs/apim/${versions.trimmed}/SUMMARY.md`;
 const localTmpFolder = '.tmp';
 
 const gitBranch = `release-apim-${releasingVersion}`;
@@ -57,6 +58,13 @@ ${changelogSection}</details>
 
 echo(changelogPatchTemplate);
 
+// The first release of a line finds no page for it: create it and list it in the summary.
+if (!fs.existsSync(docApimChangelogFile)) {
+  echo(chalk.blue(`# Create missing ${docApimChangelogFile} and list it in ${docApimSummaryFile}`));
+  fs.writeFileSync(docApimChangelogFile, newChangelogPage(versions.branch));
+  fs.writeFileSync(docApimSummaryFile, addChangelogToSummary(fs.readFileSync(docApimSummaryFile, 'utf8'), versions.branch));
+}
+
 // write after anchor
 const changelogFileContent = fs.readFileSync(docApimChangelogFile, 'utf8');
 const changelogFileContentWithPatch = changelogFileContent.replace(
@@ -80,7 +88,7 @@ try {
   echo(chalk.yellow(`# Could not delete remote branch ${gitBranch} (may not exist), continuing`));
 }
 await $`git checkout -b ${gitBranch}`;
-await $`git add ./${docApimChangelogFile}`;
+await $`git add ./${docApimChangelogFile} ./${docApimSummaryFile}`;
 await $`git commit -m "chore: add changelog for ${releasingVersion}"`;
 await $`git push --set-upstream origin ${gitBranch}`;
 
