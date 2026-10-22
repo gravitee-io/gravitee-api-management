@@ -20,6 +20,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.common.lifecycle.LazyCloseable;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
@@ -32,6 +33,7 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.net.NetServer;
 import io.vertx.rxjava3.core.net.NetSocket;
+import java.lang.reflect.Field;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -100,6 +102,40 @@ class TcpProxyEndpointConnectorTest {
                 assertThat(buffer).hasToString("hello!");
                 return true;
             });
+    }
+
+    @Test
+    void should_close_its_tcp_client_when_stopped() throws Exception {
+        TcpProxyEndpointConnector connector = factory.createConnector(
+            deploymentContext,
+            """
+            {
+                "target": {
+                    "host": "localhost",
+                    "port": %d
+                }
+            }
+            """.formatted(server.actualPort()),
+            null
+        );
+        when(proxySocket.toFlowable()).thenReturn(Flowable.empty());
+        VertxTcpRequest request = new VertxTcpRequest(proxySocket, new UUID());
+        DefaultExecutionContext context = createContext(vertx, request, new VertxTcpResponse(request));
+        connector.connect(context).test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+        assertThat(tcpClientOf(connector).isClosed()).isFalse();
+
+        connector.stop();
+
+        assertThat(tcpClientOf(connector).isClosed()).isTrue();
+    }
+
+    private static LazyCloseable<?> tcpClientOf(TcpProxyEndpointConnector connector) throws Exception {
+        Field factoryField = TcpProxyEndpointConnector.class.getDeclaredField("tcpClientFactory");
+        factoryField.setAccessible(true);
+        Object tcpClientFactory = factoryField.get(connector);
+        Field clientField = tcpClientFactory.getClass().getDeclaredField("tcpClient");
+        clientField.setAccessible(true);
+        return (LazyCloseable<?>) clientField.get(tcpClientFactory);
     }
 
     @AfterEach
