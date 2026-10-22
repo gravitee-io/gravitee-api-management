@@ -35,6 +35,23 @@ export type RemoteModuleLoadStatus = 'delayed' | 'attempting' | 'ready';
 
 type RemoteModuleExport = { default: ComponentType };
 
+/** Module Federation's codes for an entry file or a manifest it could not get. */
+const FETCH_FAILURE_CODES = ['#RUNTIME-001', '#RUNTIME-003', '#RUNTIME-008'];
+
+/**
+ * Recoverable: a file of the module could not be fetched, as during a rolling restart, and a later attempt can get
+ * it. Any other error comes from the module's own code, which every attempt on the same build throws again.
+ */
+export function isRecoverableLoadError(error: unknown): boolean {
+    if (!(error instanceof Error)) return false;
+    if (error.name === 'ChunkLoadError') return true;
+    // The bundler names a script it could not fetch, but only gives a code to a stylesheet.
+    if ('code' in error && error.code === 'CSS_CHUNK_LOAD_FAILED') return true;
+    // An entry file that loaded but threw while running also comes as RUNTIME-008. Module Federation does not retry it either.
+    if (error.message.includes('ScriptExecutionError')) return false;
+    return FETCH_FAILURE_CODES.some(code => error.message.includes(code));
+}
+
 const DEV_MODULE_ENTRIES: Record<string, string> = (process.env.DEV_MODULE_ENTRIES ?? '')
     .split(',')
     .filter(Boolean)
@@ -119,6 +136,7 @@ export async function loadRemoteModule(
     const attempts = RETRY_DELAYS_MS.length + 1;
     const startedAt = Date.now();
     let delayed = false;
+    let unrecoverableBefore = false;
 
     for (let attempt = 1; ; attempt++) {
         if (delayed) onStatus?.('attempting');
@@ -128,6 +146,13 @@ export async function loadRemoteModule(
             if (delayed) onStatus?.('ready');
             return loaded;
         } catch (error) {
+            const unrecoverable = !isRecoverableLoadError(error);
+            // One more attempt, in case this one ran files of two builds. Twice in a row, the build itself fails.
+            if (unrecoverable && unrecoverableBefore) {
+                console.error(`[Modules] Module "${module.id}" failed while starting, twice in a row; giving up.`, error);
+                throw error;
+            }
+            unrecoverableBefore = unrecoverable;
             if (attempt === attempts) {
                 console.error(`[Modules] Could not load module "${module.id}" after ${attempts} attempts.`, error);
                 throw error;
@@ -139,7 +164,9 @@ export async function loadRemoteModule(
             }
             if (delayed) onStatus?.('delayed');
             console.warn(
-                `[Modules] Could not load module "${module.id}" (attempt ${attempt} of ${attempts}). The platform may be updating; retrying in ${delay / 1000} s.`,
+                unrecoverable
+                    ? `[Modules] Module "${module.id}" failed while starting (attempt ${attempt} of ${attempts}); trying once more in ${delay / 1000} s.`
+                    : `[Modules] Could not load module "${module.id}" (attempt ${attempt} of ${attempts}). The platform may be updating; retrying in ${delay / 1000} s.`,
                 error,
             );
             await waitBeforeRetry(module.id, delay);

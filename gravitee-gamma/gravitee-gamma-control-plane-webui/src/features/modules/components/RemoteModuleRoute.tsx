@@ -21,7 +21,7 @@ import { ContentSkeleton } from '../../../shared/components/ContentSkeleton';
 import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
 import { useEnvironmentStore } from '../../environment/environment.store';
 import { getModuleLabel } from '../modules.catalog';
-import { loadRemoteModule, retryModuleNow } from '../modules.remotes';
+import { isRecoverableLoadError, loadRemoteModule, retryModuleNow } from '../modules.remotes';
 import { useModulesStore } from '../modules.store';
 import type { GammaModule } from '../modules.types';
 
@@ -131,7 +131,12 @@ export function RemoteModuleRoute({ module }: { readonly module: GammaModule }) 
     return (
         <>
             <ModuleLoadAnnouncement moduleId={module.id} moduleName={moduleName} focusTarget={announcement} />
-            <ErrorBoundary key={module.id} fallback={(_error, reload) => <ModuleUnavailable moduleName={moduleName} onReload={reload} />}>
+            <ErrorBoundary
+                key={module.id}
+                fallback={(error, reload) => (
+                    <ModuleUnavailable moduleName={moduleName} crashed={!isRecoverableLoadError(error)} onReload={reload} />
+                )}
+            >
                 <Suspense fallback={<RemoteModuleLoading moduleId={module.id} moduleName={moduleName} focusTarget={announcement} />}>
                     <LazyModule key={environmentId} />
                 </Suspense>

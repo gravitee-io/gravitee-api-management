@@ -15,7 +15,7 @@
  */
 import { DELAY_REPORTED_AFTER_MS, loadRemoteModule, registerModuleRemotes, RETRY_DELAYS_MS, retryModuleNow } from './modules.remotes';
 import type { GammaModule } from './modules.types';
-import { buildChunkLoadError } from '../../testing/factories';
+import { buildChunkLoadError, buildEntryExecutionError, buildModuleCodeError } from '../../testing/factories';
 
 const mockLoadRemote = jest.fn();
 const mockRegisterRemotes = jest.fn();
@@ -265,5 +265,77 @@ describe('loadRemoteModule', () => {
 
         expect(mockLoadRemote).toHaveBeenCalledTimes(ATTEMPTS);
         expect(error).toHaveBeenCalledWith(expect.stringContaining(`"aim" after ${ATTEMPTS} attempts`), lastError);
+    });
+
+    it.each([
+        ['a chunk', buildChunkLoadError()],
+        ['a stylesheet', Object.assign(new Error('Loading CSS chunk 9086 failed.'), { code: 'CSS_CHUNK_LOAD_FAILED' })],
+        ['the entry file', new Error('[ Federation Runtime ]: Failed to load script resources. #RUNTIME-008')],
+        ['the exports of the entry file', new Error('[ Federation Runtime ]: Failed to get remoteEntry exports. #RUNTIME-001')],
+        ['the manifest', new Error('[ Federation Runtime ]: Failed to get manifest. #RUNTIME-003')],
+    ])('should keep retrying while %s cannot be fetched', async (_file, fetchError) => {
+        mockLoadRemote.mockRejectedValue(fetchError);
+
+        const loading = loadRemoteModule(MODULE);
+        const rejection = expect(loading).rejects.toBe(fetchError);
+        await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS.reduce((total, delay) => total + delay, 0));
+        await rejection;
+
+        expect(mockLoadRemote).toHaveBeenCalledTimes(ATTEMPTS);
+    });
+
+    describe('when the code of the module fails while it starts', () => {
+        it.each([
+            ['a chunk of it throws', buildModuleCodeError()],
+            ['its entry file throws while it runs', buildEntryExecutionError()],
+        ])('should try once more when %s, then give up without reporting a delay', async (_failure, codeError) => {
+            const onStatus = jest.fn();
+            mockLoadRemote.mockRejectedValue(codeError);
+
+            const loading = loadRemoteModule(MODULE, onStatus);
+            const rejection = expect(loading).rejects.toBe(codeError);
+            await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0]);
+            await rejection;
+
+            expect(mockLoadRemote).toHaveBeenCalledTimes(2);
+            expect(onStatus).not.toHaveBeenCalled();
+        });
+
+        it('should open the module when the next attempt starts it', async () => {
+            mockLoadRemote.mockRejectedValueOnce(buildModuleCodeError()).mockResolvedValue(REMOTE_EXPORT);
+
+            const loading = loadRemoteModule(MODULE);
+            await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0]);
+
+            await expect(loading).resolves.toBe(REMOTE_EXPORT);
+        });
+
+        it('should keep retrying while its files also fail to be fetched in between', async () => {
+            mockLoadRemote
+                .mockRejectedValueOnce(buildModuleCodeError())
+                .mockRejectedValueOnce(buildChunkLoadError())
+                .mockRejectedValueOnce(buildModuleCodeError())
+                .mockResolvedValue(REMOTE_EXPORT);
+
+            const loading = loadRemoteModule(MODULE);
+            await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0] + RETRY_DELAYS_MS[1] + RETRY_DELAYS_MS[2]);
+
+            await expect(loading).resolves.toBe(REMOTE_EXPORT);
+            expect(mockLoadRemote).toHaveBeenCalledTimes(4);
+        });
+
+        it('should not blame an update in its logs', async () => {
+            const codeError = buildModuleCodeError();
+            mockLoadRemote.mockRejectedValue(codeError);
+
+            const loading = loadRemoteModule(MODULE);
+            const rejection = expect(loading).rejects.toBe(codeError);
+            await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0]);
+            await rejection;
+
+            const logs = [...warn.mock.calls, ...error.mock.calls].map(([message]) => String(message));
+            expect(logs).toHaveLength(2);
+            logs.forEach(message => expect(message).not.toMatch(/updat/i));
+        });
     });
 });
