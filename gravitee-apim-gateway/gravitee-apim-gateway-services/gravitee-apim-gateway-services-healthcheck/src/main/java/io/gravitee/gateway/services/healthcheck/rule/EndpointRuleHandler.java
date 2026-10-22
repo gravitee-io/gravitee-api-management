@@ -45,6 +45,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 import lombok.CustomLog;
@@ -104,6 +105,11 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
             URL url = createRequest(rule.endpoint(), rule.steps().get(0));
 
             HttpClientOptions clientOptions = createHttpClientOptions(rule.endpoint(), url);
+            // [vertx-5.0-close-future-leak] Vert.x 5.0 keeps a non-shared client registered on the close future of the context that created it even
+            // after close(), so the client of every redeployed rule piles up until the node stops. A shared client is
+            // registered through a nested close future that unregisters itself on close; the unique name keeps it from
+            // sharing a pool. Fixed in Vert.x 5.2: drop both settings when upgrading.
+            clientOptions.setShared(true).setName("healthcheck-" + UUID.randomUUID());
             PoolOptions poolOptions = createPoolOptions(rule.endpoint(), url);
             httpClient = vertx.createHttpClient(clientOptions, poolOptions);
         } else {
