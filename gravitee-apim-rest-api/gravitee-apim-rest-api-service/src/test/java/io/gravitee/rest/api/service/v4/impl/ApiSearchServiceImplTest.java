@@ -543,4 +543,26 @@ public class ApiSearchServiceImplTest {
         assertNotNull(entities);
         assertEquals(1, entities.size());
     }
+
+    @Test
+    public void should_return_an_empty_page_without_querying_the_repository_when_the_page_size_is_zero() throws TechnicalException {
+        when(searchEngineService.search(any(), any())).thenReturn(
+            new io.gravitee.rest.api.service.impl.search.SearchResult(List.of("api1", "api2"), 2)
+        );
+
+        var page = apiSearchService.search(
+            GraviteeContext.getExecutionContext(),
+            "admin",
+            true,
+            io.gravitee.rest.api.service.search.query.QueryBuilder.create(ApiEntity.class),
+            new io.gravitee.rest.api.model.common.PageableImpl(1, 0),
+            false,
+            true,
+            Set.of()
+        );
+
+        assertNotNull(page);
+        assertEquals(0, page.getContent().size());
+        verify(apiRepository, times(0)).search(any(ApiCriteria.class), any(ApiFieldFilter.class));
+    }
 }

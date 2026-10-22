@@ -97,7 +97,7 @@ public class ApiProductCriteria {
         private Collection<String> apiIds;
 
         public ApiProductCriteria.Builder ids(String... id) {
-            this.ids = id != null && id.length > 0 ? List.of(id) : null;
+            this.ids = id != null ? List.of(id) : null;
             return this;
         }
 
