@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
@@ -33,6 +34,8 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
@@ -98,6 +101,39 @@ public class ApiCrudServiceImplTest {
             when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
 
             Assertions.assertThatThrownBy(() -> service.get(API_ID)).isInstanceOf(ApiNotFoundException.class);
+        }
+    }
+
+    @Nested
+    class FindByIds {
+
+        @Test
+        void should_return_nothing_when_ids_are_empty() {
+            assertThat(service.findByIds(List.of())).isEmpty();
+            verifyNoInteractions(apiRepository);
+        }
+
+        @Test
+        @SneakyThrows
+        void should_restrict_the_search_to_the_environment() {
+            service.findByIds(List.of(API_ID), "env-id");
+
+            var captor = ArgumentCaptor.forClass(ApiCriteria.class);
+            verify(apiRepository).search(captor.capture(), any(ApiFieldFilter.class));
+            assertThat(captor.getValue().getEnvironmentId()).isEqualTo("env-id");
+            assertThat(captor.getValue().getIds()).containsExactly(API_ID);
+        }
+
+        @Test
+        void should_return_nothing_in_an_environment_when_ids_are_empty() {
+            assertThat(service.findByIds(List.of(), "env-id")).isEmpty();
+            verifyNoInteractions(apiRepository);
+        }
+
+        @Test
+        void should_return_nothing_without_an_environment() {
+            assertThat(service.findByIds(List.of(API_ID), null)).isEmpty();
+            verifyNoInteractions(apiRepository);
         }
     }
 

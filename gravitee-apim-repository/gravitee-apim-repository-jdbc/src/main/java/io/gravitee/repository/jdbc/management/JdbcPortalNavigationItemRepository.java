@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.management.JdbcHelper.addIdsInClause;
 import static org.springframework.util.StringUtils.hasText;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -386,14 +387,14 @@ public class JdbcPortalNavigationItemRepository
                 clauses.add("visibility = ?");
                 params.add(criteria.getVisibility());
             }
-            if (criteria.getApiIds() != null && !criteria.getApiIds().isEmpty()) {
-                clauses.add("api_id IN (" + String.join(",", Collections.nCopies(criteria.getApiIds().size(), "?")) + ")");
-                params.addAll(criteria.getApiIds());
-            }
-            if (criteria.getApiProductIds() != null && !criteria.getApiProductIds().isEmpty()) {
-                clauses.add("api_product_id IN (" + String.join(",", Collections.nCopies(criteria.getApiProductIds().size(), "?")) + ")");
-                params.addAll(criteria.getApiProductIds());
-            }
+            addIdsInClause(criteria.getApiIds(), "api_id", ids -> String.join(",", Collections.nCopies(ids.size(), "?")), clauses, params);
+            addIdsInClause(
+                criteria.getApiProductIds(),
+                "api_product_id",
+                ids -> String.join(",", Collections.nCopies(ids.size(), "?")),
+                clauses,
+                params
+            );
             if (hasText(criteria.getType())) {
                 try {
                     PortalNavigationItem.Type type = PortalNavigationItem.Type.valueOf(criteria.getType());

@@ -54,6 +54,7 @@ import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.Context;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -69,7 +70,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -374,10 +377,24 @@ public class HttpConnector implements ProxyConnector {
      * An HTTP/1.x connection whose request head was never written, or failed to be, is not closed by a reset: Vert.x
      * keeps it in the pool although its outbound queue no longer drains, and the next request on it fails. Closing it
      * makes the pool evict it. An HTTP/2 connection is shared with other streams and is left alone.
+     * <p>
+     * {@code close()} only queues the eviction on the connection's event loop. Off that thread, return after the close
+     * has completed so the caller cannot check the same connection back out before it is gone.
      */
     private static void closeConnectionUnlessHttp2(final HttpClientRequest upstreamRequest) {
-        if (!isHttp2(upstreamRequest)) {
-            upstreamRequest.getDelegate().connection().close();
+        if (isHttp2(upstreamRequest)) {
+            return;
+        }
+        final io.vertx.core.Future<Void> closed = upstreamRequest.getDelegate().connection().close();
+        if (Context.isOnEventLoopThread()) {
+            return;
+        }
+        try {
+            closed.toCompletionStage().toCompletableFuture().get(5, TimeUnit.SECONDS);
+        } catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (final ExecutionException | TimeoutException ignored) {
+            // The request failure already in flight is what the caller observes.
         }
     }
 

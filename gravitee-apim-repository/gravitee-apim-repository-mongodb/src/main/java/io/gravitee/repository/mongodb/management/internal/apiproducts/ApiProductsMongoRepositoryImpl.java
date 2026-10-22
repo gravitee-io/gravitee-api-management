@@ -26,6 +26,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApiProductMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
+import io.gravitee.repository.mongodb.utils.IdCriteria;
 import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -143,8 +144,8 @@ public class ApiProductsMongoRepositoryImpl implements ApiProductsMongoRepositor
             .filter(Objects::nonNull)
             .map(criteria -> {
                 List<Criteria> list = new ArrayList<>();
-                if (criteria.getIds() != null && !criteria.getIds().isEmpty()) {
-                    list.add(where("id").in(criteria.getIds()));
+                if (criteria.getIds() != null) {
+                    list.add(IdCriteria.matching("id", criteria.getIds()));
                 }
                 if (criteria.getName() != null && !criteria.getName().isEmpty()) {
                     list.add(where("name").is(criteria.getName()));
@@ -158,8 +159,8 @@ public class ApiProductsMongoRepositoryImpl implements ApiProductsMongoRepositor
                 if (criteria.getEnvironments() != null && !criteria.getEnvironments().isEmpty()) {
                     list.add(where("environmentId").in(criteria.getEnvironments()));
                 }
-                if (criteria.getApiIds() != null && !criteria.getApiIds().isEmpty()) {
-                    list.add(where("apiIds").in(criteria.getApiIds()));
+                if (criteria.getApiIds() != null) {
+                    list.add(IdCriteria.matching("apiIds", criteria.getApiIds()));
                 }
                 if (criteria.getGroups() != null && !criteria.getGroups().isEmpty()) {
                     list.add(where("groups").in(criteria.getGroups()));
