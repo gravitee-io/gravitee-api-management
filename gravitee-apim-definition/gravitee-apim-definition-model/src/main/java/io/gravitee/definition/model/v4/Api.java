@@ -83,6 +83,11 @@ public class Api extends AbstractApi {
 
     private List<Flow> flows;
 
+    /**
+     * A flow managed by the platform, not by the API publisher.
+     */
+    private Flow internalFlow;
+
     private Map<String, Map<String, ResponseTemplate>> responseTemplates;
 
     private ApiServices services;
@@ -103,6 +108,7 @@ public class Api extends AbstractApi {
         this.plans = other.plans;
         this.flowExecution = other.flowExecution;
         this.flows = other.flows;
+        this.internalFlow = other.internalFlow;
         this.responseTemplates = other.responseTemplates;
         this.services = other.services;
         this.allowedInApiProducts = other.allowedInApiProducts;
@@ -147,6 +153,7 @@ public class Api extends AbstractApi {
             Optional.ofNullable(this.getFlows())
                 .map(f -> f.stream().filter(Flow::isEnabled).map(Flow::getPlugins).flatMap(List::stream).toList())
                 .orElse(List.of()),
+            Optional.ofNullable(this.getInternalFlow()).filter(Flow::isEnabled).map(Flow::getPlugins).orElse(List.of()),
             Optional.ofNullable(this.getPlans())
                 .map(p -> p.stream().map(Plan::getPlugins).flatMap(List::stream).toList())
                 .orElse(List.of()),
