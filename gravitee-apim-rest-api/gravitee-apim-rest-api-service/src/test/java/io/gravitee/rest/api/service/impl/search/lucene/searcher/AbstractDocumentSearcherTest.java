@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.search.MatchNoDocsQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -75,6 +76,13 @@ class AbstractDocumentSearcherTest {
 
     @Nested
     class BuildFilterQuery {
+
+        @Test
+        void should_match_nothing_when_the_value_collection_is_empty() {
+            var query = customSearcher.buildFilterQuery(Map.of("api", List.of()), Map.of()).orElseThrow();
+
+            assertThat(query).isInstanceOf(MatchNoDocsQuery.class);
+        }
 
         @Test
         void should_remap_field() {

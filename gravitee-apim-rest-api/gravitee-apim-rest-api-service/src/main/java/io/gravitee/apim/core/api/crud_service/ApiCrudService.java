@@ -28,4 +28,6 @@ public interface ApiCrudService {
     void delete(String id);
 
     List<Api> findByIds(List<String> apiIds);
+
+    List<Api> findByIds(List<String> apiIds, String environmentId);
 }

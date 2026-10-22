@@ -33,6 +33,7 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
+import io.gravitee.repository.mongodb.utils.IdCriteria;
 import java.util.*;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -65,12 +66,8 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             dataPipeline.add(match(eq("clientId", criteria.getClientId())));
         }
 
-        if (criteria.getIds() != null && !criteria.getIds().isEmpty()) {
-            if (criteria.getIds().size() == 1) {
-                dataPipeline.add(match(eq("_id", criteria.getIds().iterator().next())));
-            } else {
-                dataPipeline.add(match(in("_id", criteria.getIds())));
-            }
+        if (criteria.getIds() != null) {
+            dataPipeline.add(match(IdCriteria.matchingBson("_id", criteria.getIds())));
         }
 
         if (criteria.getApis() != null && !criteria.getApis().isEmpty()) {

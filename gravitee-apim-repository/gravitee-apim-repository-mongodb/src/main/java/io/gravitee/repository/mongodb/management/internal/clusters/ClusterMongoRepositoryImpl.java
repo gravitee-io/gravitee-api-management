@@ -20,6 +20,7 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.ClusterCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.ClusterMongo;
+import io.gravitee.repository.mongodb.utils.IdCriteria;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -46,8 +47,8 @@ public class ClusterMongoRepositoryImpl implements ClusterMongoRepositoryCustom 
 
         query.addCriteria(where("environmentId").is(criteria.getEnvironmentId()));
 
-        if (!CollectionUtils.isEmpty(criteria.getIds())) {
-            query.addCriteria(where("id").in(criteria.getIds()));
+        if (criteria.getIds() != null) {
+            query.addCriteria(IdCriteria.matching("id", criteria.getIds()));
         }
 
         if (criteria.getQuery() != null) {

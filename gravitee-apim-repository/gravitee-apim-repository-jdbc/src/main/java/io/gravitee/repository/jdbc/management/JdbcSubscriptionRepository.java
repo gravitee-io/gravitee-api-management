@@ -18,6 +18,7 @@ package io.gravitee.repository.jdbc.management;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.AND_CLAUSE;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
+import static io.gravitee.repository.jdbc.management.JdbcHelper.addIdsWhereClause;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.addStringsWhereClause;
 import static io.gravitee.repository.jdbc.utils.FieldUtils.toSnakeCase;
 import static java.lang.String.format;
@@ -325,7 +326,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         started = addStringsWhereClause(criteria.getPlans(), "s." + escapeReservedWord("plan"), argsList, builder, started);
         started = addStringsWhereClause(criteria.getApplications(), "s.application", argsList, builder, started);
         started = addStringsWhereClause(criteria.getApis(), "s.api", argsList, builder, started);
-        started = addStringsWhereClause(criteria.getIds(), "s.id", argsList, builder, started);
+        started = addIdsWhereClause(criteria.getIds(), "s.id", argsList, builder, started);
 
         addStringsWhereClause(criteria.getStatuses(), "s.status", argsList, builder, started);
 
