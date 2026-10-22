@@ -69,6 +69,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
     private final VertxDebugHttpClientConfiguration debugHttpClientConfiguration;
     private final AccessPointManager accessPointManager;
     private final DataEncryptor dataEncryptor;
+    private HttpClient httpClient;
 
     public DebugReactorEventListener(
         final Vertx vertx,
@@ -121,8 +122,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
                     .andThen(
                         Completable.defer(() -> {
                             log.debug("Sending request to debug to API [{}]", debugApi.getId());
-                            HttpClient httpClient = vertx.createHttpClient(buildClientOptions());
-                            return httpClient
+                            return httpClient()
                                 .rxRequest(
                                     new RequestOptions()
                                         .setMethod(HttpMethod.valueOf(debugApiRequest.getMethod()))
@@ -135,15 +135,16 @@ public class DebugReactorEventListener extends ReactorEventListener {
                                     httpClientRequest.setChunked(true)
                                 )
                                 .flatMap(httpClientRequest ->
-                                    debugApiRequest.getBody() == null
-                                        ? httpClientRequest.rxSend()
-                                        : httpClientRequest.rxSend(debugApiRequest.getBody())
+                                    (debugApiRequest.getBody() == null
+                                            ? httpClientRequest.rxSend()
+                                            : httpClientRequest.rxSend(debugApiRequest.getBody())).doOnSuccess(httpClientResponse ->
+                                            log.debug("Response status: {} for API [{}]", httpClientResponse.statusCode(), debugApi.getId())
+                                        )
+                                        .flatMap(io.vertx.rxjava3.core.http.HttpClientResponse::rxBody)
+                                        // The global timeout below only disposes this chain: reset the request so that
+                                        // its connection goes back to the pool of the shared client.
+                                        .doOnDispose(httpClientRequest::reset)
                                 )
-                                .doOnSuccess(httpClientResponse ->
-                                    log.debug("Response status: {} for API [{}]", httpClientResponse.statusCode(), debugApi.getId())
-                                )
-                                .flatMap(io.vertx.rxjava3.core.http.HttpClientResponse::rxBody)
-                                .doFinally(httpClient::close)
                                 .ignoreElement();
                         })
                     )
@@ -243,6 +244,18 @@ public class DebugReactorEventListener extends ReactorEventListener {
             failEvent(event);
             return null;
         }
+    }
+
+    /**
+     * Vert.x holds on to every client it creates until the owner it was created from is closed, so a client per
+     * debug run would accumulate for as long as the node runs. A single client serves them all and is released when
+     * Vert.x itself stops.
+     */
+    private synchronized HttpClient httpClient() {
+        if (httpClient == null) {
+            httpClient = vertx.createHttpClient(buildClientOptions());
+        }
+        return httpClient;
     }
 
     private HttpClientOptions buildClientOptions() {
