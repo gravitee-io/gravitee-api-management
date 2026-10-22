@@ -41,6 +41,22 @@ public interface PermissionService {
 
     boolean hasManagementRights(ExecutionContext executionContext, String userId);
 
+    enum MemberSearchAccess {
+        NONE,
+        APPLICATION_ONLY,
+        FULL,
+    }
+
+    /**
+     * Tells what kind of directory search access the user has. This is what the member-management screens need
+     * and what the user directory search endpoint opens to.
+     *
+     * @return FULL when the user manages members on a non-application scope (org, env, api, group, etc.);
+     *         APPLICATION_ONLY when the only member-management scope is applications (exact-match search only);
+     *         NONE when the user manages no members anywhere.
+     */
+    MemberSearchAccess memberSearchAccess(ExecutionContext executionContext, String userId);
+
     /**
      * Tells whether the user manages members somewhere: users or roles of the organization, groups of an
      * environment, or members of an API, application, integration, cluster or group. This is what the
