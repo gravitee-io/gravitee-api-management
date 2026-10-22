@@ -40,6 +40,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.FlowMapper;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.resource.api.RemoteApiDefinitionParser;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.NewtAIRateLimiter;
+import io.gravitee.rest.api.management.v2.rest.resource.kafka_console.KafkaConsoleClient;
 import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.UserService;
@@ -84,6 +85,11 @@ public class RestManagementConfiguration {
     @Bean
     public RemoteApiDefinitionParser remoteApiDefinitionParser(ObjectMapper objectMapper) {
         return new RemoteApiDefinitionParser(objectMapper);
+    }
+
+    @Bean
+    public KafkaConsoleClient kafkaConsoleClient(io.vertx.core.Vertx vertx, org.springframework.core.env.Environment environment) {
+        return new KafkaConsoleClient(vertx, environment);
     }
 
     @Bean
