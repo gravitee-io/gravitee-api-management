@@ -14,47 +14,12 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { RouterModule } from '@angular/router';
 
-import { ApiScoreDashboardComponent } from './dashboard/api-score-dashboard.component';
-import { ApiScoreNavigationComponent } from './navigation/api-score-navigation.component';
-import { ApiScoreRulesetsComponent } from './rulesets/api-score-rulesets.component';
-import { ImportApiScoreRulesetComponent } from './rulesets/import/import-api-score-ruleset.component';
-import { EditApiScoreRulesetComponent } from './rulesets/edit/edit-api-score-ruleset.component';
-import { ImportScoringFunctionComponent } from './rulesets/import-function/import-scoring-function.component';
-
-const routes: Routes = [
-  {
-    path: '',
-    component: ApiScoreNavigationComponent,
-
-    children: [
-      {
-        path: '',
-        component: ApiScoreDashboardComponent,
-      },
-      {
-        path: 'rulesets/import',
-        component: ImportApiScoreRulesetComponent,
-      },
-      {
-        path: 'rulesets/:id/edit',
-        component: EditApiScoreRulesetComponent,
-      },
-      {
-        path: 'rulesets',
-        component: ApiScoreRulesetsComponent,
-      },
-      {
-        path: 'rulesets/import-function',
-        component: ImportScoringFunctionComponent,
-      },
-    ],
-  },
-];
+import { API_SCORE_ROUTES } from './api-score.routes';
 
 @NgModule({
-  imports: [RouterModule.forChild(routes)],
+  imports: [RouterModule.forChild(API_SCORE_ROUTES)],
   exports: [RouterModule],
 })
 export class ApiScoreRoutingModule {}
