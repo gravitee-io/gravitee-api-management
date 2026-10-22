@@ -22,6 +22,7 @@ import static java.lang.Double.parseDouble;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.Assertions.offset;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.mock;
@@ -34,14 +35,18 @@ import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionWarn;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.message.Message;
+import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.reporter.api.v4.metric.Metrics;
+import io.reactivex.rxjava3.core.Completable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -509,6 +514,53 @@ class DefaultExecutionContextTest {
             List<ExecutionWarn> warnings = cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN);
             assertThat(warnings).isNotNull();
             assertThat(warnings).hasSize(1);
+        }
+    }
+
+    @Nested
+    class PolicyActions {
+
+        private final BasePolicy first = mock(BasePolicy.class);
+        private final BasePolicy second = mock(BasePolicy.class);
+        private final Function<HttpExecutionContext, Completable> firstAction = ctx -> Completable.complete();
+        private final Function<HttpExecutionContext, Completable> secondAction = ctx -> Completable.complete();
+
+        @Test
+        void should_drain_endpoint_request_actions_in_order_of_registration() {
+            cut.addActionOnEndpointRequest(first, firstAction);
+            cut.addActionOnEndpointRequest(second, secondAction);
+
+            assertThat(cut.drainOnEndpointRequestActions()).containsExactly(entry(first, firstAction), entry(second, secondAction));
+        }
+
+        @Test
+        void should_drain_endpoint_request_actions_only_once() {
+            cut.addActionOnEndpointRequest(first, firstAction);
+            cut.drainOnEndpointRequestActions();
+
+            assertThat(cut.drainOnEndpointRequestActions()).isEmpty();
+        }
+
+        @Test
+        void should_drain_entrypoint_response_actions_in_reverse_order_of_registration() {
+            cut.addActionOnEntrypointResponse(first, firstAction);
+            cut.addActionOnEntrypointResponse(second, secondAction);
+
+            assertThat(cut.drainOnEntrypointResponseActions()).containsExactly(entry(second, secondAction), entry(first, firstAction));
+        }
+
+        @Test
+        void should_drain_entrypoint_response_actions_only_once() {
+            cut.addActionOnEntrypointResponse(first, firstAction);
+            cut.drainOnEntrypointResponseActions();
+
+            assertThat(cut.drainOnEntrypointResponseActions()).isEmpty();
+        }
+
+        @Test
+        void should_drain_no_action_when_none_registered() {
+            assertThat(cut.drainOnEndpointRequestActions()).isEmpty();
+            assertThat(cut.drainOnEntrypointResponseActions()).isEmpty();
         }
     }
 }
