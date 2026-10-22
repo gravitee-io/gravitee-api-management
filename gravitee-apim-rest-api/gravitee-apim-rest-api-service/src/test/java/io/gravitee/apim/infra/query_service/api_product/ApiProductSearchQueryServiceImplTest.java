@@ -71,6 +71,26 @@ class ApiProductSearchQueryServiceImplTest {
         return queryCaptor.getValue();
     }
 
+    private QueryBuilder<IndexableApiProduct> searchWithIds(Set<String> ids) {
+        service.search("env-1", "org-1", null, ids, (Pageable) null, null, ApiProductKindFilter.any());
+        verify(apiProductSearchService).search(any(), queryCaptor.capture(), eq(null));
+        return queryCaptor.getValue();
+    }
+
+    @Test
+    void should_keep_an_empty_id_filter_so_it_matches_nothing() {
+        var query = searchWithIds(Set.of()).build();
+
+        assertThat(query.getFilters()).containsEntry("api_product", Set.of());
+    }
+
+    @Test
+    void should_not_filter_by_id_when_ids_are_null() {
+        var query = searchWithIds(null).build();
+
+        assertThat(query.getFilters()).doesNotContainKey("api_product");
+    }
+
     @Test
     void should_require_the_kind_when_the_listing_does_not_want_classic_products() {
         // The page has to be narrowed by the store, not after it: a page of twenty-five asked of a store

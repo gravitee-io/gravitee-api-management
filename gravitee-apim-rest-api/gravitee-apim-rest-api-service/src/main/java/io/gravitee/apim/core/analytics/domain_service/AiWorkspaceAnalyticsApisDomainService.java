@@ -77,7 +77,6 @@ public class AiWorkspaceAnalyticsApisDomainService {
             .stream()
             .flatMap(product -> Stream.ofNullable(product.getApiIds()).flatMap(Set::stream))
             .toList();
-        // An empty id list does not restrict the search: it would widen the scope to the whole environment.
         if (apiIds.isEmpty()) {
             log.debug("Workspace [{}] refused to user [{}]: it holds no API", workspaceId, userId);
             return List.of();

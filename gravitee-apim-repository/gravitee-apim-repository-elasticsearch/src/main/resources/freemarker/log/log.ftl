@@ -10,11 +10,15 @@
           "bool": {
           "should": [
           <#list query.terms() as terms>
+            <#if terms.values()?has_content>
             {
               "terms": {
                 "${terms.field()}": ["${terms.values()?join("\",\"")}"]
               }
             }
+            <#else>
+            { "match_none": {} }
+            </#if>
               <#sep>,</#sep>
           </#list>
           ]
