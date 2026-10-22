@@ -32,7 +32,7 @@ public class ApiSearchCriteriaAdapter {
     public ApiCriteria toCriteriaForRepository(ApiSearchCriteria criteria) {
         var builder = new ApiCriteria.Builder();
         if (criteria != null) {
-            if (criteria.getIds() != null && !criteria.getIds().isEmpty()) {
+            if (criteria.getIds() != null) {
                 builder.ids(criteria.getIds());
             }
             if (criteria.getState() != null) {
