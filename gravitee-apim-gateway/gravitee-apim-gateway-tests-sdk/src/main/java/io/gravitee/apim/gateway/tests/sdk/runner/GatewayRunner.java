@@ -55,8 +55,8 @@ import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.edge.EdgeApi;
-import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.guardian.Guardian;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
 import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.dictionary.model.Dictionary;
@@ -180,8 +180,7 @@ public class GatewayRunner {
     public static final String CANNOT_UNDEPLOY_CLASS_API_PRODUCT_MESSAGE =
         "An API Product deployed at class level cannot be undeployed (id {%s})";
     public static final String GUARDIAN_ALREADY_DEPLOYED_MESSAGE = "A Guardian has already been deployed with id {%s}";
-    public static final String CANNOT_UNDEPLOY_CLASS_GUARDIAN_MESSAGE =
-        "A Guardian deployed at class level cannot be undeployed (id {%s})";
+    public static final String CANNOT_UNDEPLOY_CLASS_GUARDIAN_MESSAGE = "A Guardian deployed at class level cannot be undeployed (id {%s})";
     private static final String AT_CLASS_LEVEL = " at class level";
 
     private final GatewayConfigurationBuilder gatewayConfigurationBuilder;

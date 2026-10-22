@@ -94,6 +94,7 @@ public class Event implements Serializable {
         ID("id"),
         API_ID("api_id"),
         SHARED_POLICY_GROUP_ID("shared_policy_group_id"),
+        GUARDIAN_ID("guardian_id"),
         API_PRODUCT_ID("api_product_id"),
         CLUSTER_ID("cluster_id"),
         DICTIONARY_ID("dictionary_id"),

@@ -121,7 +121,11 @@ public class GuardianManagerImpl implements GuardianManager {
 
     @Override
     public void unregisterAll(String guardianId) {
-        List<GuardianKey> keys = guardians.keySet().stream().filter(key -> Objects.equals(key.guardianId(), guardianId)).toList();
+        List<GuardianKey> keys = guardians
+            .keySet()
+            .stream()
+            .filter(key -> Objects.equals(key.guardianId(), guardianId))
+            .toList();
         if (keys.isEmpty()) {
             log.warn("Guardian [{}] is not deployed in any environment", guardianId);
             return;

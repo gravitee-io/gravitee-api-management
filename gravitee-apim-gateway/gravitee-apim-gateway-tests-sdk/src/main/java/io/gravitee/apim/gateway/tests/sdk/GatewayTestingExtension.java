@@ -17,9 +17,9 @@ package io.gravitee.apim.gateway.tests.sdk;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApiProducts;
+import io.gravitee.apim.gateway.tests.sdk.annotations.DeployGuardians;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganization;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganizations;
-import io.gravitee.apim.gateway.tests.sdk.annotations.DeployGuardians;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeploySharedPolicyGroups;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayTestParameterResolver;

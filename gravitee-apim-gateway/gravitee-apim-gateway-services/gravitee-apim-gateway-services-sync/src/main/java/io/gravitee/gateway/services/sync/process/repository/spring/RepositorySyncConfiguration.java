@@ -47,6 +47,7 @@ import io.gravitee.gateway.services.sync.process.repository.mapper.ApiProductMap
 import io.gravitee.gateway.services.sync.process.repository.mapper.ClusterMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.DebugMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.DictionaryMapper;
+import io.gravitee.gateway.services.sync.process.repository.mapper.GuardianMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.OrganizationMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.SharedPolicyGroupMapper;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
@@ -78,6 +79,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.credent
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.credential.CredentialSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.debug.DebugSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionarySynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.guardian.GuardianSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.node.NodeMetadataSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.FlowAppender;
@@ -143,6 +145,11 @@ public class RepositorySyncConfiguration {
     @Bean
     public SharedPolicyGroupMapper sharedPolicyGroupMapper(ObjectMapper objectMapper, EnvironmentService environmentService) {
         return new SharedPolicyGroupMapper(objectMapper, environmentService);
+    }
+
+    @Bean
+    public GuardianMapper guardianMapper(ObjectMapper objectMapper, EnvironmentService environmentService) {
+        return new GuardianMapper(objectMapper, environmentService);
     }
 
     @Bean
@@ -417,6 +424,17 @@ public class RepositorySyncConfiguration {
             syncFetcherExecutor,
             syncDeployerExecutor
         );
+    }
+
+    @Bean
+    public GuardianSynchronizer guardianSynchronizer(
+        LatestEventFetcher eventsFetcher,
+        GuardianMapper guardianMapper,
+        DeployerFactory deployerFactory,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
+    ) {
+        return new GuardianSynchronizer(eventsFetcher, guardianMapper, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
     }
 
     @Bean
