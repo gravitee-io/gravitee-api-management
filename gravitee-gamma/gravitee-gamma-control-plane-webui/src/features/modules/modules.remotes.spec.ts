@@ -15,6 +15,7 @@
  */
 import { DELAY_REPORTED_AFTER_MS, loadRemoteModule, registerModuleRemotes, RETRY_DELAYS_MS, retryModuleNow } from './modules.remotes';
 import type { GammaModule } from './modules.types';
+import { buildChunkLoadError } from '../../testing/factories';
 
 const mockLoadRemote = jest.fn();
 const mockRegisterRemotes = jest.fn();
@@ -66,7 +67,7 @@ describe('loadRemoteModule', () => {
     });
 
     it('should wait before retrying a failed attempt, then return the module', async () => {
-        const chunkError = new Error('Loading chunk 8201 failed.');
+        const chunkError = buildChunkLoadError();
         mockLoadRemote.mockRejectedValueOnce(chunkError).mockResolvedValue(REMOTE_EXPORT);
 
         const loading = loadRemoteModule(MODULE);
@@ -84,8 +85,8 @@ describe('loadRemoteModule', () => {
 
     it('should register the module under a manifest URL it has not used before each retry', async () => {
         mockLoadRemote
-            .mockRejectedValueOnce(new Error('remoteEntryExports is undefined'))
-            .mockRejectedValueOnce(new Error('Loading chunk 8201 failed.'))
+            .mockRejectedValueOnce(new Error('[ Federation Runtime ]: Failed to get remoteEntry exports. #RUNTIME-001'))
+            .mockRejectedValueOnce(buildChunkLoadError())
             .mockResolvedValue(REMOTE_EXPORT);
 
         const loading = loadRemoteModule(MODULE);
@@ -116,9 +117,7 @@ describe('loadRemoteModule', () => {
             const filesAtEachAttempt: number[] = [];
             mockLoadRemote.mockImplementation(() => {
                 filesAtEachAttempt.push(files.length);
-                return filesAtEachAttempt.length === 1
-                    ? Promise.reject(new Error('Loading chunk 8201 failed.'))
-                    : Promise.resolve(REMOTE_EXPORT);
+                return filesAtEachAttempt.length === 1 ? Promise.reject(buildChunkLoadError()) : Promise.resolve(REMOTE_EXPORT);
             });
 
             const loading = loadRemoteModule(MODULE);
@@ -133,7 +132,7 @@ describe('loadRemoteModule', () => {
             const receive = jest.fn();
             files.push = receive;
             page.rspackChunkaim = files;
-            mockLoadRemote.mockRejectedValueOnce(new Error('Loading chunk 8201 failed.')).mockResolvedValue(REMOTE_EXPORT);
+            mockLoadRemote.mockRejectedValueOnce(buildChunkLoadError()).mockResolvedValue(REMOTE_EXPORT);
 
             const loading = loadRemoteModule(MODULE);
             await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0]);
@@ -146,7 +145,7 @@ describe('loadRemoteModule', () => {
         it('should leave the files of the other modules alone', async () => {
             const otherModuleFiles: unknown[] = [[[735], {}]];
             page.rspackChunkesm = otherModuleFiles;
-            mockLoadRemote.mockRejectedValueOnce(new Error('Loading chunk 8201 failed.')).mockResolvedValue(REMOTE_EXPORT);
+            mockLoadRemote.mockRejectedValueOnce(buildChunkLoadError()).mockResolvedValue(REMOTE_EXPORT);
 
             const loading = loadRemoteModule(MODULE);
             await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0]);
@@ -172,8 +171,8 @@ describe('loadRemoteModule', () => {
     it('should not report a load that recovers within the first attempts', async () => {
         const onStatus = jest.fn();
         mockLoadRemote
-            .mockRejectedValueOnce(new Error('Loading chunk 8201 failed.'))
-            .mockRejectedValueOnce(new Error('Loading chunk 8201 failed.'))
+            .mockRejectedValueOnce(buildChunkLoadError())
+            .mockRejectedValueOnce(buildChunkLoadError())
             .mockResolvedValue(REMOTE_EXPORT);
 
         const loading = loadRemoteModule(MODULE, onStatus);
@@ -185,7 +184,7 @@ describe('loadRemoteModule', () => {
 
     it('should report the load as delayed once the next attempt is at least 10 s away', async () => {
         const onStatus = jest.fn();
-        mockLoadRemote.mockRejectedValue(new Error('Loading chunk 8201 failed.'));
+        mockLoadRemote.mockRejectedValue(buildChunkLoadError());
 
         void loadRemoteModule(MODULE, onStatus).catch(() => undefined);
         await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0] + RETRY_DELAYS_MS[1] - 1);
@@ -201,7 +200,13 @@ describe('loadRemoteModule', () => {
     it('should report attempts that fail slowly, and then wait at least 10 s before the next one', async () => {
         const onStatus = jest.fn();
         mockLoadRemote.mockImplementation(
-            () => new Promise((_resolve, reject) => setTimeout(() => reject(new Error('Script load timed out')), DELAY_REPORTED_AFTER_MS)),
+            () =>
+                new Promise((_resolve, reject) =>
+                    setTimeout(
+                        () => reject(new Error('[ Federation Runtime ]: Failed to load script resources. #RUNTIME-008')),
+                        DELAY_REPORTED_AFTER_MS,
+                    ),
+                ),
         );
 
         void loadRemoteModule(MODULE, onStatus).catch(() => undefined);
@@ -216,7 +221,7 @@ describe('loadRemoteModule', () => {
 
     it('should report each attempt made once the load is delayed', async () => {
         const onStatus = jest.fn();
-        const chunkError = new Error('Loading chunk 8201 failed.');
+        const chunkError = buildChunkLoadError();
         mockLoadRemote
             .mockRejectedValueOnce(chunkError)
             .mockRejectedValueOnce(chunkError)
@@ -231,7 +236,7 @@ describe('loadRemoteModule', () => {
     });
 
     it('should start the next attempt at once when asked to retry now', async () => {
-        const chunkError = new Error('Loading chunk 8201 failed.');
+        const chunkError = buildChunkLoadError();
         mockLoadRemote
             .mockRejectedValueOnce(chunkError)
             .mockRejectedValueOnce(chunkError)
@@ -250,7 +255,7 @@ describe('loadRemoteModule', () => {
     });
 
     it('should give up with the last error once every retry has failed', async () => {
-        const lastError = new Error('Loading chunk 8201 failed.');
+        const lastError = buildChunkLoadError();
         mockLoadRemote.mockRejectedValue(lastError);
 
         const loading = loadRemoteModule(MODULE);

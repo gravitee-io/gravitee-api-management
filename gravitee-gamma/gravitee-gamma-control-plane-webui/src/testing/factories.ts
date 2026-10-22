@@ -73,3 +73,8 @@ export const TEST_ENVIRONMENTS: Environment[] = [
     buildEnvironment(),
     buildEnvironment({ id: 'env-2-id', hrids: ['env-2'], name: 'Environment 2' }),
 ];
+
+/** What the bundler throws when a file of a module cannot be fetched, as during a rolling restart. */
+export function buildChunkLoadError(chunkId = 8201): Error {
+    return Object.assign(new Error(`Loading chunk ${chunkId} failed.`), { name: 'ChunkLoadError' });
+}
