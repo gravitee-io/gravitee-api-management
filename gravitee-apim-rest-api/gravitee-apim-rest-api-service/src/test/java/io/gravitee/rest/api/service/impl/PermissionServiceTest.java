@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
@@ -24,6 +25,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.*;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.PermissionService.MemberSearchAccess;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -499,6 +501,47 @@ public class PermissionServiceTest {
     }
 
     @Test
+    public void should_flag_application_only_manager() {
+        givenUserRoles(role(RoleScope.APPLICATION, ApplicationPermission.MEMBER, "U"));
+
+        assertMemberSearchAccessIs(MemberSearchAccess.APPLICATION_ONLY);
+    }
+
+    @Test
+    public void should_not_flag_application_manager_with_other_scopes() {
+        givenUserRoles(role(RoleScope.APPLICATION, ApplicationPermission.MEMBER, "U"), role(RoleScope.API, ApiPermission.MEMBER, "U"));
+
+        assertMemberSearchAccessIs(MemberSearchAccess.FULL);
+    }
+
+    @Test
+    public void should_not_flag_non_application_manager() {
+        givenUserRoles(role(RoleScope.API, ApiPermission.MEMBER, "U"));
+
+        assertMemberSearchAccessIs(MemberSearchAccess.FULL);
+    }
+
+    @Test
+    public void should_not_flag_organization_admin_as_application_only() {
+        setSecurityContext(true);
+
+        assertMemberSearchAccessIs(MemberSearchAccess.FULL);
+
+        verifyNoInteractions(membershipService, roleService);
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    public void should_not_flag_user_without_membership_as_application_only() {
+        setSecurityContext(false);
+        when(membershipService.getRoleIdsByMember(MembershipMemberType.USER, USER_NAME)).thenReturn(Set.of());
+
+        assertMemberSearchAccessIs(MemberSearchAccess.NONE);
+
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
     public void should_refuse_user_without_any_membership() {
         setSecurityContext(false);
         when(membershipService.getRoleIdsByMember(MembershipMemberType.USER, USER_NAME)).thenReturn(Set.of());
@@ -507,6 +550,10 @@ public class PermissionServiceTest {
 
         verifyNoInteractions(roleService);
         SecurityContextHolder.clearContext();
+    }
+
+    private void assertMemberSearchAccessIs(MemberSearchAccess expected) {
+        assertEquals(expected, permissionService.memberSearchAccess(GraviteeContext.getExecutionContext(), USER_NAME));
     }
 
     private void givenUserRoles(RoleEntity... roles) {
