@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static assertions.MAPIAssertions.assertThat;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ScoringRulesetFixture;
@@ -29,11 +30,14 @@ import io.gravitee.rest.api.management.v2.rest.model.ScoringRulesetReferenceType
 import io.gravitee.rest.api.management.v2.rest.model.UpdateScoringRuleset;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.Response;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -97,6 +101,30 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
             assertThat(response).hasStatus(HttpStatusCode.NO_CONTENT_204);
             assertThat(scoringRulesetCrudService.storage()).isEmpty();
         }
+
+        @Test
+        void should_return_403_without_environment_api_delete() {
+            var existing = ScoringRulesetFixture.aRuleset("ruleset-id").withReferenceId(ENVIRONMENT);
+            scoringRulesetCrudService.initWith(List.of(existing));
+
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_API,
+                    ENVIRONMENT,
+                    RolePermissionAction.DELETE
+                )
+            ).thenReturn(false);
+
+            Response response = rootTarget.path("ruleset-id").request().delete();
+
+            assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+            assertThat(scoringRulesetCrudService.storage()).containsExactly(existing);
+        }
     }
 
     @Nested
@@ -135,6 +163,26 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
 
             // Then
             assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        void should_return_403_without_environment_api_read() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_API,
+                    ENVIRONMENT,
+                    RolePermissionAction.READ
+                )
+            ).thenReturn(false);
+
+            Response response = rootTarget.path("ruleset-id").request().get();
+
+            assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
         }
     }
 
@@ -192,6 +240,31 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
 
             //Then
             assertThat(response).hasStatus(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_403_without_environment_api_update() {
+            var existing = ScoringRulesetFixture.aRuleset().withReferenceId(ENVIRONMENT);
+            scoringRulesetCrudService.initWith(List.of(existing));
+            var update = new UpdateScoringRuleset().name("updated-name").description("updated-description");
+
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_API,
+                    ENVIRONMENT,
+                    RolePermissionAction.UPDATE
+                )
+            ).thenReturn(false);
+
+            Response response = rootTarget.path("ruleset-id").request().put(Entity.json(update));
+
+            assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+            assertThat(scoringRulesetCrudService.storage()).containsExactly(existing);
         }
     }
 }

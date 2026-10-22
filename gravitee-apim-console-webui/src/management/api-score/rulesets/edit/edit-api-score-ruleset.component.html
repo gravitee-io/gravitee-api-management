@@ -75,7 +75,7 @@
       </mat-card-content>
     </mat-card>
 
-    <mat-card class="danger-card">
+    <mat-card class="danger-card" *gioPermission="{ anyOf: ['environment-api-d'] }">
       <mat-card-content>
         <h3 class="danger-card__title">Danger Zone</h3>
         <div class="danger-card__actions">

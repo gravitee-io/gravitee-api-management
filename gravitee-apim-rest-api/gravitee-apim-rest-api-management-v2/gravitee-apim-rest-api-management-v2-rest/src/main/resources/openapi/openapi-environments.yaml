@@ -353,6 +353,7 @@ paths:
                 - Scoring
                 - Rulesets
             summary: Create a new ruleset at environment level
+            description: User must have the ENVIRONMENT_API[CREATE] permission.
             operationId: createEnvironmentRuleset
             requestBody:
                 content:
@@ -370,6 +371,7 @@ paths:
                 - Scoring
                 - Rulesets
             summary: Get all rulesets at environment level
+            description: User must have the ENVIRONMENT_API[READ] permission.
             operationId: getEnvironmentRulesets
             responses:
                 "200":
@@ -382,6 +384,7 @@ paths:
                 - Scoring
                 - Rulesets
             summary: Delete a ruleset
+            description: User must have the ENVIRONMENT_API[DELETE] permission.
             operationId: deleteEnvironmentRuleset
             parameters:
                 - $ref: "#/components/parameters/rulesetId"
@@ -395,6 +398,7 @@ paths:
                 - Scoring
                 - Rulesets
             summary: Get a specific ruleset
+            description: User must have the ENVIRONMENT_API[READ] permission.
             operationId: getEnvironmentRuleset
             parameters:
                 - $ref: "#/components/parameters/rulesetId"
@@ -412,6 +416,7 @@ paths:
                 - Scoring
                 - Rulesets
             summary: Update ruleset
+            description: User must have the ENVIRONMENT_API[UPDATE] permission.
             operationId: updateEnvironmentRuleset
             parameters:
                 - $ref: "#/components/parameters/rulesetId"
@@ -436,6 +441,7 @@ paths:
                 - Scoring
                 - Functions
             summary: Create a new scoring function at environment level
+            description: User must have the ENVIRONMENT_API[CREATE] permission to import a new function, or ENVIRONMENT_API[UPDATE] to replace an existing function with the same name.
             operationId: createEnvironmentScoringFunction
             requestBody:
                 content:
@@ -453,6 +459,7 @@ paths:
                 - Scoring
                 - Functions
             summary: Get all functions at environment level
+            description: User must have the ENVIRONMENT_API[READ] permission.
             operationId: getEnvironmentScoringFunctions
             responses:
                 "200":
@@ -465,6 +472,7 @@ paths:
                 - Scoring
                 - Functions
             summary: Delete a scoring function
+            description: User must have the ENVIRONMENT_API[DELETE] permission.
             operationId: deleteEnvironmentScoringFunction
             parameters:
                 - $ref: "#/components/parameters/scoringFunctionName"

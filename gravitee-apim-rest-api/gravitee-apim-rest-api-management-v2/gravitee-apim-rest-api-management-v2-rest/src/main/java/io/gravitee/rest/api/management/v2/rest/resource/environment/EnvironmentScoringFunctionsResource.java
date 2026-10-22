@@ -22,7 +22,12 @@ import io.gravitee.rest.api.management.v2.rest.mapper.ScoringFunctionMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ImportScoringFunction;
 import io.gravitee.rest.api.management.v2.rest.model.ScoringFunctionsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
@@ -54,7 +59,25 @@ public class EnvironmentScoringFunctionsResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.CREATE }),
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.UPDATE }),
+        }
+    )
     public Response importFunction(@Valid ImportScoringFunction request) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var environmentId = executionContext.getEnvironmentId();
+        boolean exists = getEnvironmentFunctionsUseCase
+            .execute(new GetEnvironmentFunctionsUseCase.Input(environmentId))
+            .reports()
+            .stream()
+            .anyMatch(function -> function.name().equals(request.getName()));
+        var action = exists ? RolePermissionAction.UPDATE : RolePermissionAction.CREATE;
+        if (!hasPermission(executionContext, RolePermission.ENVIRONMENT_API, environmentId, action)) {
+            throw new ForbiddenAccessException();
+        }
+
         var result = importEnvironmentFunctionUseCase.execute(
             new ImportEnvironmentFunctionUseCase.Input(
                 new ImportEnvironmentFunctionUseCase.NewFunction(request.getName(), request.getPayload()),
@@ -67,6 +90,7 @@ public class EnvironmentScoringFunctionsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public ScoringFunctionsResponse listFunctions() {
         var executionContext = GraviteeContext.getExecutionContext();
         var result = getEnvironmentFunctionsUseCase.execute(new GetEnvironmentFunctionsUseCase.Input(executionContext.getEnvironmentId()));
