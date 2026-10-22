@@ -20,11 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.node.vertx.client.redis.VertxRedisClientFactory;
 import io.gravitee.plugin.configurations.redis.RedisClientOptions;
 import io.vertx.core.Vertx;
-import io.vertx.core.internal.CloseFuture;
-import io.vertx.core.internal.VertxInternal;
-import io.vertx.redis.client.Redis;
-import java.lang.reflect.Field;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
@@ -58,7 +53,7 @@ class RedisClientCloseFutureRetentionTest {
     void should_not_retain_a_client_per_failed_connect_attempt() throws Exception {
         CountingConnectFactory factory = new CountingConnectFactory(vertx);
         RedisClientOptions options = RedisClientOptions.builder().host("127.0.0.1").port(1).connectTimeout(500).build();
-        int before = retained(rootCloseFuture());
+        int before = RetainedClients.count(vertx);
 
         RedisClient client = new RedisClient(vertx, factory, options, null);
         try {
@@ -67,7 +62,7 @@ class RedisClientCloseFutureRetentionTest {
                 .until(() -> factory.connects.get() >= CONNECT_ATTEMPTS);
             assertThat(factory.connects.get()).isGreaterThanOrEqualTo(CONNECT_ATTEMPTS);
 
-            assertThat(retained(rootCloseFuture()) - before).as("Redis clients retained by the close future").isLessThanOrEqualTo(1);
+            assertThat(RetainedClients.count(vertx) - before).as("Redis clients retained by the close future").isLessThanOrEqualTo(1);
         } finally {
             client.close();
         }
@@ -99,34 +94,16 @@ class RedisClientCloseFutureRetentionTest {
     void should_still_leak_when_the_client_comes_straight_from_vertx() {
         // This watches the Vert.x version the repository is built against (vertx.version in the root pom).
         RedisClientOptions options = RedisClientOptions.builder().host("127.0.0.1").port(1).build();
-        int before = retained(rootCloseFuture());
+        int before = RetainedClients.count(vertx);
 
         for (int i = 0; i < CONNECT_ATTEMPTS; i++) {
             new VertxRedisClientFactory(vertx).createClient(options).close().await();
         }
 
-        assertThat(retained(rootCloseFuture()) - before)
+        assertThat(RetainedClients.count(vertx) - before)
             .as(
-                "[vertx-5.0-close-future-leak] Vert.x no longer leaks closed clients: the client reuse of RedisClient is no longer needed for this, drop this test"
+                "[vertx-5.0-close-future-leak] Vert.x no longer leaks closed clients: RedisClient.createClient can create the client directly, drop this test"
             )
             .isEqualTo(CONNECT_ATTEMPTS);
-    }
-
-    private CloseFuture rootCloseFuture() {
-        return ((VertxInternal) vertx).closeFuture();
-    }
-
-    private static int retained(CloseFuture closeFuture) {
-        try {
-            Field children = CloseFuture.class.getDeclaredField("children");
-            children.setAccessible(true);
-            Map<?, ?> map = (Map<?, ?>) children.get(closeFuture);
-            return map == null ? 0 : map.size();
-        } catch (ReflectiveOperationException e) {
-            throw new IllegalStateException(
-                "CloseFuture.children is gone: Vert.x internals changed, this does not mean the leak is fixed.",
-                e
-            );
-        }
     }
 }
