@@ -26,7 +26,9 @@
         Custom rulesets allow you to enforce your organization's API design, quality and security standards.
       </mat-card-subtitle>
 
-      <button mat-raised-button routerLink="import">Import</button>
+      <button mat-raised-button routerLink="import" data-testid="import-ruleset-button" *gioPermission="{ anyOf: ['environment-api-c'] }">
+        Import
+      </button>
     </mat-card-header>
 
     <div class="separator-hr"></div>
@@ -54,8 +56,22 @@
             <div class="content-header">
               <h4 class="content-header__title">Details</h4>
               <div class="content-header__actions">
-                <button mat-raised-button [routerLink]="ruleset.id + '/edit'">Edit</button>
-                <button mat-raised-button (click)="deleteRuleset(ruleset.id)">Delete</button>
+                <button
+                  mat-raised-button
+                  [routerLink]="ruleset.id + '/edit'"
+                  data-testid="edit-ruleset-button"
+                  *gioPermission="{ anyOf: ['environment-api-u'] }"
+                >
+                  Edit
+                </button>
+                <button
+                  mat-raised-button
+                  (click)="deleteRuleset(ruleset.id)"
+                  data-testid="delete-ruleset-button"
+                  *gioPermission="{ anyOf: ['environment-api-d'] }"
+                >
+                  Delete
+                </button>
               </div>
             </div>
 
@@ -75,7 +91,14 @@
         >Custom functions let you define specific logic or operations that extend the rulesets.
       </mat-card-subtitle>
 
-      <button mat-raised-button routerLink="import-function">Import</button>
+      <button
+        mat-raised-button
+        routerLink="import-function"
+        data-testid="import-function-button"
+        *gioPermission="{ anyOf: ['environment-api-c', 'environment-api-u'] }"
+      >
+        Import
+      </button>
     </mat-card-header>
 
     <div class="separator-hr"></div>
@@ -97,7 +120,14 @@
             <div class="content-header">
               <h4 class="content-header__title">Details</h4>
               <div class="content-header__actions">
-                <button mat-raised-button (click)="deleteFunction(fun.name)">Delete</button>
+                <button
+                  mat-raised-button
+                  (click)="deleteFunction(fun.name)"
+                  data-testid="delete-function-button"
+                  *gioPermission="{ anyOf: ['environment-api-d'] }"
+                >
+                  Delete
+                </button>
               </div>
             </div>
 
