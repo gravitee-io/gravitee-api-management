@@ -74,6 +74,7 @@ class ProxyKafkaConsoleResourceTest {
     private KafkaConsoleClient kafkaConsoleClient;
     private final AtomicInteger openedConnections = new AtomicInteger();
     private final List<HttpServerRequest> heldRequests = new CopyOnWriteArrayList<>();
+    private MockEnvironment environment;
     private final AtomicInteger trickledRequests = new AtomicInteger();
     private final List<Map.Entry<AsyncResponse, TimeoutHandler>> timeoutHandlers = new CopyOnWriteArrayList<>();
 
@@ -91,10 +92,11 @@ class ProxyKafkaConsoleResourceTest {
                         return;
                     }
                     if (request.path().endsWith("/trickle")) {
-                        // Keeps sending a byte now and then: the idle timeout never fires.
+                        // Sends a byte at once, then one every 50 ms: well within the 500 ms idle timeout, which never fires.
                         trickledRequests.incrementAndGet();
                         HttpServerResponse response = request.response().setChunked(true);
-                        long timer = vertx.setPeriodic(100, id -> response.write("x"));
+                        response.write("x");
+                        long timer = vertx.setPeriodic(50, id -> response.write("x"));
                         response.closeHandler(closed -> vertx.cancelTimer(timer));
                         return;
                     }
@@ -128,7 +130,7 @@ class ProxyKafkaConsoleResourceTest {
                 .listen(0)
         );
 
-        MockEnvironment environment = new MockEnvironment()
+        environment = new MockEnvironment()
             .withProperty("kafka.console.enabled", "true")
             .withProperty("kafka.console.server.security.secret", "a-secret-long-enough-for-hmac-256-signatures")
             .withProperty("kafka.console.server.host", "localhost")
@@ -218,6 +220,8 @@ class ProxyKafkaConsoleResourceTest {
 
     @Test
     void should_free_the_pool_when_the_global_timeout_ends_a_trickling_response() throws Exception {
+        // Far beyond the test: neither the trickling exchanges nor the request waiting for a connection give up on their own.
+        environment.setProperty("kafka.console.server.timeout", "5000");
         // One more than the pool: the last request waits for a connection when its 504 fires.
         int requests = KafkaConsoleClient.MAX_CONNECTIONS + 1;
         List<CompletableFuture<Object>> responses = new ArrayList<>();
