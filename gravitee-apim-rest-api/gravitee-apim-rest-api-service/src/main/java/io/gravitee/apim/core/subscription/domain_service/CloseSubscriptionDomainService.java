@@ -155,7 +155,8 @@ public class CloseSubscriptionDomainService {
                 new SubscriptionClosedApiProductHookContext(
                     referenceId,
                     closedSubscriptionEntity.getApplicationId(),
-                    closedSubscriptionEntity.getPlanId()
+                    closedSubscriptionEntity.getPlanId(),
+                    closedSubscriptionEntity.getId()
                 )
             );
         } else {
@@ -166,7 +167,8 @@ public class CloseSubscriptionDomainService {
                 new SubscriptionClosedApiHookContext(
                     referenceId,
                     closedSubscriptionEntity.getApplicationId(),
-                    closedSubscriptionEntity.getPlanId()
+                    closedSubscriptionEntity.getPlanId(),
+                    closedSubscriptionEntity.getId()
                 )
             );
         }
@@ -177,7 +179,8 @@ public class CloseSubscriptionDomainService {
                 closedSubscriptionEntity.getApplicationId(),
                 referenceType,
                 referenceId,
-                closedSubscriptionEntity.getPlanId()
+                closedSubscriptionEntity.getPlanId(),
+                closedSubscriptionEntity.getId()
             )
         );
     }

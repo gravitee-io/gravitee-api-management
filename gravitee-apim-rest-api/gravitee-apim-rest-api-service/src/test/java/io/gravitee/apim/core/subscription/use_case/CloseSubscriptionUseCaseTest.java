@@ -87,6 +87,7 @@ class CloseSubscriptionUseCaseTest {
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
     private static final String SUBSCRIPTION_ID = "subscription-id";
     private static final String APPLICATION_ID = "application-id";
+    private static final String PRODUCT_ID = "product-id";
 
     private final SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudServiceInMemory = new AuditCrudServiceInMemory();
@@ -339,11 +340,17 @@ class CloseSubscriptionUseCaseTest {
         assertThat(result.subscription().getStatus()).isEqualTo(SubscriptionEntity.Status.CLOSED);
         assertThat(apiKeyCrudService.storage()).allMatch(ApiKeyEntity::isRevoked);
         assertThat(triggerNotificationService.getHookNotifications()).containsExactly(
-            new SubscriptionClosedApiProductHookContext(apiProductId, APPLICATION_ID, "plan-id")
+            new SubscriptionClosedApiProductHookContext(apiProductId, APPLICATION_ID, "plan-id", SUBSCRIPTION_ID)
         );
         assertThat(triggerNotificationService.getApplicationNotifications()).containsExactly(
             new ApplicationNotification(
-                new SubscriptionClosedApplicationHookContext(APPLICATION_ID, SubscriptionReferenceType.API_PRODUCT, apiProductId, "plan-id")
+                new SubscriptionClosedApplicationHookContext(
+                    APPLICATION_ID,
+                    SubscriptionReferenceType.API_PRODUCT,
+                    apiProductId,
+                    "plan-id",
+                    SUBSCRIPTION_ID
+                )
             )
         );
         assertThat(auditCrudServiceInMemory.storage())
@@ -375,11 +382,53 @@ class CloseSubscriptionUseCaseTest {
 
         // Then
         assertThat(triggerNotificationService.getHookNotifications()).containsExactly(
-            new SubscriptionClosedApiHookContext(api.getId(), APPLICATION_ID, "plan-id")
+            new SubscriptionClosedApiHookContext(api.getId(), APPLICATION_ID, "plan-id", SUBSCRIPTION_ID)
         );
         assertThat(triggerNotificationService.getApplicationNotifications()).containsExactly(
             new ApplicationNotification(
-                new SubscriptionClosedApplicationHookContext(APPLICATION_ID, SubscriptionReferenceType.API, api.getId(), "plan-id")
+                new SubscriptionClosedApplicationHookContext(
+                    APPLICATION_ID,
+                    SubscriptionReferenceType.API,
+                    api.getId(),
+                    "plan-id",
+                    SUBSCRIPTION_ID
+                )
+            )
+        );
+    }
+
+    @Test
+    void should_trigger_api_product_notification_with_subscription_id() {
+        // Given
+        var application = givenExistingApplication(BaseApplicationEntity.builder().id(APPLICATION_ID).build());
+        givenExistingSubscription(
+            SubscriptionFixtures.aSubscription()
+                .toBuilder()
+                .id(SUBSCRIPTION_ID)
+                .applicationId(application.getId())
+                .referenceId(PRODUCT_ID)
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                .planId("plan-id")
+                .status(SubscriptionEntity.Status.ACCEPTED)
+                .build()
+        );
+
+        // When
+        usecase.execute(new Input(SUBSCRIPTION_ID, AUDIT_INFO));
+
+        // Then
+        assertThat(triggerNotificationService.getHookNotifications()).containsExactly(
+            new SubscriptionClosedApiProductHookContext(PRODUCT_ID, APPLICATION_ID, "plan-id", SUBSCRIPTION_ID)
+        );
+        assertThat(triggerNotificationService.getApplicationNotifications()).containsExactly(
+            new ApplicationNotification(
+                new SubscriptionClosedApplicationHookContext(
+                    APPLICATION_ID,
+                    SubscriptionReferenceType.API_PRODUCT,
+                    PRODUCT_ID,
+                    "plan-id",
+                    SUBSCRIPTION_ID
+                )
             )
         );
     }

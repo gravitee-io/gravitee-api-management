@@ -30,17 +30,20 @@ public class SubscriptionClosedApplicationHookContext extends ApplicationHookCon
     private final SubscriptionReferenceType referenceType;
     private final String referenceId;
     private final String planId;
+    private final String subscriptionId;
 
     public SubscriptionClosedApplicationHookContext(
         String applicationId,
         SubscriptionReferenceType referenceType,
         String referenceId,
-        String planId
+        String planId,
+        String subscriptionId
     ) {
         super(ApplicationHook.SUBSCRIPTION_CLOSED, applicationId);
         this.referenceType = referenceType;
         this.referenceId = referenceId;
         this.planId = planId;
+        this.subscriptionId = subscriptionId;
     }
 
     @Override
@@ -48,6 +51,6 @@ public class SubscriptionClosedApplicationHookContext extends ApplicationHookCon
         var referenceKey = referenceType == SubscriptionReferenceType.API_PRODUCT
             ? HookContextEntry.API_PRODUCT_ID
             : HookContextEntry.API_ID;
-        return Map.of(referenceKey, referenceId, HookContextEntry.PLAN_ID, planId);
+        return Map.of(referenceKey, referenceId, HookContextEntry.PLAN_ID, planId, HookContextEntry.SUBSCRIPTION_ID, subscriptionId);
     }
 }

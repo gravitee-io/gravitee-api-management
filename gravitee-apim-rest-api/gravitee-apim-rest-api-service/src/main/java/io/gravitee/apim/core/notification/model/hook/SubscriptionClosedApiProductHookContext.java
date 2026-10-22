@@ -28,15 +28,24 @@ public class SubscriptionClosedApiProductHookContext extends ApiProductHookConte
 
     private final String applicationId;
     private final String planId;
+    private final String subscriptionId;
 
-    public SubscriptionClosedApiProductHookContext(String apiProductId, String applicationId, String planId) {
+    public SubscriptionClosedApiProductHookContext(String apiProductId, String applicationId, String planId, String subscriptionId) {
         super(ApiProductHook.SUBSCRIPTION_CLOSED, apiProductId);
         this.applicationId = applicationId;
         this.planId = planId;
+        this.subscriptionId = subscriptionId;
     }
 
     @Override
     protected Map<HookContextEntry, String> getChildProperties() {
-        return Map.of(HookContextEntry.APPLICATION_ID, applicationId, HookContextEntry.PLAN_ID, planId);
+        return Map.of(
+            HookContextEntry.APPLICATION_ID,
+            applicationId,
+            HookContextEntry.PLAN_ID,
+            planId,
+            HookContextEntry.SUBSCRIPTION_ID,
+            subscriptionId
+        );
     }
 }
