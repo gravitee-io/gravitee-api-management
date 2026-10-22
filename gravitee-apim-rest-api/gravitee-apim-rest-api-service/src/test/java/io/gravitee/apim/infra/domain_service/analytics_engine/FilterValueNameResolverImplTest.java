@@ -17,7 +17,9 @@ package io.gravitee.apim.infra.domain_service.analytics_engine;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
@@ -105,13 +107,21 @@ class FilterValueNameResolverImplTest {
         @Test
         void should_resolve_api_names() {
             var ids = List.of("api-1", "api-2");
-            when(apiCrudService.findByIds(ids)).thenReturn(
+            when(apiCrudService.findByIds(argThat(apiIds -> Set.copyOf(apiIds).equals(Set.copyOf(ids))), eq(ENVIRONMENT_ID))).thenReturn(
                 List.of(Api.builder().id("api-1").name("My API 1").build(), Api.builder().id("api-2").name("My API 2").build())
             );
 
             var result = resolver.resolveNames(ENVIRONMENT_ID, FilterSpec.Name.API, ids);
 
             assertThat(result).containsEntry("api-1", "My API 1").containsEntry("api-2", "My API 2").hasSize(2);
+        }
+
+        @Test
+        void should_not_resolve_api_names_without_environment() {
+            var result = resolver.resolveNames(null, FilterSpec.Name.API, List.of("api-1"));
+
+            assertThat(result).isEmpty();
+            verifyNoInteractions(apiCrudService);
         }
 
         @Test

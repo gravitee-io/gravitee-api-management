@@ -16,6 +16,7 @@
 package io.gravitee.repository.jdbc.management;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
+import static io.gravitee.repository.jdbc.management.JdbcHelper.addIdsInClause;
 import static io.gravitee.repository.jdbc.utils.FieldUtils.toSnakeCase;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -153,10 +154,9 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
         andWhere.add("environment_id = ?");
         andWhereParams.add(criteria.getEnvironmentId());
 
-        if (!CollectionUtils.isEmpty(criteria.getIds())) {
-            andWhere.add("id in (" + getOrm().buildInClause(criteria.getIds()) + ")");
-            andWhereParams.addAll(criteria.getIds());
-        }
+        List<String> idClauses = new ArrayList<>();
+        addIdsInClause(criteria.getIds(), "id", ids -> getOrm().buildInClause(ids), idClauses, andWhereParams);
+        idClauses.forEach(andWhere::add);
 
         if (criteria.getType() != null) {
             andWhere.add("type = ?");

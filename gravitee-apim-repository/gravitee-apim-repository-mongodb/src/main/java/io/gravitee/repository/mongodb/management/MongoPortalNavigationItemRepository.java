@@ -25,6 +25,7 @@ import io.gravitee.repository.management.model.PortalNavigationItem;
 import io.gravitee.repository.mongodb.management.internal.model.PortalNavigationItemMongo;
 import io.gravitee.repository.mongodb.management.internal.portalnavigationitem.PortalNavigationItemMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import io.gravitee.repository.mongodb.utils.IdCriteria;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -125,8 +126,8 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
             if (criteria.getVisibility() != null) {
                 query.addCriteria(where("visibility").is(criteria.getVisibility()));
             }
-            if (criteria.getApiIds() != null && !criteria.getApiIds().isEmpty()) {
-                query.addCriteria(where("apiId").in(criteria.getApiIds()));
+            if (criteria.getApiIds() != null) {
+                query.addCriteria(IdCriteria.matching("apiId", criteria.getApiIds()));
             }
             if (hasText(criteria.getType())) {
                 try {
