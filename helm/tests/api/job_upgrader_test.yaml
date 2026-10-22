@@ -76,6 +76,32 @@ tests:
           path: spec.template.spec.volumes[1].name
           value: graviteeio-apim-plugins
 
+  - it: Should install the additional plugins given by name from the release manifest of the Management API image
+    template: api/api-upgrader-job.yaml
+    chart:
+      appVersion: 4.14.0
+    set:
+      api:
+        upgrader: true
+        additionalPlugins:
+          - gravitee-node-cluster-plugin-hazelcast
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.initContainers
+          count: 1
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: install-plugins
+      - equal:
+          path: spec.template.spec.initContainers[0].image
+          value: graviteeio/apim-management-api:4.14.0
+      - equal:
+          path: spec.template.spec.initContainers[0].command[4]
+          value: gravitee-node-cluster-plugin-hazelcast
+      - equal:
+          path: spec.template.spec.volumes[1].name
+          value: graviteeio-apim-plugins
+
   - it: Should adapt additional plugins init container security context for OpenShift
     template: api/api-upgrader-job.yaml
     set:

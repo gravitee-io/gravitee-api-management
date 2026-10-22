@@ -45,3 +45,43 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].env[1].value
           value: '${gravitee.home}/plugins-ext'
+  - it: Install the plugins given by name from the release manifest of the gateway image
+    template: gateway/gateway-deployment.yaml
+    chart:
+      version: 1.0.0-chart
+      appVersion: 4.14.0
+    set:
+        gateway:
+            additionalPlugins:
+            - gravitee-policy-geoip-filtering
+            - https://d.g.io/toto.zip
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.initContainers
+          count: 2
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: install-plugins
+      - equal:
+          path: spec.template.spec.initContainers[0].image
+          value: graviteeio/apim-gateway:4.14.0-debian
+      - matchRegex:
+          path: spec.template.spec.initContainers[0].command[2]
+          pattern: 'exec /opt/graviteeio-gateway/bin/install-plugins\.sh --manifest /opt/graviteeio-gateway/release-manifest\.json --home /tmp/install "\$@"'
+      - lengthEqual:
+          path: spec.template.spec.initContainers[0].command
+          count: 5
+      - equal:
+          path: spec.template.spec.initContainers[0].command[4]
+          value: gravitee-policy-geoip-filtering
+      - equal:
+          path: spec.template.spec.initContainers[0].volumeMounts
+          value:
+            - mountPath: /tmp/install/plugins
+              name: graviteeio-apim-plugins
+      - equal:
+          path: spec.template.spec.initContainers[1].name
+          value: get-plugins
+      - equal:
+          path: spec.template.spec.initContainers[1].command[2]
+          value: mkdir -p /tmp/plugins && cd /tmp/plugins && ( rm  toto.zip  2>/dev/null || true ) && wget https://d.g.io/toto.zip

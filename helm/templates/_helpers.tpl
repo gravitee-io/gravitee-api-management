@@ -158,14 +158,24 @@ Render an initContainer base spec with OpenShift-adapted securityContext.
 {{- end -}}
 
 {{/*
-Create initContainers for downloading plugins ext plugin-ext
+Create initContainers for downloading plugins ext plugin-ext.
+In .plugins, a download URL is downloaded as is; a name is installed from the release manifest of .image, the component's
+own image, at the version that image ships with.
 */}}
 {{- define "deployment.pluginInitContainers" -}}
-{{- if .installPlugins }}
+{{- $urls := list -}}
+{{- $names := list -}}
+{{- range .plugins -}}
+  {{- if contains "://" . -}}
+    {{- $urls = append $urls . -}}
+  {{- else -}}
+    {{- $names = append $names . -}}
+  {{- end -}}
+{{- end -}}
+{{- if $names }}
 {{- $home := printf "/opt/%s" .appName }}
 - name: install-plugins
   {{- include "gravitee.renderInitContainerSpec" (dict "context" .context "initContainer" (merge (dict "image" .image "imagePullPolicy" .imagePullPolicy) .initContainers)) | nindent 2 }}
-  {{- /* Runs the component's own image, so that the plugins come at the version its release manifest gives */}}
   command:
     - sh
     - -c
@@ -176,17 +186,17 @@ Create initContainers for downloading plugins ext plugin-ext
       fi
       exec {{ $home }}/bin/install-plugins.sh --manifest {{ $home }}/release-manifest.json --home /tmp/install "$@"
     - install-plugins
-    {{- range .installPlugins }}
+    {{- range $names }}
     - {{ . | quote }}
     {{- end }}
   volumeMounts:
     - name: graviteeio-apim-plugins
       mountPath: /tmp/install/plugins
 {{- end }}
-{{- if .plugins }}
+{{- if $urls }}
 - name: get-plugins
   {{- include "gravitee.renderInitContainerSpec" (dict "context" .context "initContainer" .initContainers) | nindent 2 }}
-  command: ['sh', '-c', "mkdir -p /tmp/plugins && cd /tmp/plugins {{- range $url := .plugins -}}
+  command: ['sh', '-c', "mkdir -p /tmp/plugins && cd /tmp/plugins {{- range $url := $urls -}}
     {{ printf " && ( rm "}} {{regexFind "[^/]+$" $url}} {{ printf " 2>/dev/null || true ) && wget %s" $url }}
   {{- end -}}"]
   volumeMounts:
@@ -207,7 +217,7 @@ Create initContainers for downloading plugins ext plugin-ext
 Create volumeMounts for plugins
 */}}
 {{- define "deployment.pluginVolumeMounts" -}}
-{{- if or .plugins .installPlugins .extPlugins }}
+{{- if or .plugins .extPlugins }}
 - name: graviteeio-apim-plugins
   mountPath: /opt/{{ .appName }}/plugins-ext
 {{- end }}
@@ -222,7 +232,7 @@ Create volumeMounts for plugins
 Create volumes for plugins
 */}}
 {{- define "deployment.pluginVolumes" -}}
-{{- if or .plugins .installPlugins .extPlugins }}
+{{- if or .plugins .extPlugins }}
 - name: graviteeio-apim-plugins
   emptyDir: {}
 {{- end }}

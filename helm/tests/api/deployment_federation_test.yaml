@@ -157,6 +157,30 @@ tests:
           content:
             name: GRAVITEE_PLUGINS_PATH_1
             value: ${gravitee.home}/plugins-ext
+  - it: Install the additional plugins given by name, without federation
+    template: api/api-deployment.yaml
+    set:
+      api:
+        additionalPlugins:
+          - gravitee-node-cluster-plugin-hazelcast
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.initContainers
+          count: 1
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: install-plugins
+      - lengthEqual:
+          path: spec.template.spec.initContainers[0].command
+          count: 5
+      - equal:
+          path: spec.template.spec.initContainers[0].command[4]
+          value: gravitee-node-cluster-plugin-hazelcast
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GRAVITEE_PLUGINS_PATH_1
+            value: ${gravitee.home}/plugins-ext
   - it: Adapt plugin initContainer SecurityContext for OpenShift
     template: api/api-deployment.yaml
     set:
