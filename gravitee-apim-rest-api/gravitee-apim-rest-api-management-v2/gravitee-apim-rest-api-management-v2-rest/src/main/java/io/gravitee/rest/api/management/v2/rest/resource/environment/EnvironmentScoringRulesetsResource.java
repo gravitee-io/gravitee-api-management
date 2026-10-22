@@ -22,6 +22,10 @@ import io.gravitee.rest.api.management.v2.rest.mapper.ScoringRulesetMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ImportScoringRuleset;
 import io.gravitee.rest.api.management.v2.rest.model.ScoringRulesetsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -54,6 +58,7 @@ public class EnvironmentScoringRulesetsResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.CREATE }) })
     public Response importRuleset(@Valid ImportScoringRuleset request) {
         var result = importEnvironmentRulesetUseCase.execute(
             new ImportEnvironmentRulesetUseCase.Input(
@@ -72,6 +77,7 @@ public class EnvironmentScoringRulesetsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public ScoringRulesetsResponse listRulesets() {
         var executionContext = GraviteeContext.getExecutionContext();
         var result = getEnvironmentRulesetsUseCase.execute(new GetEnvironmentRulesetsUseCase.Input(executionContext.getEnvironmentId()));

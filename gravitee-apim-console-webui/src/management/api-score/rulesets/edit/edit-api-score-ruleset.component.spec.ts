@@ -25,6 +25,7 @@ import { EditApiScoreRulesetComponent } from './edit-api-score-ruleset.component
 import { EditApiScoreRulesetHarness } from './edit-api-score-ruleset.harness';
 
 import { ApiScoreRulesetsModule } from '../api-score-rulesets.module';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { fakeRuleset } from '../../../../entities/management-api-v2/api/v4/ruleset.fixture';
 import { ScoringRuleset } from '../../../../entities/management-api-v2/api/v4/ruleset';
@@ -39,7 +40,10 @@ describe('EditApiScoreRulesetComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [GioTestingModule, ApiScoreRulesetsModule, BrowserAnimationsModule, NoopAnimationsModule],
-      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { id } } } }],
+      providers: [
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { id } } } },
+        { provide: GioTestingPermissionProvider, useValue: ['environment-api-u', 'environment-api-d'] },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(EditApiScoreRulesetComponent);
@@ -116,4 +120,38 @@ describe('EditApiScoreRulesetComponent', () => {
     const req = httpTestingController.expectOne({ method: 'DELETE', url: url });
     req.flush(res);
   };
+});
+
+describe('EditApiScoreRulesetComponent without delete permission', () => {
+  let fixture: ComponentFixture<EditApiScoreRulesetComponent>;
+  let httpTestingController: HttpTestingController;
+  let componentHarness: EditApiScoreRulesetHarness;
+  const id = 'testID';
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [GioTestingModule, ApiScoreRulesetsModule, BrowserAnimationsModule, NoopAnimationsModule],
+      providers: [
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { id } } } },
+        { provide: GioTestingPermissionProvider, useValue: ['environment-api-u'] },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(EditApiScoreRulesetComponent);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, EditApiScoreRulesetHarness);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
+  it('hides delete without environment api delete', async () => {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/scoring/rulesets/${id}`;
+    httpTestingController.expectOne({ method: 'GET', url }).flush(fakeRuleset());
+    fixture.detectChanges();
+
+    expect(await componentHarness.dangerCard()).toBeNull();
+  });
 });

@@ -16,15 +16,33 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatExpansionPanelHarness } from '@angular/material/expansion/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class ApiScoreRulesetsHarness extends ComponentHarness {
   static hostSelector = 'app-api-score-rulesets';
 
   getMatExpansionPanelHarness = this.locatorForOptional(MatExpansionPanelHarness);
 
+  getExpansionPanels = this.locatorForAll(MatExpansionPanelHarness);
+
   getMatCardHarness = this.locatorForOptional(MatCardHarness);
+
+  async expandAllPanels(): Promise<void> {
+    const panels = await this.getExpansionPanels();
+    await Promise.all(panels.map(panel => panel.expand()));
+  }
 
   getRulesetsEmpty = this.locatorForOptional('.rulesets-empty');
 
   getFunctionsEmpty = this.locatorForOptional('.functions-empty');
+
+  getImportRulesetButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="import-ruleset-button"]' }));
+
+  getImportFunctionButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="import-function-button"]' }));
+
+  getEditRulesetButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="edit-ruleset-button"]' }));
+
+  getDeleteRulesetButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="delete-ruleset-button"]' }));
+
+  getDeleteFunctionButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="delete-function-button"]' }));
 }
