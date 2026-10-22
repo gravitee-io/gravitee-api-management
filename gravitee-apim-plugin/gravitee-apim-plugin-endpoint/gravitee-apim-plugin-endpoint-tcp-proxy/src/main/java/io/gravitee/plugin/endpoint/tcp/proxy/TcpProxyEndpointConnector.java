@@ -81,6 +81,13 @@ public class TcpProxyEndpointConnector extends AbstractService<Connector> implem
             .ignoreElement();
     }
 
+    @Override
+    protected void doStop() {
+        // [vertx-5.0-close-future-leak] The client is no longer tied to the context close future (see TcpClientFactory): close it with
+        // the endpoint.
+        tcpClientFactory.close();
+    }
+
     TcpProxyEndpointConnectorConfiguration getConfiguration() {
         return configuration;
     }
