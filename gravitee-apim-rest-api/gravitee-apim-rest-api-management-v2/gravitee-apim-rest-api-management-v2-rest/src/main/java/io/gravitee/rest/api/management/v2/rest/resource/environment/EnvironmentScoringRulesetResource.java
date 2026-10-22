@@ -22,6 +22,10 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ScoringRulesetMapper;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateScoringRuleset;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
@@ -49,6 +53,7 @@ public class EnvironmentScoringRulesetResource extends AbstractResource {
     private GetEnvironmentRulesetUseCase getEnvironmentRulesetUseCase;
 
     @DELETE
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.DELETE }) })
     public Response deleteRuleset() {
         deleteEnvironmentRulesetUseCase.execute(new DeleteEnvironmentRulesetUseCase.Input(rulesetId, getAuditInfo()));
         return Response.noContent().build();
@@ -56,6 +61,7 @@ public class EnvironmentScoringRulesetResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public Response getRulesetById(@PathParam("rulesetId") String rulesetId) {
         var ruleset = getEnvironmentRulesetUseCase
             .execute(new GetEnvironmentRulesetUseCase.Input(rulesetId, getAuditInfo()))
@@ -67,6 +73,7 @@ public class EnvironmentScoringRulesetResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.UPDATE }) })
     public Response updateRuleset(@Valid UpdateScoringRuleset updateScoringRuleset) {
         var rulesetToUpdate = ScoringRulesetMapper.INSTANCE.map(updateScoringRuleset).toBuilder().id(rulesetId).build();
         var input = new UpdateEnvironmentRulesetUseCase.Input(rulesetToUpdate, getAuditInfo());

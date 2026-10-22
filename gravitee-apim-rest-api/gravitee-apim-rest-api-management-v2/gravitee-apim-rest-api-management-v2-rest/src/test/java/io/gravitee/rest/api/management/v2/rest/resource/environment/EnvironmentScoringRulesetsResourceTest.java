@@ -30,6 +30,8 @@ import io.gravitee.rest.api.management.v2.rest.model.ScoringAssetFormat;
 import io.gravitee.rest.api.management.v2.rest.model.ScoringRulesetsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.inject.Inject;
@@ -137,6 +139,19 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.CREATED_201)
                 .hasHeader("Location", target.path("generated-id").getUri().toString());
         }
+
+        @Test
+        void should_return_403_without_environment_api_create() {
+            var request = new ImportScoringRuleset()
+                .name("ruleset-name")
+                .payload("ruleset-payload")
+                .format(ScoringAssetFormat.GRAVITEE_PROXY);
+
+            shouldReturn403(RolePermission.ENVIRONMENT_API, ENVIRONMENT, RolePermissionAction.CREATE, () ->
+                target.request().post(json(request))
+            );
+            assertThat(scoringRulesetCrudService.storage()).isEmpty();
+        }
     }
 
     @Nested
@@ -181,6 +196,11 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
                         .referenceType(io.gravitee.rest.api.management.v2.rest.model.ScoringRulesetReferenceType.ENVIRONMENT)
                         .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
                 );
+        }
+
+        @Test
+        void should_return_403_without_environment_api_read() {
+            shouldReturn403(RolePermission.ENVIRONMENT_API, ENVIRONMENT, RolePermissionAction.READ, () -> target.request().get());
         }
     }
 }

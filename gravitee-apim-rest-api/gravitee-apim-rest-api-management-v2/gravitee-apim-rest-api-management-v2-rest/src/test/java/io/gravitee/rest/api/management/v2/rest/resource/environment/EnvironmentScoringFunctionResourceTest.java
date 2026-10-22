@@ -28,6 +28,8 @@ import io.gravitee.apim.core.scoring.model.ScoringFunction;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.inject.Inject;
@@ -90,6 +92,17 @@ class EnvironmentScoringFunctionResourceTest extends AbstractResourceTest {
             // Then
             assertThat(response).hasStatus(HttpStatusCode.NO_CONTENT_204);
             assertThat(scoringFunctionCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_return_403_without_environment_api_delete() {
+            var fct = ScoringFunctionFixture.aFunction("function-name.js").withReferenceId(ENVIRONMENT);
+            scoringFunctionCrudService.initWith(List.of(fct));
+
+            shouldReturn403(RolePermission.ENVIRONMENT_API, ENVIRONMENT, RolePermissionAction.DELETE, () ->
+                rootTarget.path(fct.name()).request().delete()
+            );
+            assertThat(scoringFunctionCrudService.storage()).containsExactly(fct);
         }
     }
 }
