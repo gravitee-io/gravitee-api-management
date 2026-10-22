@@ -103,7 +103,9 @@ During a rolling restart of the Management API, old and new pods answer together
 
 A failed attempt can still have loaded some of the module's files. The bundler keeps them in a list on the page, named after the remote (`webpackChunk<remoteName>` or `rspackChunk<remoteName>`, depending on the rspack version that built the module), and each new copy of the module's entry starts by taking what the list holds instead of fetching it. A retry that reaches the new build would then run files of the old one in place of its own files with the same ids. So `forgetLoadedFiles()` empties the list before each new attempt, which fetches every file again. The list is emptied in place, not deleted: Module Federation keeps the shared libraries an earlier copy of the module has already loaded, and that copy receives its later files through the list.
 
-Each failed attempt logs a `[Modules]` warning with the error, a retry that succeeds logs an info, and giving up logs an error.
+Only a recoverable error is retried this way (`isRecoverableLoadError()`): a file that could not be fetched, that is the bundler's `ChunkLoadError` for a script, the `CSS_CHUNK_LOAD_FAILED` code for a stylesheet, and Module Federation's `RUNTIME-001`, `RUNTIME-003` and `RUNTIME-008` for an entry file or a manifest. A `RUNTIME-008` that wraps a `ScriptExecutionError` is the exception: the entry file loaded but threw while running, which Module Federation does not retry either. Any other error is unrecoverable: it comes from the module's own code, and no retry changes the code a build serves. 4.13.0-alpha.6 shipped modules built against React 18, which threw on every attempt against the console's React 19. An unrecoverable error is tried once more, in case that attempt ran files of two builds, and a second one in a row ends the load at once, without the waiting message.
+
+Each failed attempt logs a `[Modules]` warning with the error, a retry that succeeds logs an info, and giving up logs an error. Only the warning for a recoverable error says the platform may be updating.
 
 ### When the user is told
 
@@ -113,13 +115,14 @@ Most failures heal within one or two retries, so the console says nothing at fir
 
 `RemoteModuleRoute` keeps the shell and replaces only the module area:
 
-| Moment                                                     | Shown                                                                                                                                                        |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| First attempts, until the load is delayed                  | `ContentSkeleton`, as for any load                                                                                                                           |
-| The load is delayed                                        | `ModuleUpdating`: "Agent Management isn't ready yet", saying the console keeps retrying and will open the module there, with an outline **Retry now** button |
-| An attempt is running after the delay                      | The same message; the button reads **Retrying…** and does nothing, for at least 600 ms                                                                       |
-| An attempt succeeds                                        | The module, in place of the message                                                                                                                          |
-| Last attempt failed, or the module crashed while rendering | `ModuleUnavailable`: "Agent Management isn't available right now", with a primary **Reload page** button                                                     |
+| Moment                                                                          | Shown                                                                                                                                                        |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| First attempts, until the load is delayed                                       | `ContentSkeleton`, as for any load                                                                                                                           |
+| The load is delayed                                                             | `ModuleUpdating`: "Agent Management isn't ready yet", saying the console keeps retrying and will open the module there, with an outline **Retry now** button |
+| An attempt is running after the delay                                           | The same message; the button reads **Retrying…** and does nothing, for at least 600 ms                                                                       |
+| An attempt succeeds                                                             | The module, in place of the message                                                                                                                          |
+| The last attempt could not fetch a file                                         | `ModuleUnavailable`: "Agent Management isn't available right now", saying it may still be updating, with a primary **Reload page** button                    |
+| The module's code failed twice in a row while starting, or once while rendering | `ModuleUnavailable` with `crashed`: "Couldn't open Agent Management", without a word about an update, with the same button                                   |
 
 The app is named with `getModuleLabel()`. A crash while rendering is not retried. The messages never show the technical error, which stays in the browser console. The error boundary is keyed by module, and opening the module again after a failure starts a new load.
 

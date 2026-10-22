@@ -19,7 +19,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
 import { RemoteModuleRoute } from './RemoteModuleRoute';
 import { EnvironmentGuard } from '../../../features/environment';
-import { buildChunkLoadError } from '../../../testing/factories';
+import { buildChunkLoadError, buildModuleCodeError } from '../../../testing/factories';
 import { resetAllStores, seedEnvironments } from '../../../testing/helpers';
 import { RETRY_DELAYS_MS } from '../modules.remotes';
 import type { GammaModule } from '../modules.types';
@@ -42,6 +42,7 @@ jest.mock('@module-federation/runtime', () => ({
 }));
 
 const UNAVAILABLE_TITLE = "isn't available right now";
+const CRASHED_TITLE = "Couldn't open";
 const ALL_RETRIES_MS = RETRY_DELAYS_MS.reduce((total, delay) => total + delay, 0);
 
 function buildModule(id: string): GammaModule {
@@ -377,7 +378,7 @@ describe('RemoteModuleRoute', () => {
             expect((await screen.findByRole('alert')).textContent).toContain("Agent Management isn't available right now");
         });
 
-        it('should show the message without loading the module again when it fails to render', async () => {
+        it("should say the app couldn't be opened, without loading it again, when it fails to render", async () => {
             function CrashingModule(): never {
                 throw new Error("Cannot read properties of undefined (reading 'id')");
             }
@@ -386,8 +387,28 @@ describe('RemoteModuleRoute', () => {
             render(<RemoteModuleRoute module={buildModule('crashing')} />);
             await runAllRetries();
 
-            expect((await screen.findByRole('alert')).textContent).toContain(UNAVAILABLE_TITLE);
+            expect((await screen.findByRole('alert')).textContent).toContain(CRASHED_TITLE);
             expect(mockLoadRemote).toHaveBeenCalledTimes(1);
+        });
+
+        it("should say the app couldn't be opened, without the waiting message, when its code fails twice while it starts", async () => {
+            mockLoadRemote.mockRejectedValue(buildModuleCodeError());
+
+            render(<RemoteModuleRoute module={{ ...MODULE, remoteName: 'apim-broken' }} />);
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0] - 1);
+            });
+
+            expect(screen.getByLabelText('Loading content')).toBeTruthy();
+
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(1);
+            });
+
+            expect(await screen.findByRole('heading', { level: 1, name: "Couldn't open API Management" })).toBeTruthy();
+            expect(screen.queryByText(/isn't ready yet/)).toBeNull();
+            expect(screen.queryByText(/updating/)).toBeNull();
+            expect(mockLoadRemote).toHaveBeenCalledTimes(2);
         });
 
         it('should show the next module opened after one that failed', async () => {
