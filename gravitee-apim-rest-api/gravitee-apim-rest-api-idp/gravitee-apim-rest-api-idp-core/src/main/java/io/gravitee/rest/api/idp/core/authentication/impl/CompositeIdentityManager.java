@@ -18,6 +18,7 @@ package io.gravitee.rest.api.idp.core.authentication.impl;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.rest.api.idp.api.identity.IdentityLookup;
 import io.gravitee.rest.api.idp.api.identity.IdentityReference;
 import io.gravitee.rest.api.idp.api.identity.SearchableUser;
@@ -130,6 +131,12 @@ public class CompositeIdentityManager implements IdentityManager {
                 log.error("An error occurs while serializing user reference", ex);
                 return null;
             }
+        }
+
+        @Override
+        @JsonIgnore
+        public String getSourceId() {
+            return user.getReference();
         }
 
         @Override

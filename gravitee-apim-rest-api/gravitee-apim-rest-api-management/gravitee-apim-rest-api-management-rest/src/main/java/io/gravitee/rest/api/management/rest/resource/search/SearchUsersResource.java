@@ -19,6 +19,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.idp.api.identity.SearchableUser;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.service.IdentityService;
+import io.gravitee.rest.api.service.PermissionService.MemberSearchAccess;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,7 +37,9 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -55,7 +58,9 @@ public class SearchUsersResource extends AbstractResource {
         summary = "Search for users",
         description = "User must manage members somewhere to use this service: ORGANIZATION_USERS[READ or UPDATE], " +
             "ORGANIZATION_ROLE[CREATE or UPDATE], ENVIRONMENT_GROUP[CREATE or UPDATE], or MEMBER[CREATE or UPDATE] " +
-            "on an API, an application, an integration, a cluster or a group"
+            "on an API, an application, an integration, a cluster or a group. Users whose only member-management scope " +
+            "is applications are restricted to exact-match queries (full display name, source ID, or email when " +
+            "allow-email-in-search-results is enabled); partial queries return an empty list rather than 403."
     )
     @ApiResponse(
         responseCode = "200",
@@ -73,17 +78,33 @@ public class SearchUsersResource extends AbstractResource {
         // role, ownership transfer), whose users are scoped to one resource and rarely hold ORGANIZATION_USERS[READ].
         // The @Permissions filter can only check a permission against the reference found in the path, and this route
         // carries none, so the "manages members on at least one reference" rule is evaluated in code instead.
-        if (!permissionService.canManageMembers(GraviteeContext.getExecutionContext(), getAuthenticatedUser())) {
+        var access = permissionService.memberSearchAccess(GraviteeContext.getExecutionContext(), getAuthenticatedUser());
+        if (access == MemberSearchAccess.NONE) {
             throw new ForbiddenAccessException();
         }
-        return identityService
+        var users = identityService
             .search(query)
             .stream()
-            .sorted((o1, o2) -> CASE_INSENSITIVE_ORDER.compare(o1.getLastname(), o2.getLastname()))
-            .collect(Collectors.toList());
+            .sorted((o1, o2) -> CASE_INSENSITIVE_ORDER.compare(o1.getLastname(), o2.getLastname()));
+        // On a default install every user owns a Default application. Application-only owners may search the
+        // directory but only with an exact match on the full display name, source ID (login), or email — not a
+        // single first or last name token, which would still enumerate the directory. The application member
+        // picker must keep working, yet wildcard/prefix enumeration of the full directory must not, because
+        // any user holds the application permission on the Default (or a self-created) application.
+        if (access == MemberSearchAccess.APPLICATION_ONLY) {
+            var lower = query.trim().toLowerCase();
+            users = users.filter(u -> matchesExactly(u, lower));
+        }
+        return users.collect(Collectors.toList());
     }
 
     private static final Comparator<String> CASE_INSENSITIVE_ORDER = new CaseInsensitiveComparator();
+
+    private static boolean matchesExactly(SearchableUser user, String lowerQuery) {
+        return Stream.of(user.getDisplayName(), user.getSourceId(), user.getEmail())
+            .filter(Objects::nonNull)
+            .anyMatch(v -> v.equalsIgnoreCase(lowerQuery));
+    }
 
     private static class CaseInsensitiveComparator implements Comparator<String>, java.io.Serializable {
 

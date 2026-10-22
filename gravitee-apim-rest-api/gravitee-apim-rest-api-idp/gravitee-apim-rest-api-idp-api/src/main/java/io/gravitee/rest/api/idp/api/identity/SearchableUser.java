@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.idp.api.identity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -25,6 +27,11 @@ public interface SearchableUser {
     }
 
     default String getReference() {
+        return null;
+    }
+
+    @JsonIgnore
+    default String getSourceId() {
         return null;
     }
 
