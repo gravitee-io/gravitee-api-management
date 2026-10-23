@@ -80,6 +80,8 @@ import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.security.HttpSecurityChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
+import io.gravitee.gateway.reactive.policy.action.PolicyActionExecutor;
+import io.gravitee.gateway.reactive.policy.action.PolicyActionType;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
@@ -171,6 +173,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
     private final ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory;
     private final FlowChainFactory v4FlowChainFactory;
     private PolicyManager apiProductPlanPolicyManager;
+    private final PolicyActionExecutor terminateActionExecutor;
     private EventListener<ApiProductEventType, ApiProductChangedEvent> apiProductEventListener;
 
     /**
@@ -288,6 +291,10 @@ public class DefaultApiReactor extends AbstractApiReactor {
         this.organizationFlowChain = flowChainFactory.createOrganizationFlow(api, tracingContext);
         this.apiPlanFlowChain = v4FlowChainFactory.createPlanFlow(api, tracingContext);
         this.apiFlowChain = v4FlowChainFactory.createApiFlow(api, tracingContext);
+        this.terminateActionExecutor = new PolicyActionExecutor(
+            PolicyActionType.TERMINATE,
+            tracingContext != null && tracingContext.isEnabled()
+        );
 
         this.node = node;
         this.lifecycleState = Lifecycle.State.INITIALIZED;
@@ -810,9 +817,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
                 return Completable.complete();
             }
             return Flowable.fromIterable(actions.entrySet()).concatMapCompletable(entry ->
-                entry
-                    .getValue()
-                    .apply(ctx)
+                terminateActionExecutor
+                    .execute(ctx, entry.getKey(), entry.getValue())
                     .doOnError(throwable ->
                         ctx.withLogger(log).warn("Action on terminate of policy {} failed", entry.getKey().id(), throwable)
                     )

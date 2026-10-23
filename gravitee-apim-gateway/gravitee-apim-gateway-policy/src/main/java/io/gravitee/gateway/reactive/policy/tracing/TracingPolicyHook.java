@@ -74,7 +74,7 @@ public class TracingPolicyHook extends AbstractTracingHook implements PolicyHook
         });
     }
 
-    private void addTriggerAttributes(final String id, final HttpExecutionContext ctx) {
+    protected void addTriggerAttributes(final String id, final HttpExecutionContext ctx) {
         Span span = getSpan(ctx, id);
         if (span != null) {
             String triggerCondition = ctx.getInternalAttribute(ATTR_POLICY_TRIGGER_CONDITION_PREFIX + id);
