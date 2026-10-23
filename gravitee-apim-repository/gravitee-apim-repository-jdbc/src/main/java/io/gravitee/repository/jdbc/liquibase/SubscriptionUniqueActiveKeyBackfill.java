@@ -58,6 +58,13 @@ public class SubscriptionUniqueActiveKeyBackfill implements CustomTaskChange {
 
     private String tablePrefix = "";
 
+    /**
+     * Liquibase only hands a changeset parameter to a custom change that has both a getter and a setter for it.
+     */
+    public String getTablePrefix() {
+        return tablePrefix;
+    }
+
     public void setTablePrefix(String tablePrefix) {
         this.tablePrefix = tablePrefix == null ? "" : tablePrefix;
     }
