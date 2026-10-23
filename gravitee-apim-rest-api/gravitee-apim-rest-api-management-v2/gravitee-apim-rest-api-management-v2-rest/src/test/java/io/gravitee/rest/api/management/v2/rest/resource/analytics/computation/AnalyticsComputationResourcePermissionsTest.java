@@ -40,6 +40,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import jakarta.ws.rs.client.Entity;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,7 +84,15 @@ class AnalyticsComputationResourcePermissionsTest extends AbstractNonAdminApiRes
 
     private void givenTheCallerReadsNoApi() {
         when(analyticsQueryContextLoader.load(any(), any(), any())).thenReturn(
-            new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
+            new AnalyticsQueryContext(
+                null,
+                new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                Set.of(),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Optional.empty()
+            )
         );
         when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));
         when(analyticsRepository.searchHTTPMeasures(any(), any())).thenReturn(new MeasuresResult(List.of()));

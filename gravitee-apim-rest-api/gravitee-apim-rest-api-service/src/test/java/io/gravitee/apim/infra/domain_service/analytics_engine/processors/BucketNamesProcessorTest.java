@@ -30,6 +30,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -85,7 +86,8 @@ class BucketNamesProcessorTest {
             Set.of(API_ID1, API_ID2),
             apiNamesById,
             Map.of(),
-            Map.of()
+            Map.of(),
+            Optional.empty()
         );
 
         when(filterValueNameResolver.resolveNames(eq("DEFAULT"), eq(FilterSpec.Name.API), anyList())).thenReturn(apiNamesById);
@@ -211,7 +213,8 @@ class BucketNamesProcessorTest {
                 Set.of(),
                 Map.of(),
                 Map.of(),
-                Map.of()
+                Map.of(),
+                Optional.empty()
             );
             when(filterValueNameResolver.resolveNames(isNull(), eq(FilterSpec.Name.PLAN), anyList())).thenReturn(
                 Map.of(PLAN_ID1, PLAN_NAME1)
@@ -888,7 +891,8 @@ class BucketNamesProcessorTest {
                 Set.of(API_ID1, API_ID2),
                 Map.of(),
                 Map.of(),
-                Map.of()
+                Map.of(),
+                Optional.empty()
             );
 
             var facetBucketResponse = newUnnamedBucketResponse(API_ID1);
@@ -921,7 +925,8 @@ class BucketNamesProcessorTest {
                 context.authorizedApiIds(),
                 apiNamesById,
                 applicationNamesById,
-                Map.of()
+                Map.of(),
+                Optional.empty()
             );
 
             var facetBucketResponse = newUnnamedBucketResponse(APPLICATION_ID1);
@@ -942,7 +947,8 @@ class BucketNamesProcessorTest {
                 Set.of(API_ID1, API_ID2),
                 Map.of(),
                 Map.of(),
-                Map.of()
+                Map.of(),
+                Optional.empty()
             );
 
             var facetBucketResponse = newUnnamedBucketResponse(API_ID1);

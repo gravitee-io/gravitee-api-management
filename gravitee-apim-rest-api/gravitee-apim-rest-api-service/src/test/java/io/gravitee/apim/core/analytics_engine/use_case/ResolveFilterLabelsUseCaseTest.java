@@ -38,6 +38,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,7 +64,8 @@ class ResolveFilterLabelsUseCaseTest {
         Set.of("api-id"),
         Map.of("api-id", "My API"),
         Map.of(),
-        Map.of()
+        Map.of(),
+        Optional.empty()
     );
 
     @Mock
@@ -154,7 +156,15 @@ class ResolveFilterLabelsUseCaseTest {
     @Test
     void should_label_nothing_when_the_caller_reads_no_api() {
         when(contextLoader.load(AUDIT_INFO, AnalyticsScope.MANAGEMENT, ApiDataKind.AGGREGATES)).thenReturn(
-            new AnalyticsQueryContext(AUDIT_INFO, new ExecutionContext("org-id", "env-id"), Set.of(), Map.of(), Map.of(), Map.of())
+            new AnalyticsQueryContext(
+                AUDIT_INFO,
+                new ExecutionContext("org-id", "env-id"),
+                Set.of(),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Optional.empty()
+            )
         );
 
         var output = useCase.execute(

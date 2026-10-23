@@ -44,6 +44,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
@@ -237,7 +238,15 @@ class ResolveFilterLabelsUseCaseWorkspaceTest {
 
     private void readsApis(AuditInfo caller, Map<String, String> apiNamesById) {
         when(contextLoader.load(caller, AnalyticsScope.MANAGEMENT, ApiDataKind.AGGREGATES)).thenReturn(
-            new AnalyticsQueryContext(caller, new ExecutionContext(ORG_ID, ENV_ID), apiNamesById.keySet(), apiNamesById, Map.of(), Map.of())
+            new AnalyticsQueryContext(
+                caller,
+                new ExecutionContext(ORG_ID, ENV_ID),
+                apiNamesById.keySet(),
+                apiNamesById,
+                Map.of(),
+                Map.of(),
+                Optional.empty()
+            )
         );
     }
 

@@ -19,26 +19,36 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
+/**
+ * @param restrictedToApplicationIds the only applications whose calls the caller may read, or empty when the calls of
+ *     the authorized APIs are readable whatever application made them — keyless ones included. A present empty set
+ *     matches no call.
+ */
 public record AnalyticsQueryContext(
     AuditInfo auditInfo,
     ExecutionContext executionContext,
     Set<String> authorizedApiIds,
     Map<String, String> apiNamesById,
     Map<String, String> applicationNamesById,
-    Map<ApiType, Set<String>> apiIdsByType
+    Map<ApiType, Set<String>> apiIdsByType,
+    Optional<Set<String>> restrictedToApplicationIds
 ) {
     public AnalyticsQueryContext {
         if (authorizedApiIds == null) authorizedApiIds = Set.of();
         if (apiNamesById == null) apiNamesById = Map.of();
         if (applicationNamesById == null) applicationNamesById = Map.of();
         if (apiIdsByType == null) apiIdsByType = Map.of();
+        restrictedToApplicationIds = Objects.requireNonNull(restrictedToApplicationIds, "restrictedToApplicationIds").map(Set::copyOf);
     }
 
     /**
      * A context for APIs the caller already resolved. Nothing is preloaded: bucket names are looked up for the
-     * returned ids only, and an {@code API_TYPE} condition matches no API, so callers narrow by type beforehand.
+     * returned ids only, and an {@code API_TYPE} condition matches no API, so callers narrow by type beforehand. Their
+     * calls are not restricted to any application.
      */
     public static AnalyticsQueryContext forApis(AuditInfo auditInfo, Set<String> authorizedApiIds) {
         return new AnalyticsQueryContext(
@@ -47,7 +57,8 @@ public record AnalyticsQueryContext(
             authorizedApiIds,
             Map.of(),
             Map.of(),
-            Map.of()
+            Map.of(),
+            Optional.empty()
         );
     }
 }

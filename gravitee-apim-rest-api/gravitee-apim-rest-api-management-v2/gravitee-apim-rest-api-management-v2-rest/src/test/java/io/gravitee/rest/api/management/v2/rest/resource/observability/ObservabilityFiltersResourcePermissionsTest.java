@@ -27,6 +27,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.api.AbstractNonAdminApiR
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,7 +54,15 @@ class ObservabilityFiltersResourcePermissionsTest extends AbstractNonAdminApiRes
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
         when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(Set.of());
         when(analyticsQueryContextLoader.load(any(), any(), any())).thenReturn(
-            new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
+            new AnalyticsQueryContext(
+                null,
+                new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                Set.of(),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Optional.empty()
+            )
         );
     }
 

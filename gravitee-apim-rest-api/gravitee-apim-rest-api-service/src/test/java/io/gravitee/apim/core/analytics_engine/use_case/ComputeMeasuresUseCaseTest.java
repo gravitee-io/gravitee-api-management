@@ -32,10 +32,12 @@ import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQuery
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.observability.model.FilterOperator;
+import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ApplicationScopeFilterTransformer;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -60,7 +62,8 @@ class ComputeMeasuresUseCaseTest {
         Set.of("api-1", "api-2"),
         Map.of("api-1", "My API 1", "api-2", "My API 2"),
         Map.of(),
-        Map.of()
+        Map.of(),
+        Optional.empty()
     );
 
     @Mock
@@ -240,6 +243,43 @@ class ComputeMeasuresUseCaseTest {
         var output = useCase.execute(new ComputeMeasuresUseCase.Input(AUDIT_INFO, request));
 
         assertThat(output.response().metrics()).containsExactlyInAnyOrder(measure1, measure2);
+    }
+
+    @Test
+    void should_restrict_the_request_and_metric_filters_of_a_portal_query_to_the_applications_of_the_context() {
+        var portalContext = new AnalyticsQueryContext(
+            AUDIT_INFO,
+            EXECUTION_CONTEXT,
+            Set.of("api-1"),
+            Map.of(),
+            Map.of(),
+            Map.of(),
+            Optional.of(Set.of("app-1"))
+        );
+        when(contextLoader.load(any(), any(), any())).thenReturn(portalContext);
+        var useCase = new ComputeMeasuresUseCase(
+            queryContextProvider,
+            validator,
+            List.of(new ApplicationScopeFilterTransformer()),
+            unitEnrichmentPostProcessor,
+            contextLoader
+        );
+        var metricFilter = new Filter(FilterSpec.Name.HTTP_METHOD, FilterOperator.EQ, "GET");
+        var request = new MeasuresRequest(
+            aMeasuresRequest().timeRange(),
+            List.of(),
+            List.of(new MetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT), List.of(metricFilter)))
+        );
+        when(queryContextProvider.resolve(request)).thenReturn(Map.of(queryService, request));
+        when(queryService.searchMeasures(any(), any())).thenReturn(new MeasuresResponse(List.of()));
+
+        useCase.execute(new ComputeMeasuresUseCase.Input(AUDIT_INFO, request, AnalyticsScope.PORTAL));
+
+        var requestCaptor = ArgumentCaptor.forClass(MeasuresRequest.class);
+        verify(queryService).searchMeasures(eq(EXECUTION_CONTEXT), requestCaptor.capture());
+        var applicationScope = new Filter(FilterSpec.Name.APPLICATION, FilterOperator.IN, Set.of("app-1"));
+        assertThat(requestCaptor.getValue().filters()).containsExactly(applicationScope);
+        assertThat(requestCaptor.getValue().metrics().getFirst().filters()).containsExactly(metricFilter, applicationScope);
     }
 
     private static MeasuresRequest aMeasuresRequest() {

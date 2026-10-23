@@ -57,6 +57,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -89,7 +90,8 @@ class GetFilterValuesUseCaseTest {
         Set.of(),
         Map.of(),
         Map.of(),
-        Map.of()
+        Map.of(),
+        Optional.empty()
     );
 
     @Mock
@@ -441,7 +443,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of("allowed-api-1", "allowed-api-2"),
                     Map.of(),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
             when(
@@ -524,7 +527,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of(),
                     Map.of("api-id-1", "My API 1", "api-id-2", "My API 2"),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
             var esPage = new FilterValuesPage(List.of(new FilterValue("api-id-1"), new FilterValue("api-id-2")), null);
@@ -567,7 +571,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of(),
                     Map.of("api-id-1", "My API 1", "other-id", "Other"),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
 
@@ -620,7 +625,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of(),
                     Map.of("api-id-1", "My API 1"),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
             var esPage = new FilterValuesPage(List.of(new FilterValue("api-id-1"), new FilterValue("api-id-unknown")), null);
@@ -663,7 +669,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of(),
                     Map.of("api-id-1", "My API 1", "api-id-2", "My API 2"),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
             var afterKey = Map.<String, Object>of("value", "api-id-2");
@@ -698,7 +705,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of(),
                     Map.of("api-id-1", "My API 1"),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
             var esPage = new FilterValuesPage(List.of(new FilterValue("api-id-1")), null);
@@ -739,7 +747,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of(),
                     Map.of("match-id", "Matching API"),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
 
@@ -759,7 +768,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of(),
                     Map.of("api-id-3", "My API 3"),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
             var esPage = new FilterValuesPage(List.of(new FilterValue("api-id-3")), null);
@@ -811,7 +821,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of(),
                     Map.of("id-a", "My API A", "id-b", "My API B", "id-c", "My API C", "id-d", "My API D", "id-e", "My API E"),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
 
@@ -947,7 +958,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of("scoped-api-1", "scoped-api-2"),
                     Map.of(),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
             var esPage = new FilterValuesPage(List.of(new FilterValue("app-id-1")), null);
@@ -1059,7 +1071,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of("api-1"),
                     Map.of(),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
             when(planQueryService.findAllByApiIds(eq(Set.of("api-1")), eq(Set.of("env-id")))).thenReturn(
@@ -1106,7 +1119,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of("plan-scope-a", "plan-scope-b"),
                     Map.of(),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
             var esPage = new FilterValuesPage(List.of(new FilterValue("plan-id-1")), null);
@@ -1458,7 +1472,8 @@ class GetFilterValuesUseCaseTest {
                         Set.of("api-mcp-1"),
                         ApiType.NATIVE,
                         Set.of("api-native-1")
-                    )
+                    ),
+                    Optional.empty()
                 )
             );
 
@@ -1484,7 +1499,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of("api-proxy-1"),
                     Map.of("api-proxy-1", "Proxy API"),
                     Map.of(),
-                    Map.of(ApiType.PROXY, Set.of("api-proxy-1"))
+                    Map.of(ApiType.PROXY, Set.of("api-proxy-1")),
+                    Optional.empty()
                 )
             );
 
@@ -1523,7 +1539,8 @@ class GetFilterValuesUseCaseTest {
                     READABLE,
                     Map.of("orders", "Orders API", "studio", "Studio API", "native", "Native API"),
                     Map.of(),
-                    Map.of(ApiType.PROXY, Set.of("orders"), ApiType.MCP_PROXY, Set.of("studio"), ApiType.NATIVE, Set.of("native"))
+                    Map.of(ApiType.PROXY, Set.of("orders"), ApiType.MCP_PROXY, Set.of("studio"), ApiType.NATIVE, Set.of("native")),
+                    Optional.empty()
                 )
             );
         }
@@ -1765,7 +1782,15 @@ class GetFilterValuesUseCaseTest {
 
     private void givenReadableApis(String... apiIds) {
         when(contextLoader.load(any(), any(), any())).thenReturn(
-            new AnalyticsQueryContext(AUDIT_INFO, new ExecutionContext("org-id", "env-id"), Set.of(apiIds), Map.of(), Map.of(), Map.of())
+            new AnalyticsQueryContext(
+                AUDIT_INFO,
+                new ExecutionContext("org-id", "env-id"),
+                Set.of(apiIds),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Optional.empty()
+            )
         );
     }
 
