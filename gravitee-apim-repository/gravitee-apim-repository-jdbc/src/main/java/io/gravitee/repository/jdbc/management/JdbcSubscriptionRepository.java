@@ -26,9 +26,11 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.hasText;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.SubscriptionUniqueActiveKey;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
@@ -52,10 +54,17 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.CustomLog;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author njt
@@ -63,6 +72,11 @@ import org.springframework.stereotype.Repository;
 @CustomLog
 @Repository
 public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subscription, String> implements SubscriptionRepository {
+
+    /**
+     * {@link SubscriptionUniqueActiveKey} of the subscription, {@code NULL} when it is not active.
+     */
+    public static final String UNIQUE_ACTIVE_KEY_COLUMN = "unique_active_key";
 
     private static final JdbcHelper.ChildAdder<Subscription> METADATA_ADDER = (Subscription parent, ResultSet rs) -> {
         Map<String, String> metadata = parent.getMetadata();
@@ -77,10 +91,22 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     private final String plansTableName;
     private final String metadataTableName;
 
-    JdbcSubscriptionRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    /**
+     * Runs the writes of a subscription in a savepoint of the caller's transaction (in a transaction of their own
+     * otherwise). On PostgreSQL a failed statement aborts the whole transaction: without the savepoint, a subscription
+     * refused by the unique index would make every later statement of the request fail, and its commit too.
+     */
+    private final TransactionTemplate savepoint;
+
+    JdbcSubscriptionRepository(
+        @Value("${management.jdbc.prefix:}") String tablePrefix,
+        @Lazy @Autowired @Qualifier("graviteeTransactionManager") PlatformTransactionManager transactionManager
+    ) {
         super(tablePrefix, "subscriptions");
         plansTableName = getTableNameFor("plans");
         metadataTableName = getTableNameFor("subscriptions_metadata");
+        savepoint = new TransactionTemplate(transactionManager);
+        savepoint.setPropagationBehavior(TransactionDefinition.PROPAGATION_NESTED);
     }
 
     @Override
@@ -117,6 +143,8 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             .addColumn("origin", Types.NVARCHAR, String.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, SubscriptionReferenceType.class)
+            // Written on every insert and update, never read back: not part of the repository model.
+            .addMirroredColumn(UNIQUE_ACTIVE_KEY_COLUMN, Types.NVARCHAR, SubscriptionUniqueActiveKey::of)
             .build();
     }
 
@@ -124,9 +152,17 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     public Subscription create(Subscription subscription) throws TechnicalException {
         log.debug("JdbcSubscriptionRepository.create({})", subscription);
         try {
-            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(subscription));
-            storeMetadata(subscription, false);
+            savepoint.executeWithoutResult(status -> {
+                writeSubscription(getOrm().buildInsertPreparedStatementCreator(subscription));
+                storeMetadata(subscription, false);
+            });
             return findById(subscription.getId()).orElse(null);
+        } catch (final UniqueConstraintViolation ex) {
+            // The insert also fails when the id is already used, a conflict callers cannot act upon.
+            if (findById(subscription.getId()).isPresent()) {
+                throw new TechnicalException("Failed to create application", ex.getCause());
+            }
+            throw activeSubscriptionConflict(subscription, ex.getCause());
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to create application", ex);
         }
@@ -139,15 +175,55 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             throw new IllegalStateException("Failed to update null");
         }
         try {
-            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(subscription, subscription.getId()));
-            storeMetadata(subscription, true);
+            savepoint.executeWithoutResult(status -> {
+                writeSubscription(getOrm().buildUpdatePreparedStatementCreator(subscription, subscription.getId()));
+                storeMetadata(subscription, true);
+            });
             return findById(subscription.getId()).orElseThrow(() ->
                 new IllegalStateException(format("No subscription found with id [%s]", subscription.getId()))
             );
+        } catch (final UniqueConstraintViolation ex) {
+            // The id is not updated: only the unique active key can conflict.
+            throw activeSubscriptionConflict(subscription, ex.getCause());
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to update subscription", ex);
+        }
+    }
+
+    /**
+     * Spring translates a unique constraint violation into its {@link org.springframework.dao.DuplicateKeyException}
+     * from the SQL state and vendor code of each database, unlike the other integrity violations (NOT NULL, foreign
+     * key), which stay generic {@link org.springframework.dao.DataIntegrityViolationException}s. Only the statement
+     * writing the subscription row is concerned: a conflict on its metadata is not a duplicate subscription.
+     */
+    private void writeSubscription(PreparedStatementCreator statement) {
+        try {
+            jdbcTemplate.update(statement);
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            throw new UniqueConstraintViolation(e);
+        }
+    }
+
+    private static DuplicateKeyException activeSubscriptionConflict(Subscription subscription, Throwable cause) {
+        return new DuplicateKeyException(
+            format(
+                "Application [%s] already has an active subscription to plan [%s]",
+                subscription.getApplication(),
+                subscription.getPlan()
+            ),
+            cause
+        );
+    }
+
+    /**
+     * Thrown out of the savepoint, which it rolls back.
+     */
+    private static class UniqueConstraintViolation extends RuntimeException {
+
+        UniqueConstraintViolation(org.springframework.dao.DuplicateKeyException cause) {
+            super(cause);
         }
     }
 
