@@ -61,11 +61,29 @@ public class FlowConverter {
         flow.setName(model.getName());
         final PathOperator pathOperator = new PathOperator();
         pathOperator.setPath(model.getPath());
-        pathOperator.setOperator(Operator.valueOf(model.getOperator().name()));
+        // A flow created or edited in the V4 Policy Studio is stored with its selector in the 'selectors' column
+        // and leaves these legacy V2 columns unset. Default the operator to STARTS_WITH, matching the V4 read path
+        // (FlowAdapter toModel), so an API in this state still converts instead of failing the whole API list.
+        // Such a row is inconsistent with the V2 model (for example a half-converted V4->V2 rollback), so surface
+        // it in the logs rather than silently dropping the V4 selectors.
+        if (model.getOperator() == null) {
+            log.warn(
+                "Flow [{}] on reference {}/{} has no V2 path operator (selectors-based V4 flow row); defaulting to STARTS_WITH. " +
+                    "The API it belongs to may be inconsistent (e.g. half-converted by a failed rollback).",
+                model.getId(),
+                model.getReferenceType(),
+                model.getReferenceId()
+            );
+            pathOperator.setOperator(Operator.STARTS_WITH);
+        } else {
+            pathOperator.setOperator(Operator.valueOf(model.getOperator().name()));
+        }
         flow.setPathOperator(pathOperator);
         flow.setPre(model.getPre().stream().map(this::toDefinitionStep).filter(Objects::nonNull).collect(Collectors.toList()));
         flow.setPost(model.getPost().stream().map(this::toDefinitionStep).filter(Objects::nonNull).collect(Collectors.toList()));
-        flow.setConsumers(model.getConsumers().stream().map(this::toDefinitionConsumer).collect(Collectors.toList()));
+        if (model.getConsumers() != null) {
+            flow.setConsumers(model.getConsumers().stream().map(this::toDefinitionConsumer).collect(Collectors.toList()));
+        }
         return flow;
     }
 
