@@ -1149,6 +1149,123 @@ class RollbackApiUseCaseTest {
         }
 
         @Test
+        void should_refuse_rollback_when_plans_are_missing_without_changing_the_api() throws JsonProcessingException {
+            // Given
+            var existingV4Api = apiV4().build();
+            apiCrudService.update(ApiAdapter.INSTANCE.toCoreModel(existingV4Api));
+
+            var v4IndexableApi = IndexableApi.builder()
+                .api(ApiAdapter.INSTANCE.toCoreModel(existingV4Api))
+                .primaryOwner(apiPrimaryOwnerDomainService.getApiPrimaryOwner(ORGANIZATION_ID, existingV4Api.getId()))
+                .build();
+            indexer.initWith(List.of(v4IndexableApi));
+
+            // The current V4 API has one plan that will NOT be present in the V2 definition we roll back to.
+            givenExistingPlan(
+                PlanFixtures.aPlanHttpV4()
+                    .toBuilder()
+                    .id("plan-not-in-v2-definition")
+                    .referenceId(existingV4Api.getId())
+                    .name("plan-current-name")
+                    .build()
+            );
+            flowCrudService.saveApiFlows(
+                existingV4Api.getId(),
+                List.of(io.gravitee.definition.model.v4.flow.Flow.builder().name("v4-api-flow").build())
+            );
+
+            // The V2 deployment to roll back to references a plan that has been removed while the API was V4.
+            var eventV2ApiDefinition = io.gravitee.definition.model.Api.builder()
+                .id(existingV4Api.getId())
+                .name("api-previous-name")
+                .version("api-previous-version")
+                .definitionVersion(DefinitionVersion.V2)
+                .proxy(
+                    Proxy.builder()
+                        .virtualHosts(List.of(new VirtualHost("/api-previous-path")))
+                        .groups(
+                            Set.of(
+                                EndpointGroup.builder()
+                                    .name("default-endpoint")
+                                    .endpoints(Set.of(Endpoint.builder().target("https://api.gravitee.io/echo-v2").build()))
+                                    .build()
+                            )
+                        )
+                        .build()
+                )
+                .plans(
+                    Map.of(
+                        // This plan id still exists in the V4 API, so it must NOT be reported as missing
+                        "plan-not-in-v2-definition",
+                        io.gravitee.definition.model.Plan.builder()
+                            .id("plan-not-in-v2-definition")
+                            .name("plan-current-name")
+                            .status("PUBLISHED")
+                            .security("KEY_LESS")
+                            .build(),
+                        // This plan id exists in the V2 deployment event but was deleted while the API was V4
+                        "plan-to-removed-plan",
+                        io.gravitee.definition.model.Plan.builder()
+                            .id("plan-to-removed-plan")
+                            .name("plan-previous-name")
+                            .status("PUBLISHED")
+                            .security("KEY_LESS")
+                            .build()
+                    )
+                )
+                .build();
+
+            var apiRepositoryModel = io.gravitee.repository.management.model.Api.builder()
+                .id(eventV2ApiDefinition.getId())
+                .name(eventV2ApiDefinition.getName())
+                .version(eventV2ApiDefinition.getVersion())
+                .definitionVersion(DefinitionVersion.V2)
+                .visibility(io.gravitee.repository.management.model.Visibility.PUBLIC)
+                .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(eventV2ApiDefinition))
+                .build();
+
+            var event = Event.builder()
+                .id("rollback-event-id")
+                .type(EventType.PUBLISH_API)
+                .environments(Set.of(ENVIRONMENT_ID))
+                .payload(GraviteeJacksonMapper.getInstance().writeValueAsString(apiRepositoryModel))
+                .build();
+            eventQueryService.initWith(List.of(event));
+
+            // When
+            var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO)));
+
+            // Then: the rollback is refused and the message names the plans that were removed
+            // ValidationDomainException maps to a 400 - a deleted plan is a normal user-correctable condition,
+            // not the 500 an IllegalStateException would produce.
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+            assertThat(throwable).hasMessage("Cannot rollback plans because some plans have been removed: [plan-to-removed-plan]");
+            assertThat(((ValidationDomainException) throwable).getTechnicalCode()).isEqualTo("api.rollback.plans_removed");
+
+            // And the API is left exactly as it was: still V4, same flows and same search index entry
+            var storedApi = apiCrudService.get(existingV4Api.getId());
+            assertSoftly(softly -> {
+                softly.assertThat(storedApi.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
+                softly.assertThat(storedApi.getName()).isEqualTo("api-name");
+                softly.assertThat(storedApi.getVersion()).isEqualTo("1.0.0");
+            });
+
+            assertThat(flowCrudService.getApiV4Flows(existingV4Api.getId())).map(AbstractFlow::getName).containsOnly("v4-api-flow");
+            assertThat(flowCrudService.getApiV2Flows(existingV4Api.getId())).isEmpty();
+
+            var indexedApi = indexer
+                .storage()
+                .stream()
+                .filter(item -> item.getId().equals(existingV4Api.getId()))
+                .findFirst()
+                .orElseThrow();
+            assertThat(((IndexableApi) indexedApi).getApi().getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
+
+            // And no rollback audit log was created
+            assertThat(auditCrudService.storage()).isEmpty();
+        }
+
+        @Test
         void should_delete_v4_api_index_and_create_v2_api_index_during_rollback() throws JsonProcessingException {
             // Given
             var existingV4Api = apiV4().build();
