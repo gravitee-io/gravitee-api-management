@@ -62,11 +62,16 @@ public class FlowConverter {
         flow.setName(model.getName());
         final PathOperator pathOperator = new PathOperator();
         pathOperator.setPath(model.getPath());
-        pathOperator.setOperator(Operator.valueOf(model.getOperator().name()));
+        // A flow created or edited in the V4 Policy Studio is stored with its selector in the 'selectors' column
+        // and leaves these legacy V2 columns unset. Default the operator to STARTS_WITH, matching the V4 read path
+        // (FlowAdapter toModel), so an API in this state still converts instead of failing the whole API list.
+        pathOperator.setOperator(model.getOperator() == null ? Operator.STARTS_WITH : Operator.valueOf(model.getOperator().name()));
         flow.setPathOperator(pathOperator);
         flow.setPre(model.getPre().stream().map(this::toDefinitionStep).filter(Objects::nonNull).collect(Collectors.toList()));
         flow.setPost(model.getPost().stream().map(this::toDefinitionStep).filter(Objects::nonNull).collect(Collectors.toList()));
-        flow.setConsumers(model.getConsumers().stream().map(this::toDefinitionConsumer).collect(Collectors.toList()));
+        if (model.getConsumers() != null) {
+            flow.setConsumers(model.getConsumers().stream().map(this::toDefinitionConsumer).collect(Collectors.toList()));
+        }
         return flow;
     }
 
