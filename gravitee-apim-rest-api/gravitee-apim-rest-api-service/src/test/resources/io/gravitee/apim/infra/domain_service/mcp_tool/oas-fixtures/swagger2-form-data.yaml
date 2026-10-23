@@ -1,0 +1,122 @@
+swagger: '2.0'
+info:
+  title: Legacy forms
+  version: '1.0'
+parameters:
+  Token:
+    in: formData
+    name: token
+    type: string
+    required: true
+paths:
+  /login:
+    parameters:
+      - in: formData
+        name: tenant
+        type: string
+        required: true
+    post:
+      operationId: login
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - in: formData
+          name: username
+          type: string
+          required: true
+        - in: formData
+          name: age
+          type: integer
+          format: int64
+          description: Age in years
+          default: 18
+        - in: formData
+          name: role
+          type: string
+          enum: [admin, user]
+        - in: formData
+          name: tags
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+        - in: query
+          name: dryRun
+          type: boolean
+      responses:
+        '200':
+          description: OK
+  /upload:
+    post:
+      operationId: upload
+      consumes:
+        - multipart/form-data
+      parameters:
+        - in: formData
+          name: file
+          type: file
+          required: true
+      responses:
+        '200':
+          description: OK
+  /notes:
+    post:
+      operationId: noConsumes
+      parameters:
+        - in: formData
+          name: note
+          type: string
+          required: true
+      responses:
+        '200':
+          description: OK
+  /documents:
+    post:
+      operationId: fileInForm
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - in: formData
+          name: doc
+          type: file
+          description: The document
+      responses:
+        '200':
+          description: OK
+  /accounts:
+    parameters:
+      - in: formData
+        name: id
+        type: string
+    post:
+      operationId: overridePathLevel
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - in: formData
+          name: id
+          type: integer
+      responses:
+        '200':
+          description: OK
+  /tokens:
+    post:
+      operationId: refForm
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - $ref: '#/parameters/Token'
+      responses:
+        '200':
+          description: OK
+  /drafts:
+    post:
+      operationId: emptyConsumes
+      consumes: []
+      parameters:
+        - in: formData
+          name: draft
+          type: string
+      responses:
+        '200':
+          description: OK

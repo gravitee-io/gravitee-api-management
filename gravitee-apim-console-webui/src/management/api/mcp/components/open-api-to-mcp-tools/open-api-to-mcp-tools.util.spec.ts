@@ -609,6 +609,461 @@ paths:
     });
   });
 
+  describe('request body selection', () => {
+    const requestBodiesSpec = `
+openapi: 3.0.3
+info:
+  title: Request bodies
+  version: '1.0'
+paths:
+  /form-only:
+    post:
+      operationId: formOnly
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '204':
+          description: No content
+  /form-then-json:
+    post:
+      operationId: formThenJson
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                fromForm:
+                  type: string
+          application/json:
+            schema:
+              type: object
+              properties:
+                fromJson:
+                  type: string
+      responses:
+        '204':
+          description: No content
+  /optional-json:
+    post:
+      operationId: optionalJson
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '204':
+          description: No content
+  /json-with-charset:
+    post:
+      operationId: jsonWithCharset
+      requestBody:
+        content:
+          application/json; charset=utf-8:
+            schema:
+              type: object
+      responses:
+        '204':
+          description: No content
+  /merge-patch:
+    patch:
+      operationId: mergePatch
+      requestBody:
+        content:
+          application/merge-patch+json:
+            schema:
+              type: object
+      responses:
+        '204':
+          description: No content
+  /upper-case-json:
+    post:
+      operationId: upperCaseJson
+      requestBody:
+        content:
+          Application/JSON:
+            schema:
+              type: object
+      responses:
+        '204':
+          description: No content
+  /multipart:
+    post:
+      operationId: multipart
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+      responses:
+        '204':
+          description: No content
+  /xml-only:
+    post:
+      operationId: xmlOnly
+      requestBody:
+        content:
+          application/xml:
+            schema:
+              type: object
+      responses:
+        '204':
+          description: No content
+`;
+
+    type InputSchema = { properties: Record<string, { properties?: Record<string, unknown> }>; required: string[] };
+
+    async function convertTool(name: string): Promise<{ inputSchema: InputSchema; contentType?: string }> {
+      const { result } = await convertOpenApiToMcpTools(requestBodiesSpec);
+      const tool = result.find(candidate => candidate.toolDefinition.name === name);
+      return { inputSchema: tool.toolDefinition.inputSchema as InputSchema, contentType: tool.gatewayMapping.http.contentType };
+    }
+
+    it('takes bodySchema and contentType from the form media type when the body is form only', async () => {
+      const { inputSchema, contentType } = await convertTool('formOnly');
+
+      expect(inputSchema.properties['bodySchema'].properties).toHaveProperty('name');
+      expect(contentType).toEqual('application/x-www-form-urlencoded');
+    });
+
+    it('lists bodySchema as required when the request body is required', async () => {
+      const { inputSchema } = await convertTool('formOnly');
+
+      expect(inputSchema.required).toContain('bodySchema');
+    });
+
+    it('does not list bodySchema as required when the request body is optional', async () => {
+      const { inputSchema } = await convertTool('optionalJson');
+
+      expect(inputSchema.properties).toHaveProperty('bodySchema');
+      expect(inputSchema.required).not.toContain('bodySchema');
+    });
+
+    it('prefers the JSON media type over form for bodySchema and contentType', async () => {
+      const { inputSchema, contentType } = await convertTool('formThenJson');
+
+      expect(inputSchema.properties['bodySchema'].properties).toHaveProperty('fromJson');
+      expect(contentType).toEqual('application/json');
+    });
+
+    it.each([
+      ['jsonWithCharset', 'application/json; charset=utf-8'],
+      ['mergePatch', 'application/merge-patch+json'],
+      ['upperCaseJson', 'Application/JSON'],
+    ])('accepts the JSON media type of %s', async (name, expectedContentType) => {
+      const { inputSchema, contentType } = await convertTool(name);
+
+      expect(inputSchema.properties).toHaveProperty('bodySchema');
+      expect(contentType).toEqual(expectedContentType);
+    });
+
+    it.each([
+      ['multipart', 'multipart/form-data'],
+      ['xmlOnly', 'application/xml'],
+    ])('keeps contentType without bodySchema for %s, which the gateway cannot send', async (name, expectedContentType) => {
+      const { inputSchema, contentType } = await convertTool(name);
+
+      expect(inputSchema.properties).not.toHaveProperty('bodySchema');
+      expect(inputSchema.required).not.toContain('bodySchema');
+      expect(contentType).toEqual(expectedContentType);
+    });
+
+    it('lists only bodySchema as required for a required Swagger 2.0 body parameter', async () => {
+      const { result } = await convertOpenApiToMcpTools(`
+swagger: '2.0'
+info:
+  title: Legacy Orders
+  version: '1.0'
+paths:
+  /orders:
+    post:
+      operationId: placeOrder
+      parameters:
+        - in: body
+          name: order
+          required: true
+          schema:
+            type: object
+      responses:
+        '201':
+          description: Created
+`);
+
+      expect((result[0].toolDefinition.inputSchema as InputSchema).required).toEqual(['bodySchema']);
+    });
+  });
+
+  describe('Swagger 2.0 formData conversion', () => {
+    const formDataSpec = `
+swagger: '2.0'
+info:
+  title: Legacy forms
+  version: '1.0'
+parameters:
+  Token:
+    in: formData
+    name: token
+    type: string
+    required: true
+paths:
+  /login:
+    parameters:
+      - in: formData
+        name: tenant
+        type: string
+        required: true
+    post:
+      operationId: login
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - in: formData
+          name: username
+          type: string
+          required: true
+        - in: formData
+          name: age
+          type: integer
+          format: int64
+          description: Age in years
+          default: 18
+        - in: formData
+          name: role
+          type: string
+          enum: [admin, user]
+        - in: formData
+          name: tags
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+        - in: query
+          name: dryRun
+          type: boolean
+      responses:
+        '200':
+          description: OK
+  /upload:
+    post:
+      operationId: upload
+      consumes:
+        - multipart/form-data
+      parameters:
+        - in: formData
+          name: file
+          type: file
+          required: true
+      responses:
+        '200':
+          description: OK
+  /notes:
+    post:
+      operationId: noConsumes
+      parameters:
+        - in: formData
+          name: note
+          type: string
+          required: true
+      responses:
+        '200':
+          description: OK
+  /documents:
+    post:
+      operationId: fileInForm
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - in: formData
+          name: doc
+          type: file
+          description: The document
+      responses:
+        '200':
+          description: OK
+  /accounts:
+    parameters:
+      - in: formData
+        name: id
+        type: string
+    post:
+      operationId: overridePathLevel
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - in: formData
+          name: id
+          type: integer
+      responses:
+        '200':
+          description: OK
+  /tokens:
+    post:
+      operationId: refForm
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - $ref: '#/parameters/Token'
+      responses:
+        '200':
+          description: OK
+  /drafts:
+    post:
+      operationId: emptyConsumes
+      consumes: []
+      parameters:
+        - in: formData
+          name: draft
+          type: string
+      responses:
+        '200':
+          description: OK
+`;
+
+    type ToolSchema = {
+      properties: Record<string, Record<string, unknown> & { properties?: Record<string, Record<string, unknown>>; required?: string[] }>;
+      required: string[];
+    };
+
+    async function convertFormDataTool(spec: string, name: string) {
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+      expect(errors).toHaveLength(0);
+      const tool = result.find(candidate => candidate.toolDefinition.name === name);
+      return { inputSchema: tool.toolDefinition.inputSchema as ToolSchema, http: tool.gatewayMapping.http };
+    }
+
+    it('converts form fields into a form bodySchema, path-level fields first', async () => {
+      const { inputSchema, http } = await convertFormDataTool(formDataSpec, 'login');
+
+      expect(http.contentType).toEqual('application/x-www-form-urlencoded');
+      expect(inputSchema.properties['bodySchema']).toEqual({
+        type: 'object',
+        required: ['tenant', 'username'],
+        properties: {
+          tenant: { type: 'string' },
+          username: { type: 'string' },
+          age: { type: 'integer', format: 'int64', description: 'Age in years', default: 18 },
+          role: { type: 'string', enum: ['admin', 'user'] },
+          tags: { type: 'array', items: { type: 'string' } },
+        },
+      });
+      expect(Object.keys(inputSchema.properties['bodySchema'].properties)).toEqual(['tenant', 'username', 'age', 'role', 'tags']);
+      expect(inputSchema.required).toEqual(['bodySchema']);
+      expect(inputSchema.properties).toHaveProperty('dryRun');
+      expect(http.queryParams).toEqual(['dryRun']);
+    });
+
+    it('lets operation form data override path-level form data with the same name', async () => {
+      const { inputSchema } = await convertFormDataTool(formDataSpec, 'overridePathLevel');
+
+      expect(inputSchema.properties['bodySchema'].properties['id']).toEqual({ type: 'integer', format: 'int32' });
+    });
+
+    it('sends file fields as binary strings', async () => {
+      const { inputSchema } = await convertFormDataTool(formDataSpec, 'fileInForm');
+
+      expect(inputSchema.properties['bodySchema'].properties['doc']).toEqual({
+        type: 'string',
+        format: 'binary',
+        description: 'The document',
+      });
+      expect(inputSchema.required).toEqual([]);
+    });
+
+    it.each(['upload', 'noConsumes', 'emptyConsumes'])('defaults %s to multipart, which the gateway cannot send', async name => {
+      const { inputSchema, http } = await convertFormDataTool(formDataSpec, name);
+
+      expect(http.contentType).toEqual('multipart/form-data');
+      expect(inputSchema.properties).not.toHaveProperty('bodySchema');
+      expect(inputSchema.required).toEqual([]);
+    });
+
+    it('resolves form data defined under #/parameters', async () => {
+      const { inputSchema, http } = await convertFormDataTool(formDataSpec, 'refForm');
+
+      expect(http.contentType).toEqual('application/x-www-form-urlencoded');
+      expect(inputSchema.properties['bodySchema']).toEqual({
+        type: 'object',
+        required: ['token'],
+        properties: { token: { type: 'string' } },
+      });
+      expect(inputSchema.required).toEqual(['bodySchema']);
+    });
+
+    it('resolves a body parameter defined under #/parameters', async () => {
+      const { inputSchema, http } = await convertFormDataTool(
+        `
+swagger: '2.0'
+info:
+  title: Legacy orders
+  version: '1.0'
+parameters:
+  OrderBody:
+    in: body
+    name: order
+    required: true
+    schema:
+      type: object
+      properties:
+        sku:
+          type: string
+paths:
+  /orders:
+    post:
+      operationId: placeOrder
+      parameters:
+        - $ref: '#/parameters/OrderBody'
+      responses:
+        '201':
+          description: Created
+`,
+        'placeOrder',
+      );
+
+      expect(http.contentType).toEqual('application/json');
+      expect(inputSchema.properties['bodySchema'].properties).toHaveProperty('sku');
+      expect(inputSchema.required).toEqual(['bodySchema']);
+    });
+
+    it('uses the spec-level consumes', async () => {
+      const { inputSchema, http } = await convertFormDataTool(
+        `
+swagger: '2.0'
+info:
+  title: Legacy form with global consumes
+  version: '1.0'
+consumes:
+  - application/x-www-form-urlencoded
+paths:
+  /subscribe:
+    post:
+      operationId: subscribe
+      parameters:
+        - in: formData
+          name: email
+          type: string
+          required: true
+      responses:
+        '200':
+          description: OK
+`,
+        'subscribe',
+      );
+
+      expect(http.contentType).toEqual('application/x-www-form-urlencoded');
+      expect(inputSchema.properties['bodySchema'].required).toEqual(['email']);
+      expect(inputSchema.required).toEqual(['bodySchema']);
+    });
+  });
+
   describe('outputSchema extraction', () => {
     it('extracts schema from 200 response with application/json content', async () => {
       const spec = JSON.stringify({
