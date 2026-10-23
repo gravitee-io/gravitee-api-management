@@ -270,6 +270,9 @@ paths:
             operationId: getApiLinks
             description: |
                 Get all the links (internal and external) to be displayed in the detail of the API.
+
+                The API must belong to the current environment, be published and be accessible to the current user,
+                otherwise a 404 will be returned.
             security:
                 - {}
                 - BasicAuth: []
@@ -281,6 +284,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/LinksResponse"
+                404:
+                    $ref: "#/components/responses/APINotFoundError"
                 500:
                     $ref: "#/components/responses/InternalServerError"
     /apis/{apiId}/metrics:
@@ -296,7 +301,8 @@ paths:
                   * number of hits during the last 7 days
                   * health ratio over the last week
 
-                This API has to be accessible by the current user, otherwise a 404 will be returned.
+                The API must belong to the current environment, be published and be accessible to the current user,
+                otherwise a 404 will be returned.
             operationId: getApiMetricsByApiId
             security:
                 - {}

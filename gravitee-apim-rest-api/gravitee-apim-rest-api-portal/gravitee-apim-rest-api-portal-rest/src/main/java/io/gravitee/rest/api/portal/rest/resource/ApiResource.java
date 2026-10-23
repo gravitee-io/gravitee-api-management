@@ -188,6 +188,10 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getApiLinks(@HeaderParam("Accept-Language") String acceptLang, @PathParam("apiId") String apiId) {
+        if (!accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
+            throw new ApiNotFoundException(apiId);
+        }
+
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         Map<String, List<CategorizedLinks>> apiLinks = new HashMap<>();
         pageService
