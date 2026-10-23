@@ -16,7 +16,7 @@
 import angular from 'angular';
 import { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types';
 import { dereference, validate } from '@scalar/openapi-parser';
-import { isEmpty, snakeCase } from 'lodash';
+import { isEmpty, omit, snakeCase } from 'lodash';
 
 import { MCPTool, MCPToolAnnotations, MCPToolDefinition, MCPToolGatewayMapping } from '../../../../../entities/entrypoint/mcp';
 import { loadYaml } from '../../../../../util/yaml';
@@ -118,6 +118,12 @@ type ResponseSchema = {
   headers: Record<string, SchemaObject>;
 };
 
+type RequestBodySelection = {
+  contentType: string;
+  bodySchema: SchemaObject | null;
+  isRequired: boolean;
+};
+
 type ErrorObject = {
   key: string;
   message: string;
@@ -129,38 +135,123 @@ export type OpenApiToMcpToolsResult = {
   serverDescription?: string;
 };
 
-function transformSwagger2ToOpenApi3(parsedSpec: any): void {
-  for (const pathItem of Object.values(parsedSpec.paths || {})) {
-    for (const operation of Object.values(pathItem || {})) {
-      if (!operation?.parameters) continue;
+const HTTP_METHODS = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head'];
 
-      const bodyParam = operation.parameters.find(p => p.in === 'body');
+// Swagger 2.0 keys that describe a parameter itself rather than the schema of its value.
+const SWAGGER2_PARAMETER_ONLY_KEYS = ['in', 'name', 'required', 'collectionFormat', 'allowEmptyValue'];
+
+type Swagger2Parameter = {
+  in: string;
+  name: string;
+  required?: boolean;
+  type?: string;
+  format?: string;
+  schema?: SchemaObject;
+  [keyword: string]: unknown;
+};
+
+type Swagger2Reference = { $ref: string };
+
+type Swagger2ParameterOrReference = Swagger2Parameter | Swagger2Reference;
+
+type Swagger2Operation = {
+  parameters?: Swagger2ParameterOrReference[];
+  consumes?: string[];
+  requestBody?: RequestBodyObject;
+};
+
+type Swagger2PathItem = {
+  parameters?: Swagger2ParameterOrReference[];
+  [method: string]: Swagger2Operation | Swagger2ParameterOrReference[] | undefined;
+};
+
+function isFormDataParameter(param: Swagger2ParameterOrReference): param is Swagger2Parameter {
+  return 'in' in param && param.in === 'formData';
+}
+
+function isBodyParameter(param: Swagger2ParameterOrReference): param is Swagger2Parameter {
+  return 'in' in param && param.in === 'body';
+}
+
+// The transform runs before dereferencing, so a parameter defined under #/parameters is resolved here to be recognized.
+function resolveParameter(
+  param: Swagger2ParameterOrReference,
+  definitions: Record<string, Swagger2Parameter> | undefined,
+): Swagger2ParameterOrReference {
+  const ref = '$ref' in param ? param.$ref : undefined;
+  return typeof ref === 'string' && ref.startsWith('#/parameters/') ? (definitions?.[ref.slice('#/parameters/'.length)] ?? param) : param;
+}
+
+function toFormFieldSchema(param: Swagger2Parameter): SchemaObject {
+  const schema = omit(param, SWAGGER2_PARAMETER_ONLY_KEYS) as SchemaObject;
+  if (param.type === 'file') {
+    return { ...schema, type: 'string', format: 'binary' };
+  }
+  // swagger-parser gives an integer field without a format the int32 default.
+  return param.type === 'integer' && !param.format ? { ...schema, format: 'int32' } : schema;
+}
+
+// Mirrors swagger-parser, which the REST API converter relies on, so both produce the same tools: the fields become one
+// object schema, sent as each of the given media types.
+function convertFormDataToRequestBody(formParams: Swagger2Parameter[], consumes: string[]): RequestBodyObject {
+  const required = formParams.filter(param => param.required).map(param => param.name);
+  const schema = {
+    type: 'object',
+    ...(required.length > 0 ? { required } : {}),
+    properties: Object.fromEntries(formParams.map(param => [param.name, toFormFieldSchema(param)])),
+  } as SchemaObject;
+  return {
+    required: required.length > 0,
+    content: Object.fromEntries(consumes.map(mediaType => [mediaType, { schema }])),
+  };
+}
+
+function transformSwagger2ToOpenApi3(parsedSpec: any): void {
+  const definitions: Record<string, Swagger2Parameter> | undefined = parsedSpec.parameters;
+  for (const pathItem of Object.values<Swagger2PathItem>(parsedSpec.paths || {})) {
+    const pathLevelFormParams = (pathItem?.parameters || []).map(param => resolveParameter(param, definitions)).filter(isFormDataParameter);
+
+    for (const method of HTTP_METHODS) {
+      const operation = pathItem?.[method];
+      if (!operation || Array.isArray(operation)) continue;
+      const parameters = (operation.parameters || []).map(param => resolveParameter(param, definitions));
+
+      const bodyParam = parameters.find(isBodyParameter);
       if (bodyParam && 'schema' in bodyParam) {
         operation.requestBody = {
+          required: bodyParam.required === true,
           content: {
             'application/json': {
               schema: bodyParam.schema,
             },
           },
         };
+        operation.parameters = parameters.filter(p => p !== bodyParam);
       }
+
+      const formParams = mergeParameters(pathLevelFormParams, parameters.filter(isFormDataParameter));
+      if (formParams.length > 0) {
+        const consumes = [operation.consumes, parsedSpec.consumes].find(mediaTypes => mediaTypes?.length > 0) ?? ['multipart/form-data'];
+        operation.requestBody = convertFormDataToRequestBody(formParams, consumes);
+        operation.parameters = parameters.filter(p => !isFormDataParameter(p));
+      }
+    }
+
+    if (pathItem?.parameters) {
+      pathItem.parameters = pathItem.parameters.filter(param => !isFormDataParameter(resolveParameter(param, definitions)));
     }
   }
   parsedSpec.openapi = '3.0.0';
   delete parsedSpec.swagger;
 }
 
-function determineContentType(operation: OperationObject): string | null {
-  const requestBody = operation.requestBody as RequestBodyObject;
-  const content = requestBody?.content;
-  if (!content) return null;
-  const types = Object.keys(content);
-  return types.length > 0 ? types[0] : 'application/json';
-}
-
-function generateGatewayMapping(op: OperationObject, method: string, path: string, paramSchema: ParameterSchema): MCPToolGatewayMapping {
+function generateGatewayMapping(
+  method: string,
+  path: string,
+  paramSchema: ParameterSchema,
+  contentType: string | undefined,
+): MCPToolGatewayMapping {
   const transformedPath = path.replace(/{([a-zA-Z0-9_-]+)}/g, ':$1');
-  const contentType = determineContentType(op);
 
   return {
     http: {
@@ -175,14 +266,12 @@ function generateGatewayMapping(op: OperationObject, method: string, path: strin
 }
 
 // Operation-level params override path-level params with the same (in, name) key (OpenAPI spec §4.8.9).
-function mergeParameters(
-  pathLevelParams: (ParameterObject | ReferenceObject)[],
-  operationParams: (ParameterObject | ReferenceObject)[],
-): (ParameterObject | ReferenceObject)[] {
-  const merged = new Map<string, ParameterObject | ReferenceObject>();
+function mergeParameters<T>(pathLevelParams: T[], operationParams: T[]): T[] {
+  const merged = new Map<string, T>();
 
-  for (const param of [...pathLevelParams, ...operationParams] as ParameterObject[]) {
-    merged.set(`${param.in}:${param.name}`, param);
+  for (const param of [...pathLevelParams, ...operationParams]) {
+    const { in: location, name } = param as ParameterObject;
+    merged.set(`${location}:${name}`, param);
   }
 
   return Array.from(merged.values());
@@ -231,14 +320,32 @@ function extractParameterSchema(parameters: (ParameterObject | ReferenceObject)[
   };
 }
 
-function extractRequestBodySchema(requestBody?: RequestBodyObject | ReferenceObject): SchemaObject | null {
-  if (!requestBody) return null;
+function extractMediaTypeEssence(mediaType: string): string {
+  return mediaType.split(';')[0].trim().toLowerCase();
+}
 
-  const typedRequestBody = requestBody as RequestBodyObject;
-  const jsonSchema = typedRequestBody.content?.['application/json']?.schema as SchemaObject;
-  if (!jsonSchema) return null;
+function isJsonMediaType(mediaType: string): boolean {
+  const essence = extractMediaTypeEssence(mediaType);
+  return essence === 'application/json' || essence.endsWith('+json');
+}
 
-  return jsonSchema;
+function isFormUrlEncodedMediaType(mediaType: string): boolean {
+  return extractMediaTypeEssence(mediaType) === 'application/x-www-form-urlencoded';
+}
+
+// The gateway sends a body only as JSON or form-urlencoded, so other media types get no bodySchema.
+function selectRequestBody(requestBody?: RequestBodyObject | ReferenceObject): RequestBodySelection | null {
+  const typedRequestBody = requestBody as RequestBodyObject | undefined;
+  const content = typedRequestBody?.content;
+  if (!content) return null;
+
+  const mediaTypes = Object.keys(content);
+  const sendableMediaType = mediaTypes.find(isJsonMediaType) ?? mediaTypes.find(isFormUrlEncodedMediaType);
+  return {
+    contentType: sendableMediaType ?? mediaTypes[0] ?? 'application/json',
+    bodySchema: sendableMediaType ? ((content[sendableMediaType].schema as SchemaObject) ?? null) : null,
+    isRequired: typedRequestBody.required === true,
+  };
 }
 
 function extractResponseSchema(responses?: ResponsesObject): ResponseSchema {
@@ -347,7 +454,7 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
 
     for (const [method, operation] of Object.entries(pathItem || {})) {
       // if method is not a valid HTTP method, skip it
-      if (!['get', 'post', 'put', 'delete', 'patch', 'options', 'head'].includes(method)) {
+      if (!HTTP_METHODS.includes(method)) {
         continue;
       }
 
@@ -364,7 +471,8 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
       const description = [op.summary, op.description].filter(Boolean).join('\n\n') || `API for ${method.toUpperCase()} ${path}`;
       const mergedParams = mergeParameters(pathLevelParams, op.parameters || []);
       const paramSchema = extractParameterSchema(mergedParams);
-      const bodySchema = extractRequestBodySchema(op.requestBody);
+      const requestBody = selectRequestBody(op.requestBody);
+      const bodySchema = requestBody?.bodySchema;
       const responseSchema = extractResponseSchema(op.responses);
       const annotations = extractAnnotations(op);
 
@@ -376,7 +484,7 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
           ...paramSchema.headers,
           ...(bodySchema ? { bodySchema } : {}),
         },
-        required: paramSchema.required,
+        required: bodySchema && requestBody?.isRequired ? [...paramSchema.required, 'bodySchema'] : paramSchema.required,
       };
 
       // Build merged outputSchema (similar to inputSchema)
@@ -400,7 +508,7 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
         ...(annotations ? { annotations } : {}),
       };
 
-      const gatewayMapping: MCPToolGatewayMapping = generateGatewayMapping(op, method, path, paramSchema);
+      const gatewayMapping: MCPToolGatewayMapping = generateGatewayMapping(method, path, paramSchema, requestBody?.contentType);
 
       tools.push({
         toolDefinition,

@@ -1,0 +1,18 @@
+swagger: '2.0'
+info:
+  title: Legacy form with global consumes
+  version: '1.0'
+consumes:
+  - application/x-www-form-urlencoded
+paths:
+  /subscribe:
+    post:
+      operationId: subscribe
+      parameters:
+        - in: formData
+          name: email
+          type: string
+          required: true
+      responses:
+        '200':
+          description: OK

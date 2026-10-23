@@ -1,0 +1,107 @@
+openapi: 3.0.3
+info:
+  title: Request bodies
+  version: '1.0'
+paths:
+  /form-only:
+    post:
+      operationId: formOnly
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '204':
+          description: No content
+  /form-then-json:
+    post:
+      operationId: formThenJson
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                fromForm:
+                  type: string
+          application/json:
+            schema:
+              type: object
+              properties:
+                fromJson:
+                  type: string
+      responses:
+        '204':
+          description: No content
+  /optional-json:
+    post:
+      operationId: optionalJson
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '204':
+          description: No content
+  /json-with-charset:
+    post:
+      operationId: jsonWithCharset
+      requestBody:
+        content:
+          application/json; charset=utf-8:
+            schema:
+              type: object
+      responses:
+        '204':
+          description: No content
+  /merge-patch:
+    patch:
+      operationId: mergePatch
+      requestBody:
+        content:
+          application/merge-patch+json:
+            schema:
+              type: object
+      responses:
+        '204':
+          description: No content
+  /upper-case-json:
+    post:
+      operationId: upperCaseJson
+      requestBody:
+        content:
+          Application/JSON:
+            schema:
+              type: object
+      responses:
+        '204':
+          description: No content
+  /multipart:
+    post:
+      operationId: multipart
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+      responses:
+        '204':
+          description: No content
+  /xml-only:
+    post:
+      operationId: xmlOnly
+      requestBody:
+        content:
+          application/xml:
+            schema:
+              type: object
+      responses:
+        '204':
+          description: No content
