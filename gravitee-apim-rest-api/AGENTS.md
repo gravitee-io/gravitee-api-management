@@ -55,7 +55,7 @@ Treat changes to any of these as compatibility-sensitive — call them out expli
 
 # Automation API Impact
 
-When you change a Management API v2 OpenAPI schema or a core CRD model, the mirror may need the same change. Check whether the **Automation API** must mirror the change: the triggers and the checklist live in the root `AGENTS.md` section **Automation API Sync** and `.ai/guides/automation-api-sync.md`.
+The `gravitee-apim-rest-api-automation` module, every class whose name contains `CRD` and every `model/crd/` package in this tree are owned by `@gravitee-io/gko` and `@gravitee-io/tech-lead`. Do not edit them, and do not mirror a Management API v2 schema change into them: follow the root `AGENTS.md` section **Automation API, CRD and Terraform Ownership**.
 
 # APIM Java Conventions
 
