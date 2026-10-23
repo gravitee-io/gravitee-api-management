@@ -35,6 +35,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.IntStream;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.AfterEach;
@@ -172,7 +173,8 @@ class ObservabilityFilterLabelsResourceTest extends AbstractResourceTest {
                 namesById.keySet(),
                 namesById,
                 Map.of(),
-                Map.of()
+                Map.of(),
+                Optional.empty()
             )
         );
     }
