@@ -240,16 +240,15 @@ public class GenerateApiKeyDomainService {
             return generate(auditInfo, subscription, customApiKey, federated, apiKey -> apiKey.toBuilder().id(firstSharedKeyId).build());
         } catch (ApiKeyIdAlreadyExistsException e) {
             log.debug("The shared API Key of application {} was created by another request meanwhile, reusing it", application.getId());
-            return addSubscriptionToEveryKey(apiKeyQueryService.findLatestByApplication(application.getId()), subscription).orElseThrow(
-                () ->
-                    new TechnicalDomainException(
-                        "Cannot create the shared API Key of application [" +
-                            application.getId() +
-                            "]: its id [" +
-                            firstSharedKeyId +
-                            "] is already used, but the application has no API Key",
-                        e
-                    )
+            return addSubscriptionToEveryKey(apiKeyQueryService.findByApplication(application.getId()), subscription).orElseThrow(() ->
+                new TechnicalDomainException(
+                    "Cannot create the shared API Key of application [" +
+                        application.getId() +
+                        "]: its id [" +
+                        firstSharedKeyId +
+                        "] is already used, but the application has no API Key",
+                    e
+                )
             );
         }
     }
