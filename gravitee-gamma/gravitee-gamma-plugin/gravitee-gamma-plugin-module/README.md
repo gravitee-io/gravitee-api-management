@@ -119,6 +119,7 @@ The Gamma host application is a lightweight shell that dynamically loads
 module frontends as remotes at runtime.
 
 Module frontends:
+
 - Are compiled as independent Module Federation remotes
 - Export a root React component mounted by the host
 - Share core libraries (react, react-dom, react-router-dom) with the host
@@ -157,7 +158,12 @@ type=gamma-module
 version=${project.version}
 description=An example Gamma module
 class=com.example.gamma.module.ExampleModule
+# Optional: environment (default) or account (served at /{id}, outside the environments)
+scope=environment
 ```
+
+An account module must redirect its index route to one of its pages. The module SDK finds the module's
+prefix from a known route in the address, so on the bare `/{id}` it has none and the module's links leave it.
 
 ### Security & Permissions
 

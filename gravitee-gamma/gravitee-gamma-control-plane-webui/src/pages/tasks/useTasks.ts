@@ -18,7 +18,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toTaskView } from './tasks.mapping';
 import type { TasksResponse, TaskView } from './tasks.types';
 import { useEnvironmentStore } from '../../features/environment/environment.store';
-import { getPrimaryHrid, useEnvHrid } from '../../features/environment/environment.utils';
+import { getPrimaryHrid } from '../../features/environment/environment.utils';
+import { useCurrentEnvHrid } from '../../features/environment/useCurrentEnvHrid';
 import { managementApi, request } from '../../shared/api/api-client';
 
 /**
@@ -141,7 +142,8 @@ function useTasksResponse({ poll }: { poll: boolean }): {
 }
 
 export function useTasks(): UseTasksResult {
-    const envHrid = useEnvHrid();
+    // The sheet also opens from an account module, whose address has no environment.
+    const envHrid = useCurrentEnvHrid();
     const environments = useEnvironmentStore(s => s.environments);
     const { response, loading, error, reload } = useTasksResponse({ poll: false });
 

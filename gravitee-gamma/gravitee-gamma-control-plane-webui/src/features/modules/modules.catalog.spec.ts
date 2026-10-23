@@ -38,7 +38,7 @@ describe('getModuleLabel', () => {
     it('should return the product label of every catalog module', () => {
         expect(getModuleLabel('edge')).toBe('Edge Management');
         expect(getModuleLabel('apim')).toBe('API Management');
-        expect(getModuleLabel('cloud')).toBe('Account Management');
+        expect(getModuleLabel('account')).toBe('Account Management');
     });
 
     it('should fall back to the backend name, then to the id, for a module missing from the catalog', () => {

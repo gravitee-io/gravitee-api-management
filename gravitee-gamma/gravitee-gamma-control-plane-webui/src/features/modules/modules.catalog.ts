@@ -44,11 +44,11 @@ export const MODULE_CATALOG = [
 export type ModuleId = (typeof MODULE_CATALOG)[number]['id'];
 
 /**
- * The Cloud module manages the account the environments belong to, so it is not one of the products: the app switcher
+ * Account Management manages the account the environments belong to, so it is not one of the products: the app switcher
  * pins it in place of Home and the home page has no card for it.
  */
 export const ACCOUNT_MANAGEMENT = {
-    id: 'cloud',
+    id: 'account',
     label: 'Account Management',
     tagline: 'Organizations, environments, and installations',
 } as const satisfies ModuleProduct;

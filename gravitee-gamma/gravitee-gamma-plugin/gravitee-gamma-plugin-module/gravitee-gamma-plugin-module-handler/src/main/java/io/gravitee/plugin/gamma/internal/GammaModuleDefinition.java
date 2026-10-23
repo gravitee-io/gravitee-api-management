@@ -36,6 +36,7 @@ public class GammaModuleDefinition {
     private String id;
     private String name;
     private String version;
+    private GammaModuleScope scope;
 
     /** The raw content of the Module Federation manifest. */
     @JsonRawValue

@@ -24,14 +24,17 @@ import { ContentSkeleton } from './ContentSkeleton';
 import { UserMenu } from './UserMenu';
 import { useAvatarCacheBust, useLogout, useUser } from '../../features/auth';
 import { useEnvironmentStore } from '../../features/environment/environment.store';
-import { getPrimaryHrid, useEnvHrid } from '../../features/environment/environment.utils';
+import { getPrimaryHrid } from '../../features/environment/environment.utils';
+import { useCurrentEnvHrid } from '../../features/environment/useCurrentEnvHrid';
 import {
-    ACCOUNT_MANAGEMENT,
     PORTALS_MODULE_ID,
     HOME_ICON,
     MODULE_ICONS,
     buildPortalNextEditorUrl,
     findModuleProduct,
+    getModuleLabel,
+    isAccountModule,
+    modulePath,
     orderByCatalog,
     type GammaModule,
 } from '../../features/modules';
@@ -57,28 +60,29 @@ function moduleIcon(moduleId: string): ReactNode {
     return Icon ? <Icon className="size-5" /> : <Globe size={20} />;
 }
 
-function appPath(appKey: string, envHrid: string): string {
-    return `/environments/${envHrid}/${appKey === GAMMA_APP_KEY ? 'home' : appKey}`;
+function appPath(appKey: string, envHrid: string, modules: readonly GammaModule[]): string {
+    const module = modules.find(m => m.id === appKey);
+    return module ? modulePath(module, envHrid) : `/environments/${envHrid}/home`;
 }
 
 function buildAppDefinitions(modules: readonly GammaModule[], appHref: (appKey: string) => string | undefined) {
-    const hasAccountManagement = modules.some(m => m.id === ACCOUNT_MANAGEMENT.id);
-    // Home is environment-scoped: next to Account Management it is one more app of the grid.
-    const accountManagement = hasAccountManagement
+    const accountModule = modules.find(isAccountModule);
+    // Home is environment-scoped: next to the account module it is one more app of the grid.
+    const pinnedAccountModule = accountModule
         ? [
               {
-                  key: ACCOUNT_MANAGEMENT.id,
-                  label: ACCOUNT_MANAGEMENT.label,
-                  icon: moduleIcon(ACCOUNT_MANAGEMENT.id),
-                  href: appHref(ACCOUNT_MANAGEMENT.id),
+                  key: accountModule.id,
+                  label: getModuleLabel(accountModule.id, accountModule.name),
+                  icon: moduleIcon(accountModule.id),
+                  href: appHref(accountModule.id),
                   pinned: true,
               },
           ]
         : [];
     return [
-        ...accountManagement,
-        { ...hostAppDefinition, href: appHref(GAMMA_APP_KEY), pinned: !hasAccountManagement },
-        ...orderByCatalog(modules.filter(m => m.id !== ACCOUNT_MANAGEMENT.id)).map(m => {
+        ...pinnedAccountModule,
+        { ...hostAppDefinition, href: appHref(GAMMA_APP_KEY), pinned: !accountModule },
+        ...orderByCatalog(modules.filter(m => m !== accountModule)).map(m => {
             const product = findModuleProduct(m.id);
             return {
                 key: m.id,
@@ -92,6 +96,11 @@ function buildAppDefinitions(modules: readonly GammaModule[], appHref: (appKey: 
 }
 
 function resolveActiveAppKey(pathname: string, envHrid: string, modules: readonly GammaModule[]): string {
+    const first = pathname.split('/').filter(Boolean)[0];
+    const accountModule = modules.find(m => isAccountModule(m) && m.id === first);
+    if (accountModule) {
+        return accountModule.id;
+    }
     const rest = pathSegmentsAfterEnvironment(pathname, envHrid);
     if (rest.length === 0) {
         return GAMMA_APP_KEY;
@@ -130,13 +139,13 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
     const user = useUser();
     const logout = useLogout();
     const navigate = useNavigate();
-    const envHrid = useEnvHrid();
     const { pathname } = useLocation();
     const { slots } = useLayoutSlots();
     const cacheBust = useAvatarCacheBust();
     const config = useBootstrapStore(s => s.config);
 
     const environments = useEnvironmentStore(s => s.environments);
+    const envHrid = useCurrentEnvHrid();
 
     const toHref = useToHref();
     const consoleUrl = config?.consoleUrl;
@@ -146,13 +155,12 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
                 if (appKey === PORTALS_MODULE_ID) {
                     return consoleUrl ? buildPortalNextEditorUrl(consoleUrl, envHrid) : undefined;
                 }
-                return toHref(appPath(appKey, envHrid));
+                return toHref(appPath(appKey, envHrid, modules));
             }),
         [consoleUrl, modules, toHref, envHrid],
     );
     const activeAppKey = useMemo(() => resolveActiveAppKey(pathname, envHrid, modules), [pathname, envHrid, modules]);
-    // Account Management sits above the environments, so switching environments means nothing there.
-    const isAccountScoped = activeAppKey === ACCOUNT_MANAGEMENT.id;
+    const isAccountScoped = modules.some(m => m.id === activeAppKey && isAccountModule(m));
 
     // Home is the host, not a product: its pages are titled by their breadcrumbs alone.
     const activeAppLabel = activeAppKey === GAMMA_APP_KEY ? undefined : apps.find(app => app.key === activeAppKey)?.label;
@@ -176,9 +184,9 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
                 }
                 return;
             }
-            navigate(appPath(key, envHrid));
+            navigate(appPath(key, envHrid, modules));
         },
-        [config?.consoleUrl, envHrid, navigate],
+        [config?.consoleUrl, envHrid, modules, navigate],
     );
 
     // `search` and `hash` are dropped along with the sub-path -- they carry filters and tabs that
