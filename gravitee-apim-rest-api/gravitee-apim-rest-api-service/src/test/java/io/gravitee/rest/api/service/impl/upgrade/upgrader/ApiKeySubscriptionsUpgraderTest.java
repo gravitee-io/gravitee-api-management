@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.node.api.upgrader.UpgraderException;
@@ -56,33 +55,21 @@ public class ApiKeySubscriptionsUpgraderTest {
     }
 
     @Test
-    public void testUpgrade_shouldCreateListOfSubscriptionsFromSubscription() throws TechnicalException, UpgraderException {
-        ApiKey key1 = apiKeyWithSubscription("subscription-1");
-        ApiKey key2 = apiKeyWithSubscription("subscription-2");
-        ApiKey key3 = apiKeyWithSubscription("subscription-3");
-        ApiKey key4 = apiKeyWithSubscription(null);
-        ApiKey key5 = apiKeyWithSubscription(null, null);
-        ApiKey key6 = apiKeyWithSubscription(null, new ArrayList<>(List.of("subscription-2", "subscription-3")));
-        ApiKey key7 = apiKeyWithSubscription("subscription-4", new ArrayList<>(List.of("subscription-2", "subscription-3")));
-        ApiKey key8 = apiKeyWithSubscription("subscription-3", new ArrayList<>(List.of("subscription-2", "subscription-3")));
-
-        Set<ApiKey> keys = Set.of(key1, key2, key3, key4, key5, key6, key7, key8);
-
-        when(apiKeyRepository.findAll()).thenReturn(keys);
+    public void upgrade_should_attach_the_legacy_subscription_to_the_subscriptions_of_the_key() throws Exception {
+        ApiKey legacyOnly = apiKeyWithSubscription("subscription-1");
+        ApiKey legacyNotMergedYet = apiKeyWithSubscription("subscription-4", new ArrayList<>(List.of("subscription-2", "subscription-3")));
+        ApiKey legacyAlreadyMerged = apiKeyWithSubscription("subscription-3", new ArrayList<>(List.of("subscription-2", "subscription-3")));
+        ApiKey withoutLegacy = apiKeyWithSubscription(null, new ArrayList<>(List.of("subscription-2")));
+        ApiKey empty = apiKeyWithSubscription(null, null);
+        when(apiKeyRepository.findAll()).thenReturn(Set.of(legacyOnly, legacyNotMergedYet, legacyAlreadyMerged, withoutLegacy, empty));
 
         upgrader.upgrade();
 
-        verify(apiKeyRepository, times(1)).findAll();
-        verify(apiKeyRepository, times(8)).update(argThat(keys::contains));
-
-        assertEquals(List.of("subscription-1"), key1.getSubscriptions());
-        assertEquals(List.of("subscription-2"), key2.getSubscriptions());
-        assertEquals(List.of("subscription-3"), key3.getSubscriptions());
-        assertEquals(List.of(), key4.getSubscriptions());
-        assertEquals(List.of(), key5.getSubscriptions());
-        assertEquals(List.of("subscription-2", "subscription-3"), key6.getSubscriptions());
-        assertEquals(List.of("subscription-2", "subscription-3", "subscription-4"), key7.getSubscriptions());
-        assertEquals(List.of("subscription-2", "subscription-3"), key8.getSubscriptions());
+        verify(apiKeyRepository).addSubscription(legacyOnly.getId(), "subscription-1");
+        verify(apiKeyRepository).addSubscription(legacyNotMergedYet.getId(), "subscription-4");
+        verify(apiKeyRepository, never()).addSubscription(eq(legacyAlreadyMerged.getId()), any());
+        verify(apiKeyRepository, never()).addSubscription(eq(withoutLegacy.getId()), any());
+        verify(apiKeyRepository, never()).addSubscription(eq(empty.getId()), any());
     }
 
     @Test

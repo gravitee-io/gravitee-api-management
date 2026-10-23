@@ -250,6 +250,57 @@ class GenerateApiKeyDomainServiceTest {
         }
 
         @Test
+        void keep_subscriptions_attached_to_the_shared_key_after_it_was_read() {
+            // Given another Management API node attached SUBSCRIPTION_ID_2 after this node read the shared key
+            var sharedKey = ApiKeyFixtures.anApiKey()
+                .toBuilder()
+                .id("shared-key")
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of("seed-subscription", SUBSCRIPTION_ID_2))
+                .key("shared-key-value")
+                .build();
+            givenApiKeys(sharedKey);
+            var keyAsReadBeforeTheOtherNodeWrote = sharedKey.toBuilder().subscriptions(List.of("seed-subscription")).build();
+            var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
+
+            // When
+            serviceReading(keyAsReadBeforeTheOtherNodeWrote).generate(subscription, AUDIT_INFO, null);
+
+            // Then
+            assertThat(apiKeyCrudService.storage())
+                .singleElement()
+                .satisfies(key ->
+                    assertThat(key.getSubscriptions()).containsExactlyInAnyOrder("seed-subscription", SUBSCRIPTION_ID_2, SUBSCRIPTION_ID_1)
+                );
+        }
+
+        @Test
+        void attach_subscription_to_the_previous_and_the_renewed_key_during_the_renewal_overlap() {
+            // Given a renewed shared key: the previous key still works for 2 hours, an older one was revoked
+            var previousKey = ApiKeyFixtures.anApiKey()
+                .toBuilder()
+                .id("previous-key")
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of(SUBSCRIPTION_ID_2))
+                .key("previous-key-value")
+                .expireAt(INSTANT_NOW.plusSeconds(7200).atZone(ZoneId.systemDefault()))
+                .build();
+            var renewedKey = previousKey.toBuilder().id("renewed-key").key("renewed-key-value").expireAt(null).build();
+            var revokedKey = previousKey.toBuilder().id("revoked-key").key("revoked-key-value").revoked(true).build();
+            givenApiKeys(previousKey, renewedKey, revokedKey);
+            var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
+
+            // When
+            var result = service.generate(subscription, AUDIT_INFO, null);
+
+            // Then
+            assertThat(result.getId()).isEqualTo("renewed-key");
+            assertThat(apiKeyCrudService.storage())
+                .hasSize(3)
+                .allSatisfy(key -> assertThat(key.getSubscriptions()).containsExactlyInAnyOrder(SUBSCRIPTION_ID_2, SUBSCRIPTION_ID_1));
+        }
+
+        @Test
         void generate_new_key_when_no_key_exists() {
             // Given
             var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
@@ -394,6 +445,39 @@ class GenerateApiKeyDomainServiceTest {
         }
 
         @Test
+        void keep_links_written_to_the_reused_key_after_it_was_read() {
+            // Given a revoked key that got another link after this node read it
+            var storedKey = ApiKeyFixtures.anApiKey()
+                .toBuilder()
+                .id("existing-key-id")
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of(SUBSCRIPTION_ID_1, "subscription-linked-meanwhile"))
+                .key("reusable-key")
+                .revoked(true)
+                .revokedAt(INSTANT_NOW.minusSeconds(3600).atZone(ZoneId.systemDefault()))
+                .build();
+            givenApiKey(storedKey);
+            var keyAsRead = storedKey.toBuilder().subscriptions(List.of(SUBSCRIPTION_ID_1)).build();
+
+            // When
+            serviceReading(keyAsRead).generate(NEW_SUBSCRIPTION, AUDIT_INFO, "reusable-key");
+
+            // Then the stored key is reactivated and keeps every link
+            assertThat(apiKeyCrudService.storage())
+                .singleElement()
+                .satisfies(key -> {
+                    assertThat(key.isRevoked()).isFalse();
+                    assertThat(key.getRevokedAt()).isNull();
+                    assertThat(key.getExpireAt()).isEqualTo(NEW_SUBSCRIPTION.getEndingAt());
+                    assertThat(key.getSubscriptions()).containsExactlyInAnyOrder(
+                        SUBSCRIPTION_ID_1,
+                        "subscription-linked-meanwhile",
+                        SUBSCRIPTION_ID_2
+                    );
+                });
+        }
+
+        @Test
         void reactivate_existing_expired_key() {
             // Given an expired (but not revoked) key
             givenApiKey(
@@ -475,6 +559,22 @@ class GenerateApiKeyDomainServiceTest {
             // Then
             assertThat(throwable).isInstanceOf(ApiKeyAlreadyExistingException.class);
         }
+    }
+
+    /**
+     * A service whose reads return the given (possibly outdated) copies while writes go to {@link #apiKeyCrudService}, like a
+     * Management API node that read the keys before another node changed them.
+     */
+    private GenerateApiKeyDomainService serviceReading(ApiKeyEntity... keysAsRead) {
+        var outdatedReads = new ApiKeyQueryServiceInMemory();
+        outdatedReads.initWith(Arrays.asList(keysAsRead));
+        return new GenerateApiKeyDomainService(
+            apiKeyCrudService,
+            outdatedReads,
+            applicationCrudService,
+            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+            parametersQueryService
+        );
     }
 
     @SneakyThrows

@@ -214,7 +214,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             expireApiKeys(executionContext, allApiKeys, newApiKey);
 
             // add all subscriptions to the new key
-            addSharedSubscriptions(allApiKeys, newApiKey);
+            newApiKey = addSharedSubscriptions(allApiKeys, newApiKey);
 
             ApiKeyEntity newApiKeyEntity = convert(executionContext, newApiKey);
 
@@ -251,12 +251,11 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         }
     }
 
-    private void addSharedSubscriptions(Collection<ApiKey> apiKeys, ApiKey activeApiKey) throws TechnicalException {
+    private ApiKey addSharedSubscriptions(Collection<ApiKey> apiKeys, ApiKey activeApiKey) throws TechnicalException {
         Set<String> subscriptions = new HashSet<>();
         apiKeys.forEach(apiKey -> subscriptions.addAll(apiKey.getSubscriptions()));
-        activeApiKey.setSubscriptions(new ArrayList<>(subscriptions));
-        activeApiKey.setUpdatedAt(new Date());
-        apiKeyRepository.update(activeApiKey);
+        // Added atomically: subscriptions attached to the new key since it was created must be kept.
+        return apiKeyRepository.addSubscriptions(activeApiKey.getId(), subscriptions).orElse(activeApiKey);
     }
 
     private ApiKeyEntity findOrGenerate(
@@ -645,14 +644,11 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     private ApiKey reactivateForSubscription(ApiKey apiKey, SubscriptionEntity subscription) throws TechnicalException {
         apiKey.setRevoked(false);
         apiKey.setRevokedAt(null);
-        List<String> subscriptions = new ArrayList<>(apiKey.getSubscriptions());
-        if (!subscriptions.contains(subscription.getId())) {
-            subscriptions.add(subscription.getId());
-        }
-        apiKey.setSubscriptions(subscriptions);
         apiKey.setExpireAt(subscription.getEndingAt());
         apiKey.setUpdatedAt(new Date());
-        return apiKeyRepository.update(apiKey);
+        ApiKey reactivated = apiKeyRepository.update(apiKey);
+        // update does not write the links: the new subscription is added atomically.
+        return apiKeyRepository.addSubscription(apiKey.getId(), subscription.getId()).orElse(reactivated);
     }
 
     @Override

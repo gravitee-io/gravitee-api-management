@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -30,6 +31,8 @@ import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -164,6 +167,43 @@ public class ApiKeyCrudServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalManagementException.class)
                 .hasMessage("An error occurs while trying to update the api key: api-key-id");
+        }
+    }
+
+    @Nested
+    class AddSubscription {
+
+        @Test
+        @SneakyThrows
+        void should_attach_the_subscription_with_the_atomic_repository_operation_and_return_the_stored_key() {
+            var stored = ApiKeyFixtures.anApiKey().toBuilder().subscriptions(List.of("subscription-id", "new-subscription")).build();
+            when(apiKeyRepository.addSubscription("api-key-id", "new-subscription")).thenReturn(
+                Optional.of(ApiKeyAdapter.INSTANCE.fromEntity(stored))
+            );
+
+            var result = service.addSubscription("api-key-id", "new-subscription");
+
+            assertThat(result).contains(stored);
+            verify(apiKeyRepository, never()).update(any());
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_empty_when_the_key_does_not_exist() {
+            when(apiKeyRepository.addSubscription("unknown", "new-subscription")).thenReturn(Optional.empty());
+
+            assertThat(service.addSubscription("unknown", "new-subscription")).isEmpty();
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            when(apiKeyRepository.addSubscription(any(), any())).thenThrow(TechnicalException.class);
+
+            Throwable throwable = catchThrowable(() -> service.addSubscription("api-key-id", "new-subscription"));
+
+            assertThat(throwable)
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("An error occurs while trying to add subscription new-subscription to the api key: api-key-id");
         }
     }
 }
