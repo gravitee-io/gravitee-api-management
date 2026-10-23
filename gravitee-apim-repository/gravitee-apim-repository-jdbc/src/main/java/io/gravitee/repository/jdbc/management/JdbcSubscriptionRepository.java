@@ -231,38 +231,46 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         if (key.equals(upToDateKey)) {
             return false;
         }
+        // Requests running into the same stale key at once all repair it: only the one that replaced it reports it.
         try {
-            savepoint.executeWithoutResult(status -> replaceKey(holder, key, upToDateKey));
-            log.warn("Subscription [{}] held a stale unique active key, left by a node of a previous version: repaired", holder);
+            if (Boolean.TRUE.equals(savepoint.execute(status -> replaceKey(holder, key, upToDateKey)))) {
+                log.warn("Subscription [{}] held a stale unique active key, left by a node of a previous version: repaired", holder);
+            }
         } catch (UniqueConstraintViolation e) {
             // Its up-to-date key is held by another active subscription: a duplicate created before the unique index,
             // left to the operators.
-            savepoint.executeWithoutResult(status -> replaceKey(holder, key, null));
-            log.warn(
-                "Subscription [{}] held a stale unique active key, left by a node of a previous version: cleared, as another active subscription of its application to plan [{}] already exists",
-                holder,
-                findById(holder).map(Subscription::getPlan).orElse(null)
-            );
+            if (Boolean.TRUE.equals(savepoint.execute(status -> replaceKey(holder, key, null)))) {
+                log.warn(
+                    "Subscription [{}] held a stale unique active key, left by a node of a previous version: cleared, as another active subscription of its application to plan [{}] already exists",
+                    holder,
+                    findById(holder).map(Subscription::getPlan).orElse(null)
+                );
+            }
         }
         return true;
     }
 
     /**
      * Only if the subscription still holds the stale key: a node may have rewritten it meanwhile.
+     *
+     * @return whether the key has been replaced.
      */
-    private void replaceKey(String id, String staleKey, String upToDateKey) {
+    private boolean replaceKey(String id, String staleKey, String upToDateKey) {
         try {
-            jdbcTemplate.update(
-                "update " +
-                    this.tableName +
-                    " set " +
-                    UNIQUE_ACTIVE_KEY_COLUMN +
-                    " = ? where id = ? and " +
-                    UNIQUE_ACTIVE_KEY_COLUMN +
-                    " = ?",
-                upToDateKey,
-                id,
-                staleKey
+            return (
+                jdbcTemplate.update(
+                    "update " +
+                        this.tableName +
+                        " set " +
+                        UNIQUE_ACTIVE_KEY_COLUMN +
+                        " = ? where id = ? and " +
+                        UNIQUE_ACTIVE_KEY_COLUMN +
+                        " = ?",
+                    upToDateKey,
+                    id,
+                    staleKey
+                ) >
+                0
             );
         } catch (org.springframework.dao.DuplicateKeyException e) {
             throw new UniqueConstraintViolation(e);
