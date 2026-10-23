@@ -66,4 +66,16 @@ describe('parseModule', () => {
 
         expect(result.exposedModule).toBe('Feature');
     });
+
+    it('should keep the scope the module declares', () => {
+        const raw: UiGammaModuleResponse = {
+            id: 'account',
+            name: 'Account Management',
+            version: '1.0.0',
+            scope: 'account',
+            mfManifest: { name: 'cloud' },
+        };
+
+        expect(parseModule(raw).scope).toBe('account');
+    });
 });

@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export const ENVIRONMENT_ROUTE = '/environments/:envHrid';
+
 /** Sidebar / route keys for the host shell area (home, tasks, my-account, …). */
 export type HostNavKey = 'home' | 'tasks' | 'my-account';
 

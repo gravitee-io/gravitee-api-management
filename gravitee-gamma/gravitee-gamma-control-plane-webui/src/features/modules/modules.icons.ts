@@ -43,5 +43,5 @@ export const MODULE_ICONS: Record<ModuleId, LucideIcon> & Partial<Record<string,
     authz: GioAuthorizationIcon,
     esm: GioEventApiManagementIcon,
     edge: GioEdgeManagementIcon,
-    cloud: GioProductizeIcon,
+    account: GioProductizeIcon,
 };

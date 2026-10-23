@@ -13,18 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { http, HttpResponse } from 'msw';
+import { MemoryRouter, useNavigate, type NavigateFunction } from 'react-router-dom';
 
 import { AppRoutes } from './AppRoutes';
 import { useAuthStore } from '../features/auth/auth.store';
 import { buildUser, TEST_GAMMA_BASE, TEST_MANAGEMENT_BASE } from '../testing/factories';
 import { respondWith, respondWithError, seedBootstrap, seedEnvironments, seedUser, trackHandler } from '../testing/helpers';
 import { PathnameProbe } from '../testing/PathnameProbe';
+import { server } from '../testing/server';
 
 function MockRemoteModule() {
     return <div>Remote module</div>;
+}
+
+function NavigateHandle({ onReady }: { readonly onReady: (navigate: NavigateFunction) => void }) {
+    onReady(useNavigate());
+    return null;
 }
 
 const mockLoadRemote = jest.fn();
@@ -36,6 +43,13 @@ jest.mock('@module-federation/runtime', () => ({
 
 const MODULE_PAGE = '/environments/env-1/aim/agents';
 const PAGE_ERROR_TITLE = "Couldn't load your applications";
+const ACCOUNT_MODULE = {
+    id: 'account',
+    name: 'Account Management',
+    version: '1.0.0',
+    scope: 'account',
+    mfManifest: { name: 'cloud', exposes: [{ name: './App' }] },
+};
 
 function renderAt(path: string) {
     return render(
@@ -136,6 +150,19 @@ describe('AppRoutes, when the list of modules cannot be loaded', () => {
         expect(screen.queryByRole('heading', { level: 1, name: PAGE_ERROR_TITLE })).toBeNull();
     });
 
+    it('should keep the address of a module above the environments and open it once a retry loads the list', async () => {
+        const user = userEvent.setup();
+        renderApp('/account/overview');
+        expect(await screen.findByRole('heading', { level: 1, name: PAGE_ERROR_TITLE })).toBeTruthy();
+        expect(lastPath).toBe('/account/overview');
+        respondWith('get', `${TEST_GAMMA_BASE}/modules`, [ACCOUNT_MODULE]);
+
+        await user.click(screen.getByRole('button', { name: 'Retry' }));
+
+        expect(await screen.findByText('Remote module')).toBeTruthy();
+        expect(lastPath).toBe('/account/overview');
+    });
+
     it('should show the same message on Home, as Home has nothing left to show without the list', async () => {
         renderApp('/environments/env-1/home');
 
@@ -187,5 +214,95 @@ describe('AppRoutes, when the list of modules cannot be loaded', () => {
         expect(await screen.findByRole('heading', { level: 1, name: 'My Account' })).toBeTruthy();
         expect(screen.queryByRole('heading', { level: 1, name: PAGE_ERROR_TITLE })).toBeNull();
         expect(lastPath).toBe('/environments/env-1/my-account');
+    });
+});
+
+describe('AppRoutes, Account Management', () => {
+    let lastPath = '';
+
+    beforeEach(() => {
+        mockLoadRemote.mockResolvedValue({ default: MockRemoteModule });
+        useAuthStore.setState({ user: buildUser(), initialized: true });
+        seedEnvironments();
+        respondWith('get', `${TEST_GAMMA_BASE}/modules`, [ACCOUNT_MODULE]);
+        lastPath = '';
+    });
+
+    function renderApp(initialPath: string) {
+        return render(
+            <MemoryRouter initialEntries={[initialPath]}>
+                <PathnameProbe onPath={path => (lastPath = path)} />
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+    }
+
+    it('should open without an environment in the address', async () => {
+        renderApp('/account/overview');
+
+        expect(await screen.findByText('Remote module')).toBeTruthy();
+        expect(lastPath).toBe('/account/overview');
+    });
+
+    it('should keep its address while the list of modules loads, as on a reload', async () => {
+        let releaseModules: () => void = () => undefined;
+        const modulesLoaded = new Promise<void>(resolve => (releaseModules = resolve));
+        server.use(
+            http.get(`${TEST_GAMMA_BASE}/modules`, async () => {
+                await modulesLoaded;
+                return HttpResponse.json([ACCOUNT_MODULE]);
+            }),
+        );
+
+        renderApp('/account/overview');
+
+        expect(await screen.findByLabelText('Loading content')).toBeTruthy();
+        expect(lastPath).toBe('/account/overview');
+
+        releaseModules();
+
+        expect(await screen.findByText('Remote module')).toBeTruthy();
+        expect(lastPath).toBe('/account/overview');
+    });
+
+    it('should leave its bare address to the module, which picks its first page', async () => {
+        renderApp('/account');
+
+        expect(await screen.findByText('Remote module')).toBeTruthy();
+        expect(lastPath).toBe('/account');
+    });
+
+    it('should not be served under an environment', async () => {
+        renderApp('/environments/env-1/account/overview');
+
+        await waitFor(() => expect(lastPath).toBe('/environments/env-1/home'));
+    });
+
+    it('should keep the shell when moving from an environment to Account Management', async () => {
+        let navigate: NavigateFunction = () => undefined;
+        render(
+            <MemoryRouter initialEntries={['/environments/env-1/home']}>
+                <NavigateHandle onReady={n => (navigate = n)} />
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+        const accountMenu = await screen.findByRole('button', { name: 'Account menu' });
+
+        act(() => {
+            void navigate('/account/overview');
+        });
+
+        expect(await screen.findByText('Remote module')).toBeTruthy();
+        expect(accountMenu.isConnected).toBe(true);
+    });
+
+    it('should send its address to Home when the module is not deployed', async () => {
+        respondWith('get', `${TEST_GAMMA_BASE}/modules`, [
+            { id: 'aim', name: 'AIM', version: '1.0.0', mfManifest: { name: 'aim', exposes: [{ name: './App' }] } },
+        ]);
+
+        renderApp('/account/overview');
+
+        await waitFor(() => expect(lastPath).toBe('/environments/env-1/home'));
     });
 });
