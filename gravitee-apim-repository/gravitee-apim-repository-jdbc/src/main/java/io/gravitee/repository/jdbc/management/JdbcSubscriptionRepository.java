@@ -152,7 +152,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     public Subscription create(Subscription subscription) throws TechnicalException {
         log.debug("JdbcSubscriptionRepository.create({})", subscription);
         try {
-            savepoint.executeWithoutResult(status -> {
+            writeRepairingStaleKey(subscription, () -> {
                 writeSubscription(getOrm().buildInsertPreparedStatementCreator(subscription));
                 storeMetadata(subscription, false);
             });
@@ -175,7 +175,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             throw new IllegalStateException("Failed to update null");
         }
         try {
-            savepoint.executeWithoutResult(status -> {
+            writeRepairingStaleKey(subscription, () -> {
                 writeSubscription(getOrm().buildUpdatePreparedStatementCreator(subscription, subscription.getId()));
                 storeMetadata(subscription, true);
             });
@@ -189,6 +189,83 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             throw ex;
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to update subscription", ex);
+        }
+    }
+
+    /**
+     * Writes the subscription in a savepoint. Nodes of the versions before the unique active key update subscriptions
+     * without touching it: a subscription they close keeps its key, one they transfer keeps the key of its previous
+     * plan. When the write conflicts with such a stale key, the key is repaired and the write tried once more, so that
+     * only a subscription still active on the same plan (and channel) refuses it.
+     */
+    private void writeRepairingStaleKey(Subscription subscription, Runnable write) throws TechnicalException {
+        try {
+            savepoint.executeWithoutResult(status -> write.run());
+        } catch (UniqueConstraintViolation e) {
+            if (!repairStaleKey(SubscriptionUniqueActiveKey.of(subscription), subscription.getId())) {
+                throw e;
+            }
+            savepoint.executeWithoutResult(status -> write.run());
+        }
+    }
+
+    /**
+     * @return whether the other subscription holding the key holds it stale, and has been repaired.
+     */
+    private boolean repairStaleKey(String key, String subscriptionId) throws TechnicalException {
+        if (key == null) {
+            return false;
+        }
+        // The unique index lets a single other subscription hold the key.
+        List<String> holders = jdbcTemplate.queryForList(
+            "select id from " + this.tableName + " where " + UNIQUE_ACTIVE_KEY_COLUMN + " = ? and id <> ?",
+            String.class,
+            key,
+            subscriptionId
+        );
+        if (holders.isEmpty()) {
+            return false;
+        }
+        String holder = holders.getFirst();
+        String upToDateKey = findById(holder).map(SubscriptionUniqueActiveKey::of).orElse(null);
+        if (key.equals(upToDateKey)) {
+            return false;
+        }
+        try {
+            savepoint.executeWithoutResult(status -> replaceKey(holder, key, upToDateKey));
+            log.warn("Subscription [{}] held a stale unique active key, left by a node of a previous version: repaired", holder);
+        } catch (UniqueConstraintViolation e) {
+            // Its up-to-date key is held by another active subscription: a duplicate created before the unique index,
+            // left to the operators.
+            savepoint.executeWithoutResult(status -> replaceKey(holder, key, null));
+            log.warn(
+                "Subscription [{}] held a stale unique active key, left by a node of a previous version: cleared, as another active subscription of its application to plan [{}] already exists",
+                holder,
+                findById(holder).map(Subscription::getPlan).orElse(null)
+            );
+        }
+        return true;
+    }
+
+    /**
+     * Only if the subscription still holds the stale key: a node may have rewritten it meanwhile.
+     */
+    private void replaceKey(String id, String staleKey, String upToDateKey) {
+        try {
+            jdbcTemplate.update(
+                "update " +
+                    this.tableName +
+                    " set " +
+                    UNIQUE_ACTIVE_KEY_COLUMN +
+                    " = ? where id = ? and " +
+                    UNIQUE_ACTIVE_KEY_COLUMN +
+                    " = ?",
+                upToDateKey,
+                id,
+                staleKey
+            );
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            throw new UniqueConstraintViolation(e);
         }
     }
 
