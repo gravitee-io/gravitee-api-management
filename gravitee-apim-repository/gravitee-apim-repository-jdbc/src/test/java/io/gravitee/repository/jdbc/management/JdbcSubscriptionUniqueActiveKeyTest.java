@@ -30,6 +30,10 @@ import java.util.List;
 import java.util.Properties;
 import java.util.stream.IntStream;
 import javax.sql.DataSource;
+import liquibase.Contexts;
+import liquibase.Liquibase;
+import liquibase.database.jvm.JdbcConnection;
+import liquibase.resource.ClassLoaderResourceAccessor;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -151,6 +155,26 @@ public class JdbcSubscriptionUniqueActiveKeyTest extends AbstractManagementRepos
                 Integer.class
             )
         ).isEqualTo(count);
+    }
+
+    @Test
+    public void should_backfill_the_prefixed_subscriptions_table_when_liquibase_runs_it() throws Exception {
+        // The tests run with a table prefix, which Liquibase must hand over to the backfill.
+        createWithoutKey(aSubscription("sub-1", Subscription.Status.ACCEPTED, "plan-1"));
+        jdbcTemplate.update(
+            "delete from " + prefix() + "databasechangelog where id = ?",
+            "4.12.25_01_backfill_subscriptions_unique_active_key"
+        );
+
+        try (Connection connection = dataSource.getConnection()) {
+            new Liquibase(
+                "liquibase/master.yml",
+                new ClassLoaderResourceAccessor(this.getClass().getClassLoader()),
+                new JdbcConnection(connection)
+            ).update((Contexts) null);
+        }
+
+        assertThat(storedKey("sub-1")).isNotNull();
     }
 
     @Test
