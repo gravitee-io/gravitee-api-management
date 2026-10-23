@@ -21,6 +21,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
@@ -111,6 +112,25 @@ public class FlowConverterTest {
         assertEquals(0, model.getPre().get(0).getOrder());
         assertEquals("HTTP Callout", model.getPre().get(1).getName());
         assertEquals(1, model.getPre().get(1).getOrder());
+    }
+
+    @Test
+    public void to_definition_should_tolerate_rows_saved_by_v4_flows() {
+        // A flow saved by a V4 API carries its selector data in the 'selectors' column, leaving the legacy
+        // V2 columns (path, operator, consumers) unset on the repository model. Converting such a row as a
+        // V2 flow must not throw and must default the path operator to STARTS_WITH.
+        var flow = new io.gravitee.repository.management.model.flow.Flow();
+        flow.setPath(null);
+        flow.setOperator(null);
+        flow.setConsumers(null);
+        flow.setMethods(null);
+
+        Flow flowDefinition = converter.toDefinition(flow);
+
+        assertNotNull(flowDefinition.getPathOperator());
+        assertEquals(Operator.STARTS_WITH, flowDefinition.getPathOperator().getOperator());
+        assertNull(flowDefinition.getPathOperator().getPath());
+        assertNull(flowDefinition.getConsumers());
     }
 
     @Test
