@@ -43,6 +43,7 @@ import jakarta.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,8 +77,21 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
+<<<<<<< HEAD
         when(analyticsQueryContextLoader.load(any(), any())).thenReturn(
             new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
+=======
+        when(analyticsQueryContextLoader.load(any(), any(), any())).thenReturn(
+            new AnalyticsQueryContext(
+                null,
+                new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                Set.of(),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Optional.empty()
+            )
+>>>>>>> a82217e (fix(analytics): restrict portal analytics to the user's applications)
         );
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
@@ -162,7 +176,8 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
                 Set.of("auth-api-1", "auth-api-2"),
                 Map.of(),
                 Map.of(),
-                Map.of()
+                Map.of(),
+                Optional.empty()
             )
         );
         when(
@@ -253,7 +268,8 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
                 Set.of(),
                 Map.of("api-id-1", "My API 1", "api-id-2", "Other API"),
                 Map.of(),
-                Map.of()
+                Map.of(),
+                Optional.empty()
             )
         );
 
@@ -293,7 +309,8 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
                 Set.of(),
                 Map.of("api-id-1", "My API 1", "api-id-2", "My API 2"),
                 Map.of(),
-                Map.of()
+                Map.of(),
+                Optional.empty()
             )
         );
         when(
@@ -414,8 +431,21 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
     @Test
     void should_search_plan_by_name_with_query() {
         planQueryServiceInMemory.reset();
+<<<<<<< HEAD
         when(analyticsQueryContextLoader.load(any(), any())).thenReturn(
             new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of("api-1"), Map.of(), Map.of(), Map.of())
+=======
+        when(analyticsQueryContextLoader.load(any(), any(), any())).thenReturn(
+            new AnalyticsQueryContext(
+                null,
+                new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                Set.of("api-1"),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Optional.empty()
+            )
+>>>>>>> a82217e (fix(analytics): restrict portal analytics to the user's applications)
         );
         // initWith uses Plan#copy(); definitionVersion must be set or copy() fails on switch (null).
         planQueryServiceInMemory.initWith(
@@ -549,7 +579,8 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
                 Set.of(),
                 Map.of("api-id-6", "My API 6"),
                 Map.of(),
-                Map.of()
+                Map.of(),
+                Optional.empty()
             )
         );
         when(

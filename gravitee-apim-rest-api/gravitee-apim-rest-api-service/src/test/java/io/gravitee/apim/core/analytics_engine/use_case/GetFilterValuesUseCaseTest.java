@@ -50,6 +50,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -73,7 +74,8 @@ class GetFilterValuesUseCaseTest {
         Set.of(),
         Map.of(),
         Map.of(),
-        Map.of()
+        Map.of(),
+        Optional.empty()
     );
 
     @Mock
@@ -419,7 +421,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of("allowed-api-1", "allowed-api-2"),
                     Map.of(),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
             when(
@@ -472,7 +475,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of(),
                     Map.of("api-id-1", "My API 1", "api-id-2", "My API 2"),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
             var esPage = new FilterValuesPage(List.of(new FilterValue("api-id-1"), new FilterValue("api-id-2")), null);
@@ -515,7 +519,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of(),
                     Map.of("api-id-1", "My API 1", "other-id", "Other"),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
 
@@ -568,7 +573,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of(),
                     Map.of("api-id-1", "My API 1"),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
             var esPage = new FilterValuesPage(List.of(new FilterValue("api-id-1"), new FilterValue("api-id-unknown")), null);
@@ -611,7 +617,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of(),
                     Map.of("api-id-1", "My API 1", "api-id-2", "My API 2"),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
             var afterKey = Map.<String, Object>of("value", "api-id-2");
@@ -646,7 +653,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of(),
                     Map.of("api-id-1", "My API 1"),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
             var esPage = new FilterValuesPage(List.of(new FilterValue("api-id-1")), null);
@@ -687,7 +695,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of(),
                     Map.of("match-id", "Matching API"),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
 
@@ -707,7 +716,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of(),
                     Map.of("api-id-3", "My API 3"),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
             var esPage = new FilterValuesPage(List.of(new FilterValue("api-id-3")), null);
@@ -759,7 +769,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of(),
                     Map.of("id-a", "My API A", "id-b", "My API B", "id-c", "My API C", "id-d", "My API D", "id-e", "My API E"),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
 
@@ -881,7 +892,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of("scoped-api-1", "scoped-api-2"),
                     Map.of(),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
             var esPage = new FilterValuesPage(List.of(new FilterValue("app-id-1")), null);
@@ -998,7 +1010,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of("api-1"),
                     Map.of(),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
             when(planQueryService.findAllByApiIds(eq(Set.of("api-1")), eq(Set.of("env-id")))).thenReturn(
@@ -1042,7 +1055,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of("plan-scope-a", "plan-scope-b"),
                     Map.of(),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
             var esPage = new FilterValuesPage(List.of(new FilterValue("plan-id-1")), null);
@@ -1370,7 +1384,8 @@ class GetFilterValuesUseCaseTest {
                         Set.of("api-mcp-1"),
                         ApiType.NATIVE,
                         Set.of("api-native-1")
-                    )
+                    ),
+                    Optional.empty()
                 )
             );
 
@@ -1396,7 +1411,8 @@ class GetFilterValuesUseCaseTest {
                     Set.of("api-proxy-1"),
                     Map.of("api-proxy-1", "Proxy API"),
                     Map.of(),
-                    Map.of(ApiType.PROXY, Set.of("api-proxy-1"))
+                    Map.of(ApiType.PROXY, Set.of("api-proxy-1")),
+                    Optional.empty()
                 )
             );
 
@@ -1409,6 +1425,248 @@ class GetFilterValuesUseCaseTest {
         }
     }
 
+<<<<<<< HEAD
+=======
+    /**
+     * A module scoped by API kind whose kinds an entrypoint can add to an API of another type: AIM sees Studio by
+     * type, and Orders, a PROXY API exposing {@code mcp}, through its MCP calls only.
+     */
+    @Nested
+    class TrafficScopeConstraints {
+
+        private static final Set<String> READABLE = Set.of("orders", "studio", "native");
+        private static final TrafficScope AIM = new TrafficScope(Set.of("studio"), Set.of("mcp"));
+
+        @BeforeEach
+        void setUp() {
+            when(definitionQueryService.getAllFilters()).thenReturn(
+                List.of(
+                    FilterSpecFixtures.keyword(FilterSpec.Name.API, "API"),
+                    FilterSpecFixtures.keyword(FilterSpec.Name.APPLICATION, "Application"),
+                    FilterSpecFixtures.keyword(FilterSpec.Name.HTTP_METHOD, "HTTP Method")
+                )
+            );
+            when(contextLoader.load(any(), any(), any())).thenReturn(
+                new AnalyticsQueryContext(
+                    AUDIT_INFO,
+                    new ExecutionContext("org-id", "env-id"),
+                    READABLE,
+                    Map.of("orders", "Orders API", "studio", "Studio API", "native", "Native API"),
+                    Map.of(),
+                    Map.of(ApiType.PROXY, Set.of("orders"), ApiType.MCP_PROXY, Set.of("studio"), ApiType.NATIVE, Set.of("native")),
+                    Optional.empty()
+                )
+            );
+        }
+
+        private GetFilterValuesUseCase.Input aim(String filterName, String query) {
+            return new GetFilterValuesUseCase.Input(
+                AUDIT_INFO,
+                filterName,
+                null,
+                null,
+                1,
+                10,
+                query,
+                Set.of(ApiType.MCP_PROXY),
+                AnalyticsScope.MANAGEMENT,
+                Set.of("mcp")
+            );
+        }
+
+        @Test
+        void should_offer_only_the_values_of_the_calls_the_module_sees() {
+            when(
+                filterValuesQueryService.searchFilterValues(
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    anyInt(),
+                    anyInt(),
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            ).thenReturn(new FilterValuesPage(List.of(new FilterValue("GET")), null));
+
+            useCase.execute(aim("HTTP_METHOD", null));
+
+            verify(filterValuesQueryService).searchFilterValues(
+                "org-id",
+                "env-id",
+                FilterSpec.Name.HTTP_METHOD,
+                null,
+                null,
+                1,
+                10,
+                null,
+                null,
+                READABLE,
+                AIM
+            );
+        }
+
+        /** A member's request scoped to an API product they hold no workspace grant on: their rows, through its calls. */
+        @Test
+        void should_keep_both_the_traffic_scope_and_the_api_product_of_the_request() {
+            when(
+                filterValuesQueryService.searchFilterValues(
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    anyInt(),
+                    anyInt(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            ).thenReturn(new FilterValuesPage(List.of(new FilterValue("GET")), null));
+
+            useCase.execute(
+                new GetFilterValuesUseCase.Input(
+                    AUDIT_INFO_WITH_ACTOR,
+                    "HTTP_METHOD",
+                    null,
+                    null,
+                    1,
+                    10,
+                    null,
+                    Set.of(ApiType.MCP_PROXY),
+                    AnalyticsScope.MANAGEMENT,
+                    Set.of("mcp"),
+                    "workspace-1"
+                )
+            );
+
+            verify(filterValuesQueryService).searchFilterValues(
+                "org-id",
+                "env-id",
+                FilterSpec.Name.HTTP_METHOD,
+                null,
+                null,
+                1,
+                10,
+                null,
+                null,
+                READABLE,
+                AIM,
+                "workspace-1"
+            );
+        }
+
+        @Test
+        void should_list_the_apis_the_module_sees_from_their_calls() {
+            when(
+                filterValuesQueryService.searchFilterValues(
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    anyInt(),
+                    anyInt(),
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            ).thenReturn(new FilterValuesPage(List.of(new FilterValue("orders"), new FilterValue("studio")), null));
+
+            var output = useCase.execute(aim("API", null));
+
+            verify(filterValuesQueryService).searchFilterValues(
+                "org-id",
+                "env-id",
+                FilterSpec.Name.API,
+                null,
+                null,
+                1,
+                10,
+                null,
+                null,
+                READABLE,
+                AIM
+            );
+            assertThat(output.valuesPage().data()).extracting(FilterValue::value).containsExactly("Orders API", "Studio API");
+        }
+
+        @Test
+        void should_find_by_name_an_api_in_scope_by_type_and_one_with_calls_through_an_entrypoint_adding_the_kind() {
+            when(
+                filterValuesQueryService.searchFilterValues(
+                    eq("org-id"),
+                    eq("env-id"),
+                    eq(FilterSpec.Name.API),
+                    any(),
+                    any(),
+                    eq(1),
+                    anyInt(),
+                    any(),
+                    any(),
+                    eq(Set.of("orders", "native")),
+                    eq(new TrafficScope(Set.of(), Set.of("mcp")))
+                )
+            ).thenReturn(new FilterValuesPage(List.of(new FilterValue("orders")), null));
+
+            var output = useCase.execute(aim("API", "api"));
+
+            assertThat(output.valuesPage().data()).extracting(FilterValue::value).containsExactly("Orders API", "Studio API");
+            assertThat(output.valuesPage().totalFilteredCount()).isEqualTo(2L);
+        }
+
+        @Test
+        void should_keep_today_s_type_narrowing_when_no_entrypoint_adds_the_kind() {
+            var output = useCase.execute(
+                new GetFilterValuesUseCase.Input(AUDIT_INFO, "API", null, null, 1, 10, "api", Set.of(ApiType.MCP_PROXY))
+            );
+
+            assertThat(output.valuesPage().data()).extracting(FilterValue::value).containsExactly("Studio API");
+            verifyNoInteractions(filterValuesQueryService);
+        }
+
+        /** Applications are searched in the calls of every readable API: the APIs in the module's scope would be computed for nothing. */
+        @Test
+        void should_search_applications_by_name_in_the_calls_of_every_readable_api() {
+            when(applicationQueryService.findByEnvironment("env-id")).thenReturn(Set.of(application("app-id-1", "Agent client")));
+            when(
+                filterValuesQueryService.findValuesInCalls(
+                    "org-id",
+                    "env-id",
+                    FilterSpec.Name.APPLICATION,
+                    null,
+                    null,
+                    Set.of("app-id-1"),
+                    READABLE
+                )
+            ).thenReturn(Set.of("app-id-1"));
+
+            var output = useCase.execute(aim("APPLICATION", "agent"));
+
+            assertThat(output.valuesPage().data()).extracting(FilterValue::id).containsExactly("app-id-1");
+            verify(filterValuesQueryService, never()).searchFilterValues(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                anyInt(),
+                anyInt(),
+                any(),
+                any(),
+                any(),
+                any()
+            );
+        }
+    }
+
+>>>>>>> a82217e (fix(analytics): restrict portal analytics to the user's applications)
     @Nested
     class UnsupportedFilterTypes {
 
@@ -1436,4 +1694,28 @@ class GetFilterValuesUseCaseTest {
                 .hasMessageContaining("does not support value listing");
         }
     }
+<<<<<<< HEAD
+=======
+
+    private void givenReadableApis(String... apiIds) {
+        when(contextLoader.load(any(), any(), any())).thenReturn(
+            new AnalyticsQueryContext(
+                AUDIT_INFO,
+                new ExecutionContext("org-id", "env-id"),
+                Set.of(apiIds),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Optional.empty()
+            )
+        );
+    }
+
+    private static BaseApplicationEntity application(String id, String name) {
+        var application = new BaseApplicationEntity();
+        application.setId(id);
+        application.setName(name);
+        return application;
+    }
+>>>>>>> a82217e (fix(analytics): restrict portal analytics to the user's applications)
 }

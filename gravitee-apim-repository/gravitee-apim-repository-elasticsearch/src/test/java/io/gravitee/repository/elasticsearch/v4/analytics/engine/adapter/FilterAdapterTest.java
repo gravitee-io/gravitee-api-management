@@ -90,6 +90,20 @@ class FilterAdapterTest {
             assertThat(termsFilter.get(2).asText()).isEqualTo("api-3");
         }
 
+        /** A caller restricted to no application must read no call, so the empty condition has to stay in the query. */
+        @Test
+        void should_keep_an_empty_in_filter_as_a_terms_query_matching_no_document() throws JsonProcessingException {
+            var filters = List.of(new Filter(Filter.Name.APPLICATION, Filter.Operator.IN, Set.of()));
+            var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+            var query = new MeasuresQuery(buildTimeRange(), filters, metrics);
+
+            var jsonQuery = JSON.readTree(measuresAdapter.adapt(query));
+
+            var termsFilter = jsonQuery.at("/query/bool/filter/1/terms/application-id");
+            assertThat(termsFilter.isArray()).isTrue();
+            assertThat(termsFilter.isEmpty()).isTrue();
+        }
+
         @Test
         void should_generate_term_query_when_http_status_uses_eq_with_numeric_value() throws JsonProcessingException {
             var filters = List.of(new Filter(Filter.Name.HTTP_STATUS, Filter.Operator.EQ, 404));
