@@ -150,7 +150,7 @@ public class JdbcApiKeyCreateRaceTest extends AbstractRepositoryTest {
 
     /** What the node that lost the race does: link its subscription to every key of the application, as found now. */
     private void linkToEveryKeyOfTheApplication(String subscriptionId) throws Exception {
-        List<ApiKey> keys = apiKeyRepository.findLatestByApplication(APPLICATION);
+        List<ApiKey> keys = apiKeyRepository.findByApplication(APPLICATION);
         assertThat(keys).extracting(ApiKey::getId).containsExactly(SHARED_KEY_ID);
         for (ApiKey key : keys) {
             assertThat(apiKeyRepository.addSubscription(key.getId(), subscriptionId)).isPresent();

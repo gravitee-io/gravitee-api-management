@@ -439,13 +439,6 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void findLatestByApplication_should_find_the_same_api_keys_as_findByApplication() throws TechnicalException {
-        assertThat(apiKeyRepository.findLatestByApplication("app1"))
-            .extracting(ApiKey::getId, ApiKey::getSubscriptions)
-            .containsExactlyInAnyOrder(tuple("id-of-apikey-5", List.of("sub3")), tuple("id-of-apikey-4", List.of("sub3")));
-    }
-
-    @Test
     public void create_should_reject_an_existing_id_and_write_nothing() throws Exception {
         givenSharedKey(SHARED_KEY_ID, "sub-of-the-first-create");
         ApiKey sameId = ApiKey.builder()

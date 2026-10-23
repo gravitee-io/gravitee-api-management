@@ -65,18 +65,6 @@ public class ApiKeyQueryServiceInMemory implements ApiKeyQueryService, InMemoryA
         return storage.stream().filter(apiKey -> apiKey.getApplicationId().equals(applicationId));
     }
 
-    /** Reads the storage itself, so that a test overriding {@link #findByApplication(String)} still gets the latest keys here. */
-    @Override
-    public Stream<ApiKeyEntity> findLatestByApplication(String applicationId) {
-        synchronized (storage) {
-            return storage
-                .stream()
-                .filter(apiKey -> apiKey.getApplicationId().equals(applicationId))
-                .toList()
-                .stream();
-        }
-    }
-
     @Override
     public Optional<ApiKeyEntity> findByKeyAndApiId(String key, String apiId) {
         if (subscriptionCrudService != null) {

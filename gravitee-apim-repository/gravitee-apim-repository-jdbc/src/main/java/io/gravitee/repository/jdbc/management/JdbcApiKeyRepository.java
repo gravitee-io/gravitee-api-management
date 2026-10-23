@@ -145,7 +145,9 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
      *     the others to update the key: a deadlock. {@code on duplicate key update} locks the existing row exclusively instead,
      *     so the transactions that lost take turns. Its update moves {@code updated_at} (the transaction that lost links its
      *     subscription to the key and moves it again right after) so that the conflict counts as an updated row (2) whatever
-     *     the connection's {@code CLIENT_FOUND_ROWS} setting, an inserted row counting 1.</li>
+     *     the connection's {@code CLIENT_FOUND_ROWS} setting, an inserted row counting 1. Being changed by the transaction, the
+     *     existing key is also visible to its later plain reads, although REPEATABLE READ keeps them on the snapshot of its first
+     *     read: that is how the transaction that lost finds the key.</li>
      *     <li>SQL Server only rolls back the failing statement.</li>
      * </ul>
      *
@@ -622,20 +624,6 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     @Override
     public List<ApiKey> findByApplication(String applicationId) throws TechnicalException {
         log.debug("JdbcApiKeyRepository.findByApplication({})", applicationId);
-        return findByApplication(applicationId, "");
-    }
-
-    /**
-     * PostgreSQL and SQL Server read committed data at each statement (READ COMMITTED, their default). MySQL and MariaDB keep
-     * the snapshot of the first read of the transaction (REPEATABLE READ): only a locking read sees a key committed since.
-     */
-    @Override
-    public List<ApiKey> findLatestByApplication(String applicationId) throws TechnicalException {
-        log.debug("JdbcApiKeyRepository.findLatestByApplication({})", applicationId);
-        return findByApplication(applicationId, isMySqlOrMariaDb() ? " for update" : "");
-    }
-
-    private List<ApiKey> findByApplication(String applicationId, String lockingClause) throws TechnicalException {
         try {
             String query =
                 getOrm().getSelectAllSql() +
@@ -644,8 +632,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
                 keySubscriptions +
                 " ks on ks.key_id = k.id " +
                 "where k.application = ?" +
-                " order by k.updated_at desc" +
-                lockingClause;
+                " order by k.updated_at desc ";
 
             CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
 
