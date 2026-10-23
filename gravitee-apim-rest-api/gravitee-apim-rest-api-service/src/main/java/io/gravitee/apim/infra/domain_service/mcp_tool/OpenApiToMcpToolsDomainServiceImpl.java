@@ -34,6 +34,7 @@ import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.headers.Header;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
@@ -65,6 +66,7 @@ public class OpenApiToMcpToolsDomainServiceImpl implements OpenApiToMcpToolsDoma
     private static final List<String> SUCCESS_STATUS_CODES = List.of("200", "201", "202");
     private static final Pattern OAS_PATH_PARAM = Pattern.compile("\\{([a-zA-Z0-9_-]+)\\}");
     private static final ObjectMapper MAPPER = Json.mapper();
+    private static final String BODY_SCHEMA_PROPERTY = "bodySchema";
 
     @Override
     public OpenApiToMcpToolsResult parse(String openApiSpec) {
@@ -134,14 +136,15 @@ public class OpenApiToMcpToolsDomainServiceImpl implements OpenApiToMcpToolsDoma
     ) {
         String toolName = disambiguate(computeToolName(op.getOperationId(), method, path), usedNames, errors);
         ParameterSchema paramSchema = extractParameterSchema(mergeParameters(pathLevelParams, op.getParameters()));
+        RequestBodySelection requestBody = selectRequestBody(op.getRequestBody());
         var definition = new McpToolDefinition(
             toolName,
             buildDescription(op, method, path),
-            buildInputSchema(paramSchema, extractRequestBodySchema(op.getRequestBody())),
+            buildInputSchema(paramSchema, requestBody),
             buildOutputSchema(extractResponseSchema(op.getResponses())),
             extractAnnotations(op)
         );
-        return new McpTool(definition, generateGatewayMapping(op, method, path, paramSchema));
+        return new McpTool(definition, generateGatewayMapping(method, path, paramSchema, requestBody.contentType()));
     }
 
     private static String disambiguate(String baseName, Set<String> usedNames, List<ParseError> errors) {
@@ -215,6 +218,10 @@ public class OpenApiToMcpToolsDomainServiceImpl implements OpenApiToMcpToolsDoma
 
     private record ResponseSchema(JsonNode bodySchema, Map<String, JsonNode> headers) {}
 
+    private record RequestBodySelection(String contentType, JsonNode bodySchema, boolean required) {
+        static final RequestBodySelection NONE = new RequestBodySelection(null, null, false);
+    }
+
     private static ParameterSchema extractParameterSchema(List<Parameter> parameters) {
         Map<String, JsonNode> pathParams = new LinkedHashMap<>();
         Map<String, JsonNode> queryParams = new LinkedHashMap<>();
@@ -243,15 +250,43 @@ public class OpenApiToMcpToolsDomainServiceImpl implements OpenApiToMcpToolsDoma
         return new ParameterSchema(pathParams, queryParams, headers, required);
     }
 
-    private static JsonNode extractRequestBodySchema(RequestBody requestBody) {
-        if (requestBody == null || requestBody.getContent() == null) {
-            return null;
+    // The gateway sends a body only as JSON or form-urlencoded, so other media types get no bodySchema.
+    private static RequestBodySelection selectRequestBody(RequestBody requestBody) {
+        Content content = requestBody == null ? null : requestBody.getContent();
+        if (content == null || content.isEmpty()) {
+            return RequestBodySelection.NONE;
         }
-        MediaType jsonMedia = requestBody.getContent().get("application/json");
-        if (jsonMedia == null || jsonMedia.getSchema() == null) {
-            return null;
-        }
-        return schemaToObjectNode(jsonMedia.getSchema());
+        Set<String> mediaTypes = content.keySet();
+        Optional<String> sendableMediaType = mediaTypes
+            .stream()
+            .filter(OpenApiToMcpToolsDomainServiceImpl::isJsonMediaType)
+            .findFirst()
+            .or(() -> mediaTypes.stream().filter(OpenApiToMcpToolsDomainServiceImpl::isFormUrlEncodedMediaType).findFirst());
+        JsonNode bodySchema = sendableMediaType
+            .map(content::get)
+            .map(MediaType::getSchema)
+            .map(OpenApiToMcpToolsDomainServiceImpl::schemaToObjectNode)
+            .orElse(null);
+        return new RequestBodySelection(
+            sendableMediaType.orElse(mediaTypes.iterator().next()),
+            bodySchema,
+            Boolean.TRUE.equals(requestBody.getRequired())
+        );
+    }
+
+    private static boolean isJsonMediaType(String mediaType) {
+        String essence = extractMediaTypeEssence(mediaType);
+        return essence.equals("application/json") || essence.endsWith("+json");
+    }
+
+    private static boolean isFormUrlEncodedMediaType(String mediaType) {
+        return extractMediaTypeEssence(mediaType).equals("application/x-www-form-urlencoded");
+    }
+
+    private static String extractMediaTypeEssence(String mediaType) {
+        int parametersStart = mediaType.indexOf(';');
+        String essence = parametersStart < 0 ? mediaType : mediaType.substring(0, parametersStart);
+        return essence.trim().toLowerCase(Locale.ROOT);
     }
 
     private static ResponseSchema extractResponseSchema(ApiResponses responses) {
@@ -325,7 +360,8 @@ public class OpenApiToMcpToolsDomainServiceImpl implements OpenApiToMcpToolsDoma
         return value instanceof Boolean b ? b : null;
     }
 
-    private static JsonNode buildInputSchema(ParameterSchema paramSchema, JsonNode bodySchema) {
+    private static JsonNode buildInputSchema(ParameterSchema paramSchema, RequestBodySelection requestBody) {
+        JsonNode bodySchema = requestBody.bodySchema();
         ObjectNode schema = MAPPER.createObjectNode();
         schema.put("type", "object");
         ObjectNode properties = schema.putObject("properties");
@@ -333,10 +369,13 @@ public class OpenApiToMcpToolsDomainServiceImpl implements OpenApiToMcpToolsDoma
         paramSchema.queryParams().forEach(properties::set);
         paramSchema.headers().forEach(properties::set);
         if (bodySchema != null) {
-            properties.set("bodySchema", bodySchema);
+            properties.set(BODY_SCHEMA_PROPERTY, bodySchema);
         }
         ArrayNode required = schema.putArray("required");
         paramSchema.required().forEach(required::add);
+        if (bodySchema != null && requestBody.required()) {
+            required.add(BODY_SCHEMA_PROPERTY);
+        }
         return removeCircularRefs(schema);
     }
 
@@ -349,16 +388,20 @@ public class OpenApiToMcpToolsDomainServiceImpl implements OpenApiToMcpToolsDoma
         ObjectNode properties = schema.putObject("properties");
         responseSchema.headers().forEach(properties::set);
         if (responseSchema.bodySchema() != null) {
-            properties.set("bodySchema", responseSchema.bodySchema());
+            properties.set(BODY_SCHEMA_PROPERTY, responseSchema.bodySchema());
         }
         schema.putArray("required");
         return removeCircularRefs(schema);
     }
 
-    private static McpToolGatewayMapping generateGatewayMapping(Operation op, String method, String path, ParameterSchema paramSchema) {
+    private static McpToolGatewayMapping generateGatewayMapping(
+        String method,
+        String path,
+        ParameterSchema paramSchema,
+        String contentType
+    ) {
         Matcher m = OAS_PATH_PARAM.matcher(path);
         String transformedPath = m.replaceAll(":$1");
-        String contentType = determineContentType(op);
 
         // Empty lists are serialised to null so Jackson (NON_NULL inclusion) drops the field entirely,
         // matching the front-end behaviour of omitting absent gatewayMapping fields.
@@ -376,17 +419,6 @@ public class OpenApiToMcpToolsDomainServiceImpl implements OpenApiToMcpToolsDoma
                 headerNames
             )
         );
-    }
-
-    private static String determineContentType(Operation op) {
-        if (op.getRequestBody() == null || op.getRequestBody().getContent() == null) {
-            return null;
-        }
-        var entries = op.getRequestBody().getContent().keySet();
-        if (entries.isEmpty()) {
-            return null;
-        }
-        return entries.iterator().next();
     }
 
     private static String buildDescription(Operation op, String method, String path) {
