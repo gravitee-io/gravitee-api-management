@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.10.34
-appVersion: 4.10.34
+version: 4.10.35
+appVersion: 4.10.35
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -29,9 +29,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: |
-    - kind: added
-      description: "`ldap.lookup.activations` restricts where the LDAP user search of the Management API is allowed: a list of organization ids or `organization id:environment id` pairs, empty by default"
-      links:
-        - name: Github PR
-          url: https://github.com/gravitee-io/gravitee-api-management/pull/21733
+  artifacthub.io/changes: 
