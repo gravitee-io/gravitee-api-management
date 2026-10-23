@@ -4,7 +4,7 @@ databaseChangeLog:
   # on every insert and update, it is not enforced yet: the unique index comes in a later release, once every node
   # maintains it.
   - changeSet:
-      id: 4.12.24_00_add_subscriptions_unique_active_key
+      id: 4.12.25_00_add_subscriptions_unique_active_key
       author: GraviteeSource Team
       changes:
         - addColumn:
@@ -19,7 +19,7 @@ databaseChangeLog:
   # Committed batch by batch: a single transaction would lock the active subscriptions for the whole run while the
   # nodes of the previous version keep serving requests.
   - changeSet:
-      id: 4.12.24_01_backfill_subscriptions_unique_active_key
+      id: 4.12.25_01_backfill_subscriptions_unique_active_key
       author: GraviteeSource Team
       runInTransaction: false
       changes:
