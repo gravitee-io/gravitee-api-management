@@ -1,15 +1,20 @@
 databaseChangeLog:
   # The unique index refuses a second active subscription of an application to a plan (or to a channel of a PUSH plan).
   # It must only be created once every node maintains unique_active_key: nodes of the previous versions leave it
-  # missing, or stale on closed subscriptions, which would refuse legitimate subscriptions. Hence the repair first.
+  # missing, or stale on closed subscriptions, which would refuse legitimate subscriptions. Hence the repair first, run
+  # again at every startup until the index exists (it then returns at once): nodes of a previous version may have
+  # written since the last run. No MARK_RAN precondition: on a changeset that already ran, it would insert a second
+  # changelog row.
   - changeSet:
       id: 4.12.26_00_repair_subscriptions_unique_active_key
       author: GraviteeSource Team
       runInTransaction: false
+      runAlways: true
       changes:
         - customChange:
             class: io.gravitee.repository.jdbc.liquibase.SubscriptionUniqueActiveKeyBackfill
             tablePrefix: "${gravitee_prefix}"
+            untilIndexed: true
 
   # Subscriptions already duplicated cannot be arbitrated here: the index is skipped, without failing the startup, and
   # tried again at every startup (CONTINUE) until the extra subscriptions are closed. The duplicates are listed by the

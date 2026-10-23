@@ -37,6 +37,9 @@ import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.CustomChangeException;
 import liquibase.exception.ValidationErrors;
 import liquibase.resource.ResourceAccessor;
+import liquibase.snapshot.SnapshotGeneratorFactory;
+import liquibase.structure.core.Index;
+import liquibase.structure.core.Table;
 import lombok.CustomLog;
 
 /**
@@ -70,11 +73,29 @@ public class SubscriptionUniqueActiveKeyBackfill implements CustomTaskChange {
     }
 
     /**
+     * For the repair run at every startup: it returns at once when the unique index on active subscriptions exists,
+     * as the repository then repairs a stale key when a write conflicts with it.
+     */
+    private boolean untilIndexed;
+
+    public boolean isUntilIndexed() {
+        return untilIndexed;
+    }
+
+    public void setUntilIndexed(boolean untilIndexed) {
+        this.untilIndexed = untilIndexed;
+    }
+
+    /**
      * Never fails: the node would not start, and a missing key only means keeping the behaviour of the previous
      * versions until the next repair, which runs before the unique index is created.
      */
     @Override
     public void execute(Database database) throws CustomChangeException {
+        if (untilIndexed && uniqueIndexExists(database)) {
+            log.debug("Unique index on active subscriptions already exists, their keys are not repaired");
+            return;
+        }
         Connection connection = ((JdbcConnection) database.getConnection()).getUnderlyingConnection();
         try {
             repair(connection);
@@ -84,6 +105,20 @@ public class SubscriptionUniqueActiveKeyBackfill implements CustomTaskChange {
                 e
             );
             rollback(connection);
+        }
+    }
+
+    private boolean uniqueIndexExists(Database database) {
+        Table table = new Table();
+        table.setName(database.correctObjectName(tablePrefix + "subscriptions", Table.class));
+        Index index = new Index();
+        index.setName(database.correctObjectName("idx_" + tablePrefix + "subscriptions_unique_active_key", Index.class));
+        index.setRelation(table);
+        try {
+            return SnapshotGeneratorFactory.getInstance().has(index, database);
+        } catch (Exception e) {
+            log.warn("Unable to check whether the unique index on active subscriptions exists, repairing their keys: {}", e.getMessage());
+            return false;
         }
     }
 
