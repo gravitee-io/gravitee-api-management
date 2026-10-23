@@ -113,11 +113,14 @@ public class JdbcApiKeyCreateRaceTest extends AbstractRepositoryTest {
 
     @Test
     public void should_commit_every_subscribe_transaction_that_lost_the_race_at_the_same_time() throws Exception {
+        CountDownLatch losersRead = new CountDownLatch(2);
         CountDownLatch winnerInserted = new CountDownLatch(1);
         CountDownLatch losersInserting = new CountDownLatch(2);
         CountDownLatch losersLost = new CountDownLatch(2);
 
         Future<?> winner = onAnotherNode(() -> {
+            // Insert only once the losers have read: on SQL Server, a read waits for an uncommitted row.
+            losersRead.await(TIMEOUT_SECONDS, SECONDS);
             apiKeyRepository.create(sharedKey("sub-of-the-winner"));
             winnerInserted.countDown();
             // Commit only once the losers are waiting for the uncommitted key.
@@ -128,6 +131,7 @@ public class JdbcApiKeyCreateRaceTest extends AbstractRepositoryTest {
             .<Future<?>>map(subscription ->
                 onAnotherNode(() -> {
                     assertThat(apiKeyRepository.findByApplication(APPLICATION)).isEmpty();
+                    losersRead.countDown();
                     winnerInserted.await(TIMEOUT_SECONDS, SECONDS);
                     losersInserting.countDown();
                     assertThatThrownBy(() -> apiKeyRepository.create(sharedKey(subscription))).isInstanceOf(DuplicateKeyException.class);
