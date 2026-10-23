@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync.process.distributed.synchronizer.api;
 
 import static io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -37,6 +38,7 @@ import io.gravitee.gateway.services.sync.process.distributed.fetcher.Distributed
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
+import io.gravitee.gateway.services.sync.process.distributed.synchronizer.AbstractDistributedSynchronizer;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
@@ -183,6 +185,69 @@ class DistributedApiSynchronizerTest {
 
             verify(apiDeployer).undeploy(any());
             verify(apiDeployer).doAfterUndeployment(any());
+        }
+    }
+
+    @Nested
+    class TransientFailureTest {
+
+        private DistributedEvent event;
+
+        @BeforeEach
+        public void init() throws JsonProcessingException {
+            io.gravitee.definition.model.Api api = new io.gravitee.definition.model.Api();
+            api.setId("api");
+            api.setDefinitionVersion(DefinitionVersion.V2);
+            Proxy proxy = new Proxy();
+            proxy.setVirtualHosts(List.of(new VirtualHost("/test")));
+            api.setProxy(proxy);
+            event = DistributedEvent.builder()
+                .id("api")
+                .payload(objectMapper.writeValueAsString(new Api(api)))
+                .type(DistributedEventType.API)
+                .syncAction(DistributedSyncAction.DEPLOY)
+                .updatedAt(new Date())
+                .build();
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(event));
+        }
+
+        @Test
+        void should_hold_the_window_when_an_api_hits_a_transient_failure_on_an_incremental_sync() throws InterruptedException {
+            when(apiDeployer.deploy(any())).thenReturn(Completable.error(new TechnicalException("store unreachable")));
+
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli()).test().await().assertComplete();
+
+            assertThat(cut.consumeHoldRequest()).isTrue();
+            assertThat(cut.consumeHoldRequest()).isFalse();
+        }
+
+        @Test
+        void should_not_hold_the_window_for_a_permanent_failure() throws InterruptedException {
+            when(apiDeployer.deploy(any())).thenReturn(Completable.error(new IllegalStateException("malformed")));
+
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli()).test().await().assertComplete();
+
+            assertThat(cut.consumeHoldRequest()).isFalse();
+        }
+
+        @Test
+        void should_let_the_window_move_on_after_the_maximum_held_attempts() throws InterruptedException {
+            when(apiDeployer.deploy(any())).thenReturn(Completable.error(new TechnicalException("store unreachable")));
+
+            for (int i = 0; i < AbstractDistributedSynchronizer.MAX_HELD_ATTEMPTS; i++) {
+                cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli()).test().await().assertComplete();
+                assertThat(cut.consumeHoldRequest()).isTrue();
+            }
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli()).test().await().assertComplete();
+
+            assertThat(cut.consumeHoldRequest()).isFalse();
+        }
+
+        @Test
+        void should_still_fail_an_initial_sync_on_a_transient_failure() throws InterruptedException {
+            when(apiDeployer.deploy(any())).thenReturn(Completable.error(new TechnicalException("store unreachable")));
+
+            cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertError(TechnicalException.class);
         }
     }
 

@@ -17,7 +17,7 @@ package io.gravitee.gateway.services.sync.process.distributed.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.dictionary.model.Dictionary;
-import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncMetrics;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
@@ -31,6 +31,11 @@ import lombok.RequiredArgsConstructor;
 public class DictionaryMapper {
 
     private final ObjectMapper objectMapper;
+    private final DistributedSyncMetrics metrics;
+
+    public DictionaryMapper(final ObjectMapper objectMapper) {
+        this(objectMapper, new DistributedSyncMetrics());
+    }
 
     public Maybe<DictionaryDeployable> to(final DistributedEvent event) {
         return Maybe.fromCallable(() -> {
@@ -42,8 +47,7 @@ public class DictionaryMapper {
                     .syncAction(SyncActionMapper.to(event.getSyncAction()))
                     .build();
             } catch (Exception e) {
-                log.warn("Error while determining dictionary into event payload", e);
-                return null;
+                return MappingFailures.decodeFailure(metrics, event, e);
             }
         });
     }
@@ -56,13 +60,12 @@ public class DictionaryMapper {
                     .type(DistributedEventType.DICTIONARY)
                     .syncAction(SyncActionMapper.to(deployable.syncAction()))
                     .updatedAt(new Date());
-                if (deployable.syncAction() == SyncAction.DEPLOY) {
+                if (deployable.dictionary() != null) {
                     builder.payload(objectMapper.writeValueAsString(deployable.dictionary()));
                 }
                 return builder.build();
             } catch (Exception e) {
-                log.warn("Error while building distributed event from dictionary", e);
-                return null;
+                return MappingFailures.deadLetter(metrics, DistributedEventType.DICTIONARY, deployable.id(), e);
             }
         });
     }

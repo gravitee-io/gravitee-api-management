@@ -19,6 +19,7 @@ import static io.gravitee.repository.management.model.Event.EventProperties.CRED
 
 import io.gravitee.gateway.services.sync.process.common.deployer.CredentialDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
+import io.gravitee.gateway.services.sync.process.common.deployer.FailClosedUndeploy;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
@@ -142,9 +143,10 @@ public class CredentialSynchronizer implements RepositorySynchronizer {
         final CredentialDeployer credentialDeployer,
         final CredentialDeployable deployable
     ) {
-        return credentialDeployer
-            .undeploy(deployable)
-            .andThen(credentialDeployer.doAfterUndeployment(deployable))
+        return FailClosedUndeploy.undeployThenDistribute(
+            credentialDeployer.undeploy(deployable),
+            credentialDeployer.doAfterUndeployment(deployable)
+        )
             .andThen(Flowable.just(deployable))
             .onErrorResumeNext(throwable -> {
                 log.error(throwable.getMessage(), throwable);

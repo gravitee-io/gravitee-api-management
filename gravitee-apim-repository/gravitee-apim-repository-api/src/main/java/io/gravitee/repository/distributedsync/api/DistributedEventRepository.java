@@ -71,6 +71,21 @@ public interface DistributedEventRepository {
     Completable createOrUpdate(final DistributedEvent distributedEvent);
 
     /**
+     * Same as {@link #createOrUpdate(DistributedEvent)}, but the stored {@code updatedAt} is the time the write is
+     * actually attempted rather than the time the event was built.
+     * <p>
+     * Readers select events by an {@code updatedAt} window: an event stamped long before it becomes visible
+     * (queued behind other writes, or retried) can fall behind a window a reader has already consumed and be
+     * missed for good. Stamping at write time bounds that gap to a single write attempt.
+     *
+     * @param distributedEvent {@link DistributedEvent} to store
+     * @return {@link Completable}
+     */
+    default Completable createOrUpdateAtWriteTime(final DistributedEvent distributedEvent) {
+        return createOrUpdate(distributedEvent);
+    }
+
+    /**
      * This method allows to update all distributed event associated to reference id and type.
      *
      * @param clusterId cluster identifier used to scope distributed events
@@ -87,4 +102,17 @@ public interface DistributedEventRepository {
         final DistributedSyncAction syncAction,
         final Date updateAt
     );
+
+    /**
+     * Same as {@link #updateAll(String, DistributedEventType, String, DistributedSyncAction, Date)}, with each
+     * event stamped at the time its own write is attempted (see {@link #createOrUpdateAtWriteTime}).
+     */
+    default Completable updateAllAtWriteTime(
+        final String clusterId,
+        final DistributedEventType refType,
+        final String refId,
+        final DistributedSyncAction syncAction
+    ) {
+        return updateAll(clusterId, refType, refId, syncAction, new Date());
+    }
 }
