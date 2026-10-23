@@ -79,6 +79,17 @@ public class ElasticsearchOtelLogRepository implements OtelLogRepository {
         return client.search(index, null, body).onErrorReturnItem(new SearchResponse()).map(ElasticsearchOtelLogRepository::parseResponse);
     }
 
+    @Override
+    public Single<List<OtelLogRecord>> findRecords(QueryContext queryContext, OtelLogSearchCriteria criteria) {
+        String index = resolveIndex(indexTemplate, queryContext);
+        String body = buildSearchBody(criteria);
+        // Same query, same empty-on-unreachable contract; only the span requirement differs.
+        return client
+            .search(index, null, body)
+            .onErrorReturnItem(new SearchResponse())
+            .map(response -> parseResponse(response, false));
+    }
+
     private String resolveIndex(String template, QueryContext queryContext) {
         // Substitution mirrors the OTel collector ES exporter's dataset normalisation —
         // disallowed runes (including the hyphen) become '_', other characters are lowercased,
@@ -169,6 +180,14 @@ public class ElasticsearchOtelLogRepository implements OtelLogRepository {
     }
 
     private static List<OtelLogRecord> parseResponse(SearchResponse response) {
+        return parseResponse(response, true);
+    }
+
+    /**
+     * @param requireSpan drop records carrying no {@code span_id}. True for {@link #findLogs}, whose whole job is
+     *     stitching onto a span; false for {@link #findRecords}, where a span-less record is the point.
+     */
+    private static List<OtelLogRecord> parseResponse(SearchResponse response, boolean requireSpan) {
         if (
             response == null ||
             response.getSearchHits() == null ||
@@ -184,9 +203,9 @@ public class ElasticsearchOtelLogRepository implements OtelLogRepository {
                 continue;
             }
             String spanId = textOrNull(source.get("span_id"));
-            // Without a span_id the record can't be stitched onto any span — drop rather than
-            // synthesise an orphan that would confuse the consumer.
-            if (spanId == null) {
+            // Without a span_id the record can't be stitched onto any span — drop rather than synthesise an
+            // orphan that would confuse the consumer. Only for the stitching read: findRecords wants these.
+            if (requireSpan && spanId == null) {
                 continue;
             }
             String traceId = textOrNull(source.get("trace_id"));
@@ -247,6 +266,10 @@ public class ElasticsearchOtelLogRepository implements OtelLogRepository {
                 JsonNode value = entry.getValue();
                 if (value.isObject()) {
                     result.putAll(flattenStringMap(value, key));
+                } else if (value.isArray()) {
+                    // An array has no text form: asText() answers "" and the values vanish without a trace.
+                    // Serialised as JSON instead, so an OTLP string-array attribute survives the string map.
+                    result.put(key, value.toString());
                 } else if (!value.isNull()) {
                     result.put(key, value.asText());
                 }

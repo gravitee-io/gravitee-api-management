@@ -37,4 +37,9 @@ public class NoOpOtelLogRepository implements OtelLogRepository {
     public Single<List<OtelLogRecord>> findLogs(QueryContext queryContext, OtelLogSearchCriteria criteria) {
         return Single.just(List.of());
     }
+
+    @Override
+    public Single<List<OtelLogRecord>> findRecords(QueryContext queryContext, OtelLogSearchCriteria criteria) {
+        return Single.just(List.of());
+    }
 }

@@ -58,4 +58,23 @@ public interface OtelLogRepository {
      *                     time range) that the response stays bounded and tenant-isolated.
      */
     Single<List<OtelLogRecord>> findLogs(QueryContext queryContext, OtelLogSearchCriteria criteria);
+
+    /**
+     * Fetch OTel log records matching the given criteria <strong>whether or not they belong to a span</strong>,
+     * in {@code @timestamp} ascending order.
+     * <p>
+     * {@link #findLogs} exists to stitch records onto a trace, so it drops anything carrying no span id — an
+     * orphan would have nowhere to hang. A growing class of records is legitimately span-less: a document that
+     * summarises a window of activity describes many spans and belongs to none of them, and giving it one span's
+     * id to survive the filter would make every span-stitching consumer attach it to that span. This method is
+     * for those: same criteria, same tenancy, no assumption that a record is part of a trace.
+     * <p>
+     * Returns an empty list when nothing matches or the backing storage isn't reachable, on the same terms as
+     * {@link #findLogs}.
+     *
+     * @param queryContext caller's org/env tenant context. Mandatory, and hard-partitions as it does above.
+     * @param criteria     query shape. Callers are responsible for filtering enough that the response stays
+     *                     bounded — typically on {@code event.name} plus a resource attribute.
+     */
+    Single<List<OtelLogRecord>> findRecords(QueryContext queryContext, OtelLogSearchCriteria criteria);
 }

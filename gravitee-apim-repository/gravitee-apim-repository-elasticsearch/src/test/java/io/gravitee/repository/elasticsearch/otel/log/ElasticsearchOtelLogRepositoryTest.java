@@ -243,6 +243,53 @@ class ElasticsearchOtelLogRepositoryTest {
     }
 
     @Test
+    void findRecords_should_return_records_that_belong_to_no_span() {
+        // A record summarising a window of activity describes many spans and belongs to none of them. findLogs
+        // drops it because it cannot be stitched; findRecords exists to return it.
+        Map<String, Object> source = new HashMap<>();
+        source.put("@timestamp", "2026-10-06T10:00:00.000Z");
+        source.put("event_name", "gravitee.discovery.workload_activity");
+        source.put("attributes", Map.of("gravitee.discovery.agent.name", "support-triage"));
+        when(client.search(any(), any(), any())).thenReturn(Single.just(responseWith(source)));
+
+        List<OtelLogRecord> stitched = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+        List<OtelLogRecord> records = repository.findRecords(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+
+        assertThat(stitched).isEmpty();
+        assertThat(records).hasSize(1);
+        assertThat(records.get(0).spanId()).isNull();
+        assertThat(records.get(0).attributes())
+            .containsEntry("gravitee.discovery.agent.name", "support-triage")
+            .containsEntry("event.name", "gravitee.discovery.workload_activity");
+    }
+
+    @Test
+    void should_serialise_array_attributes_instead_of_blanking_them() {
+        // asText() on an array node answers "", which silently erased every list-valued attribute.
+        Map<String, Object> source = new HashMap<>();
+        source.put("@timestamp", "2026-10-06T10:00:00.000Z");
+        source.put("span_id", "11223344aabbccdd");
+        source.put("attributes", Map.of("gravitee.discovery.activity.models", List.of("gpt-4.1", "gpt-4.1-mini"), "count", 3));
+        when(client.search(any(), any(), any())).thenReturn(Single.just(responseWith(source)));
+
+        List<OtelLogRecord> records = repository.findRecords(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+
+        assertThat(records.get(0).attributes())
+            .containsEntry("gravitee.discovery.activity.models", "[\"gpt-4.1\",\"gpt-4.1-mini\"]")
+            .containsEntry("count", "3");
+    }
+
+    private static SearchResponse responseWith(Map<String, Object> source) {
+        SearchHit hit = new SearchHit();
+        hit.setSource(MAPPER.valueToTree(source));
+        SearchHits hits = new SearchHits();
+        hits.setHits(List.of(hit));
+        SearchResponse response = new SearchResponse();
+        response.setSearchHits(hits);
+        return response;
+    }
+
+    @Test
     void findLogs_should_preserve_event_name_attribute_when_already_present_in_attributes_block() {
         // Defensive: if a future collector writes event.name into the OTel attributes block instead of
         // the top-level field, putIfAbsent must not clobber it with a null from `source.event_name`.
