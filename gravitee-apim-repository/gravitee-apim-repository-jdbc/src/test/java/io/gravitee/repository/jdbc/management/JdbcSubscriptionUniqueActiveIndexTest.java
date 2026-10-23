@@ -50,7 +50,7 @@ import org.testcontainers.containers.JdbcDatabaseContainer;
  */
 public class JdbcSubscriptionUniqueActiveIndexTest extends AbstractManagementRepositoryTest {
 
-    private static final String INDEX_CHANGESET_PREFIX = "4.12.25_01_add_subscriptions_unique_active_key_index";
+    private static final String INDEX_CHANGESET_PREFIX = "4.12.26_01_add_subscriptions_unique_active_key_index";
 
     @Inject
     private DataSource dataSource;

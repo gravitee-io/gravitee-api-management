@@ -390,4 +390,4 @@ databaseChangeLog:
     - include:
         - file: liquibase/changelogs/v4_12_25/00_add_subscriptions_unique_active_key.yml
     - include:
-        - file: liquibase/changelogs/v4_12_25/00_add_subscriptions_unique_active_key_index.yml
+        - file: liquibase/changelogs/v4_12_26/00_add_subscriptions_unique_active_key_index.yml
