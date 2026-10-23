@@ -18,16 +18,23 @@ package io.gravitee.repository.jdbc.management;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import io.gravitee.repository.exceptions.DuplicateKeyException;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.AbstractManagementRepositoryTest;
 import io.gravitee.repository.management.api.SubscriptionUniqueActiveKey;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import jakarta.inject.Inject;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import javax.sql.DataSource;
 import org.junit.Before;
 import org.junit.Test;
@@ -143,6 +150,55 @@ public class JdbcSubscriptionStaleUniqueActiveKeyTest extends AbstractManagement
         });
 
         assertThat(subscriptionRepository.findByIdIn(List.of("sub-2", "sub-3"))).hasSize(2);
+    }
+
+    @Test
+    public void should_keep_one_of_identical_subscriptions_created_at_the_same_time_over_a_stale_key() throws Exception {
+        // Each request runs in a transaction, like the subscription service: all of them run into the stale key and repair
+        // it at the same time, without waiting for each other, and exactly one of them keeps the key.
+        int requests = 4;
+        var transaction = new TransactionTemplate(graviteeTransactionManager);
+        ExecutorService executor = Executors.newFixedThreadPool(requests);
+        try {
+            for (int round = 0; round < 10; round++) {
+                String plan = "plan-" + round;
+                subscriptionRepository.create(aSubscription("stale-" + round, plan));
+                closeAsPreviousVersion("stale-" + round);
+                var barrier = new CyclicBarrier(requests);
+                List<Future<Throwable>> results = new ArrayList<>();
+                for (int request = 0; request < requests; request++) {
+                    String id = "sub-" + round + "-" + request;
+                    results.add(
+                        executor.submit(() -> {
+                            barrier.await();
+                            return catchThrowable(() ->
+                                transaction.executeWithoutResult(status -> {
+                                    try {
+                                        subscriptionRepository.create(aSubscription(id, plan));
+                                    } catch (TechnicalException e) {
+                                        throw new IllegalStateException(e);
+                                    }
+                                })
+                            );
+                        })
+                    );
+                }
+
+                List<Throwable> failures = new ArrayList<>();
+                for (Future<Throwable> result : results) {
+                    if (result.get() != null) {
+                        failures.add(result.get());
+                    }
+                }
+                assertThat(failures).as("round %d", round).hasSize(requests - 1);
+                assertThat(failures)
+                    .as("round %d", round)
+                    .allSatisfy(failure -> assertThat(failure).hasCauseInstanceOf(DuplicateKeyException.class));
+                assertThat(storedKey("stale-" + round)).isNull();
+            }
+        } finally {
+            executor.shutdownNow();
+        }
     }
 
     /**
