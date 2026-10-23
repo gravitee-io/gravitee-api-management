@@ -88,6 +88,15 @@ public class FlowChainFactory {
         return flowApiChain;
     }
 
+    public FlowChain createInternalFlow(final Api api, final TracingContext tracingContext) {
+        // Not the internal flow name: the chain id keys the resolved flows and the flow stage, so a name such as "api"
+        // or "plan" would mix this chain up with another one. The name still shows in policy chain ids and spans.
+        // It takes no part in flow matching: the internal flow always runs, so it would void the API's matchRequired.
+        FlowChain flowInternalChain = new FlowChain("internal", flowResolverFactory.forInternalFlow(api), policyChainFactory);
+        flowInternalChain.addHooks(flowHooks(tracingContext));
+        return flowInternalChain;
+    }
+
     private List<ChainHook> flowHooks(final TracingContext tracingContext) {
         if (tracingContext.isEnabled()) {
             return List.of(tracingHook);

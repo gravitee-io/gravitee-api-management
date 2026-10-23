@@ -91,6 +91,13 @@ class FlowResolverFactoryTest {
     }
 
     @Test
+    void should_create_internal_flow_resolver() {
+        final FlowResolver flowResolver = cut.forInternalFlow(api);
+
+        assertThat(flowResolver).isInstanceOf(InternalFlowResolver.class);
+    }
+
+    @Test
     void should_not_defer_any_condition_when_built_with_a_single_filter() {
         // Factories built that way resolve the flows with one filter, conditions included. Nothing is left to be
         // evaluated before a flow runs, otherwise the condition would be evaluated twice.
