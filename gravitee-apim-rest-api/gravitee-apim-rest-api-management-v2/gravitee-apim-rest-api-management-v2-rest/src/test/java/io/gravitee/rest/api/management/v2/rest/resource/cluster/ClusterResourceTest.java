@@ -33,18 +33,25 @@ import static org.mockito.Mockito.when;
 import assertions.MAPIAssertions;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.cluster.domain_service.ClusterApisDomainService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.DeployClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.GetClusterApisUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetClusterStartedApisUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.UndeployClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterGroupsUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCase;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
+import io.gravitee.rest.api.management.v2.rest.model.ClusterApi;
+import io.gravitee.rest.api.management.v2.rest.model.ClusterApiConnection;
+import io.gravitee.rest.api.management.v2.rest.model.ClusterApiVirtualCluster;
+import io.gravitee.rest.api.management.v2.rest.model.ClusterApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ClusterStartedApi;
 import io.gravitee.rest.api.management.v2.rest.model.ClusterStartedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateCluster;
@@ -97,6 +104,9 @@ class ClusterResourceTest extends AbstractResourceTest {
     @Inject
     private GetClusterStartedApisUseCase getClusterStartedApisUseCase;
 
+    @Inject
+    private GetClusterApisUseCase getClusterApisUseCase;
+
     @Autowired
     private UpdateClusterGroupsUseCase updateClusterGroupsUseCase;
 
@@ -131,7 +141,8 @@ class ClusterResourceTest extends AbstractResourceTest {
             getClusterPermissionsUseCase,
             deployClusterUseCase,
             undeployClusterUseCase,
-            getClusterStartedApisUseCase
+            getClusterStartedApisUseCase,
+            getClusterApisUseCase
         );
     }
 
@@ -464,6 +475,166 @@ class ClusterResourceTest extends AbstractResourceTest {
         public void should_return_403_if_incorrect_permissions() {
             shouldReturn403(RolePermission.CLUSTER_DEFINITION, CLUSTER_ID, RolePermissionAction.READ, () ->
                 rootTarget().path("started-apis").request().get()
+            );
+        }
+    }
+
+    @Nested
+    class GetClusterApisTest {
+
+        @Test
+        void should_list_a_page_of_the_apis_using_the_cluster() {
+            var payments = Api.builder()
+                .id("api-1")
+                .name("Payments")
+                .type(io.gravitee.definition.model.v4.ApiType.MESSAGE)
+                .lifecycleState(Api.LifecycleState.STARTED)
+                .build();
+            var orders = Api.builder()
+                .id("api-2")
+                .name("Orders")
+                .version("2.1")
+                .type(io.gravitee.definition.model.v4.ApiType.NATIVE)
+                .lifecycleState(Api.LifecycleState.STOPPED)
+                .build();
+            var mesh = Cluster.builder().id("vc-id").crossId("mesh").name("Mesh").build();
+            when(getClusterApisUseCase.execute(any())).thenReturn(
+                new GetClusterApisUseCase.Output(
+                    new Page<>(
+                        List.of(
+                            new GetClusterApisUseCase.Item(
+                                new ClusterApisDomainService.ClusterApi(orders, Set.of("gone"), List.of(mesh)),
+                                false
+                            )
+                        ),
+                        2,
+                        1,
+                        2
+                    ),
+                    Map.of("sasl", "SASL")
+                )
+            );
+
+            try (
+                Response response = rootTarget()
+                    .path("apis")
+                    .queryParam("q", "ord")
+                    .queryParam("perPage", 1)
+                    .queryParam("page", 2)
+                    .request()
+                    .get()
+            ) {
+                assertThat(response.getStatus()).isEqualTo(OK_200);
+                var body = response.readEntity(ClusterApisResponse.class);
+                assertThat(body.getData()).containsExactly(
+                    new ClusterApi()
+                        .id("api-2")
+                        .name("Orders")
+                        .version("2.1")
+                        .type(ApiType.NATIVE)
+                        .state(ClusterApi.StateEnum.STOPPED)
+                        .connections(List.of(new ClusterApiConnection().crossId("gone")))
+                        .virtualClusters(List.of(new ClusterApiVirtualCluster().id("vc-id").name("Mesh")))
+                        .readable(false)
+                );
+                assertThat(body.getPagination().getTotalCount()).isEqualTo(2);
+                assertThat(body.getPagination().getPage()).isEqualTo(2);
+            }
+
+            var captor = ArgumentCaptor.forClass(GetClusterApisUseCase.Input.class);
+            verify(getClusterApisUseCase).execute(captor.capture());
+            assertThat(captor.getValue().clusterId()).isEqualTo(CLUSTER_ID);
+            assertThat(captor.getValue().executionContext().getEnvironmentId()).isEqualTo(ENV_ID);
+            assertThat(captor.getValue().name()).isEqualTo("ord");
+            assertThat(captor.getValue().pageable().getPageNumber()).isEqualTo(2);
+            assertThat(captor.getValue().pageable().getPageSize()).isEqualTo(1);
+        }
+
+        @Test
+        void should_expose_only_the_name_version_type_and_state_of_an_api() {
+            var orders = Api.builder()
+                .id("api-2")
+                .name("Orders")
+                .version("2.1")
+                .description("secret description")
+                .type(io.gravitee.definition.model.v4.ApiType.NATIVE)
+                .lifecycleState(Api.LifecycleState.STOPPED)
+                .build();
+            when(getClusterApisUseCase.execute(any())).thenReturn(
+                new GetClusterApisUseCase.Output(
+                    new Page<>(
+                        List.of(
+                            new GetClusterApisUseCase.Item(new ClusterApisDomainService.ClusterApi(orders, Set.of(), List.of()), false)
+                        ),
+                        1,
+                        1,
+                        1
+                    ),
+                    Map.of()
+                )
+            );
+
+            try (Response response = rootTarget().path("apis").request().get()) {
+                var api = response.readEntity(Map.class);
+                assertThat((List<Map<String, Object>>) api.get("data"))
+                    .singleElement()
+                    .satisfies(item ->
+                        assertThat(item).containsOnlyKeys(
+                            "id",
+                            "name",
+                            "version",
+                            "type",
+                            "state",
+                            "connections",
+                            "virtualClusters",
+                            "readable"
+                        )
+                    );
+            }
+        }
+
+        @Test
+        void should_name_the_connections_of_the_apis() {
+            var payments = Api.builder()
+                .id("api-1")
+                .name("Payments")
+                .type(io.gravitee.definition.model.v4.ApiType.MESSAGE)
+                .lifecycleState(Api.LifecycleState.STARTED)
+                .build();
+            when(getClusterApisUseCase.execute(any())).thenReturn(
+                new GetClusterApisUseCase.Output(
+                    new Page<>(
+                        List.of(
+                            new GetClusterApisUseCase.Item(
+                                new ClusterApisDomainService.ClusterApi(payments, Set.of("sasl"), List.of()),
+                                true
+                            )
+                        ),
+                        1,
+                        1,
+                        1
+                    ),
+                    Map.of("sasl", "SASL")
+                )
+            );
+
+            try (Response response = rootTarget().path("apis").request().get()) {
+                var body = response.readEntity(ClusterApisResponse.class);
+                assertThat(body.getData())
+                    .singleElement()
+                    .satisfies(api -> {
+                        assertThat(api.getConnections()).containsExactly(new ClusterApiConnection().crossId("sasl").name("SASL"));
+                        assertThat(api.getState()).isEqualTo(ClusterApi.StateEnum.STARTED);
+                        assertThat(api.getReadable()).isTrue();
+                        assertThat(api.getVirtualClusters()).isEmpty();
+                    });
+            }
+        }
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            shouldReturn403(RolePermission.CLUSTER_DEFINITION, CLUSTER_ID, RolePermissionAction.READ, () ->
+                rootTarget().path("apis").request().get()
             );
         }
     }

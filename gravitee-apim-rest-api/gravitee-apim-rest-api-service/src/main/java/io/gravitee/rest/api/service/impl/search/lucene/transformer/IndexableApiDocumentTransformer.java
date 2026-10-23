@@ -17,7 +17,9 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.cluster.domain_service.ClusterBoundApisQueryService;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -46,6 +48,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class IndexableApiDocumentTransformer implements DocumentTransformer<IndexableApi> {
+
+    // Only reads endpoint configurations as trees.
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final Collator collator = Collator.getInstance(Locale.ENGLISH);
 
@@ -188,6 +193,10 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
             case NativeApi v4NativeApi -> transformV4ApiNativeListeners(doc, v4NativeApi);
             default -> {}
         }
+
+        ClusterBoundApisQueryService.clusterCrossIds(ClusterBoundApisQueryService.clusterUses(api.getApi(), OBJECT_MAPPER)).forEach(
+            crossId -> doc.add(new StringField(FIELD_CLUSTERS, crossId, Field.Store.NO))
+        );
 
         // allowedInApiProducts - only for V4 HTTP Proxy APIs; null is normalized to false so existing APIs are
         // always indexed and remain findable by a search for allowedInApiProducts=false.
