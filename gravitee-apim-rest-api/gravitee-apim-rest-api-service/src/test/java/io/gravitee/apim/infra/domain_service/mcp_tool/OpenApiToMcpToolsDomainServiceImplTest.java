@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.domain_service.mcp_tool;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.mcp_tool.model.McpTool;
 import io.gravitee.apim.core.mcp_tool.model.McpToolGatewayMappingHttp;
 import io.gravitee.apim.core.mcp_tool.model.OpenApiToMcpToolsResult;
@@ -25,6 +26,8 @@ import io.gravitee.apim.core.mcp_tool.model.ParseError;
 import io.swagger.v3.core.util.Json;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -152,6 +155,64 @@ class OpenApiToMcpToolsDomainServiceImplTest {
     }
 
     @Test
+    void should_take_bodySchema_and_contentType_from_form_media_type_when_body_is_form_only() {
+        var formOnly = toolByName(service.parse(load("request-bodies.yaml")), "formOnly");
+
+        assertThat(bodySchemaOf(formOnly).get("properties").has("name")).isTrue();
+        assertThat(formOnly.gatewayMapping().http().contentType()).isEqualTo("application/x-www-form-urlencoded");
+    }
+
+    @Test
+    void should_list_bodySchema_as_required_when_request_body_is_required() {
+        assertThat(requiredOf(toolByName(service.parse(load("request-bodies.yaml")), "formOnly"))).contains("bodySchema");
+        assertThat(requiredOf(toolByName(service.parse(load("petstore.yaml")), "createPet"))).contains("bodySchema");
+    }
+
+    @Test
+    void should_not_list_bodySchema_as_required_when_request_body_is_optional() {
+        var optionalJson = toolByName(service.parse(load("request-bodies.yaml")), "optionalJson");
+
+        assertThat(bodySchemaOf(optionalJson)).isNotNull();
+        assertThat(requiredOf(optionalJson)).doesNotContain("bodySchema");
+    }
+
+    @Test
+    void should_prefer_json_media_type_over_form_for_bodySchema_and_contentType() {
+        var formThenJson = toolByName(service.parse(load("request-bodies.yaml")), "formThenJson");
+
+        assertThat(bodySchemaOf(formThenJson).get("properties").has("fromJson")).isTrue();
+        assertThat(formThenJson.gatewayMapping().http().contentType()).isEqualTo("application/json");
+    }
+
+    @Test
+    void should_accept_json_media_types_regardless_of_case_parameters_or_structured_suffix() {
+        var result = service.parse(load("request-bodies.yaml"));
+
+        var jsonWithCharset = toolByName(result, "jsonWithCharset");
+        assertThat(bodySchemaOf(jsonWithCharset)).isNotNull();
+        assertThat(jsonWithCharset.gatewayMapping().http().contentType()).isEqualTo("application/json; charset=utf-8");
+        var mergePatch = toolByName(result, "mergePatch");
+        assertThat(bodySchemaOf(mergePatch)).isNotNull();
+        assertThat(mergePatch.gatewayMapping().http().contentType()).isEqualTo("application/merge-patch+json");
+        var upperCaseJson = toolByName(result, "upperCaseJson");
+        assertThat(bodySchemaOf(upperCaseJson)).isNotNull();
+        assertThat(upperCaseJson.gatewayMapping().http().contentType()).isEqualTo("Application/JSON");
+    }
+
+    @Test
+    void should_keep_contentType_without_bodySchema_when_media_type_cannot_be_sent_by_the_gateway() {
+        var result = service.parse(load("request-bodies.yaml"));
+
+        var multipart = toolByName(result, "multipart");
+        assertThat(bodySchemaOf(multipart)).isNull();
+        assertThat(requiredOf(multipart)).doesNotContain("bodySchema");
+        assertThat(multipart.gatewayMapping().http().contentType()).isEqualTo("multipart/form-data");
+        var xmlOnly = toolByName(result, "xmlOnly");
+        assertThat(bodySchemaOf(xmlOnly)).isNull();
+        assertThat(xmlOnly.gatewayMapping().http().contentType()).isEqualTo("application/xml");
+    }
+
+    @Test
     void should_extract_response_schema_as_outputSchema_with_bodySchema_property() {
         var result = service.parse(load("petstore.yaml"));
 
@@ -202,6 +263,84 @@ class OpenApiToMcpToolsDomainServiceImplTest {
         var placeOrder = result.result().getFirst();
         assertThat(placeOrder.gatewayMapping().http().method()).isEqualTo("POST");
         assertThat(placeOrder.toolDefinition().inputSchema().get("properties").has("bodySchema")).isTrue();
+        assertThat(requiredOf(placeOrder)).containsExactly("bodySchema");
+    }
+
+    @Test
+    void should_convert_swagger_2_form_data_into_a_form_body_schema() throws IOException {
+        var login = toolByName(service.parse(load("swagger2-form-data.yaml")), "login");
+
+        assertThat(login.gatewayMapping().http().contentType()).isEqualTo("application/x-www-form-urlencoded");
+        // swagger-parser collects the required fields in a hash set, so their order is not part of the contract.
+        ObjectNode bodySchema = bodySchemaOf(login).deepCopy();
+        assertThat(bodySchema.remove("required")).extracting(JsonNode::asText).containsExactlyInAnyOrder("tenant", "username");
+        assertThat(bodySchema).isEqualTo(
+            Json.mapper().readTree(
+                """
+                {
+                  "type": "object",
+                  "properties": {
+                    "tenant": { "type": "string" },
+                    "username": { "type": "string" },
+                    "age": { "type": "integer", "format": "int64", "description": "Age in years", "default": 18 },
+                    "role": { "type": "string", "enum": ["admin", "user"] },
+                    "tags": { "type": "array", "items": { "type": "string" } }
+                  }
+                }"""
+            )
+        );
+        assertThat(requiredOf(login)).containsExactly("bodySchema");
+        assertThat(login.toolDefinition().inputSchema().get("properties").has("dryRun")).isTrue();
+        assertThat(login.gatewayMapping().http().queryParams()).containsExactly("dryRun");
+    }
+
+    @Test
+    void should_let_operation_form_data_override_path_level_form_data_with_the_same_name() {
+        var overridePathLevel = toolByName(service.parse(load("swagger2-form-data.yaml")), "overridePathLevel");
+
+        assertThat(bodySchemaOf(overridePathLevel).get("properties").get("id")).isEqualTo(
+            Json.mapper().createObjectNode().put("type", "integer").put("format", "int32")
+        );
+    }
+
+    @Test
+    void should_send_swagger_2_file_fields_as_binary_strings() {
+        var fileInForm = toolByName(service.parse(load("swagger2-form-data.yaml")), "fileInForm");
+
+        assertThat(bodySchemaOf(fileInForm).get("properties").get("doc")).isEqualTo(
+            Json.mapper().createObjectNode().put("type", "string").put("format", "binary").put("description", "The document")
+        );
+        assertThat(requiredOf(fileInForm)).isEmpty();
+    }
+
+    @Test
+    void should_default_swagger_2_form_data_to_multipart_which_the_gateway_cannot_send() {
+        var result = service.parse(load("swagger2-form-data.yaml"));
+
+        for (String name : List.of("upload", "noConsumes", "emptyConsumes")) {
+            var tool = toolByName(result, name);
+            assertThat(tool.gatewayMapping().http().contentType()).as(name).isEqualTo("multipart/form-data");
+            assertThat(bodySchemaOf(tool)).as(name).isNull();
+            assertThat(requiredOf(tool)).as(name).isEmpty();
+        }
+    }
+
+    @Test
+    void should_resolve_swagger_2_form_data_defined_under_parameters() {
+        var refForm = toolByName(service.parse(load("swagger2-form-data.yaml")), "refForm");
+
+        assertThat(refForm.gatewayMapping().http().contentType()).isEqualTo("application/x-www-form-urlencoded");
+        assertThat(bodySchemaOf(refForm).get("properties").has("token")).isTrue();
+        assertThat(requiredOf(refForm)).containsExactly("bodySchema");
+    }
+
+    @Test
+    void should_use_the_spec_level_consumes_for_swagger_2_form_data() {
+        var subscribe = toolByName(service.parse(load("swagger2-form-data-global-consumes.yaml")), "subscribe");
+
+        assertThat(subscribe.gatewayMapping().http().contentType()).isEqualTo("application/x-www-form-urlencoded");
+        assertThat(bodySchemaOf(subscribe).get("required").get(0).asText()).isEqualTo("email");
+        assertThat(requiredOf(subscribe)).containsExactly("bodySchema");
     }
 
     @Test
@@ -229,20 +368,11 @@ class OpenApiToMcpToolsDomainServiceImplTest {
      * The Java parser must produce a structurally equivalent JSON tree, otherwise the
      * gateway plugin (which consumes today's TS output) would reject the payload.
      *
-     * <p>Known intentional divergences with the front end (Java is the cleaner reference):
-     * <ul>
-     *   <li>For Swagger 2.0 specs with a {@code required} body parameter, the TS keeps the
-     *   body parameter name (e.g. {@code "order"}) in {@code inputSchema.required} even
-     *   though no matching property exists in {@code inputSchema.properties} — a quirk of
-     *   the TS Swagger-2-to-OpenAPI-3 transform. The Java parser leaves {@code required}
-     *   empty in that case.</li>
-     *   <li>On collisions, the TS emits the duplicate-named tool twice in {@code result}.
-     *   The Java parser appends a {@code _2}, {@code _3}, ... suffix to disambiguate while
-     *   still emitting a {@code DUPLICATE_NAME} error. The gateway plugin requires unique
-     *   tool names at runtime, so suffixing is the correct behaviour.</li>
-     * </ul>
-     * Both divergences are safe for the gateway plugin (which routes via
-     * {@code gatewayMapping}) and asserted by dedicated unit tests below.
+     * <p>Known intentional divergence with the front end (Java is the cleaner reference): on
+     * collisions, the TS emits the duplicate-named tool twice in {@code result}. The Java parser
+     * appends a {@code _2}, {@code _3}, ... suffix to disambiguate while still emitting a
+     * {@code DUPLICATE_NAME} error. The gateway plugin requires unique tool names at runtime, so
+     * suffixing is the correct behaviour; it is asserted by a dedicated unit test below.
      */
     @ParameterizedTest(name = "matches front-end snapshot: {0}")
     @ValueSource(strings = { "empty-paths", "multi-params", "no-operation-id", "petstore", "swagger2-with-body" })
@@ -280,6 +410,20 @@ class OpenApiToMcpToolsDomainServiceImplTest {
             .filter(t -> Objects.equals(t.toolDefinition().name(), name))
             .findFirst()
             .orElseThrow();
+    }
+
+    private static JsonNode bodySchemaOf(McpTool tool) {
+        return tool.toolDefinition().inputSchema().get("properties").get("bodySchema");
+    }
+
+    private static List<String> requiredOf(McpTool tool) {
+        List<String> required = new ArrayList<>();
+        tool
+            .toolDefinition()
+            .inputSchema()
+            .get("required")
+            .forEach(name -> required.add(name.asText()));
+        return required;
     }
 
     private static String load(String fixtureName) {
