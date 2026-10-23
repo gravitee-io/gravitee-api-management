@@ -1,0 +1,54 @@
+databaseChangeLog:
+  # The unique index refuses a second active subscription of an application to a plan (or to a channel of a PUSH plan).
+  # It must only be created once every node maintains unique_active_key: nodes of the previous versions leave it
+  # missing, or stale on closed subscriptions, which would refuse legitimate subscriptions. Hence the repair first, run
+  # again at every startup until the index exists (it then returns at once): nodes of a previous version may have
+  # written since the last run. No MARK_RAN precondition: on a changeset that already ran, it would insert a second
+  # changelog row.
+  - changeSet:
+      id: 4.12.26_00_repair_subscriptions_unique_active_key
+      author: GraviteeSource Team
+      runInTransaction: false
+      runAlways: true
+      changes:
+        - customChange:
+            class: io.gravitee.repository.jdbc.liquibase.SubscriptionUniqueActiveKeyBackfill
+            tablePrefix: "${gravitee_prefix}"
+            untilIndexed: true
+
+  # Subscriptions already duplicated cannot be arbitrated here: the index is skipped, without failing the startup, and
+  # tried again at every startup (CONTINUE) until the extra subscriptions are closed. The duplicates are listed by the
+  # repair above. PostgreSQL, MySQL and MariaDB accept several NULLs in a unique index.
+  - changeSet:
+      id: 4.12.26_01_add_subscriptions_unique_active_key_index
+      author: GraviteeSource Team
+      dbms: "!mssql"
+      preConditions:
+        - onFail: CONTINUE
+        - onFailMessage: Index idx_${gravitee_prefix}subscriptions_unique_active_key not created, some applications have several active subscriptions to the same plan. It will be created at the next startup once the extra subscriptions are closed.
+        - sqlCheck:
+            expectedResult: 0
+            sql: SELECT COUNT(*) FROM (SELECT unique_active_key FROM ${gravitee_prefix}subscriptions WHERE unique_active_key IS NOT NULL GROUP BY unique_active_key HAVING COUNT(*) > 1) duplicates
+      changes:
+        - createIndex:
+            indexName: idx_${gravitee_prefix}subscriptions_unique_active_key
+            tableName: ${gravitee_prefix}subscriptions
+            unique: true
+            columns:
+              - column:
+                  name: unique_active_key
+
+  # SQL Server considers NULLs equal in a unique index: filtered index on the active subscriptions only.
+  - changeSet:
+      id: 4.12.26_01_add_subscriptions_unique_active_key_index_mssql
+      author: GraviteeSource Team
+      dbms: mssql
+      preConditions:
+        - onFail: CONTINUE
+        - onFailMessage: Index idx_${gravitee_prefix}subscriptions_unique_active_key not created, some applications have several active subscriptions to the same plan. It will be created at the next startup once the extra subscriptions are closed.
+        - sqlCheck:
+            expectedResult: 0
+            sql: SELECT COUNT(*) FROM (SELECT unique_active_key FROM ${gravitee_prefix}subscriptions WHERE unique_active_key IS NOT NULL GROUP BY unique_active_key HAVING COUNT(*) > 1) duplicates
+      changes:
+        - sql:
+            sql: CREATE UNIQUE INDEX idx_${gravitee_prefix}subscriptions_unique_active_key ON ${gravitee_prefix}subscriptions (unique_active_key) WHERE unique_active_key IS NOT NULL

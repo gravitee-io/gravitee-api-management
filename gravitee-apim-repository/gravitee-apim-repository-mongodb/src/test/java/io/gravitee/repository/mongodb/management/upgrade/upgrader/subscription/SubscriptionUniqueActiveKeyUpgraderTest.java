@@ -73,8 +73,9 @@ public class SubscriptionUniqueActiveKeyUpgraderTest extends AbstractManagementR
 
     @Test
     public void should_remove_the_key_left_on_a_closed_or_rejected_subscription() {
+        // Distinct stale keys: the unique index refuses two documents carrying the same key.
         subscriptions().insertOne(aSubscriptionDocument("sub-closed", "CLOSED", "plan-1").append(FIELD, "API:api-1:app-1:plan-1"));
-        subscriptions().insertOne(aSubscriptionDocument("sub-rejected", "REJECTED", "plan-1").append(FIELD, "API:api-1:app-1:plan-1"));
+        subscriptions().insertOne(aSubscriptionDocument("sub-rejected", "REJECTED", "plan-2").append(FIELD, "API:api-1:app-1:plan-2"));
 
         assertThat(upgrader.upgrade()).isTrue();
 
