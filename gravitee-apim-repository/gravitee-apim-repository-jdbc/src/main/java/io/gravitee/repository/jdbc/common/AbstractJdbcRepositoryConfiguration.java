@@ -104,9 +104,8 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
     }
 
     /**
-     * Returns {@code true} when the JDBC driver detected from the configured {@code jdbc.url} is MySQL or MariaDB, whose
-     * default isolation (REPEATABLE READ) keeps a transaction reading the snapshot of its first read: only a locking read
-     * ({@code SELECT ... FOR UPDATE}) sees what other transactions committed since.
+     * Returns {@code true} when the JDBC driver detected from the configured {@code jdbc.url} is MySQL or MariaDB. Used by
+     * repositories that rely on MySQL-only syntax such as {@code INSERT ... ON DUPLICATE KEY UPDATE}.
      */
     public static boolean isMySqlOrMariaDb() {
         return MYSQL_DRIVER_TYPE.equals(driverType) || MARIADB_DRIVER_TYPE.equals(driverType);
