@@ -53,10 +53,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -458,7 +459,7 @@ class GenerateApiKeyDomainServiceTest {
             var subscriptions = IntStream.rangeClosed(1, 6)
                 .mapToObj(i -> SUBSCRIPTION_1.toBuilder().id("subscription-" + i).applicationId(APPLICATION_SHARED.getId()).build())
                 .toList();
-            var everyoneReadTheKeys = new CyclicBarrier(subscriptions.size());
+            var everyoneReadTheKeys = new CountDownLatch(subscriptions.size());
             var audits = new SynchronizedAuditCrudService();
             var nodes = List.of(nodeReadingTogether(everyoneReadTheKeys, audits), nodeReadingTogether(everyoneReadTheKeys, audits));
             var executor = Executors.newFixedThreadPool(subscriptions.size());
@@ -489,30 +490,33 @@ class GenerateApiKeyDomainServiceTest {
                 );
         }
 
-        /** A node that read the keys of the application before another node created the first one. */
+        /** A node that first read the keys of the application before another node created the first one. */
         private GenerateApiKeyDomainService serviceThatFoundNoKey() {
-            var readsBeforeTheOtherNodeCreatedTheKey = new ApiKeyQueryServiceInMemory(apiKeyCrudService) {
+            var firstReadBeforeTheOtherNodeCreatedTheKey = new ApiKeyQueryServiceInMemory(apiKeyCrudService) {
+                private final AtomicBoolean firstRead = new AtomicBoolean(true);
+
                 @Override
                 public Stream<ApiKeyEntity> findByApplication(String applicationId) {
-                    return Stream.empty();
+                    return firstRead.getAndSet(false) ? Stream.empty() : super.findByApplication(applicationId);
                 }
             };
             return new GenerateApiKeyDomainService(
                 apiKeyCrudService,
-                readsBeforeTheOtherNodeCreatedTheKey,
+                firstReadBeforeTheOtherNodeCreatedTheKey,
                 applicationCrudService,
                 new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
                 parametersQueryService
             );
         }
 
-        /** A node of its own whose requests go on only once all of them have read the keys of the application. */
-        private GenerateApiKeyDomainService nodeReadingTogether(CyclicBarrier everyoneReadTheKeys, AuditCrudServiceInMemory audits) {
+        /** A node of its own whose requests go on only once all of them have read the keys of the application; later reads don't wait. */
+        private GenerateApiKeyDomainService nodeReadingTogether(CountDownLatch everyoneReadTheKeys, AuditCrudServiceInMemory audits) {
             var readingTogether = new ApiKeyQueryServiceInMemory(apiKeyCrudService) {
                 @Override
                 @SneakyThrows
                 public Stream<ApiKeyEntity> findByApplication(String applicationId) {
                     var keys = super.findByApplication(applicationId).toList();
+                    everyoneReadTheKeys.countDown();
                     everyoneReadTheKeys.await(30, TimeUnit.SECONDS);
                     return keys.stream();
                 }
