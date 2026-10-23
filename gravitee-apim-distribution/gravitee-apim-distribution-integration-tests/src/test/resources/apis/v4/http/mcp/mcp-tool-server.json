@@ -1,0 +1,109 @@
+{
+    "id": "mcp-tool-server",
+    "name": "mcp-tool-server",
+    "gravitee": "4.0.0",
+    "type": "proxy",
+    "listeners": [
+        {
+            "type": "http",
+            "paths": [
+                {
+                    "path": "/mcp-tool-server"
+                }
+            ],
+            "entrypoints": [
+                {
+                    "type": "mcp",
+                    "configuration": {
+                        "mcpPath": "/mcp",
+                        "tools": [
+                            {
+                                "toolDefinition": {
+                                    "name": "createUserWithForm",
+                                    "description": "Create a user from a form",
+                                    "inputSchema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "bodySchema": {
+                                                "type": "object",
+                                                "properties": { "name": { "type": "string" }, "age": { "type": "integer" } }
+                                            }
+                                        },
+                                        "required": ["bodySchema"]
+                                    }
+                                },
+                                "gatewayMapping": {
+                                    "http": { "method": "POST", "path": "/users", "contentType": "application/x-www-form-urlencoded" }
+                                }
+                            },
+                            {
+                                "toolDefinition": {
+                                    "name": "createUserWithJson",
+                                    "description": "Create a user from JSON",
+                                    "inputSchema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "bodySchema": {
+                                                "type": "object",
+                                                "properties": { "name": { "type": "string" }, "age": { "type": "integer" } }
+                                            }
+                                        },
+                                        "required": ["bodySchema"]
+                                    }
+                                },
+                                "gatewayMapping": {
+                                    "http": { "method": "POST", "path": "/users", "contentType": "application/json" }
+                                }
+                            },
+                            {
+                                "toolDefinition": {
+                                    "name": "getUser",
+                                    "description": "Get a user",
+                                    "inputSchema": {
+                                        "type": "object",
+                                        "properties": { "id": { "type": "string" } },
+                                        "required": ["id"]
+                                    },
+                                    "outputSchema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "bodySchema": {
+                                                "type": "object",
+                                                "properties": { "name": { "type": "string" } },
+                                                "required": ["name"]
+                                            }
+                                        }
+                                    }
+                                },
+                                "gatewayMapping": {
+                                    "http": { "method": "GET", "path": "/users/:id", "pathParams": ["id"] }
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ],
+    "endpointGroups": [
+        {
+            "name": "default-group",
+            "type": "http-proxy",
+            "endpoints": [
+                {
+                    "name": "default",
+                    "type": "http-proxy",
+                    "weight": 1,
+                    "inheritConfiguration": false,
+                    "configuration": {
+                        "target": "http://localhost:8080/endpoint"
+                    }
+                }
+            ]
+        }
+    ],
+    "flows": [],
+    "analytics": {
+        "enabled": false
+    }
+}
