@@ -61,7 +61,7 @@ public class FilterValueNameResolverImpl implements FilterValueNameResolver {
         }
 
         return switch (filterName) {
-            case API -> apiCrudService.findByIds(ids).stream().collect(Collectors.toMap(api -> api.getId(), api -> api.getName()));
+            case API -> apiNamesOf(environmentId, new HashSet<>(ids));
             case APPLICATION -> {
                 var names = new HashMap<>(
                     applicationCrudService
@@ -84,7 +84,7 @@ public class FilterValueNameResolverImpl implements FilterValueNameResolver {
             return Collections.emptyMap();
         }
 
-        var apiNames = apiNamesOf(parentIds(plans, false));
+        var apiNames = apiNamesOf(environmentId, parentIds(plans, false));
         var apiProductNames = apiProductNamesOf(environmentId, parentIds(plans, true));
 
         return plans
@@ -101,12 +101,12 @@ public class FilterValueNameResolverImpl implements FilterValueNameResolver {
             );
     }
 
-    private Map<String, String> apiNamesOf(Set<String> apiIds) {
-        if (apiIds.isEmpty()) {
+    private Map<String, String> apiNamesOf(String environmentId, Set<String> apiIds) {
+        if (environmentId == null || apiIds.isEmpty()) {
             return Collections.emptyMap();
         }
         return apiCrudService
-            .findByIds(List.copyOf(apiIds))
+            .findByIds(List.copyOf(apiIds), environmentId)
             .stream()
             .collect(Collectors.toMap(api -> api.getId(), api -> api.getName(), (first, second) -> first));
     }

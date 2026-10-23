@@ -48,9 +48,23 @@ public class ApiCrudServiceInMemory implements ApiCrudService, InMemoryAlternati
 
     @Override
     public List<Api> findByIds(List<String> apiIds) {
+        if (apiIds == null || apiIds.isEmpty()) {
+            return List.of();
+        }
         return storage
             .stream()
             .filter(api -> apiIds.contains(api.getId()))
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Api> findByIds(List<String> apiIds, String environmentId) {
+        if (apiIds == null || apiIds.isEmpty() || environmentId == null) {
+            return List.of();
+        }
+        return storage
+            .stream()
+            .filter(api -> apiIds.contains(api.getId()) && environmentId.equals(api.getEnvironmentId()))
             .collect(Collectors.toList());
     }
 

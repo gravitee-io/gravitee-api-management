@@ -350,6 +350,41 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void should_return_no_ids_when_the_id_filter_is_empty() throws TechnicalException {
+        Page<String> page = apiProductsRepository.searchIds(
+            List.of(new ApiProductCriteria.Builder().environments(List.of("my-env")).ids(List.of()).build()),
+            new PageableBuilder().pageNumber(0).pageSize(10).build(),
+            null
+        );
+
+        assertThat(page.getTotalElements()).isZero();
+        assertThat(page.getContent()).isEmpty();
+    }
+
+    @Test
+    public void should_return_no_ids_when_the_api_id_filter_is_empty() throws TechnicalException {
+        Page<String> page = apiProductsRepository.searchIds(
+            List.of(new ApiProductCriteria.Builder().environments(List.of("my-env")).apiIds(List.of()).build()),
+            new PageableBuilder().pageNumber(0).pageSize(10).build(),
+            null
+        );
+
+        assertThat(page.getTotalElements()).isZero();
+        assertThat(page.getContent()).isEmpty();
+    }
+
+    @Test
+    public void should_not_filter_when_the_id_filters_are_null() throws TechnicalException {
+        Page<String> page = apiProductsRepository.searchIds(
+            List.of(new ApiProductCriteria.Builder().environments(List.of("my-env")).ids((List<String>) null).apiIds(null).build()),
+            new PageableBuilder().pageNumber(0).pageSize(10).build(),
+            null
+        );
+
+        assertThat(page.getTotalElements()).isEqualTo(3);
+    }
+
+    @Test
     public void searchIdsReturnsEmptyForUnknownEnvironment() throws TechnicalException {
         Page<String> page = apiProductsRepository.searchIds(
             List.of(new ApiProductCriteria.Builder().environments(List.of("other-env")).build()),
