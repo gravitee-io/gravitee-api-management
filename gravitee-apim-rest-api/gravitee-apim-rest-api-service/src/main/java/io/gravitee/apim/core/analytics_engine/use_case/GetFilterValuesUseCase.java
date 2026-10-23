@@ -289,6 +289,81 @@ public class GetFilterValuesUseCase {
         return new Output(new FilterValuesPage(values, null, totalFiltered));
     }
 
+<<<<<<< HEAD
+=======
+    /** A field identifying callers, or one the logs only show, lists the values of the requests the caller reads. */
+    private static ApiDataKind dataKindOf(FilterSpec filterSpec) {
+        var perRequest = filterSpec.name().isIdentifying() || !filterSpec.appliesTo(Signal.ANALYTICS);
+        return perRequest ? ApiDataKind.PER_REQUEST : ApiDataKind.AGGREGATES;
+    }
+
+    private Set<String> findInCalls(Input input, FilterSpec.Name filterName, Stream<String> ids, AnalyticsQueryContext analyticsContext) {
+        var values = ids.collect(Collectors.toSet());
+        if (input.apiProductId() != null) {
+            return filterValuesQueryService.findValuesInCalls(
+                input.auditInfo().organizationId(),
+                input.auditInfo().environmentId(),
+                filterName,
+                input.from(),
+                input.to(),
+                values,
+                analyticsContext.authorizedApiIds(),
+                input.apiProductId()
+            );
+        }
+        return filterValuesQueryService.findValuesInCalls(
+            input.auditInfo().organizationId(),
+            input.auditInfo().environmentId(),
+            filterName,
+            input.from(),
+            input.to(),
+            values,
+            analyticsContext.authorizedApiIds()
+        );
+    }
+
+    /**
+     * The AI workspace a request is scoped to adds its APIs for its reader, for aggregates only: every query of the
+     * request keeps the calls made through that workspace, so another workspace sharing an API never shows.
+     */
+    private AnalyticsQueryContext withWorkspaceApis(Input input, ApiDataKind dataKind, AnalyticsQueryContext context) {
+        if (input.apiProductId() == null || dataKind != ApiDataKind.AGGREGATES) {
+            return context;
+        }
+        var auditInfo = input.auditInfo();
+        var apis = workspaceApis.findWorkspaceApis(
+            new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId()),
+            auditInfo.actor().userId(),
+            input.apiProductId()
+        );
+        if (apis.isEmpty()) {
+            return context;
+        }
+        var authorizedApiIds = new HashSet<>(context.authorizedApiIds());
+        var apiNamesById = new HashMap<>(context.apiNamesById());
+        var apiIdsByType = new HashMap<ApiType, Set<String>>();
+        context.apiIdsByType().forEach((type, ids) -> apiIdsByType.put(type, new HashSet<>(ids)));
+        for (var api : apis) {
+            authorizedApiIds.add(api.getId());
+            if (api.getName() != null) {
+                apiNamesById.putIfAbsent(api.getId(), api.getName());
+            }
+            if (api.getType() != null) {
+                apiIdsByType.computeIfAbsent(api.getType(), type -> new HashSet<>()).add(api.getId());
+            }
+        }
+        return new AnalyticsQueryContext(
+            context.auditInfo(),
+            context.executionContext(),
+            authorizedApiIds,
+            apiNamesById,
+            context.applicationNamesById(),
+            apiIdsByType,
+            context.restrictedToApplicationIds()
+        );
+    }
+
+>>>>>>> a82217e (fix(analytics): restrict portal analytics to the user's applications)
     private Output searchPlansByNameFromAuthorizedApis(Input input, String lowerQuery, AnalyticsQueryContext analyticsContext) {
         Objects.requireNonNull(analyticsContext);
         var environmentId = input.auditInfo().environmentId();
@@ -408,7 +483,8 @@ public class GetFilterValuesUseCase {
             narrowedAuthorizedIds,
             narrowedNames,
             context.applicationNamesById(),
-            context.apiIdsByType()
+            context.apiIdsByType(),
+            context.restrictedToApplicationIds()
         );
     }
 

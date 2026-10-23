@@ -27,6 +27,11 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import java.util.List;
 import java.util.Map;
+<<<<<<< HEAD
+=======
+import java.util.Optional;
+import java.util.Set;
+>>>>>>> a82217e (fix(analytics): restrict portal analytics to the user's applications)
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,6 +46,20 @@ class ResolveFilterLabelsUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder().organizationId("org-id").environmentId("env-id").build();
 
+<<<<<<< HEAD
+=======
+    /** The APIs the caller reads, all in the current environment. */
+    private static final AnalyticsQueryContext READABLE = new AnalyticsQueryContext(
+        AUDIT_INFO,
+        new ExecutionContext("org-id", "env-id"),
+        Set.of("api-id"),
+        Map.of("api-id", "My API"),
+        Map.of(),
+        Map.of(),
+        Optional.empty()
+    );
+
+>>>>>>> a82217e (fix(analytics): restrict portal analytics to the user's applications)
     @Mock
     private FilterValueNameResolver filterValueNameResolver;
 
@@ -71,9 +90,23 @@ class ResolveFilterLabelsUseCaseTest {
     }
 
     @Test
+<<<<<<< HEAD
     void should_resolve_api_product_filter_labels() {
         when(filterValueNameResolver.resolveNames("env-id", FilterSpec.Name.API_PRODUCT, List.of("prod-id"))).thenReturn(
             Map.of("prod-id", "My Product")
+=======
+    void should_label_nothing_when_the_caller_reads_no_api() {
+        when(contextLoader.load(AUDIT_INFO, AnalyticsScope.MANAGEMENT, ApiDataKind.AGGREGATES)).thenReturn(
+            new AnalyticsQueryContext(
+                AUDIT_INFO,
+                new ExecutionContext("org-id", "env-id"),
+                Set.of(),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Optional.empty()
+            )
+>>>>>>> a82217e (fix(analytics): restrict portal analytics to the user's applications)
         );
 
         var output = useCase.execute(

@@ -37,7 +37,11 @@ import jakarta.ws.rs.core.SecurityContext;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
+<<<<<<< HEAD
 import java.util.Set;
+=======
+import java.util.Optional;
+>>>>>>> a82217e (fix(analytics): restrict portal analytics to the user's applications)
 import java.util.stream.IntStream;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.AfterEach;
@@ -193,4 +197,21 @@ class ObservabilityFilterLabelsResourceTest extends AbstractResourceTest {
 
         assertThat(response).hasStatus(400).asError().hasHttpStatus(400).hasMessage("Too many filter entries to resolve");
     }
+<<<<<<< HEAD
+=======
+
+    private void givenReadableApis(Map<String, String> namesById) {
+        when(analyticsQueryContextLoader.load(any(), any(), any())).thenReturn(
+            new AnalyticsQueryContext(
+                null,
+                new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                namesById.keySet(),
+                namesById,
+                Map.of(),
+                Map.of(),
+                Optional.empty()
+            )
+        );
+    }
+>>>>>>> a82217e (fix(analytics): restrict portal analytics to the user's applications)
 }
