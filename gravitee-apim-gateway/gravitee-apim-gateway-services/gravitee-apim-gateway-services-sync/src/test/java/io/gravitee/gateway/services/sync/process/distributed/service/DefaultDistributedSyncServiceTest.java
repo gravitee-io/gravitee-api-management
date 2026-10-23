@@ -64,8 +64,11 @@ import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
+import io.gravitee.repository.distributedsync.model.DistributedSyncStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -136,7 +139,8 @@ class DefaultDistributedSyncServiceTest {
             new io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzPolicyMapper(objectMapper),
             new ApiProductMapper(objectMapper),
             new io.gravitee.gateway.services.sync.process.distributed.mapper.CredentialMapper(objectMapper),
-            new DistributedSyncMetrics()
+            new DistributedSyncMetrics(),
+            DistributedSyncSettings.defaults()
         );
     }
 
@@ -176,7 +180,8 @@ class DefaultDistributedSyncServiceTest {
                 null,
                 null,
                 null,
-                new DistributedSyncMetrics()
+                new DistributedSyncMetrics(),
+                DistributedSyncSettings.defaults()
             );
             assertThrows(SyncException.class, () -> cut.validate());
         }
@@ -569,6 +574,13 @@ class DefaultDistributedSyncServiceTest {
         }
 
         @Test
+        void should_check_that_the_catalog_is_searchable_when_ready() {
+            when(distributedEventRepository.ensureSearchable()).thenReturn(Completable.error(new RuntimeException("index lost")));
+
+            cut.ready().test().assertError(DistributedSyncException.class);
+        }
+
+        @Test
         void should_count_distribution_failures_and_replayed_cycles() {
             when(distributedEventRepository.createOrUpdate(any())).thenReturn(Completable.error(new RuntimeException("connection reset")));
 
@@ -581,5 +593,207 @@ class DefaultDistributedSyncServiceTest {
             assertThat(metrics.distributionFailures()).isEqualTo(1);
             assertThat(metrics.replayedCycles()).isEqualTo(1);
         }
+    }
+
+    @Nested
+    class CatalogRebuild {
+
+        private final ArgumentCaptor<DistributedSyncState> stateCaptor = ArgumentCaptor.forClass(DistributedSyncState.class);
+
+        @BeforeEach
+        void setUp() {
+            lenient().when(distributedSyncStateRepository.createOrUpdate(any())).thenReturn(Completable.complete());
+            lenient().when(distributedSyncStateRepository.findByClusterId(any())).thenReturn(Maybe.empty());
+            lenient().when(distributedEventRepository.undeployNotUpdatedSince(any(), any(), any())).thenReturn(Single.just(0L));
+        }
+
+        @Test
+        void should_not_rebuild_without_a_reason() {
+            cut.beginCycle();
+
+            cut.preparePrimaryCycle().test().assertValue(false);
+            verify(distributedSyncStateRepository, never()).createOrUpdate(any());
+        }
+
+        @Test
+        void should_pause_the_catalog_and_replay_when_a_rebuild_is_requested() {
+            cut.requestResync("test");
+            cut.beginCycle();
+
+            cut.preparePrimaryCycle().test().assertValue(true);
+
+            verify(distributedSyncStateRepository).createOrUpdate(stateCaptor.capture());
+            assertThat(stateCaptor.getValue().getStatus()).isEqualTo(DistributedSyncStatus.PAUSED);
+            assertThat(stateCaptor.getValue().getResyncId()).isEqualTo(1L);
+            assertThat(cut.republishRequired()).isTrue();
+            assertThat(cut.resyncInProgress()).isTrue();
+        }
+
+        @Test
+        void should_continue_the_resync_numbering_of_the_previous_primary() {
+            when(distributedSyncStateRepository.findByClusterId(any())).thenReturn(
+                Maybe.just(DistributedSyncState.builder().status(DistributedSyncStatus.ACTIVE).resyncId(41L).build())
+            );
+            cut.requestResync("test");
+            cut.beginCycle();
+
+            cut.preparePrimaryCycle().test().assertValue(true);
+
+            verify(distributedSyncStateRepository).createOrUpdate(stateCaptor.capture());
+            assertThat(stateCaptor.getValue().getResyncId()).isEqualTo(42L);
+        }
+
+        @Test
+        void should_remove_stale_entries_then_activate_the_catalog_when_the_rebuild_cycle_stores_its_state() {
+            cut.requestResync("test");
+            cut.beginCycle();
+            long beforeStart = System.currentTimeMillis();
+            cut.preparePrimaryCycle().test().assertValue(true);
+
+            cut.storeState(-1, 1000L).test().assertComplete();
+
+            ArgumentCaptor<Date> before = ArgumentCaptor.forClass(Date.class);
+            verify(distributedEventRepository).undeployNotUpdatedSince(
+                eq("clusterId"),
+                eq(DefaultDistributedSyncService.SWEPT_EVENT_TYPES),
+                before.capture()
+            );
+            assertThat(before.getValue().getTime()).isGreaterThanOrEqualTo(beforeStart);
+            verify(distributedSyncStateRepository, times(2)).createOrUpdate(stateCaptor.capture());
+            assertThat(stateCaptor.getValue().getStatus()).isEqualTo(DistributedSyncStatus.ACTIVE);
+            assertThat(stateCaptor.getValue().getResyncId()).isEqualTo(1L);
+            assertThat(cut.resyncInProgress()).isFalse();
+        }
+
+        @Test
+        void should_keep_stale_entries_when_an_entity_could_not_be_redistributed_during_the_rebuild() {
+            cut.requestResync("test");
+            cut.beginCycle();
+            cut.preparePrimaryCycle().test().assertValue(true);
+            cut.metrics().orElseThrow().recordDeadLetter(DistributedEventType.API, "broken");
+
+            cut.storeState(-1, 1000L).test().assertComplete();
+
+            verify(distributedEventRepository, never()).undeployNotUpdatedSince(any(), any(), any());
+            assertThat(cut.metrics().orElseThrow().skippedStaleEntriesRemovals()).isEqualTo(1);
+        }
+
+        @Test
+        void should_keep_stale_entries_when_an_entity_failed_to_deploy_locally_during_the_rebuild() {
+            cut.requestResync("test");
+            cut.beginCycle();
+            cut.preparePrimaryCycle().test().assertValue(true);
+            cut.recordLocalDeployFailure();
+
+            cut.storeState(-1, 1000L).test().assertComplete();
+
+            verify(distributedEventRepository, never()).undeployNotUpdatedSince(any(), any(), any());
+        }
+
+        @Test
+        void should_keep_the_rebuild_pending_when_stale_entries_cannot_be_removed() {
+            when(distributedEventRepository.undeployNotUpdatedSince(any(), any(), any())).thenReturn(
+                Single.error(new RuntimeException("redis down"))
+            );
+            cut.requestResync("test");
+            cut.beginCycle();
+            cut.preparePrimaryCycle().test().assertValue(true);
+
+            cut.storeState(-1, 1000L).test().assertError(DistributedSyncTransientException.class);
+
+            assertThat(cut.resyncInProgress()).isTrue();
+        }
+
+        @Test
+        void should_rebuild_when_the_state_disappears_after_this_primary_stored_it() {
+            cut.beginCycle();
+            cut.storeState(1L, 2L).test().assertComplete();
+            cut.endCycle();
+
+            cut.beginCycle();
+            cut.preparePrimaryCycle().test().assertValue(true);
+        }
+
+        @Test
+        void should_rebuild_when_the_catalog_was_left_paused_by_another_node() {
+            when(distributedSyncStateRepository.findByClusterId(any())).thenReturn(
+                Maybe.just(DistributedSyncState.builder().nodeId("dead-primary").status(DistributedSyncStatus.PAUSED).resyncId(3L).build())
+            );
+            cut.beginCycle();
+
+            cut.preparePrimaryCycle().test().assertValue(true);
+        }
+
+        @Test
+        void should_forget_a_pending_rebuild_on_demotion() {
+            cut.requestResync("test");
+            cut.onDemotion();
+
+            assertThat(cut.resyncInProgress()).isFalse();
+        }
+
+        @Test
+        void should_store_the_horizon_before_purging_old_removal_events() {
+            DefaultDistributedSyncService purging = serviceWith(new DistributedSyncSettings(1_000L, 0L));
+            when(distributedEventRepository.deleteUndeployedBefore(any(), any())).thenReturn(Single.just(2L));
+            long now = System.currentTimeMillis();
+            purging.beginCycle();
+
+            // storeState uses the cycle's window endpoint (toTime) as the clock for the horizon.
+            purging.storeState(1L, now).test().assertComplete();
+
+            var inOrder = inOrder(distributedSyncStateRepository, distributedEventRepository);
+            inOrder.verify(distributedSyncStateRepository).createOrUpdate(stateCaptor.capture());
+            inOrder.verify(distributedEventRepository).deleteUndeployedBefore(eq("clusterId"), any());
+            assertThat(stateCaptor.getValue().getTombstoneHorizon()).isEqualTo(now - 1_000L);
+        }
+
+        @Test
+        void should_not_fail_the_cycle_when_old_removal_events_cannot_be_purged() {
+            DefaultDistributedSyncService purging = serviceWith(new DistributedSyncSettings(1_000L, 0L));
+            when(distributedEventRepository.deleteUndeployedBefore(any(), any())).thenReturn(
+                Single.error(new RuntimeException("redis down"))
+            );
+            purging.beginCycle();
+
+            purging.storeState(1L, 2L).test().assertComplete();
+        }
+
+        @Test
+        void should_never_purge_when_retention_is_disabled() {
+            DefaultDistributedSyncService purging = serviceWith(new DistributedSyncSettings(0L, 0L));
+            purging.beginCycle();
+
+            purging.storeState(1L, 2L).test().assertComplete();
+
+            verify(distributedEventRepository, never()).deleteUndeployedBefore(any(), any());
+        }
+    }
+
+    private DefaultDistributedSyncService serviceWith(final DistributedSyncSettings settings) {
+        SubscriptionMapper subscriptionMapper = new SubscriptionMapper(objectMapper);
+        ApiKeyMapper apiKeyMapper = new ApiKeyMapper(objectMapper);
+        return new DefaultDistributedSyncService(
+            node,
+            clusterManager,
+            "type",
+            distributedEventRepository,
+            distributedSyncStateRepository,
+            new ApiMapper(objectMapper, subscriptionMapper, apiKeyMapper),
+            subscriptionMapper,
+            apiKeyMapper,
+            new OrganizationMapper(objectMapper),
+            new DictionaryMapper(objectMapper),
+            new LicenseMapper(),
+            new AccessPointMapper(objectMapper),
+            new SharedPolicyGroupMapper(objectMapper),
+            new NodeMetadataMapper(objectMapper),
+            new io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzEntityMapper(objectMapper),
+            new io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzPolicyMapper(objectMapper),
+            new ApiProductMapper(objectMapper),
+            new io.gravitee.gateway.services.sync.process.distributed.mapper.CredentialMapper(objectMapper),
+            new DistributedSyncMetrics(),
+            settings
+        );
     }
 }

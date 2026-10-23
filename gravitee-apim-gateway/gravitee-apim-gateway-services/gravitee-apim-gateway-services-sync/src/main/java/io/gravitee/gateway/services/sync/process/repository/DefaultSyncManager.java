@@ -24,6 +24,7 @@ import io.gravitee.gateway.services.sync.SyncManager;
 import io.gravitee.gateway.services.sync.process.distributed.DistributedSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncMetrics;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
+import io.gravitee.gateway.services.sync.process.repository.handler.DistributedResyncHandler;
 import io.gravitee.gateway.services.sync.process.repository.handler.SyncHandler;
 import io.gravitee.node.api.Node;
 import io.reactivex.rxjava3.core.Completable;
@@ -58,6 +59,8 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
     public static final int RETRY_DELAY_MS = 3_000;
     public static final int INITIAL_RETRY_DELAY_MS = 3_000;
     public static final int MAX_RETRY_DELAY_MS = 10_000;
+    private static final String RESYNC_PATH = PATH + "/distributed/resync";
+    private static final long SKIP_CYCLE = Long.MIN_VALUE;
 
     private final Router router;
     private final Node node;
@@ -82,6 +85,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
     private volatile long nextFromTime = -1;
     private Disposable refreshDisposable;
     private Route routeHandler;
+    private Route resyncRouteHandler;
 
     public DefaultSyncManager(
         final Router router,
@@ -119,6 +123,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                 distributedSynchronizers.sort(Comparator.comparingInt(DistributedSynchronizer::order));
             }
             actingPrimary.set(distributedSyncService.isPrimaryNode());
+            resyncRouteHandler = router.post(RESYNC_PATH).produces(MediaType.APPLICATION_JSON).handler(new DistributedResyncHandler(this));
         }
 
         // force synchronization and then schedule next ones
@@ -153,6 +158,9 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
         if (routeHandler != null) {
             routeHandler.remove();
         }
+        if (resyncRouteHandler != null) {
+            resyncRouteHandler.remove();
+        }
         super.doStop();
     }
 
@@ -169,17 +177,38 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                     }
                     boolean primary = distributedSyncService.beginCycle();
                     cyclePrimary.set(primary);
-                    if (primary && !actingPrimary.get()) {
-                        return onPromotion();
+                    if (primary) {
+                        Single<Long> toTime;
+                        if (!actingPrimary.get()) {
+                            toTime = onPromotion();
+                        } else {
+                            if (nextFromTime == -1 && !syncReadyForProbe.get()) {
+                                distributedSyncService.requestResync("the primary node starts with nothing deployed");
+                            }
+                            toTime = Single.just(System.currentTimeMillis());
+                        }
+                        return toTime.flatMap(to ->
+                            distributedSyncService
+                                .preparePrimaryCycle()
+                                .map(resync -> {
+                                    if (resync) {
+                                        nextFromTime = -1;
+                                    }
+                                    return to;
+                                })
+                        );
                     }
-                    if (!primary && actingPrimary.get()) {
+                    if (actingPrimary.get()) {
                         log.info("Node is no longer the distributed sync primary, it now synchronizes from the distributed repository");
                         distributedSyncService.onDemotion();
                     }
-                    return Single.just(System.currentTimeMillis());
+                    return secondaryCycleStart(System.currentTimeMillis());
                 })
             )
             .flatMapCompletable(nextToTime -> {
+                if (nextToTime == SKIP_CYCLE) {
+                    return Completable.complete();
+                }
                 log.debug("Synchronization #{} started at {}", syncCounter.incrementAndGet(), Instant.now());
                 log.debug(
                     "Events from {} to {} would be synchronized.",
@@ -255,24 +284,77 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
         log.info("Node has been promoted to distributed sync primary");
         if (nextFromTime == -1) {
             distributedSyncService.requestReplay();
+            distributedSyncService.requestResync("the node was promoted before completing any synchronization");
             return Single.just(System.currentTimeMillis());
         }
         return distributedSyncService
             .state()
             .map(distributedSyncState -> {
-                Long storedFrom = distributedSyncState.getFrom();
-                nextFromTime = storedFrom == null ? -1 : storedFrom;
-                log.info("Resuming from the distributed sync state stored by node [{}]", distributedSyncState.getNodeId());
+                if (!distributedSyncState.active()) {
+                    nextFromTime = -1;
+                    distributedSyncService.requestResync(
+                        "the previous primary [" + distributedSyncState.getNodeId() + "] left the catalog paused"
+                    );
+                } else {
+                    Long storedFrom = distributedSyncState.getFrom();
+                    nextFromTime = storedFrom == null ? -1 : storedFrom;
+                    log.info("Resuming from the distributed sync state stored by node [{}]", distributedSyncState.getNodeId());
+                }
                 return System.currentTimeMillis();
             })
             .switchIfEmpty(
                 Single.fromCallable(() -> {
                     log.warn("No distributed sync state found on promotion, performing a full synchronization");
                     nextFromTime = -1;
+                    distributedSyncService.requestResync("no distributed sync state was found on promotion");
                     return System.currentTimeMillis();
                 })
             )
             .doOnSuccess(ignored -> distributedSyncService.requestReplay());
+    }
+
+    /**
+     * A secondary only trusts the distributed catalog once the primary published it as complete: a node that never
+     * synchronized waits (and stays not ready) while there is no state or while the primary rebuilds the catalog,
+     * instead of starting from an empty, stale or partial catalog. A node already serving keeps applying changes.
+     */
+    private Single<Long> secondaryCycleStart(final long toTime) {
+        return distributedSyncService
+            .sharedState()
+            .map(Optional::of)
+            .defaultIfEmpty(Optional.empty())
+            .flatMap(state -> {
+                if (state.isEmpty() || !state.get().active()) {
+                    if (!syncReadyForProbe.get()) {
+                        log.info(
+                            state.isEmpty()
+                                ? "Waiting for the distributed sync primary to publish its catalog"
+                                : "Waiting for the distributed sync primary to finish rebuilding its catalog"
+                        );
+                        return Single.just(SKIP_CYCLE);
+                    }
+                    return Single.just(toTime);
+                }
+                Long tombstoneHorizon = state.get().getTombstoneHorizon();
+                if (tombstoneHorizon != null && nextFromTime != -1 && nextFromTime - TIMEFRAME_DELAY < tombstoneHorizon) {
+                    log.warn(
+                        "This node lagged behind the retention of removal events, it performs a full synchronization (entities removed meanwhile may remain until a restart)"
+                    );
+                    nextFromTime = -1;
+                }
+                if (nextFromTime == -1) {
+                    return distributedSyncService
+                        .catalogFullyIndexed()
+                        .map(indexed -> {
+                            if (!indexed) {
+                                log.info("Waiting for the distributed sync repository to finish indexing before a full synchronization");
+                                return SKIP_CYCLE;
+                            }
+                            return toTime;
+                        });
+                }
+                return Single.just(toTime);
+            });
     }
 
     private boolean consumeHoldRequests() {
@@ -311,6 +393,21 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
 
     public Optional<DistributedSyncMetrics> distributedSyncMetrics() {
         return distributedSyncService.metrics();
+    }
+
+    public boolean distributedResyncInProgress() {
+        return distributedSyncService.resyncInProgress();
+    }
+
+    /**
+     * @return whether the request was accepted: only the primary rebuilds the catalog
+     */
+    public boolean requestDistributedResync() {
+        if (!distributedSyncService.isEnabled() || !distributedSyncService.isPrimaryNode()) {
+            return false;
+        }
+        distributedSyncService.requestResync("requested through the node management API");
+        return true;
     }
 
     public long syncCounter() {

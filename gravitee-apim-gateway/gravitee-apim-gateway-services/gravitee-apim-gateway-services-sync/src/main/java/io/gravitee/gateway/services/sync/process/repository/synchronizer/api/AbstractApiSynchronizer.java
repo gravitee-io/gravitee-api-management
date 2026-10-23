@@ -206,6 +206,12 @@ public abstract class AbstractApiSynchronizer {
             .andThen(apiKeyDeployer.doAfterDeployment(deployable))
             .andThen(apiDeployer.doAfterDeployment(deployable))
             .andThen(Flowable.just(deployable))
+            .doOnNext(ignored -> {
+                DistributedSyncService distributedSyncService = this.deployerFactory.distributedSyncService();
+                if (distributedSyncService != null) {
+                    distributedSyncService.recordLocalDeploy();
+                }
+            })
             .onErrorResumeNext(throwable -> resumeOnDeployError(initialSync, throwable));
     }
 
@@ -255,6 +261,10 @@ public abstract class AbstractApiSynchronizer {
         // Permanent failure on the initial sync, or any failure on an incremental sync: isolate the failing
         // API. Log here since the error is swallowed.
         log.error("An error occurred while (un)deploying an API during synchronization", throwable);
+        DistributedSyncService distributedSyncService = deployerFactory.distributedSyncService();
+        if (distributedSyncService != null) {
+            distributedSyncService.recordLocalDeployFailure();
+        }
         return Flowable.empty();
     }
 }
