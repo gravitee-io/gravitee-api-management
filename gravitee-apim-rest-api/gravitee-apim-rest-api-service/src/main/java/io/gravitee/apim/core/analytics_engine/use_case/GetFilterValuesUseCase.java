@@ -526,7 +526,8 @@ public class GetFilterValuesUseCase {
             authorizedApiIds,
             apiNamesById,
             context.applicationNamesById(),
-            apiIdsByType
+            apiIdsByType,
+            context.restrictedToApplicationIds()
         );
     }
 
@@ -664,7 +665,8 @@ public class GetFilterValuesUseCase {
             narrowedAuthorizedIds,
             narrowedNames,
             context.applicationNamesById(),
-            context.apiIdsByType()
+            context.apiIdsByType(),
+            context.restrictedToApplicationIds()
         );
     }
 

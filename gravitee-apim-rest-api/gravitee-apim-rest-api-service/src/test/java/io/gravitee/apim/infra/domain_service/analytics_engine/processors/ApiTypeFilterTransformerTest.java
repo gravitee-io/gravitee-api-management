@@ -29,6 +29,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -57,7 +58,8 @@ class ApiTypeFilterTransformerTest {
             authorizedApiIds,
             Map.of(),
             Map.of(),
-            apiIdsByType
+            apiIdsByType,
+            Optional.empty()
         );
     }
 

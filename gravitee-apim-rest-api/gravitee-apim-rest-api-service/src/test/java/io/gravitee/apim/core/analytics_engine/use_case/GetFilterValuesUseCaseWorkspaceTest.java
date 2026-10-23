@@ -51,6 +51,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
@@ -239,7 +240,8 @@ class GetFilterValuesUseCaseWorkspaceTest {
             apiNamesById.keySet(),
             apiNamesById,
             Map.of(),
-            Map.of()
+            Map.of(),
+            Optional.empty()
         );
         when(contextLoader.load(caller, AnalyticsScope.MANAGEMENT, ApiDataKind.AGGREGATES)).thenReturn(context);
         when(contextLoader.load(caller, AnalyticsScope.MANAGEMENT, ApiDataKind.PER_REQUEST)).thenReturn(context);

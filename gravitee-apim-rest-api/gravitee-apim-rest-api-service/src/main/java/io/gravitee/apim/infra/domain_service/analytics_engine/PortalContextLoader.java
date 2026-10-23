@@ -15,6 +15,9 @@
  */
 package io.gravitee.apim.infra.domain_service.analytics_engine;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_ANALYTICS;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
+
 import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
@@ -35,6 +38,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -66,7 +70,11 @@ public class PortalContextLoader implements AnalyticsQueryContextLoader {
             .anyMatch(a -> ENVIRONMENT_ADMIN.equalsIgnoreCase(a.getAuthority()) || ORGANIZATION_ADMIN.equalsIgnoreCase(a.getAuthority()));
     }
 
-    /** The portal scopes by visibility, not by management permission: the kind of data changes nothing. */
+    /**
+     * The portal scopes by visibility, not by management permission: the kind of data changes nothing. A non-admin
+     * reads only the calls of the applications whose analytics they may read: never keyless calls, never another
+     * consumer's.
+     */
     @Override
     public AnalyticsQueryContext load(AuditInfo auditInfo, ApiDataKind kind) {
         var organizationId = auditInfo.organizationId();
@@ -77,16 +85,19 @@ public class PortalContextLoader implements AnalyticsQueryContextLoader {
 
         List<Api> apis;
         Map<String, String> applicationNamesById;
+        Optional<Set<String>> restrictedToApplicationIds;
 
         if (isAdmin()) {
             apis = ApiMapper.INSTANCE.map(
                 apiRepository.search(new ApiCriteria.Builder().environmentId(environmentId).build(), API_CONTEXT_FIELDS)
             );
             applicationNamesById = Map.of();
+            restrictedToApplicationIds = Optional.empty();
         } else if (userId == null || userId.isBlank()) {
             List<PortalNavigationApi> visibleNavApis = visibilityDomainService.resolveVisibleItems(environmentId);
             apis = fetchApisForNavItems(environmentId, visibleNavApis);
             applicationNamesById = Map.of();
+            restrictedToApplicationIds = Optional.of(Set.of());
         } else {
             List<PortalNavigationApi> visibleNavApis = visibilityDomainService.resolveVisibleItems(environmentId, userId);
             apis = fetchApisForNavItems(environmentId, visibleNavApis);
@@ -94,13 +105,24 @@ public class PortalContextLoader implements AnalyticsQueryContextLoader {
                 .findByUser(executionContext, userId)
                 .stream()
                 .collect(Collectors.toMap(ApplicationListItem::getId, ApplicationListItem::getName));
+            restrictedToApplicationIds = Optional.of(
+                applicationService.findIdsByUserAndPermission(executionContext, userId, null, APPLICATION_ANALYTICS, READ)
+            );
         }
 
         var authorizedApiIds = apis.stream().map(Api::getId).collect(Collectors.toSet());
         var apiNamesById = mapApiIdsToNames(apis);
         var apiIdsByType = groupApiIdsByType(apis);
 
-        return new AnalyticsQueryContext(auditInfo, executionContext, authorizedApiIds, apiNamesById, applicationNamesById, apiIdsByType);
+        return new AnalyticsQueryContext(
+            auditInfo,
+            executionContext,
+            authorizedApiIds,
+            apiNamesById,
+            applicationNamesById,
+            apiIdsByType,
+            restrictedToApplicationIds
+        );
     }
 
     private List<Api> fetchApisForNavItems(String environmentId, List<PortalNavigationApi> navItems) {

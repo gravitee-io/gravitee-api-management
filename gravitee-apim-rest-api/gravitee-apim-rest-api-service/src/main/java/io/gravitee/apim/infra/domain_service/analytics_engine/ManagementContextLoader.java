@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -65,7 +66,15 @@ public class ManagementContextLoader implements AnalyticsQueryContextLoader {
         var apiNamesById = mapApiIdsToNames(apis);
         var apiIdsByType = groupApiIdsByType(apis);
 
-        return new AnalyticsQueryContext(auditInfo, executionContext, authorizedApiIds, apiNamesById, Map.of(), apiIdsByType);
+        return new AnalyticsQueryContext(
+            auditInfo,
+            executionContext,
+            authorizedApiIds,
+            apiNamesById,
+            Map.of(),
+            apiIdsByType,
+            Optional.empty()
+        );
     }
 
     private static Map<String, String> mapApiIdsToNames(Collection<Api> apis) {
