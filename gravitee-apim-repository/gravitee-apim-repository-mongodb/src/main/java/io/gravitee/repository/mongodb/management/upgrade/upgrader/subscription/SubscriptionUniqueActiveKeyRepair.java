@@ -32,7 +32,6 @@ import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import lombok.CustomLog;
 import org.bson.Document;
@@ -122,11 +121,16 @@ public class SubscriptionUniqueActiveKeyRepair {
     }
 
     BatchResult repairBatch(List<Document> documents) {
-        List<WriteModel<Document>> updates = documents
-            .stream()
-            .map(SubscriptionUniqueActiveKeyRepair::toRepair)
-            .filter(Objects::nonNull)
-            .toList();
+        // A write error gives the position of the update, which only the repaired subscriptions have.
+        List<Document> repaired = new ArrayList<>();
+        List<WriteModel<Document>> updates = new ArrayList<>();
+        for (Document document : documents) {
+            WriteModel<Document> update = toRepair(document);
+            if (update != null) {
+                repaired.add(document);
+                updates.add(update);
+            }
+        }
         if (updates.isEmpty()) {
             return new BatchResult(0, 0);
         }
@@ -142,7 +146,7 @@ public class SubscriptionUniqueActiveKeyRepair {
                 .forEach(index ->
                     log.warn(
                         "Unique active key of subscription [{}] not repaired: another active subscription has the same key",
-                        documents.get(index).get("_id")
+                        repaired.get(index).get("_id")
                     )
                 );
             return new BatchResult(e.getWriteResult().getModifiedCount(), e.getWriteErrors().size());
