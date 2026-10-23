@@ -15,10 +15,15 @@
  */
 package io.gravitee.apim.core.api_key.crud_service;
 
+import io.gravitee.apim.core.api_key.exception.ApiKeyIdAlreadyExistsException;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import java.util.Optional;
 
 public interface ApiKeyCrudService {
+    /**
+     * @throws ApiKeyIdAlreadyExistsException when a key with the same id already exists; nothing is created then, and the later
+     * reads of the request find the existing key
+     */
     ApiKeyEntity create(ApiKeyEntity apiKey);
 
     /**

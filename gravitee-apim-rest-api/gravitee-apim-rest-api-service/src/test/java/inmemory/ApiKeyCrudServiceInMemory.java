@@ -16,6 +16,7 @@
 package inmemory;
 
 import io.gravitee.apim.core.api_key.crud_service.ApiKeyCrudService;
+import io.gravitee.apim.core.api_key.exception.ApiKeyIdAlreadyExistsException;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.common.utils.TimeProvider;
 import java.util.ArrayList;
@@ -26,41 +27,65 @@ import java.util.OptionalInt;
 
 public class ApiKeyCrudServiceInMemory implements ApiKeyCrudService, InMemoryAlternative<ApiKeyEntity> {
 
+    /** Writes are atomic, like on a database, so that tests can run several requests at once (writes lock the storage). */
     final ArrayList<ApiKeyEntity> storage = new ArrayList<>();
+
+    private final boolean rejectsExistingIds;
+
+    public ApiKeyCrudServiceInMemory() {
+        this(false);
+    }
+
+    /**
+     * @param rejectsExistingIds whether {@link #create(ApiKeyEntity)} rejects an existing id, like the repositories. Off by
+     * default: some tests create several keys with the same generated id.
+     */
+    public ApiKeyCrudServiceInMemory(boolean rejectsExistingIds) {
+        this.rejectsExistingIds = rejectsExistingIds;
+    }
 
     @Override
     public ApiKeyEntity create(ApiKeyEntity apiKey) {
-        storage.add(apiKey);
-        return apiKey;
+        synchronized (storage) {
+            if (rejectsExistingIds && this.findIndex(this.storage, stored -> stored.getId().equals(apiKey.getId())).isPresent()) {
+                throw new ApiKeyIdAlreadyExistsException(apiKey.getId(), null);
+            }
+            storage.add(apiKey);
+            return apiKey;
+        }
     }
 
     /** Like the repositories: every field but the subscriptions, which are kept as stored. */
     @Override
     public ApiKeyEntity update(ApiKeyEntity entity) {
-        OptionalInt index = this.findIndex(this.storage, apiKey -> apiKey.getId().equals(entity.getId()));
-        if (index.isPresent()) {
-            var updated = entity.toBuilder().subscriptions(storage.get(index.getAsInt()).getSubscriptions()).build();
-            storage.set(index.getAsInt(), updated);
-            return updated;
-        }
+        synchronized (storage) {
+            OptionalInt index = this.findIndex(this.storage, apiKey -> apiKey.getId().equals(entity.getId()));
+            if (index.isPresent()) {
+                var updated = entity.toBuilder().subscriptions(storage.get(index.getAsInt()).getSubscriptions()).build();
+                storage.set(index.getAsInt(), updated);
+                return updated;
+            }
 
-        throw new IllegalStateException("ApiKey not found");
+            throw new IllegalStateException("ApiKey not found");
+        }
     }
 
     @Override
     public Optional<ApiKeyEntity> addSubscription(String apiKeyId, String subscriptionId) {
-        OptionalInt index = this.findIndex(this.storage, apiKey -> apiKey.getId().equals(apiKeyId));
-        if (index.isEmpty()) {
-            return Optional.empty();
+        synchronized (storage) {
+            OptionalInt index = this.findIndex(this.storage, apiKey -> apiKey.getId().equals(apiKeyId));
+            if (index.isEmpty()) {
+                return Optional.empty();
+            }
+            var stored = storage.get(index.getAsInt());
+            var subscriptions = new ArrayList<>(stored.getSubscriptions());
+            if (!subscriptions.contains(subscriptionId)) {
+                subscriptions.add(subscriptionId);
+            }
+            var updated = stored.toBuilder().subscriptions(subscriptions).updatedAt(TimeProvider.now()).build();
+            storage.set(index.getAsInt(), updated);
+            return Optional.of(updated);
         }
-        var stored = storage.get(index.getAsInt());
-        var subscriptions = new ArrayList<>(stored.getSubscriptions());
-        if (!subscriptions.contains(subscriptionId)) {
-            subscriptions.add(subscriptionId);
-        }
-        var updated = stored.toBuilder().subscriptions(subscriptions).updatedAt(TimeProvider.now()).build();
-        storage.set(index.getAsInt(), updated);
-        return Optional.of(updated);
     }
 
     @Override

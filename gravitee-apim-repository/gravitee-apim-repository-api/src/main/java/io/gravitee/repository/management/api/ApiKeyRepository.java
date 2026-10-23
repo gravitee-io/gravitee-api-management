@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.api;
 
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.api.search.ApiKeyCursor;
@@ -62,6 +63,8 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
      *
      * @param apiKey API Key
      * @return Newly created API Key
+     * @throws DuplicateKeyException when a key with the same id already exists. Nothing is written then (no link to the
+     * subscriptions either), and a surrounding transaction stays usable: its later reads find the existing key.
      */
     ApiKey create(ApiKey apiKey) throws TechnicalException;
 

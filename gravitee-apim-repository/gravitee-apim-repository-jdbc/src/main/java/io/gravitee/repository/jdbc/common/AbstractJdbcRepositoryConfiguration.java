@@ -70,6 +70,8 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
 
     public static final String POSTGRESQL_DRIVER_TYPE = "postgresql";
     public static final String SQLSERVER_DRIVER_TYPE = "sqlserver";
+    public static final String MYSQL_DRIVER_TYPE = "mysql";
+    public static final String MARIADB_DRIVER_TYPE = "mariadb";
 
     private static final String DEFAULT_OFFSET_QUERY = "OFFSET %d ";
     private static final String MSSQL_OFFSET_QUERY = "OFFSET %d ROWS ";
@@ -99,6 +101,14 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
      */
     public static boolean isPostgreSql() {
         return POSTGRESQL_DRIVER_TYPE.equals(driverType);
+    }
+
+    /**
+     * Returns {@code true} when the JDBC driver detected from the configured {@code jdbc.url} is MySQL or MariaDB. Used by
+     * repositories that rely on MySQL-only syntax such as {@code INSERT ... ON DUPLICATE KEY UPDATE}.
+     */
+    public static boolean isMySqlOrMariaDb() {
+        return MYSQL_DRIVER_TYPE.equals(driverType) || MARIADB_DRIVER_TYPE.equals(driverType);
     }
 
     public static String escapeReservedWord(final String word) {

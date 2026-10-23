@@ -17,6 +17,7 @@ package io.gravitee.repository.jdbc.management;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.isMySqlOrMariaDb;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.isPostgreSql;
 import static io.gravitee.repository.jdbc.utils.FieldUtils.toSnakeCase;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -105,14 +106,65 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     @Override
     public ApiKey create(ApiKey apiKey) throws TechnicalException {
         try {
-            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(apiKey));
+            if (!insertUnlessIdExists(apiKey)) {
+                throw new io.gravitee.repository.exceptions.DuplicateKeyException(
+                    "An API Key with id [" + apiKey.getId() + "] already exists"
+                );
+            }
             if (!isEmpty(apiKey.getSubscriptions())) {
                 storeSubscriptions(apiKey);
             }
             return findById(apiKey.getId()).orElse(null);
+        } catch (io.gravitee.repository.exceptions.DuplicateKeyException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Failed to create API Key", e);
             throw new TechnicalException("Failed to create API Key", e);
+        }
+    }
+
+    /**
+     * Inserts the key row, unless a key with the same id exists. That conflict must neither write anything else nor abort a
+     * surrounding transaction (subscribing runs in one transaction, and the request goes on after losing the race to create the
+     * first shared key of an application):
+     * <ul>
+     *     <li>PostgreSQL aborts a transaction on any failed statement, so the statement itself skips the conflict.</li>
+     *     <li>MySQL and MariaDB leave a shared lock on the existing row after a duplicate-key error (also with
+     *     {@code insert ignore}). When several transactions lose the race at once, each holds that lock, then each waits for
+     *     the others to update the key: a deadlock. {@code on duplicate key update} locks the existing row exclusively instead,
+     *     so the transactions that lost take turns. Its update moves {@code updated_at} (the transaction that lost links its
+     *     subscription to the key and moves it again right after) so that the conflict counts as an updated row (2) whatever
+     *     the connection's {@code CLIENT_FOUND_ROWS} setting, an inserted row counting 1. Being changed by the transaction, the
+     *     existing key is also visible to its later plain reads, although REPEATABLE READ keeps them on the snapshot of its first
+     *     read: that is how the transaction that lost finds the key.</li>
+     *     <li>SQL Server only rolls back the failing statement.</li>
+     * </ul>
+     *
+     * @return {@code false} when a key with this id already exists
+     */
+    private boolean insertUnlessIdExists(ApiKey apiKey) {
+        if (isPostgreSql()) {
+            return (
+                jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(apiKey, sql -> sql + " on conflict (id) do nothing")) > 0
+            );
+        }
+        if (isMySqlOrMariaDb()) {
+            return (
+                jdbcTemplate.update(
+                    getOrm().buildInsertPreparedStatementCreator(
+                        apiKey,
+                        sql -> sql + " on duplicate key update updated_at = coalesce(updated_at, current_timestamp) + interval 1 second"
+                    )
+                ) ==
+                1
+            );
+        }
+        try {
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(apiKey));
+            return true;
+        } catch (DuplicateKeyException e) {
+            // The primary key on id is the only unique constraint of the table.
+            return false;
         }
     }
 
