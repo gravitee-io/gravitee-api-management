@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -103,6 +104,11 @@ public class RollbackApiUseCase {
                 if (toRollback.getDefinitionVersion() != io.gravitee.definition.model.DefinitionVersion.V4) {
                     throw new IllegalStateException("The migration is only built for rollback migration from V2 to V4.");
                 }
+                // Refuse before any state is changed: if a plan from the V2 deployment we roll back to was
+                // removed while the API was V4, the API must be left exactly as it is (still V4, same plans,
+                // flows and search entry) instead of being persisted as a half-converted V2 API.
+                var existingPlans = planQueryService.findAllByApiId(toRollback.getId());
+                validatePlansCanBeRolledBack(apiDefinition.getPlans(), existingPlans);
                 if (
                     apiDefinition.getServices().getDynamicPropertyService() != null &&
                     apiDefinition.getServices().getDynamicPropertyService().isEnabled()
@@ -119,7 +125,7 @@ public class RollbackApiUseCase {
                 var apiUpdatedV2 = apiCrudService.update(rollbackedApi);
 
                 // Rollback plans from API definition plans
-                var plans = rollbackPlansV2(apiDefinition.getPlans(), apiUpdatedV2, input.auditInfo);
+                var plans = rollbackPlansV2(apiDefinition.getPlans(), existingPlans, input.auditInfo);
                 flowCrudService.saveApiFlowsV2(apiDefinition.getId(), apiDefinition.getFlows());
                 for (var plan : apiDefinition.getPlans()) {
                     flowCrudService.savePlanFlowsV2(plan.getId(), plan.getFlows());
@@ -225,7 +231,11 @@ public class RollbackApiUseCase {
         );
     }
 
-    private Plans rollbackPlansV2(List<io.gravitee.definition.model.Plan> apiDefinitionPlans, Api api, AuditInfo auditInfo) {
+    private Plans rollbackPlansV2(
+        List<io.gravitee.definition.model.Plan> apiDefinitionPlans,
+        List<io.gravitee.apim.core.plan.model.Plan> existingPlans,
+        AuditInfo auditInfo
+    ) {
         if (apiDefinitionPlans == null) {
             return new Plans(List.of(), List.of());
         }
@@ -234,24 +244,7 @@ public class RollbackApiUseCase {
             Collectors.toMap(io.gravitee.definition.model.Plan::getId, Function.identity())
         );
 
-        var existingPlansMustBeRollbackOrClose = planQueryService
-            .findAllByApiId(api.getId())
-            .stream()
-            .collect(
-                Collectors.groupingBy(currentPlan -> {
-                    var targetOfRollback = plansToUpdateById.get(currentPlan.getId());
-                    if (targetOfRollback == null) {
-                        return CLOSE;
-                    } else if (
-                        PlanStatus.valueOf(targetOfRollback.getStatus()) != PlanStatus.CLOSED &&
-                        currentPlan.getPlanStatus() == PlanStatus.CLOSED
-                    ) {
-                        currentPlan.setPlanStatus(PlanStatus.valueOf(targetOfRollback.getStatus()));
-                        return REOPEN;
-                    }
-                    return ROLLBACK;
-                })
-            );
+        var existingPlansMustBeRollbackOrClose = classifyPlans(existingPlans, plansToUpdateById);
         if (
             Stream.of(ROLLBACK, REOPEN)
                 .mapToInt(c -> size(existingPlansMustBeRollbackOrClose.get(c)))
@@ -292,6 +285,50 @@ public class RollbackApiUseCase {
             .map(io.gravitee.apim.core.plan.model.Plan::getId)
             .toList();
         return new Plans(opens, closes);
+    }
+
+    private void validatePlansCanBeRolledBack(
+        List<io.gravitee.definition.model.Plan> apiDefinitionPlans,
+        List<io.gravitee.apim.core.plan.model.Plan> existingPlans
+    ) {
+        if (apiDefinitionPlans == null) {
+            return;
+        }
+        var planIdsFromV2Definition = stream(apiDefinitionPlans).map(io.gravitee.definition.model.Plan::getId).collect(toSet());
+        var existingPlanIds = stream(existingPlans).map(io.gravitee.apim.core.plan.model.Plan::getId).collect(toSet());
+        // A plan referenced by the V2 deployment we roll back to must still exist (i.e. must not have been
+        // deleted while the API was V4). Refuse the rollback before any state is changed, so the API is left
+        // as it was: still V4, with the same plans, flows and search entry.
+        var missingPlans = planIdsFromV2Definition.stream().filter(Predicate.not(existingPlanIds::contains)).sorted().toList();
+        if (!missingPlans.isEmpty()) {
+            // A deleted plan is a normal, user-correctable condition: answer 400 (ValidationDomainException),
+            // not the 500 an IllegalStateException would produce on the rollback endpoint.
+            throw new ValidationDomainException(
+                "Cannot rollback plans because some plans have been removed: %s".formatted(missingPlans),
+                "api.rollback.plans_removed"
+            );
+        }
+    }
+
+    private Map<String, List<io.gravitee.apim.core.plan.model.Plan>> classifyPlans(
+        List<io.gravitee.apim.core.plan.model.Plan> existingPlans,
+        Map<String, io.gravitee.definition.model.Plan> plansToUpdateById
+    ) {
+        return stream(existingPlans).collect(
+            Collectors.groupingBy(currentPlan -> {
+                var targetOfRollback = plansToUpdateById.get(currentPlan.getId());
+                if (targetOfRollback == null) {
+                    return CLOSE;
+                } else if (
+                    PlanStatus.valueOf(targetOfRollback.getStatus()) != PlanStatus.CLOSED &&
+                    currentPlan.getPlanStatus() == PlanStatus.CLOSED
+                ) {
+                    currentPlan.setPlanStatus(PlanStatus.valueOf(targetOfRollback.getStatus()));
+                    return REOPEN;
+                }
+                return ROLLBACK;
+            })
+        );
     }
 
     private record Plans(Collection<String> openPlans, Collection<String> closedPlans) {}
