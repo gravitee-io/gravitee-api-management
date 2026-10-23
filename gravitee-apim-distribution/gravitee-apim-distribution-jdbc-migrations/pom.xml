@@ -330,7 +330,6 @@
                                 </goals>
                                 <configuration>
                                     <appendAssemblyId>false</appendAssemblyId>
-                                    <finalName>${project.artifactId}-${apim.core.version}</finalName>
                                     <descriptors>
                                         <descriptor>src/main/assembly/migrations-assembly.xml</descriptor>
                                     </descriptors>
