@@ -193,7 +193,10 @@ public class SubscriptionUniqueActiveKeyBackfill implements CustomTaskChange {
             " = ? order by id";
 
         List<String> keys = new ArrayList<>();
-        try (PreparedStatement statement = connection.prepareStatement(duplicatedKeys); ResultSet resultSet = statement.executeQuery()) {
+        try (
+            PreparedStatement statement = connection.prepareStatement(duplicatedKeys); // NOSONAR only the configured table prefix is concatenated
+            ResultSet resultSet = statement.executeQuery()
+        ) {
             while (resultSet.next()) {
                 keys.add(resultSet.getString(1));
             }
@@ -206,7 +209,9 @@ public class SubscriptionUniqueActiveKeyBackfill implements CustomTaskChange {
             "{} application(s) have several active subscriptions to the same plan: the unique index on active subscriptions cannot be created until the extra subscriptions are closed",
             keys.size()
         );
-        try (PreparedStatement statement = connection.prepareStatement(duplicates)) {
+        try (
+            PreparedStatement statement = connection.prepareStatement(duplicates) // NOSONAR only the configured table prefix is concatenated, the key is bound
+        ) {
             for (String key : keys) {
                 statement.setString(1, key);
                 List<String> ids = new ArrayList<>();
