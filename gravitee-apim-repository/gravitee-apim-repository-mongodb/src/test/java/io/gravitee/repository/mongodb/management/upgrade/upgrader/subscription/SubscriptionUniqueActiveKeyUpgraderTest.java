@@ -17,9 +17,13 @@ package io.gravitee.repository.mongodb.management.upgrade.upgrader.subscription;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.CountOptions;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.IndexOptions;
 import io.gravitee.repository.management.AbstractManagementRepositoryTest;
 import io.gravitee.repository.management.api.SubscriptionUniqueActiveKey;
 import io.gravitee.repository.management.model.Subscription;
@@ -30,6 +34,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoOperations;
 
@@ -143,6 +148,46 @@ public class SubscriptionUniqueActiveKeyUpgraderTest extends AbstractManagementR
         repair.repairBatch(read);
 
         assertThat(storedDocument("sub-1")).doesNotContainKey(FIELD);
+    }
+
+    @Test
+    public void should_report_the_subscription_whose_key_another_active_subscription_already_holds() {
+        // Once the unique index exists, the key a subscription misses may already be held. The subscription reported is
+        // the one whose key could not be written, whatever the up-to-date subscriptions read before it.
+        subscriptions().createIndex(
+            new Document(FIELD, 1),
+            new IndexOptions().name("uak1_unique").unique(true).partialFilterExpression(new Document(FIELD, new Document("$exists", true)))
+        );
+        ListAppender<ILoggingEvent> logs = new ListAppender<>();
+        Logger logger = (Logger) LoggerFactory.getLogger(SubscriptionUniqueActiveKeyRepair.class);
+        logs.start();
+        logger.addAppender(logs);
+        try {
+            subscriptions().insertOne(
+                aSubscriptionDocument("sub-a", "ACCEPTED", "plan-a").append(
+                    FIELD,
+                    expectedKey("sub-a", Subscription.Status.ACCEPTED, "plan-a")
+                )
+            );
+            subscriptions().insertOne(aSubscriptionDocument("sub-b", "ACCEPTED", "plan-1"));
+            subscriptions().insertOne(
+                aSubscriptionDocument("sub-c", "ACCEPTED", "plan-1").append(
+                    FIELD,
+                    expectedKey("sub-c", Subscription.Status.ACCEPTED, "plan-1")
+                )
+            );
+
+            var result = new SubscriptionUniqueActiveKeyRepair(upgrader.subscriptionsCollection()).repair();
+
+            assertThat(result.conflicts()).isEqualTo(1);
+            assertThat(logs.list)
+                .extracting(ILoggingEvent::getFormattedMessage)
+                .anyMatch(message -> message.contains("[sub-b]"))
+                .noneMatch(message -> message.contains("[sub-a]"));
+        } finally {
+            logger.detachAppender(logs);
+            subscriptions().dropIndex("uak1_unique");
+        }
     }
 
     private String storedKey(String id) {
