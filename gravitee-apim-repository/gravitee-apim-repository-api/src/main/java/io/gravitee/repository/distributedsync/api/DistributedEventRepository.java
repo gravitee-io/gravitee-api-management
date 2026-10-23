@@ -159,6 +159,14 @@ public interface DistributedEventRepository {
     }
 
     /**
+     * Signals that the primary wrote events: a monotonically increasing sequence so secondaries can skip the
+     * repository queries of the types that haven not changed.
+     */
+    default Completable advanceChangeSequence(final String clusterId) {
+        return Completable.complete();
+    }
+
+    /**
      * Acquires or renews an exclusive write lease on the given key. Only the primary that holds the lease may
      * write distributed events, so a fencing token prevents two primaries (split-brain, two clusters sharing
      * Redis) from writing concurrently.
