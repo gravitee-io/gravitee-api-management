@@ -133,6 +133,35 @@ public class JdbcSubscriptionUniqueActiveIndexTest extends AbstractManagementRep
         assertThatThrownBy(() -> subscriptionRepository.create(aSubscription("sub-4", "plan-1"))).isInstanceOf(DuplicateKeyException.class);
     }
 
+    @Test
+    public void should_repair_keys_left_stale_since_the_previous_startup_before_creating_the_index() throws Exception {
+        dropIndex();
+        subscriptionRepository.create(aSubscription("sub-1", "plan-1"));
+        // Closed by a node of a previous version, which leaves the key in place.
+        jdbcTemplate.update("update " + prefix() + "subscriptions set status = 'CLOSED' where id = ?", "sub-1");
+        subscriptionRepository.create(aSubscription("sub-2", "plan-1"));
+
+        updateDatabase();
+
+        assertThat(
+            jdbcTemplate.queryForList("select unique_active_key from " + prefix() + "subscriptions where id = ?", String.class, "sub-1")
+        ).containsExactly((String) null);
+        assertThatThrownBy(() -> subscriptionRepository.create(aSubscription("sub-3", "plan-1"))).isInstanceOf(DuplicateKeyException.class);
+    }
+
+    @Test
+    public void should_not_scan_the_subscriptions_at_startup_once_the_index_exists() throws Exception {
+        // A key left stale once the index exists is repaired by the repository, when a write conflicts with it.
+        subscriptionRepository.create(aSubscription("sub-1", "plan-1"));
+        jdbcTemplate.update("update " + prefix() + "subscriptions set status = 'CLOSED' where id = ?", "sub-1");
+
+        updateDatabase();
+
+        assertThat(
+            jdbcTemplate.queryForList("select unique_active_key from " + prefix() + "subscriptions where id = ?", String.class, "sub-1")
+        ).containsExactly("API:api-1:app-1:plan-1");
+    }
+
     private void dropIndex() {
         String index = "idx_" + prefix() + "subscriptions_unique_active_key";
         String table = prefix() + "subscriptions";
