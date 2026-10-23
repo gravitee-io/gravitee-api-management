@@ -64,7 +64,7 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
      * @param apiKey API Key
      * @return Newly created API Key
      * @throws DuplicateKeyException when a key with the same id already exists. Nothing is written then (no link to the
-     * subscriptions either), and a surrounding transaction stays usable.
+     * subscriptions either), and a surrounding transaction stays usable: its later reads find the existing key.
      */
     ApiKey create(ApiKey apiKey) throws TechnicalException;
 
@@ -95,21 +95,6 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
      * @throws TechnicalException
      */
     List<ApiKey> findByApplication(String applicationId) throws TechnicalException;
-
-    /**
-     * Same as {@link #findByApplication(String)}, but also finds the keys committed by other transactions after the current
-     * transaction, if any, started reading. Use it after {@link #create(ApiKey)} failed with a {@link DuplicateKeyException}
-     * because another transaction created the key in the meantime. Where a transaction keeps reading the snapshot of its
-     * first read (MySQL and MariaDB in REPEATABLE READ), the keys are read with a locking read, held until the end of the
-     * transaction.
-     *
-     * @param applicationId application ID
-     * @return API Keys issued for the given application, as last committed
-     * @throws TechnicalException
-     */
-    default List<ApiKey> findLatestByApplication(String applicationId) throws TechnicalException {
-        return findByApplication(applicationId);
-    }
 
     /**
      * List of {@link ApiKey} for a given {@link io.gravitee.repository.management.model.Plan}
