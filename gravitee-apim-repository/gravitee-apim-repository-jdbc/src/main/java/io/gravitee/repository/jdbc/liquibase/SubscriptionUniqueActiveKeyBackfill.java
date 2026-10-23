@@ -109,11 +109,13 @@ public class SubscriptionUniqueActiveKeyBackfill implements CustomTaskChange {
             ", type, configuration, " +
             UNIQUE_ACTIVE_KEY_COLUMN +
             " from " +
-            table;
+            table +
+            " where id > ? order by id";
 
         int scanned = 0;
         int fixed = 0;
-        String lastId = null;
+        // Every id sorts after the empty string.
+        String lastId = "";
         int read;
         do {
             List<Row> batch = readBatch(connection, select, lastId);
@@ -133,13 +135,12 @@ public class SubscriptionUniqueActiveKeyBackfill implements CustomTaskChange {
     }
 
     private static List<Row> readBatch(Connection connection, String select, String afterId) throws SQLException {
-        String sql = select + (afterId == null ? "" : " where id > ?") + " order by id";
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (
+            PreparedStatement statement = connection.prepareStatement(select) // NOSONAR only the configured table prefix is concatenated, the id is bound
+        ) {
             statement.setMaxRows(BATCH_SIZE);
             statement.setFetchSize(BATCH_SIZE);
-            if (afterId != null) {
-                statement.setString(1, afterId);
-            }
+            statement.setString(1, afterId);
             List<Row> rows = new ArrayList<>(BATCH_SIZE);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
