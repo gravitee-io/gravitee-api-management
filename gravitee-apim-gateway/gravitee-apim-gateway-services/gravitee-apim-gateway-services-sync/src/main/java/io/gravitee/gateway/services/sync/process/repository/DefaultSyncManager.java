@@ -185,7 +185,9 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                             if (nextFromTime == -1 && !syncReadyForProbe.get()) {
                                 distributedSyncService.requestResync("the primary node starts with nothing deployed");
                             }
-                            toTime = Single.just(System.currentTimeMillis());
+                            toTime = distributedSyncService
+                                .serverTime()
+                                .onErrorResumeNext(throwable -> Single.just(System.currentTimeMillis()));
                         }
                         return toTime.flatMap(to ->
                             distributedSyncService
@@ -202,7 +204,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                         log.info("Node is no longer the distributed sync primary, it now synchronizes from the distributed repository");
                         distributedSyncService.onDemotion();
                     }
-                    return secondaryCycleStart(System.currentTimeMillis());
+                    return distributedSyncService.serverTime().flatMap(this::secondaryCycleStart);
                 })
             )
             .flatMapCompletable(nextToTime -> {

@@ -150,6 +150,36 @@ public interface DistributedEventRepository {
      *
      * @return the number of events deleted
      */
+    /**
+     * Returns the current time of the Redis server in milliseconds. Secondaries use it for the sync window so
+     * clock skew between nodes does not lose events.
+     */
+    default Single<Long> serverTime() {
+        return Single.just(System.currentTimeMillis());
+    }
+
+    /**
+     * Acquires or renews an exclusive write lease on the given key. Only the primary that holds the lease may
+     * write distributed events, so a fencing token prevents two primaries (split-brain, two clusters sharing
+     * Redis) from writing concurrently.
+     */
+    default Completable applyFencedWrite(final String key, final String value, final long ttlMs) {
+        return Completable.complete();
+    }
+
+    /**
+     * Creates or updates an event at the current time, fencing the write against the given lease value. When
+     * the lease is non-null, a Redis Lua script stamps the event with the server clock and refuses the write
+     * if the lease does not match. Subclasses that do not support fencing delegate to
+     * {@link #createOrUpdateAtWriteTime(DistributedEvent)}.
+     */
+    default Completable createOrUpdateFenced(final DistributedEvent event, final String leaseValue) {
+        if (leaseValue == null) {
+            return createOrUpdateAtWriteTime(event);
+        }
+        return createOrUpdateAtWriteTime(event);
+    }
+
     default Single<Long> deleteUndeployedBefore(final String clusterId, final Date before) {
         return Single.just(0L);
     }
