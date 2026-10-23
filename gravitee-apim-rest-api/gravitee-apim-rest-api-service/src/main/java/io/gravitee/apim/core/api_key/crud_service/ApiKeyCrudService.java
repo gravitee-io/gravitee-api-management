@@ -21,7 +21,8 @@ import java.util.Optional;
 
 public interface ApiKeyCrudService {
     /**
-     * @throws ApiKeyIdAlreadyExistsException when a key with the same id already exists; nothing is created then
+     * @throws ApiKeyIdAlreadyExistsException when a key with the same id already exists; nothing is created then, and the later
+     * reads of the request find the existing key
      */
     ApiKeyEntity create(ApiKeyEntity apiKey);
 
