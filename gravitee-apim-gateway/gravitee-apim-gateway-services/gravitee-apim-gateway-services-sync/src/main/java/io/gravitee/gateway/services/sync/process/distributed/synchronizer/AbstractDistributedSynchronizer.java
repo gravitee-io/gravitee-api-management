@@ -63,6 +63,9 @@ public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y ex
     private final ThreadPoolExecutor syncDeployerExecutor;
     private final AtomicInteger consecutiveHeldAttempts = new AtomicInteger();
     private final AtomicBoolean holdRequested = new AtomicBoolean();
+    /** Schema version this node can decode; events with a higher version fail the cycle instead of being misread. */
+    private final int supportedSchemaVersion =
+        io.gravitee.gateway.services.sync.process.distributed.service.DefaultDistributedSyncService.EVENT_SCHEMA_VERSION;
 
     @Override
     public Completable synchronize(final Long from, final Long to) {
@@ -72,7 +75,22 @@ public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y ex
         return distributedEventFetcher
             .fetchLatest(from, to, distributedEventType(), syncActions(initialSync))
             .subscribeOn(Schedulers.from(syncFetcherExecutor))
-            .flatMapMaybe(this::mapTo)
+            .flatMapMaybe(event -> {
+                if (event.getSchemaVersion() != null && event.getSchemaVersion() > supportedSchemaVersion) {
+                    return Maybe.error(
+                        new io.gravitee.gateway.services.sync.process.distributed.model.DistributedSyncException(
+                            "A " +
+                                distributedEventType() +
+                                " event uses payload schema v" +
+                                event.getSchemaVersion() +
+                                ", this gateway only supports v" +
+                                supportedSchemaVersion +
+                                ". Upgrade this gateway so events are not read incorrectly."
+                        )
+                    );
+                }
+                return mapTo(event);
+            })
             // per deployable
             .compose(upstream -> {
                 Y deployer = createDeployer();
