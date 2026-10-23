@@ -213,7 +213,7 @@
     <gravitee-resource-auth-provider-inline.version>3.0.0</gravitee-resource-auth-provider-inline.version>
     <gravitee-resource-auth-provider-ldap.version>3.0.0</gravitee-resource-auth-provider-ldap.version>
     <gravitee-resource-cache-redis.version>5.0.1</gravitee-resource-cache-redis.version>
-    <gravitee-resource-cache-cloud-redis.version>1.0.0</gravitee-resource-cache-cloud-redis.version>
+    <gravitee-resource-cache-cloud-redis.version>2.0.0</gravitee-resource-cache-cloud-redis.version>
     <gravitee-resource-oauth2-provider-keycloak.version>5.0.0</gravitee-resource-oauth2-provider-keycloak.version>
     <gravitee-resource-ai-model-text-classification.version>2.3.0</gravitee-resource-ai-model-text-classification.version>
     <gravitee-service-geoip.version>3.0.0</gravitee-service-geoip.version>
