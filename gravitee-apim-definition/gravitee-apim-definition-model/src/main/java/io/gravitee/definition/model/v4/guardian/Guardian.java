@@ -19,11 +19,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.resource.Resource;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -70,13 +73,19 @@ public class Guardian implements Serializable {
     @Valid
     private List<Step> policies;
 
+    @Valid
+    private List<Resource> resources;
+
     private Date deployedAt;
 
     @JsonIgnore
     public List<Plugin> getPlugins() {
-        return this.policies == null
-            ? List.of()
-            : this.policies.stream().filter(Step::isEnabled).map(Step::getPlugins).flatMap(List::stream).toList();
+        return Stream.concat(
+            Optional.ofNullable(this.resources).stream().flatMap(List::stream).filter(Resource::isEnabled).map(Resource::getPlugins),
+            Optional.ofNullable(this.policies).stream().flatMap(List::stream).filter(Step::isEnabled).map(Step::getPlugins)
+        )
+            .flatMap(List::stream)
+            .toList();
     }
 
     public enum Phase {

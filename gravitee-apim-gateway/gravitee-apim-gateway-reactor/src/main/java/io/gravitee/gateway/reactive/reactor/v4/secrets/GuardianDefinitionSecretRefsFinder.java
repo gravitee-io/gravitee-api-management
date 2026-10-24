@@ -44,6 +44,7 @@ public class GuardianDefinitionSecretRefsFinder extends AbstractV4APISecretRefFi
 
     @Override
     public void findSecretRefs(Guardian definition, DefinitionSecretRefsListener listener) {
+        safeStream(definition.getResources()).forEach(resource -> processResource(listener, resource));
         safeList(definition.getPolicies()).forEach(step -> processStep(listener, step));
     }
 }

@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.secrets.api.discovery.Definition;
 import io.gravitee.secrets.api.discovery.DefinitionDescriptor;
 import io.gravitee.secrets.api.discovery.DefinitionMetadata;
@@ -84,6 +85,32 @@ class GuardianDefinitionSecretRefsFinderTest {
         assertThat(actualLocations).containsExactlyInAnyOrder("policy1-type", "policy2-type");
         assertThat(guardian.getPolicies().get(0).getConfiguration()).isEqualTo("policy1-config - updated!");
         assertThat(guardian.getPolicies().get(1).getConfiguration()).isEqualTo("policy2-config - updated!");
+    }
+
+    @Test
+    void should_find_secrets_in_resources() {
+        Guardian guardian = Guardian.builder()
+            .resources(List.of(Resource.builder().name("cache").type("cache-redis").configuration("resource-config").build()))
+            .build();
+
+        Set<String> actualConfigs = new HashSet<>();
+        Set<String> actualLocations = new HashSet<>();
+        underTest.findSecretRefs(guardian, (config, location, setter) -> {
+            actualConfigs.add(config);
+            actualLocations.add(location.id());
+            setter.accept(config + " - updated!");
+        });
+
+        assertThat(actualConfigs).containsExactly("resource-config");
+        assertThat(actualLocations).containsExactly("cache-redis");
+        assertThat(guardian.getResources().get(0).getConfiguration()).isEqualTo("resource-config - updated!");
+    }
+
+    @Test
+    void should_not_fail_with_null_resources() {
+        assertThatCode(() ->
+            underTest.findSecretRefs(Guardian.builder().resources(null).build(), (config, location, setter) -> setter.accept(config))
+        ).doesNotThrowAnyException();
     }
 
     private static Step newStep(String configuration, String policy) {

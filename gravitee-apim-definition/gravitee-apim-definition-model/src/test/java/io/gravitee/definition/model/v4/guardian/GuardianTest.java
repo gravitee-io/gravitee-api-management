@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.resource.Resource;
 import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -44,5 +45,20 @@ class GuardianTest {
             .build();
 
         assertThat(guardian.getPlugins()).containsExactly(new Plugin("policy", "policy-enabled"));
+    }
+
+    @Test
+    void should_return_plugins_of_enabled_resources_and_policies() {
+        Guardian guardian = Guardian.builder()
+            .resources(
+                List.of(
+                    Resource.builder().name("cache").type("cache").enabled(true).build(),
+                    Resource.builder().name("disabled").type("oauth2").enabled(false).build()
+                )
+            )
+            .policies(List.of(Step.builder().policy("policy-enabled").enabled(true).build()))
+            .build();
+
+        assertThat(guardian.getPlugins()).containsExactly(new Plugin("resource", "cache"), new Plugin("policy", "policy-enabled"));
     }
 }

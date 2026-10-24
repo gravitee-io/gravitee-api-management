@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
@@ -124,6 +125,43 @@ class GuardianMapperTest {
                     assertThat(definition.getPhase()).isEqualTo(phase);
                     assertThat(definition.getPolicies()).extracting(Step::getPolicy).containsExactly("a-policy");
                 });
+                return true;
+            })
+            .assertComplete();
+    }
+
+    @SneakyThrows
+    @Test
+    void should_map_guardian_resources() {
+        Environment environment = new Environment();
+        environment.setId("env");
+        environment.setOrganizationId("orga");
+        when(environmentRepository.findById("env")).thenReturn(Optional.of(environment));
+        Event event = new Event();
+        event.setPayload(
+            objectMapper.writeValueAsString(
+                Guardian.builder()
+                    .id("guardian-id")
+                    .name("name")
+                    .environmentId("env")
+                    .phase(Guardian.Phase.REQUEST)
+                    .resources(List.of(Resource.builder().name("cache").type("cache").configuration("{\"timeToLiveSeconds\":60}").build()))
+                    .build()
+            )
+        );
+
+        cut
+            .to(event)
+            .test()
+            .assertValue(reactableGuardian -> {
+                assertThat(reactableGuardian.getDefinition().getResources())
+                    .singleElement()
+                    .satisfies(resource -> {
+                        assertThat(resource.getName()).isEqualTo("cache");
+                        assertThat(resource.getType()).isEqualTo("cache");
+                        assertThat(resource.getConfiguration()).isEqualTo("{\"timeToLiveSeconds\":60}");
+                        assertThat(resource.isEnabled()).isTrue();
+                    });
                 return true;
             })
             .assertComplete();

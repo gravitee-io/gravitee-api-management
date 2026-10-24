@@ -52,7 +52,27 @@ class ReactableGuardianTest {
 
     @Test
     void should_return_empty_dependencies_for_unknown_type() {
+        assertThat(new ReactableGuardian().dependencies(String.class)).isEmpty();
+    }
+
+    @Test
+    void should_return_empty_resource_dependencies_when_definition_or_resources_are_missing() {
         assertThat(new ReactableGuardian().dependencies(Resource.class)).isEmpty();
+        assertThat(
+            ReactableGuardian.builder().definition(Guardian.builder().resources(null).build()).build().dependencies(Resource.class)
+        ).isEmpty();
+    }
+
+    @Test
+    void should_return_resources_as_dependencies() {
+        Resource cache = Resource.builder().name("cache").type("cache").build();
+        Resource disabled = Resource.builder().name("disabled").type("oauth2").enabled(false).build();
+        ReactableGuardian reactable = ReactableGuardian.builder()
+            .definition(Guardian.builder().resources(List.of(cache, disabled)).build())
+            .build();
+
+        // The resource manager skips the disabled ones, as it does for an API.
+        assertThat(reactable.dependencies(Resource.class)).containsExactlyInAnyOrder(cache, disabled);
     }
 
     @Test

@@ -18,9 +18,11 @@ package io.gravitee.gateway.handlers.guardian;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gateway.reactor.Reactable;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -81,7 +83,17 @@ public class ReactableGuardian implements Reactable, Serializable {
         if (Policy.class.equals(type)) {
             return (Set<D>) policies();
         }
+        if (Resource.class.equals(type)) {
+            return (Set<D>) resources();
+        }
         return Set.of();
+    }
+
+    private Set<Resource> resources() {
+        if (definition == null || definition.getResources() == null) {
+            return Set.of();
+        }
+        return new HashSet<>(definition.getResources());
     }
 
     private Set<Policy> policies() {
