@@ -162,7 +162,11 @@ commands:
 jobs:
   job-danger-js:
     docker:
+<<<<<<< HEAD
       - image: cimg/node:20.11.1
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: small
     steps:
       - checkout
@@ -295,8 +299,36 @@ jobs:
           root: ./
           paths:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
+<<<<<<< HEAD
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution
             - ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
+=======
+            - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution
+            - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution
+  job-check-graphene-versions:
+    docker:
+      - image: cimg/node:24.22.1
+    resource_class: small
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v16-check-graphene-versions-{{ checksum ".circleci/ci/package-lock.json" }}
+      - run:
+          name: Install CI project dependencies
+          command: npm ci --prefer-offline --no-audit --no-fund
+          working_directory: .circleci/ci
+      - save_cache:
+          paths:
+            - .circleci/ci/node_modules
+          key: gravitee-api-management-v16-check-graphene-versions-{{ checksum ".circleci/ci/package-lock.json" }}
+      - run:
+          name: Check graphene versions across bundled Gamma modules
+          command: npx ts-node src/graphene-versions/check.ts
+          working_directory: .circleci/ci
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
   job-test-definition:
     docker:
       - image: cimg/openjdk:21.0.5
@@ -557,8 +589,41 @@ jobs:
         default: medium
         description: Resource class to use for executor
     docker:
+<<<<<<< HEAD
       - image: cimg/node:20.11.1
     resource_class: << parameters.resource_class >>
+=======
+      - image: cimg/openjdk:25.0.3
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-gamma
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v16-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - cmd-azure-artifacts-token
+      - run:
+          name: Run Gamma tests
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dgamma-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -Dskip.ui.build=true -nsu -T 4
+      - run:
+          name: Save test results
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-test-gamma
+      - store_test_results:
+          path: ~/test-results
+  job-test-gamma-ui:
+    docker:
+      - image: cimg/node:24.22.1
+    resource_class: large
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     steps:
       - checkout
       - cmd-install-yarn
@@ -579,6 +644,62 @@ jobs:
           command: yarn test:coverage
           working_directory: << parameters.apim-ui-project >>
       - cmd-notify-on-failure
+<<<<<<< HEAD
+=======
+      - store_test_results:
+          path: gravitee-gamma/gravitee-gamma-module-apim/coverage/junit.xml
+      - store_artifacts:
+          path: gravitee-gamma/gravitee-gamma-module-apim/coverage/lcov.info
+      - store_test_results:
+          path: gravitee-gamma/gravitee-gamma-module-platform/coverage/junit.xml
+      - store_artifacts:
+          path: gravitee-gamma/gravitee-gamma-module-platform/coverage/lcov.info
+      - store_test_results:
+          path: gravitee-gamma/gravitee-gamma-module-portals/coverage/junit.xml
+      - store_artifacts:
+          path: gravitee-gamma/gravitee-gamma-module-portals/coverage/lcov.info
+  job-nx-format-check:
+    docker:
+      - image: cimg/node:24.22.1
+    resource_class: medium
+    steps:
+      - checkout
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - attach_workspace:
+          at: .
+      - run:
+          name: Check prettier formatting for nx projects
+          command: yarn prettier
+      - cmd-notify-on-failure
+  job-webui-libs-lint-test:
+    docker:
+      - image: cimg/node:24.22.1
+    resource_class: medium+
+    steps:
+      - checkout
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - attach_workspace:
+          at: .
+      - run:
+          name: Lint APIM Libs (affected)
+          command: yarn nx affected -t lint-eslint lint-license --exclude=console,portal-next
+      - run:
+          name: Test APIM Libs (affected)
+          command: NODE_OPTIONS=--max-old-space-size=4096 yarn nx affected -t test --exclude=console,portal-next --coverage --maxWorkers=2 --parallel=1
+      - run:
+          name: Build APIM Libs element bundles (affected)
+          command: yarn nx affected -t build-element
+      - cmd-notify-on-failure
+      - run:
+          name: Ensure coverage files exist
+          command: |-
+            mkdir -p gravitee-apim-webui-libs/gravitee-markdown/coverage
+            mkdir -p gravitee-apim-webui-libs/gravitee-dashboard/coverage
+            touch gravitee-apim-webui-libs/gravitee-markdown/coverage/lcov.info
+            touch gravitee-apim-webui-libs/gravitee-dashboard/coverage/lcov.info
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
       - persist_to_workspace:
           root: .
           paths:
@@ -589,7 +710,11 @@ jobs:
           path: << parameters.apim-ui-project >>/coverage/junit.xml
   job-console-webui-build:
     docker:
+<<<<<<< HEAD
       - image: cimg/node:20.11.1
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: large
     steps:
       - checkout
@@ -614,9 +739,106 @@ jobs:
           root: .
           paths:
             - gravitee-apim-console-webui/dist
+<<<<<<< HEAD
   job-portal-webui-build:
     docker:
       - image: cimg/node:20.11.1
+=======
+  job-nx-webui-lint-test:
+    parameters:
+      apim-ui-project-workdir:
+        type: string
+        default: ""
+        description: the directory name of the UI project
+      nx-project:
+        type: string
+        default: ""
+        description: the Nx project name
+      resource_class:
+        type: string
+        default: medium
+        description: Resource class to use for executor
+      max-workers:
+        type: string
+        default: 35%
+        description: Maximum number of workers for Jest tests
+    docker:
+      - image: cimg/node:24.22.1
+    resource_class: << parameters.resource_class >>
+    steps:
+      - checkout
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - attach_workspace:
+          at: .
+      - run:
+          name: Check License
+          command: yarn nx run << parameters.nx-project >>:lint-license
+      - run:
+          name: Run ESLint
+          command: yarn nx run << parameters.nx-project >>:lint-eslint
+      - run:
+          name: Run unit tests
+          command: yarn << parameters.nx-project >>:test:ci
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - << parameters.apim-ui-project-workdir >>/coverage/lcov.info
+      - store_artifacts:
+          path: << parameters.apim-ui-project-workdir >>/coverage/lcov.info
+      - store_test_results:
+          path: << parameters.apim-ui-project-workdir >>/coverage/junit.xml
+  job-webui-lint-test:
+    parameters:
+      apim-ui-project:
+        type: string
+        default: ""
+        description: the name of the UI project
+      apim-ui-project-workdir:
+        type: string
+        default: ""
+        description: the directory name of the UI project
+      resource_class:
+        type: string
+        default: medium
+        description: Resource class to use for executor
+    docker:
+      - image: cimg/node:24.22.1
+    resource_class: << parameters.resource_class >>
+    steps:
+      - checkout
+      - cmd-install-yarn
+      - cmd-webui-install:
+          apim-ui-project: << parameters.apim-ui-project >>
+          apim-ui-project-workdir: << parameters.apim-ui-project-workdir >>
+      - attach_workspace:
+          at: .
+      - run:
+          name: Check License
+          command: yarn lint:license
+          working_directory: << parameters.apim-ui-project-workdir >>
+      - run:
+          name: Run Prettier and ESLint
+          command: yarn lint
+          working_directory: << parameters.apim-ui-project-workdir >>
+      - run:
+          name: Run unit tests
+          command: yarn test:coverage
+          working_directory: << parameters.apim-ui-project-workdir >>
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - << parameters.apim-ui-project-workdir >>/coverage/lcov.info
+      - store_artifacts:
+          path: << parameters.apim-ui-project-workdir >>/coverage/lcov.info
+      - store_test_results:
+          path: << parameters.apim-ui-project-workdir >>/coverage/junit.xml
+  job-portal-webui-build:
+    docker:
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: large
     steps:
       - checkout
@@ -652,6 +874,32 @@ jobs:
           root: .
           paths:
             - gravitee-apim-portal-webui/dist
+<<<<<<< HEAD
+=======
+  job-gamma-webui-build:
+    docker:
+      - image: cimg/node:24.22.1
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - run:
+          name: Update Build version
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-gamma/gravitee-gamma-control-plane-webui/build.json"
+      - run:
+          name: Build Gamma UI
+          command: NODE_OPTIONS=--max_old_space_size=4086 yarn gamma-console:build:prod
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-gamma/gravitee-gamma-control-plane-webui/dist
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
   job-validate-workflow-status:
     docker:
       - image: cimg/base:stable
