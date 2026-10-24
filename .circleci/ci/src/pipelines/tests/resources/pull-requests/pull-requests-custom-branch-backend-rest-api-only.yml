@@ -213,7 +213,7 @@ commands:
 jobs:
   job-danger-js:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: small
     steps:
       - checkout
@@ -341,7 +341,7 @@ jobs:
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution
   job-check-graphene-versions:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: small
     steps:
       - checkout
@@ -503,7 +503,7 @@ jobs:
           path: ~/test-results
   job-test-gamma-ui:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: large
     steps:
       - checkout

@@ -75,7 +75,7 @@ const executor = {
   },
   node: {
     image: 'cimg/node',
-    version: '24.18.0',
+    version: '24.22.1',
   },
   sonar: {
     image: 'sonarsource/sonar-scanner-cli',
