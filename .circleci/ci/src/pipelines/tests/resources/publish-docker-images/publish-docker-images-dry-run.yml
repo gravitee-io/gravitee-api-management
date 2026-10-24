@@ -302,7 +302,7 @@ jobs:
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution
   job-console-webui-build:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: large
     steps:
       - checkout
@@ -325,7 +325,7 @@ jobs:
             - gravitee-apim-console-webui/dist
   job-portal-webui-build:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: large
     steps:
       - checkout
@@ -360,7 +360,7 @@ jobs:
             - gravitee-apim-portal-webui/dist
   job-gamma-webui-build:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: large
     steps:
       - checkout
@@ -485,7 +485,7 @@ jobs:
       - cmd-docker-logout
   job-publish-pr-env-urls:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: small
     steps:
       - checkout
