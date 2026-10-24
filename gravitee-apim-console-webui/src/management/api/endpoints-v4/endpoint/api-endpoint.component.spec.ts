@@ -272,6 +272,25 @@ describe('ApiEndpointComponent', () => {
         expect(routerNavigationSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
       });
 
+      it('should keep the configuration the plugin schema does not declare when saving an existing endpoint', async () => {
+        const fakeApi = fakeApiV4({ id: API_ID });
+        const configuration = { bootstrapServers: 'kafka:9092', specification: { tools: [{ name: 'get_weather' }] } };
+        const apiV4: ApiV4 = {
+          ...fakeApi,
+          endpointGroups: [{ ...fakeApi.endpointGroups[0], endpoints: [{ ...fakeApi.endpointGroups[0].endpoints[0], configuration }] }],
+        };
+
+        await initComponent(apiV4, { apiId: API_ID, groupIndex: 0, endpointIndex: 0 });
+        await componentHarness.fillInputName('endpoint-name updated');
+        await componentHarness.clickSaveButton();
+
+        expectApiGetRequest(apiV4);
+
+        const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
+        expect(req.request.body.endpointGroups[0].endpoints[0].configuration).toStrictEqual(configuration);
+        req.flush(apiV4);
+      });
+
       it('should edit and save an existing endpoint used by dead letter queue', async () => {
         const apiV4 = fakeApiV4({
           id: API_ID,
