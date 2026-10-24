@@ -33,6 +33,7 @@
     <name>Gravitee.io APIM - Gateway - Reactor Handlers</name>
 
     <modules>
+        <module>gravitee-apim-gateway-handlers-common</module>
         <module>gravitee-apim-gateway-handlers-api</module>
         <module>gravitee-apim-gateway-handlers-shared-policy-group</module>
         <module>gravitee-apim-gateway-handlers-cluster</module>

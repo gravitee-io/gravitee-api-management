@@ -79,7 +79,7 @@ import org.springframework.core.ResolvableType;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
+public class DefaultApiReactorFactory extends AbstractApiReactorFactory<Api> {
 
     /** OTel {@code gravitee.module} resource-attribute value identifying this reactor. */
     private static final String MODULE = "apim";
