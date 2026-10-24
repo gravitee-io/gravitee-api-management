@@ -72,7 +72,11 @@ const executor = {
   },
   node: {
     image: 'cimg/node',
+<<<<<<< HEAD
     version: '22.12.0',
+=======
+    version: '24.22.1',
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
   },
   sonar: {
     image: 'sonarsource/sonar-scanner-cli',

@@ -143,7 +143,11 @@ commands:
 jobs:
   job-danger-js:
     docker:
+<<<<<<< HEAD
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: small
     steps:
       - checkout
@@ -245,8 +249,36 @@ jobs:
           root: ./
           paths:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
+<<<<<<< HEAD
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution
             - ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
+=======
+            - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution
+            - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution
+  job-check-graphene-versions:
+    docker:
+      - image: cimg/node:24.22.1
+    resource_class: small
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v16-check-graphene-versions-{{ checksum ".circleci/ci/package-lock.json" }}
+      - run:
+          name: Install CI project dependencies
+          command: npm ci --prefer-offline --no-audit --no-fund
+          working_directory: .circleci/ci
+      - save_cache:
+          paths:
+            - .circleci/ci/node_modules
+          key: gravitee-api-management-v16-check-graphene-versions-{{ checksum ".circleci/ci/package-lock.json" }}
+      - run:
+          name: Check graphene versions across bundled Gamma modules
+          command: npx ts-node src/graphene-versions/check.ts
+          working_directory: .circleci/ci
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
   job-test-definition:
     docker:
       - image: cimg/openjdk:21.0.9
@@ -531,6 +563,94 @@ jobs:
           root: .
           paths:
             - gravitee-apim-repository/gravitee-apim-repository-coverage/target/site/jacoco-aggregate/
+<<<<<<< HEAD
+=======
+  job-test-kafka-explorer:
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: false
+    resource_class: large
+    steps:
+      - checkout
+      - cmd-install-jdk
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-kafka-explorer
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v16-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - cmd-azure-artifacts-token
+      - run:
+          name: Run Kafka Explorer tests
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Drest-api-modules -pl gravitee-apim-rest-api/gravitee-apim-rest-api-kafka-explorer -Dskip.validation=true -Dgravitee.archrules.skip=true -nsu
+      - run:
+          name: Save test results
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-test-kafka-explorer
+      - store_test_results:
+          path: ~/test-results
+  job-test-gamma:
+    docker:
+      - image: cimg/openjdk:25.0.3
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-gamma
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v16-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - cmd-azure-artifacts-token
+      - run:
+          name: Run Gamma tests
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dgamma-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -Dskip.ui.build=true -nsu -T 4
+      - run:
+          name: Save test results
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-test-gamma
+      - store_test_results:
+          path: ~/test-results
+  job-test-gamma-ui:
+    docker:
+      - image: cimg/node:24.22.1
+    resource_class: large
+    steps:
+      - checkout
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - run:
+          name: Run Prettier, ESLint and license check
+          command: yarn nx run-many --target=lint --projects=gravitee-gamma-module-apim,gravitee-gamma-module-platform,gravitee-gamma-module-portals
+      - run:
+          name: Run unit tests
+          command: yarn nx run-many --target=test --projects=gravitee-gamma-module-apim,gravitee-gamma-module-platform,gravitee-gamma-module-portals --maxWorkers=2 --workerIdleMemoryLimit=512MB --coverage
+      - cmd-notify-on-failure
+      - store_test_results:
+          path: gravitee-gamma/gravitee-gamma-module-apim/coverage/junit.xml
+      - store_artifacts:
+          path: gravitee-gamma/gravitee-gamma-module-apim/coverage/lcov.info
+      - store_test_results:
+          path: gravitee-gamma/gravitee-gamma-module-platform/coverage/junit.xml
+      - store_artifacts:
+          path: gravitee-gamma/gravitee-gamma-module-platform/coverage/lcov.info
+      - store_test_results:
+          path: gravitee-gamma/gravitee-gamma-module-portals/coverage/junit.xml
+      - store_artifacts:
+          path: gravitee-gamma/gravitee-gamma-module-portals/coverage/lcov.info
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
   job-validate-workflow-status:
     docker:
       - image: cimg/base:stable
