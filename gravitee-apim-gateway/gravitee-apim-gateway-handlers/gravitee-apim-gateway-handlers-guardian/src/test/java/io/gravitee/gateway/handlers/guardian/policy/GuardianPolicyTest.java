@@ -26,12 +26,10 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import io.gravitee.definition.model.guardian.GuardianPolicyConfiguration;
-import io.gravitee.gateway.handlers.guardian.ReactableGuardian;
 import io.gravitee.gateway.handlers.guardian.reactor.GuardianReactor;
 import io.gravitee.gateway.handlers.guardian.registry.GuardianRegistry;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.reactivex.rxjava3.core.Completable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +55,7 @@ class GuardianPolicyTest {
     private GuardianRegistry guardianRegistry;
 
     @Mock
-    private HttpPolicyChain policyChain;
+    private GuardianReactor guardianReactor;
 
     private final Logger logger = (Logger) LoggerFactory.getLogger(GuardianPolicy.class);
     private final ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
@@ -68,7 +66,6 @@ class GuardianPolicyTest {
         listAppender.start();
         logger.addAppender(listAppender);
         lenient().when(executionContext.withLogger(any())).thenReturn(logger);
-        lenient().when(policyChain.execute(executionContext)).thenReturn(Completable.complete());
         lenient().when(executionContext.getComponent(GuardianRegistry.class)).thenReturn(guardianRegistry);
         lenient().when(executionContext.getAttribute(ContextAttributes.ATTR_ENVIRONMENT)).thenReturn(ENVIRONMENT_ID);
 
@@ -88,22 +85,24 @@ class GuardianPolicyTest {
     }
 
     @Test
-    void should_execute_guardian_policy_chain_on_request() {
-        when(guardianRegistry.get(GUARDIAN_ID, ENVIRONMENT_ID)).thenReturn(new FakeGuardianReactor(policyChain));
+    void should_execute_guardian_on_request() {
+        when(guardianRegistry.get(GUARDIAN_ID, ENVIRONMENT_ID)).thenReturn(guardianReactor);
+        when(guardianReactor.execute(executionContext, cut)).thenReturn(Completable.complete());
 
         cut.onRequest(executionContext).test().assertComplete();
 
-        verify(policyChain).execute(executionContext);
+        verify(guardianReactor).execute(executionContext, cut);
         assertThat(listAppender.list).isEmpty();
     }
 
     @Test
-    void should_execute_guardian_policy_chain_on_response() {
-        when(guardianRegistry.get(GUARDIAN_ID, ENVIRONMENT_ID)).thenReturn(new FakeGuardianReactor(policyChain));
+    void should_execute_guardian_on_response() {
+        when(guardianRegistry.get(GUARDIAN_ID, ENVIRONMENT_ID)).thenReturn(guardianReactor);
+        when(guardianReactor.execute(executionContext, cut)).thenReturn(Completable.complete());
 
         cut.onResponse(executionContext).test().assertComplete();
 
-        verify(policyChain).execute(executionContext);
+        verify(guardianReactor).execute(executionContext, cut);
         assertThat(listAppender.list).isEmpty();
     }
 
@@ -113,7 +112,7 @@ class GuardianPolicyTest {
 
         cut.onRequest(executionContext).test().assertComplete();
 
-        verify(policyChain, never()).execute(any());
+        verify(guardianReactor, never()).execute(any(), any());
         assertThat(listAppender.list)
             .extracting(ILoggingEvent::getFormattedMessage)
             .containsExactly("No Guardian found for id guardian-id on environment env-id");
@@ -125,21 +124,9 @@ class GuardianPolicyTest {
 
         cut.onResponse(executionContext).test().assertComplete();
 
-        verify(policyChain, never()).execute(any());
+        verify(guardianReactor, never()).execute(any(), any());
         assertThat(listAppender.list)
             .extracting(ILoggingEvent::getFormattedMessage)
             .containsExactly("No Guardian found for id guardian-id on environment env-id");
-    }
-
-    private record FakeGuardianReactor(HttpPolicyChain policyChain) implements GuardianReactor {
-        @Override
-        public String id() {
-            return GUARDIAN_ID;
-        }
-
-        @Override
-        public ReactableGuardian reactableGuardian() {
-            return ReactableGuardian.builder().id(GUARDIAN_ID).environmentId(ENVIRONMENT_ID).build();
-        }
     }
 }

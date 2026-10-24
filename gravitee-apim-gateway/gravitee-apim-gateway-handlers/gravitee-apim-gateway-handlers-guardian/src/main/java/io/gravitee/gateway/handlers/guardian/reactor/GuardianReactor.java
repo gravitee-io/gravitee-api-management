@@ -16,11 +16,13 @@
 package io.gravitee.gateway.handlers.guardian.reactor;
 
 import io.gravitee.gateway.handlers.guardian.ReactableGuardian;
-import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
+import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
+import io.reactivex.rxjava3.core.Completable;
 
 /**
- * What the Guardian reactor plugin exposes to the gateway for one deployed Guardian: the policy chain executed by the
- * {@code guardian-policy}. The plugin's {@link io.gravitee.gateway.reactor.handler.ReactorHandler} implements it and
+ * What the Guardian reactor plugin exposes to the gateway for one deployed Guardian: the execution of its policies by
+ * the {@code guardian-policy}. The plugin's {@link io.gravitee.gateway.reactor.handler.ReactorHandler} implements it and
  * registers itself in the {@link io.gravitee.gateway.handlers.guardian.registry.GuardianRegistry} while started.
  *
  * @author GraviteeSource Team
@@ -30,5 +32,12 @@ public interface GuardianReactor {
 
     ReactableGuardian reactableGuardian();
 
-    HttpPolicyChain policyChain();
+    /**
+     * Executes the policies of the Guardian with the execution context of the calling API, the Guardian resources in
+     * place of the API ones.
+     *
+     * @param ctx the execution context of the calling API.
+     * @param source the policy of the API flow executing the Guardian.
+     */
+    Completable execute(HttpPlainExecutionContext ctx, BasePolicy source);
 }

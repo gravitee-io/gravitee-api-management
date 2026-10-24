@@ -73,6 +73,6 @@ public class GuardianPolicy implements HttpPolicy {
             ctx.withLogger(log).warn("No Guardian found for id {} on environment {}", configuration.getGuardianId(), environmentId);
             return Completable.complete();
         }
-        return reactor.policyChain().execute(ctx);
+        return reactor.execute(ctx, this);
     }
 }

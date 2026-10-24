@@ -19,7 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.gateway.handlers.guardian.ReactableGuardian;
 import io.gravitee.gateway.handlers.guardian.reactor.GuardianReactor;
-import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
+import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
+import io.reactivex.rxjava3.core.Completable;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -95,8 +97,8 @@ class GuardianRegistryTest {
             }
 
             @Override
-            public HttpPolicyChain policyChain() {
-                return null;
+            public Completable execute(HttpPlainExecutionContext ctx, BasePolicy source) {
+                return Completable.complete();
             }
         };
     }
