@@ -31,6 +31,11 @@
     <name>Gravitee.io APIM - Gateway - Reactor Handlers - API</name>
 
     <dependencies>
+        <dependency>
+            <groupId>io.gravitee.apim.gateway.handlers</groupId>
+            <artifactId>gravitee-apim-gateway-handlers-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- Gravitee.io dependencies -->
         <dependency>
             <groupId>io.gravitee.apim.gateway</groupId>
