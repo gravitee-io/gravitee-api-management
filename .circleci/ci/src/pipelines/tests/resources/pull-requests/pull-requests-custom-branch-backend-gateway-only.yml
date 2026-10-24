@@ -143,7 +143,11 @@ commands:
 jobs:
   job-danger-js:
     docker:
+<<<<<<< HEAD
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: small
     steps:
       - checkout
@@ -243,8 +247,36 @@ jobs:
           root: ./
           paths:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
+<<<<<<< HEAD
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution
             - ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
+=======
+            - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution
+            - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution
+  job-check-graphene-versions:
+    docker:
+      - image: cimg/node:24.22.1
+    resource_class: small
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v16-check-graphene-versions-{{ checksum ".circleci/ci/package-lock.json" }}
+      - run:
+          name: Install CI project dependencies
+          command: npm ci --prefer-offline --no-audit --no-fund
+          working_directory: .circleci/ci
+      - save_cache:
+          paths:
+            - .circleci/ci/node_modules
+          key: gravitee-api-management-v16-check-graphene-versions-{{ checksum ".circleci/ci/package-lock.json" }}
+      - run:
+          name: Check graphene versions across bundled Gamma modules
+          command: npx ts-node src/graphene-versions/check.ts
+          working_directory: .circleci/ci
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
   job-test-gateway:
     docker:
       - image: cimg/openjdk:21.0.5

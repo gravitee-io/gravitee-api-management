@@ -305,7 +305,11 @@ jobs:
             }
   job-console-webui-build:
     docker:
+<<<<<<< HEAD:.circleci/ci/src/pipelines/tests/resources/full-release/release-4-2-0-hotfix.yml
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1):.circleci/ci/src/pipelines/tests/resources/distribution-release/release-4-2-0-hotfix.yml
     resource_class: large
     steps:
       - checkout
@@ -328,7 +332,11 @@ jobs:
             - gravitee-apim-console-webui/dist
   job-portal-webui-build:
     docker:
+<<<<<<< HEAD:.circleci/ci/src/pipelines/tests/resources/full-release/release-4-2-0-hotfix.yml
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1):.circleci/ci/src/pipelines/tests/resources/distribution-release/release-4-2-0-hotfix.yml
     resource_class: large
     steps:
       - checkout
@@ -360,6 +368,32 @@ jobs:
           root: .
           paths:
             - gravitee-apim-portal-webui/dist
+<<<<<<< HEAD:.circleci/ci/src/pipelines/tests/resources/full-release/release-4-2-0-hotfix.yml
+=======
+  job-gamma-webui-build:
+    docker:
+      - image: cimg/node:24.22.1
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - run:
+          name: Update Build version
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0-hotfix.1\"/' gravitee-gamma/gravitee-gamma-control-plane-webui/build.json"
+      - run:
+          name: Build Gamma UI
+          command: NODE_OPTIONS=--max_old_space_size=4086 yarn gamma-console:build:prod
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-gamma/gravitee-gamma-control-plane-webui/dist
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1):.circleci/ci/src/pipelines/tests/resources/distribution-release/release-4-2-0-hotfix.yml
   job-build-docker-webui-image:
     parameters:
       apim-project:
@@ -594,7 +628,11 @@ jobs:
           folder-to-sync: folder_to_sync
   job-release-helm:
     docker:
+<<<<<<< HEAD:.circleci/ci/src/pipelines/tests/resources/full-release/release-4-2-0-hotfix.yml
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1):.circleci/ci/src/pipelines/tests/resources/distribution-release/release-4-2-0-hotfix.yml
     resource_class: medium
     steps:
       - checkout
@@ -734,7 +772,11 @@ jobs:
                 push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
   job-release-notes-apim:
     docker:
+<<<<<<< HEAD:.circleci/ci/src/pipelines/tests/resources/full-release/release-4-2-0-hotfix.yml
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1):.circleci/ci/src/pipelines/tests/resources/distribution-release/release-4-2-0-hotfix.yml
     resource_class: medium
     steps:
       - checkout
