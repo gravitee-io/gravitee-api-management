@@ -90,7 +90,7 @@ commands:
 jobs:
   job-danger-js:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: small
     steps:
       - checkout
@@ -103,7 +103,7 @@ jobs:
           command: cd .circleci/danger && yarn install && yarn run danger
   job-nx-format-check:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: medium
     steps:
       - checkout
@@ -117,7 +117,7 @@ jobs:
       - cmd-notify-on-failure
   job-console-webui-build:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: large
     steps:
       - checkout
@@ -157,7 +157,7 @@ jobs:
         default: 35%
         description: Maximum number of workers for Jest tests
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: << parameters.resource_class >>
     steps:
       - checkout
