@@ -33,6 +33,7 @@ import { ApiHealthCheckV4FormComponent } from '../../component/health-check-v4-f
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { Tenant } from '../../../../entities/tenant/tenant';
 import { TenantService } from '../../../../services-ngx/tenant.service';
+import { keepUndeclaredConfiguration } from '../../../../shared/utils/unmanaged-configuration.util';
 
 export type EndpointHealthCheckFormType = FormGroup<{
   enabled: FormControl<boolean>;
@@ -140,7 +141,11 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
       name: this.formGroup.get('name').value.trim(),
       weight: this.formGroup.get('weight').value,
       tenants: this.formGroup.get('tenants').value,
-      configuration: this.formGroup.get('configuration').value,
+      configuration: keepUndeclaredConfiguration(
+        this.endpointSchema.config,
+        this.endpoint?.configuration,
+        this.formGroup.get('configuration').value,
+      ),
       sharedConfigurationOverride: inheritConfiguration ? {} : this.formGroup.get('sharedConfigurationOverride').value,
       inheritConfiguration,
       ...(this.endpoint?.secondary != null ? { secondary: this.endpoint.secondary } : {}),
