@@ -33,6 +33,7 @@ import { ApiHealthCheckV4FormComponent } from '../../component/health-check-v4-f
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { Tenant } from '../../../../entities/tenant/tenant';
 import { TenantService } from '../../../../services-ngx/tenant.service';
+import { preserveUnmanagedConfiguration } from '../../../../shared/utils/unmanaged-configuration.util';
 
 export type EndpointHealthCheckFormType = FormGroup<{
   enabled: FormControl<boolean>;
@@ -223,7 +224,22 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
           ...group,
           endpoints:
             this.endpointIndex !== undefined
-              ? group.endpoints.map((endpoint, j) => (j === this.endpointIndex ? updatedEndpoint : endpoint))
+              ? group.endpoints.map((endpoint, j) => {
+                  if (j !== this.endpointIndex) {
+                    return endpoint;
+                  }
+                  // The endpoints may have been reordered since the page loaded: only the edited endpoint's own
+                  // configuration can be preserved.
+                  const storedConfiguration = endpoint.name === this.endpoint.name ? endpoint.configuration : this.endpoint.configuration;
+                  return {
+                    ...updatedEndpoint,
+                    configuration: preserveUnmanagedConfiguration(
+                      this.endpointSchema.config,
+                      storedConfiguration,
+                      updatedEndpoint.configuration,
+                    ),
+                  };
+                })
               : [...group.endpoints, updatedEndpoint],
         };
       }

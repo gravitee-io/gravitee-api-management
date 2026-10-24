@@ -323,6 +323,7 @@ describe('ApiEndpointComponent', () => {
                   ...apiV4.endpointGroups[0].endpoints[1],
                   name: 'fallback updated',
                   configuration: {
+                    target: 'https://fallback.example.com',
                     bootstrapServers: undefined,
                   },
                   sharedConfigurationOverride: {},
@@ -381,6 +382,7 @@ describe('ApiEndpointComponent', () => {
                 {
                   ...apiV4.endpointGroups[0].endpoints[0],
                   configuration: {
+                    target: 'https://fallback.example.com',
                     bootstrapServers: undefined,
                   },
                   sharedConfigurationOverride: {},
@@ -463,6 +465,92 @@ describe('ApiEndpointComponent', () => {
         };
         expectApiPutRequest(updatedApi);
         expect(routerNavigationSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
+      });
+
+      describe('configuration the plugin schema does not declare', () => {
+        const withEndpointConfiguration = (api: ApiV4, configuration: unknown): ApiV4 => ({
+          ...api,
+          endpointGroups: [
+            {
+              ...api.endpointGroups[0],
+              endpoints: [{ ...api.endpointGroups[0].endpoints[0], configuration }],
+            },
+          ],
+        });
+        const toolsSpecification = (...names: string[]) => ({ tools: names.map(name => ({ name, inputSchema: { type: 'object' } })) });
+
+        it('should keep it when saving an existing endpoint', async () => {
+          const apiV4 = withEndpointConfiguration(fakeApiV4({ id: API_ID }), {
+            bootstrapServers: 'kafka:9092',
+            specification: toolsSpecification('get_weather'),
+          });
+
+          await initComponent(apiV4, { apiId: API_ID, groupIndex: 0, endpointIndex: 0 });
+          await componentHarness.fillInputName('endpoint-name updated');
+          await componentHarness.clickSaveButton();
+
+          expectApiGetRequest(apiV4);
+
+          const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
+          expect(req.request.body.endpointGroups[0].endpoints[0].configuration).toStrictEqual({
+            bootstrapServers: 'kafka:9092',
+            specification: toolsSpecification('get_weather'),
+          });
+          req.flush(apiV4);
+        });
+
+        it('should keep properties saved by another client after the page loaded', async () => {
+          const loadedApi = withEndpointConfiguration(fakeApiV4({ id: API_ID }), {
+            bootstrapServers: 'kafka:9092',
+            specification: toolsSpecification('get_weather'),
+          });
+          const currentApi = withEndpointConfiguration(loadedApi, {
+            bootstrapServers: 'kafka:9092',
+            specification: toolsSpecification('get_weather', 'get_forecast'),
+          });
+
+          await initComponent(loadedApi, { apiId: API_ID, groupIndex: 0, endpointIndex: 0 });
+          await componentHarness.fillInputName('endpoint-name updated');
+          await componentHarness.clickSaveButton();
+
+          expectApiGetRequest(currentApi);
+
+          const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
+          expect(req.request.body.endpointGroups[0].endpoints[0].configuration.specification).toStrictEqual(
+            toolsSpecification('get_weather', 'get_forecast'),
+          );
+          req.flush(currentApi);
+        });
+
+        it('should not take properties from another endpoint now at the same position', async () => {
+          const apiV4 = fakeApiV4({ id: API_ID });
+          const editedEndpoint = {
+            ...apiV4.endpointGroups[0].endpoints[0],
+            name: 'edited',
+            configuration: { bootstrapServers: 'kafka:9092', specification: toolsSpecification('get_weather') },
+          };
+          const otherEndpoint = {
+            ...apiV4.endpointGroups[0].endpoints[0],
+            name: 'other',
+            configuration: { bootstrapServers: 'kafka:9093', specification: toolsSpecification('create_ticket') },
+          };
+          const withEndpoints = (...endpoints: (typeof editedEndpoint)[]): ApiV4 => ({
+            ...apiV4,
+            endpointGroups: [{ ...apiV4.endpointGroups[0], endpoints }],
+          });
+
+          await initComponent(withEndpoints(editedEndpoint, otherEndpoint), { apiId: API_ID, groupIndex: 0, endpointIndex: 0 });
+          await componentHarness.fillInputName('edited updated');
+          await componentHarness.clickSaveButton();
+
+          expectApiGetRequest(withEndpoints(otherEndpoint, editedEndpoint));
+
+          const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
+          expect(req.request.body.endpointGroups[0].endpoints[0].configuration.specification).toStrictEqual(
+            toolsSpecification('get_weather'),
+          );
+          req.flush(apiV4);
+        });
       });
 
       it('should edit and save an existing endpoint used by dead letter queue', async () => {
