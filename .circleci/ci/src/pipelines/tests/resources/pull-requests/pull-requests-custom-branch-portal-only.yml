@@ -116,7 +116,11 @@ commands:
 jobs:
   job-danger-js:
     docker:
+<<<<<<< HEAD
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: small
     steps:
       - checkout
@@ -129,7 +133,11 @@ jobs:
           command: cd .circleci/danger && yarn install && yarn run danger
   job-nx-format-check:
     docker:
+<<<<<<< HEAD
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: medium
     steps:
       - checkout
@@ -152,7 +160,11 @@ jobs:
         default: medium
         description: Resource class to use for executor
     docker:
+<<<<<<< HEAD
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: << parameters.resource_class >>
     steps:
       - checkout
@@ -181,7 +193,46 @@ jobs:
       - store_artifacts:
           path: << parameters.apim-ui-project >>/coverage/lcov.info
       - store_test_results:
+<<<<<<< HEAD
           path: << parameters.apim-ui-project >>/coverage/junit.xml
+=======
+          path: << parameters.apim-ui-project-workdir >>/coverage/junit.xml
+  job-portal-webui-build:
+    docker:
+      - image: cimg/node:24.22.1
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-install-yarn
+      - cmd-webui-install:
+          apim-ui-project: gravitee-apim-portal-webui
+          apim-ui-project-workdir: gravitee-apim-portal-webui
+      - run:
+          name: Update Build version
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui/build.json"
+      - run:
+          name: Build
+          command: yarn build:prod
+          environment:
+            NODE_OPTIONS: --max_old_space_size=4086
+          working_directory: gravitee-apim-portal-webui
+      - cmd-workspace-install
+      - run:
+          name: Update Build version
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui-next/build.json"
+      - run:
+          name: Build Portal Next
+          command: NODE_OPTIONS=--max_old_space_size=4086 yarn portal-next:build:prod
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-portal-webui/dist
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
   job-sonarcloud-analysis:
     parameters:
       working_directory:
