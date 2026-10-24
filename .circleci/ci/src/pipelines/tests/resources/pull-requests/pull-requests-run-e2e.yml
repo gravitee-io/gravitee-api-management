@@ -263,7 +263,7 @@ commands:
 jobs:
   job-danger-js:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: small
     steps:
       - checkout
@@ -425,7 +425,7 @@ jobs:
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution
   job-check-graphene-versions:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: small
     steps:
       - checkout
@@ -781,7 +781,7 @@ jobs:
           path: ~/test-results
   job-test-gamma-ui:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: large
     steps:
       - checkout
@@ -858,7 +858,7 @@ jobs:
     parallelism: 3
   job-nx-format-check:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: medium
     steps:
       - checkout
@@ -872,7 +872,7 @@ jobs:
       - cmd-notify-on-failure
   job-webui-libs-lint-test:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: medium+
     steps:
       - checkout
@@ -915,7 +915,7 @@ jobs:
           path: gravitee-apim-webui-libs/gravitee-dashboard/coverage/junit.xml
   job-console-webui-build:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: large
     steps:
       - checkout
@@ -955,7 +955,7 @@ jobs:
         default: 35%
         description: Maximum number of workers for Jest tests
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: << parameters.resource_class >>
     steps:
       - checkout
@@ -1040,7 +1040,7 @@ jobs:
         default: medium
         description: Resource class to use for executor
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: << parameters.resource_class >>
     steps:
       - checkout
@@ -1073,7 +1073,7 @@ jobs:
           path: << parameters.apim-ui-project-workdir >>/coverage/junit.xml
   job-portal-webui-build:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: large
     steps:
       - checkout
@@ -1108,7 +1108,7 @@ jobs:
             - gravitee-apim-portal-webui/dist
   job-gamma-webui-build:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: large
     steps:
       - checkout
@@ -1223,7 +1223,7 @@ jobs:
             - gravitee-apim-distribution/gravitee-apim-distribution-e2e/lib/portal-webclient-sdk
   job-e2e-lint-build:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: small
     steps:
       - checkout
