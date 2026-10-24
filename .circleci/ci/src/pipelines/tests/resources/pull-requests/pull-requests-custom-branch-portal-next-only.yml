@@ -120,7 +120,11 @@ commands:
 jobs:
   job-danger-js:
     docker:
+<<<<<<< HEAD
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: small
     steps:
       - checkout
@@ -133,7 +137,11 @@ jobs:
           command: cd .circleci/danger && yarn install && yarn run danger
   job-nx-format-check:
     docker:
+<<<<<<< HEAD
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: medium
     steps:
       - checkout
@@ -164,7 +172,11 @@ jobs:
         default: 35%
         description: Maximum number of workers for Jest tests
     docker:
+<<<<<<< HEAD
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: << parameters.resource_class >>
     steps:
       - checkout
@@ -230,7 +242,11 @@ jobs:
           when: always
   job-portal-webui-build:
     docker:
+<<<<<<< HEAD
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: large
     steps:
       - checkout
