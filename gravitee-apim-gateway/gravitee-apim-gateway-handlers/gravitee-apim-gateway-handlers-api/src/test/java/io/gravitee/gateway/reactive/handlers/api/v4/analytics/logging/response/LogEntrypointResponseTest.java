@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -27,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
@@ -37,10 +39,12 @@ import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.HttpResponseInternal;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -68,6 +72,37 @@ class LogEntrypointResponseTest {
 
     @Captor
     ArgumentCaptor<Flowable<Buffer>> chunksCaptor;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(ctx.metrics()).thenReturn(Metrics.builder().apiType(ApiType.PROXY.getLabel()).build());
+    }
+
+    @Test
+    void should_refresh_status_and_headers_once_chunks_are_consumed_for_message_api() {
+        final HttpHeaders headers = HttpHeaders.create();
+        final int[] status = { HttpStatusCode.OK_200 };
+        when(ctx.metrics()).thenReturn(Metrics.builder().apiType(ApiType.MESSAGE.getLabel()).build());
+        when(response.status()).thenAnswer(i -> status[0]);
+        when(response.headers()).thenReturn(headers);
+        when(response.chunks()).thenReturn(Flowable.defer(() -> {
+            status[0] = HttpStatusCode.ACCEPTED_202;
+            headers.set("X-Late", "late");
+            return Flowable.empty();
+        }));
+        when(loggingContext.entrypointResponseHeaders()).thenReturn(true);
+        when(loggingContext.entrypointResponsePayload()).thenReturn(false);
+
+        final var logResponse = new LogEntrypointResponse(loggingContext, response);
+        logResponse.capture(ctx);
+
+        assertThat(logResponse.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        verify(response).chunks(chunksCaptor.capture());
+        chunksCaptor.getValue().test().assertComplete();
+
+        assertThat(logResponse.getStatus()).isEqualTo(HttpStatusCode.ACCEPTED_202);
+        assertThat(logResponse.getHeaders().get("X-Late")).isEqualTo("late");
+    }
 
     @Test
     void should_log_status_only() {
