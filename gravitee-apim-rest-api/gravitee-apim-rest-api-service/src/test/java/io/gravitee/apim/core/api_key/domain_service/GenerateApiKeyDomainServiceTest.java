@@ -463,6 +463,7 @@ class GenerateApiKeyDomainServiceTest {
             var audits = new SynchronizedAuditCrudService();
             var nodes = List.of(nodeReadingTogether(everyoneReadTheKeys, audits), nodeReadingTogether(everyoneReadTheKeys, audits));
             var executor = Executors.newFixedThreadPool(subscriptions.size());
+            var returnedKeys = new ArrayList<ApiKeyEntity>();
 
             try {
                 // When
@@ -472,22 +473,32 @@ class GenerateApiKeyDomainServiceTest {
                     var subscription = subscriptions.get(i);
                     results.add(executor.submit(() -> node.generate(subscription, AUDIT_INFO, null)));
                 }
-
-                // Then every request succeeds with the same key, linked to every subscription
                 for (var result : results) {
-                    assertThat(result.get(30, TimeUnit.SECONDS).getId()).isEqualTo(FIRST_SHARED_KEY_ID);
+                    returnedKeys.add(result.get(30, TimeUnit.SECONDS));
                 }
             } finally {
                 executor.shutdownNow();
                 UuidString.overrideGenerator(() -> "generated-id");
             }
+
+            // Then a single key is created, linked to every subscription, and every request returns it
             assertThat(apiKeyCrudService.storage())
                 .singleElement()
-                .satisfies(key ->
+                .satisfies(key -> {
+                    assertThat(key.getId()).isEqualTo(FIRST_SHARED_KEY_ID);
                     assertThat(key.getSubscriptions()).containsExactlyInAnyOrderElementsOf(
                         subscriptions.stream().map(SubscriptionEntity::getId).toList()
-                    )
-                );
+                    );
+                    assertThat(returnedKeys)
+                        .hasSize(subscriptions.size())
+                        .allSatisfy(returned -> {
+                            assertThat(returned.getId()).isEqualTo(FIRST_SHARED_KEY_ID);
+                            assertThat(returned.getKey()).isEqualTo(key.getKey());
+                        });
+                });
+            assertThat(audits.storage())
+                .filteredOn(audit -> ApiKeyAuditEvent.APIKEY_CREATED.name().equals(audit.getEvent()))
+                .hasSize(1);
         }
 
         /** A node that first read the keys of the application before another node created the first one. */
@@ -517,7 +528,8 @@ class GenerateApiKeyDomainServiceTest {
                 public Stream<ApiKeyEntity> findByApplication(String applicationId) {
                     var keys = super.findByApplication(applicationId).toList();
                     everyoneReadTheKeys.countDown();
-                    everyoneReadTheKeys.await(30, TimeUnit.SECONDS);
+                    // A request that missed the others would not race them: fail rather than pass without racing
+                    assertThat(everyoneReadTheKeys.await(30, TimeUnit.SECONDS)).isTrue();
                     return keys.stream();
                 }
             };
