@@ -163,7 +163,7 @@ public class JdbcSubscriptionUniqueActiveKeyTest extends AbstractManagementRepos
         createWithoutKey(aSubscription("sub-1", Subscription.Status.ACCEPTED, "plan-1"));
         jdbcTemplate.update(
             "delete from " + prefix() + "databasechangelog where id = ?",
-            "4.12.25_01_backfill_subscriptions_unique_active_key"
+            "4.12.26_01_backfill_subscriptions_unique_active_key"
         );
 
         try (Connection connection = dataSource.getConnection()) {
