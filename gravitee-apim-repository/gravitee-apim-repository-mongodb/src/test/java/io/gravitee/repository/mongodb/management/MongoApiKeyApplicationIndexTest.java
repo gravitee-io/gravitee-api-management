@@ -25,8 +25,8 @@ import io.gravitee.repository.management.AbstractManagementRepositoryTest;
 import jakarta.inject.Inject;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.bson.Document;
 import org.junit.Test;
@@ -63,14 +63,17 @@ public class MongoApiKeyApplicationIndexTest extends AbstractManagementRepositor
             .sort(descending("updatedAt"))
             .explain(ExplainVerbosity.EXECUTION_STATS);
 
-        Optional<String> indexName = findFirst(explain.get("queryPlanner"), "winningPlan")
-            .flatMap(plan -> findFirst(plan, "indexName"))
-            .map(Object::toString);
+        Document winningPlan = explain.get("queryPlanner", Document.class).get("winningPlan", Document.class);
+        List<String> indexScans = documents(winningPlan)
+            .filter(stage -> "IXSCAN".equals(stage.get("stage")))
+            .map(stage -> stage.getString("indexName"))
+            .toList();
         Document stats = explain.get("executionStats", Document.class);
 
-        assertThat(indexName)
-            .as("winning plan should use the %s index. Explain: %s", EXPECTED_INDEX_NAME, explain.toJson())
-            .contains(EXPECTED_INDEX_NAME);
+        assertThat(indexScans)
+            .as("every index scan of the winning plan should use the %s index. Explain: %s", EXPECTED_INDEX_NAME, explain.toJson())
+            .isNotEmpty()
+            .containsOnly(EXPECTED_INDEX_NAME);
         assertThat(stats.getInteger("nReturned")).isEqualTo(3);
         assertThat(stats.getInteger("totalKeysExamined"))
             .as("only the keys of the application should be examined. Explain: %s", explain.toJson())
@@ -131,28 +134,17 @@ public class MongoApiKeyApplicationIndexTest extends AbstractManagementRepositor
             .toList();
     }
 
-    /** Depth-first search for the first occurrence of {@code key} in {@code root} (a BSON document tree). */
-    @SuppressWarnings("unchecked")
-    private static <T> Optional<T> findFirst(Object root, String key) {
+    /**
+     * Every document of a BSON document tree, depth first. On a query plan, this includes every stage, whether it is
+     * nested in {@code inputStage} or in {@code inputStages} (as under an {@code OR} or an index intersection).
+     */
+    private static Stream<Document> documents(Object root) {
         if (root instanceof Document doc) {
-            Object direct = doc.get(key);
-            if (direct != null) {
-                return Optional.of((T) direct);
-            }
-            for (Object child : doc.values()) {
-                Optional<T> nested = findFirst(child, key);
-                if (nested.isPresent()) {
-                    return nested;
-                }
-            }
-        } else if (root instanceof Iterable<?> iterable) {
-            for (Object child : iterable) {
-                Optional<T> nested = findFirst(child, key);
-                if (nested.isPresent()) {
-                    return nested;
-                }
-            }
+            return Stream.concat(Stream.of(doc), doc.values().stream().flatMap(MongoApiKeyApplicationIndexTest::documents));
         }
-        return Optional.empty();
+        if (root instanceof Iterable<?> iterable) {
+            return StreamSupport.stream(iterable.spliterator(), false).flatMap(MongoApiKeyApplicationIndexTest::documents);
+        }
+        return Stream.empty();
     }
 }
