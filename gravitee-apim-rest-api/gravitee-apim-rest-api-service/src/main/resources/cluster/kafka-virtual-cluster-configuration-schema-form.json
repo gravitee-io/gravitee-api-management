@@ -38,6 +38,13 @@
         "$ref": "#/definitions/kafkaVirtualClusterBackend"
       },
       "minItems": 0
+    },
+    "backendMetadataMaxAge": {
+      "type": "integer",
+      "title": "Backend metadata max age (seconds)",
+      "description": "Seconds during which each gateway instance reuses its own all-topics metadata request to each backend of this virtual cluster, instead of sending one on every new client connection, for every native Kafka API bound to it. It applies to every backend, whatever their own clusters set. Empty: the gateway's kafka.backendMetadataMaxAge applies (0 by default). 0: one request per connection, as before. 30 is a good start: each backend then serves about one such request per gateway instance every 30 to 60 s, whatever the number of clients. A topic a gateway instance has not seen yet is looked up on the backend, with the gateway's own credential, the first time a client names it by id: that request waits for the lookup, at most 3 s. Delegate-to-broker: the clients of each account share one such request; with a SASL mechanism other than PLAIN, the setting only applies when the gateway instances share a distributed cache.",
+      "minimum": 0,
+      "maximum": 3600
     }
   },
   "required": ["backends"],

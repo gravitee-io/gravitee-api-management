@@ -122,6 +122,7 @@ public class ClusterMapper {
             .deployedAt(deployedAt)
             .version(version)
             .connections(connections)
+            .backendMetadataMaxAge(backendMetadataMaxAge(configuration))
             .build();
     }
 
@@ -163,7 +164,22 @@ public class ClusterMapper {
             .deployedAt(deployedAt)
             .version(version)
             .backends(backends)
+            .backendMetadataMaxAge(backendMetadataMaxAge(configuration))
             .build();
+    }
+
+    /** The configuration's {@code backendMetadataMaxAge} in seconds, {@code null} when absent or not a whole number of seconds. */
+    @SuppressWarnings("unchecked")
+    private Integer backendMetadataMaxAge(Object configuration) {
+        if (!(configuration instanceof Map)) {
+            return null;
+        }
+        Object ttl = ((Map<String, Object>) configuration).get("backendMetadataMaxAge");
+        if (!(ttl instanceof Integer || ttl instanceof Long || ttl instanceof Short)) {
+            return null;
+        }
+        long seconds = ((Number) ttl).longValue();
+        return seconds >= Integer.MIN_VALUE && seconds <= Integer.MAX_VALUE ? (int) seconds : null;
     }
 
     private SecurityConfig mapSecurity(Object securityRaw) {

@@ -28,7 +28,6 @@ import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
 import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.cluster.model.CreateCluster;
 import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
-import io.gravitee.apim.core.cluster.model.KafkaClusterConnection;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.Role;
@@ -40,7 +39,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 
@@ -67,7 +65,7 @@ public class CreateClusterUseCase {
 
         Object configuration = input.createCluster.getConfiguration();
         if (input.createCluster.getType() == ClusterType.KAFKA_CLUSTER && configuration != null) {
-            configuration = generateConnectionCrossIds(configuration);
+            configuration = KafkaClusterConfiguration.withGeneratedConnectionCrossIds(configuration, objectMapper);
         }
 
         Cluster clusterToCreate = Cluster.builder()
@@ -115,26 +113,6 @@ public class CreateClusterUseCase {
             .updatedAt(createdAtZonedDateTime)
             .build();
         return membershipCrudService.create(membership);
-    }
-
-    private Object generateConnectionCrossIds(Object configuration) {
-        var config = objectMapper.convertValue(configuration, KafkaClusterConfiguration.class);
-        if (config.connections() == null || config.connections().isEmpty()) {
-            return configuration;
-        }
-        List<KafkaClusterConnection> updatedConnections = config
-            .connections()
-            .stream()
-            .map(conn ->
-                new KafkaClusterConnection(
-                    StringUtils.isEmpty(conn.crossId()) ? StringUtils.slugify(conn.name()) : conn.crossId(),
-                    conn.name(),
-                    conn.bootstrapServers(),
-                    conn.security()
-                )
-            )
-            .toList();
-        return objectMapper.convertValue(new KafkaClusterConfiguration(updatedConnections), Object.class);
     }
 
     private void createAuditLog(Cluster cluster, AuditInfo auditInfo) {
