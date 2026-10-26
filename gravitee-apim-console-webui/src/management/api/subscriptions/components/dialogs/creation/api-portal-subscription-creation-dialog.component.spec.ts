@@ -320,6 +320,27 @@ describe('Subscription creation dialog', () => {
         expect(await harness.isCustomApiKeyInputDisplayed()).toBeTruthy();
       });
 
+      it('should have input when selecting API Key Plan before the application', async () => {
+        const applicationWithClientId = fakeApplication({ name: 'withClientId', settings: { app: { client_id: 'clientId' } } });
+        const planV4 = fakePlanV4({ mode: 'STANDARD', security: { type: 'API_KEY' }, generalConditions: undefined });
+        component.plans = [planV4];
+        component.availableSubscriptionEntrypoints = [];
+        await componentTestingOpenDialog();
+
+        const harness = await loader.getHarness(ApiPortalSubscriptionCreationDialogHarness);
+        await harness.choosePlan(planV4.name);
+
+        await harness.searchApplication('withClientId');
+        expectApplicationsSearch('withClientId', [applicationWithClientId]);
+        await harness.selectApplication(applicationWithClientId.name);
+        expectSubscriptionsForApplication(applicationWithClientId.id, []);
+
+        await harness.choosePlan(planV4.name);
+
+        expectApiKeySubscriptionsGetRequest(applicationWithClientId.id, []);
+        expect(await harness.isCustomApiKeyInputDisplayed()).toBeTruthy();
+      });
+
       it('should not have input with OAUTH2 Plan', async () => {
         const planV4 = fakePlanV4({ mode: 'STANDARD', security: { type: 'OAUTH2' }, generalConditions: undefined });
         component.plans = [planV4];

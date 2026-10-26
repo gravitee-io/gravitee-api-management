@@ -239,20 +239,16 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
       .get('selectedPlan')
       .valueChanges.pipe(
         distinctUntilChanged(),
-        filter((plan) => plan?.security?.type === 'API_KEY'),
-        switchMap((plan) => {
-          const selectedAppId = this.form.get('selectedApplication').value?.id;
-          if (selectedAppId != null) {
-            return combineLatest([
-              this.applicationService.getSubscriptionsPage(selectedAppId, {
-                status: ['ACCEPTED', 'PENDING', 'PAUSED'],
-                security_types: ['API_KEY'],
-              }),
-              of(plan),
-            ]);
-          }
-          return combineLatest([of(null), of(plan)]);
-        }),
+        filter((plan) => plan?.security?.type === 'API_KEY' && this.form.get('selectedApplication').value?.id != null),
+        switchMap((plan) =>
+          combineLatest([
+            this.applicationService.getSubscriptionsPage(this.form.get('selectedApplication').value.id, {
+              status: ['ACCEPTED', 'PENDING', 'PAUSED'],
+              security_types: ['API_KEY'],
+            }),
+            of(plan),
+          ]),
+        ),
         switchMap(([subscriptions, plan]) => {
           if (this.canUseSharedApiKeys && this.form.get('selectedApplication').value.api_key_mode === ApiKeyMode.UNSPECIFIED) {
             return of(subscriptions?.data?.filter((subscription) => subscription?.api !== plan?.apiId).length >= 1);
