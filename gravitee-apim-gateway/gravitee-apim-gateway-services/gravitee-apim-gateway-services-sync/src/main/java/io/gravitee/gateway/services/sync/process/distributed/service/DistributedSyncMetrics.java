@@ -150,9 +150,8 @@ public class DistributedSyncMetrics {
 
     private static Map<DistributedEventType, Long> snapshot(final Map<DistributedEventType, AtomicLong> counters) {
         Map<DistributedEventType, Long> copy = new EnumMap<>(DistributedEventType.class);
-        synchronized (counters) {
-            counters.forEach((type, count) -> copy.put(type, count.get()));
-        }
+        // synchronizedMap.forEach already holds the map mutex, so the copy is consistent.
+        counters.forEach((type, count) -> copy.put(type, count.get()));
         return copy;
     }
 }

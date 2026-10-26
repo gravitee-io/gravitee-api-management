@@ -46,6 +46,15 @@ class DistributedMappingResilienceTest {
     private final ObjectMapper objectMapper = new GraviteeMapper();
     private final DistributedSyncMetrics metrics = new DistributedSyncMetrics();
 
+    @Test
+    void should_count_each_dead_letter_and_log_the_same_one_once() {
+        assertThat(metrics.recordDeadLetter(DistributedEventType.API, "api-1")).isTrue();
+        assertThat(metrics.recordDeadLetter(DistributedEventType.API, "api-1")).isFalse();
+
+        assertThat(metrics.deadLetters()).isEqualTo(2);
+        assertThat(metrics.deadLettersByType()).containsEntry(DistributedEventType.API, 2L);
+    }
+
     @Nested
     class UndeployPayload {
 

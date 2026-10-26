@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.CustomLog;
 
 /**
@@ -40,12 +42,10 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
     private final Object lock = new Object();
     private final Map<String, Map<String, Dictionary>> dictionaries = new HashMap<>();
     private final Map<String, Map<String, Map<String, String>>> values = new HashMap<>();
-    /**
-     * Replaced as a whole under {@link #lock}. A {@link HashMap} rather than a concurrent map so a null
-     * environment id (legacy events, and APIs that have none) can be stored and read. Request threads only
-     * read this reference.
-     */
-    private volatile Map<String, Map<String, Map<String, String>>> publishedValues = new HashMap<>();
+    /** Published snapshots for environments that have an id. Replaced per environment under {@link #lock}. */
+    private final ConcurrentHashMap<String, Map<String, Map<String, String>>> publishedValues = new ConcurrentHashMap<>();
+    /** Published snapshot for events and APIs that have no environment id. {@code ConcurrentHashMap} cannot store a null key. */
+    private final AtomicReference<Map<String, Map<String, String>>> publishedWithoutEnvironment = new AtomicReference<>();
     private final DataEncryptor dataEncryptor;
 
     public MultiEnvironmentDictionaryManager(DataEncryptor dataEncryptor) {
@@ -167,14 +167,17 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
     }
 
     private void publish(String environmentId) {
-        Map<String, Map<String, Map<String, String>>> next = new HashMap<>(publishedValues);
         Map<String, Map<String, String>> envValues = values.get(environmentId);
-        if (envValues == null) {
-            next.remove(environmentId);
-        } else {
-            next.put(environmentId, Collections.unmodifiableMap(new HashMap<>(envValues)));
+        Map<String, Map<String, String>> snapshot = envValues == null ? null : Collections.unmodifiableMap(new HashMap<>(envValues));
+        if (environmentId == null) {
+            publishedWithoutEnvironment.set(snapshot);
+            return;
         }
-        publishedValues = Collections.unmodifiableMap(next);
+        if (snapshot == null) {
+            publishedValues.remove(environmentId);
+            return;
+        }
+        publishedValues.put(environmentId, snapshot);
     }
 
     /**
@@ -193,6 +196,9 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
 
     @Override
     public Map<String, Map<String, String>> getDictionaries(String environmentId) {
+        if (environmentId == null) {
+            return publishedWithoutEnvironment.get();
+        }
         return publishedValues.get(environmentId);
     }
 }
