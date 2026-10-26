@@ -93,17 +93,29 @@ public abstract class AbstractReactorFactory<T extends Reactable> implements Rea
 
     /**
      * The template variable providers of a reactable living in an environment: the dictionaries of the environment, then
-     * the providers contributed for the API scope.
+     * the providers of the reactable itself, then the providers contributed for the API scope, which also applies to the
+     * reactables executed in the context of an API.
+     *
+     * @param environmentId the environment of the reactable.
+     * @param reactableTemplateVariableProviders the providers of the reactable itself.
      */
-    protected List<TemplateVariableProvider> environmentTemplateVariableProviders(final String environmentId) {
+    protected List<TemplateVariableProvider> environmentTemplateVariableProviders(
+        final String environmentId,
+        final List<TemplateVariableProvider> reactableTemplateVariableProviders
+    ) {
         final List<TemplateVariableProvider> templateVariableProviders = new ArrayList<>();
-        templateVariableProviders.add(applicationContext.getBean(DictionaryManager.class).createTemplateVariableProvider(environmentId));
+        templateVariableProviders.add(dictionaryManager().createTemplateVariableProvider(environmentId));
+        templateVariableProviders.addAll(reactableTemplateVariableProviders);
         Stream.of(BeanFactoryUtils.beanNamesForTypeIncludingAncestors(applicationContext, TemplateVariableProviderFactory.class))
             .map(name -> (TemplateVariableProviderFactory) applicationContext.getBean(name))
             .filter(factory -> factory.getTemplateVariableScope() == TemplateVariableScope.API)
             .flatMap(factory -> factory.getTemplateVariableProviders().stream())
             .forEach(templateVariableProviders::add);
         return templateVariableProviders;
+    }
+
+    protected DictionaryManager dictionaryManager() {
+        return applicationContext.getBean(DictionaryManager.class);
     }
 
     private static <C> void add(final CustomComponentProvider componentProvider, final Class<C> type, final Object component) {
