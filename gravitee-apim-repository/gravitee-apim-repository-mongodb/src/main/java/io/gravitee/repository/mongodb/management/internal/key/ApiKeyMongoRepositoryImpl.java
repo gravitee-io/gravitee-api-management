@@ -25,6 +25,7 @@ import static com.mongodb.client.model.Filters.or;
 import static com.mongodb.client.model.Updates.addEachToSet;
 import static com.mongodb.client.model.Updates.addToSet;
 import static com.mongodb.client.model.Updates.combine;
+import static com.mongodb.client.model.Updates.max;
 import static com.mongodb.client.model.Updates.set;
 import static com.mongodb.client.model.Updates.unset;
 
@@ -60,6 +61,7 @@ import org.springframework.util.CollectionUtils;
 public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
 
     private static final String SUBSCRIPTIONS = "subscriptions";
+    private static final String UPDATED_AT = "updatedAt";
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -269,7 +271,9 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
     /**
      * Writes every mapped field of the key, as a full save would, except {@code subscriptions}: links are only changed by
      * {@link #addSubscription(String, String)}, so an update made from an outdated copy of the key cannot drop them.
-     * Fields that are {@code null} are removed, as a full save would do.
+     * Fields that are {@code null} are removed, as a full save would do. {@code updatedAt} never moves backwards: gateways
+     * synchronise keys by {@code updatedAt}, so an outdated copy must not undo the move made by a concurrent
+     * {@link #addSubscription(String, String)}. It keeps its stored value when that is more recent, or when the given key has none.
      */
     @Override
     public UpdateResult updateAllButSubscriptions(ApiKeyMongo apiKey) {
@@ -286,6 +290,12 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
                 continue;
             }
             Object value = mapped.get(field);
+            if (UPDATED_AT.equals(field)) {
+                if (value != null) {
+                    updates.add(max(field, value));
+                }
+                continue;
+            }
             updates.add(value == null ? unset(field) : set(field, value));
         }
         return keys().updateOne(eq("_id", apiKey.getId()), combine(updates));
