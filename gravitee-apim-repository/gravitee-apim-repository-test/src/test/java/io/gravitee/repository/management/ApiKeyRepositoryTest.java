@@ -440,8 +440,9 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void create_should_reject_an_existing_id_and_write_nothing() throws Exception {
+    public void create_should_reject_an_existing_id_and_keep_the_existing_key() throws Exception {
         givenSharedKey(SHARED_KEY_ID, "sub-of-the-first-create");
+        ApiKey existing = apiKeyRepository.findById(SHARED_KEY_ID).orElseThrow();
         ApiKey sameId = ApiKey.builder()
             .id(SHARED_KEY_ID)
             .key("value-of-the-second-create")
@@ -459,6 +460,10 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(stored.getKey()).isEqualTo("shared-key-value");
         assertThat(stored.getSubscriptions()).containsExactly("sub-of-the-first-create");
         assertThat(apiKeyRepository.findBySubscription("sub-of-the-second-create")).isEmpty();
+        // Nothing of the rejected key is written. On MySQL and MariaDB, the rejected insert moves the updatedAt of the existing
+        // key forward (by a second); elsewhere it is unchanged. It never moves back.
+        assertThat(stored).usingRecursiveComparison().ignoringFields("updatedAt").isEqualTo(existing);
+        assertThat(stored.getUpdatedAt()).isAfterOrEqualTo(existing.getUpdatedAt());
     }
 
     @Test
