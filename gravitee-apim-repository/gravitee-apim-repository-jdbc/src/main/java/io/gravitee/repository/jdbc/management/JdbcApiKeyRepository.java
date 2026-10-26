@@ -160,6 +160,9 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
             );
         }
         if (isMySqlOrMariaDb()) {
+            // On duplicate key update fires on a conflict with any unique index, not only the one on id. The primary key on id is
+            // the only unique constraint of the table. A unique index on the key value would make a duplicate value take this
+            // lost-race path: no key would be created, and the request would link its subscription to another key.
             return (
                 jdbcTemplate.update(
                     getOrm().buildInsertPreparedStatementCreator(
