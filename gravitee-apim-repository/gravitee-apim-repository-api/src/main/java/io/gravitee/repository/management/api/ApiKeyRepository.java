@@ -148,7 +148,11 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
     Optional<ApiKey> addSubscription(String id, String subscriptionId) throws TechnicalException;
 
     /**
-     * Same as {@link #addSubscription(String, String)} for several subscriptions.
+     * Links several subscriptions to an API Key, like {@link #addSubscription(String, String)} does for one.
+     * <p>
+     * This default calls {@link #addSubscription(String, String)} once per subscription: each link is atomic and idempotent, but
+     * the call as a whole is not. A failure partway through leaves the subscriptions linked before it, and {@code updatedAt}
+     * moves once per subscription. Repositories that can link them in one atomic operation override it.
      *
      * @param id apikey ID
      * @param subscriptionIds subscription IDs to add to this apikey
