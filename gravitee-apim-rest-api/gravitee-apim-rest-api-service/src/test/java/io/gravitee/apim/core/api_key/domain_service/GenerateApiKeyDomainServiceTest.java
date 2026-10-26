@@ -264,14 +264,62 @@ class GenerateApiKeyDomainServiceTest {
             var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
 
             // When
-            serviceReading(keyAsReadBeforeTheOtherNodeWrote).generate(subscription, AUDIT_INFO, null);
+            var result = serviceReading(keyAsReadBeforeTheOtherNodeWrote).generate(subscription, AUDIT_INFO, null);
 
-            // Then
+            // Then the stored key and the returned one carry the link written by the other node
             assertThat(apiKeyCrudService.storage())
                 .singleElement()
                 .satisfies(key ->
                     assertThat(key.getSubscriptions()).containsExactlyInAnyOrder("seed-subscription", SUBSCRIPTION_ID_2, SUBSCRIPTION_ID_1)
                 );
+            assertThat(result.getId()).isEqualTo("shared-key");
+            assertThat(result.getSubscriptions()).containsExactlyInAnyOrder("seed-subscription", SUBSCRIPTION_ID_2, SUBSCRIPTION_ID_1);
+        }
+
+        @Test
+        void move_the_updatedAt_of_the_shared_key_when_attaching_a_subscription() {
+            // Given a shared key last changed long ago: gateways only fetch the keys whose updatedAt moved since their last sync
+            var sharedKey = ApiKeyFixtures.anApiKey()
+                .toBuilder()
+                .id("shared-key")
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of(SUBSCRIPTION_ID_2))
+                .build();
+            givenApiKeys(sharedKey);
+            var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
+
+            // When
+            var result = service.generate(subscription, AUDIT_INFO, null);
+
+            // Then
+            var now = INSTANT_NOW.atZone(ZoneId.systemDefault());
+            assertThat(sharedKey.getUpdatedAt()).isBefore(now);
+            assertThat(apiKeyCrudService.storage())
+                .singleElement()
+                .satisfies(key -> assertThat(key.getUpdatedAt()).isEqualTo(now));
+            assertThat(result.getUpdatedAt()).isEqualTo(now);
+        }
+
+        @Test
+        void attach_the_subscription_to_a_shared_key_stored_without_a_list_of_subscriptions() {
+            // Given a shared key stored with no list of subscriptions, which the repositories treat as an empty one
+            var sharedKey = ApiKeyFixtures.anApiKey()
+                .toBuilder()
+                .id("shared-key")
+                .applicationId(APPLICATION_ID)
+                .subscriptions(null)
+                .build();
+            givenApiKeys(sharedKey);
+            var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
+
+            // When
+            var result = service.generate(subscription, AUDIT_INFO, null);
+
+            // Then
+            assertThat(result.getId()).isEqualTo("shared-key");
+            assertThat(apiKeyCrudService.storage())
+                .singleElement()
+                .satisfies(key -> assertThat(key.getSubscriptions()).containsExactly(SUBSCRIPTION_ID_1));
         }
 
         @Test
