@@ -16,6 +16,8 @@
 package io.gravitee.apim.rest.api.automation.spring;
 
 import io.gravitee.apim.core.utils.CollectionUtils;
+import io.gravitee.apim.rest.api.automation.helpers.HRIDHelper;
+import io.gravitee.apim.rest.api.automation.resource.ApiResource;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.PermissionService;
@@ -26,6 +28,7 @@ import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.ResourceInfo;
@@ -35,6 +38,7 @@ import jakarta.ws.rs.ext.Provider;
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 import lombok.CustomLog;
 
@@ -107,9 +111,19 @@ public class PermissionsFilter implements ContainerRequestFilter {
     }
 
     private String getApiHrid(ContainerRequestContext requestContext) {
-        boolean legacy = isLegacy(requestContext);
+        boolean legacy = isLegacy(requestContext) || isSetHridHeaderSentToApiGet(requestContext);
         String apiHrid = getPathParameter(requestContext, API_HRID, legacy);
         return apiHrid != null ? apiHrid : getPathParameter(requestContext, HRID_PARAM, legacy);
+    }
+
+    // ApiResource GET reads the API id as is when the header is set: the filter must authorize that same API.
+    // HEAD is served by the GET resource method. Read the first value like its @HeaderParam does.
+    private boolean isSetHridHeaderSentToApiGet(ContainerRequestContext requestContext) {
+        return (
+            ApiResource.class.isAssignableFrom(resourceInfo.getResourceClass()) &&
+            Set.of(HttpMethod.GET, HttpMethod.HEAD).contains(requestContext.getMethod()) &&
+            Boolean.parseBoolean(requestContext.getHeaders().getFirst(HRIDHelper.HEADER_X_GRAVITEE_SET_HRID))
+        );
     }
 
     private static boolean isLegacy(ContainerRequestContext requestContext) {

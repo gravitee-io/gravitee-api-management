@@ -38,6 +38,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -70,6 +71,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     protected io.gravitee.rest.api.service.v4.ApiService apiServiceV4;
+
+    @Inject
+    private ApiSearchService apiSearchService;
 
     @Path("subscriptions")
     public ApiSubscriptionsResource getSubscriptionsResource() {
@@ -140,12 +144,12 @@ public class ApiResource extends AbstractResource {
     public Response deleteApi(@PathParam("apiHrid") String apiHrid, @QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
 
+        var apiId = legacy ? apiHrid : IdBuilder.builder(executionContext, apiHrid).buildId();
+
         try {
-            apiServiceV4.delete(
-                GraviteeContext.getExecutionContext(),
-                legacy ? apiHrid : IdBuilder.builder(executionContext, apiHrid).buildId(),
-                true
-            );
+            // Act only on an API of the caller's environment
+            apiSearchService.findRepositoryApiById(executionContext, apiId);
+            apiServiceV4.delete(executionContext, apiId, true);
         } catch (ApiNotFoundException e) {
             log.warn("API not found for HRID: {}, operation: deleteApi", apiHrid, e);
             throw new HRIDNotFoundException(apiHrid);
