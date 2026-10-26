@@ -146,11 +146,6 @@ public interface DistributedEventRepository {
     }
 
     /**
-     * Deletes the {@link DistributedSyncAction#UNDEPLOY} events last written before {@code before}.
-     *
-     * @return the number of events deleted
-     */
-    /**
      * Returns the current time of the Redis server in milliseconds. Secondaries use it for the sync window so
      * clock skew between nodes does not lose events.
      */
@@ -180,6 +175,11 @@ public interface DistributedEventRepository {
         return createOrUpdateAtWriteTime(event);
     }
 
+    /**
+     * Deletes the {@link DistributedSyncAction#UNDEPLOY} events last written before {@code before}.
+     *
+     * @return the number of events deleted
+     */
     default Single<Long> deleteUndeployedBefore(final String clusterId, final Date before) {
         return Single.just(0L);
     }
