@@ -408,35 +408,24 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     @Override
     public Optional<ApiKey> addSubscription(String id, String subscriptionId) throws TechnicalException {
         log.debug("JdbcApiKeyRepository.addSubscription({}, {})", id, subscriptionId);
-        if (!exists(id)) {
+        if (!touch(id)) {
             return Optional.empty();
         }
         insertLinkIfAbsent(id, subscriptionId);
-        touch(id);
         return findById(id);
     }
 
     @Override
     public Optional<ApiKey> addSubscriptions(String id, Collection<String> subscriptionIds) throws TechnicalException {
         log.debug("JdbcApiKeyRepository.addSubscriptions({}, {})", id, subscriptionIds);
-        if (!exists(id)) {
+        if (!touch(id)) {
             return Optional.empty();
         }
         subscriptionIds
             .stream()
             .distinct()
             .forEach(subscriptionId -> insertLinkIfAbsent(id, subscriptionId));
-        touch(id);
         return findById(id);
-    }
-
-    private boolean exists(String id) {
-        Integer count = jdbcTemplate.queryForObject(
-            "select count(*) from " + escapeReservedWord(this.tableName) + " where id = ?",
-            Integer.class,
-            id
-        );
-        return count != null && count > 0;
     }
 
     /**
@@ -458,9 +447,17 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         }
     }
 
-    /** Gateways synchronise keys by {@code updated_at}: every link change must move it. */
-    private void touch(String id) {
-        jdbcTemplate.update("update " + escapeReservedWord(this.tableName) + " set updated_at=? where id=?", new Date(), id);
+    /**
+     * Moves {@code updated_at} of the key: gateways synchronise keys by {@code updated_at}, so every link change must move it.
+     * It is done before the links are written: the update locks the key row until the end of the transaction, so the key cannot
+     * be deleted before its links are written ({@code key_subscriptions} has no foreign key to {@code keys}), and, unlike a plain
+     * read, it finds the latest committed row also in REPEATABLE READ (MySQL, MariaDB). An existing key counts one row even if
+     * {@code updated_at} keeps its value: the MySQL and MariaDB drivers count the matched rows by default.
+     *
+     * @return {@code false} when no key has this id
+     */
+    private boolean touch(String id) {
+        return jdbcTemplate.update("update " + escapeReservedWord(this.tableName) + " set updated_at=? where id=?", new Date(), id) > 0;
     }
 
     @Override
