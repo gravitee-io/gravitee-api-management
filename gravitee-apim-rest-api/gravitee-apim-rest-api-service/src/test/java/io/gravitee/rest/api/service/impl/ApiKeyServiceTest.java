@@ -960,6 +960,33 @@ public class ApiKeyServiceTest {
     }
 
     @Test
+    public void update_should_return_the_api_key_as_changed_when_the_repository_returns_none() throws TechnicalException {
+        ApiKey storedApiKey = new ApiKey();
+        storedApiKey.setId("api-key-id");
+        storedApiKey.setApplication(APPLICATION_ID);
+        storedApiKey.setSubscriptions(new ArrayList<>(List.of("stored-subscription")));
+        when(apiKeyRepository.findById("api-key-id")).thenReturn(Optional.of(storedApiKey));
+        lenient().when(subscriptionService.findById("stored-subscription")).thenReturn(buildTestSubscription("stored-subscription"));
+        Set<SubscriptionEntity> storedSubscriptions = Set.of(buildTestSubscription("stored-subscription"));
+        when(subscriptionService.findByIdIn(List.of("stored-subscription"))).thenReturn(storedSubscriptions);
+        // JDBC returns no key when it is deleted between its UPDATE and the read of the stored key
+        when(apiKeyRepository.update(any())).thenReturn(null);
+
+        ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
+        apiKeyEntity.setId("api-key-id");
+        apiKeyEntity.setApplication(application);
+        apiKeyEntity.setEnvironmentId("environment-of-the-request");
+        apiKeyEntity.setSubscriptions(Set.of());
+
+        ApiKeyEntity updated = apiKeyService.update(GraviteeContext.getExecutionContext(), apiKeyEntity);
+
+        assertEquals("api-key-id", updated.getId());
+        assertEquals("environment-of-the-request", updated.getEnvironmentId());
+        assertNotNull(updated.getUpdatedAt());
+        assertEquals(storedSubscriptions, updated.getSubscriptions());
+    }
+
+    @Test
     public void canCreate_should_return_true_cause_key_doesnt_exists_yet() throws Exception {
         String apiKeyToCreate = "apikey-i-want-to-create";
         String apiId = "my-api-id";
