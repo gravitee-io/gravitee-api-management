@@ -23,8 +23,10 @@ import org.springframework.stereotype.Component;
  * Serves both the filter and the sort of {@code ApiKeyMongoRepository#findByApplication}.
  * <p>
  * {@link ApplicationIndexUpgrader} ({@code a1}) is built on {@code applications}, a field that does not exist, so it
- * cannot serve that query. It is left untouched: upgraders run only once, and re-creating {@code a1} with another key
- * would fail on databases that already have it.
+ * cannot serve that query. It is left untouched: upgraders run only once, and on databases that already have
+ * {@code a1}, MongoDB rejects re-creating it with another key with error 86 ({@code IndexKeySpecsConflict}).
+ * {@link IndexUpgrader} only tolerates error 85 ({@code IndexOptionsConflict}), so that upgrade would return
+ * {@code false}.
  *
  * @author GraviteeSource Team
  */
