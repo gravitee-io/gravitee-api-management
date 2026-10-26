@@ -70,15 +70,23 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         }
     };
 
+    /** Writes every column but {@code updated_at}, which {@link #update(ApiKey)} only moves forward. */
+    private final JdbcObjectMapper<ApiKey> ormWithoutUpdatedAt;
+
     JdbcApiKeyRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "keys");
         keySubscriptions = getTableNameFor("key_subscriptions");
         subscription = getTableNameFor("subscriptions");
+        ormWithoutUpdatedAt = buildOrm(false);
     }
 
     @Override
     protected JdbcObjectMapper<ApiKey> buildOrm() {
-        return JdbcObjectMapper.builder(ApiKey.class, this.tableName, "id")
+        return buildOrm(true);
+    }
+
+    private JdbcObjectMapper<ApiKey> buildOrm(boolean withUpdatedAt) {
+        JdbcObjectMapper.Builder<ApiKey> builder = JdbcObjectMapper.builder(ApiKey.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("key", Types.NVARCHAR, String.class)
@@ -87,8 +95,11 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
             .addColumn("api", Types.NVARCHAR, String.class)
             .addColumn("plan", Types.NVARCHAR, String.class)
             .addColumn("expire_at", Types.TIMESTAMP, Date.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .addColumn("created_at", Types.TIMESTAMP, Date.class);
+        if (withUpdatedAt) {
+            builder.addColumn("updated_at", Types.TIMESTAMP, Date.class);
+        }
+        return builder
             .addColumn("revoked", Types.BOOLEAN, boolean.class)
             .addColumn("paused", Types.BOOLEAN, boolean.class)
             .addColumn("revoked_at", Types.TIMESTAMP, Date.class)
@@ -127,7 +138,8 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             // The links in key_subscriptions are only changed by addSubscription(s): rewriting them from the given copy
             // of the key would drop the links added since that copy was read.
-            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(apiKey, apiKey.getId()));
+            jdbcTemplate.update(ormWithoutUpdatedAt.buildUpdatePreparedStatementCreator(apiKey, apiKey.getId()));
+            moveUpdatedAtForward(apiKey);
 
             return findById(apiKey.getId()).orElse(null);
         } catch (IllegalStateException e) {
@@ -136,6 +148,24 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
             log.error("Failed to update API Key " + apiKey.getId(), e);
             throw new TechnicalException("Failed to update API Key " + apiKey.getId(), e);
         }
+    }
+
+    /**
+     * Gateways synchronise keys by {@code updated_at}, so it never moves backwards: a copy of the key read before a concurrent
+     * {@link #addSubscription(String, String)} must not undo the move made by it. The stored value is kept when it is more recent,
+     * or when the given key has none. The row is locked by the update that precedes this statement in the same transaction, so the
+     * stored value cannot change between the comparison and the commit.
+     */
+    private void moveUpdatedAtForward(ApiKey apiKey) {
+        if (apiKey.getUpdatedAt() == null) {
+            return;
+        }
+        jdbcTemplate.update(
+            "update " + escapeReservedWord(this.tableName) + " set updated_at = ? where id = ? and (updated_at is null or updated_at < ?)",
+            apiKey.getUpdatedAt(),
+            apiKey.getId(),
+            apiKey.getUpdatedAt()
+        );
     }
 
     @Override
