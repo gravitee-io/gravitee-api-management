@@ -69,6 +69,10 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
      * Update an API Key: every field except {@link ApiKey#getSubscriptions() subscriptions}, which is ignored. Links to
      * subscriptions are only changed by {@link #addSubscription(String, String)} and {@link #addSubscriptions(String, Collection)},
      * so that an update made from a copy of the key read earlier cannot drop links added in the meantime.
+     * <p>
+     * {@link ApiKey#getUpdatedAt() updatedAt} never moves backwards: the stored value is kept when it is more recent than the given
+     * one, or when none is given. Gateways synchronise keys by {@code updatedAt}, so an update made from a copy read before a
+     * concurrent change (such as a link added by {@link #addSubscription(String, String)}) must not hide that change from them.
      *
      * @param key The API Key to update
      * @return Updated API Key, as stored (with its current subscriptions)
