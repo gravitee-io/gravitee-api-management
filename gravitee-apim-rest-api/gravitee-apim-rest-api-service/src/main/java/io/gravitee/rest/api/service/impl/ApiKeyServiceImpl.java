@@ -500,11 +500,13 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             checkApiKeyExpired(executionContext, key);
 
             key.setEnvironmentId(apiKeyEntity.getEnvironmentId());
-            key.setSubscriptions(apiKeyEntity.getSubscriptionIds());
+            // The subscriptions of the entity are ignored: the repository does not write them, links are only changed by
+            // addSubscription(s), so the key keeps the subscriptions it was read with.
             key.setPaused(apiKeyEntity.isPaused());
-            updateExpirationDate(executionContext, apiKeyEntity.getExpireAt(), apiKeyEntity, key);
+            ApiKey updated = updateExpirationDate(executionContext, apiKeyEntity.getExpireAt(), apiKeyEntity, key);
 
-            return convert(executionContext, key);
+            // The repository returns no key when it was deleted in the meantime
+            return convert(executionContext, updated != null ? updated : key);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
                 String.format("An error occurs while updating an API Key with id %s", apiKeyEntity.getId()),
@@ -690,14 +692,16 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         */
     }
 
-    private void updateExpirationDate(ExecutionContext executionContext, Date expirationDate, ApiKeyEntity apiKeyEntity, ApiKey key)
+    /**
+     * @return the key as stored after the update
+     */
+    private ApiKey updateExpirationDate(ExecutionContext executionContext, Date expirationDate, ApiKeyEntity apiKeyEntity, ApiKey key)
         throws TechnicalException {
         final Date now = new Date();
 
         key.setUpdatedAt(now);
         if (key.isRevoked()) {
-            apiKeyRepository.update(key);
-            return;
+            return apiKeyRepository.update(key);
         }
 
         // If the expiration date is before now, then the key is already expired
@@ -723,7 +727,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         ApiKey oldkey = new ApiKey(key);
         key.setExpireAt(expirationDate);
         key.setDaysToExpirationOnLastNotification(null);
-        apiKeyRepository.update(key);
+        ApiKey updated = apiKeyRepository.update(key);
 
         // Audit
         createAuditLog(executionContext, convert(executionContext, key), oldkey, APIKEY_EXPIRED, key.getUpdatedAt());
@@ -736,6 +740,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             }
             triggerNotifierService(executionContext, ApiHook.APIKEY_EXPIRED, ApiProductHook.APIKEY_EXPIRED, key, paramsBuilder);
         }
+        return updated;
     }
 
     private ApiKeyEntity convert(ExecutionContext executionContext, ApiKey apiKey) {
