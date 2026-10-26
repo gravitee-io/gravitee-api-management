@@ -505,7 +505,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             key.setPaused(apiKeyEntity.isPaused());
             ApiKey updated = updateExpirationDate(executionContext, apiKeyEntity.getExpireAt(), apiKeyEntity, key);
 
-            // The repository returns no key when it was deleted in the meantime
+            // A key deleted since it was read makes the repositories throw IllegalStateException (a 500, as before). Only JDBC can
+            // return no key: when the key is deleted between its UPDATE and the read of the stored key. The key as changed here is
+            // returned then.
             return convert(executionContext, updated != null ? updated : key);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
