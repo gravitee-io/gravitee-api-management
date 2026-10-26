@@ -2,11 +2,11 @@
 # Every generated file with its content fingerprint; setup and check use
 # this for ownership, incremental runs, and tamper evidence.
 version: 1
-generatedBy: "checkout"
+generatedBy: "0.3.2"
 buildFileProbes: ["angular.json","build.gradle","build.gradle.kts","ng-package.json","package.json","pom.xml","project.json"]
 inputs:
   - { dir: ".", buildFiles: ["package.json","pom.xml"] }
-  - { path: ".ai/manifest.yaml", hash: "sha256:3d71657b8b456f46c16e3749cabc72330953b4246f86864dbc62b5e2ad1b50e2" }
+  - { path: ".ai/manifest.yaml", hash: "sha256:03750eb8f92cb1ea9801e93e28f741ae65239dcd5eab884b5424bee9a5fe08b7" }
   - { path: ".ai/rules/ai-context-authoring.md", hash: "sha256:da3b2d09f7c8e8f34d4dba3550038cc1db089751ebf641aef27c8ad8f33d83d4" }
   - { path: ".ai/rules/apim-angular.md", hash: "sha256:9e7472cc16201f62230b0de128c0c47c370fffe517cf1b0482dd43a584f17850" }
   - { path: ".ai/rules/apim-automation-api.md", hash: "sha256:c24ccb1f03041b276a0e5ee06836cc78fbb1118f415ca67d306a95850261ff65" }
@@ -80,7 +80,7 @@ entries:
     status: generated
     scope: committed
   - path: "AGENTS.md"
-    hash: sha256:371af208cf1ecd4a2b6a863cb815cfb919836bb989d913ce9fe1f73e0aff0c08
+    hash: sha256:306c4bdaab8d38e9fd1fb1c6d61815987322bc4e428643407afd8c16201935b2
     status: generated
     scope: committed
   - path: "CLAUDE.md"
@@ -271,4 +271,4 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-record: sha256:de4a9c7cac7413e940bd7853c6b1cd980742f1c75fc4edc3cea6fd21e5220bb6
+record: sha256:89c458c1694194080b3734c08bccebbd1db745f3e3ff00770df57fa9dd4deb6c
