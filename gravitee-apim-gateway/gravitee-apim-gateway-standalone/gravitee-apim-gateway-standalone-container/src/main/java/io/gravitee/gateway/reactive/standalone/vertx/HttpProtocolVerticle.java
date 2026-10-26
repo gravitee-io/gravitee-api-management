@@ -16,17 +16,24 @@
 package io.gravitee.gateway.reactive.standalone.vertx;
 
 import static io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest.NETTY_ATTR_CONNECTION_TIME;
+import static io.vertx.core.http.HttpServerRequest.DEFAULT_INVALID_REQUEST_HANDLER;
 
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
 import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.vertx.server.http.VertxHttpServer;
+import io.gravitee.node.vertx.server.http.VertxHttpServerOptions;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.TooLongHttpHeaderException;
 import io.netty.util.AttributeKey;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.vertx.core.http.impl.HttpServerConnection;
+import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.AbstractVerticle;
 import io.vertx.rxjava3.core.RxHelper;
 import io.vertx.rxjava3.core.Vertx;
@@ -36,6 +43,9 @@ import io.vertx.rxjava3.core.http.HttpServerResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -49,6 +59,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
  */
 @CustomLog
 public class HttpProtocolVerticle extends AbstractVerticle {
+
+    static final String HEADERS_TOO_LARGE_MESSAGE = "Request headers exceed the size accepted by the Gateway";
+    private static final String HEADERS_TOO_LARGE_LOG =
+        "HTTP server [{}] rejected a request with headers larger than {} bytes. Increase {}.maxHeaderSize if clients need to send larger headers.";
+
+    // Shared by all verticle instances, so each server warns once however many event loops serve it.
+    private static final Set<VertxHttpServer> HEADERS_TOO_LARGE_WARNED = ConcurrentHashMap.newKeySet();
 
     private final ServerManager serverManager;
     private final HttpRequestDispatcher requestDispatcher;
@@ -100,6 +117,7 @@ public class HttpProtocolVerticle extends AbstractVerticle {
                             .set(System.currentTimeMillis());
                     })
                     .requestHandler(request -> dispatchRequest(request, gioServer.id()))
+                    .invalidRequestHandler(request -> handleInvalidRequest(request, gioServer))
                     .rxListen()
                     .ignoreElement()
                     .doOnComplete(() ->
@@ -138,6 +156,46 @@ public class HttpProtocolVerticle extends AbstractVerticle {
             .onErrorResumeNext(t -> handleError(t, request.response()))
             .doOnSubscribe(dispatchDisposable -> configureConnectionHandlers(request, dispatchDisposable))
             .subscribe();
+    }
+
+    /**
+     * Requests Netty fails to decode never reach the dispatcher, so they are missing from API logs and analytics.
+     * Oversized headers get a JSON body for the consumer and a warning naming the setting for the Gateway admin,
+     * logged once per server then at debug level so a misbehaving client can't flood the logs;
+     * any other decoding failure keeps the Vert.x default response.
+     * Only HTTP/1.x goes through here: HTTP/2 header limits are enforced by the codec.
+     *
+     * @param request   the request that failed to decode.
+     * @param gioServer the server that received it.
+     */
+    private void handleInvalidRequest(HttpServerRequest request, VertxHttpServer gioServer) {
+        // Decoder result and default handler are only exposed on the core request.
+        final var delegate = request.getDelegate();
+        if (!(delegate.decoderResult().cause() instanceof TooLongHttpHeaderException)) {
+            DEFAULT_INVALID_REQUEST_HANDLER.handle(delegate);
+            return;
+        }
+
+        // The limit is read from the server's own prefix: "http" for a single server, "servers[N]" for a list.
+        final VertxHttpServerOptions options = gioServer.options();
+        final Object[] logArgs = {
+            gioServer.id(),
+            options.getMaxHeaderSize(),
+            Objects.requireNonNullElse(options.getPrefix(), VertxHttpServerOptions.HTTP_PREFIX),
+        };
+        if (HEADERS_TOO_LARGE_WARNED.add(gioServer)) {
+            log.warn(HEADERS_TOO_LARGE_LOG, logArgs);
+        } else {
+            log.debug(HEADERS_TOO_LARGE_LOG, logArgs);
+        }
+
+        final int status = HttpResponseStatus.REQUEST_HEADER_FIELDS_TOO_LARGE.code();
+        delegate
+            .response()
+            .setStatusCode(status)
+            .putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+            .end(new JsonObject().put("message", HEADERS_TOO_LARGE_MESSAGE).put("http_status_code", status).encode())
+            .onComplete(ar -> delegate.connection().close());
     }
 
     /**
