@@ -52,9 +52,19 @@ public class ApiKeyQueryServiceInMemory implements ApiKeyQueryService, InMemoryA
         subscriptionCrudService = subscriptionCrudServiceInMemory;
     }
 
+    /**
+     * The keys as stored now, copied under the lock that the writes of {@link ApiKeyCrudServiceInMemory} hold, so that tests
+     * running several requests at once never read the storage while it is written.
+     */
+    private List<ApiKeyEntity> keys() {
+        synchronized (storage) {
+            return new ArrayList<>(storage);
+        }
+    }
+
     @Override
     public Optional<ApiKeyEntity> findById(String apiKeyId) {
-        return storage
+        return keys()
             .stream()
             .filter(apiKey -> apiKey.getId().equals(apiKeyId))
             .findFirst();
@@ -62,7 +72,9 @@ public class ApiKeyQueryServiceInMemory implements ApiKeyQueryService, InMemoryA
 
     @Override
     public Stream<ApiKeyEntity> findByApplication(String applicationId) {
-        return storage.stream().filter(apiKey -> apiKey.getApplicationId().equals(applicationId));
+        return keys()
+            .stream()
+            .filter(apiKey -> apiKey.getApplicationId().equals(applicationId));
     }
 
     @Override
@@ -70,7 +82,7 @@ public class ApiKeyQueryServiceInMemory implements ApiKeyQueryService, InMemoryA
         if (subscriptionCrudService != null) {
             return findByKeyAndReferenceIdAndReferenceType(key, apiId, SubscriptionReferenceType.API.name());
         }
-        return storage
+        return keys()
             .stream()
             .filter(apiKey -> apiKey.getKey().equals(key))
             .findFirst();
@@ -79,12 +91,12 @@ public class ApiKeyQueryServiceInMemory implements ApiKeyQueryService, InMemoryA
     @Override
     public Optional<ApiKeyEntity> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType) {
         if (subscriptionCrudService == null) {
-            return storage
+            return keys()
                 .stream()
                 .filter(apiKey -> apiKey.getKey().equals(key))
                 .findFirst();
         }
-        return storage
+        return keys()
             .stream()
             .filter(apiKey -> apiKey.getKey().equals(key))
             .filter(apiKey ->
@@ -106,7 +118,9 @@ public class ApiKeyQueryServiceInMemory implements ApiKeyQueryService, InMemoryA
 
     @Override
     public Stream<ApiKeyEntity> findBySubscription(String subscriptionId) {
-        return storage.stream().filter(apiKey -> apiKey.getSubscriptions().contains(subscriptionId));
+        return keys()
+            .stream()
+            .filter(apiKey -> apiKey.getSubscriptions().contains(subscriptionId));
     }
 
     @Override
@@ -124,13 +138,17 @@ public class ApiKeyQueryServiceInMemory implements ApiKeyQueryService, InMemoryA
 
     @Override
     public void initWith(List<ApiKeyEntity> items) {
-        storage.clear();
-        storage.addAll(items);
+        synchronized (storage) {
+            storage.clear();
+            storage.addAll(items);
+        }
     }
 
     @Override
     public void reset() {
-        storage.clear();
+        synchronized (storage) {
+            storage.clear();
+        }
     }
 
     @Override
