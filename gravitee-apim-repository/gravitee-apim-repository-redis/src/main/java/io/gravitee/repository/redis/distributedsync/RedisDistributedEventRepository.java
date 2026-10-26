@@ -440,13 +440,14 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
                 }
                 return Completable.error(new IllegalStateException(LEASE_HELD_BY_ANOTHER_NODE));
             })
-            .onErrorResumeNext(throwable ->
-                LEASE_HELD_BY_ANOTHER_NODE.equals(throwable.getMessage())
-                    ? Completable.error(throwable)
-                    : Completable.error(
-                        new DistributedSyncUnavailableException("Unable to acquire the distributed sync write lease", throwable)
-                    )
-            );
+            .onErrorResumeNext(throwable -> {
+                if (LEASE_HELD_BY_ANOTHER_NODE.equals(throwable.getMessage())) {
+                    return Completable.error(throwable);
+                }
+                return Completable.error(
+                    new DistributedSyncUnavailableException("Unable to acquire the distributed sync write lease", throwable)
+                );
+            });
     }
 
     static String escapeGlob(final String value) {
@@ -511,9 +512,12 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     private Completable executeFencedWrite(final List<String> args) {
         return writeGate.runGated(
             send(redisAPI -> redisAPI.evalsha(args))
-                .onErrorResumeNext(noscript ->
-                    isNoscript(noscript) ? send(redisAPI -> redisAPI.eval(evalArgs(args))) : Single.error(noscript)
-                )
+                .onErrorResumeNext(noscript -> {
+                    if (isNoscript(noscript)) {
+                        return send(redisAPI -> redisAPI.eval(evalArgs(args)));
+                    }
+                    return Single.error(noscript);
+                })
                 .ignoreElement()
                 .retryWhen(
                     RxHelper.retryExponentialBackoff(
@@ -525,11 +529,12 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
                         RedisDistributedEventRepository::isRetryableWriteFailure
                     )
                 )
-                .onErrorResumeNext(throwable ->
-                    isRetryableWriteFailure(throwable)
-                        ? Completable.error(new DistributedSyncUnavailableException(REDIS_UNAVAILABLE_FOR_WRITES, throwable))
-                        : Completable.error(throwable)
-                )
+                .onErrorResumeNext(throwable -> {
+                    if (isRetryableWriteFailure(throwable)) {
+                        return Completable.error(new DistributedSyncUnavailableException(REDIS_UNAVAILABLE_FOR_WRITES, throwable));
+                    }
+                    return Completable.error(throwable);
+                })
         );
     }
 

@@ -150,8 +150,6 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
 
     static final String LEASE_KEY_PREFIX = "distributed_sync_lease:";
 
-    /** Whether a write lease must be acquired and renewed — short-circuited when disabled in settings. */
-    private volatile boolean fencingEnabled;
     /** The lease value this node last acquired, or null when not the holder. */
     private volatile String leaseValue;
     private volatile String clusterIdCache;
@@ -212,8 +210,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     }
 
     private void acquireOrRenewLease() {
-        fencingEnabled = settings.fencingEnabled();
-        if (!fencingEnabled) {
+        if (!settings.fencingEnabled()) {
             leaseValue = null;
             return;
         }
