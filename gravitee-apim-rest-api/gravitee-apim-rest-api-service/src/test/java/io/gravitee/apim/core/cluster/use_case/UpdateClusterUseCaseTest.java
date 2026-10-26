@@ -52,6 +52,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.json.validation.JsonSchemaValidatorImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.impl.JsonSchemaServiceImpl;
 import java.time.ZoneId;
 import java.util.List;
@@ -168,6 +169,68 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
         expected.setUpdatedAt(INSTANT_NOW);
 
         assertThat(updatedCluster.cluster()).usingRecursiveComparison().isEqualTo(expected);
+    }
+
+    @Test
+    void should_keep_the_backend_metadata_max_age_of_a_kafka_cluster() {
+        givenAKafkaCluster();
+        var toUpdate = UpdateCluster.builder().configuration(kafkaClusterConfiguration(45)).build();
+
+        var updated = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(KAFKA_CLUSTER_ID, toUpdate, AUDIT_INFO));
+
+        assertThat(new ObjectMapper().convertValue(updated.cluster().getConfiguration(), Map.class)).containsEntry(
+            "backendMetadataMaxAge",
+            45
+        );
+    }
+
+    @Test
+    void should_reject_a_backend_metadata_max_age_that_is_not_a_whole_number_of_seconds() {
+        for (Object maxAge : List.of(1.5, "abc", "30")) {
+            // Afresh each time: the in-memory store hands out the stored cluster, which an update edits before validating.
+            givenAKafkaCluster();
+            var toUpdate = UpdateCluster.builder().configuration(kafkaClusterConfiguration(maxAge)).build();
+
+            assertThatThrownBy(() -> updateClusterUseCase.execute(new UpdateClusterUseCase.Input(KAFKA_CLUSTER_ID, toUpdate, AUDIT_INFO)))
+                .as("max age %s", maxAge)
+                .isInstanceOf(InvalidDataException.class);
+        }
+    }
+
+    private static final String KAFKA_CLUSTER_ID = "kafka-cluster-id";
+
+    private void givenAKafkaCluster() {
+        Cluster kafkaCluster = Cluster.builder()
+            .id(KAFKA_CLUSTER_ID)
+            .crossId("kafka-cluster")
+            .type(ClusterType.KAFKA_CLUSTER)
+            .name("Kafka cluster")
+            .createdAt(INSTANT_NOW)
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .configuration(kafkaClusterConfiguration(30))
+            .build();
+        ((ClusterCrudServiceInMemory) clusterCrudService).initWith(List.of(existingCluster, kafkaCluster));
+        lenient()
+            .when(
+                permissionDomainService.hasPermission(
+                    ORG_ID,
+                    USER_ID,
+                    RolePermission.CLUSTER_CONFIGURATION,
+                    KAFKA_CLUSTER_ID,
+                    RolePermissionAction.UPDATE
+                )
+            )
+            .thenReturn(true);
+    }
+
+    private static Object kafkaClusterConfiguration(Object maxAge) {
+        return Map.of(
+            "connections",
+            List.of(Map.of("name", "conn-1", "bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT"))),
+            "backendMetadataMaxAge",
+            maxAge
+        );
     }
 
     @Test

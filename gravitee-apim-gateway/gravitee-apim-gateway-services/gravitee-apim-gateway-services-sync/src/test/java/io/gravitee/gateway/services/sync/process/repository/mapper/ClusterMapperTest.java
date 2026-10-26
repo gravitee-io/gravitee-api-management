@@ -193,6 +193,76 @@ class ClusterMapperTest {
     }
 
     @Test
+    void should_map_the_backend_metadata_max_age_of_a_kafka_cluster() {
+        Event event = new Event();
+        event.setId("event-id");
+        event.setPayload(
+            """
+            {
+                "id": "cluster-id",
+                "crossId": "my-kafka-cluster",
+                "type": "KAFKA_CLUSTER",
+                "configuration": { "connections": [], "backendMetadataMaxAge": 30 }
+            }
+            """
+        );
+
+        ReactableCluster result = cut.to(event).blockingGet();
+
+        assertThat(((KafkaClusterReactableCluster) result).getBackendMetadataMaxAge()).isEqualTo(30);
+    }
+
+    @Test
+    void should_map_the_backend_metadata_max_age_of_a_kafka_virtual_cluster() {
+        Event event = new Event();
+        event.setId("event-id");
+        event.setPayload(
+            """
+            {
+                "id": "vcluster-id",
+                "crossId": "my-virtual-cluster",
+                "type": "KAFKA_VIRTUAL_CLUSTER",
+                "configuration": { "backends": [], "backendMetadataMaxAge": 0 }
+            }
+            """
+        );
+
+        ReactableCluster result = cut.to(event).blockingGet();
+
+        assertThat(((KafkaVirtualClusterReactableCluster) result).getBackendMetadataMaxAge()).isZero();
+    }
+
+    @Test
+    void should_leave_the_backend_metadata_max_age_unset_when_absent_or_not_a_whole_number_of_seconds() {
+        Event absent = new Event();
+        absent.setId("event-id");
+        absent.setPayload(
+            """
+            { "id": "cluster-id", "type": "KAFKA_CLUSTER", "configuration": { "connections": [] } }
+            """
+        );
+        Event decimal = new Event();
+        decimal.setId("event-id");
+        decimal.setPayload(
+            """
+            { "id": "cluster-id", "type": "KAFKA_CLUSTER", "configuration": { "connections": [], "backendMetadataMaxAge": 1.5 } }
+            """
+        );
+
+        assertThat(((KafkaClusterReactableCluster) cut.to(absent).blockingGet()).getBackendMetadataMaxAge()).isNull();
+        assertThat(((KafkaClusterReactableCluster) cut.to(decimal).blockingGet()).getBackendMetadataMaxAge()).isNull();
+
+        Event tooLarge = new Event();
+        tooLarge.setId("event-id");
+        tooLarge.setPayload(
+            """
+            { "id": "cluster-id", "type": "KAFKA_CLUSTER", "configuration": { "connections": [], "backendMetadataMaxAge": 4294967326 } }
+            """
+        );
+        assertThat(((KafkaClusterReactableCluster) cut.to(tooLarge).blockingGet()).getBackendMetadataMaxAge()).isNull();
+    }
+
+    @Test
     void should_return_null_on_invalid_payload() {
         Event event = new Event();
         event.setId("event-id");
