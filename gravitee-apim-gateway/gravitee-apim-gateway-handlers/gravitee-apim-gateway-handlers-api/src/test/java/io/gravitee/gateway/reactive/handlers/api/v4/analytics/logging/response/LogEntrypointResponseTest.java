@@ -84,11 +84,13 @@ class LogEntrypointResponseTest {
         when(ctx.metrics()).thenReturn(Metrics.builder().apiType(ApiType.MESSAGE.getLabel()).build());
         when(response.status()).thenAnswer(i -> status[0]);
         when(response.headers()).thenReturn(headers);
-        when(response.chunks()).thenReturn(Flowable.defer(() -> {
-            status[0] = HttpStatusCode.ACCEPTED_202;
-            headers.set("X-Late", "late");
-            return Flowable.empty();
-        }));
+        when(response.chunks()).thenReturn(
+            Flowable.defer(() -> {
+                status[0] = HttpStatusCode.ACCEPTED_202;
+                headers.set("X-Late", "late");
+                return Flowable.empty();
+            })
+        );
         when(loggingContext.entrypointResponseHeaders()).thenReturn(true);
         when(loggingContext.entrypointResponsePayload()).thenReturn(false);
 
