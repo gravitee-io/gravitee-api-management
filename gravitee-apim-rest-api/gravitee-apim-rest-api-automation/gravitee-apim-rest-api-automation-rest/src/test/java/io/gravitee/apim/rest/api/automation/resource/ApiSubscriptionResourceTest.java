@@ -18,6 +18,8 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -38,6 +40,7 @@ import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import java.time.Instant;
@@ -77,7 +80,38 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
         apiCrudService.reset();
         applicationCrudService.reset();
         planCrudService.reset();
-        reset(importSubscriptionSpecUseCase);
+        reset(importSubscriptionSpecUseCase, apiSearchServiceV4);
+    }
+
+    private void givenALegacySubscriptionOfApi(String apiId) {
+        subscriptionCrudService.initWith(
+            List.of(
+                SubscriptionFixtures.aSubscription()
+                    .toBuilder()
+                    .id(HRID)
+                    .apiId(apiId)
+                    .applicationId(APPLICATION_HRID)
+                    .planId(PLAN_HRID)
+                    .status(ACCEPTED)
+                    .build()
+            )
+        );
+        applicationCrudService.initWith(
+            List.of(ApplicationModelFixtures.anApplicationEntity().toBuilder().id(APPLICATION_HRID).hrid(APPLICATION_HRID).build())
+        );
+        planCrudService.initWith(List.of(PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_HRID).hrid(PLAN_HRID).build()));
+    }
+
+    private void givenTheApiIsOutsideTheEnvironment(String apiId) {
+        apiCrudService.initWith(
+            List.of(ApiFixtures.aProxyApiV4().toBuilder().id(apiId).hrid(API_HRID).environmentId("other-environment").build())
+        );
+        when(
+            apiSearchServiceV4.findRepositoryApiById(
+                argThat(executionContext -> ENVIRONMENT.equals(executionContext.getEnvironmentId())),
+                eq(apiId)
+            )
+        ).thenThrow(new ApiNotFoundException(apiId));
     }
 
     @Nested
@@ -170,6 +204,16 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
             expectNotFound("unknown");
         }
 
+        @Test
+        void should_return_a_404_status_code_for_a_legacy_id_of_an_api_outside_the_environment() {
+            givenALegacySubscriptionOfApi(API_HRID);
+            givenTheApiIsOutsideTheEnvironment(API_HRID);
+
+            try (var response = rootTarget().queryParam("legacy", true).path(HRID).request().get()) {
+                assertThat(response.getStatus()).isEqualTo(404);
+            }
+        }
+
         private void expectNotFound(String hrid) {
             try (var response = rootTarget().path(hrid).request().get()) {
                 assertThat(response.getStatus()).isEqualTo(404);
@@ -255,6 +299,17 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
 
             expectNotFound(HRID);
             assertThat(subscriptionCrudService.get(subscriptionId).getStatus()).isEqualTo(ACCEPTED);
+        }
+
+        @Test
+        void should_return_a_404_status_code_and_not_close_a_subscription_of_an_api_outside_the_environment() {
+            givenALegacySubscriptionOfApi(API_HRID);
+            givenTheApiIsOutsideTheEnvironment(API_HRID);
+
+            try (var response = rootTarget().queryParam("legacy", true).path(HRID).request().delete()) {
+                assertThat(response.getStatus()).isEqualTo(404);
+            }
+            assertThat(subscriptionCrudService.get(HRID).getStatus()).isEqualTo(ACCEPTED);
         }
 
         private void expectNoContent(String hrid) {
