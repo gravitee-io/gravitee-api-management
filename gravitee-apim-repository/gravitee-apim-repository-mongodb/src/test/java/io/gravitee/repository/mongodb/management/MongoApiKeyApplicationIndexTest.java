@@ -79,7 +79,8 @@ public class MongoApiKeyApplicationIndexTest extends AbstractManagementRepositor
 
     /**
      * The new index is added next to the existing ones. {@code a1} is built on {@code applications}, a field that does
-     * not exist, but it is kept as is: upgraders run only once, and re-creating {@code a1} with another key would fail.
+     * not exist, but it is kept as is (see
+     * {@link io.gravitee.repository.mongodb.management.upgrade.upgrader.index.keys.ApplicationUpdatedAtIndexUpgrader}).
      */
     @Test
     public void keysIndexes_shouldAddApplicationUpdatedAtIndexAndKeepEveryExistingIndex() {
