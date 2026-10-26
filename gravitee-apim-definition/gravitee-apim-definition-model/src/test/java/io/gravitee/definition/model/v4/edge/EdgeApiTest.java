@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -28,6 +29,11 @@ import org.junit.jupiter.api.Test;
 class EdgeApiTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+    private static final String PEM = """
+        -----BEGIN CERTIFICATE-----
+        MIIBszCCAVmgAwIBAgIUFleetCertificateBody
+        -----END CERTIFICATE-----""";
 
     @Test
     void should_round_trip_a_route_carrying_its_api_plan_and_subscription() throws Exception {
@@ -86,6 +92,29 @@ class EdgeApiTest {
         assertThat(route.apiId()).isNull();
         assertThat(route.planId()).isNull();
         assertThat(route.subscriptionId()).isNull();
+    }
+
+    @Test
+    void should_keep_the_fleet_certificates_out_of_to_string() {
+        // Given
+        var edgeApi = edgeApiWith(new RouteMapping("/v1/messages", "/anthropic"))
+            .toBuilder()
+            .daemonAuthentication(
+                new EdgeDaemonAuthentication(
+                    new EdgeKeylessAuthentication(false),
+                    new EdgeMtlsAuthentication(
+                        true,
+                        List.of(new EdgeFleetCertificate("certificate-id", "fleet-2026", PEM, Instant.EPOCH, Instant.MAX))
+                    )
+                )
+            )
+            .build();
+
+        // When
+        var printed = edgeApi.toString();
+
+        // Then
+        assertThat(printed).doesNotContain("BEGIN CERTIFICATE", "certificate-id", "fleet-2026");
     }
 
     private static EdgeApi edgeApiWith(RouteMapping route) {

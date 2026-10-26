@@ -57,6 +57,8 @@ public class EdgeApi extends AbstractApi {
 
     private EdgeShadowAiDefinition shadowAi;
 
+    private EdgeDaemonAuthentication daemonAuthentication;
+
     private List<Plan> plans;
 
     @Override
