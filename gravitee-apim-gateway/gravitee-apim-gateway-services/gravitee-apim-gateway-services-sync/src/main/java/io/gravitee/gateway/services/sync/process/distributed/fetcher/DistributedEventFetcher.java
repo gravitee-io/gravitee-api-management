@@ -41,7 +41,7 @@ public class DistributedEventFetcher {
     // so read them by larger batches to limit the number of repository round trips.
     private static final int MIN_FETCH_BATCH_SIZE = 1000;
     /** A full check runs this often even when the change sequence has not moved, so a missed change self-heals. */
-    private static final int forcedCheckEvery = 12;
+    private static final int FORCED_CHECK_EVERY = 12;
 
     private final DistributedEventRepository distributedEventRepository;
     private final ClusterManager clusterManager;
@@ -106,7 +106,7 @@ public class DistributedEventFetcher {
      * The primary increments {@code distributed_sync_seq:<clusterId>} after every cycle that wrote events. A
      * secondary reads it before each type query and skips the query when it has not moved since the last fetch;
      * the change is detected via the repository clock (Redis TIME) so no additional key is needed. A full check
-     * runs every {@value #forcedCheckEvery} cycles regardless, so a missed change self-heals.
+     * runs every {@value #FORCED_CHECK_EVERY} cycles regardless, so a missed change self-heals.
      */
     private final java.util.concurrent.ConcurrentHashMap<DistributedEventType, Integer> cyclesSinceFullCheck =
         new java.util.concurrent.ConcurrentHashMap<>();
@@ -115,7 +115,7 @@ public class DistributedEventFetcher {
 
     private boolean shouldSkipCycle(final DistributedEventType type) {
         Integer sinceCheck = cyclesSinceFullCheck.merge(type, 1, Integer::sum);
-        if (sinceCheck >= forcedCheckEvery) {
+        if (sinceCheck >= FORCED_CHECK_EVERY) {
             cyclesSinceFullCheck.put(type, 0);
             return false;
         }

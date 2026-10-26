@@ -101,6 +101,10 @@ class RedisDistributedEventRepositoryFencedWriteTest {
         assertThat(attempts.get(0)).contains(
             RedisDistributedEventRepository.WRITE_SCRIPT_KEY,
             "node-1:1",
+            DistributedEvent.Fields.refType,
+            DistributedEventType.API.name(),
+            DistributedEvent.Fields.refId,
+            "api-1",
             DistributedEvent.Fields.schemaVersion,
             "3"
         );
@@ -189,6 +193,8 @@ class RedisDistributedEventRepositoryFencedWriteTest {
         DistributedEvent event = DistributedEvent.builder()
             .id("event-1")
             .clusterId("cluster-1")
+            .refType(DistributedEventType.API)
+            .refId("api-1")
             .type(DistributedEventType.API)
             .syncAction(DistributedSyncAction.DEPLOY)
             .payload("payload")
