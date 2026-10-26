@@ -19,12 +19,16 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.ARCHIVED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterBoundApisQueryService;
 import io.gravitee.apim.core.cluster.domain_service.ValidateKafkaClusterBindingDomainService;
 import io.gravitee.apim.core.flow.domain_service.ApiResourceNames;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -44,7 +48,7 @@ import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
 import io.gravitee.rest.api.service.exceptions.DynamicPropertiesInvalidException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
-import io.gravitee.rest.api.service.impl.TransactionalService;
+import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.v4.ApiServicePluginService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
@@ -72,7 +76,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @CustomLog
-public class ApiValidationServiceImpl extends TransactionalService implements ApiValidationService {
+public class ApiValidationServiceImpl extends AbstractService implements ApiValidationService {
 
     private final TagsValidationService tagsValidationService;
     private final GroupValidationService groupValidationService;
@@ -87,6 +91,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     private final FlowValidationDomainService flowValidationDomainService;
     private final ApiProductQueryService apiProductQueryService;
     private final ValidateKafkaClusterBindingDomainService validateKafkaClusterBindingDomainService;
+    private final ClusterBindingPermissionDomainService clusterBindingPermissionDomainService;
+    private final ObjectMapper objectMapper;
 
     public ApiValidationServiceImpl(
         final TagsValidationService tagsValidationService,
@@ -101,7 +107,9 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         ApiServicePluginService apiServicePluginService,
         FlowValidationDomainService flowValidationDomainService,
         ApiProductQueryService apiProductQueryService,
-        @Lazy ValidateKafkaClusterBindingDomainService validateKafkaClusterBindingDomainService
+        @Lazy ValidateKafkaClusterBindingDomainService validateKafkaClusterBindingDomainService,
+        @Lazy ClusterBindingPermissionDomainService clusterBindingPermissionDomainService,
+        ObjectMapper objectMapper
     ) {
         this.tagsValidationService = tagsValidationService;
         this.groupValidationService = groupValidationService;
@@ -116,6 +124,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         this.flowValidationDomainService = flowValidationDomainService;
         this.apiProductQueryService = apiProductQueryService;
         this.validateKafkaClusterBindingDomainService = validateKafkaClusterBindingDomainService;
+        this.clusterBindingPermissionDomainService = clusterBindingPermissionDomainService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -148,6 +158,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             endpointGroupsValidationService.validateAndSanitizeHttpV4(newApiEntity.getType(), newApiEntity.getEndpointGroups())
         );
         validateKafkaClusterBindingDomainService.validate(executionContext.getEnvironmentId(), newApiEntity.getEndpointGroups());
+        validateClusterBindingPermission(executionContext, null, newApiEntity.getEndpointGroups());
         // Validate and clean logging
         newApiEntity.setAnalytics(
             analyticsValidationService.validateAndSanitize(executionContext, newApiEntity.getType(), newApiEntity.getAnalytics())
@@ -206,6 +217,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             endpointGroupsValidationService.validateAndSanitizeHttpV4(updateApiEntity.getType(), updateApiEntity.getEndpointGroups())
         );
         validateKafkaClusterBindingDomainService.validate(executionContext.getEnvironmentId(), updateApiEntity.getEndpointGroups());
+        validateClusterBindingPermission(executionContext, existingApiEntity.getEndpointGroups(), updateApiEntity.getEndpointGroups());
         // Validate and clean logging
         updateApiEntity.setAnalytics(
             analyticsValidationService.validateAndSanitize(executionContext, updateApiEntity.getType(), updateApiEntity.getAnalytics())
@@ -278,6 +290,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             endpointGroupsValidationService.validateAndSanitizeHttpV4(apiEntity.getType(), apiEntity.getEndpointGroups())
         );
         validateKafkaClusterBindingDomainService.validate(executionContext.getEnvironmentId(), apiEntity.getEndpointGroups());
+        validateClusterBindingPermission(executionContext, null, apiEntity.getEndpointGroups());
         // Validate and clean logging
         apiEntity.setAnalytics(
             analyticsValidationService.validateAndSanitize(executionContext, apiEntity.getType(), apiEntity.getAnalytics())
@@ -344,6 +357,21 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
                 planEntity ->
                     PlanStatus.PUBLISHED.equals(planEntity.getPlanStatus()) || PlanStatus.DEPRECATED.equals(planEntity.getPlanStatus())
             );
+    }
+
+    // The caller is the authenticated user, as for the permission filter: an org admin passes, a system call is not checked.
+    private void validateClusterBindingPermission(
+        ExecutionContext executionContext,
+        List<EndpointGroup> previousEndpointGroups,
+        List<EndpointGroup> endpointGroups
+    ) {
+        clusterBindingPermissionDomainService.validate(
+            executionContext.getOrganizationId(),
+            executionContext.getEnvironmentId(),
+            getAuthenticatedUsername(),
+            ClusterBoundApisQueryService.messageClusterUses(previousEndpointGroups, objectMapper),
+            ClusterBoundApisQueryService.messageClusterUses(endpointGroups, objectMapper)
+        );
     }
 
     public void validateDynamicProperties(Service dynamicProperties) {

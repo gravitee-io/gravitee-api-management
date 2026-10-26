@@ -43,6 +43,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
 import java.util.List;
@@ -306,6 +307,35 @@ class ClustersResourceTest extends AbstractResourceTest {
             assertThat(response.getStatus()).isEqualTo(OK_200);
             var result = response.readEntity(List.class);
             assertThat(result).hasSize(1);
+        }
+
+        @Test
+        void should_tell_the_caller_which_clusters_it_may_bind() {
+            when(getDeployedClustersUseCase.execute(any())).thenReturn(
+                new GetDeployedClustersUseCase.Output(
+                    List.of(
+                        DeployedCluster.builder().crossId("my-cluster").name("My Cluster").connections(List.of()).bindable(true).build()
+                    )
+                )
+            );
+
+            final Response response = rootTarget().path("deployed").queryParam("type", "KAFKA_CLUSTER").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            List<Map<String, Object>> result = response.readEntity(new GenericType<>() {});
+            assertThat(result)
+                .singleElement()
+                .satisfies(cluster -> assertThat(cluster).containsEntry("bindable", true));
+            var captor = ArgumentCaptor.forClass(GetDeployedClustersUseCase.Input.class);
+            verify(getDeployedClustersUseCase).execute(captor.capture());
+            assertThat(captor.getValue()).isEqualTo(
+                new GetDeployedClustersUseCase.Input(
+                    ORGANIZATION,
+                    ENV_ID,
+                    USER_NAME,
+                    io.gravitee.definition.model.cluster.ClusterType.KAFKA_CLUSTER
+                )
+            );
         }
 
         @Test
