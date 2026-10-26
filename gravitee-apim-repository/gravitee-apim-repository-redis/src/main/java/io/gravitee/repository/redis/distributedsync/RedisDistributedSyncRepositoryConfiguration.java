@@ -71,7 +71,7 @@ public class RedisDistributedSyncRepositoryConfiguration {
     /**
      * Distributed events have no expiry: a policy evicting any key may silently drop part of the catalog.
      */
-    private static void warnOnEvictingPolicy(final RedisClient redisClient) {
+    static void warnOnEvictingPolicy(final RedisClient redisClient) {
         redisClient
             .redisApi()
             .flatMap(redisAPI -> redisAPI.config(List.of("GET", "maxmemory-policy")))

@@ -458,13 +458,14 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
                         RedisDistributedEventRepository::isRetryableWriteFailure
                     )
                 )
-                .onErrorResumeNext(throwable ->
-                    isRetryableWriteFailure(throwable)
-                        ? Completable.error(
+                .onErrorResumeNext(throwable -> {
+                    if (isRetryableWriteFailure(throwable)) {
+                        return Completable.error(
                             new DistributedSyncUnavailableException("Redis is unavailable for distributed sync writes", throwable)
-                        )
-                        : Completable.error(throwable)
-                )
+                        );
+                    }
+                    return Completable.error(throwable);
+                })
         );
     }
 

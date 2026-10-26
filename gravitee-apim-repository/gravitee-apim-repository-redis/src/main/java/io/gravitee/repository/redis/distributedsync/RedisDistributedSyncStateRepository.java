@@ -28,6 +28,7 @@ import io.vertx.redis.client.ResponseType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.LongConsumer;
 import lombok.CustomLog;
 
 /**
@@ -85,7 +86,7 @@ public class RedisDistributedSyncStateRepository implements DistributedSyncState
         }
     }
 
-    private static void longField(final Response item, final String field, final Consumer<Long> setter) {
+    private static void longField(final Response item, final String field, final LongConsumer setter) {
         Response value = item.get(field);
         if (value != null) {
             setter.accept(value.toLong());
