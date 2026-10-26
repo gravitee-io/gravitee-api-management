@@ -54,22 +54,9 @@ public class LogEntrypointResponse extends LogResponse {
             this.setHeaders(response.headers());
         }
 
-<<<<<<< HEAD
         this.setStatus(response.status());
-=======
-        final ExecutionFailure executionFailure = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE);
-        this.setStatus(executionFailure != null ? executionFailure.statusCode() : response.status());
-        if (
-            isLogPayload() &&
-            loggingContext.isBodyLoggable() &&
-            executionFailure != null &&
-            executionFailure.message() != null &&
-            this.getBody() == null
-        ) {
-            this.setBody(executionFailure.message());
-        }
 
-        if (executionFailure == null && ApiType.MESSAGE == ApiType.fromLabel(ctx.metrics().getApiType())) {
+        if (ApiType.MESSAGE == ApiType.fromLabel(ctx.metrics().getApiType())) {
             refreshOnceChunksConsumed();
         }
     }
@@ -90,7 +77,6 @@ public class LogEntrypointResponse extends LogResponse {
                     }
                 })
         );
->>>>>>> b5e699f (fix(gateway): log the entrypoint response status returned by message apis)
     }
 
     protected boolean isLogPayload() {
