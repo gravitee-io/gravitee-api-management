@@ -15,6 +15,9 @@
  */
 package io.gravitee.repository.jdbc;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.isMySqlOrMariaDb;
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.isPostgreSql;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -94,6 +97,7 @@ public class JdbcApiKeyCreateRaceTest extends AbstractRepositoryTest {
         assertThat(storedSubscriptions()).containsExactlyInAnyOrder("sub-of-the-winner", "sub-of-the-loser");
         assertThat(countLinks("sub-of-the-loser")).isEqualTo(1);
         assertThat(apiKeyRepository.findById("key-created-later-in-the-transaction")).isPresent();
+        assertTheApplicationHasASingleKey();
     }
 
     @Test
@@ -109,6 +113,7 @@ public class JdbcApiKeyCreateRaceTest extends AbstractRepositoryTest {
 
         assertThat(storedSubscriptions()).containsExactlyInAnyOrder("sub-of-the-winner", "sub-of-the-loser");
         assertThat(countLinks("sub-of-the-loser")).isEqualTo(1);
+        assertTheApplicationHasASingleKey();
     }
 
     @Test
@@ -120,11 +125,11 @@ public class JdbcApiKeyCreateRaceTest extends AbstractRepositoryTest {
 
         Future<?> winner = onAnotherNode(() -> {
             // Insert only once the losers have read: on SQL Server, a read waits for an uncommitted row.
-            losersRead.await(TIMEOUT_SECONDS, SECONDS);
+            assertThat(losersRead.await(TIMEOUT_SECONDS, SECONDS)).isTrue();
             apiKeyRepository.create(sharedKey("sub-of-the-winner"));
             winnerInserted.countDown();
             // Commit only once the losers are waiting for the uncommitted key.
-            losersInserting.await(TIMEOUT_SECONDS, SECONDS);
+            assertThat(losersInserting.await(TIMEOUT_SECONDS, SECONDS)).isTrue();
             Thread.sleep(500);
         });
         List<Future<?>> losers = Stream.of("sub-of-loser-1", "sub-of-loser-2")
@@ -132,12 +137,11 @@ public class JdbcApiKeyCreateRaceTest extends AbstractRepositoryTest {
                 onAnotherNode(() -> {
                     assertThat(apiKeyRepository.findByApplication(APPLICATION)).isEmpty();
                     losersRead.countDown();
-                    winnerInserted.await(TIMEOUT_SECONDS, SECONDS);
+                    assertThat(winnerInserted.await(TIMEOUT_SECONDS, SECONDS)).isTrue();
                     losersInserting.countDown();
                     assertThatThrownBy(() -> apiKeyRepository.create(sharedKey(subscription))).isInstanceOf(DuplicateKeyException.class);
-                    // Both losers go on together, each keeping whatever its lost insert left it.
                     losersLost.countDown();
-                    losersLost.await(5, SECONDS);
+                    awaitTheOtherLoser(losersLost);
                     linkToEveryKeyOfTheApplication(subscription);
                 })
             )
@@ -149,6 +153,25 @@ public class JdbcApiKeyCreateRaceTest extends AbstractRepositoryTest {
         }
 
         assertThat(storedSubscriptions()).containsExactlyInAnyOrder("sub-of-the-winner", "sub-of-loser-1", "sub-of-loser-2");
+        assertTheApplicationHasASingleKey();
+    }
+
+    /**
+     * Where the database lets both losers lose at once, they go on together, each keeping whatever its lost insert left it: that
+     * is how a plain insert deadlocked them on MySQL and MariaDB.
+     * <ul>
+     *     <li>PostgreSQL: both lose when the winner commits, and hold no lock on the key.</li>
+     *     <li>MySQL and MariaDB: {@code on duplicate key update} locks the existing key exclusively, so the second loser only loses
+     *     once the first one has committed. The losers take turns: there is nothing to wait for.</li>
+     *     <li>Other databases (SQL Server, not run here): wait a few seconds at most for the other loser.</li>
+     * </ul>
+     */
+    private static void awaitTheOtherLoser(CountDownLatch losersLost) throws InterruptedException {
+        if (isPostgreSql()) {
+            assertThat(losersLost.await(TIMEOUT_SECONDS, SECONDS)).isTrue();
+        } else if (!isMySqlOrMariaDb()) {
+            losersLost.await(5, SECONDS);
+        }
     }
 
     /** What the node that lost the race does: link its subscription to every key of the application, as found now. */
@@ -162,6 +185,14 @@ public class JdbcApiKeyCreateRaceTest extends AbstractRepositoryTest {
 
     private List<String> storedSubscriptions() throws Exception {
         return apiKeyRepository.findById(SHARED_KEY_ID).orElseThrow().getSubscriptions();
+    }
+
+    /** Only the winner created a key: the application has one key row. */
+    private void assertTheApplicationHasASingleKey() {
+        String keys = escapeReservedWord(graviteeProperties.getProperty("management.jdbc.prefix", "") + "keys");
+        assertThat(
+            jdbcTemplate.queryForObject("select count(*) from " + keys + " where application = ?", Integer.class, APPLICATION)
+        ).isEqualTo(1);
     }
 
     private int countLinks(String subscriptionId) {
