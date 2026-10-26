@@ -20,11 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
-<<<<<<< HEAD
-=======
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
->>>>>>> b5e699f (fix(gateway): log the entrypoint response status returned by message apis)
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
