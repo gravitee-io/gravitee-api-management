@@ -27,7 +27,10 @@ import java.util.OptionalInt;
 
 public class ApiKeyCrudServiceInMemory implements ApiKeyCrudService, InMemoryAlternative<ApiKeyEntity> {
 
-    /** Writes are atomic, like on a database, so that tests can run several requests at once (writes lock the storage). */
+    /**
+     * Writes are atomic, like on a database, so that tests can run several requests at once: writes lock the storage, and the
+     * reads of {@link ApiKeyQueryServiceInMemory} copy it under the same lock.
+     */
     final ArrayList<ApiKeyEntity> storage = new ArrayList<>();
 
     private final boolean rejectsExistingIds;
@@ -91,13 +94,17 @@ public class ApiKeyCrudServiceInMemory implements ApiKeyCrudService, InMemoryAlt
 
     @Override
     public void initWith(List<ApiKeyEntity> items) {
-        storage.clear();
-        storage.addAll(items);
+        synchronized (storage) {
+            storage.clear();
+            storage.addAll(items);
+        }
     }
 
     @Override
     public void reset() {
-        storage.clear();
+        synchronized (storage) {
+            storage.clear();
+        }
     }
 
     @Override
