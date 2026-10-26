@@ -6,7 +6,7 @@ databaseChangeLog:
   # written since the last run. No MARK_RAN precondition: on a changeset that already ran, it would insert a second
   # changelog row.
   - changeSet:
-      id: 4.12.26_00_repair_subscriptions_unique_active_key
+      id: 4.12.27_00_repair_subscriptions_unique_active_key
       author: GraviteeSource Team
       runInTransaction: false
       runAlways: true
@@ -20,7 +20,7 @@ databaseChangeLog:
   # tried again at every startup (CONTINUE) until the extra subscriptions are closed. The duplicates are listed by the
   # repair above. PostgreSQL, MySQL and MariaDB accept several NULLs in a unique index.
   - changeSet:
-      id: 4.12.26_01_add_subscriptions_unique_active_key_index
+      id: 4.12.27_01_add_subscriptions_unique_active_key_index
       author: GraviteeSource Team
       dbms: "!mssql"
       preConditions:
@@ -40,7 +40,7 @@ databaseChangeLog:
 
   # SQL Server considers NULLs equal in a unique index: filtered index on the active subscriptions only.
   - changeSet:
-      id: 4.12.26_01_add_subscriptions_unique_active_key_index_mssql
+      id: 4.12.27_01_add_subscriptions_unique_active_key_index_mssql
       author: GraviteeSource Team
       dbms: mssql
       preConditions:
