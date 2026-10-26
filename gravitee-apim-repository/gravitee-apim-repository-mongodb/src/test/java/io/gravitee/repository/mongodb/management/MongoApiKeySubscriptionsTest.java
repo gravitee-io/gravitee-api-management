@@ -20,13 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.repository.management.AbstractManagementRepositoryTest;
 import io.gravitee.repository.management.model.ApiKey;
+import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.bson.Document;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
 /**
@@ -37,11 +38,13 @@ public class MongoApiKeySubscriptionsTest extends AbstractManagementRepositoryTe
 
     private static final String KEY_ID = "id-of-shared-apikey";
 
+    /**
+     * The template built from the mapping context of the application, as in production: it resolves the collection name of
+     * {@link ApiKeyMongo}, prefix included. The primary template of the tests cannot.
+     */
     @Inject
+    @Named("mongoTemplate")
     private MongoTemplate mongoTemplate;
-
-    @Value("${management.mongodb.prefix:}")
-    private String tablePrefix;
 
     @Override
     protected String getTestCasesPath() {
@@ -74,7 +77,7 @@ public class MongoApiKeySubscriptionsTest extends AbstractManagementRepositoryTe
     }
 
     private List<String> storedSubscriptions() {
-        Document stored = mongoTemplate.getCollection(tablePrefix + "keys").find(eq("_id", KEY_ID)).first();
+        Document stored = mongoTemplate.getCollection(mongoTemplate.getCollectionName(ApiKeyMongo.class)).find(eq("_id", KEY_ID)).first();
         assertThat(stored).isNotNull();
         return stored.getList("subscriptions", String.class);
     }
