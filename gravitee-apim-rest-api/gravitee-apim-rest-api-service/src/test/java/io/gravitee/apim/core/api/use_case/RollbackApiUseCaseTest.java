@@ -55,12 +55,16 @@ import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
+import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
+import io.gravitee.apim.core.cluster.exception.ClusterBindingNotAllowedException;
+import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.ClosePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeprecatePlanDomainService;
@@ -79,6 +83,7 @@ import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
@@ -145,6 +150,8 @@ class RollbackApiUseCaseTest {
     private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
     private final MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
     private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
+    private final ClusterQueryServiceInMemory clusterQueryService = new ClusterQueryServiceInMemory();
+    private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
 
     @Mock
     CreatePlanDomainService createPlanDomainService;
@@ -224,7 +231,8 @@ class RollbackApiUseCaseTest {
             this.apiPrimaryOwnerDomainService,
             apiStateDomainService,
             updateNativeApiDomainService,
-            new PropertyDomainService(dataEncryptor)
+            new PropertyDomainService(dataEncryptor),
+            new ClusterBindingPermissionDomainService(clusterQueryService, permissionDomainService, GraviteeJacksonMapper.getInstance())
         );
 
         this.initializePrimaryOwnerData();
@@ -246,7 +254,8 @@ class RollbackApiUseCaseTest {
             subscriptionCrudService,
             apiCrudService,
             subscriptionQueryService,
-            flowCrudService
+            flowCrudService,
+            clusterQueryService
         ).forEach(InMemoryAlternative::reset);
         reset(delegateApiService);
     }
@@ -423,6 +432,57 @@ class RollbackApiUseCaseTest {
         });
 
         assertRollbackAuditHasBeenCreated();
+    }
+
+    @Test
+    void should_refuse_a_native_rollback_moving_to_a_connection_of_a_cluster_the_user_is_not_a_member_of() throws Exception {
+        clusterQueryService.initWith(
+            List.of(
+                Cluster.builder()
+                    .id("prod-id")
+                    .crossId("prod")
+                    .name("Production")
+                    .type(ClusterType.KAFKA_CLUSTER)
+                    .environmentId(ENVIRONMENT_ID)
+                    .build()
+            )
+        );
+        var stored = ApiFixtures.aNativeApiBoundToCluster(
+            API_ID,
+            ENVIRONMENT_ID,
+            io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED,
+            "prod",
+            "sasl"
+        );
+        apiCrudService.initWith(List.of(stored));
+        var deployedDefinition = ApiFixtures.aNativeApiBoundToCluster(
+            API_ID,
+            ENVIRONMENT_ID,
+            io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED,
+            "prod",
+            "plain"
+        ).getApiDefinitionNativeV4();
+        var apiRepositoryModel = io.gravitee.repository.management.model.Api.builder()
+            .id(API_ID)
+            .name(deployedDefinition.getName())
+            .definitionVersion(DefinitionVersion.V4)
+            .type(ApiType.NATIVE)
+            .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(deployedDefinition))
+            .build();
+        var event = Event.builder()
+            .id("event-id")
+            .type(EventType.PUBLISH_API)
+            .environments(Set.of(ENVIRONMENT_ID))
+            .payload(GraviteeJacksonMapper.getInstance().writeValueAsString(apiRepositoryModel))
+            .build();
+        eventQueryService.initWith(List.of(event));
+
+        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO)));
+
+        assertThat(throwable).isInstanceOf(ClusterBindingNotAllowedException.class).hasMessageContaining("[Production]");
+        assertThat(
+            apiCrudService.get(API_ID).getApiDefinitionNativeV4().getEndpointGroups().get(0).getEndpoints().get(0).getConfiguration()
+        ).contains("\"sasl\"");
     }
 
     @Test

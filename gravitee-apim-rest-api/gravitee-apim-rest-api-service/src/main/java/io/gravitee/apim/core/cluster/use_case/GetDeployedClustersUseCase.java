@@ -17,6 +17,7 @@ package io.gravitee.apim.core.cluster.use_case;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
 import io.gravitee.apim.core.cluster.domain_service.DeployedClustersDomainService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.DeployedCluster;
@@ -31,9 +32,11 @@ import lombok.AllArgsConstructor;
 public class GetDeployedClustersUseCase {
 
     private final DeployedClustersDomainService deployedClustersDomainService;
+    private final ClusterBindingPermissionDomainService clusterBindingPermissionDomainService;
     private final ObjectMapper objectMapper;
 
-    public record Input(String environmentId, ClusterType type) {}
+    /** @param userId the caller, to tell which clusters it may bind */
+    public record Input(String organizationId, String environmentId, String userId, ClusterType type) {}
 
     public record Output(List<DeployedCluster> deployedClusters) {}
 
@@ -43,12 +46,12 @@ public class GetDeployedClustersUseCase {
                 .findAll(input.environmentId())
                 .stream()
                 .filter(cluster -> input.type() == null || cluster.getType() == input.type())
-                .map(this::toDeployedCluster)
+                .map(cluster -> toDeployedCluster(cluster, input))
                 .toList()
         );
     }
 
-    private DeployedCluster toDeployedCluster(Cluster cluster) {
+    private DeployedCluster toDeployedCluster(Cluster cluster, Input input) {
         List<DeployedCluster.DeployedClusterConnection> connections = Collections.emptyList();
         if (cluster.getType() == ClusterType.KAFKA_CLUSTER && cluster.getConfiguration() != null) {
             KafkaClusterConfiguration config = cluster.getKafkaClusterConfiguration(objectMapper);
@@ -74,6 +77,7 @@ public class GetDeployedClustersUseCase {
             .deployedAt(cluster.getDeployedAt())
             .version(cluster.getVersion())
             .connections(connections)
+            .bindable(clusterBindingPermissionDomainService.canBind(input.organizationId(), input.userId(), cluster))
             .build();
     }
 }

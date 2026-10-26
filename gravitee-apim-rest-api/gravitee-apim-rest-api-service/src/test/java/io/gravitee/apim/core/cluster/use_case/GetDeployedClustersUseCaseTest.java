@@ -16,15 +16,23 @@
 package io.gravitee.apim.core.cluster.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import inmemory.ClusterQueryServiceInMemory;
 import inmemory.EventLatestQueryServiceInMemory;
+import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
 import io.gravitee.apim.core.cluster.domain_service.DeployedClustersDomainService;
 import io.gravitee.apim.core.cluster.model.DeployedCluster;
 import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import java.time.ZonedDateTime;
 import java.util.EnumMap;
 import java.util.List;
@@ -36,8 +44,11 @@ import org.junit.jupiter.api.Test;
 class GetDeployedClustersUseCaseTest {
 
     private static final String ENV_ID = "env-id";
+    private static final String ORG_ID = "org-id";
+    private static final String USER_ID = "user-id";
 
     private final EventLatestQueryServiceInMemory eventLatestQueryService = new EventLatestQueryServiceInMemory();
+    private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
     private GetDeployedClustersUseCase useCase;
 
     @BeforeEach
@@ -45,12 +56,16 @@ class GetDeployedClustersUseCaseTest {
         eventLatestQueryService.reset();
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        useCase = new GetDeployedClustersUseCase(new DeployedClustersDomainService(eventLatestQueryService, objectMapper), objectMapper);
+        useCase = new GetDeployedClustersUseCase(
+            new DeployedClustersDomainService(eventLatestQueryService, objectMapper),
+            new ClusterBindingPermissionDomainService(new ClusterQueryServiceInMemory(), permissionDomainService, new ObjectMapper()),
+            objectMapper
+        );
     }
 
     @Test
     void should_return_empty_list_when_no_deployed_clusters() {
-        var output = useCase.execute(new GetDeployedClustersUseCase.Input(ENV_ID, null));
+        var output = useCase.execute(new GetDeployedClustersUseCase.Input(ORG_ID, ENV_ID, USER_ID, null));
         assertThat(output.deployedClusters()).isEmpty();
     }
 
@@ -92,7 +107,7 @@ class GetDeployedClustersUseCaseTest {
             )
         );
 
-        var output = useCase.execute(new GetDeployedClustersUseCase.Input(ENV_ID, null));
+        var output = useCase.execute(new GetDeployedClustersUseCase.Input(ORG_ID, ENV_ID, USER_ID, null));
 
         assertThat(output.deployedClusters()).hasSize(1);
         DeployedCluster cluster = output.deployedClusters().get(0);
@@ -137,7 +152,7 @@ class GetDeployedClustersUseCaseTest {
             )
         );
 
-        var output = useCase.execute(new GetDeployedClustersUseCase.Input(ENV_ID, null));
+        var output = useCase.execute(new GetDeployedClustersUseCase.Input(ORG_ID, ENV_ID, USER_ID, null));
         assertThat(output.deployedClusters()).isEmpty();
     }
 
@@ -189,10 +204,55 @@ class GetDeployedClustersUseCaseTest {
             )
         );
 
-        var output = useCase.execute(new GetDeployedClustersUseCase.Input(ENV_ID, ClusterType.KAFKA_VIRTUAL_CLUSTER));
+        var output = useCase.execute(new GetDeployedClustersUseCase.Input(ORG_ID, ENV_ID, USER_ID, ClusterType.KAFKA_VIRTUAL_CLUSTER));
 
         assertThat(output.deployedClusters()).hasSize(1);
         assertThat(output.deployedClusters().get(0).getCrossId()).isEqualTo("virtual-cluster");
         assertThat(output.deployedClusters().get(0).getType()).isEqualTo(ClusterType.KAFKA_VIRTUAL_CLUSTER);
+    }
+
+    @Test
+    void should_tell_which_clusters_the_caller_may_bind() {
+        givenDeployed(
+            deployEvent("member-id", "member", "KAFKA_CLUSTER"),
+            deployEvent("other-id", "other", "KAFKA_CLUSTER"),
+            deployEvent("mesh-id", "mesh", "KAFKA_VIRTUAL_CLUSTER")
+        );
+        when(
+            permissionDomainService.hasPermission(
+                ORG_ID,
+                USER_ID,
+                RolePermission.CLUSTER_DEFINITION,
+                "member-id",
+                RolePermissionAction.READ
+            )
+        ).thenReturn(true);
+
+        var output = useCase.execute(new GetDeployedClustersUseCase.Input(ORG_ID, ENV_ID, USER_ID, null));
+
+        assertThat(output.deployedClusters())
+            .extracting(DeployedCluster::getCrossId, DeployedCluster::isBindable)
+            .containsExactlyInAnyOrder(tuple("member", true), tuple("other", false), tuple("mesh", true));
+    }
+
+    private void givenDeployed(Event... events) {
+        eventLatestQueryService.initWith(List.of(events));
+    }
+
+    private static Event deployEvent(String id, String crossId, String type) {
+        var properties = new EnumMap<Event.EventProperties, String>(Event.EventProperties.class);
+        properties.put(Event.EventProperties.CLUSTER_ID, crossId);
+        return Event.builder()
+            .id("event-" + id)
+            .type(EventType.DEPLOY_CLUSTER)
+            .payload(
+                """
+                { "id": "%s", "crossId": "%s", "name": "%s", "type": "%s", "configuration": {} }
+                """.formatted(id, crossId, crossId, type)
+            )
+            .environments(Set.of(ENV_ID))
+            .properties(properties)
+            .createdAt(ZonedDateTime.now())
+            .build();
     }
 }
