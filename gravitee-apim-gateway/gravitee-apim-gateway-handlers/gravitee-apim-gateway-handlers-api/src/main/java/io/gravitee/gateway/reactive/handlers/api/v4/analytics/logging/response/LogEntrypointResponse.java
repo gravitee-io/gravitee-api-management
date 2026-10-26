@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response;
 
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
@@ -53,7 +54,43 @@ public class LogEntrypointResponse extends LogResponse {
             this.setHeaders(response.headers());
         }
 
+<<<<<<< HEAD
         this.setStatus(response.status());
+=======
+        final ExecutionFailure executionFailure = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE);
+        this.setStatus(executionFailure != null ? executionFailure.statusCode() : response.status());
+        if (
+            isLogPayload() &&
+            loggingContext.isBodyLoggable() &&
+            executionFailure != null &&
+            executionFailure.message() != null &&
+            this.getBody() == null
+        ) {
+            this.setBody(executionFailure.message());
+        }
+
+        if (executionFailure == null && ApiType.MESSAGE == ApiType.fromLabel(ctx.metrics().getApiType())) {
+            refreshOnceChunksConsumed();
+        }
+    }
+
+    /**
+     * With message APIs, the entrypoint connector only decides the final response status and headers while the response
+     * chunks are being consumed, which happens after the capture. Once the chunks are consumed, capture them again so
+     * the log reflects what is actually returned to the client.
+     */
+    private void refreshOnceChunksConsumed() {
+        response.chunks(
+            response
+                .chunks()
+                .doOnComplete(() -> {
+                    this.setStatus(response.status());
+                    if (isLogHeaders()) {
+                        this.refreshHeaders(response.headers());
+                    }
+                })
+        );
+>>>>>>> b5e699f (fix(gateway): log the entrypoint response status returned by message apis)
     }
 
     protected boolean isLogPayload() {
