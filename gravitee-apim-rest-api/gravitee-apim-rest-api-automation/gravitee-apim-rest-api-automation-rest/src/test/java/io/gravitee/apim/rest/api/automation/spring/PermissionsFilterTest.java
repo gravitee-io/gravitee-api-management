@@ -27,11 +27,14 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.rest.api.automation.helpers.HRIDHelper;
+import io.gravitee.apim.rest.api.automation.resource.ApiResource;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
@@ -40,6 +43,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ResourceInfo;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.UriInfo;
 import java.io.ByteArrayInputStream;
@@ -71,6 +75,9 @@ public class PermissionsFilterTest {
     @Mock
     protected ContainerRequestContext containerRequestContext;
 
+    @Mock
+    protected ResourceInfo resourceInfo;
+
     private static final String HRID = "test-hrid";
     private static final String HRID_PARAM = "hrid";
     private static final String API_HRID_PARAM = "apiHrid";
@@ -82,6 +89,8 @@ public class PermissionsFilterTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        doReturn(Object.class).when(resourceInfo).getResourceClass();
+        when(containerRequestContext.getHeaders()).thenReturn(new MultivaluedHashMap<>());
         GraviteeContext.setCurrentOrganization(ORGANIZATION_ID);
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
     }
@@ -109,6 +118,7 @@ public class PermissionsFilterTest {
             when(uriInfo.getQueryParameters()).thenReturn(queryParams);
             when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
             when(containerRequestContext.getMethod()).thenReturn("GET");
+            doReturn(ApiResource.class).when(resourceInfo).getResourceClass();
         }
 
         @Test
@@ -147,6 +157,19 @@ public class PermissionsFilterTest {
                 eq(IdBuilder.builder(GraviteeContext.getExecutionContext(), HRID).buildId()),
                 eq(READ)
             );
+        }
+
+        @Test
+        void should_authorize_the_api_id_as_sent_when_the_set_hrid_header_is_sent_on_get() {
+            when(containerRequestContext.getUriInfo().getQueryParameters()).thenReturn(new MultivaluedHashMap<>());
+            var headers = new MultivaluedHashMap<String, String>();
+            headers.add(HRIDHelper.HEADER_X_GRAVITEE_SET_HRID, "true");
+            when(containerRequestContext.getHeaders()).thenReturn(headers);
+            when(permissionService.hasPermission(any(), eq(API_DEFINITION), eq(HRID), eq(READ))).thenReturn(true);
+
+            permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
+
+            verify(permissionService).hasPermission(any(), eq(API_DEFINITION), eq(HRID), eq(READ));
         }
     }
 
