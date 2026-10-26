@@ -15,6 +15,16 @@
  */
 package io.gravitee.apim.core.cluster.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 
-public record KafkaVirtualClusterConfiguration(List<KafkaVirtualClusterBackend> backends) {}
+/**
+ * @param backendMetadataMaxAge seconds during which each gateway instance reuses its own all-topics metadata request to
+ *     each backend, whatever their own clusters set, {@code null} when the virtual cluster leaves the gateway default
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record KafkaVirtualClusterConfiguration(List<KafkaVirtualClusterBackend> backends, Integer backendMetadataMaxAge) {
+    public KafkaVirtualClusterConfiguration(List<KafkaVirtualClusterBackend> backends) {
+        this(backends, null);
+    }
+}

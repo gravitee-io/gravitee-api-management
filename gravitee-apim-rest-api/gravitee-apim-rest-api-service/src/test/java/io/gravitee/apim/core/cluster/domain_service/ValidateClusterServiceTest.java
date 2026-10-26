@@ -339,6 +339,38 @@ class ValidateClusterServiceTest {
     }
 
     @Test
+    void should_pass_with_a_backend_metadata_max_age_on_a_kafka_cluster_and_a_kafka_virtual_cluster() {
+        Cluster cluster = Cluster.builder()
+            .type(ClusterType.KAFKA_CLUSTER)
+            .name("my-kafka-cluster")
+            .configuration(Map.of("connections", List.of(), "backendMetadataMaxAge", 30))
+            .build();
+        Cluster virtualCluster = Cluster.builder()
+            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+            .name("my-virtual-cluster")
+            .configuration(Map.of("backends", List.of(), "backendMetadataMaxAge", 0))
+            .build();
+
+        assertThatCode(() -> validateClusterService.validate(cluster)).doesNotThrowAnyException();
+        assertThatCode(() -> validateClusterService.validate(virtualCluster)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_throw_when_the_backend_metadata_max_age_is_out_of_bounds_or_not_a_whole_number() {
+        for (Object ttl : List.of(-1, 3601, 1.5, "30")) {
+            Cluster cluster = Cluster.builder()
+                .type(ClusterType.KAFKA_CLUSTER)
+                .name("my-kafka-cluster")
+                .configuration(Map.of("connections", List.of(), "backendMetadataMaxAge", ttl))
+                .build();
+
+            assertThatThrownBy(() -> validateClusterService.validate(cluster))
+                .as("ttl %s", ttl)
+                .isInstanceOf(InvalidDataException.class);
+        }
+    }
+
+    @Test
     void should_throw_when_kafka_virtual_cluster_has_duplicate_backends() {
         Cluster cluster = Cluster.builder()
             .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
