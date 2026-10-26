@@ -16,11 +16,14 @@
 package io.gravitee.apim.rest.api.automation.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -67,7 +70,7 @@ class ApiResourceTest extends AbstractResourceTest {
 
     @AfterEach
     void tearDown() {
-        reset(exportApiCRDUseCase);
+        reset(exportApiCRDUseCase, apiService, apiSearchServiceV4);
     }
 
     @Nested
@@ -200,6 +203,21 @@ class ApiResourceTest extends AbstractResourceTest {
             doThrow(new ApiNotFoundException("unknown")).when(apiService).delete(any(), any(), eq(true));
 
             expectNotFound("unknown");
+        }
+
+        @Test
+        void should_return_a_404_status_code_and_not_delete_an_api_outside_the_environment() {
+            when(
+                apiSearchServiceV4.findRepositoryApiById(
+                    argThat(executionContext -> ENVIRONMENT.equals(executionContext.getEnvironmentId())),
+                    eq(API_ID)
+                )
+            ).thenThrow(new ApiNotFoundException(API_ID));
+
+            try (var response = rootTarget().queryParam("legacy", true).path(API_ID).request().delete()) {
+                assertThat(response.getStatus()).isEqualTo(404);
+            }
+            verify(apiService, never()).delete(any(), any(), anyBoolean());
         }
 
         private void expectNoContent(String hrid) {
