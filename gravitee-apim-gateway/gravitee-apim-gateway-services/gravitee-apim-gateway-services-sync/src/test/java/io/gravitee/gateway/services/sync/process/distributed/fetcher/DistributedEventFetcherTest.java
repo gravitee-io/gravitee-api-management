@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,8 +32,10 @@ import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Single;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -110,5 +113,95 @@ class DistributedEventFetcherTest {
         assertThatThrownBy(() -> new DistributedEventFetcher(distributedEventRepository, clusterManager, 0, Map.of())).isInstanceOf(
             IllegalArgumentException.class
         );
+        assertThatThrownBy(() -> new DistributedEventFetcher(distributedEventRepository, clusterManager, -1, Map.of())).isInstanceOf(
+            IllegalArgumentException.class
+        );
+    }
+
+    @Test
+    void should_use_a_type_override_without_going_under_the_minimum_batch() {
+        cut = new DistributedEventFetcher(
+            distributedEventRepository,
+            clusterManager,
+            5_000,
+            Map.of(DistributedEventType.API, 2_000, DistributedEventType.DICTIONARY, 10)
+        );
+
+        assertThat(cut.requestBatchSize(DistributedEventType.API)).isEqualTo(2_000);
+        assertThat(cut.requestBatchSize(DistributedEventType.DICTIONARY)).isEqualTo(1_000);
+        assertThat(cut.requestBatchSize(DistributedEventType.SUBSCRIPTION)).isEqualTo(5_000);
+    }
+
+    @Test
+    void should_fetch_the_authoritative_deploy_set_without_a_time_window() {
+        when(distributedEventRepository.searchAll(any(), eq(1000L))).thenReturn(Flowable.empty());
+
+        cut.fetchAuthoritative(DistributedEventType.API, Set.of(DistributedSyncAction.DEPLOY)).test().assertComplete();
+
+        ArgumentCaptor<DistributedEventCriteria> criteriaCaptor = ArgumentCaptor.forClass(DistributedEventCriteria.class);
+        verify(distributedEventRepository).searchAll(criteriaCaptor.capture(), eq(1000L));
+        assertThat(criteriaCaptor.getValue().getFrom()).isEqualTo(-1L);
+        assertThat(criteriaCaptor.getValue().getTo()).isEqualTo(-1L);
+        assertThat(criteriaCaptor.getValue().getType()).isEqualTo(DistributedEventType.API);
+    }
+
+    @Test
+    void should_skip_an_incremental_fetch_when_the_change_sequence_has_not_moved() {
+        when(distributedEventRepository.serverTime()).thenReturn(Single.just(5_000L));
+        when(distributedEventRepository.searchAll(any(), eq(1000L))).thenReturn(Flowable.empty());
+
+        cut.fetchLatest(1_000L, 2_000L, DistributedEventType.API, Set.of(DistributedSyncAction.DEPLOY)).test().assertComplete();
+        cut.fetchLatest(1_000L, 2_000L, DistributedEventType.API, Set.of(DistributedSyncAction.DEPLOY)).test().assertComplete();
+
+        verify(distributedEventRepository, times(1)).searchAll(any(), eq(1000L));
+    }
+
+    @Test
+    void should_fetch_again_when_the_change_sequence_moves() {
+        AtomicLong clock = new AtomicLong(5_000L);
+        when(distributedEventRepository.serverTime()).thenAnswer(invocation -> Single.just(clock.get()));
+        when(distributedEventRepository.searchAll(any(), eq(1000L))).thenReturn(Flowable.empty());
+
+        cut.fetchLatest(1_000L, 2_000L, DistributedEventType.API, Set.of()).test().assertComplete();
+        clock.set(6_000L);
+        cut.fetchLatest(1_000L, 2_000L, DistributedEventType.API, Set.of()).test().assertComplete();
+
+        verify(distributedEventRepository, times(2)).searchAll(any(), eq(1000L));
+    }
+
+    @Test
+    void should_force_a_fetch_after_the_bounded_number_of_unchanged_cycles() {
+        when(distributedEventRepository.serverTime()).thenReturn(Single.just(5_000L));
+        when(distributedEventRepository.searchAll(any(), eq(1000L))).thenReturn(Flowable.empty());
+
+        for (int i = 0; i < 12; i++) {
+            cut.fetchLatest(1_000L, 2_000L, DistributedEventType.SUBSCRIPTION, Set.of()).test().assertComplete();
+        }
+
+        // The first cycle fetches, the next ten skip, and the twelfth is a forced check.
+        verify(distributedEventRepository, times(2)).searchAll(any(), eq(1000L));
+    }
+
+    @Test
+    void should_fetch_when_the_change_sequence_clock_cannot_be_read() {
+        when(distributedEventRepository.serverTime()).thenReturn(Single.error(new IllegalStateException("redis down")));
+        when(distributedEventRepository.searchAll(any(), eq(1000L))).thenReturn(Flowable.empty());
+
+        cut.fetchLatest(1_000L, 2_000L, DistributedEventType.API, Set.of()).test().assertComplete();
+
+        verify(distributedEventRepository).searchAll(any(), eq(1000L));
+    }
+
+    @Test
+    void should_fetch_again_when_the_clock_returns_no_time() {
+        Single<Long> noTime = org.mockito.Mockito.mock(Single.class);
+        when(noTime.blockingGet()).thenReturn(null);
+        when(distributedEventRepository.serverTime()).thenReturn(noTime);
+        when(distributedEventRepository.searchAll(any(), eq(1000L))).thenReturn(Flowable.empty());
+
+        cut.fetchLatest(1_000L, 2_000L, DistributedEventType.API, Set.of()).test().assertComplete();
+        cut.fetchLatest(1_000L, 2_000L, DistributedEventType.API, Set.of()).test().assertComplete();
+
+        verify(distributedEventRepository, times(2)).searchAll(any(), eq(1000L));
     }
 }
