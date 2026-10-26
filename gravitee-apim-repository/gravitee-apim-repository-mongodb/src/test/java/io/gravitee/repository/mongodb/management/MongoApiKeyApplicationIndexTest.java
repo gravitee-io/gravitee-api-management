@@ -23,6 +23,7 @@ import com.mongodb.ExplainVerbosity;
 import com.mongodb.client.MongoCollection;
 import io.gravitee.repository.management.AbstractManagementRepositoryTest;
 import jakarta.inject.Inject;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -84,31 +85,50 @@ public class MongoApiKeyApplicationIndexTest extends AbstractManagementRepositor
      */
     @Test
     public void keysIndexes_shouldAddApplicationUpdatedAtIndexAndKeepEveryExistingIndex() {
-        Map<String, String> keyPatternByIndexName = StreamSupport.stream(keys().listIndexes().spliterator(), false).collect(
-            Collectors.toMap(index -> index.getString("name"), index -> index.get("key", Document.class).toJson())
-        );
+        Map<String, List<Map.Entry<String, Object>>> keySpecByIndexName = StreamSupport.stream(
+            keys().listIndexes().spliterator(),
+            false
+        ).collect(Collectors.toMap(index -> index.getString("name"), index -> keySpec(index.get("key", Document.class))));
 
-        assertThat(keyPatternByIndexName).containsAllEntriesOf(
+        assertThat(keySpecByIndexName).containsAllEntriesOf(
             Map.ofEntries(
-                Map.entry("_id_", "{\"_id\": 1}"),
-                Map.entry("a1", "{\"applications\": 1}"),
-                Map.entry("e1", "{\"environmentId\": 1}"),
-                Map.entry("e1ua1i1", "{\"environmentId\": 1, \"updatedAt\": 1, \"_id\": 1}"),
-                Map.entry("f1", "{\"federated\": 1}"),
-                Map.entry("k1", "{\"key\": 1}"),
-                Map.entry("p1", "{\"plan\": 1}"),
-                Map.entry("r1", "{\"revoked\": 1}"),
-                Map.entry("r1ea1", "{\"revoked\": 1, \"expireAt\": 1}"),
-                Map.entry("r1ua-1ea1", "{\"revoked\": 1, \"updatedAt\": -1, \"expireAt\": 1}"),
-                Map.entry("s1", "{\"subscriptions\": 1}"),
-                Map.entry("u1", "{\"updatedAt\": 1}"),
-                Map.entry(EXPECTED_INDEX_NAME, "{\"application\": 1, \"updatedAt\": -1}")
+                Map.entry("_id_", keySpec("{_id: 1}")),
+                Map.entry("a1", keySpec("{applications: 1}")),
+                Map.entry("e1", keySpec("{environmentId: 1}")),
+                Map.entry("e1ua1i1", keySpec("{environmentId: 1, updatedAt: 1, _id: 1}")),
+                Map.entry("f1", keySpec("{federated: 1}")),
+                Map.entry("k1", keySpec("{key: 1}")),
+                Map.entry("p1", keySpec("{plan: 1}")),
+                Map.entry("r1", keySpec("{revoked: 1}")),
+                Map.entry("r1ea1", keySpec("{revoked: 1, expireAt: 1}")),
+                Map.entry("r1ua-1ea1", keySpec("{revoked: 1, updatedAt: -1, expireAt: 1}")),
+                Map.entry("s1", keySpec("{subscriptions: 1}")),
+                Map.entry("u1", keySpec("{updatedAt: 1}")),
+                Map.entry(EXPECTED_INDEX_NAME, keySpec("{application: 1, updatedAt: -1}"))
             )
         );
     }
 
     private MongoCollection<Document> keys() {
         return mongoTemplate.getCollection(tablePrefix + "keys");
+    }
+
+    private static List<Map.Entry<String, Object>> keySpec(String json) {
+        return keySpec(Document.parse(json));
+    }
+
+    /**
+     * An index key spec as its ordered (field, direction) pairs. Numeric directions are compared by value, so {@code 1},
+     * {@code 1.0} and {@code NumberLong(1)} are equal; other directions (for instance {@code "text"}) are kept as is.
+     */
+    private static List<Map.Entry<String, Object>> keySpec(Document key) {
+        return key
+            .entrySet()
+            .stream()
+            .map(field ->
+                Map.entry(field.getKey(), field.getValue() instanceof Number direction ? direction.doubleValue() : field.getValue())
+            )
+            .toList();
     }
 
     /** Depth-first search for the first occurrence of {@code key} in {@code root} (a BSON document tree). */
