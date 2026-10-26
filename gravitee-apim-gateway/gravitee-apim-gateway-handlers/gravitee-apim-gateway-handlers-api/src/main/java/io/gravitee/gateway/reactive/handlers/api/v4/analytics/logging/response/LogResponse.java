@@ -53,6 +53,14 @@ abstract class LogResponse extends io.gravitee.reporter.api.common.Response {
         }
     }
 
+    protected void refreshHeaders(HttpHeaders headers) {
+        if (headers instanceof LogHeadersCaptor logHeadersCaptor) {
+            super.setHeaders(logHeadersCaptor.getCaptured());
+        } else {
+            super.setHeaders(HttpHeaders.create(headers));
+        }
+    }
+
     protected abstract boolean isLogPayload();
 
     protected abstract boolean isLogHeaders();
