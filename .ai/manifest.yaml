@@ -22,3 +22,4 @@ modules:
   - gravitee-gamma/gravitee-gamma-module-portals
   - gravitee-gamma/gravitee-gamma-plugin
   - gravitee-gamma/gravitee-gamma-rest-api
+hub: 0.3.2
