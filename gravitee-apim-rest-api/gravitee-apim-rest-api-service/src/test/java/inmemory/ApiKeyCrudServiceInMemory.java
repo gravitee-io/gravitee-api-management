@@ -54,7 +54,8 @@ public class ApiKeyCrudServiceInMemory implements ApiKeyCrudService, InMemoryAlt
             return Optional.empty();
         }
         var stored = storage.get(index.getAsInt());
-        var subscriptions = new ArrayList<>(stored.getSubscriptions());
+        // Like the repositories, a key stored without a list of subscriptions has none
+        var subscriptions = stored.getSubscriptions() == null ? new ArrayList<String>() : new ArrayList<>(stored.getSubscriptions());
         if (!subscriptions.contains(subscriptionId)) {
             subscriptions.add(subscriptionId);
         }
