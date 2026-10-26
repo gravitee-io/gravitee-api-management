@@ -37,6 +37,17 @@ public class KafkaClusterReactableCluster extends ReactableCluster {
 
     private List<KafkaClusterConnection> connections;
 
+    /**
+     * Seconds during which each gateway instance reuses its own all-topics metadata request to this cluster, for every
+     * native Kafka API bound to it; {@code null} when the cluster does not set it, so the gateway default applies.
+     */
+    private Integer backendMetadataMaxAge;
+
+    /** The constructor this class had before {@link #backendMetadataMaxAge}, kept for binary compatibility. */
+    public KafkaClusterReactableCluster(List<KafkaClusterConnection> connections) {
+        this(connections, null);
+    }
+
     @Data
     @Builder
     @NoArgsConstructor

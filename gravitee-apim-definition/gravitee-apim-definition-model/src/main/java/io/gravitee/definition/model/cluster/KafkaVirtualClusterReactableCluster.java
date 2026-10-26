@@ -37,6 +37,18 @@ public class KafkaVirtualClusterReactableCluster extends ReactableCluster {
 
     private List<KafkaVirtualClusterBackend> backends;
 
+    /**
+     * Seconds during which each gateway instance reuses its own all-topics metadata request to each backend, for every
+     * native Kafka API bound to this virtual cluster, whatever the backends' own clusters set; {@code null} when the
+     * virtual cluster does not set it, so the gateway default applies.
+     */
+    private Integer backendMetadataMaxAge;
+
+    /** The constructor this class had before {@link #backendMetadataMaxAge}, kept for binary compatibility. */
+    public KafkaVirtualClusterReactableCluster(List<KafkaVirtualClusterBackend> backends) {
+        this(backends, null);
+    }
+
     @Data
     @Builder
     @NoArgsConstructor
