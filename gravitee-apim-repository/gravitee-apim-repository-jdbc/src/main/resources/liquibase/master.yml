@@ -387,3 +387,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_12_0/20_add_tokenbucket_table.yml
     - include:
         - file: liquibase/changelogs/v4_12_0/21_add_am_organization_id_to_am_connections.yml
+    - include:
+        - file: liquibase/changelogs/v4_12_26/00_add_roles_unique_constraint_scope_name_reference.yml

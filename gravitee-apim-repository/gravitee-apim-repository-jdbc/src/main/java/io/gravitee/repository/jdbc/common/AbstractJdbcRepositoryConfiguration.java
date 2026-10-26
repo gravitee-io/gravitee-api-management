@@ -93,6 +93,10 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
         return SQLSERVER_DRIVER_TYPE.equals(driverType);
     }
 
+    public static boolean isPostgreSql() {
+        return POSTGRESQL_DRIVER_TYPE.equals(driverType);
+    }
+
     public static String escapeReservedWord(final String word) {
         return escapeReservedWordsPrefixChar + word + escapeReservedWordsSufixChar;
     }

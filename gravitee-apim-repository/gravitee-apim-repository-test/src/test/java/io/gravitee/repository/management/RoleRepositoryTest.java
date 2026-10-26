@@ -16,6 +16,7 @@
 package io.gravitee.repository.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -33,11 +34,20 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
 
     private static final RoleReferenceType REFERENCE_TYPE = RoleReferenceType.ORGANIZATION;
     private static final String REFERENCE_ID = "DEFAULT";
+
+    @Autowired
+    @Qualifier("graviteeTransactionManager")
+    private PlatformTransactionManager transactionManager;
 
     @Override
     protected String getTestCasesPath() {
@@ -97,6 +107,45 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("Invalid reference type", role.getReferenceType(), newRole.getReferenceType());
         assertEquals("Invalid scope", role.getScope(), newRole.getScope());
         assertEquals("Invalid permissions", role.getPermissions()[0], newRole.getPermissions()[0]);
+    }
+
+    @Test
+    public void shouldNotCreateRoleWithSameScopeNameAndReferenceAsAnExistingRole() throws Exception {
+        final Role duplicate = new Role();
+        duplicate.setId("API_duplicate_of_find_by_scope_1");
+        duplicate.setName("find by scope 1");
+        duplicate.setScope(RoleScope.API);
+        duplicate.setReferenceId(REFERENCE_ID);
+        duplicate.setReferenceType(REFERENCE_TYPE);
+        duplicate.setPermissions(new int[] { 3 });
+
+        assertThatThrownBy(() -> roleRepository.create(duplicate)).isInstanceOf(Exception.class);
+
+        assertThat(roleRepository.findById("API_duplicate_of_find_by_scope_1")).isEmpty();
+        assertThat(
+            roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope.API, "find by scope 1", REFERENCE_ID, REFERENCE_TYPE)
+        ).isPresent();
+    }
+
+    @Test
+    public void shouldKeepTransactionUsableAfterCreatingDuplicateRole() throws Exception {
+        final Role created = newApiRole("API_created_in_transaction", "created in transaction");
+        final Role duplicate = newApiRole("API_duplicate_in_transaction", "find by scope 1");
+        final Role another = newApiRole("API_another_in_transaction", "another in transaction");
+
+        final TransactionStatus transaction = transactionManager.getTransaction(new DefaultTransactionDefinition());
+        try {
+            roleRepository.create(created);
+            assertThatThrownBy(() -> roleRepository.create(duplicate)).isInstanceOf(Exception.class);
+
+            assertThat(roleRepository.findById("API_created_in_transaction")).isPresent();
+            assertThat(roleRepository.create(another).getId()).isEqualTo("API_another_in_transaction");
+            transactionManager.commit(transaction);
+        } finally {
+            if (!transaction.isCompleted()) {
+                transactionManager.rollback(transaction);
+            }
+        }
     }
 
     @Test
@@ -229,5 +278,16 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertEquals(2, deleted.size());
         assertThat(roleRepository.findAllByReferenceIdAndReferenceType("ToBeDeleted", RoleReferenceType.ORGANIZATION)).isEmpty();
+    }
+
+    private Role newApiRole(String id, String name) {
+        final Role role = new Role();
+        role.setId(id);
+        role.setName(name);
+        role.setScope(RoleScope.API);
+        role.setReferenceId(REFERENCE_ID);
+        role.setReferenceType(REFERENCE_TYPE);
+        role.setPermissions(new int[] { 3 });
+        return role;
     }
 }

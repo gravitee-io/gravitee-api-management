@@ -39,6 +39,14 @@ public class GraviteeApisContainer extends SpringBasedContainer {
     }
 
     @Override
+    protected void doStart() throws Exception {
+        super.doStart();
+        if (stopped) {
+            throw new IllegalStateException(name() + " failed to start");
+        }
+    }
+
+    @Override
     protected void initializeLogging() {
         super.initializeLogging();
 

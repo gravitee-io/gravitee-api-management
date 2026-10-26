@@ -34,9 +34,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.CustomLog;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  *
@@ -48,10 +54,16 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
 
     private static final String SCOPE_FIELD = "scope";
     private final String ROLE_PERMISSIONS;
+    private final TransactionTemplate createTransactionTemplate;
 
-    JdbcRoleRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcRoleRepository(
+        @Lazy @Autowired @Qualifier("graviteeTransactionManager") PlatformTransactionManager transactionManager,
+        @Value("${management.jdbc.prefix:}") String tablePrefix
+    ) {
         super(tablePrefix, "roles");
         ROLE_PERMISSIONS = getTableNameFor("role_permissions");
+        createTransactionTemplate = new TransactionTemplate(transactionManager);
+        createTransactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_NESTED);
     }
 
     @Override
@@ -93,9 +105,15 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
     public Role create(Role item) throws TechnicalException {
         log.debug("JdbcRoleRepository.create({})", item);
         try {
-            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
-            storePermissions(item, false);
-            return findById(item.getId()).orElse(null);
+            return createTransactionTemplate.execute(status -> {
+                try {
+                    jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
+                    storePermissions(item, false);
+                    return findById(item.getId()).orElse(null);
+                } catch (final TechnicalException ex) {
+                    throw new IllegalStateException(ex);
+                }
+            });
         } catch (final Exception ex) {
             log.error("Failed to create role", ex);
             throw new TechnicalException("Failed to create role", ex);

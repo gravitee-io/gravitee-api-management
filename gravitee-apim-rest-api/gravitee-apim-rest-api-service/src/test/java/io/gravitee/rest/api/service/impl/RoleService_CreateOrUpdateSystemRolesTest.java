@@ -18,6 +18,8 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.rest.api.model.permissions.EnvironmentPermission.DOCUMENTATION;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -29,6 +31,7 @@ import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -40,6 +43,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.dao.DuplicateKeyException;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -220,5 +224,77 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
         ).thenThrow(new TechnicalException());
 
         roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
+    }
+
+    @Test
+    public void shouldKeepRoleCreatedByAnotherNodeWhenJdbcInsertFails() throws TechnicalException {
+        givenInsertFails(new TechnicalException("Failed to create role"));
+        givenRoleAppearsAfterFailedInsert();
+
+        Throwable thrown = catchThrowable(this::createEnvironmentAdminRole);
+
+        assertThat(thrown).isNull();
+        verify(mockRoleRepository, never()).update(any());
+        verifyNoInteractions(auditService);
+    }
+
+    @Test
+    public void shouldKeepRoleCreatedByAnotherNodeWhenMongoInsertFails() throws TechnicalException {
+        givenInsertFails(new DuplicateKeyException("E11000 duplicate key"));
+        givenRoleAppearsAfterFailedInsert();
+
+        Throwable thrown = catchThrowable(this::createEnvironmentAdminRole);
+
+        assertThat(thrown).isNull();
+        verify(mockRoleRepository, never()).update(any());
+        verifyNoInteractions(auditService);
+    }
+
+    @Test
+    public void shouldFailWhenJdbcInsertFailsAndRoleStillMissing() throws TechnicalException {
+        TechnicalException insertFailure = new TechnicalException("Failed to create role");
+        givenInsertFails(insertFailure);
+        givenRoleStaysMissingAfterFailedInsert();
+
+        Throwable thrown = catchThrowable(this::createEnvironmentAdminRole);
+
+        assertThat(thrown).isInstanceOf(TechnicalManagementException.class).hasCause(insertFailure);
+    }
+
+    @Test
+    public void shouldFailWhenMongoInsertFailsAndRoleStillMissing() throws TechnicalException {
+        DuplicateKeyException insertFailure = new DuplicateKeyException("E11000 duplicate key");
+        givenInsertFails(insertFailure);
+        givenRoleStaysMissingAfterFailedInsert();
+
+        Throwable thrown = catchThrowable(this::createEnvironmentAdminRole);
+
+        assertThat(thrown).isInstanceOf(TechnicalManagementException.class).hasCause(insertFailure);
+    }
+
+    private void createEnvironmentAdminRole() {
+        roleService.createOrUpdateSystemRole(
+            GraviteeContext.getExecutionContext(),
+            SystemRole.ADMIN,
+            io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT,
+            EnvironmentPermission.values(),
+            REFERENCE_ID
+        );
+    }
+
+    private void givenInsertFails(Exception failure) throws TechnicalException {
+        when(mockRoleRepository.create(any())).thenThrow(failure);
+    }
+
+    private void givenRoleAppearsAfterFailedInsert() throws TechnicalException {
+        Role createdByAnotherNode = Role.builder().name("ADMIN").scope(RoleScope.ENVIRONMENT).permissions(new int[] { 1 }).build();
+        when(mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any())).thenReturn(
+            empty(),
+            of(createdByAnotherNode)
+        );
+    }
+
+    private void givenRoleStaysMissingAfterFailedInsert() throws TechnicalException {
+        when(mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any())).thenReturn(empty());
     }
 }

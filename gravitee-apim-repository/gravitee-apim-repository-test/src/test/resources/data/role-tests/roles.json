@@ -49,7 +49,7 @@
   },
   {
     "id": "an_organisation_role_to_be_deleted",
-    "name": "role to be deleted",
+    "name": "another role to be deleted",
     "referenceId": "ToBeDeleted",
     "referenceType": "ORGANIZATION",
     "description": "role description",

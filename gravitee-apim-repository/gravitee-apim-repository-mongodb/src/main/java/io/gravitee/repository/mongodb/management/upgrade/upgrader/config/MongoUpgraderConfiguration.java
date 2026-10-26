@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.upgrade.upgrader.config;
 
+import io.gravitee.node.api.initializer.Initializer;
 import io.gravitee.node.api.upgrader.Upgrader;
 import java.util.Optional;
 import lombok.CustomLog;
@@ -36,14 +37,14 @@ public class MongoUpgraderConfiguration implements ApplicationContextAware {
 
     private boolean isUpgrade;
 
+    private boolean isInitialize;
+
     @Override
     public void setApplicationContext(ApplicationContext context) throws BeansException {
-        if (isUpgrade) {
-            Optional.ofNullable(context.getParent())
-                .map(ConfigurableApplicationContext.class::cast)
-                .map(ConfigurableApplicationContext::getBeanFactory)
-                .ifPresent(factory -> registerBeans(context, factory));
-        }
+        Optional.ofNullable(context.getParent())
+            .map(ConfigurableApplicationContext.class::cast)
+            .map(ConfigurableApplicationContext::getBeanFactory)
+            .ifPresent(factory -> registerBeans(context, factory));
     }
 
     @Autowired
@@ -51,10 +52,17 @@ public class MongoUpgraderConfiguration implements ApplicationContextAware {
         Boolean upgradeMode = environment.getProperty("upgrade.mode", Boolean.class);
         // If upgrade.mode is not set, we consider that we are in upgrade mode to ensure backward compatibility
         this.isUpgrade = upgradeMode == null || upgradeMode;
+        this.isInitialize = upgradeMode == null || !upgradeMode;
     }
 
     private void registerBeans(ApplicationContext context, ConfigurableBeanFactory factory) {
-        log.debug("Registering upgrader beans in parent application context");
-        context.getBeansOfType(Upgrader.class).forEach(factory::registerSingleton);
+        if (isUpgrade) {
+            log.debug("Registering upgrader beans in parent application context");
+            context.getBeansOfType(Upgrader.class).forEach(factory::registerSingleton);
+        }
+        if (isInitialize) {
+            log.debug("Registering initializer beans in parent application context");
+            context.getBeansOfType(Initializer.class).forEach(factory::registerSingleton);
+        }
     }
 }

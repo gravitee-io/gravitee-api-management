@@ -24,17 +24,23 @@ import io.gravitee.node.api.Node;
 import io.gravitee.node.api.NodeMetadataResolver;
 import io.gravitee.node.container.NodeFactory;
 import io.gravitee.platform.repository.api.RepositoryScopeProvider;
+import io.gravitee.repository.management.api.StartupLockRepository;
 import io.gravitee.rest.api.management.rest.spring.RestManagementConfiguration;
 import io.gravitee.rest.api.portal.rest.spring.RestPortalConfiguration;
 import io.gravitee.rest.api.repository.plugins.RestApiRepositoryScopeProvider;
 import io.gravitee.rest.api.standalone.jetty.JettyConfiguration;
 import io.gravitee.rest.api.standalone.jetty.JettyEmbeddedContainer;
 import io.gravitee.rest.api.standalone.jetty.JettyServerFactory;
+import io.gravitee.rest.api.standalone.node.AcquireStartupLockService;
 import io.gravitee.rest.api.standalone.node.GraviteeApisNode;
 import io.gravitee.rest.api.standalone.node.GraviteeApisNodeMetadataResolver;
+import io.gravitee.rest.api.standalone.node.NodeStartupLock;
+import io.gravitee.rest.api.standalone.node.ReleaseStartupLockService;
+import java.time.Duration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Lazy;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -55,6 +61,8 @@ import org.springframework.context.annotation.Import;
 )
 public class StandaloneConfiguration {
 
+    private static final long DEFAULT_STARTUP_LOCK_TIMEOUT_MS = Duration.ofMinutes(10).toMillis();
+
     @Bean
     public Node node() {
         return new GraviteeApisNode();
@@ -73,6 +81,27 @@ public class StandaloneConfiguration {
     @Bean
     public JettyEmbeddedContainer container(JettyServerFactory jettyServerFactory) {
         return new JettyEmbeddedContainer(jettyServerFactory);
+    }
+
+    @Bean
+    public NodeStartupLock nodeStartupLock(
+        io.gravitee.node.api.configuration.Configuration configuration,
+        @Lazy StartupLockRepository startupLockRepository
+    ) {
+        Duration timeout = Duration.ofMillis(
+            configuration.getProperty("upgrade.lock.timeout", Long.class, DEFAULT_STARTUP_LOCK_TIMEOUT_MS)
+        );
+        return new NodeStartupLock(startupLockRepository, timeout);
+    }
+
+    @Bean
+    public AcquireStartupLockService acquireStartupLockService(NodeStartupLock nodeStartupLock) {
+        return new AcquireStartupLockService(nodeStartupLock);
+    }
+
+    @Bean
+    public ReleaseStartupLockService releaseStartupLockService(NodeStartupLock nodeStartupLock) {
+        return new ReleaseStartupLockService(nodeStartupLock);
     }
 
     @Bean

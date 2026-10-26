@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.26_00_add_roles_unique_constraint_scope_name_reference
+      author: GraviteeSource Team
+      preConditions:
+        - onFail: HALT
+        - onFailMessage: >-
+            Cannot add the unique constraint on the roles table because several roles share the same scope, name, reference type and reference id.
+            List them with: SELECT scope, name, reference_type, reference_id, COUNT(*) FROM ${gravitee_prefix}roles GROUP BY scope, name, reference_type, reference_id HAVING COUNT(*) > 1.
+            For each group keep one role, move the memberships that reference the others to it, delete the others and their ${gravitee_prefix}role_permissions rows, then run the migration again.
+        - sqlCheck:
+            expectedResult: 0
+            sql: |
+              SELECT COUNT(*) FROM (
+                SELECT scope, name, reference_type, reference_id
+                FROM ${gravitee_prefix}roles
+                GROUP BY scope, name, reference_type, reference_id
+                HAVING COUNT(*) > 1
+              ) duplicates;
+      changes:
+        - addUniqueConstraint:
+            tableName: ${gravitee_prefix}roles
+            columnNames: scope, name, reference_type, reference_id
+            constraintName: uk_${gravitee_prefix}roles_scope_name_reference

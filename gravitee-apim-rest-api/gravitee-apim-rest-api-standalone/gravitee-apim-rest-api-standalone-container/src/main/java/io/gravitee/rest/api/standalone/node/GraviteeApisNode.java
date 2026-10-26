@@ -70,8 +70,10 @@ public class GraviteeApisNode extends AbstractNode {
         components.add(ManagementApiServicesManager.class);
 
         // Keep it at the end
+        components.add(AcquireStartupLockService.class);
         components.addAll(UpgraderConfiguration.getComponents());
         components.addAll(InitializerConfiguration.getComponents());
+        components.add(ReleaseStartupLockService.class);
 
         // Start Jetty server after upgraders to ensure database is validated first
         components.add(JettyEmbeddedContainer.class);

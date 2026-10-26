@@ -242,7 +242,16 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             role.setReferenceId(executionContext.getOrganizationId());
             role.setReferenceType(RoleReferenceType.ORGANIZATION);
 
-            RoleEntity entity = convert(roleRepository.create(role));
+            Role createdRole;
+            try {
+                createdRole = roleRepository.create(role);
+            } catch (Exception ex) {
+                if (!wasCreatedByAnotherNode(role)) {
+                    throw new TechnicalManagementException("An error occurs while trying to create role " + roleEntity.getName(), ex);
+                }
+                throw new RoleAlreadyExistsException(role.getScope(), role.getName());
+            }
+            RoleEntity entity = convert(createdRole);
             auditService.createOrganizationAuditLog(
                 executionContext,
                 AuditService.AuditLogData.builder()
@@ -549,7 +558,11 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     public void initialize(ExecutionContext executionContext, String organizationId) {
         initializeRoles.forEach(entry -> {
             log.info("     - {}", entry.getKey());
-            create(executionContext, entry.getValue());
+            try {
+                create(executionContext, entry.getValue());
+            } catch (RoleAlreadyExistsException ex) {
+                log.debug("Role {} already exists, skipping", entry.getKey());
+            }
         });
     }
 
@@ -682,7 +695,17 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                         .build()
                 );
             } else if (existingRole.isEmpty()) {
-                roleRepository.create(systemRole);
+                try {
+                    roleRepository.create(systemRole);
+                } catch (Exception ex) {
+                    if (!wasCreatedByAnotherNode(systemRole)) {
+                        throw new TechnicalManagementException(
+                            "An error occurs while trying to create " + roleName.name() + " " + roleScope.name() + " roles ",
+                            ex
+                        );
+                    }
+                    return;
+                }
                 auditService.createOrganizationAuditLog(
                     executionContext,
                     AuditService.AuditLogData.builder()
@@ -700,6 +723,21 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 ex
             );
         }
+    }
+
+    private boolean wasCreatedByAnotherNode(Role role) throws TechnicalException {
+        boolean exists = roleRepository
+            .findByScopeAndNameAndReferenceIdAndReferenceType(
+                role.getScope(),
+                role.getName(),
+                role.getReferenceId(),
+                RoleReferenceType.ORGANIZATION
+            )
+            .isPresent();
+        if (exists) {
+            log.warn("Role {}:{} was created by another node while this node was creating it", role.getScope(), role.getName());
+        }
+        return exists;
     }
 
     private Role createSystemRoleWithoutPermissions(String name, RoleScope scope, Date date) {

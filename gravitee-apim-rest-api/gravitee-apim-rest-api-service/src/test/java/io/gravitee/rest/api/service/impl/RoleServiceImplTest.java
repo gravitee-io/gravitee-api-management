@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,6 +32,9 @@ import io.gravitee.repository.management.model.Role;
 import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
+import io.gravitee.rest.api.model.settings.Enabled;
+import io.gravitee.rest.api.model.settings.Management;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.MembershipService;
@@ -420,6 +424,32 @@ class RoleServiceImplTest {
             assertThat(result).hasSize(1);
             assertThat(result).containsKey("role1");
             assertThat(result).doesNotContainKey("role2");
+        }
+    }
+
+    @Nested
+    class Initialize {
+
+        @Test
+        @SneakyThrows
+        void should_create_remaining_roles_when_one_was_created_by_another_node() {
+            // Given
+            ConsoleConfigEntity consoleConfig = new ConsoleConfigEntity();
+            Management management = new Management();
+            management.setSystemRoleEdition(new Enabled(false));
+            consoleConfig.setManagement(management);
+            when(configService.getConsoleConfig(any())).thenReturn(consoleConfig);
+            Role createdByAnotherNode = Role.builder().name("API_PUBLISHER").scope(RoleScope.ENVIRONMENT).build();
+            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any())).thenAnswer(invocation ->
+                "API_PUBLISHER".equals(invocation.getArgument(1)) ? Optional.of(createdByAnotherNode) : Optional.empty()
+            );
+
+            // When
+            Throwable throwable = catchThrowable(() -> sut.initialize(new ExecutionContext("orgId"), "orgId"));
+
+            // Then
+            assertThat(throwable).isNull();
+            verify(roleRepository, times(19)).create(any());
         }
     }
 }

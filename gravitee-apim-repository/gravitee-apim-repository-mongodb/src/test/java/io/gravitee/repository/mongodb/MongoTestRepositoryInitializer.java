@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb;
 
 import com.mongodb.client.MongoClient;
+import io.gravitee.node.api.initializer.Initializer;
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.config.TestRepositoryInitializer;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.IndexMongoUpgrader;
@@ -70,6 +71,8 @@ public class MongoTestRepositoryInitializer implements TestRepositoryInitializer
                     LOG.error("Failed to upgrade MongoDB with index upgrader: {}", upgrader.getClass().getName(), e);
                 }
             });
+
+        applicationContext.getBeansOfType(Initializer.class).values().forEach(Initializer::initialize);
     }
 
     @Override
