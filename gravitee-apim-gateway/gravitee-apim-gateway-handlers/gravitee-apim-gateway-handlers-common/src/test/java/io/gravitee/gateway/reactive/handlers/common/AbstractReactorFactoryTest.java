@@ -17,7 +17,6 @@ package io.gravitee.gateway.reactive.handlers.common;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,43 +31,63 @@ import io.gravitee.gateway.dictionary.EnvironmentDictionaryTemplateVariableProvi
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
+import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
+import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.resource.api.ResourceManager;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.ResolvableType;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class AbstractReactorFactoryTest {
-
-    @Mock
-    private ApplicationContext applicationContext;
 
     @Mock
     private ComponentProvider globalComponentProvider;
 
     @Mock
+    private DictionaryManager dictionaryManager;
+
+    @Mock
+    private ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager;
+
+    @Mock
+    private ConfigurablePluginManager<ResourcePlugin<?>> resourcePluginManager;
+
+    @Mock
     private Reactable reactable;
 
-    private TestReactorFactory cut;
+    private GenericApplicationContext applicationContext;
 
     @BeforeEach
     void setUp() {
-        lenient().when(applicationContext.getBean(ComponentProvider.class)).thenReturn(globalComponentProvider);
-        lenient().when(applicationContext.getBean(DefaultClassLoader.class)).thenReturn(mock(DefaultClassLoader.class));
-        lenient().when(applicationContext.getBean(ResourceClassLoaderFactory.class)).thenReturn(mock(ResourceClassLoaderFactory.class));
-        lenient().when(applicationContext.getBean("resourcePluginManager")).thenReturn(mock(ConfigurablePluginManager.class));
-        cut = new TestReactorFactory(applicationContext);
+        applicationContext = new GenericApplicationContext();
+        applicationContext.registerBean(ComponentProvider.class, () -> globalComponentProvider);
+        applicationContext.registerBean(DictionaryManager.class, () -> dictionaryManager);
+        applicationContext.registerBean(DefaultClassLoader.class, () -> mock(DefaultClassLoader.class));
+        applicationContext.registerBean(ResourceClassLoaderFactory.class, () -> mock(ResourceClassLoaderFactory.class));
+        registerPluginManager("resourcePluginManager", ResourcePlugin.class, resourcePluginManager);
+        registerPluginManager("policyPluginManager", PolicyPlugin.class, policyPluginManager);
+    }
+
+    @AfterEach
+    void tearDown() {
+        applicationContext.close();
     }
 
     @Test
     void should_register_the_reactable_and_its_resources_in_its_components() {
-        var components = cut.createComponents(reactable, Reactable.class, List.of());
+        var components = cut().createComponents(reactable, Reactable.class, List.of());
 
         assertThat(components.componentProvider().getComponent(Reactable.class)).isSameAs(reactable);
         assertThat(components.componentProvider().getComponent(ResourceManager.class)).isSameAs(components.resourceLifecycleManager());
@@ -79,7 +98,7 @@ class AbstractReactorFactoryTest {
         var global = new Object();
         when(globalComponentProvider.getComponent(Object.class)).thenReturn(global);
 
-        var components = cut.createComponents(reactable, Reactable.class, List.of());
+        var components = cut().createComponents(reactable, Reactable.class, List.of());
 
         assertThat(components.componentProvider().getComponent(Object.class)).isSameAs(global);
     }
@@ -88,7 +107,7 @@ class AbstractReactorFactoryTest {
     void should_give_the_deployment_context_the_components_and_the_template_variable_providers() {
         var templateVariableProvider = mock(TemplateVariableProvider.class);
 
-        var components = cut.createComponents(reactable, Reactable.class, List.of(templateVariableProvider));
+        var components = cut().createComponents(reactable, Reactable.class, List.of(templateVariableProvider));
 
         assertThat(components.deploymentContext().getComponent(Reactable.class)).isSameAs(reactable);
         components.deploymentContext().getTemplateEngine();
@@ -96,18 +115,44 @@ class AbstractReactorFactoryTest {
     }
 
     @Test
-    void should_provide_the_environment_dictionaries_and_the_api_scoped_template_variable_providers() {
-        var dictionaryManager = mock(DictionaryManager.class);
-        var dictionaries = mock(EnvironmentDictionaryTemplateVariableProvider.class);
-        var apiScoped = mock(TemplateVariableProvider.class);
-        var healthCheckScoped = mock(TemplateVariableProvider.class);
-        when(applicationContext.getBean(DictionaryManager.class)).thenReturn(dictionaryManager);
-        when(dictionaryManager.createTemplateVariableProvider("env")).thenReturn(dictionaries);
-        when(applicationContext.getBeanNamesForType(TemplateVariableProviderFactory.class)).thenReturn(new String[] { "api", "hc" });
-        when(applicationContext.getBean("api")).thenReturn(factory(TemplateVariableScope.API, apiScoped));
-        when(applicationContext.getBean("hc")).thenReturn(factory(TemplateVariableScope.HEALTH_CHECK, healthCheckScoped));
+    void should_resolve_the_policy_plugin_manager_among_the_plugin_managers() {
+        assertThat(cut().policyPluginManager()).isSameAs(policyPluginManager);
+    }
 
-        assertThat(cut.environmentTemplateVariableProviders("env")).containsExactly(dictionaries, apiScoped);
+    @Test
+    void should_provide_the_environment_dictionaries_then_the_reactable_then_the_api_scoped_template_variable_providers() {
+        var dictionaries = mock(EnvironmentDictionaryTemplateVariableProvider.class);
+        var reactableProvider = mock(TemplateVariableProvider.class);
+        var apiScoped = mock(TemplateVariableProvider.class);
+        when(dictionaryManager.createTemplateVariableProvider("env")).thenReturn(dictionaries);
+        applicationContext.registerBean("api", TemplateVariableProviderFactory.class, () -> factory(TemplateVariableScope.API, apiScoped));
+        applicationContext.registerBean("hc", TemplateVariableProviderFactory.class, () ->
+            factory(TemplateVariableScope.HEALTH_CHECK, mock(TemplateVariableProvider.class))
+        );
+
+        assertThat(cut().environmentTemplateVariableProviders("env", List.of(reactableProvider))).containsExactly(
+            dictionaries,
+            reactableProvider,
+            apiScoped
+        );
+    }
+
+    private TestReactorFactory cut() {
+        applicationContext.refresh();
+        return new TestReactorFactory(applicationContext);
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private void registerPluginManager(String name, Class<?> pluginType, ConfigurablePluginManager<?> pluginManager) {
+        applicationContext.registerBean(
+            name,
+            ConfigurablePluginManager.class,
+            () -> pluginManager,
+            beanDefinition ->
+                ((RootBeanDefinition) beanDefinition).setTargetType(
+                    ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, pluginType)
+                )
+        );
     }
 
     private static TemplateVariableProviderFactory factory(TemplateVariableScope scope, TemplateVariableProvider provider) {
@@ -126,13 +171,8 @@ class AbstractReactorFactoryTest {
 
     private static class TestReactorFactory extends AbstractReactorFactory<Reactable> {
 
-        TestReactorFactory(ApplicationContext applicationContext) {
+        TestReactorFactory(GenericApplicationContext applicationContext) {
             super(applicationContext);
-        }
-
-        @Override
-        protected String[] getBeanNamesForType(ResolvableType resolvableType) {
-            return new String[] { "resourcePluginManager" };
         }
 
         @Override

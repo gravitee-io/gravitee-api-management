@@ -17,8 +17,6 @@ package io.gravitee.gateway.reactive.handlers.api.v4;
 
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.el.TemplateVariableProvider;
-import io.gravitee.el.TemplateVariableProviderFactory;
-import io.gravitee.el.TemplateVariableScope;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
@@ -128,27 +126,22 @@ public abstract class AbstractApiReactorFactory<T extends ReactableApi<? extends
         return null;
     }
 
+    @Override
+    protected DictionaryManager dictionaryManager() {
+        return dictionaryManager;
+    }
+
     protected List<TemplateVariableProvider> commonTemplateVariableProviders(T reactableApi) {
-        final List<TemplateVariableProvider> templateVariableProviders = new ArrayList<>();
-        templateVariableProviders.add(dictionaryManager.createTemplateVariableProvider(reactableApi.getEnvironmentId()));
-        templateVariableProviders.add(new ApiTemplateVariableProvider(reactableApi));
+        final List<TemplateVariableProvider> apiTemplateVariableProviders = new ArrayList<>();
+        apiTemplateVariableProviders.add(new ApiTemplateVariableProvider(reactableApi));
         Stream.of(BeanFactoryUtils.beanNamesForTypeIncludingAncestors(applicationContext, CredentialResolver.class))
             .findFirst()
             .map(name -> applicationContext.getBean(name, CredentialResolver.class))
             .ifPresent(credentialResolver ->
-                templateVariableProviders.add(
+                apiTemplateVariableProviders.add(
                     new CredentialsTemplateVariableProvider(reactableApi.getEnvironmentId(), reactableApi.getId(), credentialResolver)
                 )
             );
-        List<TemplateVariableProvider> list = Stream.of(
-            BeanFactoryUtils.beanNamesForTypeIncludingAncestors(applicationContext, TemplateVariableProviderFactory.class)
-        )
-            .map(name -> (TemplateVariableProviderFactory) applicationContext.getBean(name))
-            .filter(factory -> factory.getTemplateVariableScope() == TemplateVariableScope.API)
-            .flatMap(factory -> factory.getTemplateVariableProviders().stream())
-            .toList();
-        templateVariableProviders.addAll(list);
-
-        return templateVariableProviders;
+        return environmentTemplateVariableProviders(reactableApi.getEnvironmentId(), apiTemplateVariableProviders);
     }
 }
