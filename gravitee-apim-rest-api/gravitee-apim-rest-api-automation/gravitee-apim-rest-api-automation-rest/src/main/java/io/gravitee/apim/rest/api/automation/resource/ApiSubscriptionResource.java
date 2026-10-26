@@ -31,9 +31,12 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -63,6 +66,9 @@ public class ApiSubscriptionResource extends AbstractResource {
     @Inject
     private DeleteSubscriptionSpecUseCase deleteSubscriptionSpecUseCase;
 
+    @Inject
+    private ApiSearchService apiSearchService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -73,6 +79,8 @@ public class ApiSubscriptionResource extends AbstractResource {
         @QueryParam("legacy") boolean legacy
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
+        String apiId = legacy ? apiHrid : IdBuilder.builder(executionContext, apiHrid).buildId();
+        mustBeAnApiOfTheEnvironment(executionContext, apiHrid, apiId);
         try {
             String subscriptionId = legacy ? hrid : IdBuilder.builder(executionContext, apiHrid).withExtraId(hrid).buildId();
             SubscriptionEntity subscriptionEntity = subscriptionCrudService.get(subscriptionId);
@@ -116,6 +124,8 @@ public class ApiSubscriptionResource extends AbstractResource {
         @QueryParam("legacy") boolean legacy
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
+        String apiId = legacy ? apiHrid : IdBuilder.builder(executionContext, apiHrid).buildId();
+        mustBeAnApiOfTheEnvironment(executionContext, apiHrid, apiId);
         try {
             String subscriptionId = legacy ? hrid : IdBuilder.builder(executionContext, apiHrid).withExtraId(hrid).buildId();
             SubscriptionEntity subscriptionEntity = subscriptionCrudService.get(subscriptionId);
@@ -138,12 +148,19 @@ public class ApiSubscriptionResource extends AbstractResource {
                 )
                 .build();
 
-            String apiId = legacy ? apiHrid : IdBuilder.builder(executionContext, apiHrid).buildId();
             deleteSubscriptionSpecUseCase.execute(new DeleteSubscriptionSpecUseCase.Input(auditInfo, apiId, subscriptionId));
         } catch (SubscriptionNotFoundException e) {
             log.debug("Subscription not found for hrid: {}, apiHrid {}, operation: delete", hrid, apiHrid);
             throw new HRIDNotFoundException(hrid);
         }
         return Response.noContent().build();
+    }
+
+    private void mustBeAnApiOfTheEnvironment(ExecutionContext executionContext, String apiHrid, String apiId) {
+        try {
+            apiSearchService.findRepositoryApiById(executionContext, apiId);
+        } catch (ApiNotFoundException e) {
+            throw new HRIDNotFoundException(apiHrid);
+        }
     }
 }
