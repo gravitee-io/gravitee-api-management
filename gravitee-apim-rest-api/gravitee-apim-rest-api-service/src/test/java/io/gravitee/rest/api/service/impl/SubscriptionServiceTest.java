@@ -3534,9 +3534,10 @@ public class SubscriptionServiceTest {
     }
 
     @Test
-    public void should_reject_with_plan_already_subscribed_the_request_losing_a_concurrent_subscription() throws Exception {
-        // Both requests read the subscriptions of the application before any of them is stored, only the
-        // repository sees the second one as a duplicate.
+    public void should_reject_with_plan_already_subscribed_a_subscription_the_repository_refuses_as_a_duplicate() throws Exception {
+        // The check of the existing subscriptions finds none for both calls, as for two requests that read them before
+        // either is stored: only the repository refuses the second one. Sequential calls on a mocked repository, they
+        // reproduce what each request sees, not the race itself.
         planEntity.setValidation(PlanValidationType.MANUAL);
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
