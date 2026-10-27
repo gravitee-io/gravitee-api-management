@@ -32,6 +32,7 @@ import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 import org.bson.Document;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
@@ -154,6 +155,10 @@ public class SubscriptionUniqueActiveKeyUpgraderTest extends AbstractManagementR
     public void should_report_the_subscription_whose_key_another_active_subscription_already_holds() {
         // Once the unique index exists, the key a subscription misses may already be held. The subscription reported is
         // the one whose key could not be written, whatever the up-to-date subscriptions read before it.
+        // The tests share the database: an index that already exists is left in place for the others.
+        boolean indexAlreadyExists = StreamSupport.stream(subscriptions().listIndexes().spliterator(), false).anyMatch(index ->
+            "uak1_unique".equals(index.getString("name"))
+        );
         subscriptions().createIndex(
             new Document(FIELD, 1),
             new IndexOptions().name("uak1_unique").unique(true).partialFilterExpression(new Document(FIELD, new Document("$exists", true)))
@@ -186,7 +191,9 @@ public class SubscriptionUniqueActiveKeyUpgraderTest extends AbstractManagementR
                 .noneMatch(message -> message.contains("[sub-a]"));
         } finally {
             logger.detachAppender(logs);
-            subscriptions().dropIndex("uak1_unique");
+            if (!indexAlreadyExists) {
+                subscriptions().dropIndex("uak1_unique");
+            }
         }
     }
 
