@@ -51,6 +51,10 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
@@ -161,6 +165,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -172,6 +177,7 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -3491,9 +3497,10 @@ public class SubscriptionServiceTest {
     }
 
     @Test
-    public void should_reject_with_plan_already_subscribed_the_request_losing_a_concurrent_subscription() throws Exception {
-        // Both requests read the subscriptions of the application before any of them is stored, only the
-        // repository sees the second one as a duplicate.
+    public void should_reject_with_plan_already_subscribed_a_subscription_the_repository_refuses_as_a_duplicate() throws Exception {
+        // The check of the existing subscriptions finds none for both calls, as for two requests that read them before
+        // either is stored: only the repository refuses the second one. Sequential calls on a mocked repository, they
+        // reproduce what each request sees, not the race itself.
         planEntity.setValidation(PlanValidationType.MANUAL);
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
@@ -3602,6 +3609,226 @@ public class SubscriptionServiceTest {
         assertThatThrownBy(() -> subscriptionService.restore(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).isInstanceOf(
             PlanAlreadySubscribedException.class
         );
+    }
+
+    @Test
+    public void should_keep_reporting_a_technical_failure_to_create_a_subscription_as_an_unexpected_error() throws Exception {
+        givenAnAutomaticApiKeyPlanTheApplicationCanSubscribe();
+        var failure = new TechnicalException("database unavailable");
+        when(subscriptionRepository.create(any())).thenThrow(failure);
+
+        assertUnexpectedError(
+            () -> subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID)),
+            failure
+        );
+    }
+
+    @Test
+    public void should_keep_reporting_a_technical_failure_to_transfer_a_subscription_as_an_unexpected_error() throws Exception {
+        var transfer = givenATransferOfAnAcceptedSubscriptionTo("target-plan");
+        var failure = new TechnicalException("database unavailable");
+        when(subscriptionRepository.update(any())).thenThrow(failure);
+
+        assertUnexpectedError(() -> subscriptionService.transfer(GraviteeContext.getExecutionContext(), transfer, USER_ID), failure);
+    }
+
+    @Test
+    public void should_keep_reporting_a_technical_failure_to_update_a_subscription_configuration_as_an_unexpected_error() throws Exception {
+        var update = givenAChannelChangeOfAnAcceptedPushSubscription();
+        var failure = new TechnicalException("database unavailable");
+        when(subscriptionRepository.update(any())).thenThrow(failure);
+
+        assertUnexpectedError(() -> subscriptionService.update(GraviteeContext.getExecutionContext(), update), failure);
+    }
+
+    @Test
+    public void should_keep_reporting_a_technical_failure_to_update_a_subscription_as_an_unexpected_error() throws Exception {
+        var update = givenAnUpdateOfTheChannelOfAnAcceptedPushSubscription();
+        var failure = new TechnicalException("database unavailable");
+        when(subscriptionRepository.update(any())).thenThrow(failure);
+
+        assertUnexpectedError(() -> subscriptionService.update(GraviteeContext.getExecutionContext(), update), failure);
+    }
+
+    @Test
+    public void should_keep_reporting_a_technical_failure_to_restore_a_subscription_as_an_unexpected_error() throws Exception {
+        givenAClosedSubscription();
+        var failure = new TechnicalException("database unavailable");
+        when(subscriptionRepository.update(any())).thenThrow(failure);
+
+        assertUnexpectedError(() -> subscriptionService.restore(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID), failure);
+    }
+
+    @Test
+    public void should_neither_audit_notify_nor_accept_a_subscription_the_repository_refuses_as_a_duplicate() throws Exception {
+        givenAnAutomaticApiKeyPlanTheApplicationCanSubscribe();
+        when(subscriptionRepository.create(any())).thenThrow(new DuplicateKeyException("unique active subscription"));
+
+        assertThatThrownBy(() ->
+            subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID))
+        ).isInstanceOf(PlanAlreadySubscribedException.class);
+
+        // An automatic plan accepts the subscription right away, which generates its API key.
+        verifyNoInteractions(auditService, notifierService, acceptSubscriptionDomainService, apiKeyService);
+    }
+
+    @Test
+    public void should_neither_audit_notify_nor_move_the_keys_of_a_transfer_the_repository_refuses_as_a_duplicate() throws Exception {
+        var transfer = givenATransferOfAnAcceptedSubscriptionTo("target-plan");
+        when(subscriptionRepository.update(any())).thenThrow(new DuplicateKeyException("unique active subscription"));
+
+        assertThatThrownBy(() -> subscriptionService.transfer(GraviteeContext.getExecutionContext(), transfer, USER_ID)).isInstanceOf(
+            PlanAlreadySubscribedException.class
+        );
+
+        verifyNoInteractions(auditService, notifierService, apiKeyRepository);
+    }
+
+    @Test
+    public void should_not_audit_a_configuration_update_the_repository_refuses_as_a_duplicate() throws Exception {
+        var update = givenAChannelChangeOfAnAcceptedPushSubscription();
+        when(subscriptionRepository.update(any())).thenThrow(new DuplicateKeyException("unique active subscription"));
+
+        assertThatThrownBy(() -> subscriptionService.update(GraviteeContext.getExecutionContext(), update)).isInstanceOf(
+            PlanAlreadySubscribedException.class
+        );
+
+        verifyNoInteractions(auditService);
+    }
+
+    @Test
+    public void should_neither_audit_nor_update_the_keys_of_a_subscription_update_the_repository_refuses_as_a_duplicate() throws Exception {
+        var update = givenAnUpdateOfTheChannelOfAnAcceptedPushSubscription();
+        when(subscriptionRepository.update(any())).thenThrow(new DuplicateKeyException("unique active subscription"));
+
+        assertThatThrownBy(() -> subscriptionService.update(GraviteeContext.getExecutionContext(), update)).isInstanceOf(
+            PlanAlreadySubscribedException.class
+        );
+
+        verifyNoInteractions(auditService, apiKeyService);
+    }
+
+    @Test
+    public void should_neither_audit_nor_resume_the_keys_of_a_restore_the_repository_refuses_as_a_duplicate() throws Exception {
+        givenAClosedSubscription();
+        when(subscriptionRepository.update(any())).thenThrow(new DuplicateKeyException("unique active subscription"));
+
+        assertThatThrownBy(() -> subscriptionService.restore(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).isInstanceOf(
+            PlanAlreadySubscribedException.class
+        );
+
+        verifyNoInteractions(auditService, apiKeyService);
+    }
+
+    @Test
+    public void should_log_at_debug_level_the_duplicate_behind_a_plan_already_subscribed() throws Exception {
+        givenAClosedSubscription();
+        var duplicate = new DuplicateKeyException("unique active subscription");
+        when(subscriptionRepository.update(any())).thenThrow(duplicate);
+        var logger = (Logger) LoggerFactory.getLogger(SubscriptionServiceImpl.class);
+        var level = logger.getLevel();
+        var logs = new ListAppender<ILoggingEvent>();
+        logs.start();
+        logger.addAppender(logs);
+        logger.setLevel(Level.DEBUG);
+        try {
+            assertThatThrownBy(() -> subscriptionService.restore(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).isInstanceOf(
+                PlanAlreadySubscribedException.class
+            );
+        } finally {
+            logger.detachAppender(logs);
+            logger.setLevel(level);
+        }
+
+        assertThat(logs.list)
+            .filteredOn(event -> event.getThrowableProxy() != null)
+            .singleElement()
+            .satisfies(event -> {
+                assertThat(event.getLevel()).isEqualTo(Level.DEBUG);
+                assertThat(event.getFormattedMessage()).contains(PLAN_ID);
+                assertThat(event.getThrowableProxy().getClassName()).isEqualTo(DuplicateKeyException.class.getName());
+                assertThat(event.getThrowableProxy().getMessage()).isEqualTo("unique active subscription");
+            });
+    }
+
+    private void givenAnAutomaticApiKeyPlanTheApplicationCanSubscribe() {
+        planEntity.setValidation(PlanValidationType.AUTO);
+        planEntity.setSecurity(PlanSecurityType.API_KEY);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        SecurityContextHolder.setContext(generateSecurityContext());
+    }
+
+    private TransferSubscriptionEntity givenATransferOfAnAcceptedSubscriptionTo(String targetPlan) throws TechnicalException {
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(
+            Optional.of(buildTestSubscription(SUBSCRIPTION_ID, API_ID, ACCEPTED, PLAN_ID, APPLICATION_ID, SUBSCRIBER_ID))
+        );
+        planEntity.setStatus(PlanStatus.PUBLISHED);
+        planEntity.setSecurity(PlanSecurityType.API_KEY);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        PlanEntity target = new PlanEntity();
+        target.setId(targetPlan);
+        target.setApi(API_ID);
+        target.setReferenceId(API_ID);
+        target.setReferenceType(GenericPlanEntity.ReferenceType.API);
+        target.setStatus(PlanStatus.PUBLISHED);
+        target.setSecurity(PlanSecurityType.API_KEY);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), targetPlan)).thenReturn(target);
+
+        TransferSubscriptionEntity transfer = new TransferSubscriptionEntity();
+        transfer.setId(SUBSCRIPTION_ID);
+        transfer.setPlan(targetPlan);
+        return transfer;
+    }
+
+    private UpdateSubscriptionConfigurationEntity givenAChannelChangeOfAnAcceptedPushSubscription() throws TechnicalException {
+        io.gravitee.rest.api.model.v4.plan.PlanEntity pushPlan = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        pushPlan.setId(PLAN_ID);
+        pushPlan.setReferenceId(API_ID);
+        pushPlan.setValidation(AUTO);
+        pushPlan.setMode(PlanMode.PUSH);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(pushPlan);
+        givenAnAcceptedPushSubscription();
+
+        UpdateSubscriptionConfigurationEntity update = new UpdateSubscriptionConfigurationEntity();
+        update.setSubscriptionId(SUBSCRIPTION_ID);
+        update.setConfiguration(aChannelConfiguration());
+        return update;
+    }
+
+    private UpdateSubscriptionEntity givenAnUpdateOfTheChannelOfAnAcceptedPushSubscription() throws TechnicalException {
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        givenAnAcceptedPushSubscription();
+
+        UpdateSubscriptionEntity update = new UpdateSubscriptionEntity();
+        update.setId(SUBSCRIPTION_ID);
+        update.setConfiguration(aChannelConfiguration());
+        return update;
+    }
+
+    private void givenAnAcceptedPushSubscription() throws TechnicalException {
+        Subscription pushSubscription = buildTestSubscription(SUBSCRIPTION_ID, API_ID, ACCEPTED, PLAN_ID, APPLICATION_ID, SUBSCRIBER_ID);
+        pushSubscription.setType(Subscription.Type.PUSH);
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(pushSubscription));
+    }
+
+    private static SubscriptionConfigurationEntity aChannelConfiguration() {
+        SubscriptionConfigurationEntity configuration = new SubscriptionConfigurationEntity();
+        configuration.setEntrypointId("webhook");
+        configuration.setChannel("already-subscribed-channel");
+        return configuration;
+    }
+
+    private void givenAClosedSubscription() throws TechnicalException {
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(
+            Optional.of(buildTestSubscription(SUBSCRIPTION_ID, API_ID, Subscription.Status.CLOSED, PLAN_ID, APPLICATION_ID, SUBSCRIBER_ID))
+        );
+    }
+
+    private static void assertUnexpectedError(ThrowingCallable call, TechnicalException failure) {
+        assertThatThrownBy(call)
+            .isInstanceOfSatisfying(TechnicalManagementException.class, e -> assertThat(e.getHttpStatusCode()).isEqualTo(500))
+            .hasCause(failure);
     }
 
     private Map<String, Map<String, Object>> prepareMetadata() {

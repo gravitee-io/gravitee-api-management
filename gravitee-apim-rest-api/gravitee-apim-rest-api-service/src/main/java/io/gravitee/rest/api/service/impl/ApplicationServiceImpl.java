@@ -125,6 +125,7 @@ import io.gravitee.rest.api.service.exceptions.ApplicationTypeNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationTypeException;
+import io.gravitee.rest.api.service.exceptions.PlanAlreadySubscribedException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosableException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotPausedException;
@@ -1198,14 +1199,26 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 null
             );
 
-            subscriptions.forEach(subscription -> {
-                try {
-                    subscriptionService.restore(executionContext, subscription.getId());
-                } catch (SubscriptionNotPausedException snce) {
-                    // Subscription cannot be closed because it is already closed or not yet accepted
-                    log.debug("The subscription cannot be closed: {}", snce.getMessage());
-                }
-            });
+            // Most recently closed first: when the application subscribed a plan again after closing a subscription to it,
+            // only the subscription it had when archived is active again.
+            subscriptions
+                .stream()
+                .sorted(Comparator.comparing(SubscriptionEntity::getClosedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .forEach(subscription -> {
+                    try {
+                        subscriptionService.restore(executionContext, subscription.getId());
+                    } catch (SubscriptionNotPausedException snce) {
+                        // Subscription cannot be closed because it is already closed or not yet accepted
+                        log.debug("The subscription cannot be closed: {}", snce.getMessage());
+                    } catch (PlanAlreadySubscribedException e) {
+                        log.info(
+                            "Subscription [{}] of application [{}] not restored: the application already has an active subscription to plan [{}]",
+                            subscription.getId(),
+                            applicationId,
+                            subscription.getPlan()
+                        );
+                    }
+                });
 
             UserEntity userEntity = userService.findById(executionContext, userId);
 

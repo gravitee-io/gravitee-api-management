@@ -99,6 +99,31 @@ public class JdbcSubscriptionUniqueActiveKeyTest extends AbstractManagementRepos
     }
 
     @Test
+    public void should_keep_the_key_while_the_subscription_is_paused_and_once_it_is_resumed() throws Exception {
+        var subscription = subscriptionRepository.create(aSubscription("sub-1", Subscription.Status.ACCEPTED, "plan-1"));
+        var key = storedKey("sub-1");
+
+        subscription.setStatus(Subscription.Status.PAUSED);
+        subscriptionRepository.update(subscription);
+        var keyWhilePaused = storedKey("sub-1");
+        subscription.setStatus(Subscription.Status.ACCEPTED);
+        subscriptionRepository.update(subscription);
+
+        assertThat(keyWhilePaused).isNotNull().isEqualTo(key);
+        assertThat(storedKey("sub-1")).isEqualTo(key);
+    }
+
+    @Test
+    public void should_give_the_key_back_when_a_closed_subscription_is_restored() throws Exception {
+        var subscription = subscriptionRepository.create(aSubscription("sub-1", Subscription.Status.CLOSED, "plan-1"));
+
+        subscription.setStatus(Subscription.Status.PENDING);
+        subscriptionRepository.update(subscription);
+
+        assertThat(storedKey("sub-1")).isNotNull().isEqualTo(SubscriptionUniqueActiveKey.of(subscription));
+    }
+
+    @Test
     public void should_recompute_the_key_when_the_subscription_is_transferred_to_another_plan() throws Exception {
         var subscription = subscriptionRepository.create(aSubscription("sub-1", Subscription.Status.ACCEPTED, "plan-1"));
 
@@ -163,7 +188,7 @@ public class JdbcSubscriptionUniqueActiveKeyTest extends AbstractManagementRepos
         createWithoutKey(aSubscription("sub-1", Subscription.Status.ACCEPTED, "plan-1"));
         jdbcTemplate.update(
             "delete from " + prefix() + "databasechangelog where id = ?",
-            "4.12.25_01_backfill_subscriptions_unique_active_key"
+            "4.12.26_01_backfill_subscriptions_unique_active_key"
         );
 
         try (Connection connection = dataSource.getConnection()) {

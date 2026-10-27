@@ -49,8 +49,9 @@ import lombok.CustomLog;
  * <p>
  * Subscriptions are read in batches, in id order, and each batch is committed on its own: a single transaction would
  * lock active subscriptions for the whole run, while nodes of the previous version keep serving requests. A key is only
- * written if the subscription still holds the values it has been computed from, a subscription changed in the meantime
- * is left to its writer. Running it again gives the same result.
+ * written if the subscription still holds the values it has been computed from. A subscription changed in the meantime
+ * is skipped: a node of this version wrote its up-to-date key along with the change, while a node of a previous
+ * version left the key as it was, missing or stale, until the next repair. Running it again gives the same result.
  *
  * @author GraviteeSource Team
  */
@@ -87,8 +88,8 @@ public class SubscriptionUniqueActiveKeyBackfill implements CustomTaskChange {
     }
 
     /**
-     * Never fails: the node would not start, and a missing key only means keeping the behaviour of the previous
-     * versions until the next repair, which runs before the unique index is created.
+     * Never fails, as the node would not start. Liquibase then records the changeset as run, and the subscriptions the
+     * backfill has not reached keep their missing or stale key until a repair runs again.
      */
     @Override
     public void execute(Database database) throws CustomChangeException {
@@ -101,7 +102,7 @@ public class SubscriptionUniqueActiveKeyBackfill implements CustomTaskChange {
             repair(connection);
         } catch (Exception e) {
             log.error(
-                "Unexpected error while backfilling the unique active key of subscriptions, it will be repaired again before being enforced",
+                "Unexpected error while backfilling the unique active key of subscriptions: the subscriptions not reached keep a missing or stale key",
                 e
             );
             rollback(connection);
@@ -144,11 +145,13 @@ public class SubscriptionUniqueActiveKeyBackfill implements CustomTaskChange {
             ", type, configuration, " +
             UNIQUE_ACTIVE_KEY_COLUMN +
             " from " +
-            table;
+            table +
+            " where id > ? order by id";
 
         int scanned = 0;
         int fixed = 0;
-        String lastId = null;
+        // Every id sorts after the empty string.
+        String lastId = "";
         int read;
         do {
             List<Row> batch = readBatch(connection, select, lastId);
@@ -230,13 +233,12 @@ public class SubscriptionUniqueActiveKeyBackfill implements CustomTaskChange {
     }
 
     private static List<Row> readBatch(Connection connection, String select, String afterId) throws SQLException {
-        String sql = select + (afterId == null ? "" : " where id > ?") + " order by id";
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (
+            PreparedStatement statement = connection.prepareStatement(select) // NOSONAR only the configured table prefix is concatenated, the id is bound
+        ) {
             statement.setMaxRows(BATCH_SIZE);
             statement.setFetchSize(BATCH_SIZE);
-            if (afterId != null) {
-                statement.setString(1, afterId);
-            }
+            statement.setString(1, afterId);
             List<Row> rows = new ArrayList<>(BATCH_SIZE);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
