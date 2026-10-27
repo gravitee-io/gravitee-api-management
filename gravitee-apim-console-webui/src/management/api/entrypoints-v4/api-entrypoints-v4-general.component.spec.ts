@@ -979,6 +979,91 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       expect(licenseBanner.length).toEqual(0);
     });
   });
+
+  describe('plugin lookup', () => {
+    const RESTRICTED_DOMAINS = [];
+    const MCP_STUDIO_PLUGIN: Partial<ConnectorPlugin> = {
+      id: 'mcp-studio',
+      name: 'MCP Studio',
+      supportedApiType: 'MCP_PROXY',
+      supportedListenerType: 'HTTP',
+      deployed: false,
+    };
+    const MCP_PROXY_PLUGIN: Partial<ConnectorPlugin> = {
+      id: 'mcp-proxy',
+      name: 'MCP Proxy',
+      supportedApiType: 'MCP_PROXY',
+      supportedListenerType: 'HTTP',
+      deployed: true,
+    };
+
+    it('should show a Gamma-only entrypoint already on the API without crashing', async () => {
+      const api = fakeApiV4({
+        id: API_ID,
+        type: 'MCP_PROXY',
+        listeners: [
+          {
+            type: 'HTTP',
+            paths: [{ path: '/apim-15680-mcp-studio' }],
+            entrypoints: [{ type: 'mcp-studio', qos: 'AUTO' }],
+          },
+        ],
+      });
+
+      await init();
+      fixture.detectChanges();
+      expectGetRestrictedDomain(RESTRICTED_DOMAINS);
+      expectGetEntrypoints([...ENTRYPOINTS, MCP_PROXY_PLUGIN, MCP_STUDIO_PLUGIN]);
+      expectGetApi(api);
+      expectGetExposedEntrypoints(httpTestingController, API_ID, []);
+      expectGetPortalSettings();
+      expectApiPathVerify();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.dataSource).toEqual([
+        expect.objectContaining({
+          id: 'mcp-studio',
+          type: 'MCP Studio',
+          qos: 'AUTO',
+        }),
+      ]);
+      expect(fixture.componentInstance.entrypointAvailableForAdd.map(e => e.id)).not.toContain('mcp-studio');
+      expect(fixture.componentInstance.entrypointAvailableForAdd.map(e => e.id)).toContain('mcp-proxy');
+    });
+
+    it('should keep sorting when one attached entrypoint has no matching plugin', async () => {
+      const api = fakeApiV4({
+        id: API_ID,
+        type: 'MESSAGE',
+        listeners: [
+          {
+            type: 'HTTP',
+            paths: [{ path: '/context-path' }],
+            entrypoints: [
+              { type: 'http-get', qos: 'AUTO' },
+              { type: 'missing-entrypoint', qos: 'AUTO' },
+            ],
+          },
+        ],
+      });
+
+      await createComponent(RESTRICTED_DOMAINS, api, undefined, undefined, false);
+      expectApiPathVerify();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.dataSource.map(row => row.id)).toEqual(['http-get', 'missing-entrypoint']);
+      expect(fixture.componentInstance.dataSource).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: 'missing-entrypoint', type: 'missing-entrypoint', icon: 'gio:language' }),
+          expect.objectContaining({ id: 'http-get', type: 'HTTP GET' }),
+        ]),
+      );
+
+      const harness = await loader.getHarness(ApiEntrypointsV4GeneralHarness);
+      expect(await harness.getEntrypointsTableRows().then(rows => rows.length)).toEqual(2);
+    });
+  });
+
   function expectGetRestrictedDomain(restrictedDomains: RestrictedDomain[]): void {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/restrictedDomains`, method: 'GET' }).flush(restrictedDomains);
   }
@@ -999,8 +1084,13 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     httpTestingController.match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/hosts`, method: 'POST' });
   }
 
-  function expectGetEntrypoints(): void {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints`, method: 'GET' }).flush(ENTRYPOINTS);
+  function expectGetEntrypoints(plugins: Partial<ConnectorPlugin>[] = ENTRYPOINTS): void {
+    const requests = httpTestingController.match({
+      url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints`,
+      method: 'GET',
+    });
+    expect(requests.length).toBe(2);
+    requests.forEach(request => request.flush(plugins));
   }
 
   function expectLicenseGetRequest(license: License) {
