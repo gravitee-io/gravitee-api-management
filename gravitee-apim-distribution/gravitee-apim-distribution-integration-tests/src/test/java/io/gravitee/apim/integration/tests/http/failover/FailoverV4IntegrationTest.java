@@ -846,6 +846,35 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
         }
 
         @Test
+        @DeployApi("/apis/v4/http/failover/api-force-next-keeps-request-path.json")
+        void should_keep_the_request_path_and_query_when_switching_endpoint(HttpClient client) {
+            wiremock.stubFor(get(urlPathEqualTo("/service-a/items/42")).withQueryParam("color", equalTo("blue")).willReturn(serverError()));
+            wiremock.stubFor(
+                get(urlPathEqualTo("/service-b/items/42")).withQueryParam("color", equalTo("blue")).willReturn(ok(RESPONSE_FROM_BACKEND))
+            );
+
+            client
+                .rxRequest(HttpMethod.GET, "/test/items/42?color=blue")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body).hasToString(RESPONSE_FROM_BACKEND);
+                    return true;
+                });
+
+            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/service-a/items/42")).withQueryParam("color", equalTo("blue")));
+            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/service-b/items/42")).withQueryParam("color", equalTo("blue")));
+            wiremock.verify(0, getRequestedFor(urlPathEqualTo("/service-a")));
+            wiremock.verify(0, getRequestedFor(urlPathEqualTo("/service-b")));
+        }
+
+        @Test
         @DeployApi("/apis/v4/http/failover/api-three-endpoints-force-next-full-loop.json")
         void should_loop_back_to_first_endpoint_after_exhausting_all(HttpClient client) {
             // Given endpoint-1 always returns 500, endpoint-3 always returns 500,
