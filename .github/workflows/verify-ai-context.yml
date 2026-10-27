@@ -7,13 +7,9 @@
 #    add or edit a rule under .ai/rules instead, then regenerate.
 # 2. You regenerated but did not commit everything it changed, often
 #    .ai/generated.yaml. Commit the record and the generated files together.
-# To regenerate, Gravitee staff install gbuddy once: the npm package
-# @gravitee-io/gbuddy on GitHub Packages (internal). The page "Get started
-# with gbuddy" in the Builder Experience Confluence space has the install and
-# the GitHub token it needs. This repository pins the gbuddy release in
-# .ai/manifest.yaml, and `gbuddy setup` runs that release whatever version you
-# installed. Run `gbuddy setup` from this repository's root and commit every
-# file git status then shows changed.
+# To regenerate, run `gbuddy setup` (Gravitee's internal AI context tool)
+# from this repository's root and commit every file git status then shows
+# changed.
 # From a fork, or without gbuddy: do step 1 and push. A
 # changed rule without a regeneration only warns and never blocks; ask a
 # maintainer, in a comment on the pull request, to regenerate on the branch.
