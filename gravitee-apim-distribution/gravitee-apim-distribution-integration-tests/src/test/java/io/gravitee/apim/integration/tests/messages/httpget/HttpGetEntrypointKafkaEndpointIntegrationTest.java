@@ -599,4 +599,25 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
                 return true;
             });
     }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/kafka/kafka-endpoint-topic-not-found.json" })
+    void should_answer_404_when_the_topic_does_not_exist(HttpClient client) {
+        client
+            .rxRequest(HttpMethod.GET, "/test-topic-not-found")
+            .flatMap(request -> {
+                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+                return request.send();
+            })
+            .flatMap(response -> {
+                assertThat(response.statusCode()).isEqualTo(404);
+                return response.body();
+            })
+            .test()
+            .awaitDone(30, TimeUnit.SECONDS)
+            .assertValue(body -> {
+                assertThat(new JsonObject(body.toString()).getString("message")).isEqualTo("Topics not found");
+                return true;
+            });
+    }
 }

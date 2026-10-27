@@ -1,0 +1,64 @@
+{
+  "id": "kafka-endpoint-topic-not-found",
+  "name": "my-api",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "api v4 consuming a topic that does not exist",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test-topic-not-found"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-get",
+          "configuration": {
+            "messagesLimitCount": 10,
+            "messagesLimitDurationMs": 10000,
+            "headersInPayload": false,
+            "metadataInPayload": false
+          }
+        },
+        {
+          "type": "sse",
+          "configuration": {}
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "kafka",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "kafka",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "bootstrapServers": "bootstrap-server"
+          },
+          "sharedConfigurationOverride": {
+            "consumer": {
+              "enabled": true,
+              "topics": [
+                "test-topic-not-found"
+              ],
+              "checkTopicExistence": true,
+              "autoOffsetReset": "earliest"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [],
+  "analytics": {
+    "enabled": false
+  }
+}

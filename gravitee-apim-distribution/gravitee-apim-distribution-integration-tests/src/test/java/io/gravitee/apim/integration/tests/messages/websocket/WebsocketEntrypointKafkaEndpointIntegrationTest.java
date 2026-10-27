@@ -26,12 +26,14 @@ import io.gravitee.apim.integration.tests.messages.AbstractKafkaEndpointIntegrat
 import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.WebSocket;
 import io.vertx.rxjava3.core.http.WebSocketClient;
 import io.vertx.rxjava3.kafka.client.consumer.KafkaConsumer;
 import io.vertx.rxjava3.kafka.client.producer.KafkaProducer;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -190,5 +192,53 @@ class WebsocketEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpo
             .assertComplete();
 
         kafkaConsumer.close().blockingAwait(30, TimeUnit.SECONDS);
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/kafka/kafka-endpoint-unreachable.json" })
+    void should_close_the_websocket_when_the_broker_cannot_be_reached(WebSocketClient webSocketClient) {
+        final WebSocket webSocket = webSocketClient.rxConnect("/test-unreachable").blockingGet();
+
+        webSocket.toFlowable().test().awaitDone(60, TimeUnit.SECONDS).assertComplete();
+        // The entrypoint closes with a generic reason, whatever the failure.
+        assertThat(webSocket.closeStatusCode()).isEqualTo((short) 1011);
+        assertThat(webSocket.closeReason()).isEqualTo("Server error");
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/kafka/kafka-endpoint-qos-auto.json" })
+    void should_close_the_websocket_and_leave_the_consumer_group_when_the_api_is_undeployed(WebSocketClient webSocketClient, Vertx vertx)
+        throws Exception {
+        final String topic = TEST_TOPIC + "-qos-auto";
+        final String clientIdentifier = UUID.randomUUID().toString();
+        deleteTopic(topic);
+        KafkaProducer<String, byte[]> producer = getKafkaProducer(vertx);
+        publishToKafka(producer, topic, "message-0").test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+        producer.close().blockingAwait(10, TimeUnit.SECONDS);
+
+        try {
+            final WebSocket webSocket = webSocketClient
+                .rxConnect(
+                    new WebSocketConnectOptions().setURI("/test-qos-auto").addHeader("X-Gravitee-Client-Identifier", clientIdentifier)
+                )
+                .blockingGet();
+            final var obs = webSocket.toFlowable().test();
+            await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> obs.values().size() >= 1);
+            assertThat(obs.values().get(0)).hasToString("message-0");
+            assertThat(consumerGroupMembers(clientIdentifier)).isOne();
+
+            undeploy("kafka-endpoint-qos-auto");
+
+            obs.awaitDone(30, TimeUnit.SECONDS).assertComplete();
+            // Try again later: the client may reconnect once the api is back.
+            assertThat(webSocket.closeStatusCode()).isEqualTo((short) 1013);
+            await()
+                .atMost(30, TimeUnit.SECONDS)
+                .untilAsserted(() -> assertThat(consumerGroupMembers(clientIdentifier)).isZero());
+        } finally {
+            deleteTopic(topic);
+        }
     }
 }
