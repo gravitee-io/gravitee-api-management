@@ -1162,6 +1162,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     }
 
     private static PlanAlreadySubscribedException planAlreadySubscribed(String plan, DuplicateKeyException cause) {
+        // The 400 answer does not tell which subscription the repository refused, nor why.
+        log.debug("Plan [{}] already subscribed: the repository refused a second active subscription", plan, cause);
         PlanAlreadySubscribedException exception = new PlanAlreadySubscribedException(plan);
         exception.initCause(cause);
         return exception;
