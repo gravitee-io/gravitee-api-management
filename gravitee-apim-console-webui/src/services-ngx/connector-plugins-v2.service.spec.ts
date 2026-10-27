@@ -78,6 +78,28 @@ describe('Installation Plugins Service', () => {
       });
     });
 
+    describe('listAllEndpointPlugins', () => {
+      it('should keep endpoints that are hidden from pickers', done => {
+        const fakeConnectors = [
+          fakeConnectorPlugin({ id: 'http-proxy' }),
+          fakeConnectorPlugin({ id: 'tools-mcp', name: 'MCP Tools' }),
+          fakeConnectorPlugin({ id: 'native-kafka-cluster' }),
+        ];
+
+        service.listAllEndpointPlugins().subscribe(connectors => {
+          expect(connectors.map(connector => connector.id)).toEqual(['http-proxy', 'tools-mcp', 'native-kafka-cluster']);
+          done();
+        });
+
+        httpTestingController
+          .expectOne({
+            url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints`,
+            method: 'GET',
+          })
+          .flush(fakeConnectors);
+      });
+    });
+
     describe('listEndpointPluginsByApiType', () => {
       it('should call the API', done => {
         const response = [
@@ -121,11 +143,33 @@ describe('Installation Plugins Service', () => {
   });
 
   describe('Entrypoints', () => {
+    describe('listAllEntrypointPlugins', () => {
+      it('should keep entrypoints that are hidden from pickers', done => {
+        const fakeConnectors = [
+          fakeConnectorPlugin({ id: 'http-proxy', supportedApiType: 'PROXY' }),
+          fakeConnectorPlugin({ id: 'mcp-studio', name: 'MCP Studio', supportedApiType: 'MCP_PROXY' }),
+        ];
+
+        service.listAllEntrypointPlugins().subscribe(connectors => {
+          expect(connectors.map(connector => connector.id)).toEqual(['http-proxy', 'mcp-studio']);
+          expect(connectors[1].name).toEqual('MCP Studio');
+          done();
+        });
+
+        httpTestingController
+          .expectOne({
+            url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints`,
+            method: 'GET',
+          })
+          .flush(fakeConnectors);
+      });
+    });
+
     describe('listEntrypointPlugins', () => {
       it('should exclude gamma-only entrypoint plugins', done => {
         const fakeConnectors = [
           fakeConnectorPlugin({ id: 'http-proxy', supportedApiType: 'PROXY' }),
-          fakeConnectorPlugin({ id: 'mcp-studio', supportedApiType: 'PROXY' }),
+          fakeConnectorPlugin({ id: 'mcp-studio', supportedApiType: 'MCP_PROXY' }),
           fakeConnectorPlugin({ id: 'webhook', supportedApiType: 'MESSAGE' }),
         ];
 
