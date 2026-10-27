@@ -55,6 +55,13 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
     public static final String INVALID_HTTP_METHOD = "INVALID_HTTP_METHOD";
     public static final String ATTR_INTERNAL_FAILOVER_MANAGED_ENDPOINT = "failover.managedEndpoint";
 
+    /**
+     * Endpoint name selected by failover for the next attempt. Applied as {@link EndpointCriteria#setName(String)}
+     * after any {@code ATTR_REQUEST_ENDPOINT} override has been evaluated, then removed. It does not carry a
+     * request path, so the HTTP proxy still reads {@code pathInfo} during connect.
+     */
+    public static final String ATTR_INTERNAL_FAILOVER_ENDPOINT_NAME = "failover.endpointName";
+
     private final EndpointManager endpointManager;
 
     public HttpEndpointInvoker(final EndpointManager endpointManager) {
@@ -121,6 +128,14 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
                     ctx.setAttribute(ATTR_REQUEST_ENDPOINT, matcher.group(MATCH_GROUP_PATH));
                 }
             }
+        }
+
+        // Failover names the next endpoint without putting the request path on ATTR_REQUEST_ENDPOINT.
+        // Applied after the override above so a forced retry wins over a stale endpoint name in that attribute.
+        final String forcedEndpointName = ctx.getInternalAttribute(ATTR_INTERNAL_FAILOVER_ENDPOINT_NAME);
+        if (forcedEndpointName != null && !forcedEndpointName.isEmpty()) {
+            endpointCriteria.setName(forcedEndpointName);
+            ctx.removeInternalAttribute(ATTR_INTERNAL_FAILOVER_ENDPOINT_NAME);
         }
 
         final ManagedEndpoint managedEndpoint = endpointManager.next(endpointCriteria);
