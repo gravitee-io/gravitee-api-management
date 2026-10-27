@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactive.core.failover;
 
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
+import static io.gravitee.gateway.reactive.core.v4.invoker.HttpEndpointInvoker.ATTR_INTERNAL_FAILOVER_ENDPOINT_NAME;
 import static io.gravitee.gateway.reactive.core.v4.invoker.HttpEndpointInvoker.ATTR_INTERNAL_FAILOVER_MANAGED_ENDPOINT;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -176,7 +177,10 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
 
         if (rotation != null && !rotation.isEmpty()) {
             int index = (attempt - 1) % rotation.size();
-            ctx.setAttribute(ATTR_REQUEST_ENDPOINT, rotation.get(index) + ":");
+            // Name the next endpoint without writing the request path onto ATTR_REQUEST_ENDPOINT.
+            // The HTTP proxy reads pathInfo during connect. HttpEndpointInvoker evaluates any caller
+            // override before this name replaces the endpoint selected from that override.
+            ctx.setInternalAttribute(ATTR_INTERNAL_FAILOVER_ENDPOINT_NAME, rotation.get(index));
         }
     }
 
