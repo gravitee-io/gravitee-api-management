@@ -44,8 +44,9 @@ import reactor.core.publisher.Mono;
  * nodes of the previous versions write subscriptions without maintaining the key (a full document replace drops it).
  * <p>
  * Subscriptions are read in batches, in {@code _id} order, and a key is only written if the subscription still holds
- * the values it has been computed from: a subscription changed in the meantime is left to its writer. Running it again,
- * or on several nodes at the same time, gives the same result.
+ * the values it has been computed from. A subscription changed in the meantime is skipped: a node of this version wrote
+ * its up-to-date key along with the change, while a node of a previous version dropped it, until the next repair.
+ * Running it again, or on several nodes at the same time, gives the same result.
  *
  * @author GraviteeSource Team
  */
