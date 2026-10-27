@@ -51,6 +51,10 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
@@ -173,6 +177,7 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -3713,6 +3718,37 @@ public class SubscriptionServiceTest {
         );
 
         verifyNoInteractions(auditService, apiKeyService);
+    }
+
+    @Test
+    public void should_log_at_debug_level_the_duplicate_behind_a_plan_already_subscribed() throws Exception {
+        givenAClosedSubscription();
+        var duplicate = new DuplicateKeyException("unique active subscription");
+        when(subscriptionRepository.update(any())).thenThrow(duplicate);
+        var logger = (Logger) LoggerFactory.getLogger(SubscriptionServiceImpl.class);
+        var level = logger.getLevel();
+        var logs = new ListAppender<ILoggingEvent>();
+        logs.start();
+        logger.addAppender(logs);
+        logger.setLevel(Level.DEBUG);
+        try {
+            assertThatThrownBy(() -> subscriptionService.restore(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).isInstanceOf(
+                PlanAlreadySubscribedException.class
+            );
+        } finally {
+            logger.detachAppender(logs);
+            logger.setLevel(level);
+        }
+
+        assertThat(logs.list)
+            .filteredOn(event -> event.getThrowableProxy() != null)
+            .singleElement()
+            .satisfies(event -> {
+                assertThat(event.getLevel()).isEqualTo(Level.DEBUG);
+                assertThat(event.getFormattedMessage()).contains(PLAN_ID);
+                assertThat(event.getThrowableProxy().getClassName()).isEqualTo(DuplicateKeyException.class.getName());
+                assertThat(event.getThrowableProxy().getMessage()).isEqualTo("unique active subscription");
+            });
     }
 
     private void givenAnAutomaticApiKeyPlanTheApplicationCanSubscribe() {
