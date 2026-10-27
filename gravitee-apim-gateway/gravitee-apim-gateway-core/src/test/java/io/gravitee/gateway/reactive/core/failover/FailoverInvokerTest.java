@@ -15,17 +15,26 @@
  */
 package io.gravitee.gateway.reactive.core.failover;
 
+import static io.gravitee.gateway.reactive.core.v4.invoker.HttpEndpointInvoker.ATTR_INTERNAL_FAILOVER_ENDPOINT_NAME;
+import static io.gravitee.gateway.reactive.core.v4.invoker.HttpEndpointInvoker.ATTR_INTERNAL_FAILOVER_MANAGED_ENDPOINT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
@@ -36,11 +45,17 @@ import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
+import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
+import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpointGroup;
 import io.gravitee.gateway.reactive.core.v4.invoker.HttpEndpointInvoker;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -222,6 +237,216 @@ class FailoverInvokerTest {
         assertThat(executionContextArgumentCaptor.getAllValues())
             .hasSize(1)
             .allSatisfy(ctx -> assertThat(ctx.<String>getAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT)).isEqualTo("endpoint-name"));
+    }
+
+    @Nested
+    class ForceNextEndpoint {
+
+        @BeforeEach
+        void allow_context_logging() {
+            ((DefaultExecutionContext) executionContext).componentProvider(loggingComponentProvider());
+        }
+
+        @Test
+        void should_keep_the_request_path_available_when_a_connection_error_switches_endpoint() {
+            request.pathInfo("/items/42");
+            selectEndpoint(executionContext, "primary", "primary", "secondary");
+            cut = failover(null, 2);
+
+            List<Attempt> attempts = new ArrayList<>();
+            AtomicInteger calls = new AtomicInteger();
+            when(endpointInvoker.invoke(executionContext)).thenAnswer(invocation -> {
+                attempts.add(attempt(executionContext));
+                if (calls.getAndIncrement() < 2) {
+                    // Connector rewrite happens during connect, after failover has chosen the endpoint.
+                    request.pathInfo("/service");
+                    return Completable.error(new IOException("connection reset"));
+                }
+                return Completable.complete();
+            });
+
+            cut.invoke(executionContext).test().awaitDone(2, TimeUnit.SECONDS).assertComplete();
+
+            assertThat(attempts).containsExactly(
+                new Attempt(null, null, "/items/42"),
+                new Attempt(null, "secondary", "/items/42"),
+                new Attempt(null, "primary", "/items/42")
+            );
+        }
+
+        @Test
+        void should_keep_a_colon_in_the_request_path_when_switching_endpoint() {
+            request.pathInfo("/openai/deployments/gpt-4o/chat/completions:stream");
+            selectEndpoint(executionContext, "primary", "primary", "secondary");
+            cut = failover(null, 1);
+
+            List<Attempt> attempts = recordAttemptsUntilSuccess();
+
+            cut.invoke(executionContext).test().awaitDone(2, TimeUnit.SECONDS).assertComplete();
+
+            assertThat(attempts).containsExactly(
+                new Attempt(null, null, "/openai/deployments/gpt-4o/chat/completions:stream"),
+                new Attempt(null, "secondary", "/openai/deployments/gpt-4o/chat/completions:stream")
+            );
+        }
+
+        @Test
+        void should_leave_the_request_path_unset_when_path_info_is_empty() {
+            selectEndpoint(executionContext, "primary", "primary", "secondary");
+            cut = failover(null, 1);
+
+            List<Attempt> attempts = recordAttemptsUntilSuccess();
+
+            cut.invoke(executionContext).test().awaitDone(2, TimeUnit.SECONDS).assertComplete();
+
+            assertThat(attempts).containsExactly(new Attempt(null, null, null), new Attempt(null, "secondary", null));
+        }
+
+        @Test
+        void should_keep_the_request_path_available_when_the_failure_condition_matches() {
+            request.pathInfo("/items/42");
+            TemplateEngine templateEngine = mock(TemplateEngine.class);
+            when(templateEngine.eval("{#response.status >= 500}", Boolean.class)).thenReturn(Maybe.just(true), Maybe.just(false));
+            HttpExecutionContext ctx = executionContextWith(templateEngine);
+            selectEndpoint(ctx, "primary", "primary", "secondary");
+            cut = failover("{#response.status >= 500}", 1);
+
+            List<Attempt> attempts = new ArrayList<>();
+            AtomicInteger calls = new AtomicInteger();
+            when(endpointInvoker.invoke(ctx)).thenAnswer(invocation -> {
+                attempts.add(attempt(ctx));
+                if (calls.getAndIncrement() == 0) {
+                    request.pathInfo("/service");
+                }
+                return Completable.complete();
+            });
+
+            cut.invoke(ctx).test().awaitDone(2, TimeUnit.SECONDS).assertComplete();
+
+            assertThat(attempts).containsExactly(new Attempt(null, null, "/items/42"), new Attempt(null, "secondary", "/items/42"));
+        }
+
+        @Test
+        void should_leave_a_dynamic_routing_override_when_switching_endpoint() {
+            executionContext.setAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT, "primary:/routed");
+            request.pathInfo("/items/42");
+            selectEndpoint(executionContext, "primary", "primary", "secondary");
+            cut = failover(null, 1);
+
+            List<Attempt> attempts = recordAttemptsUntilSuccess();
+
+            cut.invoke(executionContext).test().awaitDone(2, TimeUnit.SECONDS).assertComplete();
+
+            assertThat(attempts).containsExactly(
+                new Attempt("primary:/routed", null, "/items/42"),
+                new Attempt("primary:/routed", "secondary", "/items/42")
+            );
+        }
+
+        @Test
+        void should_leave_an_endpoint_reference_when_switching_endpoint() {
+            executionContext.setAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT, "primary:");
+            request.pathInfo("/items/42");
+            selectEndpoint(executionContext, "primary", "primary", "secondary");
+            cut = failover(null, 1);
+
+            List<Attempt> attempts = recordAttemptsUntilSuccess();
+
+            cut.invoke(executionContext).test().awaitDone(2, TimeUnit.SECONDS).assertComplete();
+
+            assertThat(attempts).containsExactly(
+                new Attempt("primary:", null, "/items/42"),
+                new Attempt("primary:", "secondary", "/items/42")
+            );
+        }
+
+        @Test
+        void should_leave_an_override_template_when_switching_endpoint() {
+            String template = "{#request.headers['x'] != null ? #endpoints['a'] : #endpoints['b']}/routed";
+            executionContext.setAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT, template);
+            request.pathInfo("/items/42");
+            selectEndpoint(executionContext, "primary", "primary", "secondary");
+            cut = failover(null, 1);
+
+            List<Attempt> attempts = recordAttemptsUntilSuccess();
+
+            cut.invoke(executionContext).test().awaitDone(2, TimeUnit.SECONDS).assertComplete();
+
+            assertThat(attempts).containsExactly(new Attempt(template, null, "/items/42"), new Attempt(template, "secondary", "/items/42"));
+        }
+
+        private record Attempt(String endpointAttribute, String failoverEndpointName, String pathInfo) {}
+
+        private Attempt attempt(HttpExecutionContext ctx) {
+            return new Attempt(
+                ctx.getAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT),
+                ctx.getInternalAttribute(ATTR_INTERNAL_FAILOVER_ENDPOINT_NAME),
+                ctx.request().pathInfo()
+            );
+        }
+
+        private List<Attempt> recordAttemptsUntilSuccess() {
+            List<Attempt> attempts = new ArrayList<>();
+            AtomicInteger calls = new AtomicInteger();
+            when(endpointInvoker.invoke(executionContext)).thenAnswer(invocation -> {
+                attempts.add(attempt(executionContext));
+                if (calls.getAndIncrement() == 0) {
+                    return Completable.error(new IOException("connection reset"));
+                }
+                return Completable.complete();
+            });
+            return attempts;
+        }
+
+        private FailoverInvoker failover(String failureCondition, int maxRetries) {
+            return new FailoverInvoker(
+                endpointInvoker,
+                Failover.builder()
+                    .failureCondition(failureCondition)
+                    .forceNextEndpointOnFailure(true)
+                    .slowCallDuration(50_000)
+                    .maxRetries(maxRetries)
+                    .perSubscription(false)
+                    .build(),
+                API_ID,
+                endpointManager
+            );
+        }
+
+        private void selectEndpoint(HttpExecutionContext ctx, String selectedName, String... names) {
+            List<Endpoint> endpoints = new ArrayList<>();
+            Endpoint selectedDefinition = null;
+            for (String name : names) {
+                Endpoint endpoint = Endpoint.builder().name(name).type("http-proxy").build();
+                endpoints.add(endpoint);
+                if (name.equals(selectedName)) {
+                    selectedDefinition = endpoint;
+                }
+            }
+            EndpointGroup group = EndpointGroup.builder().name("default").type("http-proxy").endpoints(endpoints).build();
+            ManagedEndpointGroup managedGroup = mock(ManagedEndpointGroup.class);
+            when(managedGroup.getDefinition()).thenReturn(group);
+            ManagedEndpoint selected = mock(ManagedEndpoint.class);
+            when(selected.getDefinition()).thenReturn(selectedDefinition);
+            when(selected.getGroup()).thenReturn(managedGroup);
+            ctx.setInternalAttribute(ATTR_INTERNAL_FAILOVER_MANAGED_ENDPOINT, selected);
+        }
+
+        private HttpExecutionContext executionContextWith(TemplateEngine templateEngine) {
+            DefaultExecutionContext real = new DefaultExecutionContext(request, response);
+            real.metrics(metrics);
+            real.componentProvider(loggingComponentProvider());
+            DefaultExecutionContext ctx = spy(real);
+            doReturn(templateEngine).when(ctx).getTemplateEngine();
+            doReturn(metrics).when(ctx).metrics();
+            return ctx;
+        }
+
+        private ComponentProvider loggingComponentProvider() {
+            ComponentProvider provider = mock(ComponentProvider.class);
+            lenient().when(provider.getComponent(io.gravitee.node.api.Node.class)).thenReturn(mock(io.gravitee.node.api.Node.class));
+            return provider;
+        }
     }
 
     @Nested

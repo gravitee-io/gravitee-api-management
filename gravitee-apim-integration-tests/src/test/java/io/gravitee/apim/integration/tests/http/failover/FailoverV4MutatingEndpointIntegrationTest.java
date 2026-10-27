@@ -155,6 +155,35 @@ public class FailoverV4MutatingEndpointIntegrationTest {
         }
 
         @Test
+        @DeployApi("/apis/v4/http/failover/api-mutating-three-endpoints-post-force-next.json")
+        void should_keep_the_mutated_path_when_forcing_the_next_endpoint(HttpClient client) {
+            // Same slow-call sequence as should_success_on_second_retry_with_mutated_body, with forced rotation.
+            // The connector sets pathInfo to "/mutated-path" during connect, and each retry must still receive it.
+            wiremock.stubFor(post("/endpoint-1/mutated-path").willReturn(ok(RESPONSE_FROM_BACKEND + " - 1").withFixedDelay(750)));
+            wiremock.stubFor(post("/endpoint-2/mutated-path").willReturn(ok(RESPONSE_FROM_BACKEND + " - 2").withFixedDelay(750)));
+            wiremock.stubFor(post("/endpoint-3/mutated-path").willReturn(ok(RESPONSE_FROM_BACKEND + " - 3")));
+
+            client
+                .rxRequest(HttpMethod.POST, "/test")
+                .flatMap(request -> request.rxSend(Buffer.buffer("request-body")))
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND + " - 3");
+                    return true;
+                });
+
+            wiremock.verify(postRequestedFor(urlPathEqualTo("/endpoint-1/mutated-path")).withRequestBody(equalTo("mutated-request-body")));
+            wiremock.verify(postRequestedFor(urlPathEqualTo("/endpoint-2/mutated-path")).withRequestBody(equalTo("mutated-request-body")));
+            wiremock.verify(postRequestedFor(urlPathEqualTo("/endpoint-3/mutated-path")).withRequestBody(equalTo("mutated-request-body")));
+        }
+
+        @Test
         @DeployApi("/apis/v4/http/failover/api-mutating-failure-condition-post.json")
         void should_record_failover_metrics_with_mutated_request(HttpClient client) {
             // Given a backend that returns 500 on the first call, then 200 on the second
