@@ -128,6 +128,44 @@ class HttpEndpointInvokerTest {
     }
 
     @Test
+    void should_select_failover_endpoint_by_name_without_evaluating_a_request_path() {
+        final HttpEntrypointAsyncConnector httpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(httpEntrypointAsyncConnector);
+        when(ctx.getInternalAttribute(HttpEndpointInvoker.ATTR_INTERNAL_FAILOVER_ENDPOINT_NAME)).thenReturn("secondary");
+        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
+        when(managedEndpoint.getConnector()).thenReturn(endpointConnector);
+        when(endpointConnector.connect(ctx)).thenReturn(Completable.complete());
+
+        cut.invoke(ctx).test().assertComplete();
+
+        verify(endpointManager).next(argThat(criteria -> "secondary".equals(criteria.getName())));
+        verify(ctx, never()).setAttribute(eq(ATTR_REQUEST_ENDPOINT), any());
+        verify(templateEngine, never()).getValue(anyString(), eq(String.class));
+        verify(ctx).removeInternalAttribute(HttpEndpointInvoker.ATTR_INTERNAL_FAILOVER_ENDPOINT_NAME);
+    }
+
+    @Test
+    void should_apply_failover_endpoint_name_after_evaluating_an_override() {
+        final String template = "{#context.attributes['ep'] ?: 'primary:'}/routed";
+        final HttpEntrypointAsyncConnector httpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(httpEntrypointAsyncConnector);
+        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn(template);
+        when(ctx.getTemplateEngine()).thenReturn(templateEngine);
+        when(templateEngine.getValue(template, String.class)).thenReturn("primary:/routed");
+        when(ctx.getInternalAttribute(HttpEndpointInvoker.ATTR_INTERNAL_FAILOVER_ENDPOINT_NAME)).thenReturn("secondary");
+        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
+        when(managedEndpoint.getConnector()).thenReturn(endpointConnector);
+        when(endpointConnector.connect(ctx)).thenReturn(Completable.complete());
+
+        cut.invoke(ctx).test().assertComplete();
+
+        verify(templateEngine).getValue(template, String.class);
+        verify(endpointManager).next(argThat(criteria -> "secondary".equals(criteria.getName())));
+        verify(ctx).setAttribute(ATTR_REQUEST_ENDPOINT, "/routed");
+        verify(ctx).removeInternalAttribute(HttpEndpointInvoker.ATTR_INTERNAL_FAILOVER_ENDPOINT_NAME);
+    }
+
+    @Test
     void shouldConnectToNamedEndpointConnectorWithCustomEndpointAttributeContainingColon() {
         final HttpEntrypointAsyncConnector httpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
         when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(httpEntrypointAsyncConnector);
