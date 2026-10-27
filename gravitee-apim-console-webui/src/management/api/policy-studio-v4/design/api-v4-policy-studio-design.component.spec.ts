@@ -921,6 +921,108 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
     });
   });
 
+  describe('plugin lookup', () => {
+    const mcpStudioApi = (): ApiV4 =>
+      fakeApiV4({
+        id: API_ID,
+        name: 'MCP Studio API',
+        type: 'MCP_PROXY',
+        listeners: [
+          {
+            type: 'HTTP',
+            paths: [{ path: '/mcp-studio' }],
+            entrypoints: [{ type: 'mcp-studio' }],
+          },
+        ],
+        endpointGroups: [
+          {
+            name: 'default-group',
+            type: 'tools-mcp',
+            endpoints: [
+              {
+                name: 'default',
+                type: 'tools-mcp',
+                weight: 1,
+                inheritConfiguration: false,
+                configuration: { target: 'http://localhost:9999/mcp' },
+              },
+            ],
+          },
+        ],
+        flows: [
+          {
+            name: 'my flow',
+            enabled: true,
+            selectors: [{ type: 'HTTP', path: '/', pathOperator: 'STARTS_WITH', methods: [] }],
+          },
+        ],
+      });
+
+    function loadStudio(api: ApiV4, entrypoints: Partial<ConnectorPlugin>[], endpoints: Partial<ConnectorPlugin>[]) {
+      expectGetApi(api);
+      expectEntrypointsGetRequest(entrypoints);
+      expectEndpointsGetRequest(endpoints);
+      expectListApiPlans(API_ID, []);
+      expectGetPolicies();
+      expectGetSharedPolicyGroupPolicyPluginRequest(httpTestingController);
+      fixture.detectChanges();
+    }
+
+    it('should show the name and icon of an entrypoint hidden from pickers', async () => {
+      loadStudio(
+        mcpStudioApi(),
+        [{ id: 'mcp-studio', name: 'MCP Studio', supportedModes: ['REQUEST_RESPONSE'], supportedApiType: 'MCP_PROXY' }],
+        [{ id: 'tools-mcp', name: 'MCP Tools', supportedModes: ['REQUEST_RESPONSE'], supportedApiType: 'MCP_PROXY' }],
+      );
+
+      expect(component.isLoading).toBe(false);
+      expect(component.entrypointsInfo).toEqual([
+        {
+          type: 'mcp-studio',
+          name: 'MCP Studio',
+          icon: 'gio-literal:mcp-studio',
+          supportedModes: ['REQUEST_RESPONSE'],
+        },
+      ]);
+      expect(component.endpointsInfo).toEqual([
+        {
+          type: 'tools-mcp',
+          name: 'MCP Tools',
+          icon: 'gio-literal:tools-mcp',
+          supportedModes: ['REQUEST_RESPONSE'],
+        },
+      ]);
+      expect(await loader.getHarness(GioPolicyStudioHarness)).toBeTruthy();
+    });
+
+    it('should open when an entrypoint or endpoint has no matching plugin', async () => {
+      loadStudio(
+        mcpStudioApi(),
+        [{ id: 'http-proxy', name: 'HTTP Proxy', supportedModes: ['REQUEST_RESPONSE'] }],
+        [{ id: 'http-proxy', name: 'HTTP Proxy', supportedModes: ['REQUEST_RESPONSE'] }],
+      );
+
+      expect(component.isLoading).toBe(false);
+      expect(component.entrypointsInfo).toEqual([
+        {
+          type: 'mcp-studio',
+          name: 'mcp-studio',
+          icon: 'gio:language',
+          supportedModes: [],
+        },
+      ]);
+      expect(component.endpointsInfo).toEqual([
+        {
+          type: 'tools-mcp',
+          name: 'tools-mcp',
+          icon: 'gio:language',
+          supportedModes: [],
+        },
+      ]);
+      expect(await loader.getHarness(GioPolicyStudioHarness)).toBeTruthy();
+    });
+  });
+
   function expectGetApi(api: Api) {
     httpTestingController
       .expectOne({

@@ -32,7 +32,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { ApiType, ApiV4, FlowExecution, PlanV4, UpdateApiV4, UpdatePlanV4 } from '../../../../entities/management-api-v2';
+import { ApiType, ApiV4, ConnectorPlugin, FlowExecution, PlanV4, UpdateApiV4, UpdatePlanV4 } from '../../../../entities/management-api-v2';
 import { IconService } from '../../../../services-ngx/icon.service';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
@@ -200,8 +200,8 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
   private loadPolicyStudioData(params: Record<string, string | number>) {
     return combineLatest([
       this.apiV2Service.get(this.activatedRoute.snapshot.params.apiId).pipe(map(api => api as ApiV4)),
-      this.connectorPluginsV2Service.listEntrypointPlugins(),
-      this.connectorPluginsV2Service.listEndpointPlugins(),
+      this.connectorPluginsV2Service.listAllEntrypointPlugins(),
+      this.connectorPluginsV2Service.listAllEndpointPlugins(),
       this.apiPlanV2Service
         .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED'], undefined, undefined, 1, 9999)
         .pipe(map(apiPlansResponse => apiPlansResponse.data)),
@@ -216,31 +216,21 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
         this.policyDocumentationFetcher = policy => this.policyV2Service.getDocumentation(policy.id, getApiProtocolTypeFromApi(api));
 
         this.entrypointsInfo = api.listeners.flatMap(listener =>
-          listener.entrypoints.map(entrypoint => {
-            const entrypointPlugin = entrypoints.find(entrypointPlugin => entrypointPlugin.id === entrypoint.type);
-            return {
-              type: entrypoint.type,
-              icon:
-                entrypointPlugin && entrypointPlugin.icon
-                  ? this.iconService.registerSvg(entrypoint.type, entrypointPlugin.icon)
-                  : 'gio:language',
-              name: entrypointPlugin.name,
-              supportedModes: [...entrypointPlugin.supportedModes],
-            };
-          }),
+          listener.entrypoints.map(entrypoint =>
+            this.toConnectorInfo(
+              entrypoint.type,
+              entrypoints.find(entrypointPlugin => entrypointPlugin.id === entrypoint.type),
+            ),
+          ),
         );
 
         this.endpointsInfo = api.endpointGroups.flatMap(endpointGroup =>
-          endpointGroup.endpoints.map(endpoint => {
-            const endpointPlugin = endpoints.find(endpointPlugin => endpointPlugin.id === endpoint.type);
-            return {
-              type: endpoint.type,
-              icon:
-                endpointPlugin && endpointPlugin.icon ? this.iconService.registerSvg(endpoint.type, endpointPlugin.icon) : 'gio:language',
-              name: endpointPlugin.name,
-              supportedModes: [...endpointPlugin.supportedModes],
-            };
-          }),
+          endpointGroup.endpoints.map(endpoint =>
+            this.toConnectorInfo(
+              endpoint.type,
+              endpoints.find(endpointPlugin => endpointPlugin.id === endpoint.type),
+            ),
+          ),
         );
 
         this.commonFlows = api.flows;
@@ -275,6 +265,15 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
         this.changeDetectorRef.detectChanges();
       }),
     );
+  }
+
+  private toConnectorInfo(type: string, plugin: ConnectorPlugin | undefined): ConnectorInfo {
+    return {
+      type,
+      icon: plugin?.icon ? this.iconService.registerSvg(type, plugin.icon) : 'gio:language',
+      name: plugin?.name ?? type,
+      supportedModes: [...(plugin?.supportedModes ?? [])],
+    };
   }
 
   private updateApiFlows(commonFlows: PSFlow[], flowExecution: FlowExecution) {
