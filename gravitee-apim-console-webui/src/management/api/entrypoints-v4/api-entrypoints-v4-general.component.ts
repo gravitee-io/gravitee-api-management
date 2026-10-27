@@ -82,6 +82,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   public displayedColumns;
   public dataSource: EntrypointVM[] = [];
   public allEntrypoints: ConnectorPlugin[];
+  private entrypointPluginsForLookup: ConnectorPlugin[] = [];
   public enableVirtualHost = false;
   public apiExistingPaths: PathV4[] = [];
   public apiExistingHosts: TcpHost[] = [];
@@ -116,16 +117,22 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.portalSettings$ = this.portalConfigurationService.get().pipe(map(({ portal }) => portal));
 
-    forkJoin([this.restrictedDomainService.get(), this.apiService.get(this.apiId), this.connectorPluginsV2Service.listEntrypointPlugins()])
+    forkJoin([
+      this.restrictedDomainService.get(),
+      this.apiService.get(this.apiId),
+      this.connectorPluginsV2Service.listEntrypointPlugins(),
+      this.connectorPluginsV2Service.listAllEntrypointPlugins(),
+    ])
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(([restrictedDomains, api, availableEntrypoints]) => {
+      .subscribe(([restrictedDomains, api, pickerEntrypoints, allEntrypointPlugins]) => {
         this.domainRestrictions = restrictedDomains.map(value => value.domain) || [];
 
         this.isReadOnly =
           api.definitionContext?.origin === 'KUBERNETES' ||
           !this.permissionService.hasAllMatching(['api-definition-u', 'api-gateway_definition-u']);
         if (api.definitionVersion === 'V4') {
-          this.allEntrypoints = availableEntrypoints.filter(({ supportedApiType }) => supportedApiType === api.type);
+          this.allEntrypoints = pickerEntrypoints.filter(({ supportedApiType }) => supportedApiType === api.type);
+          this.entrypointPluginsForLookup = allEntrypointPlugins.filter(({ supportedApiType }) => supportedApiType === api.type);
           this.initForm(api);
         }
       });
@@ -186,25 +193,24 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
     this.entrypointAvailableForAdd = this.allEntrypoints
       .filter(entrypoint => !existingEntrypoints.includes(entrypoint.id))
       .map(entrypoint => fromConnector(this.iconService, entrypoint));
-    const entrypoints = this.api.listeners.flatMap(l => l.entrypoints);
-    this.dataSource = entrypoints
-      .map(entrypoint => {
-        const matchingEntrypoint = this.allEntrypoints.find(e => e.id === entrypoint.type);
-        if (matchingEntrypoint) {
-          const entry: EntrypointVM = {
-            id: entrypoint.type,
-            icon: this.iconService.registerSvg(matchingEntrypoint.id, matchingEntrypoint.icon),
-            type: matchingEntrypoint.name,
-            qos: entrypoint.qos,
-          };
-          return entry;
-        }
-      })
+    this.dataSource = this.api.listeners
+      .flatMap(l => l.entrypoints)
+      .map(entrypoint => this.toEntrypointVM(entrypoint))
       .sort((a, b) => a.id.localeCompare(b.id));
 
     this.exposedEntrypoints$ = this.apiExposedEntrypointV2Service.get(this.apiId).pipe(catchError(() => of([])));
 
     this.changeDetector.detectChanges();
+  }
+
+  private toEntrypointVM(entrypoint: Entrypoint): EntrypointVM {
+    const matchingEntrypoint = this.entrypointPluginsForLookup.find(e => e.id === entrypoint.type);
+    return {
+      id: entrypoint.type,
+      icon: matchingEntrypoint?.icon ? this.iconService.registerSvg(matchingEntrypoint.id, matchingEntrypoint.icon) : 'gio:language',
+      type: matchingEntrypoint?.name ?? entrypoint.type,
+      qos: entrypoint.qos,
+    };
   }
 
   onDelete(elementToRemove: EntrypointVM) {

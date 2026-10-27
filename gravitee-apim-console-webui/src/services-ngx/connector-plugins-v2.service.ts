@@ -38,9 +38,11 @@ export class ConnectorPluginsV2Service {
   ) {}
 
   listEndpointPlugins(): Observable<ConnectorPlugin[]> {
-    return this.http
-      .get<ConnectorPlugin[]>(`${this.constants.org.v2BaseURL}/plugins/endpoints`)
-      .pipe(map(plugins => plugins.filter(p => !EXCLUDED_ENDPOINT_IDS.includes(p.id))));
+    return this.fetchConnectorPlugins('endpoints', EXCLUDED_ENDPOINT_IDS);
+  }
+
+  listAllEndpointPlugins(): Observable<ConnectorPlugin[]> {
+    return this.fetchConnectorPlugins('endpoints');
   }
 
   listEndpointPluginsByApiType(apiType: ApiType): Observable<ConnectorPlugin[]> {
@@ -58,9 +60,11 @@ export class ConnectorPluginsV2Service {
   }
 
   listEntrypointPlugins(): Observable<ConnectorPlugin[]> {
-    return this.http
-      .get<ConnectorPlugin[]>(`${this.constants.org.v2BaseURL}/plugins/entrypoints`)
-      .pipe(map(plugins => plugins.filter(p => !EXCLUDED_ENTRYPOINT_IDS.includes(p.id))));
+    return this.fetchConnectorPlugins('entrypoints', EXCLUDED_ENTRYPOINT_IDS);
+  }
+
+  listAllEntrypointPlugins(): Observable<ConnectorPlugin[]> {
+    return this.fetchConnectorPlugins('entrypoints');
   }
 
   listSyncEntrypointPlugins(): Observable<ConnectorPlugin[]> {
@@ -115,6 +119,12 @@ export class ConnectorPluginsV2Service {
 
   getEntrypointPluginMoreInformation(entrypointId: string): Observable<MoreInformation> {
     return this.http.get<MoreInformation>(`${this.constants.org.v2BaseURL}/plugins/entrypoints/${entrypointId}/more-information`);
+  }
+
+  private fetchConnectorPlugins(kind: 'entrypoints' | 'endpoints', excludedIds: readonly string[] = []): Observable<ConnectorPlugin[]> {
+    return this.http
+      .get<ConnectorPlugin[]>(`${this.constants.org.v2BaseURL}/plugins/${kind}`)
+      .pipe(map(plugins => plugins.filter(plugin => !excludedIds.includes(plugin.id))));
   }
 
   selectedPluginsNotAvailable(selectedIds: string[], connectorPlugins: ConnectorVM[]): boolean {
