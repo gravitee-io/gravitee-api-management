@@ -16,10 +16,15 @@
 package io.gravitee.repository.mongodb.management.upgrade.upgrader.subscription;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import com.mongodb.MongoTimeoutException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.CountOptions;
 import com.mongodb.client.model.Filters;
@@ -31,6 +36,11 @@ import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 import org.bson.Document;
@@ -38,6 +48,8 @@ import org.junit.Test;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.ReactiveMongoOperations;
+import reactor.core.publisher.Mono;
 
 /**
  * Nodes of the previous versions keep writing subscriptions without maintaining their unique active key (a full
@@ -139,6 +151,57 @@ public class SubscriptionUniqueActiveKeyUpgraderTest extends AbstractManagementR
     }
 
     @Test
+    public void should_give_the_same_result_when_two_nodes_repair_at_the_same_time() throws Exception {
+        int count = SubscriptionUniqueActiveKeyRepair.BATCH_SIZE * 2 + 7;
+        List<Document> documents = new ArrayList<>();
+        IntStream.range(0, count).forEach(i -> documents.add(aSubscriptionDocument("sub-" + i, "ACCEPTED", "plan-" + i)));
+        subscriptions().insertMany(documents);
+        var barrier = new CyclicBarrier(2);
+        ExecutorService nodes = Executors.newFixedThreadPool(2);
+        List<SubscriptionUniqueActiveKeyRepair.Result> results = new ArrayList<>();
+        try {
+            for (Future<SubscriptionUniqueActiveKeyRepair.Result> result : nodes.invokeAll(
+                List.of(aRepairStartingWith(barrier), aRepairStartingWith(barrier))
+            )) {
+                results.add(result.get());
+            }
+        } finally {
+            nodes.shutdownNow();
+        }
+
+        assertThat(results).allSatisfy(result -> assertThat(result.conflicts()).isZero());
+        // A key the other node has already written is matched again but not modified.
+        assertThat(results.stream().mapToLong(SubscriptionUniqueActiveKeyRepair.Result::fixed).sum()).isEqualTo(count);
+        assertThat(subscriptions().countDocuments(Filters.exists(FIELD), new CountOptions().hint(new Document("_id", 1)))).isEqualTo(count);
+        assertThat(storedKey("sub-" + (count - 1))).isEqualTo(
+            expectedKey("sub-" + (count - 1), Subscription.Status.ACCEPTED, "plan-" + (count - 1))
+        );
+    }
+
+    @Test
+    public void should_not_stop_the_node_when_the_repair_fails() {
+        var unreachable = mock(ReactiveMongoOperations.class);
+        when(unreachable.getCollection(anyString())).thenReturn(Mono.error(new MongoTimeoutException("timed out")));
+        var failing = new SubscriptionUniqueActiveKeyUpgrader();
+        failing.setEnvironment(environment);
+        failing.setMongoTemplate(unreachable);
+        ListAppender<ILoggingEvent> logs = new ListAppender<>();
+        Logger logger = (Logger) LoggerFactory.getLogger(SubscriptionUniqueActiveKeyUpgrader.class);
+        logs.start();
+        logger.addAppender(logs);
+        try {
+            assertThat(failing.upgrade()).isTrue();
+        } finally {
+            logger.detachAppender(logs);
+        }
+
+        assertThat(logs.list).anySatisfy(event -> {
+            assertThat(event.getLevel()).isEqualTo(Level.ERROR);
+            assertThat(event.getThrowableProxy().getClassName()).isEqualTo(MongoTimeoutException.class.getName());
+        });
+    }
+
+    @Test
     public void should_leave_a_subscription_changed_during_the_repair_to_its_writer() {
         subscriptions().insertOne(aSubscriptionDocument("sub-1", "ACCEPTED", "plan-1"));
         var repair = new SubscriptionUniqueActiveKeyRepair(upgrader.subscriptionsCollection());
@@ -195,6 +258,13 @@ public class SubscriptionUniqueActiveKeyUpgraderTest extends AbstractManagementR
                 subscriptions().dropIndex("uak1_unique");
             }
         }
+    }
+
+    private Callable<SubscriptionUniqueActiveKeyRepair.Result> aRepairStartingWith(CyclicBarrier barrier) {
+        return () -> {
+            barrier.await();
+            return new SubscriptionUniqueActiveKeyRepair(upgrader.subscriptionsCollection()).repair();
+        };
     }
 
     private String storedKey(String id) {
