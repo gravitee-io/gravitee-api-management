@@ -176,10 +176,41 @@ public class ApplicationService_RestoreTest {
         Assertions.assertThat(result.getStatus()).isEqualTo(ApplicationStatus.ACTIVE.name());
     }
 
+    @Test
+    public void should_restore_the_other_subscriptions_and_audit_the_application_after_a_refused_subscription_restore()
+        throws TechnicalException {
+        Application app = fakeApp(false);
+        app.setStatus(ApplicationStatus.ARCHIVED);
+        when(applicationRepository.findById(APP)).thenReturn(Optional.of(app));
+        when(applicationRepository.update(app)).thenReturn(fakeApp(true));
+        when(subscriptionService.findByApplicationAndPlan(eq(GraviteeContext.getExecutionContext()), any(), any())).thenReturn(
+            List.of(
+                closedSubscription("sub-other-plan", "plan-2", 500L),
+                closedSubscription("sub-closed-first", "plan-1", 1_000L),
+                closedSubscription("sub-closed-on-archive", "plan-1", 2_000L)
+            )
+        );
+        when(subscriptionService.restore(GraviteeContext.getExecutionContext(), "sub-closed-first")).thenThrow(
+            new PlanAlreadySubscribedException("plan-1")
+        );
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(new UserEntity());
+
+        applicationService.restore(GraviteeContext.getExecutionContext(), APP);
+
+        var restores = inOrder(subscriptionService);
+        restores.verify(subscriptionService).restore(GraviteeContext.getExecutionContext(), "sub-closed-first");
+        restores.verify(subscriptionService).restore(GraviteeContext.getExecutionContext(), "sub-other-plan");
+        verify(auditService).createApplicationAuditLog(eq(GraviteeContext.getExecutionContext()), any(), any());
+    }
+
     private static SubscriptionEntity closedSubscription(String id, long closedAt) {
+        return closedSubscription(id, "plan-1", closedAt);
+    }
+
+    private static SubscriptionEntity closedSubscription(String id, String plan, long closedAt) {
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setId(id);
-        subscription.setPlan("plan-1");
+        subscription.setPlan(plan);
         subscription.setStatus(SubscriptionStatus.CLOSED);
         subscription.setClosedAt(new Date(closedAt));
         return subscription;
