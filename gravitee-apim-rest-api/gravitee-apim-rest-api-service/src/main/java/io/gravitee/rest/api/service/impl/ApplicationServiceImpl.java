@@ -1212,7 +1212,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                         log.debug("The subscription cannot be closed: {}", snce.getMessage());
                     } catch (PlanAlreadySubscribedException e) {
                         log.info(
-                            "Subscription [{}] of application [{}] not restored: the application has an active subscription to plan [{}] again",
+                            "Subscription [{}] of application [{}] not restored: the application already has an active subscription to plan [{}]",
                             subscription.getId(),
                             applicationId,
                             subscription.getPlan()
