@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.integration.tests.messages;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.graviteesource.endpoint.kafka.KafkaEndpointConnectorFactory;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
@@ -55,6 +57,7 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.admin.ConsumerGroupListing;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -297,5 +300,25 @@ public abstract class AbstractKafkaEndpointIntegrationTest extends AbstractGatew
                     })
             )
             .doOnSubscribe(s -> log.info("Starting publish messages"));
+    }
+
+    /** Members of the consumer groups the endpoint opened for the client, whose ids start with its identifier. */
+    protected static int consumerGroupMembers(String clientIdentifier) throws Exception {
+        try (
+            AdminClient adminClient = AdminClient.create(
+                ImmutableMap.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers())
+            )
+        ) {
+            final List<String> groupIds = adminClient
+                .listConsumerGroups()
+                .all()
+                .get(30, TimeUnit.SECONDS)
+                .stream()
+                .map(ConsumerGroupListing::groupId)
+                .filter(groupId -> groupId.startsWith(clientIdentifier))
+                .toList();
+            assertThat(groupIds).hasSize(1);
+            return adminClient.describeConsumerGroups(groupIds).all().get(30, TimeUnit.SECONDS).get(groupIds.get(0)).members().size();
+        }
     }
 }

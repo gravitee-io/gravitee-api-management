@@ -1,0 +1,71 @@
+{
+    "id": "kafka-endpoint-unreachable",
+    "name": "my-api",
+    "apiVersion": "1.0",
+    "definitionVersion": "4.0.0",
+    "type": "message",
+    "description": "api v4 whose broker cannot be reached",
+    "listeners": [
+        {
+            "type": "http",
+            "paths": [
+                {
+                    "path": "/test-unreachable"
+                }
+            ],
+            "entrypoints": [
+                {
+                    "type": "http-post",
+                    "configuration": {}
+                },
+                {
+                    "type": "sse",
+                    "configuration": {}
+                },
+                {
+                    "type": "websocket",
+                    "configuration": {
+                        "subscriber": {
+                            "enabled": true
+                        },
+                        "publisher": {
+                            "enabled": true
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "endpointGroups": [
+        {
+            "name": "default-group",
+            "type": "kafka",
+            "endpoints": [
+                {
+                    "name": "default",
+                    "type": "kafka",
+                    "weight": 1,
+                    "inheritConfiguration": false,
+                    "configuration": {
+                        "bootstrapServers": "localhost:1"
+                    },
+                    "sharedConfigurationOverride": {
+                        "consumer": {
+                            "enabled": true,
+                            "topics": ["test-topic-unreachable"],
+                            "autoOffsetReset": "earliest"
+                        },
+                        "producer": {
+                            "enabled": true,
+                            "topics": ["test-topic-unreachable"]
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "flows": [],
+    "analytics": {
+        "enabled": false
+    }
+}

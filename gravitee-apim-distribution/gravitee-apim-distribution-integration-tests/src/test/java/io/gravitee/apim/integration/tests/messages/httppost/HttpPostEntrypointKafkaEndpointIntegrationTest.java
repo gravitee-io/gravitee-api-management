@@ -235,4 +235,22 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoi
                 return true;
             });
     }
+
+    @Test
+    @DeployApi("/apis/v4/messages/kafka/kafka-endpoint-unreachable.json")
+    void should_answer_500_when_the_broker_cannot_be_reached(HttpClient client) {
+        client
+            .rxRequest(HttpMethod.POST, "/test-unreachable")
+            .flatMap(request -> request.rxSend("message"))
+            .flatMap(response -> {
+                assertThat(response.statusCode()).isEqualTo(500);
+                return response.body();
+            })
+            .test()
+            .awaitDone(90, TimeUnit.SECONDS)
+            .assertValue(body -> {
+                assertThat(body).hasToString("Endpoint connection closed");
+                return true;
+            });
+    }
 }
