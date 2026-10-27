@@ -47,7 +47,7 @@ public class SubscriptionUniqueActiveKeyUpgrader extends IndexMongoUpgrader {
             new SubscriptionUniqueActiveKeyRepair(subscriptionsCollection()).repair();
         } catch (Exception e) {
             log.error(
-                "Unexpected error while repairing the unique active key of subscriptions, it will be repaired again before being enforced",
+                "Unexpected error while repairing the unique active key of subscriptions: the subscriptions not reached keep a missing or stale key. Remove the record of this upgrader from the upgrades collection to run it again",
                 e
             );
         }
