@@ -27,6 +27,7 @@ import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.model.EventType;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -99,8 +100,102 @@ class ApiProductDeploymentStateDomainServiceTest {
         assertThat(drifted.getDeploymentState()).isEqualTo(ApiProduct.DeploymentState.NEED_REDEPLOY);
     }
 
+    @Test
+    void should_stay_deployed_when_resources_are_only_reordered() throws Exception {
+        Resource cache = Resource.builder().name("cache").type("cache").configuration("{\"ttl\":10}").build();
+        Resource oauth = Resource.builder().name("oauth").type("oauth2").configuration("{}").build();
+        var product = aProduct("id-1");
+        product.setResources(List.of(oauth, cache));
+        var deployed = aProduct("id-1");
+        deployed.setResources(List.of(cache, oauth));
+        eventLatestQueryService.initWith(List.of(eventFor(deployed)));
+
+        service.computeDeploymentState(List.of(product));
+
+        assertThat(product.getDeploymentState()).isEqualTo(ApiProduct.DeploymentState.DEPLOYED);
+    }
+
+    @Test
+    void should_need_redeploy_when_a_resource_is_added() throws Exception {
+        var product = aProduct("id-1");
+        product.setResources(List.of(Resource.builder().name("cache").type("cache").configuration("{\"ttl\":10}").build()));
+        eventLatestQueryService.initWith(List.of(aMatchingDeployEventFor(aProduct("id-1"))));
+
+        service.computeDeploymentState(List.of(product));
+
+        assertThat(product.getDeploymentState()).isEqualTo(ApiProduct.DeploymentState.NEED_REDEPLOY);
+    }
+
+    @Test
+    void should_need_redeploy_when_a_resource_is_removed() throws Exception {
+        Resource cache = Resource.builder().name("cache").type("cache").configuration("{\"ttl\":10}").build();
+        Resource oauth = Resource.builder().name("oauth").type("oauth2").configuration("{}").build();
+        var deployed = aProduct("id-1");
+        deployed.setResources(List.of(cache, oauth));
+        var product = aProduct("id-1");
+        product.setResources(List.of(cache));
+        eventLatestQueryService.initWith(List.of(eventFor(deployed)));
+
+        service.computeDeploymentState(List.of(product));
+
+        assertThat(product.getDeploymentState()).isEqualTo(ApiProduct.DeploymentState.NEED_REDEPLOY);
+    }
+
+    @Test
+    void should_need_redeploy_when_a_resource_configuration_changes() throws Exception {
+        var deployed = aProduct("id-1");
+        deployed.setResources(List.of(Resource.builder().name("cache").type("cache").configuration("{\"ttl\":10}").enabled(true).build()));
+        var product = aProduct("id-1");
+        product.setResources(List.of(Resource.builder().name("cache").type("cache").configuration("{\"ttl\":20}").enabled(true).build()));
+        eventLatestQueryService.initWith(List.of(eventFor(deployed)));
+
+        service.computeDeploymentState(List.of(product));
+
+        assertThat(product.getDeploymentState()).isEqualTo(ApiProduct.DeploymentState.NEED_REDEPLOY);
+    }
+
+    @Test
+    void should_need_redeploy_when_a_resource_is_disabled() throws Exception {
+        var deployed = aProduct("id-1");
+        deployed.setResources(List.of(Resource.builder().name("cache").type("cache").configuration("{\"ttl\":10}").enabled(true).build()));
+        var product = aProduct("id-1");
+        product.setResources(List.of(Resource.builder().name("cache").type("cache").configuration("{\"ttl\":10}").enabled(false).build()));
+        eventLatestQueryService.initWith(List.of(eventFor(deployed)));
+
+        service.computeDeploymentState(List.of(product));
+
+        assertThat(product.getDeploymentState()).isEqualTo(ApiProduct.DeploymentState.NEED_REDEPLOY);
+    }
+
+    @Test
+    void should_need_redeploy_when_an_empty_list_replaces_no_resources() throws Exception {
+        var product = aProduct("id-1");
+        product.setResources(List.of());
+        eventLatestQueryService.initWith(List.of(aMatchingDeployEventFor(aProduct("id-1"))));
+
+        service.computeDeploymentState(List.of(product));
+
+        assertThat(product.getDeploymentState()).isEqualTo(ApiProduct.DeploymentState.NEED_REDEPLOY);
+    }
+
     private ApiProduct aProduct(String id) {
         return ApiProduct.builder().id(id).name(id).environmentId(ENV_ID).apiIds(Set.of("api-1")).build();
+    }
+
+    private Event eventFor(ApiProduct product) {
+        try {
+            return Event.builder()
+                .id("event-" + product.getId())
+                .type(EventType.DEPLOY_API_PRODUCT)
+                .properties(new EnumMap<>(Map.of(Event.EventProperties.API_PRODUCT_ID, product.getId())))
+                .payload(objectMapper.writeValueAsString(product))
+                .environments(Set.of(ENV_ID))
+                .createdAt(DEPLOYED_AT.atZone(ZoneId.systemDefault()))
+                .updatedAt(DEPLOYED_AT.atZone(ZoneId.systemDefault()))
+                .build();
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private Event aMatchingDeployEventFor(ApiProduct product) {

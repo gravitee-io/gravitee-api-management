@@ -55,4 +55,7 @@ public class ApiProductMongo {
     private boolean disableMembershipNotifications;
     private ApiProductKind kind;
     private String analytics;
+
+    @ToString.Exclude
+    private String resources;
 }
