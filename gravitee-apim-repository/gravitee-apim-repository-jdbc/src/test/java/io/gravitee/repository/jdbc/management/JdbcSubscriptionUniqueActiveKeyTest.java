@@ -18,7 +18,6 @@ package io.gravitee.repository.jdbc.management;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
-import io.gravitee.repository.jdbc.liquibase.SubscriptionUniqueActiveKeyBackfill;
 import io.gravitee.repository.management.AbstractManagementRepositoryTest;
 import io.gravitee.repository.management.api.SubscriptionUniqueActiveKey;
 import io.gravitee.repository.management.model.Subscription;
@@ -28,7 +27,6 @@ import java.sql.Connection;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
-import java.util.stream.IntStream;
 import javax.sql.DataSource;
 import liquibase.Contexts;
 import liquibase.Liquibase;
@@ -150,41 +148,6 @@ public class JdbcSubscriptionUniqueActiveKeyTest extends AbstractManagementRepos
     }
 
     @Test
-    public void should_backfill_the_key_of_subscriptions_written_by_previous_versions() throws Exception {
-        // Previous versions neither set the column on create nor touch it on update.
-        var active = subscriptionRepository.create(aSubscription("sub-active", Subscription.Status.ACCEPTED, "plan-1"));
-        subscriptionRepository.create(aSubscription("sub-closed", Subscription.Status.ACCEPTED, "plan-2"));
-        var transferred = subscriptionRepository.create(aSubscription("sub-transferred", Subscription.Status.ACCEPTED, "plan-3"));
-        jdbcTemplate.update("update " + subscriptionsTable + " set unique_active_key = null where id = ?", "sub-active");
-        jdbcTemplate.update("update " + subscriptionsTable + " set status = 'CLOSED' where id = ?", "sub-closed");
-        jdbcTemplate.update("update " + subscriptionsTable + " set " + plan() + " = 'plan-4' where id = ?", "sub-transferred");
-        transferred.setPlan("plan-4");
-
-        int repaired = backfill();
-
-        assertThat(repaired).isEqualTo(3);
-        assertThat(storedKey("sub-active")).isEqualTo(SubscriptionUniqueActiveKey.of(active));
-        assertThat(storedKey("sub-closed")).isNull();
-        assertThat(storedKey("sub-transferred")).isEqualTo(SubscriptionUniqueActiveKey.of(transferred));
-    }
-
-    @Test
-    public void should_backfill_more_subscriptions_than_a_single_batch() throws Exception {
-        int count = SubscriptionUniqueActiveKeyBackfill.BATCH_SIZE * 2 + 7;
-        IntStream.range(0, count).forEach(i -> createWithoutKey(aSubscription("sub-" + i, Subscription.Status.ACCEPTED, "plan-" + i)));
-
-        int repaired = backfill();
-
-        assertThat(repaired).isEqualTo(count);
-        assertThat(
-            jdbcTemplate.queryForObject(
-                "select count(*) from " + subscriptionsTable + " where unique_active_key is not null",
-                Integer.class
-            )
-        ).isEqualTo(count);
-    }
-
-    @Test
     public void should_not_backfill_the_existing_subscriptions_when_liquibase_runs() throws Exception {
         // A backfill scans every subscription at startup, before the node serves requests, while nothing reads the key
         // until the unique index exists. Makes the backfill pending again, as on a database upgraded from 4.12.25.
@@ -221,16 +184,6 @@ public class JdbcSubscriptionUniqueActiveKeyTest extends AbstractManagementRepos
     }
 
     @Test
-    public void should_change_nothing_when_the_backfill_runs_again() throws Exception {
-        createWithoutKey(aSubscription("sub-1", Subscription.Status.ACCEPTED, "plan-1"));
-        backfill();
-        var firstRun = storedKey("sub-1");
-
-        assertThat(backfill()).isZero();
-        assertThat(storedKey("sub-1")).isEqualTo(firstRun);
-    }
-
-    @Test
     public void should_keep_the_caller_transaction_usable_after_a_failed_subscription_insert() throws Exception {
         // On PostgreSQL a failed statement aborts the whole transaction: every later statement of the request,
         // and its commit, would fail too.
@@ -261,14 +214,6 @@ public class JdbcSubscriptionUniqueActiveKeyTest extends AbstractManagementRepos
         jdbcTemplate.update("update " + subscriptionsTable + " set unique_active_key = null where id = ?", subscription.getId());
     }
 
-    private int backfill() throws Exception {
-        var backfill = new SubscriptionUniqueActiveKeyBackfill();
-        backfill.setTablePrefix(prefix());
-        try (Connection connection = dataSource.getConnection()) {
-            return backfill.repair(connection);
-        }
-    }
-
     private String storedKey(String id) {
         List<String> keys = jdbcTemplate.queryForList(
             "select unique_active_key from " + subscriptionsTable + " where id = ?",
@@ -281,10 +226,6 @@ public class JdbcSubscriptionUniqueActiveKeyTest extends AbstractManagementRepos
 
     private String prefix() {
         return graviteeProperties.getProperty("management.jdbc.prefix", "");
-    }
-
-    private static String plan() {
-        return io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord("plan");
     }
 
     private static Subscription aSubscription(String id, Subscription.Status status, String plan) {

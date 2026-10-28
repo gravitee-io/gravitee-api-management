@@ -49,10 +49,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class MongoSubscriptionRepository implements SubscriptionRepository {
 
-    public static final String UNIQUE_ACTIVE_KEY_FIELD = "uniqueActiveKey";
-
     /**
-     * Unique index on {@link #UNIQUE_ACTIVE_KEY_FIELD}, created once every node maintains the key.
+     * Unique index on {@code uniqueActiveKey}, created once every node maintains the key.
      */
     public static final String UNIQUE_ACTIVE_KEY_INDEX = "uak1_unique";
 
