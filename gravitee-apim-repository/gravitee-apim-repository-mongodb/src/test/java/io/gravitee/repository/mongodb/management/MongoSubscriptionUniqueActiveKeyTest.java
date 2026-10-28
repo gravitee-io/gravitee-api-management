@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import io.gravitee.node.api.upgrader.Upgrader;
@@ -25,7 +26,9 @@ import io.gravitee.repository.management.api.SubscriptionUniqueActiveKey;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import jakarta.inject.Inject;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContext;
@@ -50,6 +53,9 @@ public class MongoSubscriptionUniqueActiveKeyTest extends AbstractManagementRepo
 
     @Inject
     private ApplicationContext applicationContext;
+
+    @Inject
+    private MongoClient mongoClient;
 
     @Override
     protected String getTestCasesPath() {
@@ -131,14 +137,38 @@ public class MongoSubscriptionUniqueActiveKeyTest extends AbstractManagementRepo
     }
 
     /**
-     * A repair scans every subscription at startup, before the node serves requests, while nothing reads the key until
-     * the unique index exists.
+     * The upgraders run at startup, before the node serves requests: a repair would scan every subscription, while
+     * nothing reads the key until the unique index exists.
      */
     @Test
-    public void should_not_repair_the_keys_of_the_existing_subscriptions_at_startup() {
-        assertThat(applicationContext.getBeansOfType(Upgrader.class).values())
-            .extracting(upgrader -> upgrader.getClass().getSimpleName())
-            .doesNotContain("SubscriptionUniqueActiveKeyUpgrader");
+    public void should_not_repair_the_keys_of_the_existing_subscriptions_at_startup() throws Exception {
+        // Without its application, the subscription would be removed as orphaned.
+        collection("applications").insertOne(new Document("_id", "app-1").append("environmentId", "DEFAULT").append("name", "app-1"));
+        subscriptionRepository.create(aSubscription("sub-1", Subscription.Status.ACCEPTED));
+        // As written by a node of a previous version.
+        subscriptions().updateOne(Filters.eq("_id", "sub-1"), new Document("$unset", new Document(FIELD, "")));
+
+        List<Upgrader> upgraders = applicationContext
+            .getBeansOfType(Upgrader.class)
+            .values()
+            .stream()
+            .sorted(Comparator.comparingInt(Upgrader::getOrder))
+            .toList();
+        // Collection scans are allowed at startup, unlike in the other tests: a repair must not get by with failing.
+        setNoTableScan(false);
+        try {
+            for (Upgrader upgrader : upgraders) {
+                upgrader.upgrade();
+            }
+        } finally {
+            setNoTableScan(true);
+        }
+
+        assertThat(storedDocument("sub-1")).isNotNull().doesNotContainKey(FIELD);
+    }
+
+    private void setNoTableScan(boolean enabled) {
+        mongoClient.getDatabase("admin").runCommand(new Document("setParameter", 1).append("notablescan", enabled));
     }
 
     @Test
@@ -167,7 +197,11 @@ public class MongoSubscriptionUniqueActiveKeyTest extends AbstractManagementRepo
     }
 
     private MongoCollection<Document> subscriptions() {
-        return mongoOperations.getCollection(environment.getProperty("management.mongodb.prefix", "") + "subscriptions");
+        return collection("subscriptions");
+    }
+
+    private MongoCollection<Document> collection(String name) {
+        return mongoOperations.getCollection(environment.getProperty("management.mongodb.prefix", "") + name);
     }
 
     private static Subscription aSubscription(String id, Subscription.Status status) {
