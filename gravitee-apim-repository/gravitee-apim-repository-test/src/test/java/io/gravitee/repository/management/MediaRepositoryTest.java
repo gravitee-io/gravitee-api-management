@@ -30,6 +30,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
@@ -314,6 +315,9 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
             createMedia(ORG_ID, ENV_ID, fileName, fileBytes, size, hashString, id, apiId);
         }
 
+        createMedia(ORG_ID, ENV_ID, fileName, fileBytes, size, hashString, "portal-media", null);
+        createMedia(ORG_ID, ENV_ID, fileName, fileBytes, size, hashString, "other-api-media", "other-api");
+
         List<Media> all = mediaRepository.findAllByApi(apiId);
         assertNotNull(all, "Assets list not found");
         assertEquals(2, all.size(), "Invalid assets list");
@@ -325,6 +329,12 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
             MediaCriteria.builder().api(apiId).mediaType("image").organization(ORG_ID).environment(ENV_ID).build()
         );
         assertFalse(image.isPresent(), "Invalid asset found");
+        assertTrue(mediaRepository.findAllByApi(apiId).isEmpty());
+        assertEquals("portal-media", mediaRepository.findByHash(hashString).orElseThrow().getId());
+        assertEquals(
+            "other-api-media",
+            mediaRepository.findByHash(hashString, MediaCriteria.builder().api("other-api").build()).orElseThrow().getId()
+        );
     }
 
     @Test
@@ -340,11 +350,19 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
 
         createMedia(ORG_ID, ENV_ID, fileName, fileBytes, size, hashString, mediaId, apiId);
 
+        createMedia(ORG_ID, ENV_ID, fileName, fileBytes, size, hashString, "portal-media", null);
+        createMedia(ORG_ID, ENV_ID, fileName, fileBytes, size, hashString, "other-api-media", "other-api");
+
         mediaRepository.deleteByHashAndApi(hashString, apiId);
 
         Optional<Media> media = mediaRepository.findByHash(hashString, MediaCriteria.builder().api(apiId).build());
 
         assertFalse(media.isPresent(), "Should not find media after deletion");
+        assertEquals("portal-media", mediaRepository.findByHash(hashString).orElseThrow().getId());
+        assertEquals(
+            "other-api-media",
+            mediaRepository.findByHash(hashString, MediaCriteria.builder().api("other-api").build()).orElseThrow().getId()
+        );
     }
 
     @Test
@@ -363,6 +381,7 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
 
         for (int i = 0; i < 2; i++) {
             createMedia("organization#" + i, ENV_ID, fileName, fileBytes, size, hashString, "image-" + i, apiId);
+            createMedia("organization#" + i, ENV_ID, fileName, fileBytes, size, hashString, "portal-media-" + i, null);
         }
 
         int nbBeforeDeletion = mediaRepository.findAllByApi(apiId).size();
@@ -370,8 +389,13 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
         int nbAfterDeletion = mediaRepository.findAllByApi(apiId).size();
 
         assertEquals(2, nbBeforeDeletion);
-        assertEquals(1, deleted.size());
+        assertEquals(Set.of("image-1", "portal-media-1"), Set.copyOf(deleted));
         assertEquals(1, nbAfterDeletion);
+        assertTrue(mediaRepository.findByHash(hashString, MediaCriteria.builder().organization("organization#1").build()).isEmpty());
+        assertEquals(
+            "portal-media-0",
+            mediaRepository.findByHash(hashString, MediaCriteria.builder().organization("organization#0").build()).orElseThrow().getId()
+        );
     }
 
     @Test
@@ -384,6 +408,7 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
 
         for (int i = 0; i < 2; i++) {
             createMedia(ORG_ID, "environment#" + i, fileName, fileBytes, size, hashString, "image-" + i, apiId);
+            createMedia(ORG_ID, "environment#" + i, fileName, fileBytes, size, hashString, "portal-media-" + i, null);
         }
 
         int nbBeforeDeletion = mediaRepository.findAllByApi(apiId).size();
@@ -391,8 +416,13 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
         int nbAfterDeletion = mediaRepository.findAllByApi(apiId).size();
 
         assertEquals(2, nbBeforeDeletion);
-        assertEquals(1, deleted.size());
+        assertEquals(Set.of("image-1", "portal-media-1"), Set.copyOf(deleted));
         assertEquals(1, nbAfterDeletion);
+        assertTrue(mediaRepository.findByHash(hashString, MediaCriteria.builder().environment("environment#1").build()).isEmpty());
+        assertEquals(
+            "portal-media-0",
+            mediaRepository.findByHash(hashString, MediaCriteria.builder().environment("environment#0").build()).orElseThrow().getId()
+        );
     }
 
     @Test
@@ -445,6 +475,34 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue(mediaAfterDeleteAttempt2.isPresent(), "Media should still exist when environment is null");
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
+    public void should_preserve_api_media_when_deleting_portal_media(boolean portalMediaExists) throws Exception {
+        String fileName = "stars.png";
+        byte[] fileBytes = getFileBytes(fileName);
+        String hash = getHashString(fileBytes);
+
+        createMedia(ORG_ID, ENV_ID, fileName, fileBytes, fileBytes.length, hash, "api-media", "api-id");
+        createMedia(ORG_ID, ENV_ID, fileName, fileBytes, fileBytes.length, hash, "other-api-media", "other-api-id");
+        if (portalMediaExists) {
+            createMedia(ORG_ID, ENV_ID, fileName, fileBytes, fileBytes.length, hash, "portal-media", null);
+        }
+
+        mediaRepository.deleteByHashAndEnvironment(hash, ENV_ID);
+
+        assertTrue(mediaRepository.findByHash(hash, MediaCriteria.builder().organization(ORG_ID).environment(ENV_ID).build()).isEmpty());
+        Media apiMedia = mediaRepository
+            .findByHash(hash, MediaCriteria.builder().api("api-id").organization(ORG_ID).environment(ENV_ID).build())
+            .orElseThrow();
+        assertEquals("api-media", apiMedia.getId());
+        assertArrayEquals(fileBytes, apiMedia.getData());
+        Media otherApiMedia = mediaRepository
+            .findByHash(hash, MediaCriteria.builder().api("other-api-id").organization(ORG_ID).environment(ENV_ID).build())
+            .orElseThrow();
+        assertEquals("other-api-media", otherApiMedia.getId());
+        assertArrayEquals(fileBytes, otherApiMedia.getData());
+    }
+
     @Test
     public void should_delete_one_of_multiple_media_with_same_hash() throws Exception {
         String hash = "duplicateHash";
@@ -456,6 +514,7 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
 
         createMedia(ORG_ID, environment1, fileName, fileBytes, size, hash, "media1", null);
         createMedia(ORG_ID, environment2, fileName, fileBytes, size, hash, "media2", null);
+        createMedia(ORG_ID, environment1, fileName, fileBytes, size, "otherHash", "other-media", null);
 
         mediaRepository.deleteByHashAndEnvironment(hash, environment1);
 
@@ -470,6 +529,13 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
             MediaCriteria.builder().organization(ORG_ID).environment(environment2).build()
         );
         assertTrue(mediaAfterDeleteEnv2.isPresent(), "Media with environment2 should still exist");
+        assertEquals("media2", mediaAfterDeleteEnv2.orElseThrow().getId());
+        assertArrayEquals(fileBytes, mediaAfterDeleteEnv2.orElseThrow().getData());
+        Media otherMedia = mediaRepository
+            .findByHash("otherHash", MediaCriteria.builder().organization(ORG_ID).environment(environment1).build())
+            .orElseThrow();
+        assertEquals("other-media", otherMedia.getId());
+        assertArrayEquals(fileBytes, otherMedia.getData());
     }
 
     private Media createMedia(

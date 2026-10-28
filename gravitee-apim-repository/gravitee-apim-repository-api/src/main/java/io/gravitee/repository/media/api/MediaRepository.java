@@ -44,6 +44,9 @@ public interface MediaRepository {
 
     void deleteByHashAndApi(String hash, String api) throws TechnicalException;
 
+    /**
+     * Deletes portal-owned media matching the hash and environment, leaving API-owned media unchanged.
+     */
     void deleteByHashAndEnvironment(String hash, String environment) throws TechnicalException;
 
     /**
