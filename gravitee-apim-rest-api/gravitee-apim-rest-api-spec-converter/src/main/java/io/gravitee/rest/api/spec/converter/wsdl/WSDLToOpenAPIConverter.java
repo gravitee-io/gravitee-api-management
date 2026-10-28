@@ -17,13 +17,13 @@ package io.gravitee.rest.api.spec.converter.wsdl;
 
 import static io.gravitee.rest.api.spec.converter.wsdl.WSDLUtils.*;
 
-import com.ibm.wsdl.xml.WSDLReaderImpl;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.spec.converter.OpenAPIConverter;
 import io.gravitee.rest.api.spec.converter.wsdl.exception.WsdlDescriptorException;
-import io.gravitee.rest.api.spec.converter.wsdl.reader.GraviteeWSDLReaderImpl;
+import io.gravitee.rest.api.spec.converter.wsdl.reader.HardenedWSDLReaderImpl;
+import io.gravitee.rest.api.spec.converter.wsdl.reader.SecureWSDLLocator;
 import io.gravitee.rest.api.spec.converter.wsdl.utils.XsdToJsonSchemaConverter;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
@@ -83,13 +83,15 @@ public class WSDLToOpenAPIConverter implements OpenAPIConverter {
     }
 
     private Definition loadWSDL(InputStream stream) {
+        SecureWSDLLocator locator = new SecureWSDLLocator(new InputSource(stream));
         try {
-            WSDLReaderImpl reader = new GraviteeWSDLReaderImpl();
+            HardenedWSDLReaderImpl reader = new HardenedWSDLReaderImpl();
             reader.setFeature("javax.wsdl.importDocuments", true);
-            return reader.readWSDL(null, new InputSource(stream));
+            reader.setFeature("javax.wsdl.verbose", false);
+            return reader.readWSDL(locator);
         } catch (WSDLException e) {
             log.error("Unable to read WSDL from input stream.", e);
-            throw new WsdlDescriptorException("Unable to read WSDL");
+            throw new WsdlDescriptorException("Unable to read WSDL", e);
         }
     }
 

@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<definitions name="Coverage"
+             targetNamespace="http://example.com/coverage"
+             xmlns:tns="http://example.com/coverage"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+             xmlns="http://schemas.xmlsoap.org/wsdl/">
+    <documentation>Service contract</documentation>
+    <message name="In">
+        <documentation>input</documentation>
+        <part name="body" type="xsd:string">
+            <documentation>part</documentation>
+        </part>
+    </message>
+    <message name="Out">
+        <part name="body" type="xsd:string"/>
+    </message>
+    <message name="FaultMessage">
+        <part name="detail" type="xsd:string"/>
+    </message>
+    <portType name="CoveragePortType">
+        <documentation>port type</documentation>
+        <operation name="RequestResponse" parameterOrder="body">
+            <documentation>request response</documentation>
+            <input name="Request" message="tns:In"/>
+            <output name="Response" message="tns:Out"/>
+            <fault name="Error" message="tns:FaultMessage">
+                <documentation>fault</documentation>
+            </fault>
+        </operation>
+        <operation name="OneWay">
+            <input message="tns:In"/>
+        </operation>
+        <operation name="Notify">
+            <output message="tns:Out"/>
+        </operation>
+        <operation name="Solicit">
+            <output message="tns:Out"/>
+            <input message="tns:In"/>
+        </operation>
+    </portType>
+    <binding name="CoverageBinding" type="tns:CoveragePortType">
+        <documentation>binding</documentation>
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <operation name="RequestResponse">
+            <documentation>binding operation</documentation>
+            <soap:operation soapAction="http://example.com/RequestResponse"/>
+            <input name="Request">
+                <soap:body use="literal"/>
+            </input>
+            <output name="Response">
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Error">
+                <documentation>binding fault</documentation>
+                <soap:fault name="Error" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="OneWay">
+            <soap:operation soapAction="http://example.com/OneWay"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+        </operation>
+        <operation name="Notify">
+            <soap:operation soapAction="http://example.com/Notify"/>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+        <operation name="Solicit">
+            <soap:operation soapAction="http://example.com/Solicit"/>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+        </operation>
+        <operation name="Unmatched">
+            <soap:operation soapAction="http://example.com/Unmatched"/>
+            <input name="Nope">
+                <soap:body use="literal"/>
+            </input>
+            <output name="Nope">
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+    </binding>
+    <service name="CoverageService">
+        <documentation>service</documentation>
+        <port name="CoveragePort" binding="tns:CoverageBinding">
+            <documentation>port</documentation>
+            <soap:address location="http://example.com/coverage"/>
+        </port>
+    </service>
+</definitions>
