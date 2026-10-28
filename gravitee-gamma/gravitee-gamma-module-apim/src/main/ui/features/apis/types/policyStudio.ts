@@ -26,6 +26,7 @@ export interface PolicyPlugin {
     onRequest?: boolean;
     onResponse?: boolean;
     flowPhaseCompatibility?: Record<string, string[]>;
+    supportsMessageCondition?: boolean;
 }
 
 export interface ConnectorPlugin {

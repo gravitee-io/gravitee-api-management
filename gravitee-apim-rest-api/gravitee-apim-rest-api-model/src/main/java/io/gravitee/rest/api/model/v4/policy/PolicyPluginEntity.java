@@ -33,6 +33,13 @@ public class PolicyPluginEntity extends PlatformPluginEntity {
 
     public Map<ApiProtocolType, Set<FlowPhase>> flowPhaseCompatibility = new HashMap<>();
 
+    /**
+     * False when the policy plugin declares, in its plugin properties, that it cannot honour a message condition
+     * (e.g. it works on raw frames).
+     */
+    @Builder.Default
+    private boolean supportsMessageCondition = true;
+
     public Set<FlowPhase> getFlowPhaseCompatibility(ApiProtocolType apiProtocolType) {
         if (flowPhaseCompatibility == null) {
             return null;

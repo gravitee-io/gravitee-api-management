@@ -243,4 +243,47 @@ public class PolicyPluginServiceImplTest {
         assertEquals("documentation", documentation.content());
         assertEquals(PluginDocumentation.Language.ASCIIDOC, documentation.language());
     }
+
+    @Nested
+    public class SupportsMessageCondition {
+
+        private PolicyPluginEntity findWithProperties(Map<String, String> properties) {
+            when(mockPluginManifest.properties()).thenReturn(properties);
+            return cut.findById(PLUGIN_ID);
+        }
+
+        @Test
+        public void should_support_message_condition_by_default() {
+            assertTrue(findWithProperties(Map.of("native_kafka", "PUBLISH,SUBSCRIBE")).isSupportsMessageCondition());
+        }
+
+        @Test
+        public void should_not_support_message_condition_when_plugin_declares_it() {
+            assertFalse(findWithProperties(Map.of("supports_message_condition", "false")).isSupportsMessageCondition());
+        }
+
+        @Test
+        public void should_support_message_condition_when_plugin_has_no_properties() {
+            when(mockPluginManifest.properties()).thenReturn(null);
+            assertTrue(PolicyPluginServiceImpl.supportsMessageCondition(mockPlugin));
+        }
+
+        @Test
+        public void should_ignore_case_and_whitespace_of_the_declaration() {
+            assertFalse(findWithProperties(Map.of("supports_message_condition", " FALSE ")).isSupportsMessageCondition());
+        }
+
+        @Test
+        public void should_support_message_condition_when_plugin_declares_it_supported() {
+            assertTrue(findWithProperties(Map.of("supports_message_condition", "true")).isSupportsMessageCondition());
+        }
+
+        @Test
+        public void should_expose_the_declaration_in_find_all() {
+            when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
+            when(mockPluginManifest.properties()).thenReturn(Map.of("supports_message_condition", "false"));
+
+            assertFalse(cut.findAll().iterator().next().isSupportsMessageCondition());
+        }
+    }
 }

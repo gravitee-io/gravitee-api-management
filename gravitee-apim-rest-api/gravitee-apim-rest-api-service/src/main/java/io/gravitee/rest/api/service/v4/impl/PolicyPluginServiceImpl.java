@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
@@ -61,6 +62,8 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         @Deprecated
         MESSAGE_RESPONSE,
     }
+
+    static final String SUPPORTS_MESSAGE_CONDITION_PROPERTY = "supports_message_condition";
 
     public static final Set<String> INTERNAL_POLICIES_ID = Set.of("shared-policy-group-policy");
 
@@ -114,6 +117,7 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         entity.putFlowPhaseCompatibility(ApiProtocolType.MCP_PROXY, mcpProxyFlowPhase);
         entity.putFlowPhaseCompatibility(ApiProtocolType.LLM_PROXY, llmProxyFlowPhase);
         entity.putFlowPhaseCompatibility(ApiProtocolType.A2A_PROXY, a2aProxyFlowPhase);
+        entity.setSupportsMessageCondition(supportsMessageCondition(plugin));
 
         return entity;
     }
@@ -186,6 +190,18 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
                 ioex
             );
         }
+    }
+
+    /**
+     * A policy plugin declares that it cannot honour a message condition with the plugin property
+     * {@value #SUPPORTS_MESSAGE_CONDITION_PROPERTY}=false. Any other value, or no value, means supported.
+     */
+    static boolean supportsMessageCondition(Plugin plugin) {
+        var properties = plugin.manifest().properties();
+        return (
+            properties == null ||
+            !"false".equalsIgnoreCase(Objects.toString(properties.get(SUPPORTS_MESSAGE_CONDITION_PROPERTY), "").trim())
+        );
     }
 
     private static Set<FlowPhase> getDeprecatedFlowPhase(Plugin plugin, String property) {
