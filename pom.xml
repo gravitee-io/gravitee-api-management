@@ -132,7 +132,12 @@
     <json-unit.version>6.2.0</json-unit.version>
     <jsoup.version>1.23.2</jsoup.version>
     <kafka.version>3.9.2</kafka.version>
+<<<<<<< HEAD
     <lucene.version>10.5.1</lucene.version>
+=======
+    <lz4-java.version>1.11.4</lz4-java.version>
+    <lucene.version>10.1.0</lucene.version>
+>>>>>>> bae7c53 (fix(deps): pin lz4-java to 1.11.4 without upgrading kafka-clients)
     <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
     <mapstruct.version>1.6.3</mapstruct.version>
     <mariadb-java-client.version>3.5.10</mariadb-java-client.version>
