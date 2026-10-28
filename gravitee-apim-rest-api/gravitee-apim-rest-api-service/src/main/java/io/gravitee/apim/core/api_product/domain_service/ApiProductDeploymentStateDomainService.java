@@ -23,10 +23,12 @@ import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -39,8 +41,8 @@ import lombok.RequiredArgsConstructor;
 /**
  * Tells whether an API Product on screen still matches what was last deployed to the gateway.
  *
- * <p>A product is {@code DEPLOYED} when the last deploy event carries the same APIs and sharding tags it
- * carries now, and no non-staging plan has been changed since. Anything else — never deployed, an
+ * <p>A product is {@code DEPLOYED} when the last deploy event carries the same APIs, sharding tags and
+ * resources it carries now, and no non-staging plan has been changed since. Anything else — never deployed, an
  * unreadable payload, a since-changed plan — is reported as {@code NEED_REDEPLOY}, so the operator is
  * told to redeploy rather than told nothing.</p>
  *
@@ -119,7 +121,8 @@ public class ApiProductDeploymentStateDomainService {
             if (
                 deployedProduct == null ||
                 !setsEqual(product.getApiIds(), deployedProduct.getApiIds()) ||
-                !setsEqual(product.getTags(), deployedProduct.getTags())
+                !setsEqual(product.getTags(), deployedProduct.getTags()) ||
+                !resourcesEqual(product.getResources(), deployedProduct.getResources())
             ) {
                 return ApiProduct.DeploymentState.NEED_REDEPLOY;
             }
@@ -148,6 +151,24 @@ public class ApiProductDeploymentStateDomainService {
             log.warn("Failed to deserialize deploy event payload for API Product [{}]: {}", productId, e.getMessage());
             return null;
         }
+    }
+
+    // Order does not matter: names are unique. Null and an empty list differ: a deploy written before this field existed has null.
+    private static boolean resourcesEqual(List<Resource> current, List<Resource> deployed) {
+        if (current == null && deployed == null) {
+            return true;
+        }
+        if (current == null || deployed == null) {
+            return false;
+        }
+        return normalize(current).equals(normalize(deployed));
+    }
+
+    private static List<Resource> normalize(List<Resource> resources) {
+        return resources
+            .stream()
+            .sorted(Comparator.comparing(Resource::getName, Comparator.nullsFirst(Comparator.naturalOrder())))
+            .toList();
     }
 
     /**
