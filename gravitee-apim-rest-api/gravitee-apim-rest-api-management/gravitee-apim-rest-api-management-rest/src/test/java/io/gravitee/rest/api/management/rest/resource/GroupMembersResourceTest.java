@@ -798,4 +798,167 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
             argThat(role -> role.getScope() == RoleScope.INTEGRATION && role.getName().equals("USER"))
         );
     }
+
+    private static final String NEW_OWNER = "new-owner";
+
+    @Test
+    public void shouldTransferPrimaryOwnerWhenDemotionComesFirstIfGroupOwnsApis() {
+        givenGroupOwningApisWithPrimaryOwner();
+
+        final Response response = post(
+            membership(USERNAME, RoleScope.API, "OWNER"),
+            membership(NEW_OWNER, RoleScope.API, SystemRole.PRIMARY_OWNER.name())
+        );
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        verify(groupService, never()).assertGroupIsNotPrimaryOwner(any(), eq(GROUP_ID), eq(RoleScope.API));
+        verify(groupService, never()).updateApiPrimaryOwner(GROUP_ID, null);
+        verify(groupService).updateApiPrimaryOwner(GROUP_ID, NEW_OWNER);
+    }
+
+    @Test
+    public void shouldTransferPrimaryOwnerWhenPromotionComesFirstIfGroupOwnsApis() {
+        givenGroupOwningApisWithPrimaryOwner();
+
+        final Response response = post(
+            membership(NEW_OWNER, RoleScope.API, SystemRole.PRIMARY_OWNER.name()),
+            membership(USERNAME, RoleScope.API, "OWNER")
+        );
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        verify(groupService, never()).updateApiPrimaryOwner(GROUP_ID, null);
+        verify(groupService).updateApiPrimaryOwner(GROUP_ID, NEW_OWNER);
+    }
+
+    @Test
+    public void shouldRejectDemotionWhenAnotherMemberGetsANonPrimaryOwnerRoleIfGroupOwnsApis() {
+        givenGroupOwningApisWithPrimaryOwner();
+
+        final Response response = post(membership(USERNAME, RoleScope.API, "OWNER"), membership("other-member", RoleScope.API, "OWNER"));
+
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldRejectDemotionWhenTheOnlyPrimaryOwnerEntryTargetsTheDemotedMemberIfGroupOwnsApis() {
+        givenGroupOwningApisWithPrimaryOwner();
+
+        final Response response = post(
+            membership(USERNAME, RoleScope.API, SystemRole.PRIMARY_OWNER.name()),
+            membership(USERNAME, RoleScope.API, "OWNER")
+        );
+
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldRejectDemotionWhenTheSuccessorEndsWithANonPrimaryOwnerRoleIfGroupOwnsApis() {
+        givenGroupOwningApisWithPrimaryOwner();
+
+        final Response response = post(
+            membership(USERNAME, RoleScope.API, "OWNER"),
+            membership(NEW_OWNER, RoleScope.API, SystemRole.PRIMARY_OWNER.name(), "USER")
+        );
+
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldRejectDemotionWhenTheRoleIsLockedForTheCallerIfGroupOwnsApis() {
+        givenGroupOwningApisWithPrimaryOwner();
+        GroupEntity lockedGroup = mock(GroupEntity.class);
+        when(lockedGroup.isLockApiRole()).thenReturn(true);
+        when(lockedGroup.isSystemInvitation()).thenReturn(true);
+        when(lockedGroup.getMaxInvitation()).thenReturn(null);
+        when(lockedGroup.getRoles()).thenReturn(Map.of(RoleScope.API, "USER"));
+        when(groupService.findById(GraviteeContext.getExecutionContext(), GROUP_ID)).thenReturn(lockedGroup);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(ENVIRONMENT_GROUP),
+                eq("DEFAULT"),
+                eq(CREATE),
+                eq(UPDATE),
+                eq(DELETE)
+            )
+        ).thenReturn(false);
+
+        final Response response = post(
+            membership(USERNAME, RoleScope.API, "OWNER"),
+            membership(NEW_OWNER, RoleScope.API, SystemRole.PRIMARY_OWNER.name())
+        );
+
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    private void givenGroupOwningApisWithPrimaryOwner() {
+        RoleScope scope = RoleScope.API;
+        reset(roleService, groupService, membershipService);
+        when(groupService.findById(GraviteeContext.getExecutionContext(), GROUP_ID)).thenReturn(mock(GroupEntity.class));
+
+        RoleEntity primaryOwnerRole = role(scope, SystemRole.PRIMARY_OWNER.name());
+        RoleEntity userRole = role(scope, "USER");
+        for (RoleEntity role : List.of(primaryOwnerRole, role(scope, "OWNER"), userRole)) {
+            when(roleService.findByScopeAndName(scope, role.getName(), GraviteeContext.getCurrentOrganization())).thenReturn(
+                Optional.of(role)
+            );
+        }
+        when(membershipService.getRoles(MembershipReferenceType.GROUP, GROUP_ID, MembershipMemberType.USER, USERNAME)).thenReturn(
+            Set.of(primaryOwnerRole)
+        );
+        when(membershipService.getRoles(MembershipReferenceType.GROUP, GROUP_ID, MembershipMemberType.USER, NEW_OWNER)).thenReturn(
+            Set.of(userRole)
+        );
+
+        // The group still owns something, so a demotion that leaves it without a primary owner is refused.
+        doThrow(new StillPrimaryOwnerException(1, ApiPrimaryOwnerMode.GROUP))
+            .when(groupService)
+            .assertGroupIsNotPrimaryOwner(GraviteeContext.getExecutionContext(), GROUP_ID, scope);
+
+        when(membershipService.addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any())).thenAnswer(
+            invocation -> {
+                MemberEntity member = new MemberEntity();
+                member.setId(invocation.<MembershipService.MembershipMember>getArgument(2).getMemberId());
+                return member;
+            }
+        );
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(ENVIRONMENT_GROUP),
+                eq("DEFAULT"),
+                eq(CREATE),
+                eq(UPDATE),
+                eq(DELETE)
+            )
+        ).thenReturn(true);
+    }
+
+    private static RoleEntity role(RoleScope scope, String name) {
+        RoleEntity role = new RoleEntity();
+        role.setId(scope + "_" + name);
+        role.setName(name);
+        role.setScope(scope);
+        return role;
+    }
+
+    private static GroupMembership membership(String memberId, RoleScope scope, String... roleNames) {
+        GroupMembership membership = new GroupMembership();
+        membership.setId(memberId);
+        membership.setRoles(
+            Arrays.stream(roleNames)
+                .map(roleName -> {
+                    MemberRoleEntity memberRole = new MemberRoleEntity();
+                    memberRole.setRoleScope(scope);
+                    memberRole.setRoleName(roleName);
+                    return memberRole;
+                })
+                .toList()
+        );
+        return membership;
+    }
+
+    private Response post(GroupMembership... memberships) {
+        return envTarget().request().post(Entity.json(Arrays.asList(memberships)));
+    }
 }
