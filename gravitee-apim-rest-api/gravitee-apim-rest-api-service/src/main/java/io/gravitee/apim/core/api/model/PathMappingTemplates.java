@@ -17,9 +17,9 @@ package io.gravitee.apim.core.api.model;
 
 import io.gravitee.apim.core.api.exception.InvalidPathMappingsException;
 import io.gravitee.definition.model.PathMapping;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.regex.PatternSyntaxException;
-import java.util.stream.Collectors;
 
 public final class PathMappingTemplates {
 
@@ -41,13 +41,29 @@ public final class PathMappingTemplates {
         if (templates == null) {
             return;
         }
-        var offending = templates
-            .stream()
-            .filter(t -> t == null || t.isBlank() || !isCompilable(t))
-            .collect(Collectors.joining(", "));
-
+        var offending = new ArrayList<String>();
+        PatternSyntaxException firstCause = null;
+        for (var template : templates) {
+            if (template == null || template.isBlank()) {
+                offending.add(String.valueOf(template));
+                continue;
+            }
+            try {
+                PathMapping.buildPattern(template);
+            } catch (PatternSyntaxException e) {
+                if (firstCause == null) {
+                    firstCause = e;
+                }
+                offending.add(template);
+            }
+        }
         if (!offending.isEmpty()) {
-            throw new InvalidPathMappingsException("Path mappings contain invalid templates: [" + offending + "]", offending);
+            var names = String.join(", ", offending);
+            var message = "Path mappings contain invalid templates: [" + names + "]";
+            if (firstCause == null) {
+                throw new InvalidPathMappingsException(message, names);
+            }
+            throw new InvalidPathMappingsException(message, names, firstCause);
         }
     }
 }

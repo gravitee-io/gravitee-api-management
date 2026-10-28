@@ -27,4 +27,9 @@ public class InvalidPathMappingsException extends ValidationDomainException {
     public InvalidPathMappingsException(String message, String pathMappings) {
         super(message, Map.of("pathMappings", pathMappings), "api.listeners.http.pathMappings.invalid");
     }
+
+    public InvalidPathMappingsException(String message, String pathMappings, Throwable cause) {
+        this(message, pathMappings);
+        initCause(cause);
+    }
 }

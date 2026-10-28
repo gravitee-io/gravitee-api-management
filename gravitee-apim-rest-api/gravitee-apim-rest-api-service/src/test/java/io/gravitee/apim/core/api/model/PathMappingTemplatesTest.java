@@ -66,7 +66,9 @@ class PathMappingTemplatesTest {
         assertThatThrownBy(() -> PathMappingTemplates.validate(List.of("/a/**", "*")))
             .isInstanceOf(InvalidPathMappingsException.class)
             .hasMessageContaining("/a/**")
-            .hasMessageContaining("*");
+            .hasMessageContaining("*")
+            .cause()
+            .isInstanceOf(java.util.regex.PatternSyntaxException.class);
     }
 
     @Test
