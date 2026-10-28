@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.management.AbstractManagementRepositoryTest;
 import io.gravitee.repository.management.api.SubscriptionUniqueActiveKey;
 import io.gravitee.repository.management.model.Subscription;
@@ -27,6 +28,7 @@ import jakarta.inject.Inject;
 import java.util.Date;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoOperations;
 
@@ -45,6 +47,9 @@ public class MongoSubscriptionUniqueActiveKeyTest extends AbstractManagementRepo
 
     @Inject
     private Environment environment;
+
+    @Inject
+    private ApplicationContext applicationContext;
 
     @Override
     protected String getTestCasesPath() {
@@ -123,6 +128,30 @@ public class MongoSubscriptionUniqueActiveKeyTest extends AbstractManagementRepo
         assertThat(storedDocument("sub-1").getString(FIELD))
             .isNotEqualTo(keyOnOrders)
             .isEqualTo(SubscriptionUniqueActiveKey.of(subscription));
+    }
+
+    /**
+     * A repair scans every subscription at startup, before the node serves requests, while nothing reads the key until
+     * the unique index exists.
+     */
+    @Test
+    public void should_not_repair_the_keys_of_the_existing_subscriptions_at_startup() {
+        assertThat(applicationContext.getBeansOfType(Upgrader.class).values())
+            .extracting(upgrader -> upgrader.getClass().getSimpleName())
+            .doesNotContain("SubscriptionUniqueActiveKeyUpgrader");
+    }
+
+    @Test
+    public void should_write_the_key_of_a_subscription_stored_without_it_the_next_time_it_is_saved() throws Exception {
+        subscriptionRepository.create(aSubscription("sub-1", Subscription.Status.ACCEPTED));
+        // As written by a node of a previous version.
+        subscriptions().updateOne(Filters.eq("_id", "sub-1"), new Document("$unset", new Document(FIELD, "")));
+        var subscription = subscriptionRepository.findById("sub-1").orElseThrow();
+
+        subscription.setUpdatedAt(new Date());
+        subscriptionRepository.update(subscription);
+
+        assertThat(storedDocument("sub-1").getString(FIELD)).isNotNull().isEqualTo(SubscriptionUniqueActiveKey.of(subscription));
     }
 
     /**
