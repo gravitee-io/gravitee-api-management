@@ -234,7 +234,7 @@ public class MongoMediaRepository implements MediaRepository {
         if (hash == null || environment == null) {
             log.warn("Skipping media deletion because the [{}/{}] given as an argument is null", hash, environment);
         } else {
-            deleteWithQuery(and(eq("metadata.environment", environment), eq("metadata.hash", hash)));
+            deleteWithQuery(and(eq("metadata.environment", environment), eq("metadata.hash", hash), not(exists("metadata.api"))));
         }
     }
 
