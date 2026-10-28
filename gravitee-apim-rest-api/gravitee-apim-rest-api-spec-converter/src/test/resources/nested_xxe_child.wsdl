@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!DOCTYPE root [<!ENTITY test SYSTEM 'file:///etc/passwd'>]>
+<definitions name="NestedXxeChild"
+             targetNamespace="http://example.com/nested-xxe/child"
+             xmlns:tns="http://example.com/nested-xxe/child"
+             xmlns="http://schemas.xmlsoap.org/wsdl/">
+    <documentation>&test;</documentation>
+</definitions>

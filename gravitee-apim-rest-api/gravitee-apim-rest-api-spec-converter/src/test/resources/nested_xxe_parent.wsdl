@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<definitions name="NestedXxeParent"
+             targetNamespace="http://example.com/nested-xxe/parent"
+             xmlns:tns="http://example.com/nested-xxe/parent"
+             xmlns:child="http://example.com/nested-xxe/child"
+             xmlns="http://schemas.xmlsoap.org/wsdl/">
+    <import namespace="http://example.com/nested-xxe/child" location="nested_xxe_child.wsdl"/>
+    <service name="NestedXxeService"/>
+</definitions>
