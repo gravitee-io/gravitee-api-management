@@ -49,6 +49,9 @@ import lombok.CustomLog;
  * written if the subscription still holds the values it has been computed from. A subscription changed in the meantime
  * is skipped: a node of this version wrote its up-to-date key along with the change, while a node of a previous
  * version left the key as it was, missing or stale, until the next repair. Running it again gives the same result.
+ * <p>
+ * No changeset of this version runs it: scanning the whole table would delay the start of every node, while nothing
+ * reads the key yet. It is meant for the release that adds the unique index.
  *
  * @author GraviteeSource Team
  */
