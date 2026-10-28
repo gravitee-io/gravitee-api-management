@@ -204,6 +204,35 @@ describe('EditDictionarySheet', () => {
         });
     });
 
+    it('does not offer Encrypt fetched values for MANUAL', () => {
+        renderSheet();
+        expect(screen.queryByLabelText('Encrypt fetched values')).toBeNull();
+    });
+
+    it('prefills Encrypt fetched values from the dictionary and submits a change', async () => {
+        const { onSubmit } = renderSheet({ dictionary: { ...DYNAMIC_DICTIONARY, encryption: { encryptOnFetch: true } } });
+        const checkbox = screen.getByLabelText('Encrypt fetched values');
+        expect(checkbox.getAttribute('aria-checked')).toBe('true');
+
+        fireEvent.click(checkbox);
+        fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+        await waitFor(() => {
+            expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ encryption: { encryptOnFetch: false } }));
+        });
+    });
+
+    it('preserves property encryption options when saving a DYNAMIC dictionary', async () => {
+        const { onSubmit } = renderSheet({
+            dictionary: { ...DYNAMIC_DICTIONARY, propertyOptions: { a: { encrypted: true } } },
+        });
+        fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+        await waitFor(() => {
+            expect(onSubmit).toHaveBeenCalledWith(expect.not.objectContaining({ propertyOptions: expect.anything() }));
+        });
+    });
+
     it('submits empty properties object when DYNAMIC dictionary has no properties', async () => {
         const { onSubmit } = renderSheet({
             dictionary: { ...DYNAMIC_DICTIONARY, properties: undefined },
