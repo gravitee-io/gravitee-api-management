@@ -21,6 +21,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 /**
  * @author GraviteeSource Team
@@ -145,6 +147,42 @@ class SecurityChainDiagnosticTest {
 
             // Then
             assertThat(cause.getMessage()).isEqualTo("The provided authentication token is invalid for the following plans: plan1, plan2");
+        }
+
+        @ParameterizedTest(name = "token {0} is logged as {1}")
+        @CsvSource(
+            delimiter = '|',
+            value = {
+                "abcdef123456:wrong-secret|abcd***3456",
+                "abcdef123456:wrong:secret|abcd***3456",
+                ":wrong-secret|***",
+                "ab:wrong-secret|a***",
+                "abcdef:wrong-secret|ab***ef",
+            }
+        )
+        @DisplayName("Should never expose characters following the first colon of a username:password token")
+        void shouldNotExposePasswordOfUsernamePasswordToken(String token, String expectedMask) {
+            // Given
+            diagnostic.markPlanHasNoSubscription("plan1", "API_KEY", token);
+
+            // When
+            Exception cause = diagnostic.cause();
+
+            // Then
+            assertThat(cause.getMessage()).isEqualTo("No subscription was found for API Key: " + expectedMask + " (plan: plan1)");
+        }
+
+        @Test
+        @DisplayName("Should fully mask a null token")
+        void shouldFullyMaskNullToken() {
+            // Given
+            diagnostic.markPlanHasNoSubscription("plan1", "API_KEY", null);
+
+            // When
+            Exception cause = diagnostic.cause();
+
+            // Then
+            assertThat(cause.getMessage()).isEqualTo("No subscription was found for API Key: *** (plan: plan1)");
         }
 
         @Test
