@@ -173,6 +173,19 @@ class SecurityChainDiagnosticTest {
         }
 
         @Test
+        @DisplayName("Should fully mask a null token")
+        void shouldFullyMaskNullToken() {
+            // Given
+            diagnostic.markPlanHasNoSubscription("plan1", "API_KEY", null);
+
+            // When
+            Exception cause = diagnostic.cause();
+
+            // Then
+            assertThat(cause.getMessage()).isEqualTo("No subscription was found for API Key: *** (plan: plan1)");
+        }
+
+        @Test
         @DisplayName("Should return exception for no subscription plans with API key")
         void shouldReturnExceptionForNoSubscriptionPlansWithApiKey() {
             // Given
