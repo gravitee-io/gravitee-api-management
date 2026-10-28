@@ -111,7 +111,12 @@ class WsdlToUpdateApiUseCaseIntegrationTest {
             flowCrudService
         );
 
-        var oaiToUpdateApiUseCase = new OAIToUpdateApiUseCase(oaiDomainService, flowCrudService, updateApiDefinitionUseCase);
+        var oaiToUpdateApiUseCase = new OAIToUpdateApiUseCase(
+            oaiDomainService,
+            flowCrudService,
+            updateApiDefinitionUseCase,
+            apiCrudService
+        );
 
         useCase = new WsdlToUpdateApiUseCase(new WsdlParserDomainServiceImpl(importConfiguration), oaiToUpdateApiUseCase);
     }

@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.exception.InvalidApiDefinitionException;
@@ -52,6 +53,7 @@ class OAIToUpdateApiUseCaseTest {
     private OAIDomainService oaiDomainService;
     private FlowCrudServiceInMemory flowCrudService;
     private UpdateApiDefinitionFromImportUseCase updateApiDefinitionUseCase;
+    private ApiCrudServiceInMemory apiCrudService;
     private OAIToUpdateApiUseCase cut;
 
     @BeforeEach
@@ -59,7 +61,8 @@ class OAIToUpdateApiUseCaseTest {
         oaiDomainService = mock(OAIDomainService.class);
         flowCrudService = new FlowCrudServiceInMemory();
         updateApiDefinitionUseCase = mock(UpdateApiDefinitionFromImportUseCase.class);
-        cut = new OAIToUpdateApiUseCase(oaiDomainService, flowCrudService, updateApiDefinitionUseCase);
+        apiCrudService = new ApiCrudServiceInMemory();
+        cut = new OAIToUpdateApiUseCase(oaiDomainService, flowCrudService, updateApiDefinitionUseCase, apiCrudService);
     }
 
     @Test

@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.converter.oai;
 
 import static java.util.Collections.singletonList;
 
+import io.gravitee.definition.model.PathMapping;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -24,8 +25,12 @@ import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.rest.api.service.swagger.converter.extension.VirtualHost;
 import io.gravitee.rest.api.service.swagger.converter.extension.XGraviteeIODefinition;
 import java.net.URI;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.NoArgsConstructor;
 
@@ -36,11 +41,28 @@ public class OAIToListenersConverter {
     private static final String DEFAULT_ENTRYPOINT_TYPE = "http-proxy";
 
     List<Listener> convert(XGraviteeIODefinition xGraviteeIODefinition, String apiName, String defaultEndpoint) {
+        return convert(xGraviteeIODefinition, apiName, defaultEndpoint, null);
+    }
+
+    List<Listener> convert(
+        XGraviteeIODefinition xGraviteeIODefinition,
+        String apiName,
+        String defaultEndpoint,
+        Collection<String> pathMappings
+    ) {
         var listener = HttpListener.builder().entrypoints(singletonList(Entrypoint.builder().type(DEFAULT_ENTRYPOINT_TYPE).build()));
         var paths = Optional.ofNullable(xGraviteeIODefinition)
             .map(XGraviteeIODefinition::getVirtualHosts)
             .map(this::createPathsFromVirtualHosts)
             .orElseGet(() -> singletonList(createDefaultPath(apiName, defaultEndpoint)));
+
+        if (pathMappings != null) {
+            var linked = new LinkedHashSet<>(pathMappings);
+            var patterns = linked
+                .stream()
+                .collect(Collectors.toMap(Function.identity(), PathMapping::buildPattern, (a, b) -> a, LinkedHashMap::new));
+            listener.pathMappings(linked).pathMappingsPattern(patterns);
+        }
 
         return singletonList(listener.paths(paths).build());
     }

@@ -16,9 +16,11 @@
 package io.gravitee.apim.core.api.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.exception.InvalidApiDefinitionException;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
+import io.gravitee.apim.core.api.model.HttpListenerPathMappings;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
@@ -51,6 +53,7 @@ public class OAIToUpdateApiUseCase {
     private final OAIDomainService oaiDomainService;
     private final FlowCrudService flowCrudService;
     private final UpdateApiDefinitionFromImportUseCase updateApiDefinitionUseCase;
+    private final ApiCrudService apiCrudService;
 
     public Output execute(Input input) {
         var audit = input.auditInfo();
@@ -73,11 +76,32 @@ public class OAIToUpdateApiUseCase {
             );
         }
 
+        if (!input.importSwaggerDescriptor().isWithPathMapping() && importDefinition.getApiExport() != null) {
+            preserveExistingPathMappings(input.apiId(), importDefinition.getApiExport());
+        }
+
         var output = updateApiDefinitionUseCase.execute(
             new UpdateApiDefinitionFromImportUseCase.Input(input.apiId(), importDefinition, audit)
         );
 
         return new Output(output.apiWithFlows());
+    }
+
+    private void preserveExistingPathMappings(String apiId, io.gravitee.apim.core.api.model.import_definition.ApiExport apiExport) {
+        if (apiExport.getListeners() == null) {
+            return;
+        }
+        var existing = apiCrudService.findById(apiId).map(io.gravitee.apim.core.api.model.Api::getApiDefinitionHttpV4).orElse(null);
+        if (existing == null) {
+            return;
+        }
+        HttpListenerPathMappings.firstHttpListenerMappings(existing.getListeners()).ifPresent(mappings -> {
+            @SuppressWarnings("unchecked")
+            var importedListeners = (java.util.List<io.gravitee.definition.model.v4.listener.Listener>) (java.util.List<
+                ?
+            >) apiExport.getListeners();
+            apiExport.setListeners(HttpListenerPathMappings.withFirstHttpListenerMappings(importedListeners, mappings));
+        });
     }
 
     private void restoreApiFlowIdsByKey(List<? extends AbstractFlow> flows, String apiId) {
