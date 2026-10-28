@@ -16,8 +16,11 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
 import fixtures.ListenerFixtures;
+import io.gravitee.apim.core.api.exception.InvalidPathMappingsException;
+import io.gravitee.definition.model.PathMapping;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
@@ -174,5 +177,40 @@ public class ListenerMapperTest {
             .asList()
             .hasSameSizeAs(listenerV4.getServers())
             .contains(listenerV4.getServers().toArray());
+    }
+
+    @Test
+    void should_throw_invalid_path_mappings_exception_on_duplicates() {
+        var httpListener = ListenerFixtures.aHttpListener();
+        httpListener.setPathMappings(List.of("/a", "/a"));
+
+        assertThatExceptionOfType(InvalidPathMappingsException.class)
+            .isThrownBy(() -> listenerMapper.mapToListenerEntityV4List(List.of(new Listener(httpListener))))
+            .withMessageContaining("duplicate");
+    }
+
+    @Test
+    void should_throw_invalid_path_mappings_exception_when_mapping_cannot_be_compiled() {
+        var httpListener = ListenerFixtures.aHttpListener();
+        httpListener.setPathMappings(List.of("/a/**"));
+
+        assertThatExceptionOfType(InvalidPathMappingsException.class)
+            .isThrownBy(() -> listenerMapper.mapToListenerEntityV4List(List.of(new Listener(httpListener))))
+            .withMessageContaining("invalid");
+    }
+
+    @Test
+    void should_build_patterns_with_runtime_semantics() {
+        var httpListener = ListenerFixtures.aHttpListener();
+        httpListener.setPathMappings(List.of("/a/:id"));
+
+        var result = listenerMapper.mapToListenerEntityV4List(List.of(new Listener(httpListener)));
+        var entity = (HttpListener) result.get(0);
+
+        var expectedPattern = PathMapping.buildPattern("/a/:id");
+        var patternMap = entity.getPathMappingsPattern();
+        assertThat(patternMap).isNotNull();
+        assertThat(patternMap.get("/a/:id")).isNotNull();
+        assertThat(patternMap.get("/a/:id").pattern()).isEqualTo(expectedPattern.pattern());
     }
 }
