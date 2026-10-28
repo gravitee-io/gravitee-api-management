@@ -35,6 +35,7 @@ import { DictionaryStateBadge } from '../features/dictionaries/components/Dictio
 import { TRIGGER_UNIT_OPTIONS } from '../features/dictionaries/components/DictionaryTriggerFields';
 import { DictionaryTypeBadge } from '../features/dictionaries/components/DictionaryTypeBadge';
 import { EditDictionaryPropertySheet } from '../features/dictionaries/components/EditDictionaryPropertySheet';
+import { RenewDictionaryPropertySheet } from '../features/dictionaries/components/RenewDictionaryPropertySheet';
 import {
     useDeployDictionary,
     useStartDictionary,
@@ -43,8 +44,14 @@ import {
 } from '../features/dictionaries/hooks/useDictionaryMutations';
 import { useDictionaryPermissions } from '../features/dictionaries/hooks/useDictionaryPermissions';
 import { useEnvironmentDictionary } from '../features/dictionaries/hooks/useEnvironmentDictionary';
-import type { Dictionary, DictionaryHttpProviderConfiguration, UpdateDictionaryPayload } from '../features/dictionaries/types/dictionary';
+import type {
+    Dictionary,
+    DictionaryHttpProviderConfiguration,
+    DictionaryPropertyRow,
+    UpdateDictionaryPayload,
+} from '../features/dictionaries/types/dictionary';
 import { formatDictionaryDate } from '../features/dictionaries/utils/formatDictionaryDate';
+import { buildPropertyOptions, toPropertyRows } from '../features/dictionaries/utils/propertyOptions';
 import { notify } from '../shared/notify';
 
 function triggerUnitLabel(unit: string | undefined): string {
@@ -59,12 +66,13 @@ function asHttpProviderConfig(configuration: unknown): DictionaryHttpProviderCon
     return {};
 }
 
-function toUpdatePayload(dictionary: Dictionary, nextProperties: Record<string, string>): UpdateDictionaryPayload {
+function toUpdatePayload(dictionary: Dictionary, nextProperties: Record<string, string>, keysToEncrypt: string[]): UpdateDictionaryPayload {
     return {
         name: dictionary.name,
         description: dictionary.description,
         type: dictionary.type,
         properties: nextProperties,
+        propertyOptions: buildPropertyOptions(keysToEncrypt, nextProperties),
         provider: dictionary.provider ?? undefined,
         trigger: dictionary.trigger ?? undefined,
     };
@@ -80,11 +88,12 @@ export function DictionaryDetailPage() {
     const startMutation = useStartDictionary();
     const stopMutation = useStopDictionary();
     const [addPropertyOpen, setAddPropertyOpen] = useState(false);
-    const [propertyToEdit, setPropertyToEdit] = useState<{ key: string; value: string } | undefined>();
+    const [propertyToEdit, setPropertyToEdit] = useState<DictionaryPropertyRow | undefined>();
+    const [propertyToRenew, setPropertyToRenew] = useState<DictionaryPropertyRow | undefined>();
     const [propertyToDelete, setPropertyToDelete] = useState<string | undefined>();
 
     const properties = dictionary?.properties;
-    const propertyRows = useMemo(() => Object.entries(properties ?? {}).map(([key, value]) => ({ key, value })), [properties]);
+    const propertyRows = useMemo(() => (dictionary ? toPropertyRows(dictionary) : []), [dictionary]);
     const propertyCount = propertyRows.length;
     const isDynamic = dictionary?.type === 'DYNAMIC';
     // Classic Console gates property add/edit/delete with environment-dictionary-u.
@@ -96,18 +105,22 @@ export function DictionaryDetailPage() {
     const providerBody = providerConfig.body?.trim() ?? '';
     const providerSpecification = providerConfig.specification?.trim() ?? '';
 
-    async function saveProperties(nextProperties: Record<string, string>, successMessage: string) {
+    async function saveProperties(nextProperties: Record<string, string>, successMessage: string, keysToEncrypt: string[] = []) {
         if (!dictionary || dictionary.type !== 'MANUAL') return;
         await updateMutation.mutateAsync({
             dictionaryId: dictionary.id,
-            data: toUpdatePayload(dictionary, nextProperties),
+            data: toUpdatePayload(dictionary, nextProperties, keysToEncrypt),
         });
         notify.success(successMessage);
     }
 
-    async function handleAddProperty(property: { key: string; value: string }) {
+    async function handleAddProperty(property: { key: string; value: string; encrypt: boolean }) {
         try {
-            await saveProperties({ ...(properties ?? {}), [property.key]: property.value }, 'Property added successfully');
+            await saveProperties(
+                { ...(properties ?? {}), [property.key]: property.value },
+                'Property added successfully',
+                property.encrypt ? [property.key] : [],
+            );
             setAddPropertyOpen(false);
         } catch (error) {
             notify.error(error, 'Failed to add property');
@@ -127,6 +140,26 @@ export function DictionaryDetailPage() {
         } catch (error) {
             notify.error(error, 'Failed to update property');
             throw error;
+        }
+    }
+
+    async function handleRenewProperty(renewal: { key: string; value: string }) {
+        try {
+            await saveProperties({ ...(properties ?? {}), [renewal.key]: renewal.value }, 'Property encryption renewed successfully', [
+                renewal.key,
+            ]);
+            setPropertyToRenew(undefined);
+        } catch (error) {
+            notify.error(error, 'Failed to renew property encryption');
+            throw error;
+        }
+    }
+
+    async function handleEncryptProperty(propertyKey: string) {
+        try {
+            await saveProperties(properties ?? {}, 'Property encrypted successfully', [propertyKey]);
+        } catch (error) {
+            notify.error(error, 'Failed to encrypt property');
         }
     }
 
@@ -384,6 +417,8 @@ export function DictionaryDetailPage() {
                     canEdit={canEditManualProperties}
                     isMutating={updateMutation.isPending}
                     onEdit={setPropertyToEdit}
+                    onRenew={setPropertyToRenew}
+                    onEncrypt={key => void handleEncryptProperty(key)}
                     onDelete={setPropertyToDelete}
                     emptyMessage={
                         isDynamic
@@ -408,6 +443,14 @@ export function DictionaryDetailPage() {
                 onSubmit={handleEditProperty}
                 isSaving={updateMutation.isPending}
                 existingKeys={Object.keys(properties ?? {})}
+            />
+
+            <RenewDictionaryPropertySheet
+                open={propertyToRenew !== undefined}
+                propertyKey={propertyToRenew?.key}
+                onClose={() => setPropertyToRenew(undefined)}
+                onSubmit={handleRenewProperty}
+                isSaving={updateMutation.isPending}
             />
 
             <DeleteDictionaryPropertySheet
