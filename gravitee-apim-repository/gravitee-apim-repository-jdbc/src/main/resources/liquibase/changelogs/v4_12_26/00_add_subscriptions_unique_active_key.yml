@@ -3,7 +3,8 @@ databaseChangeLog:
   # plus a channel token for PUSH subscriptions. NULL when the subscription is not active. Maintained by the repository
   # on every insert and update, it is not enforced yet: the unique index comes in a later release, once every node
   # maintains it. Existing subscriptions are not backfilled here, as it would scan the whole table before the node
-  # starts: each one gets its key the next time it is written, and the release adding the index repairs the others.
+  # starts: each one gets its key the next time it is written. The others keep no key, so no index can rely on the key
+  # before they are repaired.
   - changeSet:
       id: 4.12.26_00_add_subscriptions_unique_active_key
       author: GraviteeSource Team
