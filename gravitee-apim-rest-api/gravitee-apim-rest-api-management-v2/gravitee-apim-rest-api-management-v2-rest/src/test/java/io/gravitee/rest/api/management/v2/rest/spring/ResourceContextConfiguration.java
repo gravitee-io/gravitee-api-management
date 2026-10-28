@@ -88,6 +88,7 @@ import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiDefinitionFromUrlUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiDefinitionUseCase;
+import io.gravitee.apim.core.api.use_case.ImportApiPathMappingsUseCase;
 import io.gravitee.apim.core.api.use_case.OAIToUpdateApiUseCase;
 import io.gravitee.apim.core.api.use_case.PatchApiUseCase.ApiV4Deserializer;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
@@ -804,6 +805,11 @@ public class ResourceContextConfiguration {
     @Bean
     public UpdateApiGroupsUseCase updateApiGroupsUseCase() {
         return mock(UpdateApiGroupsUseCase.class);
+    }
+
+    @Bean
+    public ImportApiPathMappingsUseCase importApiPathMappingsUseCase() {
+        return mock(ImportApiPathMappingsUseCase.class);
     }
 
     @Bean

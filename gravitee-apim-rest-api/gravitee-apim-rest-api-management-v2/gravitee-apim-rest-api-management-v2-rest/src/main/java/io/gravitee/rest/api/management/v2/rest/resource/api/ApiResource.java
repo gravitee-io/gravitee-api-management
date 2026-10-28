@@ -36,6 +36,7 @@ import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiDefinitionFromUrlUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiDefinitionUseCase;
+import io.gravitee.apim.core.api.use_case.ImportApiPathMappingsUseCase;
 import io.gravitee.apim.core.api.use_case.MigrateApiUseCase;
 import io.gravitee.apim.core.api.use_case.OAIToUpdateApiUseCase;
 import io.gravitee.apim.core.api.use_case.PatchApiUseCase;
@@ -68,6 +69,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.DuplicateApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.PromotionMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiCRD;
+import io.gravitee.rest.api.management.v2.rest.model.ApiPathMappings;
 import io.gravitee.rest.api.management.v2.rest.model.ApiReview;
 import io.gravitee.rest.api.management.v2.rest.model.ApiRollback;
 import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
@@ -75,6 +77,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiWorkflowState;
 import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.ImportApiPathMappings;
 import io.gravitee.rest.api.management.v2.rest.model.ImportSwaggerDescriptor;
 import io.gravitee.rest.api.management.v2.rest.model.ImportWsdlDescriptor;
 import io.gravitee.rest.api.management.v2.rest.model.MigrationReportResponses;
@@ -316,6 +319,9 @@ public class ApiResource extends AbstractResource {
     @Inject
     private UpdateApiGroupsUseCase updateApiGroupsUseCase;
 
+    @Inject
+    private ImportApiPathMappingsUseCase importApiPathMappingsUseCase;
+
     @Context
     protected UriInfo uriInfo;
 
@@ -449,6 +455,7 @@ public class ApiResource extends AbstractResource {
             .payload(descriptor.getPayload())
             .withPolicies(descriptor.getWithPolicies() != null ? new ArrayList<>(descriptor.getWithPolicies()) : null)
             .withPolicyPaths(Boolean.TRUE.equals(descriptor.getWithPolicyPaths()))
+            .withPathMapping(Boolean.TRUE.equals(descriptor.getWithPathMapping()))
             .build();
 
         var output = oaiToUpdateApiUseCase.execute(
@@ -467,6 +474,18 @@ public class ApiResource extends AbstractResource {
             getGenericApiEntityById(apiId, false)
         );
         return Response.ok().entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized)).build();
+    }
+
+    @POST
+    @Path("/path-mappings/_import")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response importApiPathMappings(@PathParam("apiId") String apiId, @Valid @NotNull ImportApiPathMappings body) {
+        var output = importApiPathMappingsUseCase.execute(
+            new ImportApiPathMappingsUseCase.Input(apiId, body.getPageId(), Boolean.TRUE.equals(body.getOverwrite()), getAuditInfo())
+        );
+        return Response.ok().entity(new ApiPathMappings().pathMappings(new ArrayList<>(output.pathMappings()))).build();
     }
 
     @PUT

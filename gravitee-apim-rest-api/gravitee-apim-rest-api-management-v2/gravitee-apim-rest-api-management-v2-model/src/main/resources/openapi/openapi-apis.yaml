@@ -809,6 +809,46 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/path-mappings/_import:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - APIs
+            summary: Import path mappings from a Swagger documentation page
+            description: |-
+                Extract path templates from an API's SWAGGER documentation page and store them on the first HTTP listener.
+                Takes effect on the next deployment.
+
+                User must have the API_DEFINITION[UPDATE] permission.
+            operationId: importApiPathMappings
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ImportApiPathMappings"
+                required: true
+            responses:
+                "200":
+                    description: Path mappings successfully imported
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiPathMappings"
+                "400":
+                    description: Invalid request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "403":
+                    $ref: "#/components/responses/Error"
+                "404":
+                    $ref: "#/components/responses/Error"
+                default:
+                    $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/_start:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -4886,6 +4926,33 @@ components:
                 withPolicyPaths:
                     type: boolean
                     description: Create a flow for each path declared in the OpenAPI specification.
+                withPathMapping:
+                    type: boolean
+                    description: Create path mappings for analytics from the paths of the specification. On update, replaces the existing path mappings.
+
+        ImportApiPathMappings:
+            type: object
+            required:
+                - pageId
+            properties:
+                pageId:
+                    type: string
+                    description: Identifier of a SWAGGER documentation page belonging to this API.
+                overwrite:
+                    type: boolean
+                    default: false
+                    description: When true, replace existing path mappings. When false, append and dedupe.
+
+        ApiPathMappings:
+            type: object
+            required:
+                - pathMappings
+            properties:
+                pathMappings:
+                    type: array
+                    items:
+                        type: string
+                    description: Path templates used to group analytics, e.g. /charges/:chargeId. Stored on the first HTTP listener. Takes effect on the next deployment.
 
         UpdateApi:
             oneOf:
