@@ -35,6 +35,14 @@ export interface DictionaryHttpProviderConfiguration {
     useSystemProxy?: boolean;
 }
 
+/** Per-property encryption options carried beside `properties`, keyed by property key. */
+export interface DictionaryPropertyOptions {
+    /** Read side: the stored value is ciphertext (the API returns it masked). */
+    encrypted?: boolean;
+    /** Write side: the submitted plaintext has to be encrypted on save. */
+    encryptable?: boolean;
+}
+
 export interface DictionaryProvider {
     type: string;
     configuration: DictionaryHttpProviderConfiguration | Record<string, unknown>;
@@ -73,6 +81,7 @@ export interface Dictionary {
     type: DictionaryType;
     state?: DictionaryLifecycleState;
     properties?: Record<string, string>;
+    propertyOptions?: Record<string, DictionaryPropertyOptions>;
     provider?: DictionaryProvider | null;
     trigger?: DictionaryTrigger | null;
     created_at?: string | number;
@@ -85,6 +94,7 @@ export interface NewDictionaryPayload {
     description?: string;
     type: DictionaryType;
     properties?: Record<string, string>;
+    propertyOptions?: Record<string, DictionaryPropertyOptions>;
     provider?: DictionaryProvider;
     trigger?: DictionaryTrigger;
 }
@@ -94,8 +104,15 @@ export interface UpdateDictionaryPayload {
     description?: string;
     type: DictionaryType;
     properties?: Record<string, string>;
+    propertyOptions?: Record<string, DictionaryPropertyOptions>;
     provider?: DictionaryProvider;
     trigger?: DictionaryTrigger;
 }
 
 export type DictionaryLifecycleAction = 'START' | 'STOP';
+
+export interface DictionaryPropertyRow {
+    key: string;
+    value: string;
+    encrypted: boolean;
+}
