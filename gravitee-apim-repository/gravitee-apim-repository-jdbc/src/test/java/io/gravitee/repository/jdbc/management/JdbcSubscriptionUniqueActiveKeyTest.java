@@ -48,6 +48,8 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 public class JdbcSubscriptionUniqueActiveKeyTest extends AbstractManagementRepositoryTest {
 
+    private static final String BACKFILL_CHANGESET = "4.12.26_01_backfill_subscriptions_unique_active_key";
+
     @Inject
     private DataSource dataSource;
 
@@ -183,13 +185,11 @@ public class JdbcSubscriptionUniqueActiveKeyTest extends AbstractManagementRepos
     }
 
     @Test
-    public void should_backfill_the_prefixed_subscriptions_table_when_liquibase_runs_it() throws Exception {
-        // The tests run with a table prefix, which Liquibase must hand over to the backfill.
+    public void should_not_backfill_the_existing_subscriptions_when_liquibase_runs() throws Exception {
+        // A backfill scans every subscription at startup, before the node serves requests, while nothing reads the key
+        // until the unique index exists. Makes the backfill pending again, as on a database upgraded from 4.12.25.
         createWithoutKey(aSubscription("sub-1", Subscription.Status.ACCEPTED, "plan-1"));
-        jdbcTemplate.update(
-            "delete from " + prefix() + "databasechangelog where id = ?",
-            "4.12.26_01_backfill_subscriptions_unique_active_key"
-        );
+        jdbcTemplate.update("delete from " + prefix() + "databasechangelog where id = ?", BACKFILL_CHANGESET);
 
         try (Connection connection = dataSource.getConnection()) {
             new Liquibase(
@@ -199,7 +199,25 @@ public class JdbcSubscriptionUniqueActiveKeyTest extends AbstractManagementRepos
             ).update((Contexts) null);
         }
 
-        assertThat(storedKey("sub-1")).isNotNull();
+        assertThat(storedKey("sub-1")).isNull();
+        assertThat(
+            jdbcTemplate.queryForObject(
+                "select count(*) from " + prefix() + "databasechangelog where id = ?",
+                Integer.class,
+                BACKFILL_CHANGESET
+            )
+        ).isZero();
+    }
+
+    @Test
+    public void should_write_the_key_of_a_subscription_stored_without_it_the_next_time_it_is_saved() throws Exception {
+        createWithoutKey(aSubscription("sub-1", Subscription.Status.ACCEPTED, "plan-1"));
+        var subscription = subscriptionRepository.findById("sub-1").orElseThrow();
+
+        subscription.setUpdatedAt(new Date());
+        subscriptionRepository.update(subscription);
+
+        assertThat(storedKey("sub-1")).isNotNull().isEqualTo(SubscriptionUniqueActiveKey.of(subscription));
     }
 
     @Test
