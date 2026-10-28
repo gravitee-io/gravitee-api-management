@@ -38,6 +38,16 @@
                 <version>${logback-ecs-encoder.version}</version>
             </dependency>
 
+            <!-- Must stay before gravitee-bom: the first import wins, and the jetty boms imported by
+                 gravitee-bom pull a newer jackson-bom that would override the gravitee-bom pin. -->
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <!-- Gravitee dependencies -->
             <!-- Import bom to properly inherit all dependencies -->
             <dependency>
