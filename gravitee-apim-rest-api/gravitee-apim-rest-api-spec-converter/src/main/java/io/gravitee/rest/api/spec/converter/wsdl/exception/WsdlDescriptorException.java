@@ -24,4 +24,8 @@ public class WsdlDescriptorException extends RuntimeException {
     public WsdlDescriptorException(String message) {
         super(message);
     }
+
+    public WsdlDescriptorException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
