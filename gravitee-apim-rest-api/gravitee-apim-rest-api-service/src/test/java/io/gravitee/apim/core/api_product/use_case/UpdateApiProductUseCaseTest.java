@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -41,6 +42,7 @@ import inmemory.TriggerNotificationDomainServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductResourceValidationDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductTagDomainService;
 import io.gravitee.apim.core.api_product.domain_service.DeployApiProductDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
@@ -53,13 +55,17 @@ import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.notification.model.hook.ApiProductUpdatedHookContext;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.infra.domain_service.api_product.ApiProductResourceValidationDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
@@ -83,6 +89,9 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         new TriggerNotificationDomainServiceInMemory();
     private final ApiProductTagDomainService apiProductTagDomainService = mock(ApiProductTagDomainService.class);
     private final DeployApiProductDomainService deployApiProductDomainService = mock(DeployApiProductDomainService.class);
+    private final ApiProductResourceValidationDomainService apiProductResourceValidationDomainService = mock(
+        ApiProductResourceValidationDomainService.class
+    );
 
     private UpdateApiProductUseCase updateApiProductUseCase;
 
@@ -112,7 +121,8 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
             planQueryService,
             planCrudService,
             apiProductTagDomainService,
-            deployApiProductDomainService
+            deployApiProductDomainService,
+            apiProductResourceValidationDomainService
         );
     }
 
@@ -148,6 +158,170 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
 
         verify(apiProductIndexerDomainService).index(any(), eq(output.apiProduct()), any());
         verify(deployApiProductDomainService).deploy(AUDIT_INFO, output.apiProduct());
+    }
+
+    @Test
+    void should_store_resources_when_the_update_sets_them() {
+        ApiProduct existing = ApiProduct.builder().id("api-product-id").name("API Product").version("1.0.0").environmentId(ENV_ID).build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        Resource cache = Resource.builder().name("cache").type("cache").configuration("{\"ttl\":10}").build();
+        var saved = updateApiProductUseCase.execute(
+            new UpdateApiProductUseCase.Input("api-product-id", UpdateApiProduct.builder().resources(List.of(cache)).build(), AUDIT_INFO)
+        );
+
+        assertThat(saved.apiProduct().getResources()).containsExactly(cache);
+        verify(apiProductResourceValidationDomainService).validate(List.of(cache));
+    }
+
+    @Test
+    void should_replace_resources_when_the_update_sends_a_new_list() {
+        Resource cache = Resource.builder().name("cache").type("cache").configuration("{\"ttl\":10}").build();
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("API Product")
+            .version("1.0.0")
+            .environmentId(ENV_ID)
+            .resources(List.of(cache))
+            .build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        Resource oauth = Resource.builder().name("oauth").type("oauth2").configuration("{}").build();
+        var replaced = updateApiProductUseCase.execute(
+            new UpdateApiProductUseCase.Input("api-product-id", UpdateApiProduct.builder().resources(List.of(oauth)).build(), AUDIT_INFO)
+        );
+
+        assertThat(replaced.apiProduct().getResources()).containsExactly(oauth);
+        assertThat(replaced.apiProduct().getName()).isEqualTo("API Product");
+        assertThat(replaced.apiProduct().getVersion()).isEqualTo("1.0.0");
+    }
+
+    @Test
+    void should_keep_resources_when_the_update_omits_them() {
+        Resource oauth = Resource.builder().name("oauth").type("oauth2").configuration("{}").build();
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("API Product")
+            .version("1.0.0")
+            .environmentId(ENV_ID)
+            .resources(List.of(oauth))
+            .build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        var kept = updateApiProductUseCase.execute(
+            new UpdateApiProductUseCase.Input("api-product-id", UpdateApiProduct.builder().build(), AUDIT_INFO)
+        );
+
+        assertThat(kept.apiProduct().getResources()).containsExactly(oauth);
+        assertThat(kept.apiProduct().getName()).isEqualTo("API Product");
+    }
+
+    @Test
+    void should_clear_resources_when_update_sends_empty_list() {
+        Resource cache = Resource.builder().name("cache").type("cache").configuration("{\"ttl\":10}").build();
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("API Product")
+            .version("1.0.0")
+            .environmentId(ENV_ID)
+            .resources(List.of(cache))
+            .build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        var cleared = updateApiProductUseCase.execute(
+            new UpdateApiProductUseCase.Input("api-product-id", UpdateApiProduct.builder().resources(List.of()).build(), AUDIT_INFO)
+        );
+
+        assertThat(cleared.apiProduct().getResources()).isEmpty();
+        assertThat(cleared.apiProduct().getName()).isEqualTo("API Product");
+    }
+
+    @Test
+    void should_keep_flow_execution_when_the_update_sets_resources() {
+        var flowExecution = new FlowExecution();
+        flowExecution.setMode(FlowMode.BEST_MATCH);
+        flowExecution.setMatchRequired(true);
+        Resource cache = Resource.builder().name("cache").type("cache").configuration("{\"ttl\":10}").build();
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("API Product")
+            .version("1.0.0")
+            .environmentId(ENV_ID)
+            .flowExecution(flowExecution)
+            .build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        var saved = updateApiProductUseCase.execute(
+            new UpdateApiProductUseCase.Input("api-product-id", UpdateApiProduct.builder().resources(List.of(cache)).build(), AUDIT_INFO)
+        );
+
+        assertThat(saved.apiProduct().getResources()).containsExactly(cache);
+        assertThat(saved.apiProduct().getFlowExecution()).usingRecursiveComparison().isEqualTo(flowExecution);
+    }
+
+    @Test
+    void should_reject_the_update_when_resources_are_invalid() {
+        ApiProduct existing = ApiProduct.builder().id("api-product-id").name("API Product").version("1.0.0").environmentId(ENV_ID).build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+        doThrow(new ValidationDomainException("duplicate name")).when(apiProductResourceValidationDomainService).validate(any());
+
+        Assertions.assertThatThrownBy(() ->
+            updateApiProductUseCase.execute(
+                new UpdateApiProductUseCase.Input("api-product-id", UpdateApiProduct.builder().resources(List.of()).build(), AUDIT_INFO)
+            )
+        ).isInstanceOf(ValidationDomainException.class);
+
+        assertThat(apiProductCrudService.get("api-product-id").getResources()).isNull();
+        assertThat(apiProductCrudService.get("api-product-id").getName()).isEqualTo("API Product");
+    }
+
+    @Test
+    void should_leave_the_product_unchanged_when_the_resource_schema_is_rejected() {
+        ApiProduct existing = ApiProduct.builder().id("api-product-id").name("API Product").version("1.0.0").environmentId(ENV_ID).build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+        ResourcesValidationService resourcesValidationService = mock(ResourcesValidationService.class);
+        doThrow(new InvalidDataException("configuration does not match the schema"))
+            .when(resourcesValidationService)
+            .validateAndSanitize(any());
+        var useCase = new UpdateApiProductUseCase(
+            apiProductCrudService,
+            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+            apiProductQueryService,
+            new ValidateApiProductService(apiQueryService, apiCrudService, planQueryService, apiProductQueryService),
+            apiStateDomainService,
+            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
+            apiProductIndexerDomainService,
+            apiProductPrimaryOwnerDomainService,
+            triggerNotificationDomainService,
+            planQueryService,
+            planCrudService,
+            apiProductTagDomainService,
+            deployApiProductDomainService,
+            new ApiProductResourceValidationDomainServiceImpl(resourcesValidationService)
+        );
+        Resource cache = Resource.builder().name("cache").type("cache").configuration("{\"ttl\":-1}").enabled(true).build();
+
+        Assertions.assertThatThrownBy(() ->
+            useCase.execute(
+                new UpdateApiProductUseCase.Input(
+                    "api-product-id",
+                    UpdateApiProduct.builder().resources(List.of(cache)).build(),
+                    AUDIT_INFO
+                )
+            )
+        )
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("configuration is not valid");
+
+        assertThat(apiProductCrudService.get("api-product-id").getResources()).isNull();
+        assertThat(apiProductCrudService.get("api-product-id").getName()).isEqualTo("API Product");
     }
 
     @Test
@@ -212,6 +386,25 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
 
         Assertions.assertThatThrownBy(() -> updateApiProductUseCase.execute(input)).isInstanceOf(ForbiddenFeatureException.class);
+    }
+
+    @Test
+    void should_reject_an_update_with_resources_when_the_license_does_not_allow_api_products() {
+        when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anOssLicense());
+
+        ApiProduct existing = ApiProduct.builder().id("api-product-id").name("API Product").version("1.0.0").environmentId(ENV_ID).build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        Resource cache = Resource.builder().name("cache").type("cache").configuration("{\"ttl\":10}").build();
+        var input = new UpdateApiProductUseCase.Input(
+            "api-product-id",
+            UpdateApiProduct.builder().resources(List.of(cache)).build(),
+            AUDIT_INFO
+        );
+
+        Assertions.assertThatThrownBy(() -> updateApiProductUseCase.execute(input)).isInstanceOf(ForbiddenFeatureException.class);
+        assertThat(apiProductCrudService.get("api-product-id").getResources()).isNull();
     }
 
     @Test

@@ -67,6 +67,7 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
             .addColumn("kind", Types.NVARCHAR, ApiProductKind.class)
             .addColumn("analytics", Types.NVARCHAR, String.class)
             .addColumn("flow_execution", Types.NVARCHAR, String.class)
+            .addColumn("resources", Types.NVARCHAR, String.class)
             .build();
     }
 

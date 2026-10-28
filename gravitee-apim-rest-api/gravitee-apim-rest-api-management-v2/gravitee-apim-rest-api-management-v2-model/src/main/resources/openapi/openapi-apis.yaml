@@ -10031,6 +10031,19 @@ components:
             primaryOwner:
               $ref: "#/components/schemas/PrimaryOwner"
               description: The primary owner of the API Product
+            groups:
+              type: array
+              description: List of group IDs associated with the API Product
+              items:
+                type: string
+              example:
+                - "group-1"
+            deploymentState:
+              $ref: "#/components/schemas/ApiProductDeploymentState"
+            disableMembershipNotifications:
+              type: boolean
+              description: Disable membership notifications.
+              default: false
             tags:
               type: array
               description: The list of sharding tags associated with this API Product.
@@ -10039,6 +10052,24 @@ components:
               example:
                 - "internal"
                 - "external"
+            analytics:
+              allOf:
+                - $ref: "#/components/schemas/Analytics"
+              description: Reporter settings governing every API this product exposes.
+            resources:
+              type: array
+              description: |
+                Resources available to policies that run on this API Product's plan flows.
+                On PUT, omitted or null leaves the stored list unchanged; send [] to clear it.
+              items:
+                $ref: "#/components/schemas/Resource"
+
+        ApiProductDeploymentState:
+          type: string
+          description: Indicates whether the API Product is in sync with the latest deployment.
+          enum:
+            - DEPLOYED
+            - NEED_REDEPLOY
 
         ApiProductInfo:
           type: object

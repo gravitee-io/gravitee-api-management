@@ -20,11 +20,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.repository.management.model.ApiProduct;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.List;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -67,6 +69,28 @@ class ApiProductAdapterTest {
                 soft.assertThat(analytics.isEnabled()).isTrue();
                 soft.assertThat(analytics.getLogging().getContent().isHeaders()).isTrue();
             });
+        }
+
+        @Test
+        void should_deserialize_resources() {
+            var repository = apiProduct()
+                .resources("[{\"name\":\"cache\",\"type\":\"cache\",\"configuration\":{\"ttl\":10},\"enabled\":true}]")
+                .build();
+
+            var resources = ApiProductAdapter.INSTANCE.toModel(repository).getResources();
+
+            assertThat(resources).hasSize(1);
+            assertThat(resources.get(0).getName()).isEqualTo("cache");
+            assertThat(resources.get(0).getType()).isEqualTo("cache");
+            assertThat(resources.get(0).getConfiguration()).contains("ttl");
+            assertThat(resources.get(0).isEnabled()).isTrue();
+        }
+
+        @Test
+        void should_read_unparseable_resources_as_absent_rather_than_failing() {
+            var repository = apiProduct().resources("not json").build();
+
+            assertThat(ApiProductAdapter.INSTANCE.toModel(repository).getResources()).isNull();
         }
 
         @Test
@@ -128,6 +152,19 @@ class ApiProductAdapterTest {
                 soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
                 soft.assertThat(api.getAnalytics()).isNull();
             });
+        }
+
+        @Test
+        void should_serialize_resources_without_keeping_them_when_absent() {
+            var cache = Resource.builder().name("cache").type("cache").configuration("{\"ttl\":10}").build();
+            var stored = ApiProductAdapter.INSTANCE.toRepository(BASE().resources(List.of(cache)).build()).getResources();
+
+            assertThat(stored).contains("\"name\":\"cache\"").contains("\"type\":\"cache\"").doesNotContain("not json");
+
+            var roundTrip = ApiProductAdapter.INSTANCE.toModel(ApiProduct.builder().id("my-id").resources(stored).build()).getResources();
+            assertThat(roundTrip).containsExactly(cache);
+
+            assertThat(ApiProductAdapter.INSTANCE.toRepository(BASE().build()).getResources()).isNull();
         }
 
         @Test

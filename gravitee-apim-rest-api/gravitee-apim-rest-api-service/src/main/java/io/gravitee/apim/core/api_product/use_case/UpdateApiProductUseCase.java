@@ -21,6 +21,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductResourceValidationDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductTagDomainService;
 import io.gravitee.apim.core.api_product.domain_service.DeployApiProductDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
@@ -46,6 +47,7 @@ import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -72,6 +74,7 @@ public class UpdateApiProductUseCase {
     private final PlanCrudService planCrudService;
     private final ApiProductTagDomainService apiProductTagDomainService;
     private final DeployApiProductDomainService deployApiProductDomainService;
+    private final ApiProductResourceValidationDomainService apiProductResourceValidationDomainService;
 
     public Output execute(Input input) {
         if (!licenseDomainService.isApiProductDeploymentAllowed(input.auditInfo().organizationId())) {
@@ -86,9 +89,12 @@ public class UpdateApiProductUseCase {
             throw new ApiProductNotFoundException(input.apiProductId());
         }
 
+        apiProductResourceValidationDomainService.validate(input.updateApiProduct().getResources());
+
         ApiProduct beforeUpdate = existingApiProduct
             .toBuilder()
-            .apiIds(existingApiProduct.getApiIds() != null ? new java.util.HashSet<>(existingApiProduct.getApiIds()) : null)
+            .apiIds(existingApiProduct.getApiIds() != null ? new HashSet<>(existingApiProduct.getApiIds()) : null)
+            .resources(existingApiProduct.getResources() == null ? null : new ArrayList<>(existingApiProduct.getResources()))
             .build();
 
         UpdateApiProduct updateApiProduct = input.updateApiProduct();
