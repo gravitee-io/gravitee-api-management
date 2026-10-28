@@ -159,7 +159,7 @@ paths:
                 - $ref: "#/components/parameters/apiFilterQueryParam"
                 - $ref: "#/components/parameters/apiFilterExcludedQueryParam"
                 - $ref: "#/components/parameters/apiPromotedQueryParam"
-            summary: "[Legacy] List APIs"
+            summary: List APIs
             description: |
                 List public APIs for anonymous requests.
                 List all the APIs the current user is allowed to category for authenticated requests.
@@ -291,7 +291,7 @@ paths:
                 - Api
             parameters:
                 - $ref: "#/components/parameters/apiFilterQueryParam"
-            summary: "[Legacy] List Categories"
+            summary: List Categories
             description: |
                 For anonymous requests, list all categories of public APIs.
                 For authenticated requests, list all categories of all the APIs the current user can access.
@@ -436,7 +436,7 @@ paths:
         get:
             tags:
                 - Api
-            summary: "[Legacy] Get the API links from Aside SYSTEM_FOLDER."
+            summary: Get the API links from Aside SYSTEM_FOLDER.
             operationId: getApiLinks
             x-gravitee-portal: classic
             description: |
@@ -465,7 +465,7 @@ paths:
         get:
             tags:
                 - Api
-            summary: "[Legacy] Get API metrics"
+            summary: Get API metrics
             description: |
                 Get some metrics about an API :
                   * number of subscribers
@@ -612,7 +612,7 @@ paths:
         get:
             tags:
                 - Api
-            summary: "[Legacy] Get the API's background"
+            summary: Get the API's background
             description: |
                 Get the API's background.
 
@@ -673,7 +673,7 @@ paths:
                 - $ref: "#/components/parameters/pageSizeParam"
                 - $ref: "#/components/parameters/mineQueryParam"
                 - $ref: "#/components/parameters/ratingOrderQueryParam"
-            summary: "[Legacy] List ratings for an API"
+            summary: List ratings for an API
             description: |
                 List ratings for an API.
 
@@ -698,7 +698,7 @@ paths:
         post:
             tags:
                 - Api
-            summary: "[Legacy] Create a rating for an API"
+            summary: Create a rating for an API
             description: |
                 Create a rating for an API.
 
@@ -743,7 +743,7 @@ paths:
         put:
             tags:
                 - Api
-            summary: "[Legacy] Update a rating for an API"
+            summary: Update a rating for an API
             description: |
                 Update a rating for an API.
 
@@ -782,7 +782,7 @@ paths:
         delete:
             tags:
                 - Api
-            summary: "[Legacy] Delete a rating for an API"
+            summary: Delete a rating for an API
             description: |
                 Delete a rating for an API.
 
@@ -815,7 +815,7 @@ paths:
         post:
             tags:
                 - Api
-            summary: "[Legacy] Create an answer to rating"
+            summary: Create an answer to rating
             description: |
                 Create an answer to rating of API.
 
@@ -859,7 +859,7 @@ paths:
         delete:
             tags:
                 - Api
-            summary: "[Legacy] Delete an answer rating for an API"
+            summary: Delete an answer rating for an API
             description: |
                 Delete an answer rating for an API.
 
@@ -896,7 +896,7 @@ paths:
                 - $ref: "#/components/parameters/pageSizeParam"
                 - $ref: "#/components/parameters/subscriptionStatusesQueryParam"
 
-            summary: "[Legacy] List applications that subscribred to an API"
+            summary: List applications that subscribred to an API
             description: |
                 If the current user is the owner of the API, all connected applications will be returned. Filtered by status. Ordered by number of hits.
                 Else only applications that current is allowed to access will.
@@ -1143,7 +1143,7 @@ paths:
         get:
             tags:
                 - Application
-            summary: "[Legacy] Get the application's background"
+            summary: Get the application's background
             description: |
                 Get the application's background.
 
@@ -1165,7 +1165,7 @@ paths:
         get:
             tags:
                 - Application
-            summary: "[Legacy] Get application alerts"
+            summary: Get application alerts
             description: |
                 Get application alerts.
 
@@ -1196,7 +1196,7 @@ paths:
                     application/json:
                         schema:
                             $ref: "#/components/schemas/AlertInput"
-            summary: "[Legacy] Create an application alert"
+            summary: Create an application alert
             description: |
                 Create an application alert.
 
@@ -1225,7 +1225,7 @@ paths:
         delete:
             tags:
                 - Application
-            summary: "[Legacy] Delete a alert for an Application"
+            summary: Delete a alert for an Application
             description: |
                 Delete a alert for an Application.
 
@@ -1258,7 +1258,7 @@ paths:
                     application/json:
                         schema:
                             $ref: "#/components/schemas/AlertInput"
-            summary: "[Legacy] Update alert for an application."
+            summary: Update alert for an application.
             description: |
                 Update alert for an application.
 
@@ -1284,7 +1284,7 @@ paths:
         get:
             tags:
                 - Application
-            summary: "[Legacy] Get application alert status"
+            summary: Get application alert status
             description: |
                 Get application alert status.
 
@@ -1310,7 +1310,7 @@ paths:
         get:
             tags:
                 - Application
-            summary: "[Legacy] Get application notifications"
+            summary: Get application notifications
             description: |
                 Get application notifications.
 
@@ -1343,7 +1343,7 @@ paths:
                         schema:
                             description: List of notifications configured on the application.
                             $ref: "#/components/schemas/NotificationInput"
-            summary: "[Legacy] Update notifications for an application."
+            summary: Update notifications for an application.
             description: |
                 Update notifications for an application.
 
@@ -1374,7 +1374,7 @@ paths:
             parameters:
                 - $ref: "#/components/parameters/pageNumberParam"
                 - $ref: "#/components/parameters/pageSizeParam"
-            summary: "[Legacy] List application members"
+            summary: List application members
             description: |
                 List application members.
 
@@ -1784,7 +1784,7 @@ paths:
             parameters:
                 - $ref: "#/components/parameters/pageNumberParam"
                 - $ref: "#/components/parameters/pageSizeParam"
-            summary: "[Legacy] List application metadata"
+            summary: List application metadata
             description: |
                 List application metadata.
 
@@ -1813,7 +1813,7 @@ paths:
                     application/json:
                         schema:
                             $ref: "#/components/schemas/ReferenceMetadataInput"
-            summary: "[Legacy] Create an application metadata"
+            summary: Create an application metadata
             description: |
                 Create an application metadata.
 
@@ -1840,7 +1840,7 @@ paths:
         get:
             tags:
                 - Application
-            summary: "[Legacy] Get an application metadata"
+            summary: Get an application metadata
             description: |
                 Get an application metadata.
 
@@ -1873,7 +1873,7 @@ paths:
                     application/json:
                         schema:
                             $ref: "#/components/schemas/ReferenceMetadataInput"
-            summary: "[Legacy] Update an application metadata."
+            summary: Update an application metadata.
             description: |
                 Update an application metadata.
 
@@ -1900,7 +1900,7 @@ paths:
         delete:
             tags:
                 - Application
-            summary: "[Legacy] Remove an application metadata"
+            summary: Remove an application metadata
             description: |
                 Remove an application metadata.
 
@@ -1939,7 +1939,7 @@ paths:
                 - $ref: "#/components/parameters/analyticRangeQueryParam"
                 - $ref: "#/components/parameters/analyticAggregationQueryParam"
                 - $ref: "#/components/parameters/analyticOrderQueryParam"
-            summary: "[Legacy] Get Application analytics"
+            summary: Get Application analytics
             description: |
                 Get the application analytics.
 
@@ -2008,7 +2008,7 @@ paths:
                 - $ref: "#/components/parameters/queryQueryParam"
                 - $ref: "#/components/parameters/fieldQueryParam"
                 - $ref: "#/components/parameters/logOrderQueryParam"
-            summary: "[Legacy] Get Application logs"
+            summary: Get Application logs
             description: |
                 Get the application logs.
                 Deprecated: Use POST /applications/{applicationId}/logs/_search instead for more results and refined search.
@@ -2089,7 +2089,7 @@ paths:
                 - $ref: "#/components/parameters/queryQueryParam"
                 - $ref: "#/components/parameters/fieldQueryParam"
                 - $ref: "#/components/parameters/logOrderQueryParam"
-            summary: "[Legacy] Export application logs as CSV"
+            summary: Export application logs as CSV
             description: |
                 Export application logs as CSV.
 
@@ -2194,7 +2194,7 @@ paths:
         post:
             tags:
                 - Application
-            summary: "[Legacy] Renew the client secret for an OAuth2 application"
+            summary: Renew the client secret for an OAuth2 application
             description: |
                 Renew the client secret for an OAuth2 application.
 
@@ -2225,7 +2225,7 @@ paths:
                 - $ref: "#/components/parameters/pageSizeParam"
                 - $ref: "#/components/parameters/subscriptionStatusesQueryParam"
 
-            summary: "[Legacy] List APIs that subscribed with an application"
+            summary: List APIs that subscribed with an application
             description: |
                 Lists API that current user is allowed to access. May be filtered by status. Ordered by nimber of hits.
 
@@ -2253,7 +2253,7 @@ paths:
         post:
             tags:
                 - Application
-            summary: "[Legacy] Renew the shared API Key of an application."
+            summary: Renew the shared API Key of an application.
             description: |
                 Renew the shared API Key of on application.
                 The application must have the ApiKeyMode set to SHARED
@@ -2294,7 +2294,7 @@ paths:
         post:
             tags:
                 - Application
-            summary: "[Legacy] Revoke the shared API Key of an application."
+            summary: Revoke the shared API Key of an application.
             description: |
                 Revoke the shared API Key of on application.
                 The application must have the ApiKeyMode set to SHARED
@@ -2530,7 +2530,7 @@ paths:
             parameters:
                 - $ref: "#/components/parameters/pageNumberParam"
                 - $ref: "#/components/parameters/pageSizeParam"
-            summary: "[Legacy] List group members"
+            summary: List group members
             description: |
                 List group members that have a Application role.
 
@@ -2655,7 +2655,7 @@ paths:
         get:
             tags:
                 - Application
-            summary: "[Legacy] Get the application's hooks list."
+            summary: Get the application's hooks list.
             operationId: getHooks
             x-gravitee-portal: classic
             description: |
@@ -3178,7 +3178,7 @@ paths:
                     application/json:
                         schema:
                             $ref: "#/components/schemas/UserInput"
-            summary: "[Legacy] Modify current user information."
+            summary: Modify current user information.
             description: |
                 Modify current user information.
 
@@ -3214,7 +3214,7 @@ paths:
             parameters:
                 - $ref: "#/components/parameters/pageNumberParam"
                 - $ref: "#/components/parameters/pageSizeParam"
-            summary: "[Legacy] Retrieve user's notifications"
+            summary: Retrieve user's notifications
             description: |
                 Retrieve current user's notifications.
             operationId: getCurrentUserNotifications
@@ -3231,7 +3231,7 @@ paths:
         delete:
             tags:
                 - User
-            summary: "[Legacy] Delete all notifications of the current user"
+            summary: Delete all notifications of the current user
             description: |
                 Delete all notifications of the current user.
             operationId: deleteAllCurrentUserNotifications
@@ -3247,7 +3247,7 @@ paths:
         delete:
             tags:
                 - User
-            summary: "[Legacy] Delete a specific notification of the current user"
+            summary: Delete a specific notification of the current user
             description: |
                 Delete a specific notification of the current user.
             operationId: deleteCurrentUserNotificationByNotificationId
@@ -3267,7 +3267,7 @@ paths:
         get:
             tags:
                 - User
-            summary: "[Legacy] Retrieve user's avatar"
+            summary: Retrieve user's avatar
             description: |
                 Retrieve user's avatar.
             operationId: getCurrentUserAvatar
@@ -3312,7 +3312,7 @@ paths:
                     application/json:
                         schema:
                             $ref: "#/components/schemas/TicketInput"
-            summary: "[Legacy] Create a ticket."
+            summary: Create a ticket.
             description: |
                 Create a ticket. This ticket can aim :
                   * a specific application
@@ -3336,7 +3336,6 @@ paths:
                 - $ref: "#/components/parameters/pageNumberParam"
                 - $ref: "#/components/parameters/pageSizeParam"
                 - $ref: "#/components/parameters/orderQueryParam"
-            summary: "[Legacy] List the current user's tickets"
             description: |
                 List all tickets written by current user
 
@@ -3382,7 +3381,7 @@ paths:
         get:
             tags:
                 - Portal
-            summary: "[Legacy] Get a Category"
+            summary: Get a Category
             description: |
                 Get a specific category.
             operationId: getCategoryByCategoryId
@@ -3438,7 +3437,7 @@ paths:
         get:
             tags:
                 - Portal
-            summary: "[Legacy] Get background of a Category"
+            summary: Get background of a Category
             description: |
                 Get the background of a category.
             operationId: getBackgroundByCategoryId
@@ -3560,7 +3559,7 @@ paths:
         get:
             tags:
                 - Portal
-            summary: "[Legacy] Get the portal links for header and footer."
+            summary: Get the portal links for header and footer.
             operationId: getPortalLinks
             x-gravitee-portal: classic
             description: |
@@ -3668,7 +3667,7 @@ paths:
         get:
             tags:
                 - Portal
-            summary: "[Legacy] Get a Dashboards list"
+            summary: Get a Dashboards list
             description: |
                 Get all dashboards of the platform.
             operationId: getDashboards
@@ -4085,7 +4084,7 @@ paths:
         get:
             tags:
                 - Notifiers
-            summary: "[Legacy] Get notifiers list"
+            summary: Get notifiers list
             operationId: getNotifiers
             x-gravitee-portal: classic
             description: |

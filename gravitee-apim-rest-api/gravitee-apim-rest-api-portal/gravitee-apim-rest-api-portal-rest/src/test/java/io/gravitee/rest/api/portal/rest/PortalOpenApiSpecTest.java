@@ -30,25 +30,20 @@ import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.Yaml;
 
 /**
- * The published Portal API reference splits operations between the classic and the next-gen portal
- * from the {@code x-gravitee-portal} extension, so every operation must carry it.
+ * The published API reference shows a Classic Portal and a Next Gen Portal entry, filtered on the
+ * {@code x-gravitee-portal} extension, so every operation must carry it.
  */
 class PortalOpenApiSpecTest {
 
     private static final String PORTAL_EXTENSION = "x-gravitee-portal";
     private static final Set<String> PORTALS = Set.of("classic", "next", "both");
     private static final Set<String> HTTP_METHODS = Set.of("get", "put", "post", "delete", "patch", "head", "options");
-    private static final String LEGACY_PREFIX = "[Legacy] ";
 
     private static List<Operation> operations;
 
     record Operation(String method, String path, Map<String, Object> definition) {
         Object portal() {
             return definition.get(PORTAL_EXTENSION);
-        }
-
-        String summary() {
-            return (String) definition.get("summary");
         }
 
         @Override
@@ -82,17 +77,5 @@ class PortalOpenApiSpecTest {
             .filteredOn(operation -> operation.portal() == null || !PORTALS.contains(operation.portal()))
             .as("operations without a valid %s (one of %s)", PORTAL_EXTENSION, PORTALS)
             .isEmpty();
-    }
-
-    @Test
-    void should_prefix_the_summary_of_classic_operations_only() {
-        assertThat(operations)
-            .filteredOn(operation -> "classic".equals(operation.portal()) != hasLegacyPrefix(operation))
-            .as("classic operations must start their summary with '%s', and only them", LEGACY_PREFIX)
-            .isEmpty();
-    }
-
-    private static boolean hasLegacyPrefix(Operation operation) {
-        return operation.summary() != null && operation.summary().startsWith(LEGACY_PREFIX);
     }
 }
