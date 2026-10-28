@@ -2583,7 +2583,7 @@ paths:
             description: |
                 List all portal documentation pages
             operationId: getPages
-            x-gravitee-portal: both
+            x-gravitee-portal: classic
             security:
                 - {}
                 - BasicAuth: []
@@ -2605,7 +2605,7 @@ paths:
             description: |
                 Get a specific portal documentation page.
             operationId: getPageByPageId
-            x-gravitee-portal: both
+            x-gravitee-portal: classic
             security:
                 - {}
                 - BasicAuth: []
@@ -2631,7 +2631,7 @@ paths:
             description: |
                 Get the contentn of a specific portal documentation page.
             operationId: getPageContentByPageId
-            x-gravitee-portal: both
+            x-gravitee-portal: classic
             security:
                 - {}
                 - BasicAuth: []
@@ -3415,7 +3415,7 @@ paths:
             description: |
                 Get the picture of a category.
             operationId: getPictureByCategoryId
-            x-gravitee-portal: both
+            x-gravitee-portal: classic
             security:
                 - {}
                 - BasicAuth: []
