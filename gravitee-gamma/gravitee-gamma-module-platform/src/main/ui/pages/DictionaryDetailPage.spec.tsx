@@ -23,11 +23,12 @@ import {
     useDeployDictionary,
     useStartDictionary,
     useStopDictionary,
-    useUpdateDictionary,
+    useUpdateDictionaryProperties,
 } from '../features/dictionaries/hooks/useDictionaryMutations';
 import { useDictionaryPermissions } from '../features/dictionaries/hooks/useDictionaryPermissions';
 import { useEnvironmentDictionary } from '../features/dictionaries/hooks/useEnvironmentDictionary';
 import type { Dictionary } from '../features/dictionaries/types/dictionary';
+import { notify } from '../shared/notify';
 
 jest.mock('../features/dictionaries/hooks/useDictionaryPermissions');
 jest.mock('../features/dictionaries/hooks/useEnvironmentDictionary');
@@ -54,9 +55,24 @@ const MANUAL: Dictionary = {
     propertyOptions: { TOKEN: { encrypted: true } },
 };
 
+const DYNAMIC: Dictionary = {
+    id: 'd2',
+    name: 'Remote',
+    type: 'DYNAMIC',
+    state: 'STARTED',
+    properties: { a: '1', b: MASK },
+    propertyOptions: { b: { encrypted: true } },
+    trigger: { rate: 5, unit: 'MINUTES' },
+    provider: { type: 'HTTP', configuration: { url: 'https://example.com/codes', method: 'GET' } },
+    encryption: { encryptOnFetch: true },
+};
+
 const mutateAsync = jest.fn();
+// What the mutation re-reads from the server; defaults to the dictionary the page shows.
+let freshCopy: Dictionary | undefined;
 
 function givenDictionary(dictionary: Dictionary, { canUpdate = true }: { canUpdate?: boolean } = {}) {
+    freshCopy = dictionary;
     jest.mocked(useDictionaryPermissions).mockReturnValue({ canRead: true, canCreate: true, canUpdate, canDelete: true });
     jest.mocked(useEnvironmentDictionary).mockReturnValue({ data: dictionary, isLoading: false, isError: false } as ReturnType<
         typeof useEnvironmentDictionary
@@ -77,8 +93,15 @@ async function chooseAction(key: string, action: string) {
     return user;
 }
 
+async function encryptAfterConfirming(key: string) {
+    const user = await chooseAction(key, 'Encrypt value');
+    await user.click(await screen.findByRole('button', { name: 'Encrypt' }));
+    return user;
+}
+
 function lastUpdate() {
-    return mutateAsync.mock.calls.at(-1)?.[0];
+    const call = mutateAsync.mock.calls.at(-1)?.[0];
+    return call && { dictionaryId: call.dictionaryId, data: call.change(freshCopy) };
 }
 
 describe('DictionaryDetailPage property encryption', () => {
@@ -87,13 +110,74 @@ describe('DictionaryDetailPage property encryption', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const idle: any = { mutateAsync: jest.fn(), isPending: false };
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        jest.mocked(useUpdateDictionary).mockReturnValue({ mutateAsync, isPending: false } as any);
+        jest.mocked(useUpdateDictionaryProperties).mockReturnValue({ mutateAsync, isPending: false } as any);
         jest.mocked(useDeployDictionary).mockReturnValue(idle);
         jest.mocked(useStartDictionary).mockReturnValue(idle);
         jest.mocked(useStopDictionary).mockReturnValue(idle);
     });
 
     describe('manual dictionary', () => {
+        it('applies the change to the re-read dictionary, not the cached one', async () => {
+            givenDictionary(MANUAL);
+            freshCopy = { ...MANUAL, properties: { PLAIN: 'visible', TOKEN: MASK, ADDED: 'by-provider' } };
+
+            await encryptAfterConfirming('PLAIN');
+
+            await waitFor(() => expect(lastUpdate().data.properties).toEqual({ PLAIN: 'visible', TOKEN: MASK, ADDED: 'by-provider' }));
+        });
+
+        it('sends nothing when the encryption is cancelled', async () => {
+            givenDictionary(MANUAL);
+
+            const user = await chooseAction('PLAIN', 'Encrypt value');
+            await user.click(await screen.findByRole('button', { name: 'Cancel' }));
+
+            expect(mutateAsync).not.toHaveBeenCalled();
+        });
+
+        it('fails instead of saving when the property to encrypt no longer exists', async () => {
+            givenDictionary(MANUAL);
+            freshCopy = { ...MANUAL, properties: { TOKEN: MASK } };
+
+            await encryptAfterConfirming('PLAIN');
+
+            await waitFor(() => expect(mutateAsync).toHaveBeenCalled());
+            expect(() => lastUpdate()).toThrow('no longer exists');
+        });
+
+        it('edits a plaintext value without sending encryption options', async () => {
+            givenDictionary(MANUAL);
+
+            const user = await chooseAction('PLAIN', 'Edit value');
+            await user.clear(screen.getByLabelText(/^Value/));
+            await user.type(screen.getByLabelText(/^Value/), 'changed');
+            await user.click(screen.getByRole('button', { name: 'Update' }));
+
+            await waitFor(() => expect(lastUpdate().data.properties).toEqual({ PLAIN: 'changed', TOKEN: MASK }));
+            expect(lastUpdate().data.propertyOptions).toBeUndefined();
+        });
+
+        it('reports a failed encryption', async () => {
+            mutateAsync.mockRejectedValueOnce(new Error('boom'));
+            givenDictionary(MANUAL);
+
+            await encryptAfterConfirming('PLAIN');
+
+            await waitFor(() => expect(notify.error).toHaveBeenCalledWith(expect.any(Error), 'Failed to encrypt property'));
+        });
+
+        it('reports a failed renewal and keeps the sheet open', async () => {
+            mutateAsync.mockRejectedValueOnce(new Error('boom'));
+            givenDictionary(MANUAL);
+
+            const user = await chooseAction('TOKEN', 'Renew encryption');
+            await user.type(screen.getByLabelText(/^Value/), 'n3w');
+            await user.click(screen.getByRole('button', { name: 'Renew' }));
+
+            await waitFor(() => expect(notify.error).toHaveBeenCalledWith(expect.any(Error), 'Failed to renew property encryption'));
+            expect(screen.getByText('Renew Encryption')).not.toBeNull();
+        });
+
         it('masks encrypted values and never shows their plaintext', () => {
             givenDictionary(MANUAL);
 
@@ -106,7 +190,7 @@ describe('DictionaryDetailPage property encryption', () => {
         it('encrypts an existing plaintext value without changing it', async () => {
             givenDictionary(MANUAL);
 
-            await chooseAction('PLAIN', 'Encrypt value');
+            await encryptAfterConfirming('PLAIN');
 
             await waitFor(() =>
                 expect(lastUpdate()).toEqual({
@@ -175,6 +259,44 @@ describe('DictionaryDetailPage property encryption', () => {
             expect(screen.queryByRole('button', { name: 'Add Property' })).toBeNull();
             expect(screen.queryByRole('button', { name: /Actions for/ })).toBeNull();
             expect(screen.getByText('•'.repeat(8))).not.toBeNull();
+        });
+    });
+
+    describe('dynamic dictionary', () => {
+        it('encrypts a synced value while preserving the provider configuration', async () => {
+            givenDictionary(DYNAMIC);
+            expect(screen.queryByRole('button', { name: 'Add Property' })).toBeNull();
+
+            await encryptAfterConfirming('a');
+
+            await waitFor(() =>
+                expect(lastUpdate()).toEqual({
+                    dictionaryId: 'd2',
+                    data: {
+                        name: 'Remote',
+                        description: undefined,
+                        type: 'DYNAMIC',
+                        properties: { a: '1', b: MASK },
+                        propertyOptions: { a: { encryptable: true } },
+                        provider: DYNAMIC.provider,
+                        trigger: DYNAMIC.trigger,
+                    },
+                }),
+            );
+        });
+
+        it('has no action on an already encrypted synced value', () => {
+            givenDictionary(DYNAMIC);
+
+            expect(screen.queryByRole('button', { name: 'Actions for b' })).toBeNull();
+            expect(within(screen.getByRole('row', { name: /^b / })).getByText('Encrypted')).not.toBeNull();
+        });
+
+        it('shows whether fetched values are encrypted', () => {
+            givenDictionary(DYNAMIC);
+
+            expect(screen.getByText('Encrypt fetched values')).not.toBeNull();
+            expect(screen.getByText('Yes', { selector: '[data-testid="encrypt-on-fetch"]' })).not.toBeNull();
         });
     });
 });

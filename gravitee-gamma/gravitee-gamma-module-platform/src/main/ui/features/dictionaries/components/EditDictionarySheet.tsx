@@ -36,6 +36,7 @@ import {
 } from '@gravitee/graphene-core';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 
+import { DictionaryEncryptionField } from './DictionaryEncryptionField';
 import {
     DictionaryHttpProviderFields,
     HTTP_METHOD_OPTIONS,
@@ -60,6 +61,7 @@ interface EditDictionaryForm {
     type: DictionaryType;
     trigger: DictionaryTriggerFormValue;
     provider: DictionaryHttpProviderFormValue;
+    encryptOnFetch: boolean;
 }
 
 function asHttpProviderConfig(configuration: unknown): Record<string, unknown> {
@@ -102,6 +104,7 @@ function dictionaryToForm(dictionary: Dictionary): EditDictionaryForm {
                 typeof config.specification === 'string' && config.specification.trim() ? config.specification : DEFAULT_JOLT_SPECIFICATION,
             useSystemProxy: Boolean(config.useSystemProxy),
         },
+        encryptOnFetch: dictionary.encryption?.encryptOnFetch === true,
     };
 }
 
@@ -118,6 +121,7 @@ const EMPTY_FORM: EditDictionaryForm = {
         specification: DEFAULT_JOLT_SPECIFICATION,
         useSystemProxy: false,
     },
+    encryptOnFetch: false,
 };
 
 export function EditDictionarySheet({
@@ -194,6 +198,7 @@ export function EditDictionarySheet({
                       type: 'DYNAMIC',
                       // Preserve existing properties; ?? {} so they are never omitted from the PUT.
                       properties: dictionary.properties ?? {},
+                      encryption: { encryptOnFetch: form.encryptOnFetch },
                       trigger: {
                           rate: Number(form.trigger.rate),
                           unit: form.trigger.unit,
@@ -308,6 +313,11 @@ export function EditDictionarySheet({
                                     <DictionaryHttpProviderFields
                                         value={form.provider}
                                         onChange={provider => setForm(prev => ({ ...prev, provider }))}
+                                        disabled={isSaving}
+                                    />
+                                    <DictionaryEncryptionField
+                                        checked={form.encryptOnFetch}
+                                        onCheckedChange={encryptOnFetch => setForm(prev => ({ ...prev, encryptOnFetch }))}
                                         disabled={isSaving}
                                     />
                                 </>

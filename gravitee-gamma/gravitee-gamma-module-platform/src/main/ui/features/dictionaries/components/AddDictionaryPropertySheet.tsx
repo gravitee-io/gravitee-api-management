@@ -103,6 +103,7 @@ export function AddDictionaryPropertySheet({
                         <Input
                             id="property-value"
                             type={encrypt ? 'password' : 'text'}
+                            autoComplete="off"
                             value={value}
                             onChange={e => setValue(e.target.value)}
                             placeholder="e.g. Munich"

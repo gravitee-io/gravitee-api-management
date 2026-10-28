@@ -43,6 +43,10 @@ export interface DictionaryPropertyOptions {
     encryptable?: boolean;
 }
 
+export interface DictionaryEncryptionPolicy {
+    encryptOnFetch: boolean;
+}
+
 export interface DictionaryProvider {
     type: string;
     configuration: DictionaryHttpProviderConfiguration | Record<string, unknown>;
@@ -84,6 +88,7 @@ export interface Dictionary {
     propertyOptions?: Record<string, DictionaryPropertyOptions>;
     provider?: DictionaryProvider | null;
     trigger?: DictionaryTrigger | null;
+    encryption?: DictionaryEncryptionPolicy | null;
     created_at?: string | number;
     updated_at?: string | number;
     deployed_at?: string | number;
@@ -97,6 +102,7 @@ export interface NewDictionaryPayload {
     propertyOptions?: Record<string, DictionaryPropertyOptions>;
     provider?: DictionaryProvider;
     trigger?: DictionaryTrigger;
+    encryption?: DictionaryEncryptionPolicy;
 }
 
 export interface UpdateDictionaryPayload {
@@ -107,6 +113,7 @@ export interface UpdateDictionaryPayload {
     propertyOptions?: Record<string, DictionaryPropertyOptions>;
     provider?: DictionaryProvider;
     trigger?: DictionaryTrigger;
+    encryption?: DictionaryEncryptionPolicy;
 }
 
 export type DictionaryLifecycleAction = 'START' | 'STOP';

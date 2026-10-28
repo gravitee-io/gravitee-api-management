@@ -42,6 +42,7 @@ function paginateProperties(rows: DictionaryPropertyRow[], page: number, pageSiz
 
 interface ColumnOptions {
     canEdit: boolean;
+    dynamic: boolean;
     isMutating: boolean;
     onEdit: (property: DictionaryPropertyRow) => void;
     onRenew: (property: DictionaryPropertyRow) => void;
@@ -51,12 +52,16 @@ interface ColumnOptions {
 
 function PropertyActions({
     property,
+    dynamic,
     isMutating,
     onEdit,
     onRenew,
     onEncrypt,
     onDelete,
 }: Readonly<Omit<ColumnOptions, 'canEdit'> & { property: DictionaryPropertyRow }>) {
+    // Dynamic values belong to the provider: all that can be decided here is whether one is encrypted.
+    if (dynamic && property.encrypted) return null;
+
     return (
         <div className="flex justify-end">
             <DropdownMenu>
@@ -80,18 +85,22 @@ function PropertyActions({
                         </DropdownMenuItem>
                     ) : (
                         <>
-                            <DropdownMenuItem onSelect={() => onEdit(property)}>Edit value</DropdownMenuItem>
+                            {dynamic ? null : <DropdownMenuItem onSelect={() => onEdit(property)}>Edit value</DropdownMenuItem>}
                             <DropdownMenuItem onSelect={() => onEncrypt(property.key)}>
                                 <LockIcon className="size-4" aria-hidden />
                                 Encrypt value
                             </DropdownMenuItem>
                         </>
                     )}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(property.key)}>
-                        <Trash2Icon className="size-4" aria-hidden />
-                        Delete
-                    </DropdownMenuItem>
+                    {dynamic ? null : (
+                        <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(property.key)}>
+                                <Trash2Icon className="size-4" aria-hidden />
+                                Delete
+                            </DropdownMenuItem>
+                        </>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>
@@ -133,6 +142,12 @@ function buildColumns({ canEdit, ...actions }: ColumnOptions): DataTableProps<Di
                     ) : (
                         <Badge variant="outline">Unencrypted</Badge>
                     )}
+                    {actions.dynamic ? (
+                        <Badge variant="outline" className="gap-1">
+                            <RefreshCwIcon className="size-3" aria-hidden />
+                            Dynamic
+                        </Badge>
+                    ) : null}
                 </div>
             ),
         },
@@ -155,6 +170,7 @@ function buildColumns({ canEdit, ...actions }: ColumnOptions): DataTableProps<Di
 export function DictionaryPropertiesTable({
     properties,
     canEdit,
+    dynamic,
     isMutating,
     onEdit,
     onRenew,
@@ -176,8 +192,8 @@ export function DictionaryPropertiesTable({
     const paginatedData = useMemo(() => paginateProperties(properties, currentPage, pageSize), [properties, currentPage, pageSize]);
 
     const columns = useMemo(
-        () => buildColumns({ canEdit, isMutating, onEdit, onRenew, onEncrypt, onDelete }),
-        [canEdit, isMutating, onEdit, onRenew, onEncrypt, onDelete],
+        () => buildColumns({ canEdit, dynamic, isMutating, onEdit, onRenew, onEncrypt, onDelete }),
+        [canEdit, dynamic, isMutating, onEdit, onRenew, onEncrypt, onDelete],
     );
 
     useEffect(() => {

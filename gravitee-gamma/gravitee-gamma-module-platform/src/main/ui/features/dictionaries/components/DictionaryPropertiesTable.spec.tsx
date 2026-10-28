@@ -37,6 +37,7 @@ function renderTable(props: Partial<ComponentProps<typeof DictionaryPropertiesTa
         <DictionaryPropertiesTable
             properties={PROPERTIES}
             canEdit={false}
+            dynamic={false}
             isMutating={false}
             emptyMessage="No properties yet."
             {...handlers}
@@ -104,6 +105,33 @@ describe('DictionaryPropertiesTable', () => {
         });
     });
 
+    describe('dynamic dictionary', () => {
+        it('badges every row Dynamic and offers only Encrypt value on a plaintext row', async () => {
+            const { onEncrypt } = renderTable({ dynamic: true, canEdit: true });
+
+            expect(screen.getAllByText('Dynamic')).toHaveLength(PROPERTIES.length);
+
+            const user = await openActions('MUC');
+            expect(menuItemNames()).toEqual(['Encrypt value']);
+
+            await user.click(screen.getByRole('menuitem', { name: 'Encrypt value' }));
+            expect(onEncrypt).toHaveBeenCalledWith('MUC');
+        });
+
+        it('offers no action on an encrypted row', () => {
+            renderTable({ dynamic: true, canEdit: true, properties: [ENCRYPTED_ROW] });
+
+            expect(screen.queryByRole('button', { name: 'Actions for TOKEN' })).toBeNull();
+            expect(within(screen.getByRole('row', { name: /TOKEN/ })).getByText('Encrypted')).not.toBeNull();
+        });
+
+        it('offers no action to a user who cannot edit', () => {
+            renderTable({ dynamic: true, canEdit: false });
+
+            expect(screen.queryByRole('button', { name: /Actions for/ })).toBeNull();
+        });
+    });
+
     it('disables the row actions while a save is in flight', () => {
         renderTable({ canEdit: true, isMutating: true });
 
@@ -141,6 +169,7 @@ describe('DictionaryPropertiesTable', () => {
             <DictionaryPropertiesTable
                 properties={manyProperties(5)}
                 canEdit={false}
+                dynamic={false}
                 isMutating={false}
                 onEdit={onEdit}
                 onRenew={onRenew}
