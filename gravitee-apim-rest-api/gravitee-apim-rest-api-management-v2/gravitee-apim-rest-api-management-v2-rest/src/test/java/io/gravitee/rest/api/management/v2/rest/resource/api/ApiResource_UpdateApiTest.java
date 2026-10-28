@@ -440,6 +440,30 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
         assertEquals("John Doe", apiV4.getPrimaryOwner().getDisplayName());
     }
 
+    @Test
+    public void should_return_403_when_user_has_only_definition_read() {
+        UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.API_DEFINITION),
+                eq(API),
+                eq(RolePermissionAction.UPDATE)
+            )
+        ).thenReturn(false);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.API_GATEWAY_DEFINITION),
+                eq(API),
+                eq(RolePermissionAction.UPDATE)
+            )
+        ).thenReturn(false);
+
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
+        assertEquals(FORBIDDEN_403, response.getStatus());
+    }
+
     void primaryOwnerInit() {
         final var API_NAME = "my-api";
         final var ROLE_ID = "api-po-id-fake-org";
