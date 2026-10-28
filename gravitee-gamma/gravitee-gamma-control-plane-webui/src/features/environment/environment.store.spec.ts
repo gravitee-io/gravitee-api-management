@@ -111,6 +111,29 @@ describe('environmentStore', () => {
         expect(useEnvironmentStore.getState().loadFailed).toBe(false);
     });
 
+    it('should replace the list on refresh, with an environment created since', async () => {
+        await useEnvironmentStore.getState().initialize('test-org');
+        const created = { ...TEST_ENVIRONMENTS[0]!, id: 'env-new-id', hrids: ['env-new'] };
+        trackHandler('get', `${TEST_MANAGEMENT_BASE}/environments`, [...TEST_ENVIRONMENTS, created]);
+
+        await useEnvironmentStore.getState().refresh();
+
+        expect(useEnvironmentStore.getState().environments).toEqual([...TEST_ENVIRONMENTS, created]);
+        expect(useEnvironmentStore.getState().currentEnvironment).toEqual(TEST_ENVIRONMENTS[0]);
+        expect(useEnvironmentStore.getState().refreshing).toBe(false);
+    });
+
+    it('should keep the list when a refresh fails', async () => {
+        await useEnvironmentStore.getState().initialize('test-org');
+        respondWithError('get', `${TEST_MANAGEMENT_BASE}/environments`, 503);
+
+        await useEnvironmentStore.getState().refresh();
+
+        expect(useEnvironmentStore.getState().environments).toEqual(TEST_ENVIRONMENTS);
+        expect(useEnvironmentStore.getState().loadFailed).toBe(false);
+        expect(useEnvironmentStore.getState().refreshing).toBe(false);
+    });
+
     it('resolveEnvironment should find by hrid', async () => {
         await useEnvironmentStore.getState().initialize('test-org');
 

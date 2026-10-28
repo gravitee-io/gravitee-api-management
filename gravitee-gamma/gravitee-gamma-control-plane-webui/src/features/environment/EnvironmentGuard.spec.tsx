@@ -113,8 +113,32 @@ describe('EnvironmentGuard', () => {
         });
     });
 
+    it('should open an environment created since the list was loaded', async () => {
+        seedEnvironments();
+        const created = buildEnvironment({ id: 'env-new-id', hrids: ['env-new'], name: 'New environment' });
+        trackHandler('get', `${TEST_MANAGEMENT_BASE}/environments`, [...TEST_ENVIRONMENTS, created]);
+
+        renderGuard('/environments/env-new/home');
+
+        expect(await screen.findByText('Child')).toBeTruthy();
+        expect(lastPath).toBe('/environments/env-new/home');
+        expect(useEnvironmentStore.getState().currentEnvironment?.id).toBe('env-new-id');
+        expect(useEnvironmentStore.getState().environments).toContainEqual(created);
+    });
+
+    it('should redirect to the first environment when the list cannot be loaded again', async () => {
+        seedEnvironments();
+        respondWithError('get', `${TEST_MANAGEMENT_BASE}/environments`, 503);
+
+        renderGuard('/environments/unknown-segment/home');
+
+        await waitFor(() => expect(lastPath).toBe('/environments/env-1/home'));
+        expect(useEnvironmentStore.getState().environments).toEqual(TEST_ENVIRONMENTS);
+    });
+
     it('should redirect to first environment when segment is unknown', async () => {
         seedEnvironments();
+        const reload = trackHandler('get', `${TEST_MANAGEMENT_BASE}/environments`, TEST_ENVIRONMENTS);
         render(
             <MemoryRouter initialEntries={['/environments/unknown-segment/home']}>
                 <PathnameProbe onPath={p => (lastPath = p)} />
@@ -129,6 +153,7 @@ describe('EnvironmentGuard', () => {
         await waitFor(() => {
             expect(lastPath).toBe('/environments/env-1/home');
         });
+        expect(reload.callCount).toBe(1);
     });
 
     it('should never render children while the URL environment and the store disagree', async () => {
