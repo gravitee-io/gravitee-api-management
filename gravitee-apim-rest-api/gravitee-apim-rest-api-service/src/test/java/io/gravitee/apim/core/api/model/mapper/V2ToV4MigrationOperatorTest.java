@@ -40,6 +40,7 @@ import io.gravitee.definition.model.HttpClientOptions;
 import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.LoadBalancer;
 import io.gravitee.definition.model.LoadBalancerType;
+import io.gravitee.definition.model.PathMapping;
 import io.gravitee.definition.model.ProtocolVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -58,6 +59,7 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.service.Service;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -134,6 +136,73 @@ class V2ToV4MigrationOperatorTest {
 
             assertThat(result.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
             assertThat(result.getType()).isEqualTo(ApiType.PROXY);
+        }
+
+        @Test
+        void should_keep_v2_path_mappings_on_http_listener() {
+            var pathMappings = new LinkedHashMap<String, java.util.regex.Pattern>();
+            pathMappings.put("/pets", PathMapping.buildPattern("/pets"));
+            pathMappings.put("/pets/:petId", PathMapping.buildPattern("/pets/:petId"));
+
+            var apiDef = new io.gravitee.definition.model.Api();
+            apiDef.setId("test-api");
+            apiDef.setName("Test API");
+            apiDef.setVersion("1.0");
+            apiDef.setPathMappings(pathMappings);
+            apiDef.setProxy(new Proxy());
+
+            var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+
+            var result = get(mapper.mapApi(api));
+
+            assertThat(result.getApiDefinitionHttpV4().getListeners())
+                .singleElement()
+                .isInstanceOfSatisfying(HttpListener.class, httpListener -> {
+                    assertThat(httpListener.getPathMappings()).containsExactly("/pets", "/pets/:petId");
+                });
+        }
+
+        @Test
+        void should_serialize_migrated_path_mappings() throws Exception {
+            var pathMappings = new LinkedHashMap<String, java.util.regex.Pattern>();
+            pathMappings.put("/pets", PathMapping.buildPattern("/pets"));
+            pathMappings.put("/pets/:petId", PathMapping.buildPattern("/pets/:petId"));
+
+            var apiDef = new io.gravitee.definition.model.Api();
+            apiDef.setId("test-api");
+            apiDef.setName("Test API");
+            apiDef.setVersion("1.0");
+            apiDef.setPathMappings(pathMappings);
+            apiDef.setProxy(new Proxy());
+
+            var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+
+            var result = get(mapper.mapApi(api));
+            var jsonMapper = JsonMapperFactory.build();
+            var json = jsonMapper.writeValueAsString(result.getApiDefinitionHttpV4());
+
+            assertThat(jsonMapper.readTree(json).get("listeners").get(0).get("pathMappings").toString()).isEqualTo(
+                "[\"/pets\",\"/pets/:petId\"]"
+            );
+        }
+
+        @Test
+        void should_not_fail_when_v2_api_has_no_path_mappings() {
+            var apiDef = new io.gravitee.definition.model.Api();
+            apiDef.setId("test-api");
+            apiDef.setName("Test API");
+            apiDef.setVersion("1.0");
+            apiDef.setProxy(new Proxy());
+
+            var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+
+            var result = get(mapper.mapApi(api));
+
+            assertThat(result.getApiDefinitionHttpV4().getListeners())
+                .singleElement()
+                .isInstanceOfSatisfying(HttpListener.class, httpListener -> {
+                    assertThat(httpListener.getPathMappings()).isEmpty();
+                });
         }
     }
 

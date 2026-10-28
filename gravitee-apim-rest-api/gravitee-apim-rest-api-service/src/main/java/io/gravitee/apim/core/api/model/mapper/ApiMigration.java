@@ -55,6 +55,7 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -94,6 +95,7 @@ class ApiMigration {
         if (apiDefinitionV2 == null) {
             return MigrationResult.issue(MigrationWarnings.V2_API_NOT_NULL, MigrationResult.State.IMPOSSIBLE);
         }
+        var pathMappings = apiDefinitionV2.getPathMappings();
         List<Listener> listeners = List.of(
             HttpListener.builder()
                 .cors(apiDefinitionV2.getProxy().getCors())
@@ -104,7 +106,8 @@ class ApiMigration {
                         .map(e -> new Path(e.getHost(), addSlashIfNeeded(e.getPath()), e.isOverrideEntrypoint()))
                         .toList()
                 )
-                .pathMappingsPattern(apiDefinitionV2.getPathMappings())
+                .pathMappings(pathMappings != null ? new LinkedHashSet<>(pathMappings.keySet()) : null)
+                .pathMappingsPattern(pathMappings)
                 .entrypoints(List.of(Entrypoint.builder().type(HTTP_PROXY).build()))
                 .build()
         );
