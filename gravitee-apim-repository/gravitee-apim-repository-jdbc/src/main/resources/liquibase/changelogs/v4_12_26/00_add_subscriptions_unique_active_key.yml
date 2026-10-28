@@ -2,7 +2,8 @@ databaseChangeLog:
   # Key of the active subscriptions (neither REJECTED nor CLOSED): reference type, reference id, application, plan,
   # plus a channel token for PUSH subscriptions. NULL when the subscription is not active. Maintained by the repository
   # on every insert and update, it is not enforced yet: the unique index comes in a later release, once every node
-  # maintains it.
+  # maintains it. Existing subscriptions are not backfilled here, as it would scan the whole table before the node
+  # starts: each one gets its key the next time it is written, and the release adding the index repairs the others.
   - changeSet:
       id: 4.12.26_00_add_subscriptions_unique_active_key
       author: GraviteeSource Team
@@ -15,14 +16,3 @@ databaseChangeLog:
                   type: nvarchar(320)
                   constraints:
                     nullable: true
-
-  # Committed batch by batch: a single transaction would lock the active subscriptions for the whole run while the
-  # nodes of the previous version keep serving requests.
-  - changeSet:
-      id: 4.12.26_01_backfill_subscriptions_unique_active_key
-      author: GraviteeSource Team
-      runInTransaction: false
-      changes:
-        - customChange:
-            class: io.gravitee.repository.jdbc.liquibase.SubscriptionUniqueActiveKeyBackfill
-            tablePrefix: "${gravitee_prefix}"
