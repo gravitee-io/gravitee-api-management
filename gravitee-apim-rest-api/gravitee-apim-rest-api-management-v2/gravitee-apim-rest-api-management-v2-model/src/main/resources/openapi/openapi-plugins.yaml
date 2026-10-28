@@ -517,6 +517,10 @@ components:
                 - $ref: "#/components/schemas/PlatformPlugin"
                 - type: object
                   properties:
+                      supportsMessageCondition:
+                          type: boolean
+                          default: true
+                          description: False when the policy cannot honour a message condition (declared in its plugin properties).
                       flowPhaseCompatibility:
                           type: object
                           properties:

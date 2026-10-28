@@ -73,6 +73,44 @@ class PoliciesResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    void should_expose_whether_a_policy_supports_message_condition() {
+        policyPluginQueryServiceInMemory.initWith(
+            List.of(
+                io.gravitee.apim.core.plugin.model.PolicyPlugin.builder()
+                    .id("frame-policy")
+                    .name("frame-policy")
+                    .feature("feature-1")
+                    .deployed(true)
+                    .supportsMessageCondition(false)
+                    .build(),
+                io.gravitee.apim.core.plugin.model.PolicyPlugin.builder()
+                    .id("message-policy")
+                    .name("message-policy")
+                    .feature("feature-1")
+                    .deployed(true)
+                    .build()
+            )
+        );
+        var license = mock(License.class);
+        when(licenseManager.getOrganizationLicenseOrPlatform("fake-org")).thenReturn(license);
+        when(license.isFeatureEnabled("feature-1")).thenReturn(true);
+
+        final Response response = rootTarget().request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        final Set<PolicyPlugin> policyPlugins = response.readEntity(new GenericType<>() {});
+
+        assertThat(policyPlugins)
+            .filteredOn(policy -> "frame-policy".equals(policy.getId()))
+            .singleElement()
+            .satisfies(policy -> assertThat(policy.getSupportsMessageCondition()).isFalse());
+        assertThat(policyPlugins)
+            .filteredOn(policy -> "message-policy".equals(policy.getId()))
+            .singleElement()
+            .satisfies(policy -> assertThat(policy.getSupportsMessageCondition()).isTrue());
+    }
+
+    @Test
     void should_return_sorted_policies() {
         policyPluginQueryServiceInMemory.initWith(
             List.of(

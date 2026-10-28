@@ -32,4 +32,7 @@ import lombok.experimental.SuperBuilder;
 public class PolicyPlugin extends PlatformPlugin {
 
     public Map<ApiProtocolType, Set<io.gravitee.rest.api.model.v4.policy.FlowPhase>> flowPhaseCompatibility;
+
+    @lombok.Builder.Default
+    private boolean supportsMessageCondition = true;
 }
