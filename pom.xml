@@ -295,7 +295,7 @@
         <gravitee-endpoint-jms.version>1.0.1</gravitee-endpoint-jms.version>
         <gravitee-endpoint-kafka.version>5.2.2</gravitee-endpoint-kafka.version>
         <gravitee-endpoint-mqtt5.version>4.0.2</gravitee-endpoint-mqtt5.version>
-        <gravitee-endpoint-rabbitmq.version>3.0.4</gravitee-endpoint-rabbitmq.version>
+        <gravitee-endpoint-rabbitmq.version>3.0.5</gravitee-endpoint-rabbitmq.version>
         <gravitee-endpoint-solace.version>3.0.3</gravitee-endpoint-solace.version>
         <gravitee-endpoint-azure-service-bus.version>1.0.2</gravitee-endpoint-azure-service-bus.version>
         <gravitee-endpoint-agent-to-agent.version>1.0.1</gravitee-endpoint-agent-to-agent.version>
