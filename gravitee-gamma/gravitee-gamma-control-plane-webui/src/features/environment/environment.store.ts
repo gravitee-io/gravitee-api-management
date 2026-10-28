@@ -30,7 +30,10 @@ interface EnvironmentState {
     /** The request for the environments failed: no page can be shown until it is tried again. */
     loadFailed: boolean;
     initialized: boolean;
+    refreshing: boolean;
     initialize: (organizationId: string) => Promise<void>;
+    /** Loads the list again, for an environment created since. A failure keeps the list as it is. */
+    refresh: () => Promise<void>;
     setCurrentEnvironment: (env: Environment) => void;
     resolveEnvironment: (envHridOrId: string) => Environment | null;
     reset: () => void;
@@ -45,6 +48,7 @@ const initialState = {
     error: null as Error | null,
     loadFailed: false,
     initialized: false,
+    refreshing: false,
 };
 
 export const useEnvironmentStore = create<EnvironmentState>()(
@@ -93,6 +97,18 @@ export const useEnvironmentStore = create<EnvironmentState>()(
                         loadFailed: true,
                         initialized: true,
                     });
+                }
+            },
+
+            refresh: async () => {
+                set({ refreshing: true });
+                try {
+                    const environments = await managementApi.get<Environment[]>('/environments');
+                    if (environments?.length) set({ environments });
+                } catch {
+                    // The list loaded at startup still works.
+                } finally {
+                    set({ refreshing: false });
                 }
             },
 
