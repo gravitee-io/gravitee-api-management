@@ -119,7 +119,7 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
         log.debug("JdbcMediaRepository.deleteByHashAndEnvironment({}, {})", hash, environment);
 
         try {
-            jdbcTemplate.update("delete from " + this.tableName + " where hash = ? and environment = ?", hash, environment);
+            jdbcTemplate.update("delete from " + this.tableName + " where hash = ? and environment = ? and api IS NULL", hash, environment);
         } catch (Exception e) {
             throw new TechnicalException(e);
         }
