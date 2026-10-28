@@ -76,6 +76,17 @@ public class SecurityChainDiagnostic {
     }
 
     private String maskToken(String token) {
+        if (token != null) {
+            // Native Kafka custom API key convention is "username:password": never expose anything after the first colon
+            int separator = token.indexOf(':');
+            if (separator >= 0) {
+                return maskValue(token.substring(0, separator));
+            }
+        }
+        return maskValue(token);
+    }
+
+    private String maskValue(String token) {
         if (token == null || token.isEmpty()) {
             return "***";
         }
