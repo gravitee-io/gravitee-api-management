@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<definitions name="RelativeImportParent"
+             targetNamespace="http://example.com/relative-import/parent"
+             xmlns:tns="http://example.com/relative-import/parent"
+             xmlns:child="http://example.com/relative-import/child"
+             xmlns="http://schemas.xmlsoap.org/wsdl/">
+    <import namespace="http://example.com/relative-import/child" location="relative_import_child.wsdl"/>
+    <binding name="StockQuoteSoapBinding" type="child:StockQuotePortType">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"
+                      xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+        <operation name="GetLastTradePrice">
+            <soap:operation soapAction="http://example.com/GetLastTradePrice"
+                            xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+            <input>
+                <soap:body use="literal" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+            </input>
+            <output>
+                <soap:body use="literal" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+            </output>
+        </operation>
+    </binding>
+    <service name="StockQuoteService">
+        <port name="StockQuotePort" binding="tns:StockQuoteSoapBinding">
+            <soap:address location="http://example.com/stockquote"
+                          xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+        </port>
+    </service>
+</definitions>
