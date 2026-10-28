@@ -17,10 +17,12 @@ package io.gravitee.apim.core.api_product.model;
 
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.resource.Resource;
 import java.util.List;
 import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Purpose-built serialization DTO for the DEPLOY_API_PRODUCT event payload.
@@ -40,4 +42,7 @@ public class ApiProductDeploymentPayload {
     private Set<String> tags;
     private List<Plan> plans;
     private Analytics analytics;
+
+    @ToString.Exclude
+    private List<Resource> resources;
 }

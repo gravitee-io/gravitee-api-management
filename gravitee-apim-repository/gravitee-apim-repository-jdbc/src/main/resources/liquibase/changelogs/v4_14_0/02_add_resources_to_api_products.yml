@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.14.0_02_add_resources_to_api_products
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}api_products
+            columns:
+              - column:
+                  name: resources
+                  type: nclob
+                  constraints:
+                    nullable: true

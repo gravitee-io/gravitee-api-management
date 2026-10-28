@@ -70,6 +70,7 @@ import io.gravitee.apim.core.api.use_case.PatchApiUseCase.ApiV4Deserializer;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.WsdlToImportApiUseCase;
 import io.gravitee.apim.core.api_key.domain_service.ReconcileApiKeysDomainService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductResourceValidationDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductTagsValidationDomainService;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.TransferApiProductOwnershipUseCase;
@@ -853,6 +854,11 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiProductTagsValidationDomainService apiProductTagsValidationDomainService() {
         return mock(ApiProductTagsValidationDomainService.class);
+    }
+
+    @Bean
+    public ApiProductResourceValidationDomainService apiProductResourceValidationDomainService() {
+        return mock(ApiProductResourceValidationDomainService.class);
     }
 
     @Bean

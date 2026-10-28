@@ -90,7 +90,10 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
             softly.assertThat(found.getUpdatedAt()).isNotNull();
             softly.assertThat(found.getUpdatedAt().getTime()).isEqualTo(1_470_157_767_000L);
             softly.assertThat(found.getTags()).isNull();
+            softly.assertThat(found.getResources()).contains("\"name\":\"cache\"").contains("\"type\":\"cache\"").contains("\"ttl\":10");
         });
+
+        assertThat(apiProductsRepository.findById("cad107c9-27f2-40b2-9107-c927f2e0b2fc").orElseThrow().getResources()).isNull();
     }
 
     @Test
@@ -261,6 +264,26 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
 
         apiProduct.setAnalytics(null);
         assertThat(apiProductsRepository.update(apiProduct).getAnalytics()).isNull();
+    }
+
+    @Test
+    public void shouldCreateAndUpdateResources() throws TechnicalException {
+        var date = new Date();
+        var uuid = UUID.random().toString();
+        String resources = "[{\"name\":\"cache\",\"type\":\"cache\",\"configuration\":{\"ttl\":10},\"enabled\":true}]";
+        ApiProduct apiProduct = createApiProduct(uuid, date, "my-env", "my-api-product", "1.0.0", List.of("api1"));
+        apiProduct.setResources(resources);
+
+        ApiProduct created = apiProductsRepository.create(apiProduct);
+        assertThat(created.getResources()).isEqualTo(resources);
+        assertThat(apiProductsRepository.findById(uuid)).get().extracting(ApiProduct::getResources).isEqualTo(resources);
+
+        String replaced = "[{\"name\":\"oauth\",\"type\":\"oauth2\",\"configuration\":{},\"enabled\":false}]";
+        apiProduct.setResources(replaced);
+        assertThat(apiProductsRepository.update(apiProduct).getResources()).isEqualTo(replaced);
+
+        apiProduct.setResources(null);
+        assertThat(apiProductsRepository.update(apiProduct).getResources()).isNull();
     }
 
     @Test

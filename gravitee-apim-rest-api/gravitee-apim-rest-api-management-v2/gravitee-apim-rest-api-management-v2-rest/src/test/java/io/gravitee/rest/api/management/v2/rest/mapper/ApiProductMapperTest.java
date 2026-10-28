@@ -18,6 +18,8 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.definition.model.v4.resource.Resource;
+import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
@@ -32,5 +34,15 @@ class ApiProductMapperTest {
         var restProduct = apiProductMapper.map(coreProduct);
 
         assertThat(restProduct.getTags()).containsExactlyInAnyOrder("external", "internal");
+    }
+
+    @Test
+    void map_should_leave_resources_off_list_and_search_results() {
+        var cache = Resource.builder().name("cache").type("cache").configuration("{\"ttl\":10}").enabled(true).build();
+        var coreProduct = ApiProduct.builder().id("product-1").name("aa").resources(List.of(cache)).build();
+
+        var restProduct = apiProductMapper.map(coreProduct);
+
+        assertThat(restProduct.getResources()).isNull();
     }
 }

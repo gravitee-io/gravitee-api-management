@@ -18,12 +18,15 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.ApiProductInfo;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(uses = { DateMapper.class })
 public interface ApiProductMapper {
     ApiProductMapper INSTANCE = Mappers.getMapper(ApiProductMapper.class);
 
+    // List and search are not behind API_PRODUCT_DEFINITION. Leave resources unset so configurations are not returned.
+    @Mapping(target = "resources", expression = "java(null)")
     ApiProduct map(io.gravitee.apim.core.api_product.model.ApiProduct coreApiProduct);
 
     ApiProductInfo map(io.gravitee.apim.core.api_product.model.ApiProductInfo coreApiProductInfo);
