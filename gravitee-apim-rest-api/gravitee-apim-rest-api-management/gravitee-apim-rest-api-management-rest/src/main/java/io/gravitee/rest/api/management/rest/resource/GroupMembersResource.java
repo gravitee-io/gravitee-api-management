@@ -284,18 +284,20 @@ public class GroupMembersResource extends AbstractResource {
                 if (apiRoleEntity != null && !apiRoleEntity.equals(previousApiRole)) {
                     String roleName = getRoleName(RoleScope.API, apiRoleEntity, groupEntity, GroupEntity::isLockApiRole, hasPermission);
 
-                    // Block demotion only while the group still owns APIs.
-                    if (
-                        previousApiRole != null &&
-                        previousApiRole.getName().equals(SystemRole.PRIMARY_OWNER.name()) &&
-                        !roleName.equals(SystemRole.PRIMARY_OWNER.name())
-                    ) {
+                    boolean demotedPrimaryOwner =
+                        previousApiRole != null && previousApiRole.getName().equals(SystemRole.PRIMARY_OWNER.name());
+                    boolean transferred =
+                        demotedPrimaryOwner &&
+                        isPrimaryOwnerTransfer(memberships, membership, RoleScope.API, !hasPermission && groupEntity.isLockApiRole());
+                    if (demotedPrimaryOwner && !roleName.equals(SystemRole.PRIMARY_OWNER.name()) && !transferred) {
                         groupService.assertGroupIsNotPrimaryOwner(executionContext, group, RoleScope.API);
                     }
 
                     updatedMembership = updateRole(RoleScope.API, roleName, previousApiRole, membership, executionContext);
-                    if (previousApiRole != null && previousApiRole.getName().equals(SystemRole.PRIMARY_OWNER.name())) {
-                        groupService.updateApiPrimaryOwner(group, null);
+                    if (demotedPrimaryOwner) {
+                        if (!transferred) {
+                            groupService.updateApiPrimaryOwner(group, null);
+                        }
                     } else if (roleName.equals(SystemRole.PRIMARY_OWNER.name())) {
                         groupService.updateApiPrimaryOwner(group, updatedMembership.getId());
                     }
@@ -323,18 +325,25 @@ public class GroupMembersResource extends AbstractResource {
                         hasPermission
                     );
 
-                    // Block demotion only while the group still owns API products.
-                    if (
-                        previousApiProductRole != null &&
-                        previousApiProductRole.getName().equals(SystemRole.PRIMARY_OWNER.name()) &&
-                        !roleName.equals(SystemRole.PRIMARY_OWNER.name())
-                    ) {
+                    boolean demotedPrimaryOwner =
+                        previousApiProductRole != null && previousApiProductRole.getName().equals(SystemRole.PRIMARY_OWNER.name());
+                    boolean transferred =
+                        demotedPrimaryOwner &&
+                        isPrimaryOwnerTransfer(
+                            memberships,
+                            membership,
+                            RoleScope.API_PRODUCT,
+                            !hasPermission && groupEntity.isLockApiProductRole()
+                        );
+                    if (demotedPrimaryOwner && !roleName.equals(SystemRole.PRIMARY_OWNER.name()) && !transferred) {
                         groupService.assertGroupIsNotPrimaryOwner(executionContext, group, RoleScope.API_PRODUCT);
                     }
 
                     updatedMembership = updateRole(RoleScope.API_PRODUCT, roleName, previousApiProductRole, membership, executionContext);
-                    if (previousApiProductRole != null && previousApiProductRole.getName().equals(SystemRole.PRIMARY_OWNER.name())) {
-                        groupService.updateApiProductPrimaryOwner(group, null);
+                    if (demotedPrimaryOwner) {
+                        if (!transferred) {
+                            groupService.updateApiProductPrimaryOwner(group, null);
+                        }
                     } else if (roleName.equals(SystemRole.PRIMARY_OWNER.name())) {
                         groupService.updateApiProductPrimaryOwner(group, updatedMembership.getId());
                     }
@@ -411,6 +420,34 @@ public class GroupMembersResource extends AbstractResource {
                 previousRole.getId()
             );
         }
+    }
+
+    /**
+     * Whether another member, whatever the order of the entries, ends the request as primary owner for the scope: the last
+     * role of the scope wins, as when the entries are applied. A role that is locked for the caller is overridden, so it
+     * never transfers.
+     */
+    private static boolean isPrimaryOwnerTransfer(
+        Collection<GroupMembership> memberships,
+        GroupMembership demoted,
+        RoleScope scope,
+        boolean roleLocked
+    ) {
+        return (
+            !roleLocked &&
+            memberships
+                .stream()
+                .filter(other -> other.getId() != null && !other.getId().equals(demoted.getId()) && other.getRoles() != null)
+                .anyMatch(other ->
+                    other
+                        .getRoles()
+                        .stream()
+                        .filter(role -> role.getRoleScope() == scope)
+                        .reduce((first, last) -> last)
+                        .map(role -> SystemRole.PRIMARY_OWNER.name().equals(role.getRoleName()))
+                        .orElse(false)
+                )
+        );
     }
 
     String getRoleName(
