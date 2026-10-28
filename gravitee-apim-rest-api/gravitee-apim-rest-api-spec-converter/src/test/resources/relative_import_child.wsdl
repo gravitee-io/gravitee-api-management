@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<definitions name="RelativeImportChild"
+             targetNamespace="http://example.com/relative-import/child"
+             xmlns:tns="http://example.com/relative-import/child"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns="http://schemas.xmlsoap.org/wsdl/">
+    <message name="GetLastTradePriceInput">
+        <part name="body" type="xsd:string"/>
+    </message>
+    <message name="GetLastTradePriceOutput">
+        <part name="body" type="xsd:string"/>
+    </message>
+    <portType name="StockQuotePortType">
+        <operation name="GetLastTradePrice">
+            <input message="tns:GetLastTradePriceInput"/>
+            <output message="tns:GetLastTradePriceOutput"/>
+        </operation>
+    </portType>
+</definitions>
