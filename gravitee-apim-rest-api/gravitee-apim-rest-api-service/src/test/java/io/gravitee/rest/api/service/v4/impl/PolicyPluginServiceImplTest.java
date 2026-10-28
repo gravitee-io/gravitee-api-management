@@ -263,6 +263,17 @@ public class PolicyPluginServiceImplTest {
         }
 
         @Test
+        public void should_support_message_condition_when_plugin_has_no_properties() {
+            when(mockPluginManifest.properties()).thenReturn(null);
+            assertTrue(PolicyPluginServiceImpl.supportsMessageCondition(mockPlugin));
+        }
+
+        @Test
+        public void should_ignore_case_and_whitespace_of_the_declaration() {
+            assertFalse(findWithProperties(Map.of("supports_message_condition", " FALSE ")).isSupportsMessageCondition());
+        }
+
+        @Test
         public void should_support_message_condition_when_plugin_declares_it_supported() {
             assertTrue(findWithProperties(Map.of("supports_message_condition", "true")).isSupportsMessageCondition());
         }
