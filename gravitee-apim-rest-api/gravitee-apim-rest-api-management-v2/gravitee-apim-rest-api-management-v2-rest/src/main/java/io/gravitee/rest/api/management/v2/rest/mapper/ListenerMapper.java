@@ -60,13 +60,19 @@ public interface ListenerMapper {
         }
         var seen = new LinkedHashMap<String, java.util.regex.Pattern>();
         for (var pathMapping : pathMappings) {
+            if (pathMapping == null || pathMapping.isBlank()) {
+                throw new InvalidPathMappingsException(
+                    "Path mapping contains an invalid template: [" + pathMapping + "]",
+                    String.valueOf(pathMapping)
+                );
+            }
             if (seen.containsKey(pathMapping)) {
                 throw new InvalidPathMappingsException("Path mappings contain duplicate entries: [" + pathMapping + "]", pathMapping);
             }
             try {
                 seen.put(pathMapping, PathMapping.buildPattern(pathMapping));
             } catch (java.util.regex.PatternSyntaxException e) {
-                throw new InvalidPathMappingsException("Path mapping contains an invalid template: [" + pathMapping + "]", pathMapping);
+                throw new InvalidPathMappingsException("Path mapping contains an invalid template: [" + pathMapping + "]", pathMapping, e);
             }
         }
         return seen;
