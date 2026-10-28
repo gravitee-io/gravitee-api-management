@@ -595,6 +595,13 @@
                 <version>${kafka.version}</version>
             </dependency>
 
+            <!-- Overrides the lz4-java brought by kafka-clients; the codec is loaded by kafka-clients -->
+            <dependency>
+                <groupId>at.yawk.lz4</groupId>
+                <artifactId>lz4-java</artifactId>
+                <version>${lz4-java.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.apache.lucene</groupId>
                 <artifactId>lucene-core</artifactId>
