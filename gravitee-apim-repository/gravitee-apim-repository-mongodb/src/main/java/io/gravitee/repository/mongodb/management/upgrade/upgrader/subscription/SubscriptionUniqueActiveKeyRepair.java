@@ -47,6 +47,9 @@ import reactor.core.publisher.Mono;
  * the values it has been computed from. A subscription changed in the meantime is skipped: a node of this version wrote
  * its up-to-date key along with the change, while a node of a previous version dropped it, until the next repair.
  * Running it again, or on several nodes at the same time, gives the same result.
+ * <p>
+ * No upgrader of this version runs it: scanning the whole collection would delay the start of every node, while nothing
+ * reads the key yet. It is meant for the release that adds the unique index.
  *
  * @author GraviteeSource Team
  */
