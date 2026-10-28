@@ -148,6 +148,22 @@ class SecurityChainDiagnosticTest {
         }
 
         @Test
+        @DisplayName("Should never expose characters following the colon of a username:password token")
+        void shouldNotExposePasswordOfUsernamePasswordToken() {
+            // Given
+            diagnostic.markPlanHasNoSubscription("plan1", "API_KEY", "abcdef123456:wrong-secret");
+
+            // When
+            Exception cause = diagnostic.cause();
+
+            // Then
+            assertThat(cause.getMessage())
+                .isEqualTo("No subscription was found for API Key: abcd***3456 (plan: plan1)")
+                .doesNotContain("cret")
+                .doesNotContain("wrong");
+        }
+
+        @Test
         @DisplayName("Should return exception for no subscription plans with API key")
         void shouldReturnExceptionForNoSubscriptionPlansWithApiKey() {
             // Given
