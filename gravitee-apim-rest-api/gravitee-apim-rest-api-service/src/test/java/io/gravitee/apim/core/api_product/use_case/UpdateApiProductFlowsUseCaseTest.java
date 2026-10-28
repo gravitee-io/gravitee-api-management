@@ -46,6 +46,7 @@ import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import java.time.ZoneId;
@@ -229,6 +230,16 @@ class UpdateApiProductFlowsUseCaseTest extends AbstractUseCaseTest {
                 assertThat(audit.getReferenceId()).isEqualTo(API_PRODUCT_ID);
                 assertThat(audit.getPatch()).contains("best-match").contains("transform-headers");
             });
+    }
+
+    @Test
+    void should_keep_resources_when_flows_are_updated() {
+        Resource cache = Resource.builder().name("cache").type("cache").configuration("{\"ttl\":10}").enabled(true).build();
+        givenProduct(aProduct().resources(List.of(cache)).build());
+
+        useCase.execute(input(new ApiProductFlows(bestMatch(true), List.of(requestFlow("flow")))));
+
+        assertThat(storedProduct().getResources()).containsExactly(cache);
     }
 
     @Test
