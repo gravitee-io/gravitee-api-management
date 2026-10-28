@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.domain_service.api;
 import io.gravitee.apim.core.api.domain_service.OpenApiPathMappingsExtractor;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.infra.converter.oai.OAIPathMappings;
+import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
 import io.gravitee.rest.api.service.impl.swagger.parser.OAIParser;
 import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.swagger.v3.parser.core.models.ParseOptions;
@@ -46,8 +47,8 @@ public class OpenApiPathMappingsExtractorImpl implements OpenApiPathMappingsExtr
             return OAIPathMappings.from(descriptor.getSpecification());
         } catch (ValidationDomainException e) {
             throw e;
-        } catch (Exception e) {
-            throw new ValidationDomainException("Invalid OpenAPI specification");
+        } catch (SwaggerDescriptorException e) {
+            throw new ValidationDomainException("Invalid OpenAPI specification", e);
         }
     }
 }

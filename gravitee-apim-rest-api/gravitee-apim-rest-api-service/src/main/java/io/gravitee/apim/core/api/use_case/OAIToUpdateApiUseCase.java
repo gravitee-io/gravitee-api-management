@@ -88,20 +88,13 @@ public class OAIToUpdateApiUseCase {
     }
 
     private void preserveExistingPathMappings(String apiId, io.gravitee.apim.core.api.model.import_definition.ApiExport apiExport) {
-        if (apiExport.getListeners() == null) {
-            return;
-        }
         var existing = apiCrudService.findById(apiId).map(io.gravitee.apim.core.api.model.Api::getApiDefinitionHttpV4).orElse(null);
         if (existing == null) {
             return;
         }
-        HttpListenerPathMappings.firstHttpListenerMappings(existing.getListeners()).ifPresent(mappings -> {
-            @SuppressWarnings("unchecked")
-            var importedListeners = (java.util.List<io.gravitee.definition.model.v4.listener.Listener>) (java.util.List<
-                ?
-            >) apiExport.getListeners();
-            apiExport.setListeners(HttpListenerPathMappings.withFirstHttpListenerMappings(importedListeners, mappings));
-        });
+        HttpListenerPathMappings.firstHttpListenerMappings(existing.getListeners()).ifPresent(
+            apiExport::replaceFirstHttpListenerPathMappings
+        );
     }
 
     private void restoreApiFlowIdsByKey(List<? extends AbstractFlow> flows, String apiId) {

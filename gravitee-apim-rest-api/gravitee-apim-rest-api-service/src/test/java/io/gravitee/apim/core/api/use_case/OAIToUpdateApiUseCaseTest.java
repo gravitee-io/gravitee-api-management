@@ -30,6 +30,7 @@ import inmemory.FlowCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.exception.InvalidApiDefinitionException;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
+import io.gravitee.apim.core.api.model.HttpListenerPathMappings;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -38,7 +39,9 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -257,5 +260,59 @@ class OAIToUpdateApiUseCaseTest {
         var flowsPassedToUseCase = inputCaptor.getValue().importDefinition().getApiExport().getFlows();
         assertThat(flowsPassedToUseCase).hasSize(1);
         assertThat(flowsPassedToUseCase.getFirst().getId()).isNull();
+    }
+
+    @Test
+    void should_keep_existing_path_mappings_when_with_path_mapping_is_false() {
+        var stored = withMappings(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build(), Set.of("/stored"));
+        apiCrudService.initWith(List.of(stored));
+
+        var importedListener = HttpListener.builder().paths(List.of()).pathMappings(Set.of("/from-spec")).build();
+        var importDefinition = ImportDefinition.builder()
+            .apiExport(ApiExport.builder().definitionVersion(DefinitionVersion.V4).listeners(List.of(importedListener)).build())
+            .build();
+        when(oaiDomainService.convert(anyString(), anyString(), any(), anyBoolean(), anyBoolean())).thenReturn(importDefinition);
+        when(updateApiDefinitionUseCase.execute(any())).thenReturn(
+            new UpdateApiDefinitionFromImportUseCase.Output(new ApiWithFlows(stored, List.of()))
+        );
+
+        var descriptor = new ImportSwaggerDescriptorEntity();
+        descriptor.setWithPathMapping(false);
+        cut.execute(OAIToUpdateApiUseCase.Input.builder().apiId(API_ID).importSwaggerDescriptor(descriptor).auditInfo(AUDIT_INFO).build());
+
+        var inputCaptor = ArgumentCaptor.forClass(UpdateApiDefinitionFromImportUseCase.Input.class);
+        org.mockito.Mockito.verify(updateApiDefinitionUseCase).execute(inputCaptor.capture());
+        var listener = (HttpListener) inputCaptor.getValue().importDefinition().getApiExport().getListeners().getFirst();
+        assertThat(listener.getPathMappings()).containsExactly("/stored");
+    }
+
+    @Test
+    void should_replace_path_mappings_when_with_path_mapping_is_true() {
+        var stored = withMappings(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build(), Set.of("/stored"));
+        apiCrudService.initWith(List.of(stored));
+
+        var importedListener = HttpListener.builder().paths(List.of()).pathMappings(Set.of("/from-spec")).build();
+        var importDefinition = ImportDefinition.builder()
+            .apiExport(ApiExport.builder().definitionVersion(DefinitionVersion.V4).listeners(List.of(importedListener)).build())
+            .build();
+        when(oaiDomainService.convert(anyString(), anyString(), any(), anyBoolean(), anyBoolean())).thenReturn(importDefinition);
+        when(updateApiDefinitionUseCase.execute(any())).thenReturn(
+            new UpdateApiDefinitionFromImportUseCase.Output(new ApiWithFlows(stored, List.of()))
+        );
+
+        var descriptor = new ImportSwaggerDescriptorEntity();
+        descriptor.setWithPathMapping(true);
+        cut.execute(OAIToUpdateApiUseCase.Input.builder().apiId(API_ID).importSwaggerDescriptor(descriptor).auditInfo(AUDIT_INFO).build());
+
+        var inputCaptor = ArgumentCaptor.forClass(UpdateApiDefinitionFromImportUseCase.Input.class);
+        org.mockito.Mockito.verify(updateApiDefinitionUseCase).execute(inputCaptor.capture());
+        var listener = (HttpListener) inputCaptor.getValue().importDefinition().getApiExport().getListeners().getFirst();
+        assertThat(listener.getPathMappings()).containsExactly("/from-spec");
+    }
+
+    private static io.gravitee.apim.core.api.model.Api withMappings(io.gravitee.apim.core.api.model.Api api, Set<String> mappings) {
+        var definition = api.getApiDefinitionHttpV4();
+        var listeners = HttpListenerPathMappings.withFirstHttpListenerMappings(definition.getListeners(), new LinkedHashSet<>(mappings));
+        return api.toBuilder().apiDefinitionValue(definition.toBuilder().listeners(listeners).build()).build();
     }
 }
