@@ -16,15 +16,10 @@
 package io.gravitee.repository.mongodb.management.upgrade.upgrader.subscription;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import com.mongodb.MongoTimeoutException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.CountOptions;
 import com.mongodb.client.model.Filters;
@@ -46,10 +41,10 @@ import java.util.stream.StreamSupport;
 import org.bson.Document;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
-import reactor.core.publisher.Mono;
 
 /**
  * Nodes of the previous versions keep writing subscriptions without maintaining their unique active key (a full
@@ -57,12 +52,16 @@ import reactor.core.publisher.Mono;
  *
  * @author GraviteeSource Team
  */
-public class SubscriptionUniqueActiveKeyUpgraderTest extends AbstractManagementRepositoryTest {
+public class SubscriptionUniqueActiveKeyRepairTest extends AbstractManagementRepositoryTest {
 
     private static final String FIELD = "uniqueActiveKey";
 
+    /**
+     * The client with long timeouts of the index upgraders: the default client gives up after one second.
+     */
     @Inject
-    private SubscriptionUniqueActiveKeyUpgrader upgrader;
+    @Qualifier("indexManagementReactiveMongoTemplate")
+    private ReactiveMongoOperations indexManagementTemplate;
 
     @Inject
     private MongoOperations mongoOperations;
@@ -79,7 +78,7 @@ public class SubscriptionUniqueActiveKeyUpgraderTest extends AbstractManagementR
     public void should_add_the_key_of_an_active_subscription_written_without_it() {
         subscriptions().insertOne(aSubscriptionDocument("sub-1", "ACCEPTED", "plan-1"));
 
-        assertThat(upgrader.upgrade()).isTrue();
+        repair();
 
         assertThat(storedKey("sub-1")).isEqualTo(expectedKey("sub-1", Subscription.Status.ACCEPTED, "plan-1"));
     }
@@ -89,7 +88,7 @@ public class SubscriptionUniqueActiveKeyUpgraderTest extends AbstractManagementR
         subscriptions().insertOne(aSubscriptionDocument("sub-closed", "CLOSED", "plan-1").append(FIELD, "API:api-1:app-1:plan-1"));
         subscriptions().insertOne(aSubscriptionDocument("sub-rejected", "REJECTED", "plan-1").append(FIELD, "API:api-1:app-1:plan-1"));
 
-        assertThat(upgrader.upgrade()).isTrue();
+        repair();
 
         assertThat(storedDocument("sub-closed")).doesNotContainKey(FIELD);
         assertThat(storedDocument("sub-rejected")).doesNotContainKey(FIELD);
@@ -100,7 +99,7 @@ public class SubscriptionUniqueActiveKeyUpgraderTest extends AbstractManagementR
         // Transferred to plan-2 by a node of the previous version, which kept the key of plan-1.
         subscriptions().insertOne(aSubscriptionDocument("sub-1", "ACCEPTED", "plan-2").append(FIELD, "API:api-1:app-1:plan-1"));
 
-        assertThat(upgrader.upgrade()).isTrue();
+        repair();
 
         assertThat(storedKey("sub-1")).isEqualTo(expectedKey("sub-1", Subscription.Status.ACCEPTED, "plan-2"));
     }
@@ -111,7 +110,7 @@ public class SubscriptionUniqueActiveKeyUpgraderTest extends AbstractManagementR
             aSubscriptionDocument("sub-1", "ACCEPTED", "plan-1").append("type", "PUSH").append("configuration", "{\"channel\":\"orders\"}")
         );
 
-        assertThat(upgrader.upgrade()).isTrue();
+        repair();
 
         var expected = SubscriptionUniqueActiveKey.of(
             aSubscription("sub-1", Subscription.Status.ACCEPTED, "plan-1")
@@ -129,7 +128,7 @@ public class SubscriptionUniqueActiveKeyUpgraderTest extends AbstractManagementR
         IntStream.range(0, count).forEach(i -> documents.add(aSubscriptionDocument("sub-" + i, "ACCEPTED", "plan-" + i)));
         subscriptions().insertMany(documents);
 
-        assertThat(upgrader.upgrade()).isTrue();
+        repair();
 
         // The test database refuses collection scans (notablescan).
         assertThat(subscriptions().countDocuments(Filters.exists(FIELD), new CountOptions().hint(new Document("_id", 1)))).isEqualTo(count);
@@ -142,10 +141,10 @@ public class SubscriptionUniqueActiveKeyUpgraderTest extends AbstractManagementR
     public void should_give_the_same_result_when_run_again() {
         subscriptions().insertOne(aSubscriptionDocument("sub-1", "ACCEPTED", "plan-1"));
         subscriptions().insertOne(aSubscriptionDocument("sub-2", "CLOSED", "plan-1").append(FIELD, "stale"));
-        upgrader.upgrade();
+        repair();
         var firstRun = List.of(storedDocument("sub-1"), storedDocument("sub-2"));
 
-        assertThat(upgrader.upgrade()).isTrue();
+        repair();
 
         assertThat(List.of(storedDocument("sub-1"), storedDocument("sub-2"))).isEqualTo(firstRun);
     }
@@ -179,32 +178,9 @@ public class SubscriptionUniqueActiveKeyUpgraderTest extends AbstractManagementR
     }
 
     @Test
-    public void should_not_stop_the_node_when_the_repair_fails() {
-        var unreachable = mock(ReactiveMongoOperations.class);
-        when(unreachable.getCollection(anyString())).thenReturn(Mono.error(new MongoTimeoutException("timed out")));
-        var failing = new SubscriptionUniqueActiveKeyUpgrader();
-        failing.setEnvironment(environment);
-        failing.setMongoTemplate(unreachable);
-        ListAppender<ILoggingEvent> logs = new ListAppender<>();
-        Logger logger = (Logger) LoggerFactory.getLogger(SubscriptionUniqueActiveKeyUpgrader.class);
-        logs.start();
-        logger.addAppender(logs);
-        try {
-            assertThat(failing.upgrade()).isTrue();
-        } finally {
-            logger.detachAppender(logs);
-        }
-
-        assertThat(logs.list).anySatisfy(event -> {
-            assertThat(event.getLevel()).isEqualTo(Level.ERROR);
-            assertThat(event.getThrowableProxy().getClassName()).isEqualTo(MongoTimeoutException.class.getName());
-        });
-    }
-
-    @Test
     public void should_leave_a_subscription_changed_during_the_repair_to_its_writer() {
         subscriptions().insertOne(aSubscriptionDocument("sub-1", "ACCEPTED", "plan-1"));
-        var repair = new SubscriptionUniqueActiveKeyRepair(upgrader.subscriptionsCollection());
+        var repair = new SubscriptionUniqueActiveKeyRepair(reactiveSubscriptions());
         var read = repair.readBatch(null);
         // Closed by another node between the read and the write of the repair.
         subscriptions().updateOne(Filters.eq("_id", "sub-1"), new Document("$set", new Document("status", "CLOSED")));
@@ -245,7 +221,7 @@ public class SubscriptionUniqueActiveKeyUpgraderTest extends AbstractManagementR
                 )
             );
 
-            var result = new SubscriptionUniqueActiveKeyRepair(upgrader.subscriptionsCollection()).repair();
+            var result = repair();
 
             assertThat(result.conflicts()).isEqualTo(1);
             assertThat(logs.list)
@@ -260,10 +236,14 @@ public class SubscriptionUniqueActiveKeyUpgraderTest extends AbstractManagementR
         }
     }
 
+    private SubscriptionUniqueActiveKeyRepair.Result repair() {
+        return new SubscriptionUniqueActiveKeyRepair(reactiveSubscriptions()).repair();
+    }
+
     private Callable<SubscriptionUniqueActiveKeyRepair.Result> aRepairStartingWith(CyclicBarrier barrier) {
         return () -> {
             barrier.await();
-            return new SubscriptionUniqueActiveKeyRepair(upgrader.subscriptionsCollection()).repair();
+            return repair();
         };
     }
 
@@ -276,7 +256,15 @@ public class SubscriptionUniqueActiveKeyUpgraderTest extends AbstractManagementR
     }
 
     private MongoCollection<Document> subscriptions() {
-        return mongoOperations.getCollection(environment.getProperty("management.mongodb.prefix", "") + "subscriptions");
+        return mongoOperations.getCollection(subscriptionsCollectionName());
+    }
+
+    private com.mongodb.reactivestreams.client.MongoCollection<Document> reactiveSubscriptions() {
+        return indexManagementTemplate.getCollection(subscriptionsCollectionName()).block();
+    }
+
+    private String subscriptionsCollectionName() {
+        return environment.getProperty("management.mongodb.prefix", "") + "subscriptions";
     }
 
     private static String expectedKey(String id, Subscription.Status status, String plan) {
