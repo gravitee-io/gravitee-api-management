@@ -23,6 +23,7 @@ import static java.util.Collections.singletonList;
 
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
+import io.gravitee.apim.core.api.model.HttpListenerPathMappings;
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
@@ -641,7 +642,7 @@ public class ApiResource extends AbstractResource {
             !Objects.equals(currentEntity.getPrimaryOwner().getId(), getAuthenticatedUser()) &&
             !isAdmin()
         ) {
-            apiToUpdate.setListeners(((ApiEntity) currentEntity).getListeners());
+            keepStoredListenersExceptPathMappings(apiToUpdate, (ApiEntity) currentEntity);
         }
 
         final ApiEntity updatedApi = apiServiceV4.update(
@@ -653,6 +654,16 @@ public class ApiResource extends AbstractResource {
         );
         setPicturesUrl(updatedApi);
         return updatedApi;
+    }
+
+    private void keepStoredListenersExceptPathMappings(UpdateApiEntity apiToUpdate, ApiEntity currentEntity) {
+        var storedListeners = currentEntity.getListeners();
+        var requestedMappings = HttpListenerPathMappings.firstHttpListenerMappings(apiToUpdate.getListeners());
+        if (requestedMappings.isPresent()) {
+            apiToUpdate.setListeners(HttpListenerPathMappings.withFirstHttpListenerMappings(storedListeners, requestedMappings.get()));
+        } else {
+            apiToUpdate.setListeners(storedListeners);
+        }
     }
 
     private GenericApiEntity updateApiV2(GenericApiEntity currentEntity, UpdateApiV2 updateApiV2) {
