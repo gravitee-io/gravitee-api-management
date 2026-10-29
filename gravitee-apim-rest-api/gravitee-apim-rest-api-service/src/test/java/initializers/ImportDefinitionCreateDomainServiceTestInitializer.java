@@ -54,6 +54,7 @@ import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.import_definition.ImportDefinitionCreateDomainService;
+import io.gravitee.apim.core.api.domain_service.import_definition.ImportDefinitionPageParentValidationDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.category.domain_service.CreateCategoryApiDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
@@ -220,7 +221,8 @@ public class ImportDefinitionCreateDomainServiceTestInitializer {
             metadataCrudService,
             documentationValidationDomainService,
             categoryDomainService,
-            new ImportApiGroupsDomainService(groupQueryService, new CreateGroupDomainServiceInMemory(groupQueryService))
+            new ImportApiGroupsDomainService(groupQueryService, new CreateGroupDomainServiceInMemory(groupQueryService)),
+            new ImportDefinitionPageParentValidationDomainService(pageCrudService)
         );
     }
 }
