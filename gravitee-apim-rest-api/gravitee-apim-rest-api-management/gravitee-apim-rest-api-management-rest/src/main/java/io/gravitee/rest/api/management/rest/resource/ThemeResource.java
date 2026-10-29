@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.apim.core.theme.exception.ThemeImageInvalidException;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.PictureEntity;
@@ -31,6 +32,7 @@ import io.gravitee.rest.api.service.ThemeService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ThemeTypeNotSupportedException;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -39,6 +41,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
+import java.util.function.Supplier;
 
 /**
  * The ThemeResource endpoints are only applicable to PORTAL type themes
@@ -96,37 +99,74 @@ public class ThemeResource extends AbstractResource {
 
     @GET
     @Path("/logo")
+    @ApiResponse(responseCode = "200", description = "The theme image, or an empty response when no image is defined.")
+    @ApiResponse(responseCode = "304", description = "The image has not changed.")
+    @ApiResponse(responseCode = "307", description = "Redirect to an externally hosted image.")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Theme not found, or the stored theme image cannot be served safely. An invalid image returns an empty, non-cacheable response."
+    )
     public Response getThemeLogo(@Context Request request) {
         validateThemeType(themeId);
 
-        return this.buildPictureResponse(themeService.getLogo(GraviteeContext.getExecutionContext(), themeId), request);
+        return this.buildPictureResponse(() -> themeService.getLogo(GraviteeContext.getExecutionContext(), themeId), request);
     }
 
     @GET
     @Path("/optionalLogo")
+    @ApiResponse(responseCode = "200", description = "The theme image, or an empty response when no image is defined.")
+    @ApiResponse(responseCode = "304", description = "The image has not changed.")
+    @ApiResponse(responseCode = "307", description = "Redirect to an externally hosted image.")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Theme not found, or the stored theme image cannot be served safely. An invalid image returns an empty, non-cacheable response."
+    )
     public Response getLogoLight(@Context Request request) {
         validateThemeType(themeId);
 
-        return this.buildPictureResponse(themeService.getOptionalLogo(GraviteeContext.getExecutionContext(), themeId), request);
+        return this.buildPictureResponse(() -> themeService.getOptionalLogo(GraviteeContext.getExecutionContext(), themeId), request);
     }
 
     @GET
     @Path("/favicon")
+    @ApiResponse(responseCode = "200", description = "The theme image, or an empty response when no image is defined.")
+    @ApiResponse(responseCode = "304", description = "The image has not changed.")
+    @ApiResponse(responseCode = "307", description = "Redirect to an externally hosted image.")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Theme not found, or the stored theme image cannot be served safely. An invalid image returns an empty, non-cacheable response."
+    )
     public Response getFavicon(@Context Request request) {
         validateThemeType(themeId);
 
-        return this.buildPictureResponse(themeService.getFavicon(GraviteeContext.getExecutionContext(), themeId), request);
+        return this.buildPictureResponse(() -> themeService.getFavicon(GraviteeContext.getExecutionContext(), themeId), request);
     }
 
     @GET
     @Path("/backgroundImage")
+    @ApiResponse(responseCode = "200", description = "The theme image, or an empty response when no image is defined.")
+    @ApiResponse(responseCode = "304", description = "The image has not changed.")
+    @ApiResponse(responseCode = "307", description = "Redirect to an externally hosted image.")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Theme not found, or the stored theme image cannot be served safely. An invalid image returns an empty, non-cacheable response."
+    )
     public Response getThemeBackground(@Context Request request) {
         validateThemeType(themeId);
 
-        return this.buildPictureResponse(themeService.getBackgroundImage(GraviteeContext.getExecutionContext(), themeId), request);
+        return this.buildPictureResponse(() -> themeService.getBackgroundImage(GraviteeContext.getExecutionContext(), themeId), request);
     }
 
-    private Response buildPictureResponse(PictureEntity picture, @Context Request request) {
+    private Response buildPictureResponse(Supplier<PictureEntity> pictureSupplier, @Context Request request) {
+        final PictureEntity picture;
+        try {
+            picture = pictureSupplier.get();
+        } catch (ThemeImageInvalidException ex) {
+            CacheControl cacheControl = new CacheControl();
+            cacheControl.setNoStore(true);
+            return Response.status(Response.Status.NOT_FOUND).cacheControl(cacheControl).build();
+        }
+
         if (picture == null) {
             return Response.ok().build();
         }
