@@ -157,6 +157,16 @@ public class TimeProvider {
         return ZONE;
     }
 
+    /** The day {@code days} days before the reference instant, as the sample templates spell dates ({@code yyyy-MM-dd}). */
+    public String dateDaysAgo(int days) {
+        return DATE_FORMATTER_WITH_DASH.format(now.minus(days, ChronoUnit.DAYS));
+    }
+
+    /** The day {@code days} days before the reference instant, as daily index names spell it ({@code yyyy.MM.dd}). */
+    public String dateWithDotDaysAgo(int days) {
+        return DATE_FORMATTER_WITH_DOT.format(now.minus(days, ChronoUnit.DAYS));
+    }
+
     public void setTimestamps(Map<String, Object> data) {
         data.put("now", now.toEpochMilli());
         IntStream.rangeClosed(1, 15).forEach(i -> data.putIfAbsent("nowMinus" + i, now.minusSeconds(i * 60L).toEpochMilli()));
