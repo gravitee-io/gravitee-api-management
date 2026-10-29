@@ -81,7 +81,10 @@ public class ComputeFacetsUseCase {
 
     public ComputeFacetsUseCase.Output execute(Input input) {
         validator.validateFacetsRequest(input.request);
-        return compute(contextLoader.load(input.auditInfo, input.scope(), input.request.dataKind()), input.request);
+        return compute(
+            contextLoader.load(input.auditInfo, input.scope(), input.request.dataKind(queryContextProvider::identifiesCaller)),
+            input.request
+        );
     }
 
     /**

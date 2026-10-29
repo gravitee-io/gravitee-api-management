@@ -19,10 +19,12 @@ import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
- * Core-side port that returns the aggregated, deduplicated filter specs for observability queries.
+ * Core-side port that returns the aggregated, deduplicated filter specs for observability queries, and
+ * types the additional metric fields no catalog lists ({@link #specFor}).
  * The infra adapter discovers {@link FilterContributor} implementations (typically via
  * {@link java.util.ServiceLoader}); consumers stay unaware of how contributors are wired.
  *
@@ -39,4 +41,21 @@ public interface FilterRegistry {
      * @param apiTypes The API-kind set to filter by; {@code null}/empty → any API kind.
      */
     List<FilterSpec> getFilters(Set<Signal> signals, Set<ApiType> apiTypes);
+
+    /**
+     * The spec a condition on {@code name} is checked against: the catalog entry of that name, else, for a
+     * well-formed additional metric field name ({@code additional-metrics.<type>_<key>}, OBS-70), a validation
+     * spec (type, operators, signals, value type, no label) typed by the field's prefix: not a catalog entry.
+     * Discovery is never consulted, so a field no request carries yet still has one.
+     *
+     * @return empty when the name is neither in the catalog nor well-formed
+     */
+    Optional<FilterSpec> specFor(String name);
+
+    /**
+     * Whether {@code name} is a well-formed additional metric field whose key holds the values of a built-in identifying
+     * a caller: a query naming it reads the calls themselves, as one naming that built-in does (OBS-70, the built-in wins
+     * on its own key). False for any other name.
+     */
+    boolean identifiesCaller(String name);
 }

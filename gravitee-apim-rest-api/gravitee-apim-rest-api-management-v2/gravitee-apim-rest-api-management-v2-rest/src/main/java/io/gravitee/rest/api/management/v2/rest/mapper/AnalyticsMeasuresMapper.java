@@ -103,6 +103,18 @@ public interface AnalyticsMeasuresMapper {
         return FilterSpec.Name.valueOf(filterName.name());
     }
 
+    /** This API names built-in facets only; additional metric fields are a Gamma observability feature. */
+    default List<io.gravitee.apim.core.analytics_engine.model.FacetName> mapFacetNames(List<FacetName> facetNames) {
+        return facetNames == null
+            ? null
+            : facetNames
+                .stream()
+                .<io.gravitee.apim.core.analytics_engine.model.FacetName>map(facetName ->
+                    io.gravitee.apim.core.analytics_engine.model.FacetSpec.Name.valueOf(facetName.name())
+                )
+                .toList();
+    }
+
     default FilterOperator mapOperator(Operator operator) {
         return FilterOperator.valueOf(operator.name());
     }

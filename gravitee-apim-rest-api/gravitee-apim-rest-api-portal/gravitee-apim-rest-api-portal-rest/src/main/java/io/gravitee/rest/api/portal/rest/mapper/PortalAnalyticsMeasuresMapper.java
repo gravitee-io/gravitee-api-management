@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.apim.core.analytics_engine.model.FacetBucketResponse;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.FacetName;
 import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
@@ -190,12 +191,12 @@ public interface PortalAnalyticsMeasuresMapper {
                 .toList();
     }
 
-    default List<FacetSpec.Name> toCoreFacets(List<AnalyticsFacetName> by) {
+    default List<FacetName> toCoreFacets(List<AnalyticsFacetName> by) {
         return by == null
             ? List.of()
             : by
                 .stream()
-                .map(f -> FacetSpec.Name.valueOf(f.name()))
+                .<FacetName>map(f -> FacetSpec.Name.valueOf(f.name()))
                 .toList();
     }
 

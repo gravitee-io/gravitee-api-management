@@ -23,11 +23,14 @@ import io.gravitee.apim.core.analytics.domain_service.AiWorkspaceAnalyticsApisDo
 import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
+import io.gravitee.apim.core.analytics_engine.model.AdditionalMetricName;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.FacetName;
 import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
+import io.gravitee.apim.core.analytics_engine.model.FilterName;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.Measure;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
@@ -45,6 +48,7 @@ import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeTimeSeriesUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.apim.core.observability.model.NumberRange;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.model.UserContext;
@@ -56,6 +60,7 @@ import io.gravitee.gamma.rest.core.observability.analytics.model.DataKind;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.AnalyticsRequestPipeline;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
+import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
@@ -88,8 +93,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 @RequiredArgsConstructor
 public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnalyticsDataPort {
-
-    private static final String HTTP_STATUS_CODE_GROUP = "HTTP_STATUS_CODE_GROUP";
 
     private final ComputeMeasuresUseCase computeMeasuresUseCase;
     private final ComputeFacetsUseCase computeFacetsUseCase;
@@ -320,29 +323,45 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
      * not only where it is among the engine's top values of that bucket. A path that ignores one of these
      * filters can still miss a ranked series in some buckets. The bucket key of a status group or of a range
      * is the Elasticsearch range key, not a filter value; those facets are range aggregations returning all
-     * their buckets anyway. Levels the ranking did not reach are left alone.
+     * their buckets anyway, as a boolean additional metric field returns its two, and it takes no IN condition.
+     * Levels the ranking did not reach are left alone.
      */
     private static List<Filter> rankingConditions(TimeSeriesQuery query) {
         if (query.ranking() == null) {
             return List.of();
         }
-        var facets = query.facets();
+        var facets = toApimFacetNames(query.facets());
         var conditions = new ArrayList<Filter>();
         for (int level = 0; level < query.ranking().depth(); level++) {
             var facet = facets.get(level);
             var isRangedLeaf = level == facets.size() - 1 && query.ranges() != null && !query.ranges().isEmpty();
-            if (HTTP_STATUS_CODE_GROUP.equals(facet) || isRangedLeaf) {
+            if (facet == FacetSpec.Name.HTTP_STATUS_CODE_GROUP || isRangedLeaf || isBoolean(facet)) {
                 continue;
             }
             conditions.add(
                 new Filter(
-                    FilterSpec.Name.valueOf(facet),
+                    toApimFilterName(facet),
                     io.gravitee.apim.core.observability.model.FilterOperator.IN,
                     List.copyOf(query.ranking().keysAt(level))
                 )
             );
         }
         return conditions;
+    }
+
+    private static boolean isBoolean(FacetName facet) {
+        return (
+            facet instanceof AdditionalMetricName additionalMetric &&
+            additionalMetric.field().valueType() == AdditionalMetricField.ValueType.BOOL
+        );
+    }
+
+    /** A facet is also the condition restricting the series to its ranked values. */
+    private static FilterName toApimFilterName(FacetName facet) {
+        return switch (facet) {
+            case FacetSpec.Name builtIn -> FilterSpec.Name.valueOf(builtIn.name());
+            case AdditionalMetricName additionalMetric -> additionalMetric;
+        };
     }
 
     private static TimeRange toTimeRange(AnalyticsRequestPipeline.PreparedScope scope) {
@@ -364,7 +383,7 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     }
 
     private static Filter translateFilter(FilterCondition condition) {
-        var name = FilterSpec.Name.valueOf(condition.name());
+        var name = toApimFilterName(condition.name());
         var operator = io.gravitee.apim.core.observability.model.FilterOperator.valueOf(condition.operator().name());
         Object value = (condition.operator() == FilterOperator.IN || condition.operator() == FilterOperator.NOT_IN)
             ? condition.values()
@@ -423,7 +442,12 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
             .toList();
     }
 
-    private static List<FacetSpec.Name> toApimFacetNames(List<String> facets) {
+    /** The catalog validated the name already: a built-in, or a well-formed additional metric field. */
+    private static FilterName toApimFilterName(String name) {
+        return FilterName.parse(name).orElseThrow(() -> UnsupportedObservabilityFilterException.unknownName(name));
+    }
+
+    private static List<FacetName> toApimFacetNames(List<String> facets) {
         if (facets == null) {
             return List.of();
         }
@@ -440,8 +464,8 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
         );
     }
 
-    private static FacetSpec.Name toApimFacetName(String facet) {
-        return toEnum(FacetSpec.Name.class, facet).orElseThrow(() -> InvalidObservabilityQueryException.unknownFacet(facet));
+    private static FacetName toApimFacetName(String facet) {
+        return FacetName.parse(facet).orElseThrow(() -> InvalidObservabilityQueryException.unknownFacet(facet));
     }
 
     // Case-insensitive like the filter operators: "desc" is unambiguous, only an unknown order is refused.

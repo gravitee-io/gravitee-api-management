@@ -75,7 +75,10 @@ public class ComputeMeasuresUseCase {
     public record Output(MeasuresResponse response) {}
 
     public Output execute(Input input) {
-        return compute(contextLoader.load(input.auditInfo, input.scope(), input.request.dataKind()), input.request);
+        return compute(
+            contextLoader.load(input.auditInfo, input.scope(), input.request.dataKind(queryContextProvider::identifiesCaller)),
+            input.request
+        );
     }
 
     /**

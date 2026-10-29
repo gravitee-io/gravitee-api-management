@@ -33,7 +33,7 @@ public record FacetsResponse(List<MetricFacetsResponse> metrics) {
         );
     }
 
-    public FacetsResponse withIgnoredFilters(List<FilterSpec.Name> ignoredFilters) {
+    public FacetsResponse withIgnoredFilters(List<FilterName> ignoredFilters) {
         return new FacetsResponse(
             metrics
                 .stream()

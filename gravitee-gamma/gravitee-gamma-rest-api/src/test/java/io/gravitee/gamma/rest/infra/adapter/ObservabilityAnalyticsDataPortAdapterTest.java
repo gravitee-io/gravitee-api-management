@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.infra.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -29,11 +30,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.analytics.domain_service.AiWorkspaceAnalyticsApisDomainService;
 import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
+import io.gravitee.apim.core.analytics_engine.exception.InvalidQueryException;
 import io.gravitee.apim.core.analytics_engine.model.FacetBucketResponse;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.FacetName;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
+import io.gravitee.apim.core.analytics_engine.model.FilterName;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.Measure;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
@@ -285,7 +289,7 @@ class ObservabilityAnalyticsDataPortAdapterTest {
     @Nested
     class IgnoredFilters {
 
-        private static final List<FilterSpec.Name> SKIPPED_BY_THE_ENGINE = List.of(FilterSpec.Name.NATIVE_CLIENT_ID);
+        private static final List<FilterName> SKIPPED_BY_THE_ENGINE = List.of(FilterSpec.Name.NATIVE_CLIENT_ID);
 
         @Test
         void should_list_what_gamma_did_not_apply_after_what_the_engine_skipped() {
@@ -622,6 +626,85 @@ class ObservabilityAnalyticsDataPortAdapterTest {
         }
     }
 
+    /** Additional metric fields go through the APIM core parser to the shared engine model, then the shared validator. */
+    @Nested
+    class AdditionalMetricNames {
+
+        private static final String TIER = "additional-metrics.keyword_fraud-check_tier";
+        private static final String FAILOVERS = "additional-metrics.long_failover_count";
+
+        private static final PreparedScope TIER_SCOPE = new PreparedScope(
+            SCOPE.from(),
+            SCOPE.to(),
+            List.of(
+                new FilterCondition("API", FilterOperator.IN, List.of("api-1")),
+                new FilterCondition(TIER, FilterOperator.EQ, List.of("high"))
+            ),
+            Set.of("api-1")
+        );
+
+        @Test
+        void should_hand_the_engine_an_additional_metric_condition_and_facet() {
+            when(computeFacetsUseCase.executeForApis(any(), any(), any())).thenReturn(
+                new ComputeFacetsUseCase.Output(new FacetsResponse(List.of()))
+            );
+
+            adapter.computeFacets(facetsQuery(TIER_SCOPE, List.of(TIER), List.of()));
+
+            var captor = ArgumentCaptor.forClass(FacetsRequest.class);
+            verify(computeFacetsUseCase).executeForApis(any(), captor.capture(), any());
+            var tier = FacetName.parse(TIER).orElseThrow();
+            assertThat(captor.getValue().facets()).containsExactly(tier);
+            assertThat(captor.getValue().filters()).extracting(Filter::name).contains((FilterName) tier);
+        }
+
+        @Test
+        void should_validate_a_facets_query_grouped_by_a_keyword_field() {
+            assertThatCode(() ->
+                adapter.validate(facetsQuery(TIER_SCOPE, List.of(TIER, "HTTP_STATUS"), List.of()))
+            ).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_validate_a_number_field_grouped_by_ranges() {
+            var query = facetsQuery(SCOPE, List.of(FAILOVERS), List.of(new AnalyticsNumberRange(0, 1)));
+
+            assertThatCode(() -> adapter.validate(query)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_refuse_a_number_field_grouped_without_ranges_naming_it() {
+            assertThatThrownBy(() -> adapter.validate(facetsQuery(SCOPE, List.of(FAILOVERS), List.of())))
+                .isInstanceOf(InvalidQueryException.class)
+                .hasMessageContaining(FAILOVERS);
+        }
+
+        @Test
+        void should_refuse_a_malformed_facet_naming_it() {
+            var query = facetsQuery(SCOPE, List.of("additional-metrics.keyword_a..b"), List.of());
+
+            assertThatThrownBy(() -> adapter.computeFacets(query))
+                .isInstanceOf(InvalidObservabilityQueryException.class)
+                .hasMessageContaining("additional-metrics.keyword_a..b")
+                .extracting("technicalCode")
+                .isEqualTo("observability.query.unknown_facet");
+            verifyNoInteractions(computeFacetsUseCase);
+        }
+
+        private static FacetsQuery facetsQuery(PreparedScope scope, List<String> facets, List<AnalyticsNumberRange> ranges) {
+            return new FacetsQuery(
+                ORG,
+                ENV,
+                scope,
+                facets,
+                null,
+                List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())),
+                ranges,
+                Map.of()
+            );
+        }
+    }
+
     private static MeasuresQuery measuresQuery(PreparedScope scope, AnalyticsMetricQuery... metrics) {
         return new MeasuresQuery(
             ORG,
@@ -681,6 +764,19 @@ class ObservabilityAnalyticsDataPortAdapterTest {
                 )
             );
             assertThat(request.limit()).as("the innermost level's ranked values, not the outer level's").isEqualTo(3);
+        }
+
+        @Test
+        void should_leave_a_boolean_additional_metric_level_unrestricted() {
+            givenTheEngineAnswers(List.of());
+            var ranking = new SeriesRanking(Map.of("HTTP_REQUESTS", Set.of(List.of("true", "gpt"), List.of("false", "claude"))));
+
+            adapter.computeTimeSeries(query(List.of("additional-metrics.bool_cache_hit", "LLM_PROXY_MODEL"), List.of(), ranking));
+
+            assertThat(engineRequest().filters())
+                .extracting(Filter::name)
+                .doesNotContain((FilterName) FilterName.parse("additional-metrics.bool_cache_hit").orElseThrow())
+                .contains(FilterSpec.Name.LLM_PROXY_MODEL);
         }
 
         @Test

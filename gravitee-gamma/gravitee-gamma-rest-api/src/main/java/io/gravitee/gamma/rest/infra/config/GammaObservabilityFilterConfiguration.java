@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.infra.config;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.analytics_engine.use_case.GetFilterValuesUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ResolveFilterLabelsUseCase;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.EntrypointScopeProvider;
@@ -54,8 +55,8 @@ import org.springframework.context.annotation.FilterType;
 public class GammaObservabilityFilterConfiguration {
 
     @Bean
-    public FilterRegistry gammaFilterRegistry() {
-        return new SpiFilterRegistry();
+    public FilterRegistry gammaFilterRegistry(AnalyticsQueryContextProvider analyticsQueryContextProvider) {
+        return new SpiFilterRegistry(analyticsQueryContextProvider::identifiesCaller);
     }
 
     @Bean

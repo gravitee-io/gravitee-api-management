@@ -26,6 +26,7 @@ import io.gravitee.apim.core.analytics_engine.exception.InvalidQueryException;
 import io.gravitee.apim.core.analytics_engine.model.*;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.observability.model.FilterOperator;
+import io.gravitee.apim.core.observability.model.NumberRange;
 import io.gravitee.apim.infra.adapter.AnalyticsMeasuresAdapter;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
 import java.time.Instant;
@@ -74,6 +75,170 @@ class AnalyticsQueryValidatorTest {
         when(definitionQueryService.getAllFilters()).thenReturn(CATALOG.getAllFilters());
         when(definitionQueryService.findFilter(any())).thenAnswer(invocation -> CATALOG.findFilter(invocation.getArgument(0)));
         validator = new AnalyticsQueryValidator(definitionQueryService);
+    }
+
+    @Nested
+    class AdditionalMetricFields {
+
+        private static final AdditionalMetricName TIER = additionalMetric("additional-metrics.keyword_fraud-check_tier");
+        private static final AdditionalMetricName FAILOVERS = additionalMetric("additional-metrics.long_failover_count");
+        private static final AdditionalMetricName SCORE = additionalMetric("additional-metrics.double_fraud-check_score");
+        private static final AdditionalMetricName CACHE_HIT = additionalMetric("additional-metrics.bool_cache_hit");
+        private static final AdditionalMetricName EXCERPT = additionalMetric("additional-metrics.string_body-excerpt");
+        private static final AdditionalMetricName SIGNALS = additionalMetric("additional-metrics.json_fraud-signals");
+
+        private static AdditionalMetricName additionalMetric(String name) {
+            return (AdditionalMetricName) FilterName.parse(name).orElseThrow();
+        }
+
+        private static MeasuresRequest measuresFilteredBy(Filter filter) {
+            return new MeasuresRequest(
+                VALID_TIME_RANGE,
+                List.of(filter),
+                List.of(new MetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT)))
+            );
+        }
+
+        private static FacetsRequest facetsBy(List<FacetName> facets, List<NumberRange> ranges) {
+            return new FacetsRequest(
+                VALID_TIME_RANGE,
+                List.of(),
+                List.of(new FacetMetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT), List.of())),
+                facets,
+                null,
+                ranges
+            );
+        }
+
+        @Test
+        void should_accept_the_operators_each_value_type_takes() {
+            var accepted = List.of(
+                new Filter(TIER, FilterOperator.EQ, "high"),
+                new Filter(TIER, FilterOperator.IN, List.of("high", "low")),
+                new Filter(FAILOVERS, FilterOperator.EQ, "2"),
+                new Filter(FAILOVERS, FilterOperator.GTE, "2"),
+                new Filter(SCORE, FilterOperator.LTE, "0.5"),
+                new Filter(CACHE_HIT, FilterOperator.EQ, "true")
+            );
+
+            assertThat(accepted).allSatisfy(filter ->
+                assertThatCode(() -> validator.validateMeasuresRequest(measuresFilteredBy(filter))).doesNotThrowAnyException()
+            );
+        }
+
+        @Test
+        void should_refuse_an_operator_the_value_type_does_not_take_naming_the_field() {
+            var refused = List.of(
+                new Filter(TIER, FilterOperator.GTE, "high"),
+                new Filter(FAILOVERS, FilterOperator.IN, List.of("1", "2")),
+                new Filter(CACHE_HIT, FilterOperator.IN, List.of("true"))
+            );
+
+            assertThat(refused).allSatisfy(filter ->
+                assertThatThrownBy(() -> validator.validateMeasuresRequest(measuresFilteredBy(filter)))
+                    .isInstanceOf(InvalidQueryException.class)
+                    .hasMessageContaining(filter.name().name())
+            );
+        }
+
+        @Test
+        void should_refuse_any_condition_on_a_detail_only_field() {
+            assertThat(List.of(EXCERPT, SIGNALS)).allSatisfy(field ->
+                assertThatThrownBy(() -> validator.validateMeasuresRequest(measuresFilteredBy(new Filter(field, FilterOperator.EQ, "x"))))
+                    .isInstanceOf(InvalidQueryException.class)
+                    .hasMessageContaining("Operator 'EQ' is not supported")
+                    .hasMessageContaining(field.name())
+            );
+        }
+
+        @Test
+        void should_accept_a_keyword_or_a_boolean_at_any_level_of_the_facets() {
+            assertThatCode(() ->
+                validator.validateFacetsRequest(facetsBy(List.of(TIER, CACHE_HIT, FacetSpec.Name.HTTP_STATUS), List.of()))
+            ).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_accept_a_number_grouped_by_ranges_as_the_last_facet() {
+            var ranges = List.of(new NumberRange(0, 1), new NumberRange(2, 10));
+
+            assertThatCode(() -> validator.validateFacetsRequest(facetsBy(List.of(TIER, FAILOVERS), ranges))).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_refuse_a_number_grouped_without_ranges() {
+            assertThatThrownBy(() -> validator.validateFacetsRequest(facetsBy(List.of(FAILOVERS), List.of())))
+                .isInstanceOf(InvalidQueryException.class)
+                .hasMessageContaining("additional-metrics.long_failover_count")
+                .hasMessageContaining("ranges");
+        }
+
+        @Test
+        void should_refuse_a_number_grouped_above_another_facet() {
+            var ranges = List.of(new NumberRange(0, 1));
+
+            assertThatThrownBy(() -> validator.validateFacetsRequest(facetsBy(List.of(FAILOVERS, TIER), ranges)))
+                .isInstanceOf(InvalidQueryException.class)
+                .hasMessageContaining("additional-metrics.long_failover_count");
+        }
+
+        @Test
+        void should_refuse_a_number_grouped_twice_even_as_the_last_facet() {
+            var ranges = List.of(new NumberRange(0, 1));
+
+            assertThatThrownBy(() -> validator.validateFacetsRequest(facetsBy(List.of(FAILOVERS, FAILOVERS), ranges)))
+                .isInstanceOf(InvalidQueryException.class)
+                .hasMessageContaining("additional-metrics.long_failover_count");
+        }
+
+        @Test
+        void should_refuse_a_range_missing_a_bound() {
+            var ranges = List.of(new NumberRange(0, null));
+
+            assertThatThrownBy(() -> validator.validateFacetsRequest(facetsBy(List.of(FAILOVERS), ranges)))
+                .isInstanceOf(InvalidQueryException.class)
+                .hasMessageContaining("lower and an upper bound");
+        }
+
+        @Test
+        void should_refuse_a_range_missing_a_bound_on_a_built_in_facet() {
+            var ranges = List.of(new NumberRange(null, 10));
+
+            assertThatThrownBy(() -> validator.validateFacetsRequest(facetsBy(List.of(FacetSpec.Name.HTTP_STATUS), ranges)))
+                .isInstanceOf(InvalidQueryException.class)
+                .hasMessageContaining("lower and an upper bound");
+        }
+
+        @Test
+        void should_refuse_ranges_on_a_keyword() {
+            assertThatThrownBy(() -> validator.validateFacetsRequest(facetsBy(List.of(TIER), List.of(new NumberRange(0, 1)))))
+                .isInstanceOf(InvalidQueryException.class)
+                .hasMessageContaining("Facet additional-metrics.keyword_fraud-check_tier does not support ranging");
+        }
+
+        @Test
+        void should_refuse_to_group_by_a_detail_only_field() {
+            assertThatThrownBy(() -> validator.validateFacetsRequest(facetsBy(List.of(SIGNALS), List.of())))
+                .isInstanceOf(InvalidQueryException.class)
+                .hasMessageContaining("additional-metrics.json_fraud-signals");
+        }
+
+        @Test
+        void should_count_a_field_among_the_limited_facets_of_a_time_series() {
+            var request = new TimeSeriesRequest(
+                VALID_TIME_RANGE,
+                3600000L,
+                List.of(),
+                List.of(new FacetMetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT), List.of())),
+                List.of(TIER, CACHE_HIT, FacetSpec.Name.HTTP_STATUS),
+                null,
+                List.of()
+            );
+
+            assertThatThrownBy(() -> validator.validateTimeSeriesRequest(request))
+                .isInstanceOf(InvalidQueryException.class)
+                .hasMessageContaining("more than 2 facets");
+        }
     }
 
     @Nested
