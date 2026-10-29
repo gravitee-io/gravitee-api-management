@@ -28,6 +28,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.MetadataService;
@@ -147,9 +148,13 @@ class PageService_TransformSwaggerTest {
         Page parentPage = new Page();
         parentPage.setId(PARENT_PAGE_ID);
         parentPage.setType(SWAGGER.name());
+        parentPage.setReferenceType(PageReferenceType.API);
+        parentPage.setReferenceId(API_ID);
         PageEntity translation = PageEntity.builder()
             .id(PAGE_ID)
             .parentId(PARENT_PAGE_ID)
+            .referenceType(PageReferenceType.API.name())
+            .referenceId(API_ID)
             .type(TRANSLATION.name())
             .content(OPENAPI_CONTENT)
             .contentType(MediaType.APPLICATION_JSON)
@@ -171,9 +176,13 @@ class PageService_TransformSwaggerTest {
         Page parentPage = new Page();
         parentPage.setId(PARENT_PAGE_ID);
         parentPage.setType(SWAGGER.name());
+        parentPage.setReferenceType(PageReferenceType.API);
+        parentPage.setReferenceId(API_ID);
         PageEntity translation = PageEntity.builder()
             .id(PAGE_ID)
             .parentId(PARENT_PAGE_ID)
+            .referenceType(PageReferenceType.API.name())
+            .referenceId(API_ID)
             .type(TRANSLATION.name())
             .content("{\"openapi\":\"3.0.0\"}")
             .build();
