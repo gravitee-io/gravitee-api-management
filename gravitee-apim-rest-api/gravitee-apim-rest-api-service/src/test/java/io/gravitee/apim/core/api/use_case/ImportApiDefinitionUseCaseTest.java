@@ -96,6 +96,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.NullSource;
@@ -205,6 +206,100 @@ class ImportApiDefinitionUseCaseTest {
 
         // Then
         assertThat(throwable).isInstanceOf(ApiAlreadyExistsException.class);
+    }
+
+    @Nested
+    class ImportDocumentationOwnership {
+
+        @BeforeEach
+        void setUp() {
+            when(
+                importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService.validateAndSanitizeForCreation(
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            ).thenAnswer(invocation -> invocation.getArgument(0));
+        }
+
+        @ParameterizedTest
+        @CsvSource({ "PROXY,FOLDER", "PROXY,ROOT", "NATIVE,FOLDER", "NATIVE,ROOT" })
+        void should_import_child_before_its_batch_parent(ApiType apiType, Page.Type parentType) {
+            var parent = page("parent", parentType).toBuilder().referenceId("source-api").build();
+            var child = page("child", Page.Type.MARKDOWN).toBuilder().parentId(parent.getId()).build();
+
+            useCase.execute(new ImportApiDefinitionUseCase.Input(definition(apiType, List.of(child, parent)), AUDIT_INFO));
+
+            var pages = importDefinitionCreateDomainServiceTestInitializer.pageCrudService;
+            assertThat(pages.storage())
+                .hasSize(2)
+                .allSatisfy(created -> {
+                    assertThat(created.getReferenceType()).isEqualTo(Page.ReferenceType.API);
+                    assertThat(created.getReferenceId()).isEqualTo(API_ID);
+                });
+            assertThat(pages.get(child.getId()).getParentId()).isEqualTo(parent.getId());
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = ApiType.class, names = { "PROXY", "NATIVE" })
+        void should_reject_foreign_parent_before_writing_any_documentation(ApiType apiType) {
+            var foreignParent = page("foreign-parent", Page.Type.FOLDER).toBuilder().referenceId("other-api").build();
+            var pages = importDefinitionCreateDomainServiceTestInitializer.pageCrudService;
+            pages.initWith(List.of(foreignParent));
+            var validPage = page("valid-page", Page.Type.MARKDOWN);
+            var child = page("child", Page.Type.MARKDOWN).toBuilder().parentId(foreignParent.getId()).build();
+
+            assertThatThrownBy(() ->
+                useCase.execute(new ImportApiDefinitionUseCase.Input(definition(apiType, List.of(validPage, child)), AUDIT_INFO))
+            ).isInstanceOf(ApiCreatedWithErrorException.class);
+
+            assertThat(pages.storage()).containsExactly(foreignParent);
+            assertThat(importDefinitionCreateDomainServiceTestInitializer.pageRevisionCrudService.storage()).isEmpty();
+            assertThat(apiCrudService.storage()).hasSize(1);
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = ApiType.class, names = { "PROXY", "NATIVE" })
+        void should_reject_parent_missing_from_batch_and_storage(ApiType apiType) {
+            var validPage = page("valid-page", Page.Type.MARKDOWN);
+            var child = page("child", Page.Type.MARKDOWN).toBuilder().parentId("missing-parent").build();
+
+            assertThatThrownBy(() ->
+                useCase.execute(new ImportApiDefinitionUseCase.Input(definition(apiType, List.of(validPage, child)), AUDIT_INFO))
+            ).isInstanceOf(ApiCreatedWithErrorException.class);
+
+            assertThat(importDefinitionCreateDomainServiceTestInitializer.pageCrudService.storage()).isEmpty();
+            assertThat(importDefinitionCreateDomainServiceTestInitializer.pageRevisionCrudService.storage()).isEmpty();
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = ApiType.class, names = { "PROXY", "NATIVE" })
+        void should_not_allow_batch_parent_to_mask_foreign_existing_record(ApiType apiType) {
+            var foreignParent = page("parent", Page.Type.FOLDER).toBuilder().referenceId("other-api").build();
+            var pages = importDefinitionCreateDomainServiceTestInitializer.pageCrudService;
+            pages.initWith(List.of(foreignParent));
+            var parent = foreignParent.toBuilder().referenceId(API_ID).build();
+            var child = page("child", Page.Type.MARKDOWN).toBuilder().parentId(parent.getId()).build();
+
+            assertThatThrownBy(() ->
+                useCase.execute(new ImportApiDefinitionUseCase.Input(definition(apiType, List.of(child, parent)), AUDIT_INFO))
+            ).isInstanceOf(ApiCreatedWithErrorException.class);
+
+            assertThat(pages.storage()).containsExactly(foreignParent);
+            assertThat(importDefinitionCreateDomainServiceTestInitializer.pageRevisionCrudService.storage()).isEmpty();
+        }
+
+        private ImportDefinition definition(ApiType apiType, List<Page> pages) {
+            var definition = apiType == ApiType.NATIVE ? anApiNativeImportDefinition() : anApiProxyImportDefinition();
+            definition.getApiExport().setId(API_ID);
+            definition.setPages(pages);
+            return definition;
+        }
+
+        private Page page(String id, Page.Type type) {
+            return PageFixtures.aPage().toBuilder().id(id).name(id).type(type).parentId(null).content("").build();
+        }
     }
 
     @Nested

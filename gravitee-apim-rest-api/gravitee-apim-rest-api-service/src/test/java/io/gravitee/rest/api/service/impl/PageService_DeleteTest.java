@@ -258,10 +258,10 @@ public class PageService_DeleteTest {
         String folderId = "folder";
         folder.setId(folderId);
         folder.setType(PageType.FOLDER.toString());
-        String refId = "refId";
+        String refId = "apiId";
         folder.setReferenceId(refId);
         folder.setOrder(1);
-        folder.setReferenceType(PageReferenceType.ENVIRONMENT);
+        folder.setReferenceType(PageReferenceType.API);
         folder.setVisibility("PUBLIC");
         when(pageRepository.findById(folderId)).thenReturn(Optional.of(folder));
 
@@ -272,7 +272,7 @@ public class PageService_DeleteTest {
         child.setType(PageType.FOLDER.toString());
         child.setReferenceId(refId);
         child.setParentId(folderId);
-        child.setReferenceType(PageReferenceType.ENVIRONMENT);
+        child.setReferenceType(PageReferenceType.API);
         child.setVisibility("PUBLIC");
         when(pageRepository.findById(childId)).thenReturn(Optional.of(child));
 
@@ -281,7 +281,7 @@ public class PageService_DeleteTest {
         childPage.setId(childPageId);
         childPage.setParentId(childId);
         childPage.setType(PageType.SWAGGER.toString());
-        childPage.setReferenceType(PageReferenceType.ENVIRONMENT);
+        childPage.setReferenceType(PageReferenceType.API);
         childPage.setReferenceId(refId);
         childPage.setVisibility("PUBLIC");
         when(pageRepository.findById(childPageId)).thenReturn(Optional.of(childPage));
@@ -291,13 +291,15 @@ public class PageService_DeleteTest {
         link.setId(linkId);
         link.setParentId(childId);
         link.setContent(PAGE_ID);
+        link.setReferenceType(PageReferenceType.API);
+        link.setReferenceId(refId);
         when(pageRepository.search(new PageCriteria.Builder().type("LINK").build())).thenReturn(List.of(link));
 
         Page page = new Page();
         page.setId(PAGE_ID);
         page.setParentId(childId);
         page.setType(PageType.MARKDOWN.toString());
-        page.setReferenceType(PageReferenceType.ENVIRONMENT);
+        page.setReferenceType(PageReferenceType.API);
         page.setReferenceId(refId);
         page.setVisibility("PUBLIC");
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
@@ -305,17 +307,24 @@ public class PageService_DeleteTest {
         Page translation = new Page();
         String translationId = "translation";
         translation.setId(translationId);
-        translation.setParentId(folderId);
+        translation.setParentId(PAGE_ID);
         Map<String, String> configuration = new HashMap<>();
         configuration.put(PageConfigurationKeys.TRANSLATION_LANG, "EN");
         translation.setConfiguration(configuration);
         translation.setType(PageType.TRANSLATION.toString());
-        translation.setReferenceType(PageReferenceType.ENVIRONMENT);
+        translation.setReferenceType(PageReferenceType.API);
         translation.setReferenceId(refId);
         translation.setVisibility("PUBLIC");
-        when(pageRepository.search(new PageCriteria.Builder().parent(PAGE_ID).type(PageType.TRANSLATION.name()).build())).thenReturn(
-            Arrays.asList(translation)
-        );
+        when(
+            pageRepository.search(
+                new PageCriteria.Builder()
+                    .parent(PAGE_ID)
+                    .type(PageType.TRANSLATION.name())
+                    .referenceType(PageReferenceType.API.name())
+                    .referenceId(refId)
+                    .build()
+            )
+        ).thenReturn(Arrays.asList(translation));
 
         when(
             pageRepository.search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId("apiId").build())
