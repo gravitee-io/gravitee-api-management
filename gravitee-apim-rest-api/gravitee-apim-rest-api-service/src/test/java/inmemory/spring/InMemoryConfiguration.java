@@ -31,7 +31,9 @@ import io.gravitee.apim.core.specgen.query_service.ApiSpecGenQueryService;
 import io.gravitee.apim.core.specgen.service_provider.OasProvider;
 import io.gravitee.apim.core.specgen.service_provider.SpecGenNotificationProvider;
 import io.gravitee.apim.core.specgen.service_provider.SpecGenProvider;
+import io.gravitee.apim.core.theme.domain_service.ThemeImageWriteValidator;
 import io.gravitee.apim.core.workflow.query_service.WorkflowQueryService;
+import io.gravitee.apim.infra.domain_service.theme.ThemeImageWriteValidatorImpl;
 import io.gravitee.apim.infra.query_service.audit.AuditEventQueryServiceImpl;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -406,6 +408,11 @@ public class InMemoryConfiguration {
     @Bean
     public ThemeCrudServiceInMemory themeCrudService() {
         return new ThemeCrudServiceInMemory();
+    }
+
+    @Bean
+    public ThemeImageWriteValidator themeImageWriteValidator() {
+        return new ThemeImageWriteValidatorImpl();
     }
 
     @Bean
