@@ -60,8 +60,8 @@ public class DefaultThemeDomainServiceTest {
         .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
         .name("Default Portal Next Theme")
         .definitionPortalNext(EXPECTED_PORTAL_NEXT_THEME_DEFINITION)
-        .logo("logo.png")
-        .favicon("favicon.png")
+        .logo("https://example.test/logo.png")
+        .favicon("https://example.test/favicon.png")
         .build();
 
     ThemeCrudServiceInMemory themeCrudService = new ThemeCrudServiceInMemory();
@@ -127,7 +127,7 @@ public class DefaultThemeDomainServiceTest {
 
         cut = new DefaultThemeDomainService(
             parametersDomainService,
-            new ThemeDomainService(themeCrudService),
+            new ThemeDomainService(themeCrudService, new ThemeImageWriteValidatorInMemory()),
             themeServiceLegacyWrapper,
             themePortalNextAssetsDomainService
         );

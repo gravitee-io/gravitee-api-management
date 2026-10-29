@@ -25,6 +25,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
+import com.fasterxml.jackson.databind.JsonNode;
 import inmemory.ThemeCrudServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
 import io.gravitee.apim.core.theme.model.Theme;
@@ -46,14 +47,25 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ThemeResourceTest extends AbstractResourceTest {
+
+    private static final String PNG_IMAGE =
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jrFYAAAAASUVORK5CYII=";
+    private static final String SVG_IMAGE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciLz4=";
+    private static final String CHANGED_SVG_IMAGE =
+        "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjwvc3ZnPg==";
 
     private final String ENVIRONMENT = "env-id";
     private final String THEME_ID = "theme-id";
@@ -154,13 +166,168 @@ public class ThemeResourceTest extends AbstractResourceTest {
                 .hasMessage("Theme [ " + THEME_ID + " ] not found");
         }
 
+        @ParameterizedTest
+        @CsvSource(
+            {
+                "PORTAL,logo",
+                "PORTAL,optionalLogo",
+                "PORTAL,favicon",
+                "PORTAL,backgroundImage",
+                "PORTAL_NEXT,logo",
+                "PORTAL_NEXT,optionalLogo",
+                "PORTAL_NEXT,favicon",
+            }
+        )
+        void should_reject_mismatched_image_without_updating_theme(ThemeType type, String field) {
+            var existingTheme = type == ThemeType.PORTAL ? aPortalTheme() : aPortalNextTheme();
+            var expectedTheme = existingTheme.toBuilder().build();
+            themeQueryService.initWith(List.of(existingTheme));
+            themeCrudService.initWith(List.of(existingTheme));
+            var definition = type == ThemeType.PORTAL ? Map.of("data", List.of()) : Map.of("customCss", "a new style");
+            var updateTheme = Map.of(
+                "id",
+                THEME_ID,
+                "type",
+                type.name(),
+                "name",
+                "new name",
+                "enabled",
+                false,
+                "definition",
+                definition,
+                field,
+                "data:image/png;base64,PGh0bWw+PC9odG1sPg=="
+            );
+
+            try (Response response = rootTarget().request().put(Entity.json(updateTheme))) {
+                MAPIAssertions.assertThat(response)
+                    .hasStatus(BAD_REQUEST_400)
+                    .asError()
+                    .hasHttpStatus(BAD_REQUEST_400)
+                    .hasMessage("Invalid theme image in " + field + ": image content does not match its declared media type");
+            }
+            assertThat(themeCrudService.storage()).containsExactly(expectedTheme);
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = ThemeType.class, names = { "PORTAL", "PORTAL_NEXT" })
+        void should_update_name_and_colors_while_preserving_unchanged_legacy_svg_images(ThemeType type) {
+            var existingTheme = aThemeWithImages(type, SVG_IMAGE);
+            themeQueryService.initWith(List.of(existingTheme));
+            themeCrudService.initWith(List.of(existingTheme));
+            var definition = type == ThemeType.PORTAL
+                ? Map.of("data", List.of(Map.of("name", "title", "css", List.of(Map.of("name", "background", "value", "#000")))))
+                : Map.of("color", Map.of("primary", "#000"));
+            var updateTheme = new HashMap<String, Object>(
+                Map.of(
+                    "id",
+                    THEME_ID,
+                    "type",
+                    type.name(),
+                    "name",
+                    "Updated colors",
+                    "enabled",
+                    true,
+                    "definition",
+                    definition,
+                    "logo",
+                    SVG_IMAGE,
+                    "optionalLogo",
+                    SVG_IMAGE,
+                    "favicon",
+                    SVG_IMAGE
+                )
+            );
+            if (type == ThemeType.PORTAL) {
+                updateTheme.put("backgroundImage", SVG_IMAGE);
+            }
+
+            try (Response response = rootTarget().request().put(Entity.json(updateTheme))) {
+                MAPIAssertions.assertThat(response)
+                    .hasStatus(OK_200)
+                    .asEntity(JsonNode.class)
+                    .satisfies(theme -> {
+                        assertThat(theme.path("name").asText()).isEqualTo("Updated colors");
+                        assertThat(theme.path("logo").asText()).isEqualTo(SVG_IMAGE);
+                        assertThat(theme.path("optionalLogo").asText()).isEqualTo(SVG_IMAGE);
+                        assertThat(theme.path("favicon").asText()).isEqualTo(SVG_IMAGE);
+                        var colorPath = type == ThemeType.PORTAL ? "/definition/data/0/css/0/value" : "/definition/color/primary";
+                        assertThat(theme.at(colorPath).asText()).isEqualTo("#000");
+                        if (type == ThemeType.PORTAL) {
+                            assertThat(theme.path("backgroundImage").asText()).isEqualTo(SVG_IMAGE);
+                        }
+                    });
+            }
+            var storedTheme = themeCrudService.get(THEME_ID);
+            assertThat(storedTheme.getName()).isEqualTo("Updated colors");
+            assertThat(storedTheme.getLogo()).isEqualTo(SVG_IMAGE);
+            assertThat(storedTheme.getOptionalLogo()).isEqualTo(SVG_IMAGE);
+            assertThat(storedTheme.getFavicon()).isEqualTo(SVG_IMAGE);
+            if (type == ThemeType.PORTAL) {
+                assertThat(storedTheme.getBackgroundImage()).isEqualTo(SVG_IMAGE);
+                assertThat(storedTheme.getDefinitionPortal().getData().getFirst().getCss().getFirst().getValue()).isEqualTo("#000");
+            } else {
+                assertThat(storedTheme.getDefinitionPortalNext().getColor().getPrimary()).isEqualTo("#000");
+            }
+        }
+
+        @ParameterizedTest
+        @CsvSource(
+            {
+                "PORTAL,logo,false",
+                "PORTAL,optionalLogo,false",
+                "PORTAL,favicon,false",
+                "PORTAL,backgroundImage,false",
+                "PORTAL_NEXT,logo,false",
+                "PORTAL_NEXT,optionalLogo,false",
+                "PORTAL_NEXT,favicon,false",
+                "PORTAL,logo,true",
+                "PORTAL,optionalLogo,true",
+                "PORTAL,favicon,true",
+                "PORTAL,backgroundImage,true",
+                "PORTAL_NEXT,logo,true",
+                "PORTAL_NEXT,optionalLogo,true",
+                "PORTAL_NEXT,favicon,true",
+            }
+        )
+        void should_reject_new_or_changed_svg_without_updating_theme(ThemeType type, String field, boolean replacingLegacyImage) {
+            var existingTheme = aThemeWithImages(type, replacingLegacyImage ? SVG_IMAGE : null);
+            var expectedTheme = existingTheme.toBuilder().build();
+            themeQueryService.initWith(List.of(existingTheme));
+            themeCrudService.initWith(List.of(existingTheme));
+            var definition = type == ThemeType.PORTAL ? Map.of("data", List.of()) : Map.of("color", Map.of("primary", "#000"));
+            var updateTheme = Map.of(
+                "id",
+                THEME_ID,
+                "type",
+                type.name(),
+                "name",
+                "Updated colors",
+                "enabled",
+                true,
+                "definition",
+                definition,
+                field,
+                CHANGED_SVG_IMAGE
+            );
+
+            try (Response response = rootTarget().request().put(Entity.json(updateTheme))) {
+                MAPIAssertions.assertThat(response)
+                    .hasStatus(BAD_REQUEST_400)
+                    .asError()
+                    .hasHttpStatus(BAD_REQUEST_400)
+                    .hasMessage("Invalid theme image in " + field + ": unsupported image media type");
+            }
+            assertThat(themeCrudService.storage()).containsExactly(expectedTheme);
+        }
+
         @Test
         public void should_update_portal_theme() {
             themeQueryService.initWith(List.of(aPortalTheme()));
             themeCrudService.initWith(List.of(aPortalTheme()));
 
             var updateTheme = (UpdateThemePortal) new UpdateThemePortal()
-                .backgroundImage("background image")
+                .backgroundImage(PNG_IMAGE)
                 .definition(
                     new PortalDefinition().data(
                         List.of(
@@ -173,8 +340,9 @@ public class ThemeResourceTest extends AbstractResourceTest {
                 .id(THEME_ID)
                 .name("new name")
                 .enabled(false)
-                .logo("background image")
-                .optionalLogo("background image");
+                .logo(PNG_IMAGE)
+                .optionalLogo(PNG_IMAGE)
+                .favicon(PNG_IMAGE);
 
             final Response response = rootTarget().request().put(Entity.json(updateTheme));
 
@@ -189,6 +357,7 @@ public class ThemeResourceTest extends AbstractResourceTest {
                     assertThat(theme.getEnabled()).isEqualTo(updateTheme.getEnabled());
                     assertThat(theme.getLogo()).isEqualTo(updateTheme.getLogo());
                     assertThat(theme.getOptionalLogo()).isEqualTo(updateTheme.getOptionalLogo());
+                    assertThat(theme.getFavicon()).isEqualTo(updateTheme.getFavicon());
                     assertThat(theme.getBackgroundImage()).isEqualTo(updateTheme.getBackgroundImage());
                 });
         }
@@ -208,8 +377,9 @@ public class ThemeResourceTest extends AbstractResourceTest {
                 .id(THEME_ID)
                 .name("new name")
                 .enabled(false)
-                .optionalLogo("background image")
-                .logo("background image");
+                .optionalLogo(PNG_IMAGE)
+                .logo(PNG_IMAGE)
+                .favicon(PNG_IMAGE);
 
             final Response response = rootTarget().request().put(Entity.json(updateTheme));
 
@@ -224,6 +394,7 @@ public class ThemeResourceTest extends AbstractResourceTest {
                     assertThat(theme.getEnabled()).isEqualTo(updateTheme.getEnabled());
                     assertThat(theme.getLogo()).isEqualTo(updateTheme.getLogo());
                     assertThat(theme.getOptionalLogo()).isEqualTo(updateTheme.getOptionalLogo());
+                    assertThat(theme.getFavicon()).isEqualTo(updateTheme.getFavicon());
                 });
         }
 
@@ -245,8 +416,8 @@ public class ThemeResourceTest extends AbstractResourceTest {
                 .id(THEME_ID)
                 .name("new name")
                 .enabled(true)
-                .logo("background image")
-                .optionalLogo("background image");
+                .logo(PNG_IMAGE)
+                .optionalLogo(PNG_IMAGE);
 
             final Response response = rootTarget().request().put(Entity.json(updateTheme));
 
@@ -281,6 +452,17 @@ public class ThemeResourceTest extends AbstractResourceTest {
             .updatedAt(ZonedDateTime.now())
             .backgroundImage("hehe")
             .enabled(true)
+            .build();
+    }
+
+    private Theme aThemeWithImages(ThemeType type, String image) {
+        var theme = type == ThemeType.PORTAL ? aPortalTheme() : aPortalNextTheme();
+        return theme
+            .toBuilder()
+            .logo(image)
+            .optionalLogo(image)
+            .favicon(image)
+            .backgroundImage(type == ThemeType.PORTAL ? image : null)
             .build();
     }
 
