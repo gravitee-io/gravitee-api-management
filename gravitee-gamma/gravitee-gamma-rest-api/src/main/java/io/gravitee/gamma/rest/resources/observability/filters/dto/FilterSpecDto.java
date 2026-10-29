@@ -30,6 +30,10 @@ import java.util.Set;
  * renders readable chips without hardcoding value→label maps. {@code signals} and {@code apiTypes}
  * are emitted UPPERCASE and sorted for a stable payload so the consumer can route a filter to the
  * right panel. Optional fields ({@code enumValues}, {@code range}) are omitted when null.
+ *
+ * <p>{@code origin}, {@code rawKey}, {@code valueType}, {@code lastSeen} and {@code exposed} are the
+ * catalog flags of the {@code CatalogEntryFlags} schema, also carried by the metric definitions. An
+ * entry without {@code origin} is a built-in one.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record FilterSpecDto(
@@ -40,7 +44,12 @@ public record FilterSpecDto(
     List<EnumValueDto> enumValues,
     RangeDto range,
     List<String> signals,
-    List<String> apiTypes
+    List<String> apiTypes,
+    String origin,
+    String rawKey,
+    String valueType,
+    String lastSeen,
+    Boolean exposed
 ) {
     public record EnumValueDto(String value, String label) {}
 
@@ -61,7 +70,14 @@ public record FilterSpecDto(
                     .toList(),
             spec.range() == null ? null : new RangeDto(spec.range().min(), spec.range().max()),
             sortedNames(spec.signals()),
-            sortedNames(spec.apiTypes())
+            sortedNames(spec.apiTypes()),
+            // TODO(OBS-74): map the catalog flags once the core spec carries them, typing origin and valueType
+            // with the shared enums and extending FilterCatalogSchemaTest to their values.
+            null,
+            null,
+            null,
+            null,
+            null
         );
     }
 
