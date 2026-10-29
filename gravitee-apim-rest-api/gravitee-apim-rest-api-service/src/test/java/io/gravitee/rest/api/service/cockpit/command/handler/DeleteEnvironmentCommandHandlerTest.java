@@ -51,6 +51,7 @@ import io.gravitee.repository.management.api.DashboardRepository;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.api.GammaDashboardRepository;
+import io.gravitee.repository.management.api.GammaMetricDefinitionRepository;
 import io.gravitee.repository.management.api.GenericNotificationConfigRepository;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.IdentityProviderActivationRepository;
@@ -258,6 +259,9 @@ public class DeleteEnvironmentCommandHandlerTest {
 
     @Mock
     private GammaDashboardRepository gammaDashboardRepository;
+
+    @Mock
+    private GammaMetricDefinitionRepository gammaMetricDefinitionRepository;
 
     @Mock
     private DashboardRepository dashboardRepository;
@@ -472,6 +476,7 @@ public class DeleteEnvironmentCommandHandlerTest {
             dictionaryRepository,
             flowRepository,
             gammaDashboardRepository,
+            gammaMetricDefinitionRepository,
             genericNotificationConfigRepository,
             groupRepository,
             identityProviderActivationRepository,
@@ -589,6 +594,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(dashboardRepository).deleteByReferenceIdAndReferenceType(ENV_ID, DashboardReferenceType.ENVIRONMENT);
         verify(customDashboardRepository).deleteByEnvironmentId(ENV_ID);
         verify(gammaDashboardRepository).deleteByEnvironmentId(ENV_ID);
+        verify(gammaMetricDefinitionRepository).deleteByEnvironmentId(ENV_ID);
         verify(dictionaryRepository).deleteByEnvironmentId(ENV_ID);
         verify(portalNotificationConfigRepository).deleteByReferenceIdAndReferenceType(ENV_ID, NotificationReferenceType.ENVIRONMENT);
         verify(genericNotificationConfigRepository).deleteByReferenceIdAndReferenceType(ENV_ID, NotificationReferenceType.ENVIRONMENT);

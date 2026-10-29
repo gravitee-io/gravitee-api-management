@@ -163,6 +163,13 @@ public interface GraviteeMapper {
 
     GammaDashboardMongo.TimeRange map(GammaDashboard.TimeRange toMap);
 
+    // GammaMetricDefinition mapping
+    GammaMetricDefinition map(GammaMetricDefinitionMongo toMap);
+
+    GammaMetricDefinitionMongo map(GammaMetricDefinition toMap);
+
+    Set<GammaMetricDefinition> mapGammaMetricDefinitions(Collection<GammaMetricDefinitionMongo> toMap);
+
     // PortalCategory mapping
     PortalCategory map(PortalCategoryMongo toMap);
 

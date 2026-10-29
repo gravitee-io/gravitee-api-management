@@ -30,7 +30,9 @@ import io.gravitee.repository.log.v4.model.analytics.*;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public interface AnalyticsRepository {
     Optional<CountAggregate> searchRequestsCount(QueryContext queryContext, RequestsCountQuery requestsCountQuery);
@@ -127,5 +129,18 @@ public interface AnalyticsRepository {
      */
     default FilterOutcome filterOutcome(AnalyticsSearchPath path, Filter.Name filter) {
         return FilterOutcome.APPLIED;
+    }
+
+    /**
+     * The additional metrics read under a built-in name: each key, type prefix included (e.g.
+     * {@code keyword_mcp-proxy_tools/call}), with the built-in metric, filter and facet names that read it, on the
+     * analytics and the logs paths. A key read by the logs path through a constant only maps to no name. A record or a
+     * discovered field on one of these keys would duplicate the built-in entry.
+     *
+     * <p>The default answers none: an implementation that does not say reads no additional metric under a built-in
+     * name.
+     */
+    default Map<String, Set<String>> builtInAdditionalMetricKeys() {
+        return Map.of();
     }
 }
