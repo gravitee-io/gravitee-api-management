@@ -66,6 +66,23 @@ class SubscriptionUniqueActiveKeyTest {
     }
 
     @Test
+    void should_hash_the_key_into_64_lowercase_hexadecimal_characters() {
+        var subscription = aSubscription("sub-1").build();
+
+        // sha256("API:api-1:app-1:plan-1")
+        assertThat(SubscriptionUniqueActiveKey.hashOf(subscription))
+            .hasSize(64)
+            .isEqualTo("939db7ee18b7ecaae934b931891f40ec681f32f5e96cb2ebc7f2621a015caa4c");
+    }
+
+    @Test
+    void should_not_hash_anything_for_a_subscription_without_key() {
+        var closed = aSubscription("sub-1").status(Subscription.Status.CLOSED).build();
+
+        assertThat(SubscriptionUniqueActiveKey.hashOf(closed)).isNull();
+    }
+
+    @Test
     void should_give_the_same_key_to_two_active_subscriptions_of_an_application_to_the_same_plan() {
         var accepted = aSubscription("sub-1").status(Subscription.Status.ACCEPTED).build();
         var pending = aSubscription("sub-2").status(Subscription.Status.PENDING).build();

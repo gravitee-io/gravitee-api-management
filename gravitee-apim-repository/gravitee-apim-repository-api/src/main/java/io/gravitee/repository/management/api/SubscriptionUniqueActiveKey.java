@@ -89,6 +89,17 @@ public final class SubscriptionUniqueActiveKey {
         return key;
     }
 
+    /**
+     * What the repositories store and index: the SHA-256 of the key, in lowercase hexadecimal. 64 ASCII characters fit
+     * a unique index on every supported database, whatever its row format.
+     *
+     * @return the hash of the key of the subscription, or {@code null} when it has no key.
+     */
+    public static String hashOf(Subscription subscription) {
+        String key = of(subscription);
+        return key == null ? null : sha256(key);
+    }
+
     private static boolean isActive(Subscription.Status status) {
         return status != Subscription.Status.REJECTED && status != Subscription.Status.CLOSED;
     }
