@@ -364,6 +364,37 @@ jobs:
           keys:
             - gravitee-api-management-v16-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
+          name: Align integration tests with the pinned core
+          command: |-
+            PIN=$(sed -n 's:.*<apim.core.version>\(.*\)</apim.core.version>.*:\1:p' gravitee-apim-distribution/pom.xml)
+            TAG="core_${PIN}"
+            if ! git fetch --no-tags origin "refs/tags/${TAG}:refs/tags/${TAG}"; then
+              echo "No tag ${TAG}: the pinned core is not a release, integration tests run as they are on the branch."
+              exit 0
+            fi
+
+            TESTS=gravitee-apim-distribution/gravitee-apim-distribution-integration-tests
+            for commit in $(git rev-list --no-merges "${TAG}..HEAD" -- "${TESTS}"); do
+              if git show --name-only --format= "${commit}" | grep -qv '^gravitee-apim-distribution/'; then
+                git show --name-only --format= "${commit}" -- "${TESTS}"
+              fi
+            done | sort -u > /tmp/core-coupled-tests
+
+            if [ ! -s /tmp/core-coupled-tests ]; then
+              echo "No integration test changed with the core since ${TAG}."
+              exit 0
+            fi
+
+            echo "Restored as of ${TAG}, because they came with core changes the pinned core does not have:"
+            while read -r file; do
+              echo "  ${file}"
+              if git cat-file -e "${TAG}:${file}" 2>/dev/null; then
+                git checkout "${TAG}" -- "${file}"
+              else
+                rm -f "${file}"
+              fi
+            done < /tmp/core-coupled-tests
+      - run:
           name: Run tests
           command: |-
             cd gravitee-apim-distribution/gravitee-apim-distribution-integration-tests
