@@ -390,6 +390,8 @@ databaseChangeLog:
     - include:
         - file: liquibase/changelogs/v4_12_26/00_add_subscriptions_unique_active_key.yml
     - include:
+        - file: liquibase/changelogs/v4_12_27/00_add_subscriptions_active_key_hash.yml
+    - include:
         - file: liquibase/changelogs/v4_13_0/01_add_persisted_claims_whitelist_to_identity_providers.yml
     - include:
         - file: liquibase/changelogs/v4_13_0/02_add_claim_mappings_to_client_registration_providers.yml
