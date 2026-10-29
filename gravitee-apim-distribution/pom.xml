@@ -122,7 +122,7 @@
     <gravitee-policy-circuit-breaker.version>2.1.0</gravitee-policy-circuit-breaker.version>
     <gravitee-policy-custom-query-parameters-parser.version>3.0.0</gravitee-policy-custom-query-parameters-parser.version>
     <gravitee-policy-cloud-events.version>2.0.0</gravitee-policy-cloud-events.version>
-    <gravitee-policy-data-cache.version>2.0.0</gravitee-policy-data-cache.version>
+    <gravitee-policy-data-cache.version>2.1.0</gravitee-policy-data-cache.version>
     <gravitee-policy-data-logging-masking.version>4.0.0</gravitee-policy-data-logging-masking.version>
     <gravitee-policy-dynamic-routing.version>3.0.0</gravitee-policy-dynamic-routing.version>
     <gravitee-policy-generate-http-signature.version>2.0.0</gravitee-policy-generate-http-signature.version>
