@@ -17,7 +17,9 @@ package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.MessageFacetExtractor.REQUEST_ID_AGG_NAME;
 
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.NumberRange;
@@ -56,7 +58,7 @@ public class HTTPFacetsQueryAdapter {
             .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit(), query.ranges()));
     }
 
-    public JsonObject adaptFacets(List<MetricMeasuresQuery> metrics, List<Facet> queryFacets, Integer limit, List<NumberRange> ranges) {
+    public JsonObject adaptFacets(List<MetricMeasuresQuery> metrics, List<FacetName> queryFacets, Integer limit, List<NumberRange> ranges) {
         var aggs = new JsonObject();
         for (var metric : metrics) {
             aggs.mergeIn(adaptFacets(metric, queryFacets, limit, ranges));
@@ -64,7 +66,7 @@ public class HTTPFacetsQueryAdapter {
         return aggs;
     }
 
-    public JsonObject adaptFacets(MetricMeasuresQuery metric, List<Facet> queryFacets, Integer limit, List<NumberRange> ranges) {
+    public JsonObject adaptFacets(MetricMeasuresQuery metric, List<FacetName> queryFacets, Integer limit, List<NumberRange> ranges) {
         var aggs = new JsonObject();
 
         if (queryFacets.isEmpty()) {
@@ -114,7 +116,7 @@ public class HTTPFacetsQueryAdapter {
         return composite;
     }
 
-    private JsonObject adaptFacet(MetricMeasuresQuery metric, Facet facet, Integer limit, List<NumberRange> ranges, boolean last) {
+    private JsonObject adaptFacet(MetricMeasuresQuery metric, FacetName facet, Integer limit, List<NumberRange> ranges, boolean last) {
         var rangeAggregation = resolveRangeAggregation(facet, ranges, last);
         if (rangeAggregation != null) {
             return rangeAggregation;
@@ -130,7 +132,7 @@ public class HTTPFacetsQueryAdapter {
      * {@code by} dimension. {@code HTTP_STATUS_CODE_GROUP} must always bucket on status-code ranges
      * so a follow-up {@code HTTP_STATUS} facet can drill down within each group.
      */
-    private JsonObject resolveRangeAggregation(Facet facet, List<NumberRange> ranges, boolean last) {
+    private JsonObject resolveRangeAggregation(FacetName facet, List<NumberRange> ranges, boolean last) {
         if (facet == Facet.HTTP_STATUS_CODE_GROUP) {
             return toRangeLeaf(Facet.HTTP_STATUS, NumberRange.forStatusCodeGroup());
         }
@@ -140,22 +142,29 @@ public class HTTPFacetsQueryAdapter {
         return null;
     }
 
-    private JsonObject toRangeLeaf(Facet facet, List<NumberRange> ranges) {
+    private JsonObject toRangeLeaf(FacetName facet, List<NumberRange> ranges) {
         var range = json().put("field", fieldResolver.fromFacet(facet));
         var queryRanges = range.put("ranges", new JsonArray()).getJsonArray("ranges");
         for (var rangeQuery : ranges) {
-            queryRanges.add(toQueryRange(rangeQuery));
+            queryRanges.add(toQueryRange(facet, rangeQuery));
         }
         return json().put("range", range);
     }
 
-    private JsonObject toQueryRange(NumberRange range) {
+    private JsonObject toQueryRange(FacetName facet, NumberRange range) {
         var key = range.from() + "-" + range.to();
-        // ES range aggregation `to` is exclusive; add 1 so the upper bound is included
-        return json().put("key", key).put("from", range.from()).put("to", range.to().longValue() + 1);
+        // ES range aggregation `to` is exclusive; move it past the upper bound so the bound is included
+        return json().put("key", key).put("from", range.from()).put("to", exclusiveUpperBound(facet, range.to()));
     }
 
-    private JsonObject toTermsLeaf(Facet facet, MetricMeasuresQuery metric, Integer limit) {
+    private static Number exclusiveUpperBound(FacetName facet, Number to) {
+        if (facet instanceof AdditionalMetricField field && field.valueType() == AdditionalMetricField.ValueType.DOUBLE) {
+            return Math.nextUp(to.doubleValue());
+        }
+        return to.longValue() + 1;
+    }
+
+    private JsonObject toTermsLeaf(FacetName facet, MetricMeasuresQuery metric, Integer limit) {
         var terms = json().put("field", fieldResolver.fromFacet(facet));
         if (limit != null) {
             terms.put("size", limit);
@@ -172,7 +181,7 @@ public class HTTPFacetsQueryAdapter {
         return json().put("terms", terms);
     }
 
-    private JsonObject toTerms(Facet facet) {
+    private JsonObject toTerms(FacetName facet) {
         return json().put("field", fieldResolver.fromFacet(facet));
     }
 

@@ -30,6 +30,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
@@ -2124,7 +2125,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     Filter.Operator.IN,
                     List.of("f1608475-dd77-4603-a084-75dd775603e9", "4a6895d5-a1bc-4041-a895-d5a1bce041ae")
                 );
-                var facets = List.of(Facet.HTTP_STATUS_CODE_GROUP);
+                List<FacetName> facets = List.of(Facet.HTTP_STATUS_CODE_GROUP);
                 return new TimeSeriesQuery(timeRange, List.of(filter), interval, metrics, facets);
             }
 
@@ -2153,7 +2154,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 var metrics = List.of(new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, Set.of(Measure.COUNT)));
                 var interval = Duration.ofHours(1).toMillis();
                 var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of("kafka-api-001"));
-                var facets = List.of(Facet.NATIVE_CONNECTION_STATUS);
+                List<FacetName> facets = List.of(Facet.NATIVE_CONNECTION_STATUS);
                 return new TimeSeriesQuery(timeRange, List.of(filter), interval, metrics, facets);
             }
 

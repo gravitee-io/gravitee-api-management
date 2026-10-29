@@ -21,7 +21,6 @@ import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.apim.infra.adapter.AnalyticsMeasuresAdapter;
 import io.gravitee.repository.analytics.engine.api.query.AnalyticsSearchPath;
-import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.FilterOutcome;
 import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
@@ -73,5 +72,5 @@ final class IgnoredFilters {
         return response == null ? null : response.withIgnoredFilters(ignored);
     }
 
-    private record Outcome(Filter.Name name, FilterOutcome outcome) {}
+    private record Outcome(io.gravitee.repository.analytics.engine.api.query.FilterName name, FilterOutcome outcome) {}
 }

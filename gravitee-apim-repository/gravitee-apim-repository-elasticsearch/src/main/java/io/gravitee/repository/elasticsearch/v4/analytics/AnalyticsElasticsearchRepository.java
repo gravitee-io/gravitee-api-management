@@ -19,9 +19,10 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.analytics.engine.api.query.AnalyticsSearchPath;
-import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
+import io.gravitee.repository.analytics.engine.api.query.FilterName;
 import io.gravitee.repository.analytics.engine.api.query.FilterOutcome;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.Query;
@@ -648,7 +649,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
      * <p>Anything unknown answers false and keeps the join, which works on every document whatever
      * wrote it. That is the safe direction: the join is slower, never wrong.
      */
-    private boolean canReadMessagesDirectly(QueryContext queryContext, Query query, String messageIndex, Collection<Facet> facets) {
+    private boolean canReadMessagesDirectly(QueryContext queryContext, Query query, String messageIndex, Collection<FacetName> facets) {
         if (!messageFilterAdapter.isFullyAppliedOnMessages(query)) {
             return false;
         }
@@ -698,7 +699,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     }
 
     /** Whether this query filters or breaks down on a dimension the message documents carry only once stamped. */
-    private static boolean readsConnectionDimension(Query query, Collection<Facet> facets) {
+    private static boolean readsConnectionDimension(Query query, Collection<FacetName> facets) {
         var filtered = query
             .filters()
             .stream()
@@ -884,7 +885,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     }
 
     @Override
-    public FilterOutcome filterOutcome(AnalyticsSearchPath path, Filter.Name filter) {
+    public FilterOutcome filterOutcome(AnalyticsSearchPath path, FilterName filter) {
         return FilterAdapter.outcome(path, filter);
     }
 

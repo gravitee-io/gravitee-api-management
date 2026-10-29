@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
@@ -23,6 +24,8 @@ import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeRange;
 import io.gravitee.apim.core.analytics_engine.model.TrafficScope;
 import io.gravitee.apim.core.observability.model.FilterOperator;
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
+import io.gravitee.repository.analytics.engine.api.query.FilterName;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -60,5 +63,19 @@ class AnalyticsMeasuresAdapterTest {
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
 
         assertThat(query.filters().getFirst().value()).isEqualTo(List.of("api-1"));
+    }
+
+    @Test
+    void should_read_a_built_in_outcome_back_under_its_catalog_name() {
+        FilterName name = io.gravitee.repository.analytics.engine.api.query.Filter.Name.API;
+
+        assertThat(AnalyticsMeasuresAdapter.INSTANCE.fromFilterName(name)).isEqualTo(FilterSpec.Name.API);
+    }
+
+    @Test
+    void should_refuse_to_read_an_additional_metric_outcome_back() {
+        var field = new AdditionalMetricField(AdditionalMetricField.ValueType.KEYWORD, "keyword_fraud-check_tier");
+
+        assertThatThrownBy(() -> AnalyticsMeasuresAdapter.INSTANCE.fromFilterName(field)).isInstanceOf(IllegalArgumentException.class);
     }
 }

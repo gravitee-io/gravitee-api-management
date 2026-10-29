@@ -16,7 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
-import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
@@ -45,7 +45,7 @@ public class NativeFacetsQueryAdapter {
             .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit()));
     }
 
-    public JsonObject adaptFacets(List<MetricMeasuresQuery> metrics, List<Facet> queryFacets, Integer limit) {
+    public JsonObject adaptFacets(List<MetricMeasuresQuery> metrics, List<FacetName> queryFacets, Integer limit) {
         var aggs = new JsonObject();
         for (var metric : metrics) {
             aggs.mergeIn(adaptFacets(metric, queryFacets, limit));
@@ -53,7 +53,7 @@ public class NativeFacetsQueryAdapter {
         return aggs;
     }
 
-    public JsonObject adaptFacets(MetricMeasuresQuery metric, List<Facet> queryFacets, Integer limit) {
+    public JsonObject adaptFacets(MetricMeasuresQuery metric, List<FacetName> queryFacets, Integer limit) {
         var aggs = new JsonObject();
         if (queryFacets.isEmpty()) {
             return aggs;
@@ -65,7 +65,7 @@ public class NativeFacetsQueryAdapter {
         return aggs;
     }
 
-    private JsonObject toTermsLeaf(MetricMeasuresQuery metric, Facet facet, Integer limit) {
+    private JsonObject toTermsLeaf(MetricMeasuresQuery metric, FacetName facet, Integer limit) {
         var terms = new JsonObject().put("field", fieldResolver.fromFacet(facet));
         // A null limit means "no explicit size", so Elasticsearch applies its default terms size of 10.
         // Fine for low-cardinality facets like NATIVE_CONNECTION_STATUS; a caller needing every bucket of

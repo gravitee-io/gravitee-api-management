@@ -65,8 +65,8 @@ public class NativeApiFieldResolver implements FieldResolver {
     }
 
     @Override
-    public String fromFilter(Filter filter) {
-        return switch (filter.name()) {
+    public String fromFilter(Filter.Name name) {
+        return switch (name) {
             case API, TRAFFIC_SCOPE -> RequestV2MetricsV4Fields.API_ID.v4Metrics();
             case APPLICATION -> RequestV2MetricsV4Fields.APPLICATION_ID.v4Metrics();
             case PLAN -> RequestV2MetricsV4Fields.PLAN_ID.v4Metrics();
@@ -76,7 +76,7 @@ public class NativeApiFieldResolver implements FieldResolver {
             case NATIVE_CLIENT_SOFTWARE_NAME -> CLIENT_SOFTWARE_NAME_FIELD;
             default -> throw new UnsupportedOperationException(
                 "NativeApiFieldResolver does not support filter '" +
-                    filter.name() +
+                    name +
                     "' — supported names: API, APPLICATION, PLAN, NATIVE_CONNECTION_STATUS, NATIVE_FAILURE_SIDE, NATIVE_CLIENT_ID, NATIVE_CLIENT_SOFTWARE_NAME"
             );
         };

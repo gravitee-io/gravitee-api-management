@@ -17,7 +17,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
-import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.vertx.core.json.JsonObject;
 import java.util.HashSet;
 import java.util.List;
@@ -30,7 +30,7 @@ public class MessageFacetExtractor {
 
     static final String REQUEST_ID_AGG_NAME = "_REQUEST_ID";
 
-    public static MessageFacetJoin extractFromComposite(SearchResponse response, List<Facet> joinFacets) {
+    public static MessageFacetJoin extractFromComposite(SearchResponse response, List<FacetName> joinFacets) {
         if (response == null || response.getAggregations() == null || response.getAggregations().isEmpty()) {
             return MessageFacetJoin.empty();
         }

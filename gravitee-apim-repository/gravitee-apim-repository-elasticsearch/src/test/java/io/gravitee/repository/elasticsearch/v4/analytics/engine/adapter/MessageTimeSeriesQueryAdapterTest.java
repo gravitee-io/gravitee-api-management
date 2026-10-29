@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
@@ -35,7 +36,7 @@ class MessageTimeSeriesQueryAdapterTest extends AbstractQueryAdapterTest {
 
     private final MessageTimeSeriesQueryAdapter adapter = new MessageTimeSeriesQueryAdapter();
 
-    private TimeSeriesQuery query(List<Facet> facets) {
+    private TimeSeriesQuery query(List<FacetName> facets) {
         return new TimeSeriesQuery(
             buildTimeRange(),
             List.of(),

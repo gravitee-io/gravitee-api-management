@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
 import java.time.Duration;
 import java.util.List;
@@ -38,7 +39,7 @@ public class HTTPTimeSeriesAdapterTest extends AbstractQueryAdapterTest {
         var filters = buildFilters();
         var metrics = buildMetrics();
 
-        var facets = List.of(Facet.HTTP_STATUS);
+        List<FacetName> facets = List.of(Facet.HTTP_STATUS);
 
         var interval = Duration.ofHours(1).toMillis();
 
@@ -78,7 +79,7 @@ public class HTTPTimeSeriesAdapterTest extends AbstractQueryAdapterTest {
         var timeRange = buildTimeRange();
         var filters = buildFilters();
         var metrics = buildSortedMetric();
-        var facets = List.of(Facet.HTTP_STATUS_CODE_GROUP, Facet.HTTP_STATUS);
+        List<FacetName> facets = List.of(Facet.HTTP_STATUS_CODE_GROUP, Facet.HTTP_STATUS);
         var interval = Duration.ofHours(1).toMillis();
         var limit = 5;
 

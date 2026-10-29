@@ -76,12 +76,12 @@ public class MessageFieldResolver implements FieldResolver {
     }
 
     @Override
-    public String fromFilter(Filter filter) {
-        return switch (filter.name()) {
+    public String fromFilter(Filter.Name name) {
+        return switch (name) {
             case Filter.Name.MESSAGE_OPERATION_TYPE -> "operation";
             case Filter.Name.MESSAGE_CONNECTOR_ID -> "connector-id";
             case Filter.Name.MESSAGE_CONNECTOR_TYPE -> "connector-type";
-            default -> httpFieldResolver.fromFilter(filter);
+            default -> httpFieldResolver.fromFilter(name);
         };
     }
 }

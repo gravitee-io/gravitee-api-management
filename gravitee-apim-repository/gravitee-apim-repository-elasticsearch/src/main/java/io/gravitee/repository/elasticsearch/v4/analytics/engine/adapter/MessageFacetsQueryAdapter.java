@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
-import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.vertx.core.json.JsonArray;
@@ -64,7 +64,7 @@ public class MessageFacetsQueryAdapter {
             .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit()));
     }
 
-    JsonObject adaptFacets(List<MetricMeasuresQuery> metrics, List<Facet> facets, Integer limit) {
+    JsonObject adaptFacets(List<MetricMeasuresQuery> metrics, List<FacetName> facets, Integer limit) {
         var aggs = new JsonObject();
         for (var metric : metrics) {
             aggs.mergeIn(adaptFacets(metric, facets, limit));
@@ -80,7 +80,7 @@ public class MessageFacetsQueryAdapter {
      * it bottom-up is what let a child be keyed by its parent's name, which the response side —
      * resolving the child strictly by name — cannot survive.
      */
-    JsonObject adaptFacets(MetricMeasuresQuery metric, List<Facet> facets, Integer limit) {
+    JsonObject adaptFacets(MetricMeasuresQuery metric, List<FacetName> facets, Integer limit) {
         var aggs = new JsonObject();
         if (facets == null || facets.isEmpty()) {
             return aggs;
@@ -108,7 +108,7 @@ public class MessageFacetsQueryAdapter {
      * here for the same reason — applied at every level it would mean "top N at each depth" rather
      * than "top N of the ranked dimension".
      */
-    private JsonObject toTermsLeaf(MetricMeasuresQuery metric, Facet facet, Integer limit) {
+    private JsonObject toTermsLeaf(MetricMeasuresQuery metric, FacetName facet, Integer limit) {
         var terms = new JsonObject().put("field", measuresAdapter.fieldResolver().fromFacet(facet));
         // A null limit leaves Elasticsearch its default terms size of 10. Fine for the closed
         // dimensions (operation, connector type); a caller ranking a high-cardinality one — connector
@@ -126,7 +126,7 @@ public class MessageFacetsQueryAdapter {
         return new JsonObject().put("terms", terms);
     }
 
-    private JsonObject toTerms(Facet facet) {
+    private JsonObject toTerms(FacetName facet) {
         return new JsonObject().put("terms", new JsonObject().put("field", measuresAdapter.fieldResolver().fromFacet(facet)));
     }
 

@@ -20,8 +20,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField.ValueType;
 import io.gravitee.repository.analytics.engine.api.query.AnalyticsSearchPath;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
+import io.gravitee.repository.analytics.engine.api.query.FilterName;
 import io.gravitee.repository.analytics.engine.api.query.FilterOutcome;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
@@ -46,7 +49,8 @@ import org.junit.jupiter.params.provider.MethodSource;
  * Pins {@link FilterAdapter#outcome} to the queries the adapters actually build: for every search path and
  * every filter name, the query built with a condition on that name either carries it (APPLIED), is the
  * same as without it (IGNORED), or matches nothing (EMPTIES). The answer is what analytics responses
- * report as ignored filters, so a list edited without the other is caught here.
+ * report as ignored filters, so a list edited without the other is caught here. Additional metric fields are
+ * checked alongside the built-in names, one per value type a condition can take.
  */
 class FilterAdapterOutcomeTest {
 
@@ -83,15 +87,49 @@ class FilterAdapterOutcomeTest {
         List.of(new FilterAdapter(new AuthzTrafficFieldResolver())::adaptForAuthzTraffic)
     );
 
+    private static final AdditionalMetricField KEYWORD_FIELD = new AdditionalMetricField(ValueType.KEYWORD, "keyword_fraud-check_tier");
+    private static final AdditionalMetricField LONG_FIELD = new AdditionalMetricField(ValueType.LONG, "long_failover_count");
+    private static final AdditionalMetricField INT_FIELD = new AdditionalMetricField(ValueType.INT, "int_retry_attempts");
+    private static final AdditionalMetricField DOUBLE_FIELD = new AdditionalMetricField(ValueType.DOUBLE, "double_llm-proxy_sent-cost");
+    private static final AdditionalMetricField BOOL_FIELD = new AdditionalMetricField(ValueType.BOOL, "bool_cache_hit");
+    private static final List<AdditionalMetricField> ADDITIONAL_METRIC_FIELDS = List.of(
+        KEYWORD_FIELD,
+        LONG_FIELD,
+        INT_FIELD,
+        DOUBLE_FIELD,
+        BOOL_FIELD
+    );
+
     static Stream<Arguments> everyPathAndName() {
-        return Arrays.stream(AnalyticsSearchPath.values()).flatMap(path ->
-            Arrays.stream(Filter.Name.values()).map(name -> Arguments.of(path, name))
+        var names = Stream.concat(Arrays.stream(Filter.Name.values()), ADDITIONAL_METRIC_FIELDS.stream()).toList();
+        return Arrays.stream(AnalyticsSearchPath.values()).flatMap(path -> names.stream().map(name -> Arguments.of(path, name)));
+    }
+
+    /** The rule OBS-70 §8 states for an additional metric condition, path by path. */
+    static Stream<Arguments> additionalMetricOutcomes() {
+        return Stream.of(
+            Arguments.of(AnalyticsSearchPath.HTTP, FilterOutcome.APPLIED),
+            Arguments.of(AnalyticsSearchPath.EDGE, FilterOutcome.APPLIED),
+            Arguments.of(AnalyticsSearchPath.MESSAGE, FilterOutcome.IGNORED),
+            Arguments.of(AnalyticsSearchPath.NATIVE, FilterOutcome.IGNORED),
+            Arguments.of(AnalyticsSearchPath.EVENT_METRICS, FilterOutcome.IGNORED),
+            Arguments.of(AnalyticsSearchPath.AUTHZ, FilterOutcome.IGNORED),
+            Arguments.of(AnalyticsSearchPath.AUTHZ_TRAFFIC, FilterOutcome.EMPTIES)
         );
     }
 
     @ParameterizedTest(name = "{0} / {1}")
+    @MethodSource("additionalMetricOutcomes")
+    void should_apply_an_additional_metric_on_the_request_documents_only_and_empty_the_authz_traffic_path(
+        AnalyticsSearchPath path,
+        FilterOutcome outcome
+    ) {
+        assertThat(ADDITIONAL_METRIC_FIELDS).allSatisfy(field -> assertThat(FilterAdapter.outcome(path, field)).isEqualTo(outcome));
+    }
+
+    @ParameterizedTest(name = "{0} / {1}")
     @MethodSource("everyPathAndName")
-    void should_answer_what_the_query_does_with_the_condition(AnalyticsSearchPath path, Filter.Name name) {
+    void should_answer_what_the_query_does_with_the_condition(AnalyticsSearchPath path, FilterName name) {
         if (path == AnalyticsSearchPath.MESSAGE && KNOWN_UNRESOLVABLE_ON_MESSAGE.contains(name)) {
             assertThatThrownBy(() -> observed(path, name)).isInstanceOf(UnsupportedOperationException.class);
             return;
@@ -116,7 +154,7 @@ class FilterAdapterOutcomeTest {
         );
     }
 
-    private static FilterOutcome observed(AnalyticsSearchPath path, Filter.Name name) {
+    private static FilterOutcome observed(AnalyticsSearchPath path, FilterName name) {
         var applied = false;
         for (var phase : PHASES.get(path)) {
             var without = phase.apply(query(List.of()));
@@ -134,6 +172,17 @@ class FilterAdapterOutcomeTest {
     }
 
     /** A value each name's own translation accepts; only whether the condition lands matters here. */
+    private static Filter conditionOn(FilterName name) {
+        return switch (name) {
+            case Filter.Name builtIn -> conditionOn(builtIn);
+            case AdditionalMetricField field -> switch (field.valueType()) {
+                case LONG, INT, DOUBLE -> new Filter(field, Filter.Operator.GTE, 3);
+                case BOOL -> new Filter(field, Filter.Operator.EQ, "true");
+                case KEYWORD, STRING, JSON -> new Filter(field, Filter.Operator.EQ, "high");
+            };
+        };
+    }
+
     private static Filter conditionOn(Filter.Name name) {
         return switch (name) {
             case HTTP_STATUS_CODE_GROUP -> new Filter(name, Filter.Operator.EQ, "2XX");
