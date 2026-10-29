@@ -2112,6 +2112,14 @@ components:
             Reporter settings governing every API this product exposes.
             Always applied as given, same as an API's own analytics field: send a value to set it,
             send null to clear it back to null so each API reports as it does on its own.
+        resources:
+          type: array
+          description: |
+            Resources available to policies that run on this API Product's plan flows.
+            Always applied as given, same as analytics: send a value to set the list, send null to clear it.
+            Names must be unique. Only resource plugins used by API Product policies are accepted.
+          items:
+            $ref: "./openapi-apis.yaml#/components/schemas/Resource"
       required:
         - name
         - version
@@ -2186,6 +2194,11 @@ components:
           allOf:
             - $ref: "./openapi-apis.yaml#/components/schemas/Analytics"
           description: Reporter settings governing every API this product exposes.
+        resources:
+          type: array
+          description: Resources available to policies that run on this API Product's plan flows.
+          items:
+            $ref: "./openapi-apis.yaml#/components/schemas/Resource"
 
     ApiProductDeploymentState:
       type: string

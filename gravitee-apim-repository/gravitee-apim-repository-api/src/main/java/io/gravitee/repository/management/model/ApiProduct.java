@@ -24,6 +24,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 /**
  * Repository model for API Product.
@@ -48,6 +49,9 @@ public class ApiProduct {
     private boolean disableMembershipNotifications;
     private ApiProductKind kind;
     private String analytics;
+
+    @ToString.Exclude
+    private String resources;
 
     public boolean addGroup(String groupId) {
         if (groups == null) {
