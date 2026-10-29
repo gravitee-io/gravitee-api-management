@@ -3196,6 +3196,9 @@ paths:
                 Create API documentation. The result will be the created page or folder.
                 Only MARKDOWN and FOLDER types are supported.
 
+                A nonempty parentId must identify a folder belonging to the same API.
+                A missing parent or a parent belonging to another owner returns 404.
+
                 User must have the API_DOCUMENTATION[CREATE] permission.
             operationId: createDocumentationPage
             requestBody:
@@ -3211,6 +3214,12 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Page"
+                "404":
+                    description: API or parent page not found, or the parent does not belong to the specified API.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -3245,6 +3254,11 @@ paths:
                 Update API documentation. The result will be the updated documentation.
                 Only MARKDOWN and FOLDER types are supported.
 
+                If the page has a parent, that parent must be a folder belonging to the same API.
+                A missing parent or a parent belonging to another owner returns 404.
+                An existing parent belonging to the same API that is not a folder returns 400.
+                This operation does not change the parent.
+
                 User must have the API_DOCUMENTATION[CREATE] permission.
             operationId: updateDocumentationPage
             requestBody:
@@ -3260,6 +3274,18 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Page"
+                "400":
+                    description: Invalid documentation page data, including an existing parent belonging to the specified API that is not a folder.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: API, page or parent not found, or the parent does not belong to the specified API.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
                 default:
                     $ref: "#/components/responses/Error"
         delete:
@@ -8391,7 +8417,7 @@ components:
                     $ref: "#/components/schemas/Visibility"
                 parentId:
                     type: string
-                    description: Page's parent id.
+                    description: ID of a parent folder belonging to the same API. Null or empty means the root. A nonempty ID must identify an existing folder.
                     example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
                 excludedAccessControls:
                     type: boolean
