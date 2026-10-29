@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,8 +33,6 @@ import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
-import io.gravitee.repository.management.model.PageReferenceType;
-import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import io.gravitee.rest.api.model.ImportPageEntity;
 import io.gravitee.rest.api.model.PageEntity;
@@ -42,13 +41,16 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.GraviteeDescriptorService;
 import io.gravitee.rest.api.service.PageRevisionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -122,19 +124,13 @@ public class PageService_ImportDirectoryTest {
         );
         AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
-        Page newPage = mock(Page.class);
-        PageSource ps = new PageSource();
-        ps.setType(pageSource.getType());
-        ps.setConfiguration(pageSource.getConfiguration());
-        when(newPage.getId()).thenReturn(UuidString.generateRandom());
-        when(newPage.isPublished()).thenReturn(Boolean.TRUE);
-        when(newPage.getSource()).thenReturn(ps);
-        when(newPage.getType()).thenReturn("MARKDOWN");
-        when(newPage.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
-        when(newPage.getReferenceId()).thenReturn("envId");
-        when(newPage.getVisibility()).thenReturn("PUBLIC");
-        when(newPage.toBuilder()).thenReturn(new Page().toBuilder());
-        when(pageRepository.create(any())).thenReturn(newPage);
+        Map<String, Page> persistedPages = new HashMap<>();
+        when(pageRepository.create(any())).thenAnswer(invocation -> {
+            Page page = invocation.getArgument(0);
+            persistedPages.put(page.getId(), page);
+            return page;
+        });
+        when(pageRepository.findById(any())).thenAnswer(invocation -> Optional.ofNullable(persistedPages.get(invocation.getArgument(0))));
         when(graviteeDescriptorService.descriptorName()).thenReturn(".gravitee.json");
 
         List<PageEntity> pageEntities = pageService.importFiles(new ExecutionContext("DEFAULT", "envId"), pageEntity);
@@ -142,7 +138,19 @@ public class PageService_ImportDirectoryTest {
         assertNotNull(pageEntities);
         assertEquals(8, pageEntities.size());
 
-        verify(searchEngineService, times(8)).index(any(), any(), eq(false));
+        var indexedPages = ArgumentCaptor.forClass(PageEntity.class);
+        verify(searchEngineService, times(5)).index(any(), indexedPages.capture(), eq(false));
+        assertThat(indexedPages.getAllValues()).allMatch(PageEntity::isPublished);
+        assertThat(indexedPages.getAllValues())
+            .extracting(PageEntity::getId)
+            .containsExactlyInAnyOrderElementsOf(
+                pageEntities
+                    .stream()
+                    .filter(PageEntity::isPublished)
+                    .filter(page -> !"FOLDER".equals(page.getType()))
+                    .map(PageEntity::getId)
+                    .toList()
+            );
         // //////////////////////
         // check Folder creation
         // //////////////////////

@@ -78,6 +78,7 @@ public class ApiUpdateDocumentationPageUseCase {
         }
 
         var pageToUpdate = newPage.build();
+        this.documentationValidationDomainService.validateParentId(pageToUpdate);
 
         if (pageToUpdate.getSource() != null && oldPage.getSource() != null) {
             this.pageSourceDomainService.mergeSensitiveData(oldPage, pageToUpdate);
@@ -87,7 +88,7 @@ public class ApiUpdateDocumentationPageUseCase {
             pageToUpdate = this.documentationValidationDomainService.validateAndSanitizeForUpdate(
                 pageToUpdate,
                 input.auditInfo().organizationId(),
-                true
+                false
             );
         }
 

@@ -33,6 +33,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.exceptions.PageActionException;
+import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.util.Collections;
 import java.util.List;
@@ -169,5 +170,28 @@ public class PageService_CreateOrUpdatePagesTest {
         assertThat(throwable).isInstanceOf(PageActionException.class);
         verify(pageRepository, never()).update(any());
         verify(pageRepository, never()).create(any());
+    }
+
+    @Test
+    public void should_not_recreate_page_when_update_fails_after_successful_lookup() throws TechnicalException {
+        Page existingPage = Page.builder()
+            .id("existing-page-id")
+            .name("Existing page")
+            .type("MARKDOWN")
+            .referenceType(PageReferenceType.API)
+            .referenceId(API_ID)
+            .visibility("PUBLIC")
+            .build();
+        when(pageRepository.findById(existingPage.getId())).thenReturn(Optional.of(existingPage), Optional.empty());
+        when(pageConverter.toUpdatePageEntity(any())).thenCallRealMethod();
+        PageEntity imported = PageEntity.builder().id(existingPage.getId()).name("Imported page").type("MARKDOWN").build();
+
+        var throwable = catchThrowable(() ->
+            pageService.createOrUpdatePages(GraviteeContext.getExecutionContext(), List.of(imported), API_ID)
+        );
+
+        assertThat(throwable).isInstanceOf(PageNotFoundException.class);
+        verify(pageRepository, never()).create(any());
+        verify(pageRepository, never()).update(any());
     }
 }
