@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 
 import io.gravitee.common.http.HttpStatusCode;
@@ -32,10 +33,13 @@ import io.gravitee.rest.api.model.UpdatePageEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -48,6 +52,46 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
     @Override
     protected String contextPath() {
         return "portal/pages/";
+    }
+
+    @Test
+    void should_return_404_when_create_rejects_parent() {
+        reset(pageService);
+        var request = new NewPageEntity();
+        request.setName("Child");
+        request.setType(PageType.MARKDOWN);
+        request.setParentId("unavailable-parent");
+        doThrow(new PageNotFoundException(request.getParentId()))
+            .when(pageService)
+            .createPage(eq(GraviteeContext.getExecutionContext()), any(NewPageEntity.class));
+
+        try (var response = envTarget().request().post(Entity.json(request))) {
+            assertEquals(NOT_FOUND_404, response.getStatus());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "PUT", "PATCH" })
+    void should_return_404_when_update_rejects_parent(String method) {
+        reset(pageService);
+        var page = new PageEntity();
+        page.setType(PageType.MARKDOWN.name());
+        page.setReferenceType(PageReferenceType.ENVIRONMENT.name());
+        page.setReferenceId(GraviteeContext.getCurrentEnvironment());
+        doReturn(page).when(pageService).findById(PAGE_NAME);
+        var request = new UpdatePageEntity();
+        request.setName("Child");
+        request.setParentId("unavailable-parent");
+        var service = doThrow(new PageNotFoundException(request.getParentId())).when(pageService);
+        if ("PATCH".equals(method)) {
+            service.update(eq(GraviteeContext.getExecutionContext()), eq(PAGE_NAME), any(UpdatePageEntity.class), eq(true));
+        } else {
+            service.update(eq(GraviteeContext.getExecutionContext()), eq(PAGE_NAME), any(UpdatePageEntity.class));
+        }
+
+        try (var response = envTarget(PAGE_NAME).request().method(method, Entity.json(request))) {
+            assertEquals(NOT_FOUND_404, response.getStatus());
+        }
     }
 
     @Test
