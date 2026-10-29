@@ -28,13 +28,9 @@ import io.gravitee.gateway.security.core.AuthenticationPolicy;
 import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 import java.util.List;
 import java.util.stream.Collectors;
-<<<<<<< HEAD
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-=======
-import lombok.CustomLog;
 import org.springframework.expression.EvaluationContext;
->>>>>>> 3101593 (fix(gateway): harden plan selection rule evaluation against SpEL injection)
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ParseException;

@@ -25,14 +25,9 @@ import io.gravitee.el.spel.context.SecuredResolver;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
-<<<<<<< HEAD
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-=======
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
->>>>>>> 3101593 (fix(gateway): harden plan selection rule evaluation against SpEL injection)
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -40,7 +35,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class PlanBasedAuthenticationHandlerTest {
 
     // test implementation in order to test abstract class behavior
@@ -67,8 +62,8 @@ public class PlanBasedAuthenticationHandlerTest {
     @Mock
     private Request request;
 
-    @BeforeAll
-    static void loadBuiltInAllowList() {
+    @BeforeClass
+    public static void loadBuiltInAllowList() {
         // selectionRule is evaluated with a SecuredEvaluationContext: without this, every method call
         // is denied regardless of the allow list, and a regression letting normal rules through would
         // not show up here.
@@ -131,7 +126,7 @@ public class PlanBasedAuthenticationHandlerTest {
         boolean result = authenticationHandler.canHandleSelectionRule(authenticationContext);
 
         assertFalse(result);
-        assertFalse(SideEffectProbe.executed, "selection rule must not be able to invoke arbitrary classpath methods");
+        assertFalse("selection rule must not be able to invoke arbitrary classpath methods", SideEffectProbe.executed);
     }
 
     @Test
@@ -144,7 +139,7 @@ public class PlanBasedAuthenticationHandlerTest {
         boolean result = authenticationHandler.canHandleSelectionRule(authenticationContext);
 
         assertFalse(result);
-        assertFalse(SideEffectProbe.executed, "selection rule must not be able to instantiate arbitrary classpath types");
+        assertFalse("selection rule must not be able to instantiate arbitrary classpath types", SideEffectProbe.executed);
     }
 
     @Test
@@ -159,7 +154,7 @@ public class PlanBasedAuthenticationHandlerTest {
         boolean result = authenticationHandler.canHandleSelectionRule(authenticationContext);
 
         assertFalse(result);
-        assertFalse(SideEffectProbe.executed, "selection rule must not be able to reach the class loader through getClass()/forName()");
+        assertFalse("selection rule must not be able to reach the class loader through getClass()/forName()", SideEffectProbe.executed);
     }
 
     // not whitelisted in the SEL evaluation context: standing in for an RCE sink such as java.lang.Runtime
