@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.apim.core.observability.model.AdditionalMetricField;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
@@ -75,7 +76,7 @@ class AdditionalMetricFilterTest {
             assertThat(spec.operators()).containsExactlyInAnyOrder(FilterOperator.EQ, FilterOperator.IN);
             assertThat(spec.signals()).containsExactly(Signal.ANALYTICS);
             assertThat(spec.apiTypes()).isEmpty();
-            assertThat(spec.valueType()).isEqualTo(FilterSpec.ValueType.KEYWORD);
+            assertThat(spec.valueType()).isEqualTo(AdditionalMetricValueType.KEYWORD);
             assertThat(spec.label()).as("a validation spec, not a catalog entry").isNull();
         }
 
@@ -111,7 +112,7 @@ class AdditionalMetricFilterTest {
         @ParameterizedTest
         @EnumSource(AdditionalMetricField.ValueType.class)
         void should_name_every_value_type_as_the_engine_does(AdditionalMetricField.ValueType valueType) {
-            assertThat(Arrays.stream(FilterSpec.ValueType.values()).map(Enum::name)).contains(valueType.name());
+            assertThat(Arrays.stream(AdditionalMetricValueType.values()).map(Enum::name)).contains(valueType.name());
         }
 
         @Test

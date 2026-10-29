@@ -37,6 +37,7 @@ import org.springframework.context.annotation.Import;
         GammaLogsConfiguration.class,
         GammaAnalyticsConfiguration.class,
         GammaDashboardsConfiguration.class,
+        GammaMetricDefinitionsConfiguration.class,
         GammaObservabilityCapabilitiesConfiguration.class,
     }
 )

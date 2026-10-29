@@ -113,6 +113,14 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <!-- Test only: BuiltInAdditionalMetricCatalogTest runs the real built-in key set of the ES field
+                 resolvers through the catalog merge. -->
+            <groupId>io.gravitee.apim.repository</groupId>
+            <artifactId>gravitee-apim-repository-elasticsearch</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.glassfish.jersey.test-framework.providers</groupId>
             <artifactId>jersey-test-framework-provider-jetty</artifactId>
             <scope>test</scope>

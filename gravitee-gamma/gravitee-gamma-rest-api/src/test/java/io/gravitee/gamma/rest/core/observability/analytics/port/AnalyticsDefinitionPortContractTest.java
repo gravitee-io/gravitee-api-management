@@ -17,9 +17,9 @@ package io.gravitee.gamma.rest.core.observability.analytics.port;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.gamma.rest.core.observability.analytics.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinition;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.AnalyticsDefinitionPort;
+import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import java.util.HashMap;
 import java.util.Map;
