@@ -16,20 +16,26 @@
 package io.gravitee.apim.infra.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.gravitee.apim.core.analytics_engine.model.AdditionalMetricName;
+import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
+import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.model.TimeRange;
 import io.gravitee.apim.core.analytics_engine.model.TrafficScope;
+import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.apim.core.observability.model.FilterOperator;
-import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
 import io.gravitee.repository.analytics.engine.api.query.FilterName;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 class AnalyticsMeasuresAdapterTest {
 
@@ -65,6 +71,50 @@ class AnalyticsMeasuresAdapterTest {
         assertThat(query.filters().getFirst().value()).isEqualTo(List.of("api-1"));
     }
 
+    private static final AdditionalMetricName TIER = new AdditionalMetricName(
+        new AdditionalMetricField(AdditionalMetricField.ValueType.KEYWORD, "keyword_fraud-check_tier")
+    );
+    private static final io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField ENGINE_TIER =
+        new io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField(
+            io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField.ValueType.KEYWORD,
+            "keyword_fraud-check_tier"
+        );
+
+    @Test
+    void should_hand_the_engine_an_additional_metric_condition_as_its_field() {
+        var request = new MeasuresRequest(
+            new TimeRange(Instant.EPOCH, Instant.EPOCH.plusSeconds(60)),
+            List.of(new Filter(TIER, FilterOperator.EQ, "high")),
+            List.of()
+        );
+
+        var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
+
+        assertThat(query.filters()).containsExactly(
+            new io.gravitee.repository.analytics.engine.api.query.Filter(
+                ENGINE_TIER,
+                io.gravitee.repository.analytics.engine.api.query.Filter.Operator.EQ,
+                "high"
+            )
+        );
+    }
+
+    @Test
+    void should_hand_the_engine_additional_metric_facets_beside_built_in_ones() {
+        var request = new FacetsRequest(
+            new TimeRange(Instant.EPOCH, Instant.EPOCH.plusSeconds(60)),
+            List.of(),
+            List.of(new FacetMetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT), List.of())),
+            List.of(FacetSpec.Name.API, TIER),
+            null,
+            List.of()
+        );
+
+        var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
+
+        assertThat(query.facets()).containsExactly(io.gravitee.repository.analytics.engine.api.query.Facet.API, ENGINE_TIER);
+    }
+
     @Test
     void should_read_a_built_in_outcome_back_under_its_catalog_name() {
         FilterName name = io.gravitee.repository.analytics.engine.api.query.Filter.Name.API;
@@ -73,9 +123,16 @@ class AnalyticsMeasuresAdapterTest {
     }
 
     @Test
-    void should_refuse_to_read_an_additional_metric_outcome_back() {
-        var field = new AdditionalMetricField(AdditionalMetricField.ValueType.KEYWORD, "keyword_fraud-check_tier");
+    void should_read_an_ignored_additional_metric_back_under_its_wire_name() {
+        assertThat(AnalyticsMeasuresAdapter.INSTANCE.fromFilterName(ENGINE_TIER)).isEqualTo(TIER);
+    }
 
-        assertThatThrownBy(() -> AnalyticsMeasuresAdapter.INSTANCE.fromFilterName(field)).isInstanceOf(IllegalArgumentException.class);
+    @ParameterizedTest
+    @EnumSource(AdditionalMetricField.ValueType.class)
+    void should_carry_every_value_type_to_the_engine_and_back(AdditionalMetricField.ValueType valueType) {
+        var engine = AnalyticsMeasuresAdapter.INSTANCE.toValueType(valueType);
+
+        assertThat(engine.name()).isEqualTo(valueType.name());
+        assertThat(AnalyticsMeasuresAdapter.INSTANCE.fromValueType(engine)).isEqualTo(valueType);
     }
 }

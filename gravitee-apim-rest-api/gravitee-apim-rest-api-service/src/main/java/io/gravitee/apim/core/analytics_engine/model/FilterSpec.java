@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.analytics_engine.model;
 
 import io.gravitee.apim.core.analytics.model.ApiDataKind;
+import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.apim.core.observability.model.FilterOperator;
 import io.gravitee.apim.core.observability.model.FilterType;
 import io.gravitee.apim.core.observability.model.NumberRange;
@@ -23,6 +24,7 @@ import io.gravitee.apim.core.observability.model.Signal;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public record FilterSpec(
@@ -59,7 +61,7 @@ public record FilterSpec(
         return signals.contains(signal);
     }
 
-    public enum Name {
+    public enum Name implements FilterName {
         API,
         APPLICATION,
         PLAN,
@@ -143,10 +145,38 @@ public record FilterSpec(
     }
 
     /** The data a query reads: the requests themselves as soon as one condition or facet identifies a caller. */
-    static ApiDataKind dataKindOf(List<Filter> filters, Stream<List<Filter>> metricFilters, List<FacetSpec.Name> facets) {
+    static ApiDataKind dataKindOf(
+        List<Filter> filters,
+        Stream<List<Filter>> metricFilters,
+        List<FacetName> facets,
+        Predicate<AdditionalMetricField> identifiesCaller
+    ) {
         var conditions = Stream.concat(Stream.ofNullable(filters), metricFilters).filter(Objects::nonNull).flatMap(List::stream);
-        var identifyingCondition = conditions.map(Filter::name).filter(Objects::nonNull).anyMatch(Name::isIdentifying);
-        var identifyingFacet = Stream.ofNullable(facets).flatMap(List::stream).anyMatch(FacetSpec.Name::isIdentifying);
+        var identifyingCondition = conditions
+            .map(Filter::name)
+            .filter(Objects::nonNull)
+            .anyMatch(name -> identifies(name, identifiesCaller));
+        var identifyingFacet = Stream.ofNullable(facets)
+            .flatMap(List::stream)
+            .anyMatch(facet -> identifies(facet, identifiesCaller));
         return identifyingCondition || identifyingFacet ? ApiDataKind.PER_REQUEST : ApiDataKind.AGGREGATES;
+    }
+
+    /**
+     * An additional metric field reads as the built-in keeping its values under the field's key, if any: an aggregate
+     * otherwise, discovered fields being traffic data opened by the analytics right (OBS-70, security rule).
+     */
+    private static boolean identifies(FilterName name, Predicate<AdditionalMetricField> identifiesCaller) {
+        return switch (name) {
+            case Name builtIn -> builtIn.isIdentifying();
+            case AdditionalMetricName additionalMetric -> identifiesCaller.test(additionalMetric.field());
+        };
+    }
+
+    private static boolean identifies(FacetName facet, Predicate<AdditionalMetricField> identifiesCaller) {
+        return switch (facet) {
+            case FacetSpec.Name builtIn -> builtIn.isIdentifying();
+            case AdditionalMetricName additionalMetric -> identifiesCaller.test(additionalMetric.field());
+        };
     }
 }

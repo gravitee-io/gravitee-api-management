@@ -253,6 +253,20 @@ class DashboardWidgetRequestMapperTest {
                 .hasMessageContaining("Unknown facet name");
         }
 
+        /** The Console dashboards name built-in facets only; additional metric fields are a Gamma observability feature. */
+        @Test
+        void should_throw_when_facet_is_an_additional_metric_field() {
+            var request = DashboardWidget.Request.builder()
+                .type("facets")
+                .timeRange(validTimeRange())
+                .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
+                .by(List.of("additional-metrics.keyword_fraud-check_tier"))
+                .build();
+            assertThatThrownBy(() -> DashboardWidgetRequestMapper.toFacetsRequest(request))
+                .isInstanceOf(InvalidQueryException.class)
+                .hasMessageContaining("Unknown facet name: additional-metrics.keyword_fraud-check_tier");
+        }
+
         @Test
         void should_map_filters_in_facets_request() {
             var metricReq = DashboardWidget.MetricRequest.builder()

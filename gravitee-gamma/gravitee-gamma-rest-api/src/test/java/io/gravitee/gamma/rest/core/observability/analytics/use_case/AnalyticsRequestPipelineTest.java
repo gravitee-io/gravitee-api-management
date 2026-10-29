@@ -190,6 +190,24 @@ class AnalyticsRequestPipelineTest {
         }
 
         @Test
+        void should_read_the_requests_when_an_additional_metric_field_holds_an_identifier() {
+            var clientId = "additional-metrics.keyword_native-kafka_client-id";
+            when(filterRegistry.identifiesCaller(clientId)).thenReturn(true);
+
+            assertThat(
+                pipeline.dataKindOf(List.of(new FilterCondition(clientId, FilterOperator.EQ, List.of("c-1"))), List.of(), List.of())
+            ).isEqualTo(DataKind.PER_REQUEST);
+            assertThat(pipeline.dataKindOf(List.of(), List.of(), List.of(clientId))).isEqualTo(DataKind.PER_REQUEST);
+        }
+
+        @Test
+        void should_read_the_aggregates_when_an_additional_metric_field_holds_no_identifier() {
+            assertThat(pipeline.dataKindOf(List.of(), List.of(), List.of("additional-metrics.keyword_fraud-check_tier"))).isEqualTo(
+                DataKind.AGGREGATES
+            );
+        }
+
+        @Test
         void should_read_the_requests_when_the_request_asks_for_decision_records() {
             var decisions = new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION"));
             var notRequests = new FilterCondition("RECORD_TYPE", FilterOperator.NEQ, List.of("REQUEST"));

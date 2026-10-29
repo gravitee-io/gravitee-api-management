@@ -26,7 +26,6 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
-import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.EntrypointScopeProvider;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import io.gravitee.gamma.rest.core.observability.logs.model.TrafficScope;
@@ -47,7 +46,7 @@ import lombok.AllArgsConstructor;
 
 /**
  * Shared pipeline for the three analytics use cases: validates incoming filter conditions against
- * the {@link Signal#ANALYTICS} catalog, loads the caller's readable APIs once, and builds the scope of
+ * the {@link Signal#ANALYTICS} catalog and additional metric fields, loads the caller's readable APIs once, and builds the scope of
  * each engine query using only Gamma-native types. Every condition is ANDed, the same field included:
  * the scope-only conditions ({@code API}, {@code API_TYPE}) each narrow the readable APIs, or for an
  * {@code API_TYPE} whose kind an entrypoint adds to APIs of another type, their calls (see
@@ -183,16 +182,15 @@ public class AnalyticsRequestPipeline {
      */
     public DataKind dataKindOf(List<FilterCondition> rawFilters, List<List<FilterCondition>> metricConditions, List<String> facets) {
         var filters = rawFilters != null ? rawFilters : List.<FilterCondition>of();
-        var identifying = StaticFilters.identifying();
         var perRequest =
             filters
                 .stream()
                 .filter(condition -> RECORD_TYPE.equals(condition.name()))
                 .anyMatch(condition -> selects(condition, RecordType.AUTHZ_DECISION)) ||
             Stream.concat(filters.stream(), metricConditions.stream().flatMap(List::stream)).anyMatch(condition ->
-                identifying.contains(condition.name())
+                filterValidator.identifiesCaller(condition.name())
             ) ||
-            (facets != null && facets.stream().anyMatch(identifying::contains));
+            (facets != null && facets.stream().anyMatch(filterValidator::identifiesCaller));
         return perRequest ? DataKind.PER_REQUEST : DataKind.AGGREGATES;
     }
 

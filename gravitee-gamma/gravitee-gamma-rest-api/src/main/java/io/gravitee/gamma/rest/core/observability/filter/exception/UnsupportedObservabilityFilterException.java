@@ -86,9 +86,10 @@ public class UnsupportedObservabilityFilterException extends ValidationDomainExc
         );
     }
 
-    public static UnsupportedObservabilityFilterException invalidNumber(String filterName, String value) {
+    /** @param expected what the filter takes: {@code "a whole number"}, or {@code "a number"} on a decimal one */
+    public static UnsupportedObservabilityFilterException invalidNumber(String filterName, String value, String expected) {
         return new UnsupportedObservabilityFilterException(
-            "Value '" + value + "' is not a whole number, as filter '" + filterName + "' requires",
+            "Value '" + value + "' is not " + expected + ", as filter '" + filterName + "' requires",
             "observability.filter.invalid_number"
         );
     }
@@ -100,7 +101,7 @@ public class UnsupportedObservabilityFilterException extends ValidationDomainExc
         );
     }
 
-    public static UnsupportedObservabilityFilterException invertedRange(String filterName, long lower, long upper) {
+    public static UnsupportedObservabilityFilterException invertedRange(String filterName, Number lower, Number upper) {
         return new UnsupportedObservabilityFilterException(
             "Filter '" + filterName + "' asks for values >= " + lower + " and <= " + upper + ", which nothing matches",
             "observability.filter.inverted_range"

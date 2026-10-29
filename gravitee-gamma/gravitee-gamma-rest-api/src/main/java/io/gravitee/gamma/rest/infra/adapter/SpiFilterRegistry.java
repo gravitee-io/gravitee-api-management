@@ -15,10 +15,13 @@
  */
 package io.gravitee.gamma.rest.infra.adapter;
 
+import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.CommonFilters;
 import io.gravitee.gamma.rest.core.observability.filter.model.ExtensibleFilters;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterContributor;
@@ -30,8 +33,10 @@ import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.function.Predicate;
 import org.slf4j.Logger;
 
 /**
@@ -51,7 +56,7 @@ import org.slf4j.Logger;
  * <p>Query-time filtering applies two independent axes ({@link FilterSpec#signals()} and
  * {@link FilterSpec#apiTypes()}) by set intersection; an absent/empty axis is unconstrained.
  *
- * <p>The no-arg constructor sources contributors via {@link ServiceLoader} (host classpath only).
+ * <p>Contributors are sourced via {@link ServiceLoader} (host classpath only) unless a test passes its own.
  * Cross-plugin module contributions require the separate plugin-handler registration mechanism.
  *
  * @author GraviteeSource Team
@@ -61,14 +66,30 @@ public class SpiFilterRegistry implements FilterRegistry {
     private static final Logger LOGGER = NodeLoggerFactory.getLogger(SpiFilterRegistry.class);
 
     private final Map<String, FilterSpec> specsByName;
+    private final Predicate<AdditionalMetricField> identifyingField;
 
+    /** @param identifyingField whether an additional metric field holds the values of a built-in identifying a caller */
+    public SpiFilterRegistry(Predicate<AdditionalMetricField> identifyingField) {
+        this(contributorsOnClasspath(), identifyingField);
+    }
+
+    /** Test seam — without an analytics store, no additional metric field identifies a caller. */
     public SpiFilterRegistry() {
-        this(ServiceLoader.load(FilterContributor.class).stream().map(ServiceLoader.Provider::get).toList());
+        this(contributorsOnClasspath(), _ -> false);
     }
 
     /** Test seam — inject a fixed contributor list without touching the classpath. */
     public SpiFilterRegistry(List<FilterContributor> contributors) {
+        this(contributors, _ -> false);
+    }
+
+    private SpiFilterRegistry(List<FilterContributor> contributors, Predicate<AdditionalMetricField> identifyingField) {
         this.specsByName = assemble(contributors);
+        this.identifyingField = identifyingField;
+    }
+
+    private static List<FilterContributor> contributorsOnClasspath() {
+        return ServiceLoader.load(FilterContributor.class).stream().map(ServiceLoader.Provider::get).toList();
     }
 
     private static Map<String, FilterSpec> assemble(List<FilterContributor> contributors) {
@@ -157,6 +178,47 @@ public class SpiFilterRegistry implements FilterRegistry {
             .filter(spec -> matches(spec.signals(), signals))
             .filter(spec -> matches(spec.apiTypes(), apiTypes))
             .toList();
+    }
+
+    @Override
+    public Optional<FilterSpec> specFor(String name) {
+        return Optional.ofNullable(specsByName.get(name)).or(() -> AdditionalMetricField.parse(name).map(SpiFilterRegistry::specOf));
+    }
+
+    @Override
+    public boolean identifiesCaller(String name) {
+        return AdditionalMetricField.parse(name).map(identifyingField::test).orElse(false);
+    }
+
+    /**
+     * The validation spec of an additional metric field, typed by its prefix (OBS-70, §2). No label: deriving one here
+     * would be a second label rule. Analytics only: OBS-76 adds LOGS to its {@code signals} here.
+     */
+    private static FilterSpec specOf(AdditionalMetricField field) {
+        var type = switch (field.valueType()) {
+            case KEYWORD -> FilterType.KEYWORD;
+            case LONG, INT, DOUBLE -> FilterType.NUMBER;
+            case BOOL -> FilterType.BOOLEAN;
+            case STRING, JSON -> FilterType.STRING;
+        };
+        var operators = field
+            .valueType()
+            .operators()
+            .stream()
+            .map(operator -> FilterOperator.valueOf(operator.name()))
+            .sorted()
+            .toList();
+        return new FilterSpec(
+            field.name(),
+            null,
+            type,
+            operators,
+            null,
+            null,
+            Set.of(Signal.ANALYTICS),
+            Set.of(),
+            FilterSpec.ValueType.valueOf(field.valueType().name())
+        );
     }
 
     /** An axis matches when no values are requested, or when the spec's non-empty set intersects the requested one. */

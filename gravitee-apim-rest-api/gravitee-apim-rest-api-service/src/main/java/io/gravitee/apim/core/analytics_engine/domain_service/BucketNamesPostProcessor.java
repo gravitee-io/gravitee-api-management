@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.analytics_engine.domain_service;
 
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
+import io.gravitee.apim.core.analytics_engine.model.FacetName;
 import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
@@ -26,7 +27,7 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface BucketNamesPostProcessor {
-    FacetsResponse mapBucketNames(AnalyticsQueryContext context, List<FacetSpec.Name> facets, FacetsResponse response);
+    FacetsResponse mapBucketNames(AnalyticsQueryContext context, List<FacetName> facets, FacetsResponse response);
 
-    TimeSeriesResponse mapBucketNames(AnalyticsQueryContext context, List<FacetSpec.Name> facets, TimeSeriesResponse response);
+    TimeSeriesResponse mapBucketNames(AnalyticsQueryContext context, List<FacetName> facets, TimeSeriesResponse response);
 }

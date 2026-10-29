@@ -28,13 +28,13 @@ public record MetricFacetsResponse(
     MetricSpec.Name metric,
     MetricSpec.Unit unit,
     List<FacetBucketResponse> buckets,
-    @JsonInclude(JsonInclude.Include.NON_EMPTY) List<FilterSpec.Name> ignoredFilters
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) List<FilterName> ignoredFilters
 ) {
     public MetricFacetsResponse {
         ignoredFilters = ignoredFilters == null ? List.of() : List.copyOf(ignoredFilters);
     }
 
-    public MetricFacetsResponse withIgnoredFilters(List<FilterSpec.Name> ignoredFilters) {
+    public MetricFacetsResponse withIgnoredFilters(List<FilterName> ignoredFilters) {
         return new MetricFacetsResponse(metric, unit, buckets, ignoredFilters);
     }
 }

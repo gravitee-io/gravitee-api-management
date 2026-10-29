@@ -2332,13 +2332,18 @@ components:
                 A single filter condition, checked against the filter catalog of the endpoint's signal.
                 A condition breaking one of these rules is refused with a 400:
 
-                - `name` is in the catalog and applies to the signal (`unknown_name`, `signal_mismatch`);
-                - `operator` is one the filter advertises (`unsupported_operator`);
+                - `name` is in the catalog and applies to the signal (`unknown_name`, `signal_mismatch`). On
+                  analytics, a well-formed additional metric field `additional-metrics.<type>_<key>` is
+                  accepted off the catalog, typed by its prefix, whether or not any request carries it yet;
+                - `operator` is one the filter advertises, or the value type of an additional metric field
+                  takes (`unsupported_operator`): `EQ`/`IN` on `keyword_`, `EQ`/`GTE`/`LTE` on `long_`,
+                  `int_` and `double_`, `EQ` on `bool_`, none on `string_` and `json_`;
                 - `value` is a scalar or an array of scalars, with no null element (`invalid_value_shape`);
                 - `IN` and `NOT_IN` take one or more values, every other operator exactly one
                   (`invalid_arity`, `blank_value`);
                 - an ENUM value is one the filter advertises; a NUMBER value is a whole number within the
-                  filter's range (`unknown_enum_value`, `invalid_number`, `value_out_of_range`);
+                  filter's range, or any number on a `double_` field; a `bool_` value is `true` or `false`
+                  (`unknown_enum_value`, `invalid_number`, `value_out_of_range`);
                 - on logs, a filter appears once per request; the only repetition is one `GTE` and one
                   `LTE` on the same NUMBER filter, a closed range whose lower bound is not above its upper
                   bound (`repeated`, `inverted_range`). Analytics ANDs a repeated filter instead.
@@ -2348,7 +2353,7 @@ components:
             properties:
                 name:
                     type: string
-                    description: Canonical filter name from the catalog.
+                    description: Canonical filter name from the catalog, or an additional metric field name on analytics.
                     example: HTTP_STATUS
                 operator:
                     $ref: "#/components/schemas/FilterOperator"
@@ -3041,7 +3046,10 @@ components:
                     type: array
                     description: |
                         Facet dimensions to break down by (e.g. `API`, `HTTP_STATUS`,
-                        `HTTP_METHOD`, `APPLICATION`, `PLAN`, `GATEWAY`, `LLM_PROXY_MODEL`).
+                        `HTTP_METHOD`, `APPLICATION`, `PLAN`, `GATEWAY`, `LLM_PROXY_MODEL`), or additional
+                        metric fields `additional-metrics.<type>_<key>` on the request metrics: a `keyword_` or
+                        `bool_` field at any level, a number field as the last one with `ranges`. A malformed
+                        name is refused with a 400 naming it.
                     items:
                         type: string
                     example: ["API"]
@@ -3446,7 +3454,7 @@ components:
                 widget query would refuse is refused up front, with a 400 naming it:
 
                 - `name` is in the catalog and applies to the `ANALYTICS` signal, since a dashboard
-                  renders analytics widgets;
+                  renders analytics widgets, or is a well-formed additional metric field name;
                 - `operator` is one the filter advertises;
                 - a non-empty `value` follows the same rules as a `FilterCondition`;
                 - a field is filtered once per dashboard, with no `GTE` + `LTE` exception

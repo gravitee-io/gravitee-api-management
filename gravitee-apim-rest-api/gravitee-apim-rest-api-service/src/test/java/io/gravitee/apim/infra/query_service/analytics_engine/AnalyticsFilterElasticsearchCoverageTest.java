@@ -164,6 +164,7 @@ class AnalyticsFilterElasticsearchCoverageTest {
         return API_TYPE_TRANSFORMER.transform(CONTEXT, List.of(condition))
             .stream()
             .map(io.gravitee.apim.core.analytics_engine.model.Filter::name)
+            .map(FilterSpec.Name.class::cast)
             .filter(name -> name != FilterSpec.Name.API || isAboutApis(catalogName))
             .map(name -> toEngineName(catalogName, name))
             .distinct()

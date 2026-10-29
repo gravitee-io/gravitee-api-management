@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.query_service.analytics_engine;
 
 import static io.gravitee.apim.core.analytics_engine.model.MetricSpec.Name.*;
 import static io.gravitee.apim.core.analytics_engine.model.MetricSpec.Name.HTTP_ERRORS;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
@@ -27,10 +28,12 @@ import io.gravitee.apim.core.analytics_engine.model.MetricSpec.Name;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
+import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.apim.infra.adapter.AnalyticsMeasuresAdapter;
 import io.gravitee.repository.analytics.engine.api.query.AnalyticsSearchPath;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import org.springframework.context.annotation.Lazy;
@@ -58,6 +61,21 @@ public class HTTPDataPlaneAnalyticsQueryService implements AnalyticsEngineQueryS
         return EDGE_METRICS.contains(metric)
             ? onHttp && IgnoredFilters.narrows(analyticsRepository, AnalyticsSearchPath.EDGE, filter)
             : onHttp;
+    }
+
+    /** The HTTP and Edge paths both read the request documents, which carry the additional metric fields. */
+    @Override
+    public boolean groupsByAdditionalMetrics(Name metric) {
+        return true;
+    }
+
+    /** The repository names the built-in metrics, filters and facets reading each key: the filters among them count. */
+    @Override
+    public Set<FilterSpec.Name> builtInsStoredAs(AdditionalMetricField field) {
+        var names = analyticsRepository.builtInAdditionalMetricKeys().getOrDefault(field.rawKey(), Set.of());
+        return Arrays.stream(FilterSpec.Name.values())
+            .filter(filter -> names.contains(filter.name()))
+            .collect(toUnmodifiableSet());
     }
 
     @Override

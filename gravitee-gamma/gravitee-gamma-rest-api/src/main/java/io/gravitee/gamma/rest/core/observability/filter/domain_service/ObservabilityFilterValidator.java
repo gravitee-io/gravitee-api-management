@@ -22,7 +22,9 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
+import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
+import java.math.BigDecimal;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,18 +35,19 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Validates incoming {@link FilterCondition}s against the unified filter catalog for a given
- * {@link Signal}. Centralising this here keeps the catalog the single source of truth and guarantees
+ * {@link Signal}, and an additional metric field against the spec its name types
+ * ({@link FilterRegistry#specFor}). Centralising this here keeps the registry the single source of truth and guarantees
  * that the logs and analytics surfaces enforce the <em>same</em> name / signal / operator rules for a
  * given filter — a filter and its operators behave identically whichever signal queries it.
  *
  * <p>Each condition is rejected (HTTP 400 via {@link UnsupportedObservabilityFilterException}) when:
  * <ul>
- *   <li>its {@code name} is not in the catalog,</li>
+ *   <li>its {@code name} is neither in the catalog nor a well-formed additional metric field name,</li>
  *   <li>the catalog entry does not apply to the requested signal,</li>
  *   <li>its {@code operator} is not among the operators the catalog advertises for that filter,</li>
  *   <li>it carries no value, or several values on an operator that takes one, or</li>
  *   <li>a value is not one the filter accepts: blank, an unadvertised ENUM value, a non-number or an
- *       out-of-range number.</li>
+ *       out-of-range number, or a BOOLEAN value other than {@code true} or {@code false}.</li>
  * </ul>
  *
  * <p>An analytics request ANDs every condition, the same filter included: a widget's own filters are
@@ -60,6 +63,7 @@ public class ObservabilityFilterValidator {
 
     private static final Set<FilterOperator> MULTI_VALUE_OPERATORS = EnumSet.of(FilterOperator.IN, FilterOperator.NOT_IN);
     private static final Set<FilterOperator> CLOSED_RANGE = EnumSet.of(FilterOperator.GTE, FilterOperator.LTE);
+    private static final Set<String> BOOLEAN_VALUES = Set.of("true", "false");
 
     private final FilterRegistry filterRegistry;
 
@@ -91,7 +95,8 @@ public class ObservabilityFilterValidator {
      * filtered once, since the library keys its chips by field.
      *
      * <p>The library's JSON tab accepts a name its catalog does not know, because that catalog may be partial
-     * or missing; the server holds the whole catalog, so here an unknown name is refused.
+     * or missing; the server holds the whole catalog, so here an unknown name is refused, but for a well-formed
+     * additional metric field name, which no catalog lists.
      */
     public void validateDashboardFilters(List<FilterCondition> conditions) {
         Map<String, FilterSpec> specsByName = specsByName();
@@ -104,6 +109,14 @@ public class ObservabilityFilterValidator {
         validateOneFilterPerField(conditions);
     }
 
+    /**
+     * Whether a condition or a facet on {@code name} reads the calls themselves: a catalog field holding a person or a
+     * client identifier, or an additional metric field whose key holds the values of one.
+     */
+    public boolean identifiesCaller(String name) {
+        return StaticFilters.identifying().contains(name) || filterRegistry.identifiesCaller(name);
+    }
+
     private Map<String, FilterSpec> specsByName() {
         return filterRegistry
             .getFilters(Set.of(), Set.of())
@@ -111,11 +124,16 @@ public class ObservabilityFilterValidator {
             .collect(Collectors.toMap(FilterSpec::name, spec -> spec, (a, b) -> b));
     }
 
-    private static FilterSpec applicableSpec(FilterCondition condition, Signal signal, Map<String, FilterSpec> specsByName) {
-        FilterSpec spec = specsByName.get(condition.name());
-        if (spec == null) {
-            throw UnsupportedObservabilityFilterException.unknownName(condition.name());
+    private FilterSpec specOf(String name, Map<String, FilterSpec> specsByName) {
+        var spec = specsByName.get(name);
+        if (spec != null) {
+            return spec;
         }
+        return filterRegistry.specFor(name).orElseThrow(() -> UnsupportedObservabilityFilterException.unknownName(name));
+    }
+
+    private FilterSpec applicableSpec(FilterCondition condition, Signal signal, Map<String, FilterSpec> specsByName) {
+        FilterSpec spec = specOf(condition.name(), specsByName);
         if (!spec.signals().contains(signal)) {
             throw UnsupportedObservabilityFilterException.signalMismatch(condition.name(), signal);
         }
@@ -132,6 +150,7 @@ public class ObservabilityFilterValidator {
         }
         validateEnumValues(condition, spec);
         validateNumberValues(condition, spec);
+        validateBooleanValues(condition, spec);
     }
 
     private static void validateOneFilterPerField(List<FilterCondition> conditions) {
@@ -158,7 +177,7 @@ public class ObservabilityFilterValidator {
             return;
         }
         for (String value : condition.values()) {
-            var number = parseNumber(condition.name(), value);
+            var number = parseNumber(condition.name(), value, spec);
             var range = spec.range();
             if (range != null && (isBelow(number, range.min()) || isAbove(number, range.max()))) {
                 throw UnsupportedObservabilityFilterException.valueOutOfRange(condition.name(), value, range.min(), range.max());
@@ -166,24 +185,41 @@ public class ObservabilityFilterValidator {
         }
     }
 
-    // Every NUMBER filter counts or measures in whole units, and the logs translator parses them as such.
-    private static long parseNumber(String filterName, String value) {
+    // A NUMBER filter counts or measures in whole units, and the logs translator parses them as such; only a
+    // double_ additional metric field takes decimals.
+    private static BigDecimal parseNumber(String filterName, String value, FilterSpec spec) {
         try {
-            return Long.parseLong(value.trim());
+            return spec.takesDecimals() ? new BigDecimal(value.trim()) : BigDecimal.valueOf(Long.parseLong(value.trim()));
         } catch (NumberFormatException e) {
-            throw UnsupportedObservabilityFilterException.invalidNumber(filterName, value);
+            throw UnsupportedObservabilityFilterException.invalidNumber(
+                filterName,
+                value,
+                spec.takesDecimals() ? "a number" : "a whole number"
+            );
         }
     }
 
-    private static boolean isBelow(long number, Number min) {
-        return min != null && number < min.longValue();
+    private static boolean isBelow(BigDecimal number, Number min) {
+        return min != null && number.compareTo(new BigDecimal(min.toString())) < 0;
     }
 
-    private static boolean isAbove(long number, Number max) {
-        return max != null && number > max.longValue();
+    private static boolean isAbove(BigDecimal number, Number max) {
+        return max != null && number.compareTo(new BigDecimal(max.toString())) > 0;
     }
 
-    private static void validateRepetition(List<FilterCondition> conditions, Map<String, FilterSpec> specsByName) {
+    // A boolean field is indexed as such: a value other than true or false would match nothing, not fail.
+    private static void validateBooleanValues(FilterCondition condition, FilterSpec spec) {
+        if (spec.type() != FilterType.BOOLEAN) {
+            return;
+        }
+        for (String value : condition.values()) {
+            if (!BOOLEAN_VALUES.contains(value)) {
+                throw UnsupportedObservabilityFilterException.unknownEnumValue(condition.name(), value);
+            }
+        }
+    }
+
+    private void validateRepetition(List<FilterCondition> conditions, Map<String, FilterSpec> specsByName) {
         conditions
             .stream()
             .collect(Collectors.groupingBy(FilterCondition::name, LinkedHashMap::new, Collectors.toList()))
@@ -192,10 +228,11 @@ public class ObservabilityFilterValidator {
                     return;
                 }
                 var operators = repeated.stream().map(FilterCondition::operator).toList();
-                if (!isClosedRange(specsByName.get(name), operators)) {
+                var spec = specOf(name, specsByName);
+                if (!isClosedRange(spec, operators)) {
                     throw UnsupportedObservabilityFilterException.repeated(name, operators.stream().map(FilterOperator::name).toList());
                 }
-                validateRangeBounds(name, repeated);
+                validateRangeBounds(name, repeated, spec);
             });
     }
 
@@ -203,19 +240,19 @@ public class ObservabilityFilterValidator {
         return spec.type() == FilterType.NUMBER && operators.size() == 2 && Set.copyOf(operators).equals(CLOSED_RANGE);
     }
 
-    private static void validateRangeBounds(String name, List<FilterCondition> range) {
-        long lower = boundOf(name, range, FilterOperator.GTE);
-        long upper = boundOf(name, range, FilterOperator.LTE);
-        if (lower > upper) {
+    private static void validateRangeBounds(String name, List<FilterCondition> range, FilterSpec spec) {
+        var lower = boundOf(name, range, FilterOperator.GTE, spec);
+        var upper = boundOf(name, range, FilterOperator.LTE, spec);
+        if (lower.compareTo(upper) > 0) {
             throw UnsupportedObservabilityFilterException.invertedRange(name, lower, upper);
         }
     }
 
-    private static long boundOf(String name, List<FilterCondition> range, FilterOperator operator) {
+    private static BigDecimal boundOf(String name, List<FilterCondition> range, FilterOperator operator, FilterSpec spec) {
         return range
             .stream()
             .filter(condition -> condition.operator() == operator)
-            .map(condition -> parseNumber(name, condition.values().getFirst()))
+            .map(condition -> parseNumber(name, condition.values().getFirst(), spec))
             .findFirst()
             .orElseThrow();
     }

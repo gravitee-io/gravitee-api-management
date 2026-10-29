@@ -55,6 +55,18 @@ public class InvalidQueryException extends ValidationDomainException {
         return new InvalidQueryException("Facet " + facet + " does not support ranging");
     }
 
+    public static InvalidQueryException forOpenRange(String facet) {
+        return new InvalidQueryException("Facet " + facet + " is grouped by ranges that each need a lower and an upper bound");
+    }
+
+    public static InvalidQueryException forUngroupableFacet(String facet) {
+        return new InvalidQueryException("Facet " + facet + " cannot group results: its values are shown in log details only");
+    }
+
+    public static InvalidQueryException forRangesOnlyFacet(String facet) {
+        return new InvalidQueryException("Facet " + facet + " groups by ranges only: give its ranges and make it the last facet");
+    }
+
     public static InvalidQueryException forInvalidTimeRangeBounds() {
         return new InvalidQueryException("Time range upper bound must be greater than lower bound");
     }
