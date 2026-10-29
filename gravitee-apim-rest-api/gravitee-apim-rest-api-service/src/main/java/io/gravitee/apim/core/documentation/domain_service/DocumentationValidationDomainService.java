@@ -23,6 +23,7 @@ import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
+import io.gravitee.apim.core.documentation.exception.PageParentNotFoundException;
 import io.gravitee.apim.core.documentation.model.AccessControl;
 import io.gravitee.apim.core.documentation.model.ApiFreemarkerTemplate;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -132,13 +133,13 @@ public class DocumentationValidationDomainService {
             .accessControls(this.sanitizeAccessControls(page.getAccessControls()))
             .build();
 
-        pageSourceDomainService.setContentFromSource(sanitizedPage);
-
-        validatePageContent(organizationId, sanitizedPage);
-
         if (shouldValidateParentId) {
             this.validateParentId(sanitizedPage);
         }
+
+        pageSourceDomainService.setContentFromSource(sanitizedPage);
+
+        validatePageContent(organizationId, sanitizedPage);
 
         this.validateNameIsUnique(sanitizedPage);
 
@@ -148,13 +149,13 @@ public class DocumentationValidationDomainService {
     public Page validateAndSanitizeForUpdate(Page page, String organizationId, boolean shouldValidateParentId) {
         var sanitizedPage = page.toBuilder().accessControls(this.sanitizeAccessControls(page.getAccessControls())).build();
 
-        pageSourceDomainService.setContentFromSource(sanitizedPage);
-
-        validatePageContent(organizationId, sanitizedPage);
-
         if (shouldValidateParentId) {
             this.validateParentId(sanitizedPage);
         }
+
+        pageSourceDomainService.setContentFromSource(sanitizedPage);
+
+        validatePageContent(organizationId, sanitizedPage);
 
         return sanitizedPage;
     }
@@ -167,20 +168,30 @@ public class DocumentationValidationDomainService {
         }
     }
 
-    private void validateParentId(Page page) {
+    public void validateParentId(Page page) {
         var parentId = page.getParentId();
 
         if (Objects.nonNull(parentId) && !parentId.isEmpty()) {
-            var foundParent = pageCrudService.findById(parentId);
-
-            if (foundParent.isPresent()) {
-                if (!foundParent.get().isFolder()) {
-                    throw new InvalidPageParentException(parentId);
-                }
-                return;
+            var parent = pageCrudService.findById(parentId).orElseThrow(() -> new PageParentNotFoundException(parentId));
+            validateParentOwnership(page, parent);
+            if (!parent.isFolder()) {
+                throw new InvalidPageParentException(parentId);
             }
+            return;
         }
         page.setParentId(null);
+    }
+
+    public static void validateParentOwnership(Page page, Page parent) {
+        if (
+            page.getReferenceType() == null ||
+            page.getReferenceId() == null ||
+            page.getReferenceId().isBlank() ||
+            page.getReferenceType() != parent.getReferenceType() ||
+            !page.getReferenceId().equals(parent.getReferenceId())
+        ) {
+            throw new PageParentNotFoundException(parent.getId());
+        }
     }
 
     private void validateNameIsUnique(Page page) {
