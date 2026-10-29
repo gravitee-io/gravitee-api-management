@@ -71,13 +71,11 @@ public record FilterSpecDto(
             spec.range() == null ? null : new RangeDto(spec.range().min(), spec.range().max()),
             sortedNames(spec.signals()),
             sortedNames(spec.apiTypes()),
-            // TODO(OBS-74): map the catalog flags once the core spec carries them, typing origin and valueType
-            // with the shared enums and extending FilterCatalogSchemaTest to their values.
-            null,
-            null,
-            null,
-            null,
-            null
+            spec.catalog() == null || spec.catalog().origin() == null ? null : spec.catalog().origin().name(),
+            spec.catalog() == null ? null : spec.catalog().rawKey(),
+            spec.catalog() == null ? null : spec.catalog().valueType().name(),
+            spec.catalog() == null || spec.catalog().lastSeen() == null ? null : spec.catalog().lastSeen().toString(),
+            spec.catalog() == null ? null : spec.catalog().exposed()
         );
     }
 

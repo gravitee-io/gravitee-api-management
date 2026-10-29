@@ -20,6 +20,7 @@ import io.gravitee.gamma.rest.resources.observability.capabilities.Observability
 import io.gravitee.gamma.rest.resources.observability.dashboards.ObservabilityDashboardsResource;
 import io.gravitee.gamma.rest.resources.observability.filters.ObservabilityFiltersResource;
 import io.gravitee.gamma.rest.resources.observability.logs.LogsResource;
+import io.gravitee.gamma.rest.resources.observability.metricdefinitions.MetricDefinitionsResource;
 import io.gravitee.gamma.rest.resources.tracing.TracingResource;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.container.ResourceContext;
@@ -27,7 +28,7 @@ import jakarta.ws.rs.core.Context;
 
 /**
  * Groups every resource mounted under the shared {@code /observability/*} namespace (traces,
- * filters, logs, analytics, dashboards, capabilities), so {@code GammaRootResource} only needs a single locator
+ * filters, logs, analytics, dashboards, metric definitions, capabilities), so {@code GammaRootResource} only needs a single locator
  * for the whole Observability perimeter instead of one per sub-domain. Mirrors, at the REST layer,
  * the {@code GammaObservabilityConfiguration} aggregator introduced for Spring wiring.
  *
@@ -81,6 +82,14 @@ public class GammaObservabilityResource {
     @Path("/dashboards")
     public ObservabilityDashboardsResource getObservabilityDashboardsResource() {
         return resourceContext.getResource(ObservabilityDashboardsResource.class);
+    }
+
+    /**
+     * The environment's additional metrics and their records. See {@link MetricDefinitionsResource} for the contract.
+     */
+    @Path("/metric-definitions")
+    public MetricDefinitionsResource getMetricDefinitionsResource() {
+        return resourceContext.getResource(MetricDefinitionsResource.class);
     }
 
     /**

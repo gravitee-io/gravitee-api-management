@@ -28,6 +28,7 @@ import io.gravitee.gamma.rest.resources.observability.filters.dto.FilterValueDto
 import io.gravitee.gamma.rest.resources.observability.filters.dto.ResolveFilterLabelsRequestDto;
 import io.gravitee.gamma.rest.resources.observability.filters.dto.ResolveFilterLabelsResponseDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.PaginatedResponseDto;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -46,7 +47,8 @@ import java.util.List;
  *
  * <h2>Endpoints</h2>
  * <ul>
- *   <li>{@code GET /definition?signal=&apiType=} — self-describing filter catalog. Both axes are
+ *   <li>{@code GET /definition?signal=&apiType=} — self-describing filter catalog: the built-in filters,
+ *       then the exposed metric definitions of the environment as {@code DECLARED} entries. Both axes are
  *       optional and multi-valued: an absent axis is unconstrained, both absent yields the full
  *       catalog; a present axis narrows by set intersection. Each returned spec carries both axes so
  *       the consumer can route a filter to the right panel (logs table vs analytics histogram).</li>
@@ -84,6 +86,7 @@ public class ObservabilityFiltersResource {
     ) {
         var output = getFilterDefinitionsUseCase.execute(
             new GetObservabilityFilterDefinitionsUseCase.Input(
+                GraviteeContext.getExecutionContext().getEnvironmentId(),
                 EnumQueryParam.parse(signals, Signal.class, "signal"),
                 EnumQueryParam.parse(apiTypes, ApiType.class, "apiType")
             )

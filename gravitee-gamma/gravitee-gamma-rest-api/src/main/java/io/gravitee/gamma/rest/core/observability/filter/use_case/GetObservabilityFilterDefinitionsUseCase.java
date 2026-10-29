@@ -16,10 +16,14 @@
 package io.gravitee.gamma.rest.core.observability.filter.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.gamma.rest.core.observability.catalog.domain_service.AdditionalMetricCatalogDomainService;
+import io.gravitee.gamma.rest.core.observability.catalog.port.repository.AdditionalMetricDefinitionRepository;
+import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.BuiltInAdditionalMetricsPort;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -29,6 +33,10 @@ import lombok.AllArgsConstructor;
  * discovery axes ({@link Signal} and {@link ApiType}). The UI calls this once per panel to build its
  * filter chip palette dynamically and to know which filters it may apply to which signal — without
  * hardcoded value→label maps (each {@code ENUM} spec carries its labelled values).
+ *
+ * <p>The environment's exposed records follow the built-in specs as {@code DECLARED} entries (see
+ * {@link AdditionalMetricCatalogDomainService#declaredFilterSpecs}); a record with {@code exposed: false} is left out.
+ * Exposure is a catalog concern only: the query validators do not read records.
  *
  * <p>Both axes are optional: a {@code null}/empty set on an axis is unconstrained, so an empty input
  * on both yields the full catalog. The registry keeps a spec when its own non-empty axis intersects
@@ -41,12 +49,24 @@ import lombok.AllArgsConstructor;
 public class GetObservabilityFilterDefinitionsUseCase {
 
     private final FilterRegistry filterRegistry;
+    private final AdditionalMetricDefinitionRepository metricDefinitions;
+    private final BuiltInAdditionalMetricsPort builtInAdditionalMetrics;
+    private final AdditionalMetricCatalogDomainService catalog;
 
-    public record Input(Set<Signal> signals, Set<ApiType> apiTypes) {}
+    public record Input(String environmentId, Set<Signal> signals, Set<ApiType> apiTypes) {}
 
     public record Output(List<FilterSpec> filters) {}
 
     public Output execute(Input input) {
-        return new Output(filterRegistry.getFilters(input.signals(), input.apiTypes()));
+        List<FilterSpec> filters = new ArrayList<>(filterRegistry.getFilters(input.signals(), input.apiTypes()));
+        filters.addAll(
+            catalog.declaredFilterSpecs(
+                metricDefinitions.findByEnvironmentId(input.environmentId()),
+                builtInAdditionalMetrics.builtInNamesByRawKey().keySet(),
+                input.signals(),
+                input.apiTypes()
+            )
+        );
+        return new Output(filters);
     }
 }
