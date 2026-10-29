@@ -167,6 +167,7 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
                 GetObservabilityFilterDefinitionsUseCase.Input.class
             );
             Mockito.verify(getFilterDefinitionsUseCase).execute(captor.capture());
+            assertThat(captor.getValue().environmentId()).isEqualTo(ENVIRONMENT);
             assertThat(captor.getValue().signals()).containsExactlyInAnyOrder(Signal.LOGS, Signal.ANALYTICS);
             assertThat(captor.getValue().apiTypes()).containsExactly(ApiType.LLM);
         }

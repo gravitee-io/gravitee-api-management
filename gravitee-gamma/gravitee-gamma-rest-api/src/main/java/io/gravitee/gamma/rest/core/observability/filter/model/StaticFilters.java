@@ -320,6 +320,9 @@ public enum StaticFilters {
     }
 
     public FilterSpec toSpec() {
+        // TODO(OBS-74): a built-in backed by an additional metric (MCP_PROXY_TOOL reads keyword_mcp-proxy_tools/call)
+        // gets no CatalogFlags yet, so /filters/definition omits the rawKey, valueType and lastSeen CatalogEntryFlags
+        // promises for it.
         return new FilterSpec(name(), label, type, operators, enumValues, range, signals, apiTypes);
     }
 

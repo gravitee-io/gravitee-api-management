@@ -115,6 +115,29 @@ tags:
           module lists its own dashboards. This scoping is not an access-control boundary: every dashboard
           of the environment stays readable and writable by anyone holding the
           `ENVIRONMENT_DASHBOARD` permissions, whatever its module.
+    - name: Metric definitions
+      description: |
+          The additional metrics of an environment: fields a plugin or the gateway attaches to a request
+          (`additional-metrics.<rawKey>`), whether the product reads them under a built-in name, an
+          administrator declared them, or they were found in the environment's documents. A record gives
+          a key a label, a description, a unit, and hides it from the pickers when `exposed` is `false`.
+
+          A record is named by its field's wire name, in the `name` query parameter or in the body, never
+          in a path segment: keys contain `/`, and an encoded `%2F` is refused by the server.
+
+          | Action | Verb and path | Outcome |
+          | --- | --- | --- |
+          | List every additional metric | `GET /metric-definitions` | 200 |
+          | Declare a key | `POST /metric-definitions`, `name` in the body | 201; 400 `duplicate` when the key is declared |
+          | Read a record | `GET /metric-definitions/record?name=` | 200; 404 when the environment holds none |
+          | Edit a record, or declare a listed key | `PUT /metric-definitions/record?name=` | 200 replaced, 201 created |
+          | Delete a record | `DELETE /metric-definitions/record?name=` | 204; 404 when the environment holds none |
+
+          Every write refuses a key a built-in entry reads and the reserved `<type>_custom_<name>` form (400).
+
+          Reads need a login only; discovered entries and `lastSeen` are traffic data, served only to a
+          caller with `API_ANALYTICS[READ]` or `API_LOG[READ]` on one API of the environment, or
+          `ENVIRONMENT_PLATFORM[READ]`. Writes need `ENVIRONMENT_SETTINGS[UPDATE]`.
     - name: Capabilities
       description: |
           What the caller may open in the observability UIs, keyed like the capabilities of
@@ -135,6 +158,12 @@ paths:
                 are optional and multi-valued; omitting an axis means no constraint on it. A filter is
                 included when its declared signals/apiTypes intersect the requested values. No
                 permission is required: the catalog holds no traffic data.
+
+                The built-in filters are followed by the environment's metric definitions (see
+                Metric definitions) as `DECLARED` entries: those with `exposed: true` and a `keyword`,
+                `number` or `boolean` type, labelled by their record or else by the label derived from
+                their key, for the `LOGS` and `ANALYTICS` signals. They carry no `apiTypes`: a narrowing
+                `apiType` keeps them for any API kind and drops them for `AUTHZ_DECISION` alone.
             operationId: getObservabilityFilterDefinitions
             parameters:
                 - name: signal
@@ -1950,6 +1979,177 @@ paths:
                                 http_status: 404
                                 message: "Dashboard 'd7e246cb-ab02-4da4-8f47-f9fa3e061d6b' not found"
 
+    /organizations/{orgId}/environments/{envId}/observability/metric-definitions:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            tags:
+                - Metric definitions
+            summary: List the additional metrics of the environment
+            description: |
+                Every additional metric of the environment, one entry per key, resolved `BUILT_IN` ›
+                `DECLARED` › `DISCOVERED`: a key read under a built-in name is listed once under that name, a
+                declared key keeps `DECLARED` whether or not documents carry it, and a key found in the
+                documents with no record is `DISCOVERED`. Entries with `exposed: false` are listed too.
+
+                Labels follow the precedence declared › built-in › derived; the derived label strips
+                `additional-metrics.` and the type prefix, reads each run of `_` / `-` as one space and
+                capitalizes the first character (`long_my-policy_score` → "My policy score").
+
+                `DISCOVERED` entries and `lastSeen` are served only to a caller who may read the
+                environment's traffic; others get the built-in and declared entries without `lastSeen`.
+            operationId: listObservabilityMetricDefinitions
+            responses:
+                "200":
+                    description: The additional metrics of the environment.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MetricDefinitionsResponse"
+                            example:
+                                data:
+                                    - name: "MCP_PROXY_TOOL"
+                                      label: "MCP Tool"
+                                      type: "keyword"
+                                      apiTypes: ["MCP"]
+                                      origin: "BUILT_IN"
+                                      rawKey: "keyword_mcp-proxy_tools/call"
+                                      valueType: "KEYWORD"
+                                      lastSeen: "2026-10-29T09:41:00Z"
+                                      exposed: true
+                                    - name: "additional-metrics.double_checkout_basket-value"
+                                      label: "Basket value"
+                                      description: "Amount of the basket at checkout"
+                                      unit: "€"
+                                      type: "number"
+                                      apiTypes: []
+                                      origin: "DECLARED"
+                                      rawKey: "double_checkout_basket-value"
+                                      valueType: "DOUBLE"
+                                      exposed: true
+                                    - name: "additional-metrics.long_failover_count"
+                                      label: "Failover count"
+                                      type: "number"
+                                      apiTypes: []
+                                      origin: "DISCOVERED"
+                                      rawKey: "long_failover_count"
+                                      valueType: "LONG"
+                                      lastSeen: "2026-10-29T08:12:00Z"
+                                      exposed: true
+                                refreshedAt: "2026-10-29T09:45:00Z"
+                                truncated: false
+        post:
+            tags:
+                - Metric definitions
+            summary: Declare an additional metric
+            description: |
+                Creates the record on a key, whether or not documents carry it yet. Refused when the
+                environment already declares the key: use `PUT /metric-definitions/record` to edit it.
+            operationId: declareObservabilityMetricDefinition
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/DeclareMetricDefinitionRequest"
+                        example:
+                            name: "additional-metrics.double_checkout_basket-value"
+                            label: "Basket value"
+                            description: "Amount of the basket at checkout"
+                            unit: "€"
+            responses:
+                "201":
+                    description: The record was created.
+                    headers:
+                        Location:
+                            description: URL of the record.
+                            schema:
+                                type: string
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MetricDefinitionRecord"
+                "400":
+                    $ref: "#/components/responses/MetricDefinitionRefused"
+                "403":
+                    $ref: "#/components/responses/MetricDefinitionWriteForbidden"
+
+    /organizations/{orgId}/environments/{envId}/observability/metric-definitions/record:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/metricDefinitionNameParam"
+        get:
+            tags:
+                - Metric definitions
+            summary: Get the record on one key
+            operationId: getObservabilityMetricDefinition
+            responses:
+                "200":
+                    description: The record.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MetricDefinitionRecord"
+                "400":
+                    $ref: "#/components/responses/MetricDefinitionRefused"
+                "404":
+                    $ref: "#/components/responses/MetricDefinitionNotFound"
+        put:
+            tags:
+                - Metric definitions
+            summary: Write the record on one key
+            description: |
+                Replaces the record on the key, or creates it when the environment holds none: editing a
+                discovered key is how it becomes `DECLARED`. Every field is replaced: an absent `label`,
+                `description` or `unit` is cleared, an absent `exposed` means `true`.
+            operationId: saveObservabilityMetricDefinition
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/SaveMetricDefinitionRequest"
+                        example:
+                            label: "Basket value"
+                            unit: "€"
+                            exposed: false
+            responses:
+                "200":
+                    description: The record was replaced.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MetricDefinitionRecord"
+                "201":
+                    description: The record was created.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MetricDefinitionRecord"
+                "400":
+                    $ref: "#/components/responses/MetricDefinitionRefused"
+                "403":
+                    $ref: "#/components/responses/MetricDefinitionWriteForbidden"
+        delete:
+            tags:
+                - Metric definitions
+            summary: Delete the record on one key
+            description: |
+                Removes the record: the key is listed again as `DISCOVERED` while documents carry it, and no
+                longer otherwise.
+            operationId: deleteObservabilityMetricDefinition
+            responses:
+                "204":
+                    description: The record was deleted.
+                "400":
+                    $ref: "#/components/responses/MetricDefinitionRefused"
+                "403":
+                    $ref: "#/components/responses/MetricDefinitionWriteForbidden"
+                "404":
+                    $ref: "#/components/responses/MetricDefinitionNotFound"
+
 components:
     responses:
         AnalyticsQueryRefused:
@@ -1991,6 +2191,48 @@ components:
                                 http_status: 400
                                 message: "Metric 'HTTP_REQUEST' is not supported"
                                 technicalCode: "observability.query.unknown_metric"
+        MetricDefinitionRefused:
+            description: |
+                The name or a field breaks a rule, named by `technicalCode`:
+
+                - `observability.metric_definition.invalid_name`: not `additional-metrics.` followed by a type
+                  prefix and segments of letters, digits, `-`, `_` and `/` joined by single dots, 256 characters
+                  at most (a `"` is refused here);
+                - `observability.metric_definition.unknown_type_prefix`: the prefix is not `long_`, `int_`,
+                  `double_`, `bool_`, `keyword_`, `string_` or `json_`;
+                - `observability.metric_definition.reserved_key`: a `<type>_custom_<name>` key, kept for the
+                  typed custom metrics;
+                - `observability.metric_definition.built_in_key`: a built-in entry reads the key; built-in entries
+                  are read-only;
+                - `observability.metric_definition.duplicate`: on `POST`, the environment already declares the key;
+                - `observability.metric_definition.label_too_long` (64), `description_too_long` (512),
+                  `invalid_unit` (a named unit, or a suffix of at most 16 printable characters), `invalid_body`.
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+                    example:
+                        http_status: 400
+                        message: "A built-in metric already uses 'additional-metrics.keyword_mcp-proxy_tools/call'; built-in entries are read-only"
+                        technicalCode: "observability.metric_definition.built_in_key"
+        MetricDefinitionNotFound:
+            description: The environment holds no record on this key; a record of another environment is not found either.
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+                    example:
+                        http_status: 404
+                        message: "No metric definition 'additional-metrics.double_checkout_basket-value' in this environment"
+        MetricDefinitionWriteForbidden:
+            description: The caller does not hold `ENVIRONMENT_SETTINGS[UPDATE]` on the environment.
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+                    example:
+                        http_status: 403
+                        message: "You do not have sufficient rights to access this resource"
     securitySchemes:
         CookieAuth:
             type: apiKey
@@ -2037,6 +2279,17 @@ components:
             schema:
                 $ref: "#/components/schemas/DashboardModule"
 
+        metricDefinitionNameParam:
+            name: name
+            in: query
+            required: true
+            description: |
+                Wire name of the additional metric field the record is on, `additional-metrics.<rawKey>`.
+                Percent-encode it as a query value; it is never a path segment.
+            example: "additional-metrics.keyword_mcp-proxy_tools/call"
+            schema:
+                type: string
+                maxLength: 256
     schemas:
         MessageLog:
             type: object
@@ -3790,6 +4043,144 @@ components:
                     example: 4
                 dashboard:
                     $ref: "#/components/schemas/Dashboard"
+
+        MetricDefinitionEntry:
+            type: object
+            description: |
+                One additional metric of the environment, with the catalog flags of `CatalogEntryFlags`: `origin`,
+                `rawKey`, `valueType` and `exposed` are always present here, `lastSeen` as the flags describe it.
+                Unlike the filter catalog, this list also serves entries with `exposed: false`.
+            required: [name, label, apiTypes, origin, rawKey, valueType, exposed]
+            allOf:
+                - $ref: "#/components/schemas/CatalogEntryFlags"
+            properties:
+                name:
+                    type: string
+                    description: |
+                        Wire name: the built-in name of a `BUILT_IN` entry, `additional-metrics.<rawKey>` otherwise.
+                    example: "additional-metrics.double_checkout_basket-value"
+                label:
+                    type: string
+                    description: Declared label, else built-in label, else the label derived from the key.
+                    example: "Basket value"
+                description:
+                    type: string
+                    description: The record's description; absent when it sets none.
+                unit:
+                    type: string
+                    description: |
+                        The record's unit: a named unit (`PERCENT`, `MILLISECONDS`, `SECONDS`, `BYTES`, `KILOBYTES`,
+                        `MEGABYTES`, `GIGABYTES`, `COUNT`, `COUNT_PER_SECOND`) or a free suffix shown as written.
+                        Absent when none is set.
+                    example: "€"
+                type:
+                    type: string
+                    description: |
+                        Filter type: the one of the built-in filter serving a `BUILT_IN` entry, otherwise the one the
+                        value type gives (`keyword`, `number`, `boolean`). Absent for `STRING` and `JSON` entries, which
+                        are only shown in the log detail.
+                    enum: [keyword, string, number, enum, boolean]
+                apiTypes:
+                    type: array
+                    description: |
+                        API kinds of a `BUILT_IN` entry, so a module can keep those of its scope; empty on `DECLARED`
+                        and `DISCOVERED` entries, which documents do not tie to an API kind.
+                    items:
+                        $ref: "#/components/schemas/ApiType"
+
+        MetricDefinitionsResponse:
+            type: object
+            required: [data, refreshedAt, truncated]
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/MetricDefinitionEntry"
+                refreshedAt:
+                    type: string
+                    format: date-time
+                    description: When the discovery pass behind the `DISCOVERED` entries and `lastSeen` ran.
+                truncated:
+                    type: boolean
+                    description: |
+                        `true` when the environment's documents carry more keys than the `DISCOVERED` entries list.
+                        `BUILT_IN` and `DECLARED` entries are never left out.
+
+        MetricDefinitionRecord:
+            type: object
+            description: The record an environment holds on one additional metric key.
+            required: [name, rawKey, valueType, exposed, createdAt, updatedAt]
+            properties:
+                name:
+                    type: string
+                    example: "additional-metrics.double_checkout_basket-value"
+                rawKey:
+                    type: string
+                    example: "double_checkout_basket-value"
+                valueType:
+                    $ref: "#/components/schemas/AdditionalMetricValueType"
+                label:
+                    type: string
+                    maxLength: 64
+                    description: Absent when the record leaves the label to the derived one.
+                description:
+                    type: string
+                    maxLength: 512
+                unit:
+                    type: string
+                    description: A named unit or a free suffix of at most 16 characters (see `MetricDefinitionEntry.unit`).
+                exposed:
+                    type: boolean
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
+
+        SaveMetricDefinitionRequest:
+            type: object
+            description: |
+                What to say about the key. Blank text reads as absent; an absent `exposed` means `true`. Unknown
+                properties are refused, server-owned ones (`name`, `rawKey`, dates) included.
+            additionalProperties: false
+            properties:
+                label:
+                    type: string
+                    maxLength: 64
+                description:
+                    type: string
+                    maxLength: 512
+                unit:
+                    type: string
+                    description: A named unit or a free suffix of at most 16 printable characters.
+                exposed:
+                    type: boolean
+                    default: true
+
+        DeclareMetricDefinitionRequest:
+            type: object
+            description: The field to declare and what to say about it, as in `SaveMetricDefinitionRequest`.
+            additionalProperties: false
+            required: [name]
+            properties:
+                name:
+                    type: string
+                    maxLength: 256
+                    description: Wire name of the field to declare, `additional-metrics.<rawKey>`.
+                    example: "additional-metrics.double_checkout_basket-value"
+                label:
+                    type: string
+                    maxLength: 64
+                description:
+                    type: string
+                    maxLength: 512
+                unit:
+                    type: string
+                    description: A named unit or a free suffix of at most 16 printable characters.
+                exposed:
+                    type: boolean
+                    default: true
 
         Error:
             type: object
