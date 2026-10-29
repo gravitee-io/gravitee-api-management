@@ -18,6 +18,7 @@ package io.gravitee.apim.core.theme.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.theme.crud_service.ThemeCrudService;
 import io.gravitee.apim.core.theme.exception.ThemeDefinitionInvalidException;
+import io.gravitee.apim.core.theme.exception.ThemeImageInvalidException;
 import io.gravitee.apim.core.theme.exception.ThemeNotFoundException;
 import io.gravitee.apim.core.theme.exception.ThemeTypeInvalidException;
 import io.gravitee.apim.core.theme.model.Theme;
@@ -27,8 +28,15 @@ import io.gravitee.apim.core.theme.model.UpdateTheme;
 import io.gravitee.apim.core.theme.query_service.ThemeQueryService;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+<<<<<<< HEAD
 import java.time.ZonedDateTime;
+=======
+import io.gravitee.rest.api.service.common.HRIDToUUID;
+import java.util.ArrayList;
+import java.util.List;
+>>>>>>> de5b401 (fix: validate theme images to prevent stored XSS)
 import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -36,7 +44,69 @@ import lombok.RequiredArgsConstructor;
 public class ValidateThemeDomainService {
 
     private final ThemeCrudService themeCrudService;
+    private final ThemeImageWriteValidator themeImageWriteValidator;
 
+<<<<<<< HEAD
+=======
+    public record Input(
+        AuditInfo auditInfo,
+        String themeHrid,
+        String name,
+        ThemeDefinition definitionPortalNext,
+        String logo,
+        String optionalLogo,
+        String favicon,
+        String backgroundImage
+    ) implements Validator.Input {}
+
+    @Override
+    public Result<Input> validateAndSanitize(Input input) {
+        var errors = new ArrayList<Error>();
+        var sanitizedName = input.name() == null ? null : input.name().trim();
+        if (sanitizedName == null || sanitizedName.isBlank()) {
+            errors.add(Error.severe("spec.name must not be blank"));
+        }
+        if (input.themeHrid() == null || input.themeHrid().isBlank()) {
+            errors.add(Error.severe("spec.hrid must not be blank"));
+        }
+        if (input.definitionPortalNext() == null) {
+            errors.add(Error.severe("spec.definitionPortalNext must not be null"));
+        }
+        var existingTheme = findExistingTheme(input);
+        validateImage("spec.logo", existingTheme.map(Theme::getLogo).orElse(null), input.logo(), errors);
+        validateImage("spec.optionalLogo", existingTheme.map(Theme::getOptionalLogo).orElse(null), input.optionalLogo(), errors);
+        validateImage("spec.favicon", existingTheme.map(Theme::getFavicon).orElse(null), input.favicon(), errors);
+        validateImage("spec.backgroundImage", existingTheme.map(Theme::getBackgroundImage).orElse(null), input.backgroundImage(), errors);
+        var sanitized = new Input(
+            input.auditInfo(),
+            input.themeHrid(),
+            sanitizedName,
+            input.definitionPortalNext(),
+            input.logo(),
+            input.optionalLogo(),
+            input.favicon(),
+            input.backgroundImage()
+        );
+        return Result.ofBoth(sanitized, errors);
+    }
+
+    private Optional<Theme> findExistingTheme(Input input) {
+        if (input.themeHrid() == null || input.themeHrid().isBlank()) {
+            return Optional.empty();
+        }
+        var themeId = HRIDToUUID.portalTheme().context(input.auditInfo()).hrid(input.themeHrid()).id();
+        return themeCrudService.findByIdAndEnvironmentId(themeId, input.auditInfo().environmentId());
+    }
+
+    private void validateImage(String field, String previousValue, String value, List<Error> errors) {
+        try {
+            themeImageWriteValidator.validateIfChanged(field, previousValue, value);
+        } catch (ThemeImageInvalidException e) {
+            errors.add(Error.severe("%s", e.getMessage()));
+        }
+    }
+
+>>>>>>> de5b401 (fix: validate theme images to prevent stored XSS)
     public void validateUpdateTheme(UpdateTheme updateTheme, ExecutionContext executionContext) {
         var existingTheme = this.themeCrudService.get(updateTheme.getId());
 
