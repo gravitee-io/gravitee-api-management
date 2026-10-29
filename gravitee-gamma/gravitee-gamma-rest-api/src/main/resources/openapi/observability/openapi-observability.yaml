@@ -2009,7 +2009,7 @@ components:
             description: |
                 Comparison operator. Each filter advertises the ones it supports in the `operators` of
                 its catalog entry; any other is refused. Read case-insensitively on input.
-            enum: [EQ, IN, GTE, LTE, CONTAINS, STARTS_WITH]
+            enum: [EQ, NEQ, CONTAINS, NOT_CONTAINS, STARTS_WITH, ENDS_WITH, GT, GTE, LT, LTE, IN, NOT_IN, EXISTS, NOT_EXISTS]
 
         EnumValue:
             type: object
@@ -2039,14 +2039,84 @@ components:
                     description: Upper bound (inclusive).
                     example: 599
 
+        CatalogOrigin:
+            type: string
+            description: |
+                Where a catalog entry comes from. Resolved in this order, so one key never yields two entries:
+
+                - `BUILT_IN`: a field the product knows, served under its built-in name;
+                - `DECLARED`: an additional metric field described by a record of the environment, whether or
+                  not documents carry it yet;
+                - `DISCOVERED`: an additional metric field found in the environment's documents, with no record;
+                  served only to a caller who may read the environment's observability data (see `lastSeen`).
+            enum: [BUILT_IN, DECLARED, DISCOVERED]
+
+        AdditionalMetricValueType:
+            type: string
+            description: |
+                Value type of an additional metric field, read from the type prefix of its key: `long_`, `int_`,
+                `double_`, `bool_`, `keyword_`, `string_`, `json_`. `KEYWORD` filters with `EQ` / `IN` and
+                facets; `LONG`, `INT` and `DOUBLE` filter with `EQ` / `GTE` / `LTE` and measure; `BOOL` filters
+                with `EQ` and facets; `STRING` and `JSON` are stored as text and only shown in the log detail,
+                so they are never listed as filters.
+            enum: [LONG, INT, DOUBLE, BOOL, KEYWORD, STRING, JSON]
+
+        CatalogEntryFlags:
+            type: object
+            description: |
+                Catalog flags carried by the entries of the filter catalog (`FilterSpec`) and of the metric
+                definitions of the environment. The analytics definition carries `origin` only, until it is
+                aligned on this schema. The entry's `name` is its wire name: a built-in name (`HTTP_STATUS`),
+                or `additional-metrics.<rawKey>` for an additional metric field with no built-in name
+                (`additional-metrics.long_failover_count`).
+            properties:
+                origin:
+                    $ref: "#/components/schemas/CatalogOrigin"
+                rawKey:
+                    type: string
+                    description: |
+                        Key of the additional metric this entry reads, as a plugin or the gateway writes it and as
+                        it appears in the `additionalMetrics` of a log. Its prefix is the value type. Present on
+                        every entry backed by an additional metric, built-in ones included (`MCP_PROXY_TOOL`
+                        reads `keyword_mcp-proxy_tools/call`); absent otherwise.
+                    example: long_failover_count
+                valueType:
+                    $ref: "#/components/schemas/AdditionalMetricValueType"
+                lastSeen:
+                    type: string
+                    format: date-time
+                    description: |
+                        Most recent time a document of the environment carried `rawKey` within the last 30 days.
+                        Absent when no document did, and on entries with no `rawKey`. It is traffic data: served,
+                        like `DISCOVERED` entries, only to a caller who may read the environment's observability
+                        data (`API_ANALYTICS[READ]` or `API_LOG[READ]` on one of its APIs, or
+                        `ENVIRONMENT_PLATFORM[READ]`).
+                    example: "2026-10-29T09:41:00Z"
+                exposed:
+                    type: boolean
+                    default: true
+                    description: |
+                        Whether the entry is offered in filters, columns and the widget editor. The filter
+                        catalog only serves exposed entries; the metric definitions also list the others. Queries ignore it: a saved widget on a field that is no longer
+                        exposed keeps working.
+
         FilterSpec:
             type: object
-            description: Specification of one filterable field in the catalog.
-            required: [name, label, type, operators, signals, apiTypes]
+            description: |
+                Specification of one filterable field in the catalog. Entries backed by an additional metric
+                carry the catalog flags; an entry with no `origin` is `BUILT_IN`.
+            required: [name, label, type, operators, signals]
+            allOf:
+                - $ref: "#/components/schemas/CatalogEntryFlags"
             properties:
                 name:
                     type: string
-                    description: Canonical unique identifier for this filter.
+                    description: |
+                        Canonical unique identifier for this filter, sent back as is in filter conditions, URLs and
+                        saved dashboards. A built-in name is upper snake case; an additional metric field with no
+                        built-in name is `additional-metrics.<rawKey>`, where `rawKey` is a type prefix followed
+                        by one or more segments of letters, digits, `-`, `_` and `/` joined by single dots, 256
+                        characters at most. The two forms never collide.
                     example: HTTP_GATEWAY_RESPONSE_TIME
                 label:
                     type: string
@@ -2076,7 +2146,12 @@ components:
                         $ref: "#/components/schemas/Signal"
                 apiTypes:
                     type: array
-                    description: API kinds this filter is relevant to.
+                    description: |
+                        API kinds this filter is relevant to. Always filled on `BUILT_IN` entries. Absent or
+                        empty on `DECLARED` and `DISCOVERED` entries, since documents do not record which API
+                        kind wrote a key: such an entry applies to the request rows of every API kind and never
+                        to the decisions screen (`AUTHZ_DECISION`). A narrowing `apiType` query keeps it for any
+                        API kind and drops it for `AUTHZ_DECISION` alone.
                     items:
                         $ref: "#/components/schemas/ApiType"
 
@@ -2088,6 +2163,13 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/FilterSpec"
+                truncated:
+                    type: boolean
+                    default: false
+                    description: |
+                        `true` when the environment's documents carry more additional metric fields than the
+                        catalog lists as `DISCOVERED`: the most recently seen are listed, the others left out.
+                        `BUILT_IN` and `DECLARED` entries are never left out.
 
         ObservabilityCapabilities:
             type: object
@@ -2253,7 +2335,7 @@ components:
                 - `name` is in the catalog and applies to the signal (`unknown_name`, `signal_mismatch`);
                 - `operator` is one the filter advertises (`unsupported_operator`);
                 - `value` is a scalar or an array of scalars, with no null element (`invalid_value_shape`);
-                - `EQ`, `GTE`, `LTE` and `CONTAINS` take exactly one value, `IN` one or more
+                - `IN` and `NOT_IN` take one or more values, every other operator exactly one
                   (`invalid_arity`, `blank_value`);
                 - an ENUM value is one the filter advertises; a NUMBER value is a whole number within the
                   filter's range (`unknown_enum_value`, `invalid_number`, `value_out_of_range`);
@@ -2271,7 +2353,7 @@ components:
                 operator:
                     $ref: "#/components/schemas/FilterOperator"
                 value:
-                    description: A scalar for `EQ`, `GTE`, `LTE` and `CONTAINS`; an array for `IN`.
+                    description: An array for `IN` and `NOT_IN`; a scalar for every other operator.
                     oneOf:
                         - type: string
                         - type: number

@@ -128,6 +128,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <!-- Architecture tests — enforce Hexagonal layout + naming + dependency direction. -->
             <groupId>com.tngtech.archunit</groupId>
             <artifactId>archunit-junit5</artifactId>

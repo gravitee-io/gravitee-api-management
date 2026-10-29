@@ -128,6 +128,30 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_omit_the_catalog_flags_so_an_entry_reads_as_built_in() {
+            FilterSpec spec = new FilterSpec(
+                "HTTP_STATUS",
+                "Status Code",
+                FilterType.NUMBER,
+                List.of(FilterOperator.EQ, FilterOperator.GTE, FilterOperator.LTE),
+                null,
+                new FilterSpec.Range(100, 599),
+                Set.of(Signal.LOGS, Signal.ANALYTICS),
+                Set.of(ApiType.HTTP_PROXY)
+            );
+            when(getFilterDefinitionsUseCase.execute(any())).thenReturn(new GetObservabilityFilterDefinitionsUseCase.Output(List.of(spec)));
+
+            JsonNode body = rootTarget("definition").request().get().readEntity(JsonNode.class);
+
+            assertThat(body.has("truncated")).isFalse();
+            assertThat(body.get("data").get(0).has("origin")).isFalse();
+            assertThat(body.get("data").get(0).has("rawKey")).isFalse();
+            assertThat(body.get("data").get(0).has("valueType")).isFalse();
+            assertThat(body.get("data").get(0).has("lastSeen")).isFalse();
+            assertThat(body.get("data").get(0).has("exposed")).isFalse();
+        }
+
+        @Test
         void should_forward_multi_valued_signal_and_api_type_axes_to_the_use_case() {
             when(getFilterDefinitionsUseCase.execute(any())).thenReturn(new GetObservabilityFilterDefinitionsUseCase.Output(List.of()));
 
