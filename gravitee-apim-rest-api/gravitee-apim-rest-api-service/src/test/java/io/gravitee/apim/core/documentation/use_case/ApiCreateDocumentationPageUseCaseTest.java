@@ -32,6 +32,7 @@ import io.gravitee.apim.core.documentation.domain_service.PageSourceDomainServic
 import io.gravitee.apim.core.documentation.exception.InvalidPageContentException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
+import io.gravitee.apim.core.documentation.exception.PageParentNotFoundException;
 import io.gravitee.apim.core.documentation.model.AccessControl;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -240,6 +241,7 @@ class ApiCreateDocumentationPageUseCaseTest {
 
         @Test
         void should_create_audit() {
+            initParentFolder();
             apiCreateDocumentationPageUsecase.execute(
                 ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
@@ -268,6 +270,7 @@ class ApiCreateDocumentationPageUseCaseTest {
 
         @Test
         void should_create_a_page_revision() {
+            initParentFolder();
             apiCreateDocumentationPageUsecase.execute(
                 ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
@@ -386,27 +389,31 @@ class ApiCreateDocumentationPageUseCaseTest {
         }
 
         @Test
-        void should_not_add_missing_parent() {
-            var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input.builder()
-                    .page(
-                        Page.builder()
-                            .type(Page.Type.MARKDOWN)
-                            .name("new page")
-                            .content("nice content")
-                            .homepage(false)
-                            .visibility(Page.Visibility.PRIVATE)
-                            .parentId(PARENT_ID)
-                            .order(1)
-                            .referenceType(Page.ReferenceType.API)
-                            .referenceId(API_ID)
-                            .build()
-                    )
-                    .auditInfo(AUDIT_INFO)
-                    .build()
-            );
+        void should_reject_missing_parent() {
+            assertThatThrownBy(() ->
+                apiCreateDocumentationPageUsecase.execute(
+                    ApiCreateDocumentationPageUseCase.Input.builder()
+                        .page(
+                            Page.builder()
+                                .type(Page.Type.MARKDOWN)
+                                .name("new page")
+                                .content("nice content")
+                                .homepage(false)
+                                .visibility(Page.Visibility.PRIVATE)
+                                .parentId(PARENT_ID)
+                                .order(1)
+                                .referenceType(Page.ReferenceType.API)
+                                .referenceId(API_ID)
+                                .build()
+                        )
+                        .auditInfo(AUDIT_INFO)
+                        .build()
+                )
+            ).isInstanceOf(PageParentNotFoundException.class);
 
-            assertThat(res.createdPage()).isNotNull().hasFieldOrPropertyWithValue("parentId", null);
+            assertThat(pageCrudService.storage()).isEmpty();
+            assertThat(pageRevisionCrudService.storage()).isEmpty();
+            assertThat(auditCrudService.storage()).isEmpty();
         }
 
         @Test
@@ -435,6 +442,7 @@ class ApiCreateDocumentationPageUseCaseTest {
 
         @Test
         void should_throw_error_if_markdown_unsafe() {
+            initParentFolder();
             assertThatThrownBy(() ->
                 apiCreateDocumentationPageUsecase.execute(
                     ApiCreateDocumentationPageUseCase.Input.builder()
@@ -709,6 +717,7 @@ class ApiCreateDocumentationPageUseCaseTest {
 
         @Test
         void should_create_audit() {
+            initParentFolder();
             apiCreateDocumentationPageUsecase.execute(
                 ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
@@ -737,6 +746,7 @@ class ApiCreateDocumentationPageUseCaseTest {
 
         @Test
         void should_create_a_page_revision() {
+            initParentFolder();
             apiCreateDocumentationPageUsecase.execute(
                 ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
@@ -855,27 +865,31 @@ class ApiCreateDocumentationPageUseCaseTest {
         }
 
         @Test
-        void should_not_add_missing_parent() {
-            var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input.builder()
-                    .page(
-                        Page.builder()
-                            .type(Page.Type.SWAGGER)
-                            .name("new page")
-                            .content("openapi: 3.0.0")
-                            .homepage(false)
-                            .visibility(Page.Visibility.PRIVATE)
-                            .parentId(PARENT_ID)
-                            .order(1)
-                            .referenceType(Page.ReferenceType.API)
-                            .referenceId(API_ID)
-                            .build()
-                    )
-                    .auditInfo(AUDIT_INFO)
-                    .build()
-            );
+        void should_reject_missing_parent() {
+            assertThatThrownBy(() ->
+                apiCreateDocumentationPageUsecase.execute(
+                    ApiCreateDocumentationPageUseCase.Input.builder()
+                        .page(
+                            Page.builder()
+                                .type(Page.Type.SWAGGER)
+                                .name("new page")
+                                .content("openapi: 3.0.0")
+                                .homepage(false)
+                                .visibility(Page.Visibility.PRIVATE)
+                                .parentId(PARENT_ID)
+                                .order(1)
+                                .referenceType(Page.ReferenceType.API)
+                                .referenceId(API_ID)
+                                .build()
+                        )
+                        .auditInfo(AUDIT_INFO)
+                        .build()
+                )
+            ).isInstanceOf(PageParentNotFoundException.class);
 
-            assertThat(res.createdPage()).isNotNull().hasFieldOrPropertyWithValue("parentId", null);
+            assertThat(pageCrudService.storage()).isEmpty();
+            assertThat(pageRevisionCrudService.storage()).isEmpty();
+            assertThat(auditCrudService.storage()).isEmpty();
         }
 
         @Test
@@ -904,6 +918,7 @@ class ApiCreateDocumentationPageUseCaseTest {
 
         @Test
         void should_throw_error_if_content_invalid() {
+            initParentFolder();
             assertThatThrownBy(() ->
                 apiCreateDocumentationPageUsecase.execute(
                     ApiCreateDocumentationPageUseCase.Input.builder()
@@ -1155,6 +1170,7 @@ class ApiCreateDocumentationPageUseCaseTest {
 
         @Test
         void should_create_audit() {
+            initParentFolder();
             apiCreateDocumentationPageUsecase.execute(
                 ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
@@ -1183,6 +1199,7 @@ class ApiCreateDocumentationPageUseCaseTest {
 
         @Test
         void should_not_create_a_page_revision() {
+            initParentFolder();
             apiCreateDocumentationPageUsecase.execute(
                 ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
@@ -1295,27 +1312,31 @@ class ApiCreateDocumentationPageUseCaseTest {
         }
 
         @Test
-        void should_not_add_missing_parent() {
-            var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input.builder()
-                    .page(
-                        Page.builder()
-                            .type(Page.Type.ASYNCAPI)
-                            .name("new page")
-                            .content("nice content")
-                            .homepage(false)
-                            .visibility(Page.Visibility.PRIVATE)
-                            .parentId(PARENT_ID)
-                            .order(1)
-                            .referenceType(Page.ReferenceType.API)
-                            .referenceId(API_ID)
-                            .build()
-                    )
-                    .auditInfo(AUDIT_INFO)
-                    .build()
-            );
+        void should_reject_missing_parent() {
+            assertThatThrownBy(() ->
+                apiCreateDocumentationPageUsecase.execute(
+                    ApiCreateDocumentationPageUseCase.Input.builder()
+                        .page(
+                            Page.builder()
+                                .type(Page.Type.ASYNCAPI)
+                                .name("new page")
+                                .content("nice content")
+                                .homepage(false)
+                                .visibility(Page.Visibility.PRIVATE)
+                                .parentId(PARENT_ID)
+                                .order(1)
+                                .referenceType(Page.ReferenceType.API)
+                                .referenceId(API_ID)
+                                .build()
+                        )
+                        .auditInfo(AUDIT_INFO)
+                        .build()
+                )
+            ).isInstanceOf(PageParentNotFoundException.class);
 
-            assertThat(res.createdPage()).isNotNull().hasFieldOrPropertyWithValue("parentId", null);
+            assertThat(pageCrudService.storage()).isEmpty();
+            assertThat(pageRevisionCrudService.storage()).isEmpty();
+            assertThat(auditCrudService.storage()).isEmpty();
         }
 
         @Test
@@ -1565,6 +1586,7 @@ class ApiCreateDocumentationPageUseCaseTest {
 
         @Test
         void should_create_audit() {
+            initParentFolder();
             apiCreateDocumentationPageUsecase.execute(
                 ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
@@ -1662,6 +1684,12 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessage("Name already exists with the same parent and type: sub-page");
         }
+    }
+
+    private void initParentFolder() {
+        pageCrudService.initWith(
+            List.of(Page.builder().id(PARENT_ID).type(Page.Type.FOLDER).referenceType(Page.ReferenceType.API).referenceId(API_ID).build())
+        );
     }
 
     private String getNotSafe() {
