@@ -889,6 +889,11 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     }
 
     @Override
+    public Map<String, Set<String>> builtInAdditionalMetricKeys() {
+        return BuiltInAdditionalMetricKeys.all();
+    }
+
+    @Override
     public FilterValuesResult searchFilterValues(QueryContext queryContext, FilterValuesQuery query) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         var esQuery = filterValuesQueryAdapter.adapt(query);

@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.14.0_02_create_gamma_metric_definitions_table
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}gamma_metric_definitions
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}gamma_metric_definitions" } }
+              - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: raw_key, type: nvarchar(256), constraints: { nullable: false } }
+              # Hex SHA-256 of raw_key, written by the repository: keys are case-sensitive, and the default collations
+              # of MySQL, MariaDB and SQL Server are not, so the unique constraint compares this column instead.
+              - column: { name: raw_key_hash, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: label, type: nvarchar(64) }
+              - column: { name: description, type: nvarchar(512) }
+              - column: { name: unit, type: nvarchar(32) }
+              - column: { name: exposed, type: boolean, constraints: { nullable: false } }
+              - column: { name: created_at, type: timestamp(6), constraints: { nullable: false } }
+              - column: { name: updated_at, type: timestamp(6), constraints: { nullable: false } }
+        # One record per key and environment; also serves the environment listing.
+        - addUniqueConstraint:
+            constraintName: uk_${gravitee_prefix}gamma_metric_definitions_env_key_hash
+            columnNames: environment_id, raw_key_hash
+            tableName: ${gravitee_prefix}gamma_metric_definitions

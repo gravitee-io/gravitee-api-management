@@ -1,0 +1,40 @@
+[
+  {
+    "id": "gmd-1",
+    "environmentId": "DEFAULT",
+    "rawKey": "long_fraud-check_duration-ms",
+    "label": "Fraud check time",
+    "description": "Time spent by the fraud check policy",
+    "unit": "MILLISECONDS",
+    "exposed": true,
+    "createdAt": 1000000000000,
+    "updatedAt": 1111111111111
+  },
+  {
+    "id": "gmd-2",
+    "environmentId": "DEFAULT",
+    "rawKey": "keyword_mcp-proxy_tools/call.v2",
+    "exposed": false,
+    "createdAt": 1000000000000,
+    "updatedAt": 1000000000000
+  },
+  {
+    "id": "gmd-3",
+    "environmentId": "DEFAULT",
+    "rawKey": "double_checkout_basket-value",
+    "label": "Basket value",
+    "unit": "€",
+    "exposed": true,
+    "createdAt": 1000000000000,
+    "updatedAt": 1000000000000
+  },
+  {
+    "id": "gmd-4",
+    "environmentId": "OTHER_ENV",
+    "rawKey": "long_fraud-check_duration-ms",
+    "label": "Other environment",
+    "exposed": true,
+    "createdAt": 1000000000000,
+    "updatedAt": 1000000000000
+  }
+]

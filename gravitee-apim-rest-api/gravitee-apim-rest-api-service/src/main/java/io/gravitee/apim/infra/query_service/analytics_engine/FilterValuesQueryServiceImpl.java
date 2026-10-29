@@ -28,6 +28,7 @@ import io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -142,6 +143,23 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
     }
 
     private static final String ADDITIONAL_METRICS_PREFIX = "additional-metrics.";
+
+    /** Each additional metric key this service lists values from, type prefix included, with the filters reading it. */
+    static Map<String, Set<String>> additionalMetricKeys() {
+        var namesByKey = new HashMap<String, Set<String>>();
+        for (FilterSpec.Name name : FilterSpec.Name.values()) {
+            String field;
+            try {
+                field = resolveEsFieldName(name);
+            } catch (UnsupportedOperationException noValuesForThisFilter) {
+                continue;
+            }
+            if (field.startsWith(ADDITIONAL_METRICS_PREFIX)) {
+                namesByKey.computeIfAbsent(field.substring(ADDITIONAL_METRICS_PREFIX.length()), key -> new HashSet<>()).add(name.name());
+            }
+        }
+        return namesByKey;
+    }
 
     /**
      * Maps domain filter names to Elasticsearch field names.
