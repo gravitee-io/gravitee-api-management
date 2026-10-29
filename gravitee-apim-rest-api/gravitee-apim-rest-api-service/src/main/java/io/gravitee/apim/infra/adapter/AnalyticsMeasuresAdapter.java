@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
@@ -29,6 +30,8 @@ import io.gravitee.apim.core.analytics_engine.model.TimeSeriesMetricResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
+import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
@@ -100,6 +103,22 @@ public interface AnalyticsMeasuresAdapter {
 
     /** Every engine filter has a catalog name; MapStruct fails the build if one is added without. */
     FilterSpec.Name fromFilterName(Filter.Name name);
+
+    /** The core sends built-in names only, so the repository reports no outcome on another name. */
+    default FilterSpec.Name fromFilterName(io.gravitee.repository.analytics.engine.api.query.FilterName name) {
+        return switch (name) {
+            case Filter.Name builtIn -> fromFilterName(builtIn);
+            case AdditionalMetricField field -> throw new IllegalArgumentException("No catalog name for " + field.name());
+        };
+    }
+
+    default List<io.gravitee.repository.analytics.engine.api.query.FacetName> toFacetNames(List<FacetSpec.Name> facets) {
+        return facets == null
+            ? null
+            : facets.stream().<io.gravitee.repository.analytics.engine.api.query.FacetName>map(this::toFacet).toList();
+    }
+
+    Facet toFacet(FacetSpec.Name name);
 
     default MetricSpec.Name fromResult(Metric result) {
         return MetricSpec.Name.valueOf(result.name());

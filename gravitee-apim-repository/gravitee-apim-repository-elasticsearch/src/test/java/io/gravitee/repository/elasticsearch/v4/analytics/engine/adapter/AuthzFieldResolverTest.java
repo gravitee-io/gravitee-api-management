@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
 import java.util.Arrays;
 import java.util.List;
@@ -142,7 +143,7 @@ class AuthzFieldResolverTest {
         assertThat(unresolved).as("every AUTHZ_ metric on the enum needs a field here, or it throws at query time").isEmpty();
     }
 
-    private static final List<Facet> DECISION_UNSUPPORTED_FACETS = List.of(Facet.AUTHZ_SEARCH_TYPE, Facet.AUTHZ_OPERATION);
+    private static final List<FacetName> DECISION_UNSUPPORTED_FACETS = List.of(Facet.AUTHZ_SEARCH_TYPE, Facet.AUTHZ_OPERATION);
 
     @Test
     void should_resolve_every_authz_facet_declared_on_the_enum() {

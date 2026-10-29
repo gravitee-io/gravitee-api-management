@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
-import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
@@ -40,7 +40,7 @@ public class AuthzFacetsQueryAdapter {
             .toString();
     }
 
-    public JsonObject adaptFacets(List<MetricMeasuresQuery> metrics, List<Facet> facets, Integer limit, List<Filter> filters) {
+    public JsonObject adaptFacets(List<MetricMeasuresQuery> metrics, List<FacetName> facets, Integer limit, List<Filter> filters) {
         var aggs = new JsonObject();
         for (var metric : metrics) {
             aggs.mergeIn(adaptFacets(metric, facets, limit, filters));
@@ -48,7 +48,7 @@ public class AuthzFacetsQueryAdapter {
         return aggs;
     }
 
-    JsonObject adaptFacets(MetricMeasuresQuery metric, List<Facet> facets, Integer limit, List<Filter> filters) {
+    JsonObject adaptFacets(MetricMeasuresQuery metric, List<FacetName> facets, Integer limit, List<Filter> filters) {
         if (facets != null && facets.size() > 1) {
             throw new UnsupportedOperationException("Authz analytics support a single facet, got: " + facets);
         }

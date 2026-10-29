@@ -18,6 +18,7 @@ package io.gravitee.repository.log.v4.api;
 import io.gravitee.repository.analytics.engine.api.query.AnalyticsSearchPath;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
+import io.gravitee.repository.analytics.engine.api.query.FilterName;
 import io.gravitee.repository.analytics.engine.api.query.FilterOutcome;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
@@ -127,7 +128,7 @@ public interface AnalyticsRepository {
      * <p>The default answers {@link FilterOutcome#APPLIED} for everything: an implementation that does
      * not say is taken to skip nothing, so callers report nothing rather than something wrong.
      */
-    default FilterOutcome filterOutcome(AnalyticsSearchPath path, Filter.Name filter) {
+    default FilterOutcome filterOutcome(AnalyticsSearchPath path, FilterName filter) {
         return FilterOutcome.APPLIED;
     }
 

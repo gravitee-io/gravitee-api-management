@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
-import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
@@ -32,7 +32,14 @@ public final class AuthzScopedFacetAggregation {
 
     private AuthzScopedFacetAggregation() {}
 
-    static JsonObject facet(MetricMeasuresQuery metric, Facet facet, String field, Integer limit, JsonObject measures, JsonObject scope) {
+    static JsonObject facet(
+        MetricMeasuresQuery metric,
+        FacetName facet,
+        String field,
+        Integer limit,
+        JsonObject measures,
+        JsonObject scope
+    ) {
         var terms = new JsonObject().put("field", field);
         if (limit != null) {
             terms.put("size", limit);
@@ -89,7 +96,7 @@ public final class AuthzScopedFacetAggregation {
         return response;
     }
 
-    private static void unwrapTimeBucket(JsonNode timeBucket, Metric metric, Facet facet) {
+    private static void unwrapTimeBucket(JsonNode timeBucket, Metric metric, FacetName facet) {
         var scopeAggName = AuthzMeasuresQueryAdapter.scopeAggName(metric);
         var facetAggName = AggregationAdapter.adaptName(metric, facet);
         if (
@@ -102,7 +109,7 @@ public final class AuthzScopedFacetAggregation {
         }
     }
 
-    private static boolean hasFacet(List<Facet> facets) {
+    private static boolean hasFacet(List<FacetName> facets) {
         return facets != null && !facets.isEmpty();
     }
 

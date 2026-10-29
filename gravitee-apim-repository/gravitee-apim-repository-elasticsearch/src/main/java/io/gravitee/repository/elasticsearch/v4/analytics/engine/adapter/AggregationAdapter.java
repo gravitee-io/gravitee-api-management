@@ -22,7 +22,9 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
@@ -69,7 +71,7 @@ public class AggregationAdapter {
         return metric.name() + AGG_NAME_SEPARATOR + measure.name();
     }
 
-    public static String adaptName(Metric metric, Facet facet) {
+    public static String adaptName(Metric metric, FacetName facet) {
         return metric.name() + AGG_NAME_SEPARATOR + facet.name();
     }
 
@@ -205,8 +207,8 @@ public class AggregationAdapter {
     private static List<FacetBucketResult> toFacetBucketResults(
         Metric metric,
         JsonNode bucket,
-        Facet bucketFacet,
-        List<Facet> facets,
+        FacetName bucketFacet,
+        List<FacetName> facets,
         List<String> aggNames,
         FacetsQuery query
     ) {
@@ -245,7 +247,7 @@ public class AggregationAdapter {
     private static List<FacetBucketResult> toFacetBucketResults(
         Metric metric,
         Map<String, Aggregation> aggregations,
-        List<Facet> facets,
+        List<FacetName> facets,
         List<String> aggNames,
         FacetsQuery query
     ) {
@@ -262,9 +264,9 @@ public class AggregationAdapter {
 
     private static FacetBucketResult toFacetBucketResult(
         Metric metric,
-        Facet facet,
+        FacetName facet,
         JsonNode bucket,
-        List<Facet> facets,
+        List<FacetName> facets,
         List<String> aggNames,
         FacetsQuery query
     ) {
@@ -289,8 +291,8 @@ public class AggregationAdapter {
     private static List<FacetBucketResult> toFacetBucketResults(
         Metric metric,
         List<JsonNode> buckets,
-        Facet bucketsFacet,
-        List<Facet> facets,
+        FacetName bucketsFacet,
+        List<FacetName> facets,
         List<String> aggNames,
         FacetsQuery query
     ) {
@@ -328,12 +330,20 @@ public class AggregationAdapter {
     }
 
     /** The gateway reports the HTTP method as its {@link HttpMethod#code()}; the catalog names it. */
-    private static String bucketKey(Facet facet, JsonNode bucket) {
+    private static String bucketKey(FacetName facet, JsonNode bucket) {
         var key = bucket.get(ES_KEY_PROP);
         if (facet == Facet.HTTP_METHOD && key.canConvertToInt()) {
             return ofNullable(HttpMethod.get(key.asInt())).map(HttpMethod::name).orElseGet(key::asText);
         }
+        // A terms aggregation keys a boolean bucket 1 or 0, and names it true or false in key_as_string.
+        if (isBoolean(facet) && bucket.hasNonNull(ES_KEY_AS_STRING_PROP)) {
+            return bucket.get(ES_KEY_AS_STRING_PROP).asText();
+        }
         return key.asText();
+    }
+
+    private static boolean isBoolean(FacetName facet) {
+        return facet instanceof AdditionalMetricField field && field.valueType() == AdditionalMetricField.ValueType.BOOL;
     }
 
     private static Map<String, Aggregation> toAggregations(JsonNode bucket, List<String> aggNames) {
