@@ -19,7 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.ThemeCrudServiceInMemory;
+import inmemory.ThemeImageWriteValidatorInMemory;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.theme.model.NewTheme;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeType;
@@ -35,15 +37,21 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class ThemeDomainServiceTest {
+
+    private static final String LEGACY_SVG = "data:image/svg+xml;base64,PHN2Zy8+";
+    private static final String PNG_IMAGE =
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jrFYAAAAASUVORK5CYII=";
 
     ThemeCrudServiceInMemory themeCrudService = new ThemeCrudServiceInMemory();
     ThemeDomainService cut;
 
     @BeforeEach
     void setUp() {
-        cut = new ThemeDomainService(themeCrudService);
+        cut = new ThemeDomainService(themeCrudService, new ThemeImageWriteValidatorInMemory());
     }
 
     @AfterEach
@@ -53,6 +61,25 @@ public class ThemeDomainServiceTest {
 
     @Nested
     class Create {
+
+        @ParameterizedTest
+        @ValueSource(strings = { "logo", "optionalLogo", "favicon", "backgroundImage" })
+        void should_reject_an_invalid_image_without_creating_the_theme(String field) {
+            var theme = NewTheme.builder().name("Theme").build();
+            var invalid = "data:text/html;base64,PGh0bWw+PC9odG1sPg==";
+            switch (field) {
+                case "logo" -> theme.setLogo(invalid);
+                case "optionalLogo" -> theme.setOptionalLogo(invalid);
+                case "favicon" -> theme.setFavicon(invalid);
+                case "backgroundImage" -> theme.setBackgroundImage(invalid);
+                default -> throw new IllegalArgumentException("Unexpected image field: " + field);
+            }
+
+            assertThatThrownBy(() -> cut.create(theme))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining(field);
+            assertThat(themeCrudService.storage()).isEmpty();
+        }
 
         @Test
         void should_create_portal_theme() {
@@ -128,6 +155,131 @@ public class ThemeDomainServiceTest {
                         .build()
                 )
             );
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "logo", "optionalLogo", "favicon", "backgroundImage" })
+        void should_reject_an_invalid_image_without_updating_the_theme(String field) {
+            var existing = themeCrudService.get("portal");
+            var update = UpdateTheme.builder().id("portal").name("Changed").build();
+            var invalid = "data:text/html;base64,PGh0bWw+PC9odG1sPg==";
+            switch (field) {
+                case "logo" -> update.setLogo(invalid);
+                case "optionalLogo" -> update.setOptionalLogo(invalid);
+                case "favicon" -> update.setFavicon(invalid);
+                case "backgroundImage" -> update.setBackgroundImage(invalid);
+                default -> throw new IllegalArgumentException("Unexpected image field: " + field);
+            }
+
+            assertThatThrownBy(() -> cut.update(update, existing))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining(field);
+            assertThat(themeCrudService.get("portal")).isEqualTo(existing);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "portal", "portal-next" })
+        void should_preserve_unchanged_legacy_images_when_updating_other_theme_properties(String themeId) {
+            var existing = themeCrudService.get(themeId);
+            existing.setLogo(LEGACY_SVG);
+            existing.setOptionalLogo(LEGACY_SVG);
+            existing.setFavicon(LEGACY_SVG);
+            existing.setBackgroundImage(LEGACY_SVG);
+            var original = existing.toBuilder().build();
+            var update = updateFrom(existing);
+            update.setName("Changed");
+            update.setEnabled(false);
+
+            var result = cut.update(update, existing);
+
+            assertThat(result.getName()).isEqualTo("Changed");
+            assertThat(result.isEnabled()).isFalse();
+            assertThat(result.getLogo()).isEqualTo(LEGACY_SVG);
+            assertThat(result.getOptionalLogo()).isEqualTo(LEGACY_SVG);
+            assertThat(result.getFavicon()).isEqualTo(LEGACY_SVG);
+            assertThat(result.getBackgroundImage()).isEqualTo(LEGACY_SVG);
+            assertThat(themeCrudService.get(themeId)).isEqualTo(result);
+            assertThat(existing).isEqualTo(original);
+        }
+
+        @Test
+        void should_validate_a_replacement_image_while_preserving_other_legacy_images() {
+            var existing = themeCrudService.get("portal");
+            existing.setLogo(LEGACY_SVG);
+            existing.setFavicon(LEGACY_SVG);
+            var update = updateFrom(existing);
+            update.setLogo(PNG_IMAGE);
+
+            var result = cut.update(update, existing);
+
+            assertThat(result.getLogo()).isEqualTo(PNG_IMAGE);
+            assertThat(result.getFavicon()).isEqualTo(LEGACY_SVG);
+            assertThat(existing.getLogo()).isEqualTo(LEGACY_SVG);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "data:image/svg+xml;base64,PHN2ZyAvPg==", "data:image/png;base64,PGh0bWw+PC9odG1sPg==" })
+        void should_reject_a_changed_invalid_image_and_preserve_the_original_theme(String replacement) {
+            var existing = themeCrudService.get("portal");
+            existing.setLogo(LEGACY_SVG);
+            existing.setFavicon(LEGACY_SVG);
+            var original = existing.toBuilder().build();
+            var update = updateFrom(existing);
+            update.setName("Changed");
+            update.setEnabled(false);
+            update.setLogo(replacement);
+
+            assertThatThrownBy(() -> cut.update(update, existing))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("logo");
+
+            assertThat(existing).isEqualTo(original);
+            assertThat(themeCrudService.get("portal")).isEqualTo(existing);
+        }
+
+        @Test
+        void should_reject_copying_a_legacy_image_to_another_field() {
+            var existing = themeCrudService.get("portal");
+            existing.setLogo(LEGACY_SVG);
+            var update = updateFrom(existing);
+            update.setFavicon(existing.getLogo());
+
+            assertThatThrownBy(() -> cut.update(update, existing))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("favicon");
+            assertThat(themeCrudService.get("portal").getFavicon()).isNull();
+        }
+
+        @Test
+        void should_allow_clearing_legacy_images() {
+            var existing = themeCrudService.get("portal");
+            existing.setLogo(LEGACY_SVG);
+            existing.setOptionalLogo(LEGACY_SVG);
+            existing.setFavicon(LEGACY_SVG);
+            existing.setBackgroundImage(LEGACY_SVG);
+            var update = UpdateTheme.builder().id("portal").name("Changed").optionalLogo("").build();
+
+            var result = cut.update(update, existing);
+
+            assertThat(result.getLogo()).isNull();
+            assertThat(result.getOptionalLogo()).isEmpty();
+            assertThat(result.getFavicon()).isNull();
+            assertThat(result.getBackgroundImage()).isNull();
+        }
+
+        private UpdateTheme updateFrom(Theme theme) {
+            return UpdateTheme.builder()
+                .id(theme.getId())
+                .name(theme.getName())
+                .type(theme.getType())
+                .definitionPortal(theme.getDefinitionPortal())
+                .definitionPortalNext(theme.getDefinitionPortalNext())
+                .enabled(theme.isEnabled())
+                .logo(theme.getLogo())
+                .optionalLogo(theme.getOptionalLogo())
+                .favicon(theme.getFavicon())
+                .backgroundImage(theme.getBackgroundImage())
+                .build();
         }
 
         @Test

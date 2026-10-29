@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.security.config;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -42,11 +43,18 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.UserService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -89,6 +97,10 @@ public abstract class AbstractSecurityConfigurerAdapterTest {
     @Autowired
     protected CookieGenerator cookieGenerator;
 
+    @Autowired
+    @Qualifier("springSecurityFilterChain")
+    private FilterChainProxy securityFilterChain;
+
     @BeforeEach
     public void setUp() {
         when(graviteeConfiguration.getProperty("jwt.secret")).thenReturn("my-secret-for-tests");
@@ -106,6 +118,30 @@ public abstract class AbstractSecurityConfigurerAdapterTest {
             .andExpect(header().string("Content-Security-Policy", "frame-ancestors 'self';"))
             .andExpect(header().string("Strict-Transport-Security", "max-age=31536000 ; includeSubDomains"))
             .andExpect(cookie().exists("XSRF-TOKEN"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = { 200, 304, 404 })
+    void should_preserve_image_response_cache_policy_and_central_security_headers(int status) throws Exception {
+        var request = new MockHttpServletRequest("GET", getPath());
+        request.setPathInfo(getPath());
+        request.setSecure(true);
+        var response = new MockHttpServletResponse();
+        var cacheControl = status == 404 ? "no-store" : "max-age=86400, no-transform";
+
+        securityFilterChain.doFilter(request, response, (servletRequest, servletResponse) -> {
+            var imageResponse = (HttpServletResponse) servletResponse;
+            imageResponse.setStatus(status);
+            imageResponse.setHeader("Cache-Control", cacheControl);
+            if (status == 200) {
+                imageResponse.setContentType("image/png");
+            }
+        });
+
+        assertThat(response.getStatus()).isEqualTo(status);
+        assertThat(response.getHeaders("X-Content-Type-Options")).containsExactly("nosniff");
+        assertThat(response.getHeaders("Content-Security-Policy")).containsExactly("frame-ancestors 'self';");
+        assertThat(response.getHeader("Cache-Control")).isEqualTo(cacheControl);
     }
 
     protected abstract String getPath();
