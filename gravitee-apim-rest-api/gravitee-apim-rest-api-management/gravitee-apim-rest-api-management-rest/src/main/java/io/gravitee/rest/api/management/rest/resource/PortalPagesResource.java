@@ -190,6 +190,7 @@ public class PortalPagesResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE) })
+    @ApiResponse(responseCode = "404", description = "Parent page not found or does not belong to this environment")
     public Response createPortalPage(@Parameter(name = "page", required = true) @Valid @NotNull NewPageEntity newPageEntity) {
         if (newPageEntity.getType().equals(PageType.SYSTEM_FOLDER)) {
             throw new PageSystemFolderActionException("Create");
@@ -221,6 +222,7 @@ public class PortalPagesResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    @ApiResponse(responseCode = "404", description = "Page or parent not found or does not belong to this environment")
     public PageEntity updatePortalPage(
         @PathParam("page") String page,
         @Parameter(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity
@@ -288,6 +290,7 @@ public class PortalPagesResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    @ApiResponse(responseCode = "404", description = "Page or parent not found or does not belong to this environment")
     public PageEntity partialUpdatePortalPage(
         @PathParam("page") String page,
         @Parameter(name = "page", required = true) @NotNull UpdatePageEntity updatePageEntity

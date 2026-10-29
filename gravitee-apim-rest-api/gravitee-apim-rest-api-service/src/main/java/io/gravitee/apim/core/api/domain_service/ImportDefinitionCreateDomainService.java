@@ -69,6 +69,7 @@ public class ImportDefinitionCreateDomainService {
     private final MetadataCrudService metadataCrudService;
     private final DocumentationValidationDomainService documentationValidationDomainService;
     private final CategoryDomainService categoryDomainService;
+    private final ImportDefinitionPageParentValidationDomainService pageParentValidationDomainService;
 
     public ImportDefinitionCreateDomainService(
         ApiImportDomainService apiImportDomainService,
@@ -81,7 +82,8 @@ public class ImportDefinitionCreateDomainService {
         ApiIdsCalculatorDomainService apiIdsCalculatorDomainService,
         MetadataCrudService metadataCrudService,
         DocumentationValidationDomainService documentationValidationDomainService,
-        CategoryDomainService categoryDomainService
+        CategoryDomainService categoryDomainService,
+        ImportDefinitionPageParentValidationDomainService pageParentValidationDomainService
     ) {
         this.apiImportDomainService = apiImportDomainService;
         this.apiPrimaryOwnerFactory = apiPrimaryOwnerFactory;
@@ -94,6 +96,7 @@ public class ImportDefinitionCreateDomainService {
         this.metadataCrudService = metadataCrudService;
         this.documentationValidationDomainService = documentationValidationDomainService;
         this.categoryDomainService = categoryDomainService;
+        this.pageParentValidationDomainService = pageParentValidationDomainService;
     }
 
     public ApiWithFlows create(AuditInfo auditInfo, ImportDefinition importDefinition) {
@@ -183,25 +186,28 @@ public class ImportDefinitionCreateDomainService {
     private void createPages(List<Page> pages, String apiId, AuditInfo auditInfo) {
         if (pages != null) {
             var now = Date.from(TimeProvider.now().toInstant());
-            pages
+            var preparedPages = pages
+                .stream()
+                .map(page ->
+                    page
+                        .toBuilder()
+                        .id(page.getId() == null ? UuidString.generateRandom() : page.getId())
+                        .crossId(page.getCrossId() == null ? UuidString.generateRandom() : page.getCrossId())
+                        .referenceType(Page.ReferenceType.API)
+                        .referenceId(apiId)
+                        .createdAt(now)
+                        .updatedAt(now)
+                        .build()
+                )
+                .toList();
+            pageParentValidationDomainService.validate(preparedPages);
+            preparedPages
                 .stream()
                 .map(page -> {
                     if (page.getParentId() != null) {
-                        validatePageParent(pages, page.getParentId());
+                        validatePageParent(preparedPages, page.getParentId());
                     }
-                    return documentationValidationDomainService.validateAndSanitizeForCreation(
-                        page
-                            .toBuilder()
-                            .id(page.getId() == null ? UuidString.generateRandom() : page.getId())
-                            .crossId(page.getCrossId() == null ? UuidString.generateRandom() : page.getCrossId())
-                            .referenceType(Page.ReferenceType.API)
-                            .referenceId(apiId)
-                            .createdAt(now)
-                            .updatedAt(now)
-                            .build(),
-                        auditInfo.organizationId(),
-                        false
-                    );
+                    return documentationValidationDomainService.validateAndSanitizeForCreation(page, auditInfo.organizationId(), false);
                 })
                 .forEach(page -> createApiDocumentationDomainService.createPage(page, auditInfo));
         }
