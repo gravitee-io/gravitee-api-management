@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.ThemeCrudServiceInMemory;
+import inmemory.ThemeImageWriteValidatorInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -34,6 +35,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CreateOrUpdatePortalThemeUseCaseTest {
@@ -44,6 +47,7 @@ class CreateOrUpdatePortalThemeUseCaseTest {
         .actor(AuditActor.builder().userId("user-id").build())
         .build();
     private static final String THEME_HRID = "my-theme";
+    private static final String LEGACY_SVG = "data:image/svg+xml;base64,PHN2Zy8+";
 
     private final ThemeCrudServiceInMemory themeCrudService = new ThemeCrudServiceInMemory();
     private CreateOrUpdatePortalThemeUseCase useCase;
@@ -51,8 +55,8 @@ class CreateOrUpdatePortalThemeUseCaseTest {
     @BeforeEach
     void setUp() {
         useCase = new CreateOrUpdatePortalThemeUseCase(
-            new ValidateThemeDomainService(themeCrudService),
-            new ThemeDomainService(themeCrudService),
+            new ValidateThemeDomainService(themeCrudService, new ThemeImageWriteValidatorInMemory()),
+            new ThemeDomainService(themeCrudService, new ThemeImageWriteValidatorInMemory()),
             themeCrudService
         );
     }
@@ -60,6 +64,87 @@ class CreateOrUpdatePortalThemeUseCaseTest {
     @AfterEach
     void tearDown() {
         themeCrudService.reset();
+    }
+
+    @Test
+    void should_apply_metadata_changes_with_unchanged_legacy_images() {
+        var existing = legacyTheme();
+        themeCrudService.initWith(List.of(existing));
+        var input = specWithLegacyImages(null);
+
+        var output = useCase.execute(input);
+
+        assertThat(output.errors()).isEmpty();
+        assertThat(output.theme().getName()).isEqualTo(input.name());
+        assertThat(output.theme().getDefinitionPortalNext()).isEqualTo(input.definitionPortalNext());
+        assertThat(output.theme())
+            .extracting(Theme::getLogo, Theme::getOptionalLogo, Theme::getFavicon, Theme::getBackgroundImage)
+            .containsExactly(LEGACY_SVG, LEGACY_SVG, LEGACY_SVG, LEGACY_SVG);
+        assertThat(themeCrudService.storage()).containsExactly(output.theme());
+        assertThat(existing.getName()).isEqualTo("Old theme");
+        assertThat(existing.getDefinitionPortalNext().getCustomCss()).isNull();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "logo", "optionalLogo", "favicon", "backgroundImage" })
+    void should_reject_changed_legacy_image_before_applying_without_rejecting_unchanged_fields(String field) {
+        var existing = legacyTheme();
+        themeCrudService.initWith(List.of(existing));
+
+        assertThatThrownBy(() -> useCase.execute(specWithLegacyImages(field)))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessage("Invalid theme image in spec." + field + ": unsupported image media type");
+        assertThat(themeCrudService.storage()).containsExactly(existing);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "another-environment", "another-theme" })
+    void should_not_allow_legacy_images_from_another_scope_when_applying(String scope) {
+        var existing = legacyTheme();
+        if (scope.equals("another-environment")) {
+            existing.setReferenceId(scope);
+        } else {
+            existing.setId(HRIDToUUID.portalTheme().context(AUDIT_INFO).hrid(scope).id());
+        }
+        themeCrudService.initWith(List.of(existing));
+
+        assertThatThrownBy(() -> useCase.execute(specWithLegacyImages(null)))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("spec.logo")
+            .hasMessageContaining("spec.optionalLogo")
+            .hasMessageContaining("spec.favicon")
+            .hasMessageContaining("spec.backgroundImage");
+        assertThat(themeCrudService.storage()).containsExactly(existing);
+    }
+
+    @Test
+    void should_reject_invalid_images_before_creating_a_theme() {
+        var input = new ValidateThemeDomainService.Input(
+            AUDIT_INFO,
+            THEME_HRID,
+            "My Theme",
+            new ThemeDefinition(),
+            null,
+            null,
+            "data:text/html;base64,PGh0bWw+PC9odG1sPg==",
+            null
+        );
+
+        assertThatThrownBy(() -> useCase.execute(input))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("spec.favicon");
+        assertThat(themeCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_reject_copying_a_legacy_image_to_another_field_when_applying() {
+        var existing = legacyTheme().toBuilder().favicon(null).build();
+        themeCrudService.initWith(List.of(existing));
+
+        assertThatThrownBy(() -> useCase.execute(specWithLegacyImages(null)))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessage("Invalid theme image in spec.favicon: unsupported image media type");
+        assertThat(themeCrudService.storage()).containsExactly(existing);
     }
 
     @Test
@@ -85,18 +170,18 @@ class CreateOrUpdatePortalThemeUseCaseTest {
             THEME_HRID,
             "My Theme",
             new ThemeDefinition(),
-            "data:image/png;base64,LOGO",
-            "data:image/png;base64,OPT",
-            "data:image/png;base64,FAV",
-            "data:image/png;base64,BG"
+            "DATA:IMAGE/X-PNG;BASE64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jrFYAAAAASUVORK5CYII=",
+            "https://example.test/optional-logo.png",
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jrFYAAAAASUVORK5CYII=",
+            "https://example.test/background.png"
         );
 
         var output = useCase.execute(input);
 
-        assertThat(output.theme().getLogo()).isEqualTo("data:image/png;base64,LOGO");
-        assertThat(output.theme().getOptionalLogo()).isEqualTo("data:image/png;base64,OPT");
-        assertThat(output.theme().getFavicon()).isEqualTo("data:image/png;base64,FAV");
-        assertThat(output.theme().getBackgroundImage()).isEqualTo("data:image/png;base64,BG");
+        assertThat(output.theme().getLogo()).isEqualTo(input.logo());
+        assertThat(output.theme().getOptionalLogo()).isEqualTo(input.optionalLogo());
+        assertThat(output.theme().getFavicon()).isEqualTo(input.favicon());
+        assertThat(output.theme().getBackgroundImage()).isEqualTo(input.backgroundImage());
     }
 
     @Test
@@ -167,6 +252,30 @@ class CreateOrUpdatePortalThemeUseCaseTest {
 
     private static ValidateThemeDomainService.Input specWith(String hrid, String name, ThemeDefinition definition) {
         return new ValidateThemeDomainService.Input(AUDIT_INFO, hrid, name, definition, null, null, null, null);
+    }
+
+    private static ValidateThemeDomainService.Input specWithLegacyImages(String changedField) {
+        var changedSvg = "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=";
+        return new ValidateThemeDomainService.Input(
+            AUDIT_INFO,
+            THEME_HRID,
+            "Updated theme",
+            ThemeDefinition.builder().customCss("body { color: blue; }").build(),
+            "logo".equals(changedField) ? changedSvg : LEGACY_SVG,
+            "optionalLogo".equals(changedField) ? changedSvg : LEGACY_SVG,
+            "favicon".equals(changedField) ? changedSvg : LEGACY_SVG,
+            "backgroundImage".equals(changedField) ? changedSvg : LEGACY_SVG
+        );
+    }
+
+    private static Theme legacyTheme() {
+        return anEnvironmentTheme("Old theme", false, HRIDToUUID.portalTheme().context(AUDIT_INFO).hrid(THEME_HRID).id())
+            .toBuilder()
+            .logo(LEGACY_SVG)
+            .optionalLogo(LEGACY_SVG)
+            .favicon(LEGACY_SVG)
+            .backgroundImage(LEGACY_SVG)
+            .build();
     }
 
     private static Theme anEnvironmentTheme(String name, boolean enabled, String id) {
