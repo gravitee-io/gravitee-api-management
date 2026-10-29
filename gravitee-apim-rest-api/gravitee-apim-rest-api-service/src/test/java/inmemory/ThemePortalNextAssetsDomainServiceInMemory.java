@@ -44,11 +44,11 @@ public class ThemePortalNextAssetsDomainServiceInMemory implements ThemePortalNe
 
     @Override
     public String getPortalNextFavicon() {
-        return "favicon.png";
+        return "https://example.test/favicon.png";
     }
 
     @Override
     public String getPortalNextLogo() {
-        return "logo.png";
+        return "https://example.test/logo.png";
     }
 }
