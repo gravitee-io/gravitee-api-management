@@ -15,9 +15,11 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics;
 
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.utils.Type;
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
 import io.gravitee.repository.analytics.engine.api.query.AnalyticsSearchPath;
 import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
@@ -41,12 +43,14 @@ import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.*;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -125,6 +129,13 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     protected Duration enrichmentWatermarkTtl = Duration.ofMinutes(1);
 
     private final Map<String, Probe> directPathReadiness = new ConcurrentHashMap<>();
+
+    /**
+     * Keys probed per search of an additional metric discovery: each one is an {@code exists} filter of a single
+     * {@code filters} aggregation. A field rather than a constant so a test can shorten it; nothing in production
+     * writes it.
+     */
+    protected int discoveryBatchSize = 200;
 
     /**
      * @param newestUnenriched {@code null} when every message document carries the marker.
@@ -892,6 +903,59 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     @Override
     public Map<String, Set<String>> builtInAdditionalMetricKeys() {
         return BuiltInAdditionalMetricKeys.all();
+    }
+
+    @Override
+    public AdditionalMetricDiscoveryResult discoverAdditionalMetrics(QueryContext queryContext, AdditionalMetricDiscoveryQuery query) {
+        var environmentId = AdditionalMetricDiscoveryQuery.environmentOf(queryContext);
+        var deadline = TimeProvider.instantNow().plus(query.timeout());
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+
+        var typesByField = withinDeadline(client.getFieldCapabilities(index, AdditionalMetricField.NAME_PREFIX + "*"), deadline);
+        if (typesByField.isEmpty()) {
+            return new AdditionalMetricDiscoveryResult(List.of(), true);
+        }
+        var candidates = AdditionalMetricDiscoveryAdapter.candidates(typesByField.get());
+
+        var found = new ArrayList<AdditionalMetricLastSeen>();
+        var truncated = candidates.truncated();
+        var rawKeys = candidates.rawKeys();
+        for (int start = 0; start < rawKeys.size(); start += discoveryBatchSize) {
+            // Elasticsearch gets a fifth less than the client waits, so its partial answer arrives before the client gives up.
+            var searchBudget = remaining(deadline).multipliedBy(4).dividedBy(5);
+            if (searchBudget.toMillis() < 1) {
+                truncated = true;
+                break;
+            }
+            var batch = rawKeys.subList(start, Math.min(start + discoveryBatchSize, rawKeys.size()));
+            var esQuery = AdditionalMetricDiscoveryAdapter.query(environmentId, query.from(), query.to(), batch, searchBudget);
+            log.debug("Additional metric discovery query: {}", esQuery);
+            var response = withinDeadline(client.search(index, null, esQuery), deadline);
+            if (response.isEmpty()) {
+                truncated = true;
+                break;
+            }
+            found.addAll(AdditionalMetricDiscoveryAdapter.found(batch, response.get()));
+            if (Boolean.TRUE.equals(response.get().getTimedOut())) {
+                truncated = true;
+                break;
+            }
+        }
+        return new AdditionalMetricDiscoveryResult(AdditionalMetricDiscoveryAdapter.mostRecentFirst(found), truncated);
+    }
+
+    /** Empty when the deadline passes before the call answers. */
+    private static <T> Optional<T> withinDeadline(Single<T> call, Instant deadline) {
+        var remaining = remaining(deadline);
+        if (remaining.isZero()) {
+            return Optional.empty();
+        }
+        return call.map(Optional::of).timeout(remaining.toMillis(), TimeUnit.MILLISECONDS, Single.just(Optional.empty())).blockingGet();
+    }
+
+    private static Duration remaining(Instant deadline) {
+        var remaining = Duration.between(TimeProvider.instantNow(), deadline);
+        return remaining.isNegative() ? Duration.ZERO : remaining;
     }
 
     @Override
