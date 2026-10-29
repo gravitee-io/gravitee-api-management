@@ -42,7 +42,15 @@ db.getCollection(`${prefix}plans`).createIndex({ api: 1 }, { name: "a1" });
 db.getCollection(`${prefix}plans`).reIndex();
 
 // "subscriptions" collection
-db.getCollection(`${prefix}subscriptions`).dropIndexes();
+// akh1_unique is kept: while it is missing, nodes would write duplicated hashes and it could not be created anymore.
+db.getCollection(`${prefix}subscriptions`)
+  .getIndexes()
+  .filter((index) => index.name !== "_id_" && index.name !== "akh1_unique")
+  .forEach((index) => db.getCollection(`${prefix}subscriptions`).dropIndex(index.name));
+db.getCollection(`${prefix}subscriptions`).createIndex(
+  { activeKeyHash: 1 },
+  { name: "akh1_unique", unique: true, partialFilterExpression: { activeKeyHash: { $exists: true } } },
+);
 db.getCollection(`${prefix}subscriptions`).createIndex({ plan: 1 }, { name: "p1" });
 db.getCollection(`${prefix}subscriptions`).createIndex({ application: 1 }, { name: "a1" });
 db.getCollection(`${prefix}subscriptions`).createIndex({ createdAt: -1 }, { name: "c-1" });
