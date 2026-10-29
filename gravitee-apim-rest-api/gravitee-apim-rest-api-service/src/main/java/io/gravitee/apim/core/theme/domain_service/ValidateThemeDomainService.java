@@ -19,6 +19,7 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.theme.crud_service.ThemeCrudService;
 import io.gravitee.apim.core.theme.exception.ThemeDefinitionInvalidException;
+import io.gravitee.apim.core.theme.exception.ThemeImageInvalidException;
 import io.gravitee.apim.core.theme.exception.ThemeNotFoundException;
 import io.gravitee.apim.core.theme.exception.ThemeTypeInvalidException;
 import io.gravitee.apim.core.theme.model.Theme;
@@ -28,6 +29,7 @@ import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 
@@ -36,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 public class ValidateThemeDomainService implements Validator<ValidateThemeDomainService.Input> {
 
     private final ThemeCrudService themeCrudService;
+    private final ThemeImageWriteValidator themeImageWriteValidator;
 
     public record Input(
         AuditInfo auditInfo,
@@ -61,6 +64,10 @@ public class ValidateThemeDomainService implements Validator<ValidateThemeDomain
         if (input.definitionPortalNext() == null) {
             errors.add(Error.severe("spec.definitionPortalNext must not be null"));
         }
+        validateImage("spec.logo", input.logo(), errors);
+        validateImage("spec.optionalLogo", input.optionalLogo(), errors);
+        validateImage("spec.favicon", input.favicon(), errors);
+        validateImage("spec.backgroundImage", input.backgroundImage(), errors);
         var sanitized = new Input(
             input.auditInfo(),
             input.themeHrid(),
@@ -72,6 +79,14 @@ public class ValidateThemeDomainService implements Validator<ValidateThemeDomain
             input.backgroundImage()
         );
         return Result.ofBoth(sanitized, errors);
+    }
+
+    private void validateImage(String field, String value, List<Error> errors) {
+        try {
+            themeImageWriteValidator.validate(field, value);
+        } catch (ThemeImageInvalidException e) {
+            errors.add(Error.severe("%s", e.getMessage()));
+        }
     }
 
     public void validateUpdateTheme(UpdateTheme updateTheme, ExecutionContext executionContext) {

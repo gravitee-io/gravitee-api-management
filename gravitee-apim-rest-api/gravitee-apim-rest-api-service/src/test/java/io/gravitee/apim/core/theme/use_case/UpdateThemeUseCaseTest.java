@@ -52,8 +52,8 @@ public class UpdateThemeUseCaseTest {
     void setUp() {
         themeCrudService.initWith(List.of(aPortalTheme(false), aPortalNextTheme(false)));
         cut = new UpdateThemeUseCase(
-            new ValidateThemeDomainService(themeCrudService),
-            new ThemeDomainService(themeCrudService),
+            new ValidateThemeDomainService(themeCrudService, new ThemeImageWriteValidatorInMemory()),
+            new ThemeDomainService(themeCrudService, new ThemeImageWriteValidatorInMemory()),
             new CurrentThemeDomainService(themeQueryServiceInMemory, themeCrudService),
             themeCrudService
         );
@@ -142,10 +142,10 @@ public class UpdateThemeUseCaseTest {
             .type(ThemeType.PORTAL)
             .name("my new name")
             .enabled(true)
-            .logo("my new logo")
-            .backgroundImage("my new background image")
-            .favicon("my new favicon")
-            .optionalLogo("my new optional logo")
+            .logo("https://example.test/logo.png")
+            .backgroundImage("https://example.test/background.png")
+            .favicon("https://example.test/favicon.png")
+            .optionalLogo("https://example.test/optional-logo.png")
             .definitionPortal(newPortalDefinition)
             .build();
 
@@ -166,10 +166,10 @@ public class UpdateThemeUseCaseTest {
             .type(ThemeType.PORTAL_NEXT)
             .name("my new name")
             .enabled(true)
-            .logo("my new logo")
-            .backgroundImage("my new background image")
-            .favicon("my new favicon")
-            .optionalLogo("my new optional logo")
+            .logo("https://example.test/logo.png")
+            .backgroundImage("https://example.test/background.png")
+            .favicon("https://example.test/favicon.png")
+            .optionalLogo("https://example.test/optional-logo.png")
             .definitionPortalNext(
                 ThemeDefinition.builder().color(ThemeDefinition.Color.builder().primary("#999").build()).customCss("something cool").build()
             )
@@ -209,10 +209,10 @@ public class UpdateThemeUseCaseTest {
             .type(ThemeType.PORTAL_NEXT)
             .name("my new name")
             .enabled(true)
-            .logo("my new logo")
-            .backgroundImage("my new background image")
-            .favicon("my new favicon")
-            .optionalLogo("my new optional logo")
+            .logo("https://example.test/logo.png")
+            .backgroundImage("https://example.test/background.png")
+            .favicon("https://example.test/favicon.png")
+            .optionalLogo("https://example.test/optional-logo.png")
             .definitionPortalNext(
                 ThemeDefinition.builder().color(ThemeDefinition.Color.builder().primary("#999").build()).customCss("something cool").build()
             )

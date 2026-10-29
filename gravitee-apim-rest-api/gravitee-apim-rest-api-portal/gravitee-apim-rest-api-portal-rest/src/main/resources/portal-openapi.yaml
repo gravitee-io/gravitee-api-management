@@ -3375,6 +3375,90 @@ paths:
                                 $ref: "#/components/schemas/ErrorResponse"
                 500:
                     $ref: "#/components/responses/InternalServerError"
+    /theme/{themeId}/logo:
+        parameters:
+            - $ref: "#/components/parameters/themeIdParam"
+        get:
+            tags:
+                - Portal
+            summary: Get the portal theme logo.
+            operationId: getPortalThemeLogo
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    $ref: "#/components/responses/PictureSuccess"
+                304:
+                    description: The image has not changed.
+                307:
+                    description: Redirect to an externally hosted image.
+                404:
+                    $ref: "#/components/responses/InvalidThemeImage"
+    /theme/{themeId}/optionalLogo:
+        parameters:
+            - $ref: "#/components/parameters/themeIdParam"
+        get:
+            tags:
+                - Portal
+            summary: Get the optional portal theme logo, falling back to the logo when absent.
+            operationId: getPortalThemeOptionalLogo
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    $ref: "#/components/responses/PictureSuccess"
+                304:
+                    description: The image has not changed.
+                307:
+                    description: Redirect to an externally hosted image.
+                404:
+                    $ref: "#/components/responses/InvalidThemeImage"
+    /theme/{themeId}/backgroundImage:
+        parameters:
+            - $ref: "#/components/parameters/themeIdParam"
+        get:
+            tags:
+                - Portal
+            summary: Get the portal theme background image.
+            operationId: getPortalThemeBackgroundImage
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    $ref: "#/components/responses/PictureSuccess"
+                304:
+                    description: The image has not changed.
+                307:
+                    description: Redirect to an externally hosted image.
+                404:
+                    $ref: "#/components/responses/InvalidThemeImage"
+    /theme/{themeId}/favicon:
+        parameters:
+            - $ref: "#/components/parameters/themeIdParam"
+        get:
+            tags:
+                - Portal
+            summary: Get the portal theme favicon.
+            operationId: getPortalThemeFavicon
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    $ref: "#/components/responses/PictureSuccess"
+                304:
+                    description: The image has not changed.
+                307:
+                    description: Redirect to an externally hosted image.
+                404:
+                    $ref: "#/components/responses/InvalidThemeImage"
     /configuration:
         get:
             tags:
@@ -4837,6 +4921,13 @@ components:
                     - FAILURE
 
         # Theme filtering
+        themeIdParam:
+            name: themeId
+            in: path
+            required: true
+            description: Theme identifier.
+            schema:
+                type: string
         themeTypeParam:
             name: type
             in: query
@@ -9147,6 +9238,13 @@ components:
                 application/json:
                     schema:
                         $ref: "#/components/schemas/PagesResponse"
+        InvalidThemeImage:
+            description: The stored theme image cannot be served safely. The response body is empty.
+            headers:
+                Cache-Control:
+                    schema:
+                        type: string
+                        example: no-store
         PictureSuccess:
             description: A picture
             content:
