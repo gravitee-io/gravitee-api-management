@@ -15,6 +15,8 @@
  */
 package io.gravitee.gamma.rest.core.observability.analytics.model;
 
+import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
+
 /**
  * A facet a metric can be grouped by, with the label of the analytics catalog.
  *

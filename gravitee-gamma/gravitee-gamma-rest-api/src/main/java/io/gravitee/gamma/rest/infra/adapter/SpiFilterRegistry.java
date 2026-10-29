@@ -16,6 +16,8 @@
 package io.gravitee.gamma.rest.infra.adapter;
 
 import io.gravitee.apim.core.observability.model.AdditionalMetricField;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
+import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogFlags;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.CommonFilters;
 import io.gravitee.gamma.rest.core.observability.filter.model.ExtensibleFilters;
@@ -217,7 +219,7 @@ public class SpiFilterRegistry implements FilterRegistry {
             null,
             Set.of(Signal.ANALYTICS),
             Set.of(),
-            FilterSpec.ValueType.valueOf(field.valueType().name())
+            new CatalogFlags(null, field.rawKey(), AdditionalMetricValueType.valueOf(field.valueType().name()), null, true)
         );
     }
 

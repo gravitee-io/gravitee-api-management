@@ -30,13 +30,13 @@ import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFilterSpecUseCase;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsDefinition;
-import io.gravitee.gamma.rest.core.observability.analytics.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.analytics.model.DimensionDefinition;
 import io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinition;
 import io.gravitee.gamma.rest.core.observability.analytics.model.MetricFamily;
 import io.gravitee.gamma.rest.core.observability.analytics.port.AnalyticsDefinitionPortContractTest;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.AnalyticsDefinitionPort;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.GetObservabilityAnalyticsDefinitionUseCase;
+import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;

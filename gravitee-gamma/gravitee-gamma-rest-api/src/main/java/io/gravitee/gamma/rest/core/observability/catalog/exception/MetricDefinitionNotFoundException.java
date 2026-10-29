@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.rest.core.observability.analytics.model;
+package io.gravitee.gamma.rest.core.observability.catalog.exception;
+
+import io.gravitee.apim.core.exception.NotFoundDomainException;
 
 /**
- * Where an entry of the analytics definition comes from. The wire also documents the origins of the entries
- * discovered in the data, which this catalog does not serve yet.
+ * No record on this key in the caller's environment, whether none exists or it belongs to another environment.
  *
  * @author GraviteeSource Team
  */
-public enum CatalogOrigin {
-    /** The catalog shipped with the server. */
-    BUILT_IN,
+public class MetricDefinitionNotFoundException extends NotFoundDomainException {
+
+    public MetricDefinitionNotFoundException(String name) {
+        super("No metric definition '" + name + "' in this environment", name);
+    }
 }

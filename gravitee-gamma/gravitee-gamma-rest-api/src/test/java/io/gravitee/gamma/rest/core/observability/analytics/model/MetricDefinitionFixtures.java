@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.core.observability.analytics.model;
 
+import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import java.util.List;
 

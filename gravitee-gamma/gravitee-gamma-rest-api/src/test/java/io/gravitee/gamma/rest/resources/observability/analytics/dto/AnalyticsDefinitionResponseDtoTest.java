@@ -19,8 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import io.gravitee.gamma.rest.core.observability.analytics.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.analytics.model.MetricFamily;
+import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
