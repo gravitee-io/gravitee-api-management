@@ -1134,8 +1134,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         subscription.setReferenceId("api-sync");
         subscription.setReferenceType(SubscriptionReferenceType.API);
         subscription.setPlan(plan);
-        subscription.setApplication("app-sync");
-        subscription.setApplicationName("app-sync name");
+        // One application per subscription: an application cannot have several active subscriptions to a plan.
+        subscription.setApplication("app-" + id);
+        subscription.setApplicationName("app-" + id + " name");
         subscription.setStatus(status);
         subscription.setEndingAt(endingAt == null ? null : new Date(endingAt));
         subscription.setCreatedAt(new Date(updatedAt));

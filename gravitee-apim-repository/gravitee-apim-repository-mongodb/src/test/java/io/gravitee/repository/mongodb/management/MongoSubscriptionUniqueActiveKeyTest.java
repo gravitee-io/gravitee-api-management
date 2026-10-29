@@ -15,19 +15,26 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.IndexOptions;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.management.AbstractManagementRepositoryTest;
 import io.gravitee.repository.management.api.SubscriptionUniqueActiveKey;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import jakarta.inject.Inject;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HexFormat;
 import java.util.List;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
@@ -36,14 +43,19 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoOperations;
 
 /**
- * The unique active key is a storage detail of the subscriptions collection, never exposed by the repository model,
- * hence a MongoDB specific test reading the stored documents.
+ * The hash of the unique active key is a storage detail of the subscriptions collection, never exposed by the
+ * repository model, hence a MongoDB specific test reading the stored documents.
  *
  * @author GraviteeSource Team
  */
 public class MongoSubscriptionUniqueActiveKeyTest extends AbstractManagementRepositoryTest {
 
-    private static final String FIELD = "uniqueActiveKey";
+    private static final String FIELD = "activeKeyHash";
+    private static final String INDEX = "akh1_unique";
+    /**
+     * The key itself, maintained by 4.12.26 only: nothing reads it, and its values may be duplicated or stale.
+     */
+    private static final String PREVIOUS_FIELD = "uniqueActiveKey";
 
     @Inject
     private MongoOperations mongoOperations;
@@ -63,14 +75,21 @@ public class MongoSubscriptionUniqueActiveKeyTest extends AbstractManagementRepo
     }
 
     @Test
-    public void should_store_the_unique_active_key_of_an_active_subscription() throws Exception {
+    public void should_store_the_hash_of_the_unique_active_key_of_an_active_subscription() throws Exception {
         var subscription = subscriptionRepository.create(aSubscription("sub-1", Subscription.Status.ACCEPTED));
 
-        assertThat(storedDocument("sub-1").getString(FIELD)).isNotNull().isEqualTo(SubscriptionUniqueActiveKey.of(subscription));
+        assertThat(storedDocument("sub-1").getString(FIELD)).isNotNull().isEqualTo(hashOf(subscription));
     }
 
     @Test
-    public void should_not_store_any_key_for_a_rejected_or_closed_subscription() throws Exception {
+    public void should_not_store_the_unique_active_key_itself_anymore() throws Exception {
+        subscriptionRepository.create(aSubscription("sub-1", Subscription.Status.ACCEPTED));
+
+        assertThat(storedDocument("sub-1")).doesNotContainKey(PREVIOUS_FIELD);
+    }
+
+    @Test
+    public void should_not_store_any_hash_for_a_rejected_or_closed_subscription() throws Exception {
         subscriptionRepository.create(aSubscription("sub-rejected", Subscription.Status.REJECTED));
         subscriptionRepository.create(aSubscription("sub-closed", Subscription.Status.CLOSED));
 
@@ -80,7 +99,7 @@ public class MongoSubscriptionUniqueActiveKeyTest extends AbstractManagementRepo
     }
 
     @Test
-    public void should_remove_the_key_when_the_subscription_is_closed() throws Exception {
+    public void should_remove_the_hash_when_the_subscription_is_closed() throws Exception {
         var subscription = subscriptionRepository.create(aSubscription("sub-1", Subscription.Status.ACCEPTED));
 
         subscription.setStatus(Subscription.Status.CLOSED);
@@ -90,63 +109,124 @@ public class MongoSubscriptionUniqueActiveKeyTest extends AbstractManagementRepo
     }
 
     @Test
-    public void should_keep_the_key_while_the_subscription_is_paused() throws Exception {
+    public void should_keep_the_hash_while_the_subscription_is_paused() throws Exception {
         var subscription = subscriptionRepository.create(aSubscription("sub-1", Subscription.Status.ACCEPTED));
-        var key = storedDocument("sub-1").getString(FIELD);
+        var hash = storedDocument("sub-1").getString(FIELD);
 
         subscription.setStatus(Subscription.Status.PAUSED);
         subscriptionRepository.update(subscription);
 
-        assertThat(storedDocument("sub-1").getString(FIELD)).isEqualTo(key);
+        assertThat(storedDocument("sub-1").getString(FIELD)).isNotNull().isEqualTo(hash);
     }
 
     @Test
-    public void should_recompute_the_key_when_the_subscription_is_transferred_to_another_plan() throws Exception {
+    public void should_recompute_the_hash_when_the_subscription_is_transferred_to_another_plan() throws Exception {
         var subscription = subscriptionRepository.create(aSubscription("sub-1", Subscription.Status.ACCEPTED));
+        var hashOnPlan1 = storedDocument("sub-1").getString(FIELD);
 
         subscription.setPlan("plan-2");
         subscriptionRepository.update(subscription);
 
-        assertThat(storedDocument("sub-1").getString(FIELD)).isEqualTo(SubscriptionUniqueActiveKey.of(subscription)).contains("plan-2");
+        assertThat(storedDocument("sub-1").getString(FIELD)).isNotEqualTo(hashOnPlan1).isEqualTo(hashOf(subscription));
     }
 
     @Test
-    public void should_give_the_key_back_when_a_closed_subscription_is_restored() throws Exception {
+    public void should_give_the_hash_back_when_a_closed_subscription_is_restored() throws Exception {
         var subscription = subscriptionRepository.create(aSubscription("sub-1", Subscription.Status.CLOSED));
 
         subscription.setStatus(Subscription.Status.PENDING);
         subscriptionRepository.update(subscription);
 
-        assertThat(storedDocument("sub-1").getString(FIELD)).isNotNull().isEqualTo(SubscriptionUniqueActiveKey.of(subscription));
+        assertThat(storedDocument("sub-1").getString(FIELD)).isNotNull().isEqualTo(hashOf(subscription));
     }
 
     @Test
-    public void should_recompute_the_key_when_the_channel_of_a_push_subscription_changes() throws Exception {
+    public void should_recompute_the_hash_when_the_channel_of_a_push_subscription_changes() throws Exception {
         var subscription = aSubscription("sub-1", Subscription.Status.ACCEPTED);
         subscription.setType(Subscription.Type.PUSH);
         subscription.setConfiguration("{\"entrypointId\":\"webhook\",\"channel\":\"orders\"}");
         subscription = subscriptionRepository.create(subscription);
-        var keyOnOrders = storedDocument("sub-1").getString(FIELD);
+        var hashOnOrders = storedDocument("sub-1").getString(FIELD);
 
         subscription.setConfiguration("{\"entrypointId\":\"webhook\",\"channel\":\"invoices\"}");
         subscriptionRepository.update(subscription);
 
-        assertThat(storedDocument("sub-1").getString(FIELD))
-            .isNotEqualTo(keyOnOrders)
-            .isEqualTo(SubscriptionUniqueActiveKey.of(subscription));
+        assertThat(storedDocument("sub-1").getString(FIELD)).isNotEqualTo(hashOnOrders).isEqualTo(hashOf(subscription));
+    }
+
+    @Test
+    public void should_create_a_unique_index_on_the_hash_of_the_active_subscriptions_only_at_startup() {
+        var index = index(INDEX);
+
+        assertThat(index).isNotNull();
+        assertThat(index.getBoolean("unique")).isTrue();
+        assertThat(index.get("key", Document.class)).isEqualTo(new Document(FIELD, 1));
+        assertThat(index.get("partialFilterExpression", Document.class)).isEqualTo(new Document(FIELD, new Document("$exists", true)));
     }
 
     /**
-     * The upgraders run at startup, before the node serves requests: a repair would scan every subscription, while
-     * nothing reads the key until the unique index exists.
+     * The upgraders run at startup, before the node serves requests: the index is built on a field no existing
+     * subscription has, so building it must not read them.
      */
     @Test
-    public void should_not_repair_the_keys_of_the_existing_subscriptions_at_startup() throws Exception {
+    public void should_not_read_the_subscriptions_when_creating_the_index() throws Exception {
+        subscriptionRepository.create(aSubscription("sub-1", Subscription.Status.ACCEPTED));
+        subscriptions().dropIndex(INDEX);
+        var database = database();
+        database.runCommand(new Document("profile", 0));
+        database.getCollection("system.profile").drop();
+        database.runCommand(new Document("profile", 2));
+        try {
+            activeKeyHashIndexUpgrader().upgrade();
+        } finally {
+            database.runCommand(new Document("profile", 0));
+        }
+
+        var reads = database
+            .getCollection("system.profile")
+            .find(
+                Filters.and(
+                    Filters.eq("ns", database.getName() + "." + collectionName("subscriptions")),
+                    Filters.or(
+                        Filters.in("op", "query", "getmore"),
+                        Filters.exists("command.aggregate"),
+                        Filters.exists("command.count"),
+                        Filters.exists("command.distinct")
+                    )
+                )
+            )
+            .into(new ArrayList<>());
+        assertThat(reads).isEmpty();
+        assertThat(index(INDEX)).isNotNull();
+    }
+
+    /**
+     * Without the index, the node behaves as the previous version: it must start anyway.
+     */
+    @Test
+    public void should_not_stop_the_node_when_the_index_cannot_be_created() throws Exception {
+        subscriptions().dropIndex(INDEX);
+        // Same name, other options: the server refuses to create the expected index.
+        subscriptions().createIndex(new Document(FIELD, 1), new IndexOptions().name(INDEX));
+        try {
+            assertThat(activeKeyHashIndexUpgrader().upgrade()).isTrue();
+        } finally {
+            subscriptions().dropIndex(INDEX);
+            activeKeyHashIndexUpgrader().upgrade();
+        }
+
+        assertThat(index(INDEX).getBoolean("unique")).isTrue();
+    }
+
+    /**
+     * The upgraders run at startup, before the node serves requests: a repair would scan every subscription.
+     */
+    @Test
+    public void should_not_repair_the_hashes_of_the_existing_subscriptions_at_startup() throws Exception {
         // Without its application, the subscription would be removed as orphaned.
         collection("applications").insertOne(new Document("_id", "app-1").append("environmentId", "DEFAULT").append("name", "app-1"));
         subscriptionRepository.create(aSubscription("sub-1", Subscription.Status.ACCEPTED));
-        // As written by a node of a previous version.
-        subscriptions().updateOne(Filters.eq("_id", "sub-1"), new Document("$unset", new Document(FIELD, "")));
+        writtenByPreviousVersion("sub-1");
 
         List<Upgrader> upgraders = applicationContext
             .getBeansOfType(Upgrader.class)
@@ -167,29 +247,88 @@ public class MongoSubscriptionUniqueActiveKeyTest extends AbstractManagementRepo
         assertThat(storedDocument("sub-1")).isNotNull().doesNotContainKey(FIELD);
     }
 
-    private void setNoTableScan(boolean enabled) {
-        mongoClient.getDatabase("admin").runCommand(new Document("setParameter", 1).append("notablescan", enabled));
-    }
-
     @Test
-    public void should_write_the_key_of_a_subscription_stored_without_it_the_next_time_it_is_saved() throws Exception {
+    public void should_write_the_hash_of_a_subscription_stored_without_it_the_next_time_it_is_saved() throws Exception {
         subscriptionRepository.create(aSubscription("sub-1", Subscription.Status.ACCEPTED));
-        // As written by a node of a previous version.
-        subscriptions().updateOne(Filters.eq("_id", "sub-1"), new Document("$unset", new Document(FIELD, "")));
+        writtenByPreviousVersion("sub-1");
         var subscription = subscriptionRepository.findById("sub-1").orElseThrow();
 
         subscription.setUpdatedAt(new Date());
         subscriptionRepository.update(subscription);
 
-        assertThat(storedDocument("sub-1").getString(FIELD)).isNotNull().isEqualTo(SubscriptionUniqueActiveKey.of(subscription));
+        assertThat(storedDocument("sub-1").getString(FIELD)).isNotNull().isEqualTo(hashOf(subscription));
+    }
+
+    @Test
+    public void should_not_refuse_a_subscription_because_of_a_subscription_written_before_the_hash() throws Exception {
+        // The duplicates created before the index are left as they are: only the subscription service refuses a
+        // subscription to a plan the application already subscribed.
+        subscriptionRepository.create(aSubscription("sub-1", Subscription.Status.ACCEPTED));
+        writtenByPreviousVersion("sub-1");
+
+        var subscription = subscriptionRepository.create(aSubscription("sub-2", Subscription.Status.ACCEPTED));
+
+        assertThat(storedDocument("sub-2").getString(FIELD)).isNotNull().isEqualTo(hashOf(subscription));
+    }
+
+    @Test
+    public void should_keep_updating_a_subscription_written_before_the_hash_while_another_one_holds_it() throws Exception {
+        // Two active subscriptions of an application to a plan, duplicated before the unique index existed.
+        var first = subscriptionRepository.create(aSubscription("sub-1", Subscription.Status.ACCEPTED));
+        subscriptionRepository.create(aSubscription("sub-2", Subscription.Status.ACCEPTED, "plan-2"));
+        subscriptions().updateOne(Filters.eq("_id", "sub-2"), new Document("$set", new Document("plan", "plan-1")));
+        writtenByPreviousVersion("sub-1");
+        writtenByPreviousVersion("sub-2");
+        first.setStatus(Subscription.Status.PAUSED);
+        subscriptionRepository.update(first);
+        var second = subscriptionRepository.findById("sub-2").orElseThrow();
+
+        second.setStatus(Subscription.Status.PAUSED);
+        subscriptionRepository.update(second);
+
+        assertThat(storedDocument("sub-1").getString(FIELD)).isNotNull().isEqualTo(hashOf(first));
+        assertThat(storedDocument("sub-2")).doesNotContainKey(FIELD).containsEntry("status", "PAUSED");
     }
 
     /**
-     * The repository bridge serialises the repository model for the gateways, the key must stay out of it.
+     * The repository bridge serialises the repository model for the gateways, the hash must stay out of it.
      */
     @Test
-    public void should_keep_the_key_out_of_the_repository_model() {
-        assertThat(Subscription.class.getDeclaredFields()).noneMatch(field -> field.getName().equalsIgnoreCase(FIELD));
+    public void should_keep_the_hash_out_of_the_repository_model() {
+        assertThat(Subscription.class.getDeclaredFields()).noneMatch(
+            field -> field.getName().equalsIgnoreCase(FIELD) || field.getName().equalsIgnoreCase(PREVIOUS_FIELD)
+        );
+    }
+
+    /**
+     * As stored by a node of a previous version, which knows nothing of the hash.
+     */
+    private void writtenByPreviousVersion(String id) {
+        subscriptions().updateOne(Filters.eq("_id", id), new Document("$unset", new Document(FIELD, "")));
+    }
+
+    private Upgrader activeKeyHashIndexUpgrader() {
+        return applicationContext
+            .getBeansOfType(Upgrader.class)
+            .values()
+            .stream()
+            .filter(upgrader -> upgrader.getClass().getSimpleName().startsWith("ActiveKeyHashIndexUpgrader"))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("No upgrader creates the index " + INDEX));
+    }
+
+    private void setNoTableScan(boolean enabled) {
+        mongoClient.getDatabase("admin").runCommand(new Document("setParameter", 1).append("notablescan", enabled));
+    }
+
+    private Document index(String name) {
+        return subscriptions()
+            .listIndexes()
+            .into(new ArrayList<>())
+            .stream()
+            .filter(index -> name.equals(index.getString("name")))
+            .findFirst()
+            .orElse(null);
     }
 
     private Document storedDocument(String id) {
@@ -201,10 +340,28 @@ public class MongoSubscriptionUniqueActiveKeyTest extends AbstractManagementRepo
     }
 
     private MongoCollection<Document> collection(String name) {
-        return mongoOperations.getCollection(environment.getProperty("management.mongodb.prefix", "") + name);
+        return mongoOperations.getCollection(collectionName(name));
+    }
+
+    private String collectionName(String name) {
+        return environment.getProperty("management.mongodb.prefix", "") + name;
+    }
+
+    private MongoDatabase database() {
+        return mongoClient.getDatabase(subscriptions().getNamespace().getDatabaseName());
+    }
+
+    private static String hashOf(Subscription subscription) throws NoSuchAlgorithmException {
+        return HexFormat.of().formatHex(
+            MessageDigest.getInstance("SHA-256").digest(SubscriptionUniqueActiveKey.of(subscription).getBytes(UTF_8))
+        );
     }
 
     private static Subscription aSubscription(String id, Subscription.Status status) {
+        return aSubscription(id, status, "plan-1");
+    }
+
+    private static Subscription aSubscription(String id, Subscription.Status status, String plan) {
         var subscription = new Subscription();
         subscription.setId(id);
         subscription.setEnvironmentId("DEFAULT");
@@ -212,7 +369,7 @@ public class MongoSubscriptionUniqueActiveKeyTest extends AbstractManagementRepo
         subscription.setReferenceId("api-1");
         subscription.setApi("api-1");
         subscription.setApplication("app-1");
-        subscription.setPlan("plan-1");
+        subscription.setPlan(plan);
         subscription.setStatus(status);
         subscription.setCreatedAt(new Date());
         subscription.setUpdatedAt(new Date());
