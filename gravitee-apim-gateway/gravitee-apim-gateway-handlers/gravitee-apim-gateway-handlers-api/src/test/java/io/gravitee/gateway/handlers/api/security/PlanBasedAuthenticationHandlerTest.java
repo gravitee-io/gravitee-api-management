@@ -21,11 +21,18 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.Plan;
+import io.gravitee.el.spel.context.SecuredResolver;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
+<<<<<<< HEAD
 import org.junit.Test;
 import org.junit.runner.RunWith;
+=======
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+>>>>>>> 3101593 (fix(gateway): harden plan selection rule evaluation against SpEL injection)
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -59,6 +66,14 @@ public class PlanBasedAuthenticationHandlerTest {
 
     @Mock
     private Request request;
+
+    @BeforeAll
+    static void loadBuiltInAllowList() {
+        // selectionRule is evaluated with a SecuredEvaluationContext: without this, every method call
+        // is denied regardless of the allow list, and a regression letting normal rules through would
+        // not show up here.
+        SecuredResolver.initialize(null);
+    }
 
     @Test
     public void canHandleSelectionRule_should_return_true_cause_null_selectionRule_on_plan() {
@@ -104,5 +119,62 @@ public class PlanBasedAuthenticationHandlerTest {
 
         boolean result = authenticationHandler.canHandleSelectionRule(authenticationContext);
         assertFalse(result);
+    }
+
+    @Test
+    public void canHandleSelectionRule_should_return_false_cause_selectionRule_attempts_arbitrary_method_invocation() {
+        SideEffectProbe.executed = false;
+        when(plan.getSelectionRule()).thenReturn(
+            "T(io.gravitee.gateway.handlers.api.security.PlanBasedAuthenticationHandlerTest$SideEffectProbe).trigger()"
+        );
+
+        boolean result = authenticationHandler.canHandleSelectionRule(authenticationContext);
+
+        assertFalse(result);
+        assertFalse(SideEffectProbe.executed, "selection rule must not be able to invoke arbitrary classpath methods");
+    }
+
+    @Test
+    public void canHandleSelectionRule_should_return_false_cause_selectionRule_attempts_constructor_invocation() {
+        SideEffectProbe.executed = false;
+        when(plan.getSelectionRule()).thenReturn(
+            "new io.gravitee.gateway.handlers.api.security.PlanBasedAuthenticationHandlerTest$SideEffectProbe().instanceTrigger()"
+        );
+
+        boolean result = authenticationHandler.canHandleSelectionRule(authenticationContext);
+
+        assertFalse(result);
+        assertFalse(SideEffectProbe.executed, "selection rule must not be able to instantiate arbitrary classpath types");
+    }
+
+    @Test
+    public void canHandleSelectionRule_should_return_false_cause_selectionRule_attempts_getClass_chain() {
+        SideEffectProbe.executed = false;
+        when(request.method()).thenReturn(POST);
+        when(authenticationContext.request()).thenReturn(request);
+        when(plan.getSelectionRule()).thenReturn(
+            "#request.getClass().forName('io.gravitee.gateway.handlers.api.security.PlanBasedAuthenticationHandlerTest$SideEffectProbe').trigger()"
+        );
+
+        boolean result = authenticationHandler.canHandleSelectionRule(authenticationContext);
+
+        assertFalse(result);
+        assertFalse(SideEffectProbe.executed, "selection rule must not be able to reach the class loader through getClass()/forName()");
+    }
+
+    // not whitelisted in the SEL evaluation context: standing in for an RCE sink such as java.lang.Runtime
+    public static class SideEffectProbe {
+
+        static boolean executed = false;
+
+        public static boolean trigger() {
+            executed = true;
+            return true;
+        }
+
+        public boolean instanceTrigger() {
+            executed = true;
+            return true;
+        }
     }
 }
