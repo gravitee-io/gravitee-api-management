@@ -95,8 +95,11 @@ tags:
           metric, is not applied to that metric: its result is not narrowed by that condition. Each
           metric of the response names such conditions in `ignoredFilters`.
 
-          All three endpoints return opaque JSON produced by the APIM analytics engine — the
-          response schemas below document the stable structure but additional fields may appear.
+          The three computation endpoints return opaque JSON produced by the APIM analytics engine —
+          the response schemas below document the stable structure but additional fields may appear.
+
+          `GET /analytics/definition` describes, from the same engine catalog, the metrics, measures and
+          facets those endpoints accept, so a widget editor offers nothing they would refuse.
     - name: Dashboards
       description: |
           Dashboards saved by Gamma Observability users, so a dashboard opens from any machine
@@ -1340,6 +1343,109 @@ paths:
                                                           value: 12
                 "400":
                     $ref: "#/components/responses/AnalyticsQueryRefused"
+
+    /organizations/{orgId}/environments/{envId}/observability/analytics/definition:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            tags:
+                - Analytics
+            summary: Get the analytics definition for API kinds
+            description: |
+                Returns everything a widget editor offers for the requested API kinds, in one call:
+                the metrics, grouped by family, each with its unit, measures, facets and filters, and
+                the label of every facet those metrics can be grouped by.
+
+                A metric is returned when it exists for at least one requested kind, once whatever
+                the number of kinds it exists for. Families come in a fixed order (`GATEWAY`, `LLM`,
+                `MESSAGE`, `EDGE`, `NATIVE`, `AUTHZ`), metrics in catalog order within their family;
+                a family without metrics is left out. `dimensions` lists each facet of the returned
+                metrics once, in order of first appearance.
+
+                Names and labels are those of the analytics engine catalog, the one the analytics
+                endpoints validate metrics, measures and facets against. A metric's `filters` are the
+                catalog's narrowed to the filters the analytics endpoints accept, those of
+                `GET /filters/definition?signal=ANALYTICS`: every name read here is accepted by them.
+
+                The response holds no traffic data, so no permission is required. It only changes
+                with the server build: it carries an `ETag`, and a request sending it back in
+                `If-None-Match` is answered `304 Not Modified`.
+            operationId: getObservabilityAnalyticsDefinition
+            parameters:
+                - name: apiType
+                  in: query
+                  required: true
+                  description: |
+                      API kind(s) to describe, read case-insensitively. Repeat for multiple values. At
+                      least one is required. `AUTHZ_DECISION` is refused: it is a scope of the decisions
+                      screen, not an API kind.
+                  example: HTTP_PROXY
+                  schema:
+                      type: array
+                      minItems: 1
+                      items:
+                          $ref: "#/components/schemas/ApiType"
+            responses:
+                "200":
+                    description: The analytics definition of the requested API kinds.
+                    headers:
+                        ETag:
+                            description: Validator of this response, to send back in `If-None-Match`.
+                            schema:
+                                type: string
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AnalyticsDefinitionResponse"
+                            example:
+                                families:
+                                    - name: "GATEWAY"
+                                      label: "Gateway"
+                                      metrics:
+                                          - name: "HTTP_REQUESTS"
+                                            label: "HTTP Requests"
+                                            unit: "NUMBER"
+                                            apiTypes: ["HTTP_PROXY", "LLM", "MESSAGE", "MCP", "A2A"]
+                                            measures: ["COUNT"]
+                                            facets: ["API", "HTTP_STATUS"]
+                                            filters: ["API", "API_TYPE", "HTTP_STATUS"]
+                                            origin: "BUILT_IN"
+                                    - name: "LLM"
+                                      label: "LLM"
+                                      metrics:
+                                          - name: "LLM_PROMPT_TOTAL_TOKEN"
+                                            label: "Total token count"
+                                            unit: "NUMBER"
+                                            apiTypes: ["LLM"]
+                                            measures: ["COUNT", "AVG"]
+                                            facets: ["API", "LLM_PROXY_MODEL"]
+                                            filters: ["API", "API_TYPE", "LLM_PROXY_MODEL"]
+                                            origin: "BUILT_IN"
+                                dimensions:
+                                    - name: "API"
+                                      label: "API"
+                                      origin: "BUILT_IN"
+                                    - name: "HTTP_STATUS"
+                                      label: "Status Code"
+                                      origin: "BUILT_IN"
+                                    - name: "LLM_PROXY_MODEL"
+                                      label: "LLM Model"
+                                      origin: "BUILT_IN"
+                "304":
+                    description: The definition has not changed since the `ETag` sent in `If-None-Match`.
+                "400":
+                    description: |
+                        No `apiType` (`observability.query.api_types_required`), or an unknown one or
+                        `AUTHZ_DECISION` (`observability.query.not_an_api_kind`).
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                http_status: 400
+                                message: "At least one apiType is required"
+                                technicalCode: "observability.query.api_types_required"
 
     /organizations/{orgId}/environments/{envId}/observability/capabilities:
         parameters:
@@ -3229,6 +3335,112 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/TimeSeriesMetricResult"
+
+        AnalyticsDefinitionResponse:
+            type: object
+            description: Response from the analytics definition endpoint.
+            required: [families, dimensions]
+            properties:
+                families:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/MetricFamily"
+                dimensions:
+                    type: array
+                    description: Every facet the returned metrics can be grouped by, with its label.
+                    items:
+                        $ref: "#/components/schemas/DimensionDefinition"
+
+        MetricFamily:
+            type: object
+            description: |
+                A group of metrics as a widget editor lists them. A metric belongs to the family of the
+                one API kind it exists for (`NATIVE` is labelled *Kafka Service*); a metric that exists
+                for several kinds, or for `HTTP_PROXY`, `MCP` or `A2A` alone, belongs to `GATEWAY`.
+            required: [name, label, metrics]
+            properties:
+                name:
+                    type: string
+                    enum: [GATEWAY, LLM, MESSAGE, EDGE, NATIVE, AUTHZ]
+                label:
+                    type: string
+                    example: "Gateway"
+                metrics:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/MetricDefinition"
+
+        MetricDefinition:
+            type: object
+            description: One metric of the analytics engine catalog and what can be asked of it.
+            required: [name, label, unit, apiTypes, measures, facets, filters, origin]
+            properties:
+                name:
+                    type: string
+                    description: The name the analytics endpoints accept in a metric query.
+                    example: "HTTP_GATEWAY_RESPONSE_TIME"
+                label:
+                    type: string
+                    example: "Gateway response time"
+                unit:
+                    type: string
+                    description: Unit of the metric values, as the analytics endpoints report it.
+                    example: "MILLISECONDS"
+                apiTypes:
+                    type: array
+                    description: API kinds the metric exists for.
+                    items:
+                        $ref: "#/components/schemas/ApiType"
+                measures:
+                    type: array
+                    description: Measures the analytics endpoints accept for this metric. The first is its default.
+                    items:
+                        type: string
+                    example: ["AVG", "MIN", "MAX", "P90", "P95", "P99"]
+                facets:
+                    type: array
+                    description: Facets the metric can be grouped by; their labels are in `dimensions`.
+                    items:
+                        type: string
+                    example: ["API", "HTTP_STATUS"]
+                filters:
+                    type: array
+                    description: |
+                        Filters the metric is narrowed by, among those the analytics endpoints accept. Any
+                        other condition of a query is not applied to it and is named in its `ignoredFilters`.
+                        Their definition is in the filter catalog, under the `ANALYTICS` signal.
+                    items:
+                        type: string
+                    example: ["API", "API_TYPE", "HTTP_STATUS"]
+                origin:
+                    type: string
+                    description: |
+                        Where the entry comes from. `BUILT_IN`, the catalog shipped with the server, is the only
+                        origin served today; `DECLARED` and `DISCOVERED` will come with the metrics found in the
+                        data, so a client must accept them. Shared with `CatalogEntryFlags` (OBS-70): whichever
+                        PR merges second replaces this inline enum by the shared schema.
+                    enum: [BUILT_IN, DECLARED, DISCOVERED]
+
+        DimensionDefinition:
+            type: object
+            description: A facet a metric can be grouped by, with its label.
+            required: [name, label, origin]
+            properties:
+                name:
+                    type: string
+                    description: The name the analytics endpoints accept in `by`.
+                    example: "HTTP_STATUS"
+                label:
+                    type: string
+                    example: "Status Code"
+                origin:
+                    type: string
+                    description: |
+                        Where the entry comes from. `BUILT_IN`, the catalog shipped with the server, is the only
+                        origin served today; `DECLARED` and `DISCOVERED` will come with the metrics found in the
+                        data, so a client must accept them. Shared with `CatalogEntryFlags` (OBS-70): whichever
+                        PR merges second replaces this inline enum by the shared schema.
+                    enum: [BUILT_IN, DECLARED, DISCOVERED]
 
         DashboardFilter:
             type: object

@@ -25,8 +25,14 @@ import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryCon
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeFacetsUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeTimeSeriesUseCase;
+import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
+import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase;
+import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFilterSpecUseCase;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
+import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.AnalyticsDefinitionPort;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
+import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
+import io.gravitee.gamma.rest.infra.adapter.AnalyticsDefinitionPortAdapter;
 import io.gravitee.gamma.rest.infra.adapter.ObservabilityAnalyticsDataPortAdapter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -35,8 +41,9 @@ import org.springframework.context.annotation.FilterType;
 
 /**
  * Spring wiring for the observability analytics domain. Picks up the Gamma analytics use cases and
- * the shared {@code AnalyticsRequestPipeline} via {@link ComponentScan}, and declares the data port
- * adapter as a bean that delegates to the APIM compute use cases (already in the parent context).
+ * the shared {@code AnalyticsRequestPipeline} via {@link ComponentScan}, and declares the data and definition
+ * port adapters as beans that delegate to the APIM compute and definition use cases (already in the parent
+ * context).
  *
  * @author GraviteeSource Team
  */
@@ -72,6 +79,21 @@ public class GammaAnalyticsConfiguration {
             workspaceApis,
             queryContextProvider,
             objectMapper
+        );
+    }
+
+    @Bean
+    public AnalyticsDefinitionPort analyticsDefinitionPort(
+        GetApiMetricSpecUseCase getApiMetricSpecUseCase,
+        GetMetricFacetSpecUseCase getMetricFacetSpecUseCase,
+        GetMetricFilterSpecUseCase getMetricFilterSpecUseCase,
+        FilterRegistry filterRegistry
+    ) {
+        return new AnalyticsDefinitionPortAdapter(
+            getApiMetricSpecUseCase,
+            getMetricFacetSpecUseCase,
+            getMetricFilterSpecUseCase,
+            filterRegistry
         );
     }
 }
