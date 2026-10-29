@@ -50,8 +50,11 @@
              https://github.com/awhitford/lombok.maven/issues/179 -->
     <maven-lombok.version>1.18.36</maven-lombok.version>
     <!-- Gravitee dependencies version -->
+    <!-- When bumping gravitee-bom.version, also align jackson.version below with the one it pins -->
     <gravitee-bom.version>9.0.10</gravitee-bom.version>
-    <!-- Keep aligned with the jackson.version of gravitee-bom -->
+    <!-- Jackson pin imported before gravitee-bom in gravitee-apim-bom, to hold back the jackson-bom
+         2.22.2 brought by the Jetty boms. Keep equal to the jackson.version of gravitee-bom and
+         do not remove it as a duplicate. -->
     <jackson.version>2.21.7</jackson.version>
     <gravitee-alert-api.version>3.0.0</gravitee-alert-api.version>
     <gravitee-cockpit-api.version>3.12.0</gravitee-cockpit-api.version>

@@ -39,7 +39,8 @@
             </dependency>
 
             <!-- Must stay before gravitee-bom: the first import wins, and the jetty boms imported by
-                 gravitee-bom pull a newer jackson-bom that would override the gravitee-bom pin. -->
+                 gravitee-bom pull jackson-bom 2.22.2 that would override the gravitee-bom pin (2.21.7).
+                 Its version comes from jackson.version in the root pom. -->
             <dependency>
                 <groupId>com.fasterxml.jackson</groupId>
                 <artifactId>jackson-bom</artifactId>
