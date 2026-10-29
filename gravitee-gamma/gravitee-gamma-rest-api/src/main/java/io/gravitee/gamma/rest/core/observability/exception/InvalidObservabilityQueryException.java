@@ -19,7 +19,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 
 /**
  * A logs or analytics query whose shape, outside its filters, cannot be answered: a missing time bound, a
- * missing interval, no metric, a metric, measure, facet or sort the engine does not know, or metric ids or
+ * missing interval, no metric, no API kind, a metric, measure, facet or sort the engine does not know, or metric ids or
  * metric-level filters the request cannot be split by. Translated to
  * HTTP 400 by the apim {@code ValidationDomainExceptionMapper}, with a technical code per rule.
  *
@@ -61,6 +61,14 @@ public class InvalidObservabilityQueryException extends ValidationDomainExceptio
 
     public static InvalidObservabilityQueryException nullEntry(String field) {
         return new InvalidObservabilityQueryException("'" + field + "' must not contain null entries", "observability.query.null_entry");
+    }
+
+    public static InvalidObservabilityQueryException missingApiTypes() {
+        return new InvalidObservabilityQueryException("At least one apiType is required", "observability.query.api_types_required");
+    }
+
+    public static InvalidObservabilityQueryException notAnApiKind(String apiType) {
+        return new InvalidObservabilityQueryException("'" + apiType + "' is not an API kind", "observability.query.not_an_api_kind");
     }
 
     public static InvalidObservabilityQueryException unknownMetric(String metric) {
