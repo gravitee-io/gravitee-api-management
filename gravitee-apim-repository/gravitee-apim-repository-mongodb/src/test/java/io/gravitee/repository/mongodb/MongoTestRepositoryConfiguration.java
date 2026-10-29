@@ -93,7 +93,10 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
     @Bean(destroyMethod = "stop")
     public MongoDBContainer mongoDBContainer() {
         MongoDBContainer mongoDb = new MongoDBContainer(DockerImageName.parse("mongo:" + mongoVersion));
-        mongoDb.withCommand("--replSet", "docker-rs", "--setParameter", "notablescan=true").start();
+        // Test commands enable the failpoints that hold an index build in progress.
+        mongoDb
+            .withCommand("--replSet", "docker-rs", "--setParameter", "notablescan=true", "--setParameter", "enableTestCommands=1")
+            .start();
 
         LOG.info("Running tests with MongoDB version: {}", getMongoFullVersion(mongoDb.getContainerInfo().getConfig().getEnv()));
 
