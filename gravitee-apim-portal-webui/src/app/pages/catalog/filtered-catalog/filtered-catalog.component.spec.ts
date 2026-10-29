@@ -15,7 +15,7 @@
  */
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 
@@ -59,6 +59,40 @@ describe('FilteredCatalogComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it.each([
+    { view: 'promoted card', display: 'cards', selector: 'gv-promote' },
+    { view: 'card grid', display: 'cards', selector: 'gv-card-list' },
+    { view: 'list', display: 'list', selector: 'gv-row' },
+  ])('should pass a sanitized Markdown description to the $view', async ({ display, selector }) => {
+    const api: Api = {
+      ...api1,
+      description: '<img src="assets/logo.png" onerror="alert(108)">\n\n**Bold** and [Docs](/docs)',
+    };
+    const httpMock = spectator.inject(HttpTestingController);
+    component.currentDisplay = display;
+
+    httpMock
+      .match(request => request.url.endsWith('/apis'))
+      .forEach(request => {
+        request.flush({ data: [api], metadata: { pagination: {} } });
+      });
+    await spectator.fixture.whenStable();
+    httpMock.match(request => request.url.endsWith('/metrics')).forEach(request => request.flush({}));
+    httpMock.expectOne(request => request.url.endsWith('/categories')).flush({ data: [] });
+    await spectator.fixture.whenStable();
+    spectator.detectChanges();
+
+    const view = spectator.query<HTMLElement & { item?: Api | Promise<Api>; items?: { item: Promise<Api> }[] }>(selector);
+    expect(view).not.toBeNull();
+    const displayedApi = await (selector === 'gv-card-list' ? view.items[0].item : view.item);
+
+    expect(displayedApi.description).not.toContain('onerror');
+    expect(displayedApi.description).toContain('<img src="assets/logo.png">');
+    expect(displayedApi.description).toContain('<strong>Bold</strong>');
+    expect(displayedApi.description).toContain('<b>Docs</b>');
+    httpMock.verify();
   });
 
   it('should load the apis and the promoted api', async () => {
