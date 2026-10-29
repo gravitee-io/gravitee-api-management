@@ -40,10 +40,14 @@ import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class ApiGetDocumentationPagesUseCaseTest {
 
@@ -251,6 +255,97 @@ class ApiGetDocumentationPagesUseCaseTest {
             assertThat(res.breadcrumbList().get(2))
                 .isNotNull()
                 .isEqualTo(Breadcrumb.builder().position(3).id(parentIdPos3).name(parentIdPos3 + "-name").build());
+        }
+
+        @ParameterizedTest
+        @MethodSource("foreignOwners")
+        void should_stop_breadcrumb_before_foreign_ancestor(Page.ReferenceType referenceType, String referenceId) {
+            var requestedFolder = basicPageWithParent("requested-folder", "safe-parent");
+            var safeParent = basicPageWithParent("safe-parent", "foreign-parent");
+            var foreignParent = basicPageWithParent("foreign-parent", "foreign-grandparent")
+                .toBuilder()
+                .referenceType(referenceType)
+                .referenceId(referenceId)
+                .build();
+            var foreignGrandparent = basicPageWithParent("foreign-grandparent", "").toBuilder().referenceId("other-api").build();
+            var child = basicPageWithParent("child", requestedFolder.getId());
+            initPageServices(List.of(requestedFolder, safeParent, foreignParent, foreignGrandparent, child));
+
+            var result = useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, requestedFolder.getId()));
+
+            assertThat(result.pages()).extracting(Page::getId).containsExactly(child.getId());
+            assertThat(result.breadcrumbList()).containsExactly(
+                Breadcrumb.builder().position(1).id(safeParent.getId()).name(safeParent.getName()).build(),
+                Breadcrumb.builder().position(2).id(requestedFolder.getId()).name(requestedFolder.getName()).build()
+            );
+        }
+
+        static Stream<Arguments> foreignOwners() {
+            return Stream.of(
+                Arguments.of(Page.ReferenceType.API, "other-api"),
+                Arguments.of(Page.ReferenceType.ENVIRONMENT, API_ID),
+                Arguments.of(Page.ReferenceType.API, null),
+                Arguments.of(Page.ReferenceType.API, ""),
+                Arguments.of(null, API_ID)
+            );
+        }
+
+        @Test
+        void should_stop_breadcrumb_at_missing_ancestor() {
+            var requestedFolder = basicPageWithParent("requested-folder", "missing-parent");
+            initPageServices(List.of(requestedFolder));
+
+            var result = useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, requestedFolder.getId()));
+
+            assertThat(result.breadcrumbList()).containsExactly(
+                Breadcrumb.builder().position(1).id(requestedFolder.getId()).name(requestedFolder.getName()).build()
+            );
+        }
+
+        @Test
+        void should_stop_breadcrumb_when_folder_is_its_own_parent() {
+            var folder = basicPageWithParent("folder", "folder");
+            initPageServices(List.of(folder));
+
+            var result = useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, folder.getId()));
+
+            assertThat(result.breadcrumbList()).containsExactly(
+                Breadcrumb.builder().position(1).id(folder.getId()).name(folder.getName()).build()
+            );
+        }
+
+        @Test
+        void should_stop_breadcrumb_before_revisiting_a_folder() {
+            var requestedFolder = basicPageWithParent("requested-folder", "parent-folder");
+            var parentFolder = basicPageWithParent("parent-folder", requestedFolder.getId());
+            initPageServices(List.of(requestedFolder, parentFolder));
+
+            var result = useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, requestedFolder.getId()));
+
+            assertThat(result.breadcrumbList()).containsExactly(
+                Breadcrumb.builder().position(1).id(parentFolder.getId()).name(parentFolder.getName()).build(),
+                Breadcrumb.builder().position(2).id(requestedFolder.getId()).name(requestedFolder.getName()).build()
+            );
+        }
+
+        @Test
+        void should_return_all_breadcrumbs_in_order_for_a_deep_hierarchy() {
+            int depth = 10_000;
+            var folders = new ArrayList<Page>();
+            var expectedBreadcrumbs = new ArrayList<Breadcrumb>();
+            String parentId = null;
+            for (int i = 0; i < depth; i++) {
+                var folder = basicPageWithParent("folder-" + i, parentId);
+                folders.add(folder);
+                expectedBreadcrumbs.add(Breadcrumb.builder().position(i + 1).id(folder.getId()).name(folder.getName()).build());
+                parentId = folder.getId();
+            }
+            initPageServices(folders);
+
+            var result = useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, parentId));
+
+            assertThat(result.pages()).isEmpty();
+            assertThat(result.breadcrumbList()).containsExactlyElementsOf(expectedBreadcrumbs);
         }
 
         @Test
