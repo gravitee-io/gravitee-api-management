@@ -3,6 +3,9 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.12.26
+- Bump the Gravitee node Hazelcast cache and cluster plugins to 9.15.1, to stay consistent with `gravitee-node.version` in the APIM `pom.xml`.
+
 ### 4.12.24
 - Add `ldap.lookup.activations`, a list of organization ids or `organization id:environment id` pairs that restricts where the LDAP user search of the Management API is allowed, mirroring the `lookup.activations` key of the `ldap` identity provider in `gravitee.yml` (FOUND-370). Empty by default, so the directory stays searchable from every organization and portal as before. Authentication is not affected.
 - Bump the Gravitee node Hazelcast cache and cluster plugins to 9.14.2, to stay consistent with `gravitee-node.version` in the APIM `pom.xml`.
