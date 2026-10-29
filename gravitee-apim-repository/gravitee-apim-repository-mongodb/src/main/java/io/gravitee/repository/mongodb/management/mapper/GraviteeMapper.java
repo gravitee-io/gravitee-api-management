@@ -320,7 +320,7 @@ public interface GraviteeMapper {
     Subscription map(SubscriptionMongo toMap);
 
     @InheritInverseConfiguration
-    @Mapping(target = "uniqueActiveKey", ignore = true)
+    @Mapping(target = "activeKeyHash", ignore = true)
     SubscriptionMongo map(Subscription toMap);
 
     @InheritConfiguration
