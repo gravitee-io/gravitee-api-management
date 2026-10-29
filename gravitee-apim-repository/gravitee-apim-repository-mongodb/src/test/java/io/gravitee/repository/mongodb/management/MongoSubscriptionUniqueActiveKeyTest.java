@@ -176,26 +176,32 @@ public class MongoSubscriptionUniqueActiveKeyTest extends AbstractManagementRepo
         database.runCommand(new Document("profile", 0));
         database.getCollection("system.profile").drop();
         database.runCommand(new Document("profile", 2));
+        List<Document> reads;
         try {
-            activeKeyHashIndexUpgrader().upgrade();
-        } finally {
-            database.runCommand(new Document("profile", 0));
-        }
+            try {
+                activeKeyHashIndexUpgrader().upgrade();
+            } finally {
+                database.runCommand(new Document("profile", 0));
+            }
 
-        var reads = database
-            .getCollection("system.profile")
-            .find(
-                Filters.and(
-                    Filters.eq("ns", database.getName() + "." + collectionName("subscriptions")),
-                    Filters.or(
-                        Filters.in("op", "query", "getmore"),
-                        Filters.exists("command.aggregate"),
-                        Filters.exists("command.count"),
-                        Filters.exists("command.distinct")
+            reads = database
+                .getCollection("system.profile")
+                .find(
+                    Filters.and(
+                        Filters.eq("ns", database.getName() + "." + collectionName("subscriptions")),
+                        Filters.or(
+                            Filters.in("op", "query", "getmore"),
+                            Filters.exists("command.aggregate"),
+                            Filters.exists("command.count"),
+                            Filters.exists("command.distinct")
+                        )
                     )
                 )
-            )
-            .into(new ArrayList<>());
+                .into(new ArrayList<>());
+        } finally {
+            // The tests delete every document of every collection in between, which system.profile refuses.
+            database.getCollection("system.profile").drop();
+        }
         assertThat(reads).isEmpty();
         assertThat(index(INDEX)).isNotNull();
     }
