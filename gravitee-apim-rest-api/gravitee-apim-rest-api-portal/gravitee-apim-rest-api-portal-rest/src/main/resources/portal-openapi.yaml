@@ -56,6 +56,7 @@ paths:
                 AI workspaces in this environment where the caller owns an application with an accepted subscription.
                 A caller with no workspace gets an empty page.
             operationId: listAiWorkspaces
+            x-gravitee-portal: next
             parameters:
                 - $ref: "#/components/parameters/pageNumberParam"
                 - $ref: "#/components/parameters/pageSizeParam"
@@ -85,6 +86,7 @@ paths:
                 Returned only when the caller is the USER primary owner of an application with an accepted subscription.
                 Any other id returns 404.
             operationId: getAiWorkspace
+            x-gravitee-portal: next
             parameters:
                 - name: aiWorkspaceId
                   in: path
@@ -118,6 +120,7 @@ paths:
                 A workspace the caller is not mapped to returns 404.
                 When there is no traffic, or analytics cannot be read, the counts are zero and the call still succeeds.
             operationId: getAiWorkspaceConsumption
+            x-gravitee-portal: next
             parameters:
                 - name: aiWorkspaceId
                   in: path
@@ -166,6 +169,7 @@ paths:
                 By default the list is sorted by alphabetic order.
                 If a **cat** query param is sent, a specific sorting can be applied. Please refer to **cat** description for detail.
             operationId: getApis
+            x-gravitee-portal: classic
             security:
                 - {}
                 - BasicAuth: []
@@ -186,6 +190,7 @@ paths:
             summary: Get Portal pages per context.
             description: Returns a list of Portal pages based on the provided type. Use expands=content to include the page content. Only published pages are returned.
             operationId: getPortalPages
+            x-gravitee-portal: next
             security:
                 - {}
                 - BasicAuth: []
@@ -266,6 +271,7 @@ paths:
                 Supports pagination.
                 When the fuzzy search is enabled, minor typos in the query may still match.
             operationId: searchApis
+            x-gravitee-portal: both
             security:
                 - {}
                 - BasicAuth: []
@@ -292,6 +298,7 @@ paths:
 
                 The list is sorted by alphabetic order.
             operationId: listCategories
+            x-gravitee-portal: classic
             security:
                 - {}
                 - BasicAuth: []
@@ -320,6 +327,7 @@ paths:
 
                 This API has to be accessible by the current user, otherwise a 404 will be returned.
             operationId: getApiByApiId
+            x-gravitee-portal: both
             security:
                 - {}
                 - BasicAuth: []
@@ -348,6 +356,7 @@ paths:
                 The API Product must be exposed by an accessible, published Portal navigation item,
                 otherwise a 404 is returned.
             operationId: getApiProductByApiProductId
+            x-gravitee-portal: next
             security:
                 - {}
                 - BasicAuth: []
@@ -379,6 +388,7 @@ paths:
                 The API Product must be exposed by an accessible, published Portal navigation item,
                 otherwise a 404 is returned.
             operationId: getApiProductPlans
+            x-gravitee-portal: next
             security:
                 - {}
                 - BasicAuth: []
@@ -402,6 +412,7 @@ paths:
                 - Portal
             summary: Get the api dynamic informations to display.
             operationId: getApiInformations
+            x-gravitee-portal: both
             description: |
                 Get api informations.
             security:
@@ -427,6 +438,7 @@ paths:
                 - Api
             summary: Get the API links from Aside SYSTEM_FOLDER.
             operationId: getApiLinks
+            x-gravitee-portal: classic
             description: |
                 Get all the links (internal and external) to be displayed in the detail of the API.
 
@@ -463,6 +475,7 @@ paths:
                 The API must belong to the current environment, be published and be accessible to the current user,
                 otherwise a 404 will be returned.
             operationId: getApiMetricsByApiId
+            x-gravitee-portal: classic
             security:
                 - {}
                 - BasicAuth: []
@@ -495,6 +508,7 @@ paths:
 
                 This API has to be accessible by the current user, otherwise a 404 will be returned.
             operationId: getPagesByApiId
+            x-gravitee-portal: both
             security:
                 - {}
                 - BasicAuth: []
@@ -521,6 +535,7 @@ paths:
 
                 This API has to be accessible by the current user, otherwise a 404 will be returned.
             operationId: getPageByApiIdAndPageId
+            x-gravitee-portal: both
             security:
                 - {}
                 - BasicAuth: []
@@ -549,6 +564,7 @@ paths:
 
                 This API has to be accessible by the current user, otherwise a 404 will be returned.
             operationId: getPageContentByApiIdAndPageId
+            x-gravitee-portal: both
             security:
                 - {}
                 - BasicAuth: []
@@ -578,6 +594,7 @@ paths:
 
                 This API has to be accessible by the current user, otherwise a 404 will be returned.
             operationId: getPictureByApiId
+            x-gravitee-portal: both
             security:
                 - {}
                 - BasicAuth: []
@@ -601,6 +618,7 @@ paths:
 
                 This API has to be accessible by the current user, otherwise a 404 will be returned.
             operationId: getBackgroundByApiId
+            x-gravitee-portal: classic
             security:
                 - {}
                 - BasicAuth: []
@@ -628,6 +646,7 @@ paths:
 
                 This API has to be accessible by the current user, otherwise a 404 will be returned.
             operationId: getApiPlansByApiId
+            x-gravitee-portal: both
             security:
                 - {}
                 - BasicAuth: []
@@ -660,6 +679,7 @@ paths:
 
                 This API has to be accessible by the current user, otherwise a 404 will be returned.
             operationId: getApiRatingsByApiId
+            x-gravitee-portal: classic
             security:
                 - {}
                 - BasicAuth: []
@@ -686,6 +706,7 @@ paths:
 
                 The current must have API_RATING[CREATE] permission to create a rating.
             operationId: createApiRating
+            x-gravitee-portal: classic
             requestBody:
                 description: Use to add a rating to an api
                 content:
@@ -730,6 +751,7 @@ paths:
 
                 The current must have API_RATING[CREATE] permission to update a rating.
             operationId: updateApiRating
+            x-gravitee-portal: classic
             requestBody:
                 description: Use to update a rating to an api
                 content:
@@ -768,6 +790,7 @@ paths:
 
                 The current must have API_RATING[DELETE] permission to delete a rating.
             operationId: deleteApiRating
+            x-gravitee-portal: classic
             responses:
                 204:
                     description: Deleted Rating
@@ -800,6 +823,7 @@ paths:
 
                 The current must have API_RATING_ANSWER[CREATE] permission to create an answer.
             operationId: createApiRatingAnswer
+            x-gravitee-portal: classic
             requestBody:
                 description: Use to create an answer
                 content:
@@ -843,6 +867,7 @@ paths:
 
                 The current must have API_RATING_ANSWER[DELETE] permission to delete a rating.
             operationId: deleteApiRatingAnswer
+            x-gravitee-portal: classic
             responses:
                 204:
                     description: Deleted Rating Answer
@@ -878,6 +903,7 @@ paths:
 
                 This API has to be accessible by the current user, otherwise a 404 will be returned.
             operationId: getSubscriberApplicationsByApiId
+            x-gravitee-portal: classic
             security:
                 - {}
                 - BasicAuth: []
@@ -906,6 +932,7 @@ paths:
               If resolution fails, fallback values are returned instead.
               Returns 404 when no subscription form exists for the environment or when the form is disabled.
             operationId: getApiSubscriptionForm
+            x-gravitee-portal: next
             security:
                 - BasicAuth: []
                 - CookieAuth: []
@@ -929,6 +956,7 @@ paths:
                 - Api
             summary: Get the api media.
             operationId: getApiMedia
+            x-gravitee-portal: both
             description: |
                 Get api media.
             security:
@@ -962,6 +990,7 @@ paths:
                   - displayName
                   - email
             operationId: getApplications
+            x-gravitee-portal: both
             responses:
                 200:
                     description: List of Applications.
@@ -988,6 +1017,7 @@ paths:
 
                 User must have MANAGEMENT_APPLICATION[CREATE] permission.
             operationId: createApplication
+            x-gravitee-portal: both
             responses:
                 201:
                     description: Created application.
@@ -1017,6 +1047,7 @@ paths:
 
                 User must have the APPLICATION_DEFINITION[READ] permission.
             operationId: getApplicationByApplicationId
+            x-gravitee-portal: both
             responses:
                 200:
                     description: One application.
@@ -1045,6 +1076,7 @@ paths:
 
                 User must have APPLICATION_DEFINITION[UPDATE] permission.
             operationId: updateApplicationByApplicationId
+            x-gravitee-portal: both
             responses:
                 200:
                     description: Updated application.
@@ -1073,6 +1105,7 @@ paths:
 
                 User must have the APPLICATION_DEFINITION[DELETE] permission.
             operationId: deleteApplicationByApplicationId
+            x-gravitee-portal: both
             responses:
                 204:
                     description: No-Content
@@ -1094,6 +1127,7 @@ paths:
 
                 User must have APPLICATION_DEFINITION[READ] permission.
             operationId: getApplicationPictureByApplicationId
+            x-gravitee-portal: both
             responses:
                 200:
                     $ref: "#/components/responses/PictureSuccess"
@@ -1115,6 +1149,7 @@ paths:
 
                 User must have APPLICATION_DEFINITION[READ] permission.
             operationId: getApplicationBackgroundByApplicationId
+            x-gravitee-portal: classic
             responses:
                 200:
                     $ref: "#/components/responses/PictureSuccess"
@@ -1136,6 +1171,7 @@ paths:
 
                 User must have APPLICATION_ALERT[READ] permission to get alerts.
             operationId: getAlertsByApplicationId
+            x-gravitee-portal: classic
             responses:
                 200:
                     description: List of alerts
@@ -1166,6 +1202,7 @@ paths:
 
                 User must have the APPLICATION_ALERT[CREATE] permission.
             operationId: createApplicationAlert
+            x-gravitee-portal: classic
             responses:
                 201:
                     description: Created alert
@@ -1194,6 +1231,7 @@ paths:
 
                 The current user must have APPLICATION_ALERT[DELETE] permission to delete a alert.
             operationId: deleteApplicationAlert
+            x-gravitee-portal: classic
             responses:
                 204:
                     description: Deleted Alert
@@ -1226,6 +1264,7 @@ paths:
 
                 User must have APPLICATION_ALERT[UPDATE] permission to update alerts.
             operationId: updateAlert
+            x-gravitee-portal: classic
             responses:
                 200:
                     description: Updated application alerts.
@@ -1251,6 +1290,7 @@ paths:
 
                 User must have APPLICATION_ALERT[READ] permission to get alert status.
             operationId: getApplicationAlertStatus
+            x-gravitee-portal: classic
             responses:
                 200:
                     description: Alert status
@@ -1276,6 +1316,7 @@ paths:
 
                 User must have APPLICATION_NOTIFICATION[READ] permission to get notifications.
             operationId: getNotificationsByApplicationId
+            x-gravitee-portal: classic
             responses:
                 200:
                     description: List of notifications configured
@@ -1308,6 +1349,7 @@ paths:
 
                 User must have APPLICATION_NOTIFICATION[UPDATE] permission to update notifications.
             operationId: updateApplicationNotifications
+            x-gravitee-portal: classic
             responses:
                 200:
                     description: Updated application notifications.
@@ -1339,6 +1381,7 @@ paths:
                 User must have the APPLICATION_MEMBER[READ] permission.
                 Pagination controls are always provided in the `links` object.
             operationId: getMembersByApplicationId
+            x-gravitee-portal: classic
             responses:
                 200:
                     description: List of members with pagination links
@@ -1371,6 +1414,7 @@ paths:
                 The role defaults to the lowest application role when omitted by caller behavior.
                 Duplicate creation is rejected when the target user is already linked to the application.
             operationId: createApplicationMember
+            x-gravitee-portal: both
             responses:
                 201:
                     description: Created member
@@ -1411,6 +1455,7 @@ paths:
                 User must have the APPLICATION_MEMBER[READ] permission.
                 Pagination controls are always provided in the `links` object.
             operationId: searchMembersByApplicationId
+            x-gravitee-portal: next
             responses:
                 200:
                     description: List of members with pagination links
@@ -1444,6 +1489,7 @@ paths:
 
                 User must have the APPLICATION_MEMBER[UPDATE] permission.
             operationId: transferMemberOwnership
+            x-gravitee-portal: both
             responses:
                 204:
                     description: No-Content
@@ -1466,6 +1512,7 @@ paths:
 
                 User must have the APPLICATION_MEMBER[READ] permission.
             operationId: getApplicationMemberByApplicationIdAndMemberId
+            x-gravitee-portal: both
             responses:
                 200:
                     description: A member
@@ -1498,6 +1545,7 @@ paths:
 
                 User must have the APPLICATION_MEMBER[UPDATE] permission.
             operationId: updateApplicationMemberByApplicationIdAndMemberId
+            x-gravitee-portal: both
             responses:
                 200:
                     description: Updated member.
@@ -1526,6 +1574,7 @@ paths:
 
                 User must have the APPLICATION_MEMBER[DELETE] permission.
             operationId: deleteApplicationMember
+            x-gravitee-portal: both
             responses:
                 204:
                     description: No-Content
@@ -1564,6 +1613,7 @@ paths:
                 the requested recipients, including none when all recipients matched existing users.
                 The API does not return per-recipient success or error entries and does not use `207 Multi-Status`.
             operationId: createApplicationInvitations
+            x-gravitee-portal: next
             responses:
                 201:
                     description: Created pending invitations for recipients that did not match existing users
@@ -1609,6 +1659,7 @@ paths:
                 Planned permission key: APPLICATION_INVITATION[READ].
                 Pagination controls are always provided in the `links` object.
             operationId: searchInvitationsByApplicationId
+            x-gravitee-portal: next
             responses:
                 200:
                     description: List of invitations with pagination links
@@ -1645,6 +1696,7 @@ paths:
                 User must be allowed to manage invitations for the application.
                 Planned permission key: APPLICATION_INVITATION[UPDATE].
             operationId: updateApplicationInvitation
+            x-gravitee-portal: next
             responses:
                 200:
                     description: Updated invitation
@@ -1674,6 +1726,7 @@ paths:
                 User must be allowed to manage invitations for the application.
                 Planned permission key: APPLICATION_INVITATION[DELETE].
             operationId: deleteApplicationInvitation
+            x-gravitee-portal: next
             responses:
                 204:
                     description: No-Content
@@ -1708,6 +1761,7 @@ paths:
                 User must be allowed to manage invitations for the application.
                 Planned permission key: APPLICATION_INVITATION[UPDATE].
             operationId: resendApplicationInvitation
+            x-gravitee-portal: next
             responses:
                 204:
                     description: No-Content
@@ -1736,6 +1790,7 @@ paths:
 
                 User must have the APPLICATION_METADATA[READ] permission.
             operationId: getMetadataByApplicationId
+            x-gravitee-portal: classic
             responses:
                 200:
                     description: List of metadata
@@ -1764,6 +1819,7 @@ paths:
 
                 User must have the APPLICATION_METADATA[CREATE] permission.
             operationId: createApplicationMetadata
+            x-gravitee-portal: classic
             responses:
                 201:
                     description: Created metadata
@@ -1790,6 +1846,7 @@ paths:
 
                 User must have the APPLICATION_METADATA[READ] permission.
             operationId: getApplicationMetadataByApplicationIdAndMetadataId
+            x-gravitee-portal: classic
             responses:
                 200:
                     description: A metadata
@@ -1822,6 +1879,7 @@ paths:
 
                 User must have the APPLICATION_METADATA[UPDATE] permission.
             operationId: updateApplicationMetadataByApplicationIdAndMetadataId
+            x-gravitee-portal: classic
             responses:
                 200:
                     description: Updated metadata.
@@ -1848,6 +1906,7 @@ paths:
 
                 User must have the APPLICATION_METADATA[DELETE] permission.
             operationId: deleteApplicationMetadata
+            x-gravitee-portal: classic
             responses:
                 204:
                     description: No-Content
@@ -1886,6 +1945,7 @@ paths:
 
                 User must have the APPLICATION_ANALYTICS[READ] permission.
             operationId: getApplicationAnalytics
+            x-gravitee-portal: classic
             responses:
                 200:
                     description: Analytics
@@ -1916,6 +1976,7 @@ paths:
                 - Application
             summary: Get the application type configuration.
             operationId: getApplicationType
+            x-gravitee-portal: both
             description: |
                 Get application type.
             security:
@@ -1954,6 +2015,7 @@ paths:
 
                 User must have the APPLICATION_LOG[READ] permission.
             operationId: getApplicationLogs
+            x-gravitee-portal: classic
             responses:
                 200:
                     description: List of logs
@@ -1992,6 +2054,7 @@ paths:
 
                 User must have the APPLICATION_LOG[READ] permission.
             operationId: searchApplicationLogs
+            x-gravitee-portal: next
             responses:
                 200:
                     description: List of logs
@@ -2032,6 +2095,7 @@ paths:
 
                 User must have the APPLICATION_LOG[READ] permission.
             operationId: exportApplicationLogsByApplicationId
+            x-gravitee-portal: classic
             responses:
                 200:
                     description: CSV export of the logs
@@ -2067,6 +2131,7 @@ paths:
 
                 User must have the APPLICATION_LOG[READ] permission.
             operationId: getApplicationLogByApplicationIdAndLogId
+            x-gravitee-portal: both
             responses:
                 200:
                     description: A log
@@ -2103,6 +2168,7 @@ paths:
 
                 User must have the APPLICATION_LOG[READ] permission.
             operationId: getApplicationLogMessagesByApplicationIdAndLogId
+            x-gravitee-portal: next
             responses:
                 200:
                     description: Page of message logs with aggregated entrypoint and endpoint information.
@@ -2134,6 +2200,7 @@ paths:
 
                 User must have the APPLICATION_DEFINITION[UPDATE] permission.
             operationId: renewApplicationSecret
+            x-gravitee-portal: classic
             responses:
                 200:
                     description: Updated application with a new secret.
@@ -2164,6 +2231,7 @@ paths:
 
                 This application has to be accessible by the current user, otherwise a 404 will be returned.
             operationId: getSubscriberApisByApplicationId
+            x-gravitee-portal: classic
             security:
                 - {}
                 - BasicAuth: []
@@ -2191,6 +2259,7 @@ paths:
                 The application must have the ApiKeyMode set to SHARED
                 User must have APPLICATION_SUBSCRIPTION[UPDATE] permission.
             operationId: renewSharedKey
+            x-gravitee-portal: classic
             responses:
                 201:
                     description: Renewed Key.
@@ -2231,6 +2300,7 @@ paths:
                 The application must have the ApiKeyMode set to SHARED
                 User must have APPLICATION_SUBSCRIPTION[UPDATE] permission.
             operationId: revokeSharedKey
+            x-gravitee-portal: classic
             responses:
                 204:
                     description: No-Content
@@ -2266,6 +2336,7 @@ paths:
 
                 User must have the APPLICATION_DEFINITION[READ] permission.
             operationId: listApplicationCertificates
+            x-gravitee-portal: next
             responses:
                 200:
                     description: Paginated list of client certificates
@@ -2295,6 +2366,7 @@ paths:
 
                 User must have the APPLICATION_DEFINITION[UPDATE] permission.
             operationId: createApplicationCertificate
+            x-gravitee-portal: next
             responses:
                 201:
                     description: Created client certificate
@@ -2327,6 +2399,7 @@ paths:
 
                 User must have the APPLICATION_DEFINITION[READ] permission.
             operationId: validateApplicationCertificate
+            x-gravitee-portal: next
             responses:
                 200:
                     description: Certificate is valid
@@ -2355,6 +2428,7 @@ paths:
 
                 User must have the APPLICATION_DEFINITION[READ] permission.
             operationId: getApplicationCertificate
+            x-gravitee-portal: next
             responses:
                 200:
                     description: Client certificate
@@ -2384,6 +2458,7 @@ paths:
 
                 User must have the APPLICATION_DEFINITION[UPDATE] permission.
             operationId: updateApplicationCertificate
+            x-gravitee-portal: next
             responses:
                 200:
                     description: Updated client certificate
@@ -2406,6 +2481,7 @@ paths:
 
                 User must have the APPLICATION_DEFINITION[UPDATE] permission.
             operationId: deleteApplicationCertificate
+            x-gravitee-portal: next
             responses:
                 204:
                     description: No-Content
@@ -2435,6 +2511,7 @@ paths:
 
                 User must have the MANAGEMENT_GROUP[READ] permission.
             operationId: getGroups
+            x-gravitee-portal: both
             responses:
                 200:
                     description: List of groups
@@ -2459,6 +2536,7 @@ paths:
 
                 User must have the MANAGEMENT_GROUP[READ] permission.
             operationId: getMembersByGroupId
+            x-gravitee-portal: classic
             responses:
                 200:
                     description: List of members
@@ -2480,6 +2558,7 @@ paths:
                 - Portal
             summary: Get the media of the portal.
             operationId: getPortalMedia
+            x-gravitee-portal: both
             description: |
                 Get portal media.
             security:
@@ -2504,6 +2583,7 @@ paths:
             description: |
                 List all portal documentation pages
             operationId: getPages
+            x-gravitee-portal: classic
             security:
                 - {}
                 - BasicAuth: []
@@ -2525,6 +2605,7 @@ paths:
             description: |
                 Get a specific portal documentation page.
             operationId: getPageByPageId
+            x-gravitee-portal: classic
             security:
                 - {}
                 - BasicAuth: []
@@ -2550,6 +2631,7 @@ paths:
             description: |
                 Get the contentn of a specific portal documentation page.
             operationId: getPageContentByPageId
+            x-gravitee-portal: classic
             security:
                 - {}
                 - BasicAuth: []
@@ -2575,6 +2657,7 @@ paths:
                 - Application
             summary: Get the application's hooks list.
             operationId: getHooks
+            x-gravitee-portal: classic
             description: |
                 Get application's hooks that can be used in the portal.
             security:
@@ -2618,6 +2701,7 @@ paths:
                 User must have the API_SUBSCRIPTION[READ] permission to list subscription with api query param.
 
             operationId: getSubscriptions
+            x-gravitee-portal: both
             responses:
                 200:
                     description: List of Subscriptions
@@ -2651,6 +2735,7 @@ paths:
 
                 User must have APPLICATION_SUBSCRIPTION[CREATE] permission.
             operationId: createSubscription
+            x-gravitee-portal: both
             responses:
                 200:
                     description: Created subscription.
@@ -2689,6 +2774,7 @@ paths:
 
                 User must have API_SUBSCRIPTION[READ] or APPLICATION_SUBSCRIPTION[READ] permission.
             operationId: getSubscriptionById
+            x-gravitee-portal: both
             responses:
                 200:
                     description: One subscription.
@@ -2721,6 +2807,7 @@ paths:
 
                 User must have APPLICATION_SUBSCRIPTION[UPDATE] permission.
             operationId: updateSubscription
+            x-gravitee-portal: next
             responses:
                 200:
                     description: Subscription updated
@@ -2752,6 +2839,7 @@ paths:
 
                 User must have APPLICATION_SUBSCRIPTION[DELETE] permission.
             operationId: closeSubscription
+            x-gravitee-portal: both
             responses:
                 204:
                     description: No-Content
@@ -2780,6 +2868,7 @@ paths:
 
                 User must have APPLICATION_SUBSCRIPTION[UPDATE] permission.
             operationId: updateSubscriptionConsumerStatus
+            x-gravitee-portal: next
             responses:
                 200:
                     description: Subscription successfully updated
@@ -2807,6 +2896,7 @@ paths:
 
                 User must have APPLICATION_SUBSCRIPTION[UPDATE] permission.
             operationId: resumeFailedSubscriptionConsumerStatus
+            x-gravitee-portal: next
             responses:
                 200:
                     description: Subscription successfully resumed
@@ -2842,6 +2932,7 @@ paths:
 
                 User must have API_SUBSCRIPTION[UPDATE] or APPLICATION_SUBSCRIPTION[UPDATE] permission.
             operationId: renewKeySubscription
+            x-gravitee-portal: both
             responses:
                 201:
                     description: Renewed Key.
@@ -2876,6 +2967,7 @@ paths:
 
                 User must have API_SUBSCRIPTION[UPDATE] or APPLICATION_SUBSCRIPTION[UPDATE] permission.
             operationId: revokeKeySubscription
+            x-gravitee-portal: both
             responses:
                 204:
                     description: No-Content
@@ -2901,6 +2993,7 @@ paths:
                 User registration must be enabled.\
                 A SMTP server must have been configured.
             operationId: registerNewUser
+            x-gravitee-portal: both
             requestBody:
                 description: Used to register a new User.
                 content:
@@ -2928,6 +3021,7 @@ paths:
                 User registration must be enabled.
                 This endpoint is also used to accept an application invitation when the token claim `action` is `APPLICATION_INVITATION`.
             operationId: finalizeUserRegistration
+            x-gravitee-portal: both
             requestBody:
                 description: Used to finalize a user registration or an application invitation acceptance backed by a token whose `action` claim is `APPLICATION_INVITATION`.
                 content:
@@ -2952,6 +3046,7 @@ paths:
                 Send an email with a link so the user with this email can provide a new password.
                 The user must be internally managed and active.
             operationId: resetUserPassword
+            x-gravitee-portal: both
             requestBody:
                 description: Use to reset a user's password.
                 content:
@@ -2977,6 +3072,7 @@ paths:
             description: |
                 Perform the password update for a user
             operationId: changeUserPassword
+            x-gravitee-portal: both
             requestBody:
                 description: Use to change a user's password.
                 content:
@@ -3023,6 +3119,7 @@ paths:
 
                 User must have the MANAGEMENT_USERS[READ] permission.
             operationId: getUsers
+            x-gravitee-portal: both
             responses:
                 200:
                     description: List of platform users with optional application-membership metadata enrichment.
@@ -3048,6 +3145,7 @@ paths:
             description: |
                 Retrieve a user's avatar.
             operationId: getUserAvatar
+            x-gravitee-portal: both
             responses:
                 200:
                     $ref: "#/components/responses/PictureSuccess"
@@ -3061,6 +3159,7 @@ paths:
             description: |
                 Get information about the authenticated user.
             operationId: getCurrentUser
+            x-gravitee-portal: both
             responses:
                 200:
                     description: The current user
@@ -3086,6 +3185,7 @@ paths:
                 Only the current user can modify his/her information.
                 The user email is not modifiable.
             operationId: updateCurrentUser
+            x-gravitee-portal: classic
             responses:
                 200:
                     description: Updated user
@@ -3118,6 +3218,7 @@ paths:
             description: |
                 Retrieve current user's notifications.
             operationId: getCurrentUserNotifications
+            x-gravitee-portal: classic
             responses:
                 200:
                     description: List of notifications
@@ -3134,6 +3235,7 @@ paths:
             description: |
                 Delete all notifications of the current user.
             operationId: deleteAllCurrentUserNotifications
+            x-gravitee-portal: classic
             responses:
                 204:
                     description: No-Content
@@ -3149,6 +3251,7 @@ paths:
             description: |
                 Delete a specific notification of the current user.
             operationId: deleteCurrentUserNotificationByNotificationId
+            x-gravitee-portal: classic
             responses:
                 204:
                     description: No-Content
@@ -3168,6 +3271,7 @@ paths:
             description: |
                 Retrieve user's avatar.
             operationId: getCurrentUserAvatar
+            x-gravitee-portal: classic
             responses:
                 200:
                     $ref: "#/components/responses/PictureSuccess"
@@ -3185,6 +3289,7 @@ paths:
             description: |
                 Retrieve user's permissions.
             operationId: getCurrentUserPermissions
+            x-gravitee-portal: both
             responses:
                 200:
                     description: List of user's permissions
@@ -3216,6 +3321,7 @@ paths:
 
                 User must be authenticated to use this service.
             operationId: createTicket
+            x-gravitee-portal: classic
             responses:
                 201:
                     description: Created
@@ -3234,6 +3340,7 @@ paths:
                 List all tickets written by current user
 
             operationId: getTickets
+            x-gravitee-portal: classic
             responses:
                 200:
                     description: List of Tickets
@@ -3254,6 +3361,7 @@ paths:
             description: |
                 Get all categories of the platform.
             operationId: getCategories
+            x-gravitee-portal: both
             security:
                 - {}
                 - BasicAuth: []
@@ -3277,6 +3385,7 @@ paths:
             description: |
                 Get a specific category.
             operationId: getCategoryByCategoryId
+            x-gravitee-portal: classic
             security:
                 - {}
                 - BasicAuth: []
@@ -3306,6 +3415,7 @@ paths:
             description: |
                 Get the picture of a category.
             operationId: getPictureByCategoryId
+            x-gravitee-portal: classic
             security:
                 - {}
                 - BasicAuth: []
@@ -3331,6 +3441,7 @@ paths:
             description: |
                 Get the background of a category.
             operationId: getBackgroundByCategoryId
+            x-gravitee-portal: classic
             security:
                 - {}
                 - BasicAuth: []
@@ -3354,6 +3465,7 @@ paths:
                 - $ref: "#/components/parameters/themeTypeParam"
             summary: Get portal theme.
             operationId: getPortalTheme
+            x-gravitee-portal: both
             description: |
                 Get portal theme.
             security:
@@ -3381,6 +3493,7 @@ paths:
                 - Portal
             summary: Get portal configuration.
             operationId: getPortalConfiguration
+            x-gravitee-portal: both
             description: |
                 Get all the portal configuration from the platform settings.
             security:
@@ -3402,6 +3515,7 @@ paths:
                 - Portal
             summary: Get the identity provider list.
             operationId: getPortalIdentityProviders
+            x-gravitee-portal: both
             description: |
                 Get all the identity providers that can used in the portal.
             security:
@@ -3425,6 +3539,7 @@ paths:
                 - Portal
             summary: Get an identity provider.
             operationId: getPortalIdentityProvider
+            x-gravitee-portal: both
             description: |
                 Get a specific identity provider by its id.
             security:
@@ -3446,6 +3561,7 @@ paths:
                 - Portal
             summary: Get the portal links for header and footer.
             operationId: getPortalLinks
+            x-gravitee-portal: classic
             description: |
                 Get all the links (internal and external) to be displayed in the header and in the footer of the portal.
             security:
@@ -3467,6 +3583,7 @@ paths:
                 - Portal
             summary: Get the application types list.
             operationId: getEnabledApplicationTypes
+            x-gravitee-portal: both
             description: |
                 Get enabled application types.
             security:
@@ -3488,6 +3605,7 @@ paths:
                 - Portal
             summary: Get the application roles list.
             operationId: getApplicationRoles
+            x-gravitee-portal: both
             description: |
                 Get application roles.
             security:
@@ -3511,6 +3629,7 @@ paths:
             description: |
                 Provide the list of custom user fields asked to the new users.
             operationId: listCustomUserFields
+            x-gravitee-portal: both
             responses:
                 200:
                     description: The list of custom user fields
@@ -3528,6 +3647,7 @@ paths:
                 - Portal
             summary: Get portal information.
             operationId: getPortalInformation
+            x-gravitee-portal: both
             description: |
                 Get some information about the portal (version, ...).
             security:
@@ -3551,6 +3671,7 @@ paths:
             description: |
                 Get all dashboards of the platform.
             operationId: getDashboards
+            x-gravitee-portal: classic
             security:
                 - {}
                 - BasicAuth: []
@@ -3575,6 +3696,7 @@ paths:
             description: |
                 Get the list of analytics dashboards available in the current environment.
             operationId: getAnalyticsDashboards
+            x-gravitee-portal: next
             security:
                 - BasicAuth: []
                 - CookieAuth: []
@@ -3601,6 +3723,7 @@ paths:
             description: |
                 Get the full definition of a single analytics dashboard.
             operationId: getAnalyticsDashboard
+            x-gravitee-portal: next
             security:
                 - BasicAuth: []
                 - CookieAuth: []
@@ -3635,6 +3758,7 @@ paths:
                 Return aggregated values for specified metrics within a time range.
                 Results are scoped to the APIs and applications the authenticated portal user is allowed to see.
             operationId: queryMeasures
+            x-gravitee-portal: next
             security:
                 - BasicAuth: []
                 - CookieAuth: []
@@ -3711,6 +3835,7 @@ paths:
                 Facet requests are limited to three dimensions in the `by` clause.
                 Results are scoped to the APIs and applications the authenticated portal user is allowed to see.
             operationId: queryFacets
+            x-gravitee-portal: next
             security:
                 - BasicAuth: []
                 - CookieAuth: []
@@ -3785,6 +3910,7 @@ paths:
                 Return data points over time with optional grouping by facets (up to two facet dimensions).
                 Results are scoped to the APIs and applications the authenticated portal user is allowed to see.
             operationId: queryTimeSeries
+            x-gravitee-portal: next
             security:
                 - BasicAuth: []
                 - CookieAuth: []
@@ -3853,6 +3979,7 @@ paths:
             tags:
                 - Authentication
             operationId: login
+            x-gravitee-portal: both
             description: |
                 Used to get a Gravitee token. This token is mandatory for all the secured resources of the Portal API.
             parameters:
@@ -3874,6 +4001,7 @@ paths:
             tags:
                 - Authentication
             operationId: logout
+            x-gravitee-portal: both
             description: |
                 User need to be authenticated to logout.
             responses:
@@ -3898,6 +4026,7 @@ paths:
             parameters:
                 - $ref: "#/components/parameters/authIdentityParam"
             operationId: exchangeAuthorizationCode
+            x-gravitee-portal: both
             description: |
                 Used to get a gravitee token from an Authorization code (PayloadInput.code). Portal API authenticates the user with the specified IDP ({identity} path param).
             requestBody:
@@ -3935,6 +4064,7 @@ paths:
                   schema:
                       type: string
             operationId: tokenExchange
+            x-gravitee-portal: both
             description: |
                 Used to get a gravitee token from a IdentityProvider token. Portal API authenticates the user with the specified IDP ({identity} path param).
             responses:
@@ -3956,6 +4086,7 @@ paths:
                 - Notifiers
             summary: Get notifiers list
             operationId: getNotifiers
+            x-gravitee-portal: classic
             description: |
                 Get notifiers
             security:
@@ -3984,6 +4115,7 @@ paths:
             description: |
                 List available entrypoints.
             operationId: getEntrypoints
+            x-gravitee-portal: both
             security:
                 - {}
                 - BasicAuth: []
@@ -4007,6 +4139,7 @@ paths:
             description: |
                 List available endpoints.
             operationId: getEndpoints
+            x-gravitee-portal: next
             security:
                 - {}
                 - BasicAuth: []
@@ -4028,6 +4161,7 @@ paths:
             description: |
                 Get all portal categories that are visible to portal consumers.
             operationId: getPortalCategories
+            x-gravitee-portal: next
             security:
                 - {}
                 - BasicAuth: []
@@ -4048,6 +4182,7 @@ paths:
                 - Portal
             summary: Get the portal menu links for Portal NEXT.
             operationId: getPortalNextLinks
+            x-gravitee-portal: next
             description: |
                 Get all the links to be displayed in the header of portal next only.
             security:
@@ -4071,6 +4206,7 @@ paths:
                 - Portal
             summary: Get the portal navigation items.
             operationId: getPortalNavigationItems
+            x-gravitee-portal: next
             description: |
                 Get all the navigation items to be displayed in given area.
             security:
@@ -4112,6 +4248,7 @@ paths:
                 For `type=catalog`, an API is returned as a standalone catalog result only when its navigation item has no `API_PRODUCT` ancestor.
                 APIs within an API Product navigation subtree remain available for the API Product summary and documentation tree.
             operationId: searchPortalNavigationItems
+            x-gravitee-portal: next
             security:
                 - {}
                 - BasicAuth: []
@@ -4180,6 +4317,7 @@ paths:
                 - Portal
             summary: Get a specific portal navigation item by its ID.
             operationId: getPortalNavigationItemById
+            x-gravitee-portal: next
             description: |
                 Get a specific portal navigation item by its ID.
             security:
@@ -4207,6 +4345,7 @@ paths:
                 - Portal
             summary: Get portal navigation item content by ID.
             operationId: getPortalNavigationItemContentById
+            x-gravitee-portal: next
             description: |
                 Get a specific portal navigation item's content by its ID.
                 Only portal navigation items of type 'PAGE' have content.
