@@ -54,6 +54,24 @@ public class CurrentThemeDomainServiceTest {
         Stream.of(themeCrudService, themeQueryService).forEach(InMemoryAlternative::reset);
     }
 
+    @Test
+    void should_allow_metadata_only_deactivation_of_a_legacy_theme_with_invalid_images() {
+        var legacy = aTheme("legacy", ThemeType.PORTAL_NEXT, true)
+            .toBuilder()
+            .favicon("data:text/html;base64,PGh0bWw+PC9odG1sPg==")
+            .build();
+        themeCrudService.initWith(List.of(legacy));
+
+        cut.deactivate(legacy);
+
+        assertThat(themeCrudService.storage())
+            .singleElement()
+            .satisfies(theme -> {
+                assertThat(theme.isEnabled()).isFalse();
+                assertThat(theme.getFavicon()).isEqualTo(legacy.getFavicon());
+            });
+    }
+
     private Theme aTheme(String id, ThemeType type, boolean enabled) {
         return Theme.builder()
             .id(id)
