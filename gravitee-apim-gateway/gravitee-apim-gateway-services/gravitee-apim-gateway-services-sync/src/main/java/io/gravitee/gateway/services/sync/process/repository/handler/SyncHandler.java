@@ -79,6 +79,11 @@ public class SyncHandler implements Handler<RoutingContext> {
                     .put("skippedAfterRetriesByType", byType(metrics.skippedAfterRetriesByType()))
                     .put("staleEntriesRemoved", metrics.staleEntriesRemoved())
                     .put("skippedStaleEntriesRemovals", metrics.skippedStaleEntriesRemovals())
+                    .put("skippedDistributions", metrics.skippedDistributions())
+                    .put("unsupportedSchemaEvents", metrics.unsupportedSchemaEvents())
+                    .put("primaryHeartbeatAgeMs", metrics.primaryHeartbeatAgeMs())
+                    .put("topologyMismatch", metrics.topologyMismatch())
+                    .put("foreignWriterDetected", metrics.foreignWriterDetected())
             );
         return distributed;
     }
