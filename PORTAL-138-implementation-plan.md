@@ -50,7 +50,6 @@ This plan supersedes, for this epic's scope, the story numbering in `PORTAL-138 
 | Q2 | What does "% Completion" on portal tiles measure? (Product) | Story 3 | Not shown. |
 | Q3 | How is a **trial** license recognized in APIM? `License.getTier()` has no trial value. (Licensing) | Story 9 | Trial falls under "anything else → 1", which is already the trial limit. |
 | Q4 | Is the default portal marked on tiles and rows, and how? (Design) | Stories 3, 4 | "Default" badge next to the name. |
-| Q5 | After the host cutover, where do admins open the classic portal editor until PORTAL-36/140 land? (Product) | Story 13 | "Open portal editor" link on the Overview placeholder. |
 
 ---
 
@@ -334,18 +333,15 @@ Each story lists the test cases to write **first** (RED), then the files. Paths 
 **Tests first**
 - Host `AppRoutes.spec.tsx`: `/environments/:envHrid/portals/*` renders the remote module, not the redirect.
 - `ShellLayout.spec.tsx` / `HomePage.spec.tsx`: the Developer Portals app and card link to the module path, in the same tab.
-- Module: the overview placeholder shows "Open portal editor" linking to the classic console editor (Q5), using `consoleUrl` from the Gamma bootstrap.
 
 **Files**
 - Change [`AppRoutes.tsx`](gravitee-gamma/gravitee-gamma-control-plane-webui/src/app/AppRoutes.tsx), [`ShellLayout.tsx`](gravitee-gamma/gravitee-gamma-control-plane-webui/src/shared/components/ShellLayout.tsx), [`HomePage.tsx`](gravitee-gamma/gravitee-gamma-control-plane-webui/src/pages/home/HomePage.tsx): drop the portals special case.
 - Delete [`PortalNextEditorRedirect.tsx`](gravitee-gamma/gravitee-gamma-control-plane-webui/src/features/modules/components/PortalNextEditorRedirect.tsx) and its spec; delete [`portal-next.ts`](gravitee-gamma/gravitee-gamma-control-plane-webui/src/features/modules/portal-next.ts) if nothing else uses it.
-- Change [`gamma-ui-shared/src/api/apimClient.ts`](gravitee-gamma/gamma-ui-shared/src/api/apimClient.ts): keep `consoleUrl` from the Gamma bootstrap in `ApimBootstrap` (the [Gamma bootstrap](gravitee-gamma/gravitee-gamma-rest-api/src/main/java/io/gravitee/gamma/rest/resources/GammaUIResource.java:92) already returns it).
-- Change `MODULE/features/portals/pages/PortalOverviewPlaceholderPage.tsx`: "Open portal editor" link.
 - Change [`modules.catalog.ts`](gravitee-gamma/gravitee-gamma-control-plane-webui/src/features/modules/modules.catalog.ts): drop the "classic console editor" comment.
 
 **Acceptance criteria**
 - Epic "Done when": the Gamma dashboard and Portals page show the default portal with its quota, and "View Portal" opens it in a new tab — checked on a local full stack and on a Cloud dev environment.
-- Admins can still reach the classic portal editor in at most two clicks.
+- Gamma no longer links to the classic console's portal editor; its features are rebuilt in Gamma by PORTAL-35, PORTAL-36, PORTAL-140 and the other portal epics.
 
 ---
 
