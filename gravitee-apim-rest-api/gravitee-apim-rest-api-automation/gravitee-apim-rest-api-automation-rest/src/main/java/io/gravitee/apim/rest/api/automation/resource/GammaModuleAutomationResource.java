@@ -142,7 +142,8 @@ public class GammaModuleAutomationResource extends AbstractResource {
 
     @DELETE
     @Path("/{path: .+}")
-    public Response delete(@PathParam("module") String module, @PathParam("path") String path) {
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response delete(@PathParam("module") String module, @PathParam("path") String path, @QueryParam("dryRun") boolean dryRun) {
         var port = port(module);
         var item = ItemPath.parse(path);
         var kind = kind(port, module, item.kindPath());
@@ -152,6 +153,13 @@ public class GammaModuleAutomationResource extends AbstractResource {
         var audit = getAuditInfo();
         var id = idOf(audit, module, kind.path(), item.hrid());
 
+        if (dryRun) {
+            // Same answer shape as a dry-run PUT: the current state, with the findings the delete would raise.
+            return port
+                .validateDeleteById(context(audit, module), kind, id)
+                .map(result -> Response.ok(stamp(result.view(), id, item.hrid(), audit, result.issues())).build())
+                .orElseThrow(() -> new HRIDNotFoundException(item.hrid()));
+        }
         if (!port.deleteById(context(audit, module), kind, id)) {
             throw new HRIDNotFoundException(item.hrid());
         }
