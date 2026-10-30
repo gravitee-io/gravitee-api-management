@@ -268,7 +268,6 @@
             </exclusions>
         </dependency>
 
-<<<<<<< HEAD
         <!-- Notifiers -->
         <dependency>
             <groupId>io.gravitee.notifier</groupId>
@@ -309,63 +308,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-=======
-    <!-- Enterprise plugins -->
-    <gravitee-entrypoint-http-get.version>3.0.0</gravitee-entrypoint-http-get.version>
-    <gravitee-entrypoint-http-post.version>3.0.0</gravitee-entrypoint-http-post.version>
-    <gravitee-entrypoint-sse.version>6.0.1</gravitee-entrypoint-sse.version>
-    <gravitee-entrypoint-webhook.version>8.0.4</gravitee-entrypoint-webhook.version>
-    <gravitee-entrypoint-websocket.version>3.0.0</gravitee-entrypoint-websocket.version>
-    <gravitee-entrypoint-agent-to-agent.version>2.0.2</gravitee-entrypoint-agent-to-agent.version>
-    <gravitee-entrypoint-mcp-tool-server.version>2.0.5</gravitee-entrypoint-mcp-tool-server.version>
-    <gravitee-endpoint-jms.version>2.0.4</gravitee-endpoint-jms.version>
-    <gravitee-endpoint-kafka.version>7.0.0-alpha.4</gravitee-endpoint-kafka.version>
-    <gravitee-endpoint-mqtt5.version>5.0.0</gravitee-endpoint-mqtt5.version>
-    <gravitee-endpoint-rabbitmq.version>4.0.4</gravitee-endpoint-rabbitmq.version>
-    <gravitee-endpoint-solace.version>4.1.1</gravitee-endpoint-solace.version>
-    <gravitee-endpoint-azure-service-bus.version>2.0.3</gravitee-endpoint-azure-service-bus.version>
-    <gravitee-endpoint-agent-to-agent.version>2.0.0</gravitee-endpoint-agent-to-agent.version>
-    <gravitee-policy-graphql-rate-limit.version>2.0.0</gravitee-policy-graphql-rate-limit.version>
-    <gravitee-resource-schema-registry-confluent.version>6.0.1</gravitee-resource-schema-registry-confluent.version>
-    <gravitee-resource-schema-registry-embedded.version>1.0.3</gravitee-resource-schema-registry-embedded.version>
-    <gravitee-resource-schema-registry-http.version>1.0.2</gravitee-resource-schema-registry-http.version>
-    <gravitee-resource-storage-azure-blob.version>1.1.1</gravitee-resource-storage-azure-blob.version>
-    <gravitee-reactor-message.version>11.1.1</gravitee-reactor-message.version>
-    <gravitee-reactor-native-kafka.version>9.0.0-alpha.5</gravitee-reactor-native-kafka.version>
-    <gravitee-reactor-mcp-proxy.version>4.12.6</gravitee-reactor-mcp-proxy.version>
-    <gravitee-reactor-llm-proxy.version>5.0.2</gravitee-reactor-llm-proxy.version>
-    <gravitee-reactor-a2a-proxy.version>2.1.4</gravitee-reactor-a2a-proxy.version>
-    <gravitee-reactor-authz.version>3.0.2</gravitee-reactor-authz.version>
-    <gravitee-reactor-edge.version>2.0.0-alpha.5</gravitee-reactor-edge.version>
-    <gravitee-resource-ai-vector-store-redis.version>2.0.0</gravitee-resource-ai-vector-store-redis.version>
-    <gravitee-resource-ai-vector-store-aws-s3.version>2.0.0</gravitee-resource-ai-vector-store-aws-s3.version>
-    <gravitee-resource-ai-model-text-embedding.version>2.0.0</gravitee-resource-ai-model-text-embedding.version>
-    <gravitee-policy-ai-semantic-caching.version>3.1.1</gravitee-policy-ai-semantic-caching.version>
-    <gravitee-policy-ai-routing.version>1.1.0</gravitee-policy-ai-routing.version>
-    <gravitee-policy-ai-token-compression.version>1.0.0</gravitee-policy-ai-token-compression.version>
-    <gravitee-apim-repository-bridge.version>9.0.1</gravitee-apim-repository-bridge.version>
-    <gravitee-secret-provider-hc-vault.version>3.0.0</gravitee-secret-provider-hc-vault.version>
-    <gravitee-secret-provider-aws.version>3.0.0</gravitee-secret-provider-aws.version>
-    <gravitee-secret-provider-azure-keyvault.version>1.0.0</gravitee-secret-provider-azure-keyvault.version>
-    <gravitee-service-secrets.version>4.0.2</gravitee-service-secrets.version>
-    <gravitee-policy-interops.version>2.0.0</gravitee-policy-interops.version>
-    <gravitee-policy-kafka-quota.version>3.0.0-alpha.2</gravitee-policy-kafka-quota.version>
-    <gravitee-policy-kafka-topic-mapping.version>3.0.0-alpha.2</gravitee-policy-kafka-topic-mapping.version>
-    <gravitee-policy-kafka-acl.version>4.0.0-alpha.2</gravitee-policy-kafka-acl.version>
-    <gravitee-policy-kafka-transform-key.version>1.1.0</gravitee-policy-kafka-transform-key.version>
-    <gravitee-policy-kafka-message-filtering.version>1.1.2</gravitee-policy-kafka-message-filtering.version>
-    <gravitee-policy-kafka-message-encryption-decryption.version>1.0.2</gravitee-policy-kafka-message-encryption-decryption.version>
-    <gravitee-policy-kafka-rules.version>2.0.0-alpha.2</gravitee-policy-kafka-rules.version>
-    <gravitee-policy-kafka-namespace.version>2.0.0-alpha.2</gravitee-policy-kafka-namespace.version>
-    <gravitee-policy-kafka-offloading.version>1.2.0</gravitee-policy-kafka-offloading.version>
-    <gravitee-policy-token-ratelimit.version>3.0.0</gravitee-policy-token-ratelimit.version>
-    <gravitee-policy-cost-ratelimit.version>3.0.0</gravitee-policy-cost-ratelimit.version>
-    <gravitee-policy-mcp-acl.version>2.1.1</gravitee-policy-mcp-acl.version>
-    <gravitee-policy-oauth2-token-exchange.version>1.1.0</gravitee-policy-oauth2-token-exchange.version>
-    <gravitee-policy-pii-filtering.version>3.1.0</gravitee-policy-pii-filtering.version>
-    <gravitee-policy-native-ipfiltering.version>1.0.1</gravitee-policy-native-ipfiltering.version>
-    <gravitee-resource-ai-model-token-classification.version>2.0.0</gravitee-resource-ai-model-token-classification.version>
->>>>>>> ff2ce79 (fix(deps): update gravitee-entrypoint-sse to v6.0.1 (#22063))
 
         <!-- Policies -->
         <dependency>
