@@ -19,7 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -84,6 +86,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -292,6 +295,64 @@ class DefaultDistributedSyncServiceTest {
                 .awaitDone(5, TimeUnit.SECONDS)
                 .assertError(DistributedSyncTransientException.class);
             assertThat(cut.metrics().orElseThrow().skippedDistributions()).isEqualTo(1);
+        }
+
+        @Test
+        void should_stamp_distributed_writes_with_the_lease_this_node_acquired() {
+            when(node.id()).thenReturn("node-1");
+            cut.beginCycle();
+
+            cut
+                .distributeIfNeeded(ApiReactorDeployable.builder().apiId("api-1").build())
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
+
+            ArgumentCaptor<String> lease = ArgumentCaptor.forClass(String.class);
+            verify(distributedEventRepository, atLeastOnce()).createOrUpdateFenced(any(), lease.capture());
+            assertThat(lease.getValue()).startsWith("node-1:");
+        }
+
+        @Test
+        void should_write_without_a_lease_when_fencing_is_disabled() {
+            cut = service(new DistributedSyncSettings(1L, 1L, null, 1_000L, false));
+            cut.beginCycle();
+
+            cut
+                .distributeIfNeeded(ApiReactorDeployable.builder().apiId("api-1").build())
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
+
+            verify(distributedEventRepository, never()).applyFencedWrite(any(), any(), anyLong());
+            verify(distributedEventRepository, atLeastOnce()).createOrUpdateFenced(any(), isNull());
+        }
+
+        @Test
+        void should_write_without_a_lease_when_the_lease_cannot_be_acquired() {
+            when(node.id()).thenReturn("node-1");
+            when(distributedEventRepository.applyFencedWrite(any(), any(), anyLong())).thenReturn(
+                Completable.error(new IllegalStateException("held"))
+            );
+            cut.beginCycle();
+
+            cut
+                .distributeIfNeeded(ApiReactorDeployable.builder().apiId("api-1").build())
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
+
+            verify(distributedEventRepository, atLeastOnce()).createOrUpdateFenced(any(), isNull());
+        }
+
+        @Test
+        void should_use_the_repository_clock_and_fall_back_to_the_local_clock() {
+            when(distributedEventRepository.serverTime()).thenReturn(Single.just(42L));
+            assertThat(cut.serverTime().blockingGet()).isEqualTo(42L);
+
+            when(distributedEventRepository.serverTime()).thenReturn(Single.error(new IOException("down")));
+            long before = System.currentTimeMillis();
+            assertThat(cut.serverTime().blockingGet()).isGreaterThanOrEqualTo(before);
         }
 
         @Test

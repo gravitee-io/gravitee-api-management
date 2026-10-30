@@ -83,4 +83,18 @@ class DistributedEventRepositorySearchAllTest {
 
         assertThat(searchCalls).hasValue(1);
     }
+
+    @Test
+    void should_offer_safe_defaults_for_the_optional_repository_operations() {
+        DistributedEventRepository repository = repositoryOf(List.of());
+
+        repository
+            .serverTime()
+            .test()
+            .assertValue(value -> value > 0)
+            .assertComplete();
+        repository.applyFencedWrite("lease", "node", 1_000L).test().assertComplete();
+        repository.createOrUpdateFenced(DistributedEvent.builder().id("event").build(), null).test().assertComplete();
+        repository.createOrUpdateFenced(DistributedEvent.builder().id("event").build(), "lease").test().assertComplete();
+    }
 }

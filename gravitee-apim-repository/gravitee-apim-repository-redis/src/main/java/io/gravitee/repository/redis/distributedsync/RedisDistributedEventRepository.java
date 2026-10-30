@@ -59,11 +59,15 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     private static final String REDIS_SEARCH_RESULTS_FIELD = "results";
     private static final String REDIS_RESPONSE_ATTRIBUTES_FIELD = "extra_attributes";
     private static final String CLUSTER_ID_REQUIRED_MESSAGE = "Distributed event clusterId is required";
+    static final String WRITE_SCRIPT_KEY = "distributed_event_write";
+    static final String LEASE_KEY_PREFIX = "distributed_sync_lease" + REDIS_KEY_SEPARATOR;
     private static final String CLUSTER_ID_PARAMETER_REQUIRED_MESSAGE = "clusterId is required";
     private static final long NO_CURSOR = -1;
     private static final String SCAN_BATCH_SIZE = "1000";
     private static final int DELETE_BATCH_SIZE = 500;
     private static final String KEY_FIELD = "__key";
+    private static final String LEASE_HELD_BY_ANOTHER_NODE = "The distributed sync write lease is held by another node";
+    private static final String REDIS_UNAVAILABLE_FOR_WRITES = "Redis is unavailable for distributed sync writes";
     private static final int SEARCH_TIMEOUT_MS = 30_000;
     private static final int CURSOR_MAX_IDLE_MS = 120_000;
     // Keep well below the redis client waiting queue (max-waiting-handlers) to leave room for other commands
@@ -410,6 +414,42 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
         return Optional.empty();
     }
 
+    @Override
+    public Single<Long> serverTime() {
+        return send(redisAPI -> redisAPI.time()).map(response -> {
+            Response seconds = response.get(0);
+            Response micros = response.get(1);
+            return seconds.toLong() * 1000 + micros.toLong() / 1000;
+        });
+    }
+
+    @Override
+    public Completable createOrUpdateFenced(final DistributedEvent event, final String leaseValue) {
+        if (leaseValue == null) {
+            return createOrUpdateAtWriteTime(event);
+        }
+        return createOrUpdateFenced(buildEventKey(event), event, leaseValue);
+    }
+
+    @Override
+    public Completable applyFencedWrite(String key, String value, long ttlMs) {
+        return send(redisAPI -> redisAPI.set(List.of(key, value, "NX", "PX", String.valueOf(ttlMs))))
+            .flatMapCompletable(response -> {
+                if (response != null && "OK".equals(response.toString())) {
+                    return Completable.complete();
+                }
+                return Completable.error(new IllegalStateException(LEASE_HELD_BY_ANOTHER_NODE));
+            })
+            .onErrorResumeNext(throwable -> {
+                if (LEASE_HELD_BY_ANOTHER_NODE.equals(throwable.getMessage())) {
+                    return Completable.error(throwable);
+                }
+                return Completable.error(
+                    new DistributedSyncUnavailableException("Unable to acquire the distributed sync write lease", throwable)
+                );
+            });
+    }
+
     static String escapeGlob(final String value) {
         StringBuilder escaped = new StringBuilder(value.length());
         for (char c : value.toCharArray()) {
@@ -419,6 +459,107 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
             escaped.append(c);
         }
         return escaped.toString();
+    }
+
+    /**
+     * Writes through the fenced Lua script when a lease value is provided: the server stamps the event with its own
+     * clock, and the write is rejected when the lease does not match. Otherwise goes through the plain HSET path.
+     */
+    Completable createOrUpdateFenced(final String key, final DistributedEvent distributedEvent, final String leaseValue) {
+        if (leaseValue == null) {
+            return createOrUpdateKey(key, distributedEvent, true);
+        }
+        return Completable.defer(() -> executeFencedWrite(fencedWriteArgs(key, distributedEvent, leaseValue)));
+    }
+
+    private List<String> fencedWriteArgs(final String key, final DistributedEvent distributedEvent, final String leaseValue) {
+        List<String> args = new ArrayList<>();
+        args.add(WRITE_SCRIPT_KEY);
+        args.add("2"); // numkeys
+        args.add(key);
+        args.add(LEASE_KEY_PREFIX + distributedEvent.getClusterId());
+        args.add(leaseValue);
+        addField(args, DistributedEvent.Fields.clusterId, distributedEvent.getClusterId());
+        addField(args, DistributedEvent.Fields.id, distributedEvent.getId());
+        addField(args, DistributedEvent.Fields.payload, distributedEvent.getPayload());
+        addField(args, DistributedEvent.Fields.type, distributedEvent.getType() == null ? null : distributedEvent.getType().name());
+        addField(
+            args,
+            DistributedEvent.Fields.syncAction,
+            distributedEvent.getSyncAction() == null ? null : distributedEvent.getSyncAction().name()
+        );
+        addField(
+            args,
+            DistributedEvent.Fields.schemaVersion,
+            distributedEvent.getSchemaVersion() == null ? null : String.valueOf(distributedEvent.getSchemaVersion())
+        );
+        args.add(DistributedEvent.Fields.updatedAt);
+        args.add("0");
+        return args;
+    }
+
+    private static void addField(final List<String> args, final String field, final String value) {
+        if (value != null) {
+            args.add(field);
+            args.add(value);
+        }
+    }
+
+    /**
+     * evalsha relies on the server-side script cache, which is dropped when Redis restarts or the connection
+     * reconnects: fall back to eval with the script source when it is not cached.
+     */
+    private Completable executeFencedWrite(final List<String> args) {
+        return writeGate.runGated(
+            send(redisAPI -> redisAPI.evalsha(args))
+                .onErrorResumeNext(noscript -> {
+                    if (isNoscript(noscript)) {
+                        return send(redisAPI -> redisAPI.eval(evalArgs(args)));
+                    }
+                    return Single.error(noscript);
+                })
+                .ignoreElement()
+                .retryWhen(
+                    RxHelper.retryExponentialBackoff(
+                        WRITE_RETRY_INITIAL_BACKOFF_MS,
+                        WRITE_RETRY_MAX_BACKOFF_MS,
+                        TimeUnit.MILLISECONDS,
+                        2,
+                        WRITE_RETRY_MAX_ATTEMPTS,
+                        RedisDistributedEventRepository::isRetryableWriteFailure
+                    )
+                )
+                .onErrorResumeNext(throwable -> {
+                    if (isRetryableWriteFailure(throwable)) {
+                        return Completable.error(new DistributedSyncUnavailableException(REDIS_UNAVAILABLE_FOR_WRITES, throwable));
+                    }
+                    return Completable.error(throwable);
+                })
+        );
+    }
+
+    private static boolean isNoscript(final Throwable throwable) {
+        for (Throwable current = throwable; current != null; current = current.getCause()) {
+            String message = current.getMessage();
+            if (message != null && message.toUpperCase(Locale.ROOT).contains("NOSCRIPT")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * The evalsha arg list starts with the script key; eval expects the script source in its place. The client
+     * stores the source keyed by the same key used for the sha.
+     */
+    private List<String> evalArgs(final List<String> evalshaArgs) {
+        String source = redisClient.scriptSource(evalshaArgs.get(0));
+        if (source == null) {
+            throw new IllegalStateException("Lua script source not loaded for " + evalshaArgs.get(0));
+        }
+        List<String> args = new ArrayList<>(evalshaArgs);
+        args.set(0, source);
+        return args;
     }
 
     private Completable createOrUpdateKey(final String key, final DistributedEvent distributedEvent, final boolean stampAtWriteTime) {
@@ -460,9 +601,7 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
                 )
                 .onErrorResumeNext(throwable -> {
                     if (isRetryableWriteFailure(throwable)) {
-                        return Completable.error(
-                            new DistributedSyncUnavailableException("Redis is unavailable for distributed sync writes", throwable)
-                        );
+                        return Completable.error(new DistributedSyncUnavailableException(REDIS_UNAVAILABLE_FOR_WRITES, throwable));
                     }
                     return Completable.error(throwable);
                 })
