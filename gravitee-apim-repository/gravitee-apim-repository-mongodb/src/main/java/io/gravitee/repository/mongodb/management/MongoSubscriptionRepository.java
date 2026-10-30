@@ -31,6 +31,7 @@ import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
 import io.gravitee.repository.mongodb.management.internal.plan.SubscriptionMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.subscriptions.ActiveKeyHashIndexUpgrader;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -55,9 +56,6 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
 
     @Autowired
     private SubscriptionMongoRepository internalSubscriptionRepository;
-
-    @Autowired
-    private MongoSubscriptionActiveKeyIndex activeKeyIndex;
 
     /**
      * Subscriptions already reported as duplicates of another active subscription, so that their every update is not.
@@ -117,7 +115,7 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
 
     @Override
     public Subscription create(Subscription subscription) throws TechnicalException {
-        SubscriptionMongo subscriptionMongo = toMongo(subscription, hashOf(subscription));
+        SubscriptionMongo subscriptionMongo = toMongo(subscription, SubscriptionUniqueActiveKey.hashOf(subscription));
         try {
             subscriptionMongo = internalSubscriptionRepository.insert(subscriptionMongo);
         } catch (org.springframework.dao.DuplicateKeyException e) {
@@ -141,7 +139,7 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
             throw new IllegalStateException(String.format("No subscription found with id [%s]", subscription.getId()));
         }
 
-        String hash = hashOf(subscription);
+        String hash = SubscriptionUniqueActiveKey.hashOf(subscription);
         try {
             return map(internalSubscriptionRepository.save(toMongo(subscription, hash)));
         } catch (org.springframework.dao.DuplicateKeyException e) {
@@ -194,14 +192,9 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
     }
 
     /**
-     * The hash is written only once the unique index on it is ready: a hash written before could duplicate another one,
-     * and the index could not be built anymore. Spring Data does not write {@code null} fields: the hash is absent from
-     * inactive subscriptions, and a full replace removes it.
+     * Spring Data does not write {@code null} fields: the hash is absent from inactive subscriptions, and a full replace
+     * removes it.
      */
-    private String hashOf(Subscription subscription) {
-        return activeKeyIndex.isReady() ? SubscriptionUniqueActiveKey.hashOf(subscription) : null;
-    }
-
     private SubscriptionMongo toMongo(Subscription subscription, String hash) {
         SubscriptionMongo subscriptionMongo = mapper.map(subscription);
         subscriptionMongo.setActiveKeyHash(hash);
@@ -213,7 +206,7 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
      * conflict (a reused subscription id, typically) keeps being reported as it used to be.
      */
     private static boolean isActiveSubscriptionConflict(org.springframework.dao.DuplicateKeyException e) {
-        return e.getMessage() != null && e.getMessage().contains("index: " + MongoSubscriptionActiveKeyIndex.NAME);
+        return e.getMessage() != null && e.getMessage().contains("index: " + ActiveKeyHashIndexUpgrader.NAME);
     }
 
     private static DuplicateKeyException activeSubscriptionConflict(Subscription subscription, Exception cause) {
