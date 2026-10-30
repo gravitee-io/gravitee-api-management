@@ -29,6 +29,10 @@ import java.util.List;
  */
 public class UnsupportedObservabilityFilterException extends ValidationDomainException {
 
+    public static UnsupportedObservabilityFilterException nameRequired() {
+        return new UnsupportedObservabilityFilterException("The name of the filter is required", "observability.filter.name_required");
+    }
+
     public static UnsupportedObservabilityFilterException unknownName(String name) {
         return new UnsupportedObservabilityFilterException(
             "Filter '" + name + "' is not supported by this backend",

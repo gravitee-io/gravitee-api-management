@@ -72,4 +72,12 @@ public enum ApiType {
      * filters carried solely by request documents.
      */
     public static final Set<ApiType> API_KINDS = Set.copyOf(EnumSet.complementOf(EnumSet.of(AUTHZ_DECISION)));
+
+    /**
+     * Whether an entry tied to no API kind answers a narrowing on {@code requested}: it applies to the requests of every
+     * API kind and never to the decisions screen, so it passes unless only {@link #AUTHZ_DECISION} is asked (OBS-70, §8).
+     */
+    public static boolean admitsUnscoped(Set<ApiType> requested) {
+        return requested == null || requested.isEmpty() || requested.stream().anyMatch(API_KINDS::contains);
+    }
 }

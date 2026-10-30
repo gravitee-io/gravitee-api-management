@@ -23,7 +23,12 @@ import io.gravitee.gamma.rest.core.observability.filter.exception.ObservabilityF
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.inmemory.InMemoryObservabilityFilterDataPort;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterValue;
+import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
+import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterContributor;
 import io.gravitee.gamma.rest.infra.adapter.SpiFilterRegistry;
 import java.util.List;
 import java.util.Set;
@@ -258,5 +263,78 @@ class GetObservabilityFilterValuesUseCaseTest {
         );
 
         assertThat(dataPort.lastCall()).hasValueSatisfying(call -> assertThat(call.apiProduct()).isEqualTo("workspace-1"));
+    }
+
+    @Test
+    void should_list_the_values_of_a_keyword_additional_metric_field_no_catalog_lists_including_a_slash() {
+        var name = "additional-metrics.keyword_mcp-proxy_tools/call";
+        dataPort.givenKeywordValues(name, List.of(new FilterValue("search", null), new FilterValue("fetch", null)));
+
+        var output = useCase.execute(new GetObservabilityFilterValuesUseCase.Input(name, null, null, null, null, null));
+
+        assertThat(output.values().data()).extracting(FilterValue::value).containsExactly("search", "fetch");
+        assertThat(dataPort.lastCall()).hasValueSatisfying(call -> assertThat(call.filterName()).isEqualTo(name));
+    }
+
+    @Test
+    void should_answer_true_and_false_for_a_boolean_additional_metric_field() {
+        var all = useCase.execute(
+            new GetObservabilityFilterValuesUseCase.Input("additional-metrics.bool_cache_hit", null, null, null, null, null)
+        );
+        var matching = useCase.execute(
+            new GetObservabilityFilterValuesUseCase.Input("additional-metrics.bool_cache_hit", "FAL", null, null, null, null)
+        );
+
+        assertThat(all.values().data()).extracting(FilterValue::value).containsExactly("true", "false");
+        assertThat(all.values().totalElements()).isEqualTo(2L);
+        assertThat(matching.values().data()).extracting(FilterValue::value).containsExactly("false");
+        assertThat(dataPort.lastCall()).isEmpty();
+    }
+
+    @Test
+    void should_refuse_to_list_the_values_of_a_number_additional_metric_field() {
+        assertThatThrownBy(() ->
+            useCase.execute(
+                new GetObservabilityFilterValuesUseCase.Input("additional-metrics.long_failover_count", null, null, null, null, null)
+            )
+        ).isInstanceOf(UnsupportedObservabilityFilterException.class);
+    }
+
+    @Test
+    void should_not_find_a_malformed_additional_metric_name() {
+        assertThatThrownBy(() ->
+            useCase.execute(new GetObservabilityFilterValuesUseCase.Input("additional-metrics.unknown_count", null, null, null, null, null))
+        ).isInstanceOf(ObservabilityFilterNotFoundException.class);
+    }
+
+    @Test
+    void should_refuse_to_list_the_values_of_a_boolean_filter_that_is_not_a_bool_field() {
+        var contributed = new FilterSpec(
+            "TENANT_FLAG",
+            "Tenant flag",
+            FilterType.BOOLEAN,
+            List.of(FilterOperator.EQ),
+            null,
+            null,
+            Set.of(Signal.LOGS),
+            Set.of(ApiType.HTTP_PROXY)
+        );
+        var withContributor = new GetObservabilityFilterValuesUseCase(
+            new SpiFilterRegistry(
+                List.of(
+                    new FilterContributor() {
+                        @Override
+                        public List<FilterSpec> filters() {
+                            return List.of(contributed);
+                        }
+                    }
+                )
+            ),
+            dataPort
+        );
+
+        assertThatThrownBy(() ->
+            withContributor.execute(new GetObservabilityFilterValuesUseCase.Input("TENANT_FLAG", null, null, null, null, null))
+        ).isInstanceOf(UnsupportedObservabilityFilterException.class);
     }
 }

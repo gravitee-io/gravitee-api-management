@@ -55,6 +55,7 @@ import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransfor
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.query_service.FilterValuesQueryService;
+import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.analytics_engine.use_case.GetAnalyticsFilterDefinitionsUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
@@ -1809,7 +1810,8 @@ public class ResourceContextConfiguration {
             applicationQueryService,
             planQueryService,
             apiProductQueryService,
-            mock(AiWorkspaceAnalyticsApisDomainService.class)
+            mock(AiWorkspaceAnalyticsApisDomainService.class),
+            new AnalyticsQueryContextProvider(List.of())
         );
     }
 

@@ -33,24 +33,18 @@ public final class AdditionalMetricLabel {
     private AdditionalMetricLabel() {}
 
     /**
-     * {@code additional-metrics.} and the type prefix stripped, each run of {@code _} / {@code -} read as one space,
-     * trimmed, first character upper case and the rest as written; the key as given when nothing is left. The family
-     * segment is kept: {@code long_failover_count} reads "Failover count", not "Count".
+     * The key without its type prefix, each run of {@code _} / {@code -} read as one space, trimmed, first character
+     * upper case and the rest as written; the key as given when nothing is left. The family segment is kept:
+     * {@code long_failover_count} reads "Failover count", not "Count". The field's value type is the one the grammar
+     * read, so no prefix is parsed here.
      */
-    public static String derive(String key) {
-        String rawKey = key.startsWith(AdditionalMetricField.NAME_PREFIX) ? key.substring(AdditionalMetricField.NAME_PREFIX.length()) : key;
-        String name = typedName(rawKey);
+    public static String derive(AdditionalMetricField field) {
+        String rawKey = field.rawKey();
+        String name = rawKey.startsWith(field.valueType().prefix()) ? rawKey.substring(field.valueType().prefix().length()) : rawKey;
         String words = WHITESPACE_RUNS.matcher(SEPARATOR_RUNS.matcher(name).replaceAll(" ").strip()).replaceAll(" ");
         if (words.isEmpty()) {
-            return key;
+            return rawKey;
         }
         return words.substring(0, 1).toUpperCase(Locale.ROOT) + words.substring(1);
-    }
-
-    /** The key after its type prefix, or the whole key when the text before its first {@code _} is not a type. */
-    private static String typedName(String rawKey) {
-        return AdditionalMetricValueType.ofRawKey(rawKey)
-            .map(type -> rawKey.substring(type.prefix().length()))
-            .orElse(rawKey);
     }
 }

@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * The additional metrics found on the requests of an environment by one discovery pass.
@@ -38,11 +39,23 @@ public record AdditionalMetricDiscovery(List<DiscoveredAdditionalMetric> metrics
         return new AdditionalMetricDiscovery(List.of(), refreshedAt, true);
     }
 
+    /** The keys {@code kept} accepts, before any cap: a key a caller cannot list must take no one's place. */
+    public AdditionalMetricDiscovery retainKeys(Predicate<String> kept) {
+        return new AdditionalMetricDiscovery(
+            metrics
+                .stream()
+                .filter(metric -> kept.test(metric.rawKey()))
+                .toList(),
+            refreshedAt,
+            truncated
+        );
+    }
+
     /**
      * Keeps every key of {@code uncountedKeys} and the {@link #MAX_DISCOVERED_ENTRIES} most recently seen of the
      * others, most recently seen first, then by key. Applied once the keys of the environment are known, never on the
-     * keys of the whole cluster, so an environment whose keys sort late is not starved. Not called yet: the Gamma filter
-     * catalog of OBS-74 applies it once it knows the built-in and declared keys.
+     * keys of the whole cluster, so an environment whose keys sort late is not starved. Gamma's discovery port applies it,
+     * given the built-in and declared keys, for the filter catalog and the metric definitions list.
      *
      * @param uncountedKeys keys listed under another origin, which never count against the cap and are never left out:
      *                      the keys built-ins read and the declared ones

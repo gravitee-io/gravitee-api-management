@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.core.observability.catalog.port.service_provider;
 
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricField;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
 import java.util.Optional;
 
 /**
@@ -27,4 +28,10 @@ import java.util.Optional;
 public interface AdditionalMetricGrammarPort {
     /** The field a well-formed {@code additional-metrics.<rawKey>} name designates; empty for anything else. */
     Optional<AdditionalMetricField> parse(String name);
+
+    /**
+     * The value type the type prefix of {@code rawKey} declares, whether the rest of the key is well-formed or not:
+     * what a refusal explains. Empty when the key starts with no type prefix.
+     */
+    Optional<AdditionalMetricValueType> typeDeclaredBy(String rawKey);
 }

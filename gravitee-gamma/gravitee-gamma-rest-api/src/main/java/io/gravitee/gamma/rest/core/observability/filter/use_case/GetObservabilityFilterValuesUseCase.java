@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.core.observability.filter.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
 import io.gravitee.gamma.rest.core.observability.filter.exception.ObservabilityFilterNotFoundException;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
@@ -44,12 +45,15 @@ import lombok.AllArgsConstructor;
  *       Filters the catalog marks as having no value pool ({@link StaticFilters#withoutValueListing()})
  *       answer {@link UnsupportedObservabilityFilterException#valueListingNotSupported} before the port
  *       is called.</li>
- *   <li><b>{@code NUMBER} / {@code STRING} / {@code BOOLEAN}</b> — no enumerable value pool, so
+ *   <li><b>{@code BOOLEAN}</b> of a {@code bool_} additional metric field — the two values {@code true} and
+ *       {@code false}.</li>
+ *   <li><b>{@code NUMBER} / {@code STRING} / other {@code BOOLEAN}</b> — no enumerable value pool, so
  *       value listing is unsupported (HTTP 400).</li>
  * </ul>
  *
- * <p>An unknown {@code filterName} yields {@link ObservabilityFilterNotFoundException} → HTTP 404
- * (the filter is addressed via the URL path). Pagination is <b>1-based</b>: {@code perPage} is clamped
+ * <p>A name is looked up in the catalog first; a well-formed additional metric field name the catalog does not list
+ * (OBS-70) is typed by its prefix, so the values of a discovered field are served without discovery. Anything else
+ * yields {@link ObservabilityFilterNotFoundException} → HTTP 404. Pagination is <b>1-based</b>: {@code perPage} is clamped
  * to {@value #MAX_PER_PAGE}, while a {@code page} outside 1..{@value #MAX_PAGE} is refused (HTTP 400)
  * rather than clamped — serving a different page than the caller asked for would hide their bug. An
  * absent {@code page} is the documented default of 1, not an out-of-range value.
@@ -67,6 +71,9 @@ public class GetObservabilityFilterValuesUseCase {
 
     /** Same ceiling as the platform values use case, checked here so the port never sees it. */
     private static final int MAX_PAGE = 10_000;
+
+    /** What a {@code bool_} additional metric field holds (OBS-70, §2). */
+    private static final List<FilterValue> BOOLEAN_VALUES = List.of(new FilterValue("true", null), new FilterValue("false", null));
 
     private final FilterRegistry filterRegistry;
     private final ObservabilityFilterDataPort filterDataPort;
@@ -101,10 +108,8 @@ public class GetObservabilityFilterValuesUseCase {
         FilterValuesPage values = switch (spec.type()) {
             case ENUM -> handleEnum(spec, input, apiTypes, page, perPage);
             case KEYWORD -> listKeywordValues(spec, input, apiTypes, page, perPage);
-            case NUMBER, STRING, BOOLEAN -> throw UnsupportedObservabilityFilterException.valueListingNotSupported(
-                spec.name(),
-                spec.type().name()
-            );
+            case BOOLEAN -> booleanValues(spec, input, page, perPage);
+            case NUMBER, STRING -> throw UnsupportedObservabilityFilterException.valueListingNotSupported(spec.name(), spec.type().name());
         };
         return new Output(values, page, perPage);
     }
@@ -171,6 +176,7 @@ public class GetObservabilityFilterValuesUseCase {
             .stream()
             .filter(s -> s.name().equals(filterName))
             .findFirst()
+            .or(() -> filterRegistry.specFor(filterName).filter(spec -> spec.valueType() != null))
             .orElseThrow(() -> new ObservabilityFilterNotFoundException(filterName));
     }
 
@@ -187,20 +193,43 @@ public class GetObservabilityFilterValuesUseCase {
             return new FilterValuesPage(List.of(), 0L);
         }
 
-        String queryLower = input.query() == null || input.query().isBlank() ? null : input.query().toLowerCase();
-        List<FilterValue> matching = enumValues
+        return page(
+            matching(
+                enumValues
+                    .stream()
+                    .map(v -> new FilterValue(v.value(), v.label()))
+                    .toList(),
+                input.query()
+            ),
+            page,
+            perPage
+        );
+    }
+
+    /** A {@code bool_} additional metric field holds {@code true} or {@code false}; no other boolean filter lists values. */
+    private static FilterValuesPage booleanValues(FilterSpec spec, Input input, int page, int perPage) {
+        if (spec.valueType() != AdditionalMetricValueType.BOOL) {
+            throw UnsupportedObservabilityFilterException.valueListingNotSupported(spec.name(), spec.type().name());
+        }
+        return page(matching(BOOLEAN_VALUES, input.query()), page, perPage);
+    }
+
+    /** The values whose value or label contains {@code query}, ignoring case; all of them without a query. */
+    private static List<FilterValue> matching(List<FilterValue> values, String query) {
+        String queryLower = query == null || query.isBlank() ? null : query.toLowerCase();
+        return values
             .stream()
             .filter(v -> queryLower == null || matches(v, queryLower))
-            .map(v -> new FilterValue(v.value(), v.label()))
             .toList();
+    }
 
+    private static FilterValuesPage page(List<FilterValue> matching, int page, int perPage) {
         int fromIndex = (int) Math.min((long) (page - 1) * perPage, matching.size());
         int toIndex = Math.min(fromIndex + perPage, matching.size());
-
         return new FilterValuesPage(matching.subList(fromIndex, toIndex), (long) matching.size());
     }
 
-    private static boolean matches(FilterSpec.EnumValue value, String queryLower) {
+    private static boolean matches(FilterValue value, String queryLower) {
         return (
             value.value().toLowerCase().contains(queryLower) || (value.label() != null && value.label().toLowerCase().contains(queryLower))
         );
