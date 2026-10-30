@@ -36,6 +36,6 @@ public record AdditionalMetricField(String rawKey, AdditionalMetricValueType val
     }
 
     public String derivedLabel() {
-        return AdditionalMetricLabel.derive(rawKey);
+        return AdditionalMetricLabel.derive(this);
     }
 }

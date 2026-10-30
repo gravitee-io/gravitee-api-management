@@ -19,7 +19,9 @@ import com.google.common.base.Ticker;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListenableFutureTask;
 import io.gravitee.apim.core.analytics_engine.model.AdditionalMetricDiscovery;
 import io.gravitee.apim.core.analytics_engine.model.DiscoveredAdditionalMetric;
 import io.gravitee.apim.core.analytics_engine.query_service.AdditionalMetricDiscoveryQueryService;
@@ -27,7 +29,6 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.AdditionalMetricDiscoveryQuery;
-import io.gravitee.repository.log.v4.model.analytics.AdditionalMetricDiscoveryResult;
 import java.time.Duration;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -44,6 +45,7 @@ public class AdditionalMetricDiscoveryQueryServiceImpl implements AdditionalMetr
     static final Duration WINDOW = Duration.ofDays(30);
     static final Duration TIMEOUT = Duration.ofSeconds(5);
     static final Duration REFRESH_AFTER = Duration.ofMinutes(5);
+    static final Duration RETRY_UNAVAILABLE_AFTER = Duration.ofMinutes(1);
 
     private static final ThreadFactory REFRESH_THREADS = runnable -> {
         var thread = new Thread(runnable, "additional-metric-discovery");
@@ -52,19 +54,45 @@ public class AdditionalMetricDiscoveryQueryServiceImpl implements AdditionalMetr
     };
 
     private final AnalyticsRepository analyticsRepository;
-    private final LoadingCache<QueryContext, AdditionalMetricDiscovery> passes;
+    private final Ticker ticker;
+    private final LoadingCache<QueryContext, Pass> passes;
+
+    /** A pass and when it ran, by the cache's ticker. */
+    private record Pass(AdditionalMetricDiscovery discovery, long ranAt, boolean failed) {}
 
     @Autowired
     public AdditionalMetricDiscoveryQueryServiceImpl(@Lazy AnalyticsRepository analyticsRepository) {
         this(analyticsRepository, Ticker.systemTicker(), Executors.newSingleThreadExecutor(REFRESH_THREADS));
     }
 
+    /**
+     * Entries are looked at every {@link #RETRY_UNAVAILABLE_AFTER}: a failed pass is run again then, a successful one only
+     * once it is {@link #REFRESH_AFTER} old. Both run in the background, the previous answer served meanwhile.
+     */
     AdditionalMetricDiscoveryQueryServiceImpl(AnalyticsRepository analyticsRepository, Ticker ticker, Executor refreshExecutor) {
         this.analyticsRepository = analyticsRepository;
+        this.ticker = ticker;
         this.passes = CacheBuilder.newBuilder()
-            .refreshAfterWrite(REFRESH_AFTER)
+            .refreshAfterWrite(RETRY_UNAVAILABLE_AFTER)
             .ticker(ticker)
-            .build(CacheLoader.asyncReloading(CacheLoader.from(this::pass), refreshExecutor));
+            .build(
+                new CacheLoader<>() {
+                    @Override
+                    public Pass load(QueryContext queryContext) {
+                        return pass(queryContext, null);
+                    }
+
+                    @Override
+                    public ListenableFuture<Pass> reload(QueryContext queryContext, Pass previous) {
+                        if (!previous.failed() && ticker.read() - previous.ranAt() < REFRESH_AFTER.toNanos()) {
+                            return Futures.immediateFuture(previous);
+                        }
+                        var next = ListenableFutureTask.create(() -> pass(queryContext, previous));
+                        refreshExecutor.execute(next);
+                        return next;
+                    }
+                }
+            );
     }
 
     @Override
@@ -72,32 +100,32 @@ public class AdditionalMetricDiscoveryQueryServiceImpl implements AdditionalMetr
         if (organizationId == null || organizationId.isBlank() || environmentId == null || environmentId.isBlank()) {
             throw new IllegalArgumentException("An additional metric discovery needs an organization and an environment");
         }
-        try {
-            return passes.getUnchecked(new QueryContext(organizationId, environmentId));
-        } catch (UncheckedExecutionException e) {
-            // Not kept: the next request tries again.
-            return AdditionalMetricDiscovery.unavailable(TimeProvider.now().toInstant());
-        }
+        return passes.getUnchecked(new QueryContext(organizationId, environmentId)).discovery();
     }
 
-    /** Throws when the pass fails, so the cache keeps nothing on a first load and the previous pass on a refresh. */
-    private AdditionalMetricDiscovery pass(QueryContext queryContext) {
+    /**
+     * Never throws. A failed pass keeps the previous successful one, or answers {@link AdditionalMetricDiscovery#unavailable}
+     * when there is none: kept {@link #RETRY_UNAVAILABLE_AFTER}, so a failing store costs one call a minute, not one per
+     * request.
+     */
+    private Pass pass(QueryContext queryContext, Pass previous) {
         var now = TimeProvider.now().toInstant();
-        AdditionalMetricDiscoveryResult result;
         try {
-            result = analyticsRepository.discoverAdditionalMetrics(
+            var result = analyticsRepository.discoverAdditionalMetrics(
                 queryContext,
                 new AdditionalMetricDiscoveryQuery(now.minus(WINDOW), now, TIMEOUT)
             );
+            var metrics = result
+                .metrics()
+                .stream()
+                .map(metric -> new DiscoveredAdditionalMetric(metric.rawKey(), metric.lastSeen()))
+                .toList();
+            return new Pass(new AdditionalMetricDiscovery(metrics, now, result.truncated()), ticker.read(), false);
         } catch (RuntimeException e) {
             log.warn("Unable to discover the additional metrics of environment [{}]", queryContext.getEnvId(), e);
-            throw e;
+            return previous != null && !previous.failed()
+                ? previous
+                : new Pass(AdditionalMetricDiscovery.unavailable(now), ticker.read(), true);
         }
-        var metrics = result
-            .metrics()
-            .stream()
-            .map(metric -> new DiscoveredAdditionalMetric(metric.rawKey(), metric.lastSeen()))
-            .toList();
-        return new AdditionalMetricDiscovery(metrics, now, result.truncated());
     }
 }

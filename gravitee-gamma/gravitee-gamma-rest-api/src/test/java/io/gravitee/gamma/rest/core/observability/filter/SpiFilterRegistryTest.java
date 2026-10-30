@@ -291,6 +291,26 @@ class SpiFilterRegistryTest {
             );
     }
 
+    @Test
+    void should_keep_a_spec_tied_to_no_api_kind_for_any_kind_and_drop_it_for_the_decisions_screen_alone() {
+        var unscoped = new FilterSpec(
+            "TENANT_TIER",
+            "Tenant tier",
+            FilterType.KEYWORD,
+            List.of(FilterOperator.EQ, FilterOperator.IN),
+            null,
+            null,
+            Set.of(Signal.LOGS, Signal.ANALYTICS),
+            Set.of()
+        );
+        var registry = registryWith(filtersContributor(unscoped));
+
+        assertThat(registry.getFilters(null, Set.of(ApiType.HTTP_PROXY))).contains(unscoped);
+        assertThat(registry.getFilters(null, Set.of(ApiType.AUTHZ_DECISION, ApiType.NATIVE))).contains(unscoped);
+        assertThat(registry.getFilters(null, Set.of(ApiType.AUTHZ_DECISION))).doesNotContain(unscoped);
+        assertThat(registry.getFilters(null, null)).contains(unscoped);
+    }
+
     private static FilterRegistry registryWith(FilterContributor... contributors) {
         return new SpiFilterRegistry(List.of(contributors));
     }
