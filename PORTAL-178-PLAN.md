@@ -175,15 +175,15 @@ environment), and receives the hook and fills `hook`, `apiId` and `applicationId
 | `POST /user/notifications/_read` | authenticated, same scope | — | 204, marks all the caller's unread rows of that scope |
 | `DELETE /user/notifications` (existing, now scoped) | authenticated, same scope | — | 204, deletes the caller's rows of that scope only |
 | `DELETE /user/notifications/{notificationId}` (existing, now scoped) | caller owns the notification and it is in scope, else 404 | — | 204 |
-
-A notification of another environment answers 404, like a notification of another user, so every operation sees
-exactly what the list shows.
 | `GET /user/notifications/preferences/applications` | authenticated | — | applications where the caller holds `APPLICATION_NOTIFICATION` (P2): `id`, `name`, `enabledEvents` count |
 | `GET /applications/{applicationId}/notifications/preferences` | `APPLICATION_NOTIFICATION[READ]`, app exists | — | `NotificationPreferences` |
 | `PUT /applications/{applicationId}/notifications/preferences` | `APPLICATION_NOTIFICATION[UPDATE]` | `{ events[], closeToExpiryDays }` | `NotificationPreferences` |
 | `GET /user/notifications/preferences/apis` | authenticated | — | APIs the caller subscribes to (§2.3): `api` {id, name, version}, `events[]`, `closeToExpiryDays` |
 | `GET /apis/{apiId}/notifications/preferences` | authenticated, caller subscribes to the API, else 403 | — | `NotificationPreferences` |
 | `PUT /apis/{apiId}/notifications/preferences` | same | `{ events[], closeToExpiryDays }` | `NotificationPreferences` |
+
+A notification of another environment answers 404, like a notification of another user, so every operation sees
+exactly what the list shows.
 
 `NotificationPreferences`: `events[]` (enabled), `closeToExpiryDays`, `available[]` {`event`, `category`} from §2.2,
 so the UI renders categories without hard-coding them.
@@ -233,7 +233,8 @@ Backend:
   `IndexUpgrader`; changelog `0X_portal_notifications_read_state.yml`.
 - `PortalNotificationRepository`: `search(PortalNotificationSearchCriteria{user, environmentId, read, apiId,
   applicationId}, Pageable)` returning a `Page` sorted by `createdAt` desc, where `environmentId` matches that
-  environment or null; `markAsRead(user, id, date)` returning whether a row was updated;
+  environment or null; `markAsRead(user, environmentId, id, date)` returning whether a row was updated (no row for another user or
+  another environment → 404, in one query);
   `markAllAsRead(user, environmentId, date)`; `findDistinctReferences(user, environmentId)` (API and application ids);
   `deleteAll(user, environmentId)` added next to `deleteAll(user)`, which stays for the Console (organization-wide)
   and user deletion. `update()` keeps throwing.
