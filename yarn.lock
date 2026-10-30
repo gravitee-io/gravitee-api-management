@@ -21690,7 +21690,7 @@ __metadata:
     react-router-dom: "npm:7.18.3"
     redoc: "npm:2.5.4"
     rxjs: "npm:7.8.2"
-    storybook: "npm:10.6.0"
+    storybook: "npm:10.6.2"
     styled-components: "npm:6.6.0"
     stylelint: "npm:16.15.0"
     stylelint-config-idiomatic-order: "npm:10.0.0"
@@ -32150,9 +32150,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"storybook@npm:10.6.0":
-  version: 10.6.0
-  resolution: "storybook@npm:10.6.0"
+"storybook@npm:10.6.2":
+  version: 10.6.2
+  resolution: "storybook@npm:10.6.2"
   dependencies:
     "@storybook/global": "npm:^5.0.0"
     "@storybook/icons": "npm:^2.0.2"
@@ -32184,7 +32184,7 @@ __metadata:
       optional: true
   bin:
     storybook: ./dist/bin/dispatcher.js
-  checksum: 10c0/ffd7a513b088e206232c0206229fe05893c8c78e5e4a3b40647326111b608d79851f3b8f986616b6b585979d3a10c6c3081c0cd86a752329e2af309632bd7e3a
+  checksum: 10c0/e3b8562754dca0a7157469924b0462b9a90491b95f340355b019e780653c0e5016f226261a76a2a65e842e2735b083ff1c81599abaa210c7640afaf9ce1dafea
   languageName: node
   linkType: hard
 
