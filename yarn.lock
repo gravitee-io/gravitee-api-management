@@ -5032,9 +5032,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/ui-particles-angular@npm:18.0.0":
-  version: 18.0.0
-  resolution: "@gravitee/ui-particles-angular@npm:18.0.0"
+"@gravitee/ui-particles-angular@npm:18.0.2":
+  version: 18.0.2
+  resolution: "@gravitee/ui-particles-angular@npm:18.0.2"
   dependencies:
     "@fontsource/fira-mono": "npm:5.3.0"
     "@fontsource/kanit": "npm:^5.3.0"
@@ -5063,13 +5063,13 @@ __metadata:
       optional: true
     prismjs:
       optional: true
-  checksum: 10c0/0f4cea53e4abe63df36ea3f0b0eee587943ff5e2e1425d8ebfa9e4093a485afdf33f1a9d43113cefbf19a87ca7a93dfa35f633cd7828ea350bf49f42fa2b43f4
+  checksum: 10c0/d5c5bce4464c8f6ba0cf700abed911011d8e68a25fe1935fd1fcf1eeb18939af76cfa57e60bb06ce4e395dc64fef0de24ebca462769acc40d6c7a679773f7582
   languageName: node
   linkType: hard
 
-"@gravitee/ui-policy-studio-angular@npm:18.0.0":
-  version: 18.0.0
-  resolution: "@gravitee/ui-policy-studio-angular@npm:18.0.0"
+"@gravitee/ui-policy-studio-angular@npm:18.0.2":
+  version: 18.0.2
+  resolution: "@gravitee/ui-policy-studio-angular@npm:18.0.2"
   dependencies:
     tslib: "npm:^2.6.2"
   peerDependencies:
@@ -5082,7 +5082,7 @@ __metadata:
     "@gravitee/ui-particles-angular": "*"
     lodash: ^4.17.21
     ngx-markdown: ^19.1.1
-  checksum: 10c0/575df65c221931c93fcb10765489ba30efa0c48001221b4995652a005928436dbee097059c25d63f404fcd51a10e9514f92548a8893bc921de1c94aa8dcf94b3
+  checksum: 10c0/07c143c3c9cdb2d5754eef6af50d1745fef492b74106333c7c86ad0c67790152a08a60a0cbfb2d017495f246827974c24790af11319e060cd57744bfa3b230f2
   languageName: node
   linkType: hard
 
@@ -21545,8 +21545,8 @@ __metadata:
     "@gravitee/graphene-policy-studio": "npm:3.27.2"
     "@gravitee/ui-analytics": "npm:18.0.0"
     "@gravitee/ui-components": "npm:5.0.2"
-    "@gravitee/ui-particles-angular": "npm:18.0.0"
-    "@gravitee/ui-policy-studio-angular": "npm:18.0.0"
+    "@gravitee/ui-particles-angular": "npm:18.0.2"
+    "@gravitee/ui-policy-studio-angular": "npm:18.0.2"
     "@gravitee/ui-schematics": "npm:18.0.0"
     "@highcharts/map-collection": "npm:2.3.3"
     "@module-federation/enhanced": "npm:2.9.2"
