@@ -129,8 +129,15 @@ public class JdbcApiKeyCreateRaceTest extends AbstractRepositoryTest {
         assumeThat(hasSnapshotIsolation()).as("snapshot isolation").isTrue();
 
         inTransaction(() -> {
-            // Any earlier statement of the same transaction, like the rest of the subscribe request.
-            apiKeyRepository.create(apiKey("key-created-earlier-in-the-transaction", "another-application", "sub-other"));
+            // Any earlier statement of the same transaction, like the rest of the subscribe request. Without subscriptions: storing
+            // them first deletes the links of the key, which locks the gap of the key_subscriptions index (the whole table while it
+            // is empty) until the transaction ends, so the winner could not link its own subscription.
+            apiKeyRepository.create(
+                apiKey("key-created-earlier-in-the-transaction", "another-application", "sub-other")
+                    .toBuilder()
+                    .subscriptions(List.of())
+                    .build()
+            );
             assertThat(apiKeyRepository.findByApplication(APPLICATION)).isEmpty();
             onAnotherNode(() -> apiKeyRepository.create(sharedKey("sub-of-the-winner"))).get(TIMEOUT_SECONDS, SECONDS);
 
