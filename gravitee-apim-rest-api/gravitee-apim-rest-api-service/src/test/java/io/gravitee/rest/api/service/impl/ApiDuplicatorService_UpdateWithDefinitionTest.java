@@ -17,7 +17,10 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_DEFINITION;
 import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_API;
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_GROUP;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -34,6 +37,7 @@ import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.*;
@@ -53,6 +57,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.AdditionalAnswers;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -60,6 +66,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
@@ -754,5 +761,159 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         );
 
         verifyNoInteractions(httpClientService);
+    }
+
+    @Test
+    public void shouldNotCreateGroups_whenUserCannotUpdateApiTargetedByDefinition() throws IOException {
+        String toBeImport = readResource("import-api.definition+groups.json");
+        mockGroups();
+        when(permissionService.hasPermission(any(), eq(API_DEFINITION), eq(API_ID), eq(UPDATE))).thenReturn(false);
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any(), any())).then(AdditionalAnswers.returnsSecondArg());
+
+        assertThrows(ForbiddenAccessException.class, () ->
+            apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport)
+        );
+
+        verify(groupService, never()).create(any(), any());
+        verify(apiService, never()).update(any(), any(), any());
+    }
+
+    @Test
+    public void shouldNotCreateGroups_whenUserCannotUpdateApiTargetedByUrl() throws IOException {
+        String toBeImport = readResource("import-api.definition+groups.json");
+        mockGroups();
+        when(permissionService.hasPermission(any(), eq(API_DEFINITION), eq(API_ID), eq(UPDATE))).thenReturn(false);
+        mockApiIdRecalculation();
+
+        assertThrows(ForbiddenAccessException.class, () ->
+            apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), API_ID, toBeImport)
+        );
+
+        verify(groupService, never()).create(any(), any());
+        verify(apiService, never()).update(any(), any(), any());
+    }
+
+    @Test
+    public void shouldNotCreateGroups_whenUserNotAuthenticated() throws IOException {
+        String toBeImport = readResource("import-api.definition+groups.json");
+        mockGroups();
+        SecurityContextHolder.setContext(new SecurityContextImpl());
+        mockApiIdRecalculation();
+
+        assertThrows(ForbiddenAccessException.class, () ->
+            apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), API_ID, toBeImport)
+        );
+
+        verify(groupService, never()).create(any(), any());
+        verify(apiService, never()).update(any(), any(), any());
+    }
+
+    @Test
+    public void shouldNotCreateGroups_whenDefinitionIsInconsistent() throws IOException {
+        String toBeImport = readResource("import-api-update.definition+plans.json");
+        when(groupService.findByName(GraviteeContext.getExecutionContext().getEnvironmentId(), "My Group")).thenReturn(List.of());
+        when(groupService.create(any(), any())).thenAnswer(invocation -> group("created_group_id", "My Group"));
+        when(planService.anyPlanMismatchWithApi(anyList(), eq(API_ID))).thenReturn(true);
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any(), any())).then(AdditionalAnswers.returnsSecondArg());
+
+        assertThrows(ApiImportException.class, () ->
+            apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), API_ID, toBeImport)
+        );
+
+        verify(groupService, never()).create(any(), any());
+        verify(apiService, never()).update(any(), any(), any());
+    }
+
+    @Test
+    public void shouldCreateMissingGroupsAfterAuthorization_whenUserCanCreateGroups() throws IOException {
+        String toBeImport = readResource("import-api.definition+groups.json");
+        mockGroups();
+        mockApiUpdate();
+        mockApiIdRecalculation();
+
+        apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), API_ID, toBeImport);
+
+        InOrder inOrder = inOrder(permissionService, groupService, apiService);
+        inOrder.verify(permissionService).hasPermission(any(), eq(API_DEFINITION), eq(API_ID), eq(UPDATE));
+        inOrder
+            .verify(groupService)
+            .create(eq(GraviteeContext.getExecutionContext()), argThat(group -> "unknown group".equals(group.getName())));
+        inOrder.verify(apiService).update(any(), eq(API_ID), any());
+        verify(groupService, times(1)).create(any(), any());
+        assertThat(capturedUpdatedApi().getGroups()).containsExactlyInAnyOrder("known_group_id", "created_group_id");
+    }
+
+    @Test
+    public void shouldSkipUnknownGroups_whenUserCannotCreateGroups() throws IOException {
+        String toBeImport = readResource("import-api.definition+groups.json");
+        mockGroups();
+        mockApiUpdate();
+        mockApiIdRecalculation();
+        when(permissionService.hasPermission(any(), eq(ENVIRONMENT_GROUP), any(), eq(CREATE))).thenReturn(false);
+
+        apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), API_ID, toBeImport);
+
+        verify(permissionService).hasPermission(
+            GraviteeContext.getExecutionContext(),
+            ENVIRONMENT_GROUP,
+            GraviteeContext.getExecutionContext().getEnvironmentId(),
+            CREATE
+        );
+        verify(groupService, never()).create(any(), any());
+        assertThat(capturedUpdatedApi().getGroups()).containsExactly("known_group_id");
+    }
+
+    @Test
+    public void shouldCreateMissingGroups_whenUserIsEnvironmentAdmin() throws IOException {
+        String toBeImport = readResource("import-api.definition+groups.json");
+        mockGroups();
+        mockApiUpdate();
+        mockApiIdRecalculation();
+        authenticateAsEnvironmentAdmin();
+        when(permissionService.hasPermission(any(), eq(ENVIRONMENT_GROUP), any(), eq(CREATE))).thenReturn(false);
+
+        apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), API_ID, toBeImport);
+
+        verify(groupService, times(1)).create(any(), argThat(group -> "unknown group".equals(group.getName())));
+        assertThat(capturedUpdatedApi().getGroups()).containsExactlyInAnyOrder("known_group_id", "created_group_id");
+    }
+
+    private String readResource(String name) throws IOException {
+        return Resources.toString(Resources.getResource("io/gravitee/rest/api/management/service/" + name), Charsets.UTF_8);
+    }
+
+    private void mockGroups() {
+        String environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
+        when(groupService.findByName(environmentId, "known group")).thenReturn(List.of(group("known_group_id", "known group")));
+        when(groupService.findByName(environmentId, "unknown group")).thenReturn(List.of());
+        when(groupService.create(any(), any())).thenAnswer(invocation ->
+            group("created_group_id", invocation.getArgument(1, NewGroupEntity.class).getName())
+        );
+    }
+
+    private static GroupEntity group(String id, String name) {
+        GroupEntity group = new GroupEntity();
+        group.setId(id);
+        group.setName(name);
+        return group;
+    }
+
+    private void mockApiUpdate() {
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId(API_ID);
+        when(apiService.update(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any())).thenReturn(apiEntity);
+    }
+
+    private UpdateApiEntity capturedUpdatedApi() {
+        ArgumentCaptor<UpdateApiEntity> captor = ArgumentCaptor.forClass(UpdateApiEntity.class);
+        verify(apiService).update(eq(GraviteeContext.getExecutionContext()), eq(API_ID), captor.capture());
+        return captor.getValue();
+    }
+
+    private void authenticateAsEnvironmentAdmin() {
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getPrincipal()).thenReturn(new UserDetails("admin", "PASSWORD", Collections.emptyList()));
+        doReturn(List.of(new SimpleGrantedAuthority(AbstractService.ENVIRONMENT_ADMIN))).when(authentication).getAuthorities();
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
     }
 }
