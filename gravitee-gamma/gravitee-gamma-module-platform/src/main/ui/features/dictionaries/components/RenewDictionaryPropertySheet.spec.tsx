@@ -50,6 +50,14 @@ describe('RenewDictionaryPropertySheet', () => {
         expect(screen.getByRole('button', { name: 'Renew' }).hasAttribute('disabled')).toBe(true);
     });
 
+    it('cannot be submitted with a value made only of spaces', () => {
+        const { onSubmit } = renderSheet();
+        fireEvent.change(screen.getByLabelText(/^Value/), { target: { value: '   ' } });
+
+        expect(screen.getByRole('button', { name: 'Renew' }).hasAttribute('disabled')).toBe(true);
+        expect(onSubmit).not.toHaveBeenCalled();
+    });
+
     it('submits the new plaintext for the key', async () => {
         const { onSubmit } = renderSheet();
         fireEvent.change(screen.getByLabelText(/^Value/), { target: { value: 'n3w-s3cret' } });
