@@ -26,12 +26,13 @@ import { PortalNavigationItem } from '../../../entities/portal-navigation/portal
 import { User } from '../../../entities/user/user';
 import { PortalNavigationItemsService } from '../../../services/portal-navigation-items.service';
 import { UserNotificationInboxService } from '../../../services/user-notification-inbox.service';
+import { GlobalSearchTriggerComponent } from '../../global-search/global-search-trigger.component';
 
 @Component({
   selector: 'app-mobile-nav-bar',
   templateUrl: './mobile-nav-bar.component.html',
   styleUrl: './mobile-nav-bar.component.scss',
-  imports: [RouterLink, RouterLinkActive, MatIcon, MatButton],
+  imports: [RouterLink, RouterLinkActive, MatIcon, MatButton, GlobalSearchTriggerComponent],
 })
 export class MobileNavBarComponent {
   private readonly destroyRef = inject(DestroyRef);

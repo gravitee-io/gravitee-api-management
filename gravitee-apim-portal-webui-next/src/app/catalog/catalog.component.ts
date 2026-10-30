@@ -38,7 +38,6 @@ import { DropdownSearchComponent } from '../../components/dropdown-search/dropdo
 import { LoaderComponent } from '../../components/loader/loader.component';
 import { OverflowLabelsComponent } from '../../components/overflow-labels/overflow-labels.component';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
-import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { MobileClassDirective } from '../../directives/mobile-class.directive';
 import { PortalCategory } from '../../entities/categories/portal-category';
 import { catalogTileVisibility } from '../../entities/configuration/configuration-portal-next';
@@ -103,7 +102,6 @@ interface CategoriesState {
     OverflowLabelsComponent,
     PaginationComponent,
     ReactiveFormsModule,
-    SearchBarComponent,
     MatButtonModule,
     MatChipsModule,
     MatIconModule,
@@ -212,16 +210,6 @@ export class CatalogComponent {
   onPageSizeChange(newPageSize: number) {
     this.pageSize = newPageSize;
     this.page$.next(1);
-  }
-
-  onSearchResults(searchInput: string) {
-    if (searchInput !== this.query()) {
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: { query: searchInput },
-        queryParamsHandling: 'merge',
-      });
-    }
   }
 
   onCategorySelect(categoryId: string | null) {

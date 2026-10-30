@@ -49,10 +49,6 @@ $empty-state-height: 400px;
       justify-content: flex-end;
       gap: 16px;
 
-      app-search-bar {
-        width: 300px;
-      }
-
       .api-list__category-filter {
         width: 200px;
       }
@@ -81,12 +77,6 @@ $empty-state-height: 400px;
       .api-list__category-filter {
         grid-column: 1 / 3;
         grid-row: 2 / 3;
-        width: 100%;
-      }
-
-      app-search-bar {
-        grid-column: 1 / 3;
-        grid-row: 3 / 4;
         width: 100%;
       }
     }

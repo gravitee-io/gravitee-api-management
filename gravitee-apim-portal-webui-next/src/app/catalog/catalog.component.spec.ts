@@ -245,19 +245,6 @@ describe('CatalogComponent', () => {
     expectCatalogRequest(1, 40).flush(createCatalogResponse());
   });
 
-  it('should preserve URL-backed search navigation', async () => {
-    await init();
-    const navigate = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
-
-    fixture.componentInstance.onSearchResults('workspace');
-
-    expect(navigate).toHaveBeenCalledWith([], {
-      relativeTo: expect.anything(),
-      queryParams: { query: 'workspace' },
-      queryParamsHandling: 'merge',
-    });
-  });
-
   it('should show the generalized empty state when no catalog items are returned', async () => {
     await init(createCatalogResponse({ data: [], apis: [], apiProducts: [] }));
 
@@ -373,20 +360,6 @@ describe('CatalogComponent', () => {
       });
     });
 
-    it('should preserve the selected category when the search query changes', async () => {
-      await init();
-      const router = TestBed.inject(Router);
-      const route = TestBed.inject(ActivatedRoute);
-      const navigateSpy = jest.spyOn(router, 'navigate');
-
-      fixture.componentInstance.onSearchResults('weather');
-
-      expect(navigateSpy).toHaveBeenCalledWith([], {
-        relativeTo: route,
-        queryParams: { query: 'weather' },
-        queryParamsHandling: 'merge',
-      });
-    });
   });
 
   function expectCatalogRequest(page = 1, size = 20, categoryId?: string) {

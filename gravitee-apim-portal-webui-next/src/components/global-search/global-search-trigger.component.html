@@ -1,0 +1,33 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<button
+  type="button"
+  class="global-search-trigger"
+  [class.global-search-trigger--compact]="compact()"
+  i18n-aria-label="@@globalSearchTriggerAriaLabel"
+  aria-label="Search"
+  (click)="openSearch()"
+>
+  <mat-icon class="global-search-trigger__icon" aria-hidden="true">search</mat-icon>
+  @if (!compact()) {
+    <span class="global-search-trigger__label" i18n="@@globalSearchTriggerPlaceholder">Search...</span>
+    <span class="global-search-trigger__shortcut" aria-hidden="true">
+      <span class="global-search-trigger__key">⌘K</span>
+    </span>
+  }
+</button>
