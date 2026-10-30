@@ -22,8 +22,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.EventLatestCursor;
+import io.gravitee.repository.management.api.search.EventLatestPage;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -208,6 +211,134 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
         // Test 5 by 5
         events = eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, 0L, 5L);
         assertThat(events).hasSize(5).extracting(Event::getId).containsExactly("api-1", "api-2", "api-3", "api-4", "api-5");
+    }
+
+    @Test
+    public void shouldSeekThroughAllApiEventsInSearchOrderWhateverThePageSize() {
+        for (int size = 1; size <= 5; size++) {
+            assertThat(seekAll(EventCriteria.builder().build(), Event.EventProperties.API_ID, size))
+                .as("page size %d", size)
+                .containsExactly("api-1", "api-2", "api-3", "api-4", "api-5", "api-6", "api-7", "api-8");
+        }
+    }
+
+    @Test
+    public void shouldSeekPastEventsSharingTheCursorUpdateDateById() {
+        EventCriteria criteria = EventCriteria.builder().build();
+        EventLatestPage first = eventLatestRepository.searchAfter(criteria, Event.EventProperties.API_ID, null, 4);
+
+        EventLatestPage next = eventLatestRepository.searchAfter(criteria, Event.EventProperties.API_ID, first.next(), 1);
+
+        assertThat(first.events()).extracting(Event::getId).endsWith("api-4");
+        assertThat(next.events()).extracting(Event::getId).containsExactly("api-5");
+    }
+
+    @Test
+    public void shouldSeekThroughEventsWithoutUpdateDateFirstWhateverThePageSize() throws Exception {
+        eventLatestRepository.createOrUpdate(authzEntityEvent("dated-2", new Date(2000), Set.of("DEFAULT")));
+        eventLatestRepository.createOrUpdate(authzEntityEvent("undated-2", null, Set.of("DEFAULT")));
+        eventLatestRepository.createOrUpdate(authzEntityEvent("dated-1", new Date(1000), Set.of("DEFAULT")));
+        eventLatestRepository.createOrUpdate(authzEntityEvent("undated-1", null, Set.of("DEFAULT")));
+
+        for (int size = 1; size <= 4; size++) {
+            assertThat(
+                seekAll(
+                    EventCriteria.builder().types(Set.of(EventType.PUBLISH_AUTHZ_ENTITY)).build(),
+                    Event.EventProperties.AUTHZ_ENTITY_ID,
+                    size
+                )
+            )
+                .as("page size %d", size)
+                .containsExactly("undated-1", "undated-2", "dated-1", "dated-2");
+        }
+    }
+
+    @Test
+    public void shouldCountAnEventLinkedToSeveralEnvironmentsOnceWhenSeeking() throws Exception {
+        eventLatestRepository.createOrUpdate(authzEntityEvent("multi-1", new Date(1000), Set.of("env-a", "env-b")));
+        eventLatestRepository.createOrUpdate(authzEntityEvent("multi-2", new Date(2000), Set.of("env-a")));
+        eventLatestRepository.createOrUpdate(authzEntityEvent("multi-3", new Date(3000), Set.of("env-b")));
+        EventCriteria criteria = EventCriteria.builder()
+            .types(Set.of(EventType.PUBLISH_AUTHZ_ENTITY))
+            .environments(Set.of("env-a", "env-b"))
+            .build();
+
+        for (int size = 1; size <= 3; size++) {
+            assertThat(seekAll(criteria, Event.EventProperties.AUTHZ_ENTITY_ID, size))
+                .as("page size %d", size)
+                .containsExactly("multi-1", "multi-2", "multi-3");
+        }
+    }
+
+    @Test
+    public void shouldSeekThroughATimeWindowOfSeveralEventTypesWhateverThePageSize() {
+        EventCriteria criteria = EventCriteria.builder()
+            .types(Set.of(EventType.STOP_API, EventType.START_API))
+            .environments(Set.of("DEFAULT"))
+            .from(1459468800000L)
+            .to(1495380000000L)
+            .build();
+
+        for (int size = 1; size <= 4; size++) {
+            assertThat(seekAll(criteria, Event.EventProperties.API_ID, size))
+                .as("page size %d", size)
+                .containsExactly("api-3", "api-4", "api-5", "api-6");
+        }
+    }
+
+    @Test
+    public void shouldApplyEveryFilterToEachEntityIdOfASearch() {
+        EventCriteria criteria = EventCriteria.builder()
+            .types(Set.of(EventType.START_API))
+            .property(Event.EventProperties.API_ID.getValue(), List.of("api-4", "api-2"))
+            .build();
+
+        List<Event> events = eventLatestRepository.search(criteria, Event.EventProperties.API_ID, null, null);
+
+        assertThat(events).extracting(Event::getId).containsExactly("api-4");
+    }
+
+    @Test
+    public void shouldCountAnEventLinkedToSeveralEnvironmentsOnceInASearchPage() throws Exception {
+        eventLatestRepository.createOrUpdate(authzEntityEvent("multi-1", new Date(1000), Set.of("env-a", "env-b")));
+        eventLatestRepository.createOrUpdate(authzEntityEvent("multi-2", new Date(2000), Set.of("env-a")));
+        eventLatestRepository.createOrUpdate(authzEntityEvent("multi-3", new Date(3000), Set.of("env-b")));
+        EventCriteria criteria = EventCriteria.builder()
+            .types(Set.of(EventType.PUBLISH_AUTHZ_ENTITY))
+            .environments(Set.of("env-a", "env-b"))
+            .build();
+
+        assertThat(eventLatestRepository.search(criteria, Event.EventProperties.AUTHZ_ENTITY_ID, 0L, 2L))
+            .extracting(Event::getId)
+            .containsExactly("multi-1", "multi-2");
+        assertThat(eventLatestRepository.search(criteria, Event.EventProperties.AUTHZ_ENTITY_ID, 1L, 2L))
+            .extracting(Event::getId)
+            .containsExactly("multi-3");
+    }
+
+    private List<String> seekAll(EventCriteria criteria, Event.EventProperties group, int size) {
+        List<String> ids = new ArrayList<>();
+        EventLatestCursor cursor = null;
+        EventLatestPage page;
+        do {
+            page = eventLatestRepository.searchAfter(criteria, group, cursor, size);
+            page.events().forEach(event -> ids.add(event.getId()));
+            cursor = page.next();
+        } while (page.events().size() == size);
+        return ids;
+    }
+
+    private static Event authzEntityEvent(String id, Date updatedAt, Set<String> environments) {
+        return Event.builder()
+            .id(id)
+            .type(EventType.PUBLISH_AUTHZ_ENTITY)
+            .payload("{}")
+            .environments(environments)
+            .organizations(Set.of("DEFAULT"))
+            .properties(Map.of(Event.EventProperties.AUTHZ_ENTITY_ID.getValue(), id))
+            .createdAt(new Date(1000))
+            .updatedAt(updatedAt)
+            .build();
     }
 
     @Test

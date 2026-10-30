@@ -18,6 +18,8 @@ package io.gravitee.repository.noop.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.EventLatestCursor;
+import io.gravitee.repository.management.api.search.EventLatestPage;
 import io.gravitee.repository.management.model.Event;
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +33,11 @@ public class NoOpEventLatestRepository implements EventLatestRepository {
     @Override
     public List<Event> search(EventCriteria criteria, Event.EventProperties group, Long page, Long size) {
         return List.of();
+    }
+
+    @Override
+    public EventLatestPage searchAfter(EventCriteria criteria, Event.EventProperties group, EventLatestCursor after, int size) {
+        return new EventLatestPage(List.of(), after);
     }
 
     @Override

@@ -21,10 +21,14 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.EventLatestCursor;
+import io.gravitee.repository.management.api.search.EventLatestPage;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -46,6 +50,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class LatestEventFetcherTest {
 
+    private static final EventLatestCursor POSITION = new EventLatestCursor(LocalDateTime.of(2026, 3, 29, 2, 30, 0, 123_456_000), "e2");
+
     @Mock
     private EventLatestRepository eventLatestRepository;
 
@@ -58,8 +64,8 @@ class LatestEventFetcherTest {
 
     @Test
     void should_fetch_latest_event() {
-        Event event = new Event();
-        when(eventLatestRepository.search(any(), any(), any(), any())).thenReturn(List.of(event)).thenReturn(null);
+        Event event = event("e1", 1000);
+        when(eventLatestRepository.searchAfter(any(), any(), any(), anyInt())).thenReturn(page(event)).thenReturn(page());
         cut
             .fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of())
             .test()
@@ -70,8 +76,8 @@ class LatestEventFetcherTest {
     @Test
     void should_fetch_latest_event_and_complete_if_page_size_is_higher_than_results() {
         cut = new LatestEventFetcher(eventLatestRepository, 10);
-        Event event = new Event();
-        when(eventLatestRepository.search(any(), any(), any(), any())).thenReturn(List.of(event)).thenReturn(null);
+        Event event = event("e1", 1000);
+        when(eventLatestRepository.searchAfter(any(), any(), any(), anyInt())).thenReturn(page(event)).thenReturn(page());
         cut
             .fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of())
             .test()
@@ -84,9 +90,9 @@ class LatestEventFetcherTest {
     void should_fetch_event_with_criteria() {
         Instant to = Instant.now();
         Instant from = to.minus(1000, ChronoUnit.MILLIS);
-        Event event = new Event();
+        Event event = event("e1", 1000);
         when(
-            eventLatestRepository.search(
+            eventLatestRepository.searchAfter(
                 argThat(
                     argument ->
                         argument.getTypes().size() == 1 &&
@@ -96,10 +102,10 @@ class LatestEventFetcherTest {
                         argument.getTo() > to.toEpochMilli()
                 ),
                 eq(Event.EventProperties.API_ID),
-                eq(0L),
-                eq(1L)
+                isNull(),
+                eq(1)
             )
-        ).thenReturn(List.of(event));
+        ).thenReturn(page(event));
         cut
             .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Event.EventProperties.API_ID, Set.of("env"), Set.of(EventType.PUBLISH_API))
             .test()
@@ -109,14 +115,14 @@ class LatestEventFetcherTest {
 
     @Test
     void should_fetch_new_latest_events_on_each_downstream_request() {
-        Event event1 = new Event();
-        Event event2 = new Event();
-        Event event3 = new Event();
-        when(eventLatestRepository.search(any(), any(), any(), any()))
-            .thenReturn(List.of(event1))
-            .thenReturn(List.of(event2))
-            .thenReturn(List.of(event3))
-            .thenReturn(null);
+        Event event1 = event("e1", 1000);
+        Event event2 = event("e2", 2000);
+        Event event3 = event("e3", 3000);
+        when(eventLatestRepository.searchAfter(any(), any(), any(), anyInt()))
+            .thenReturn(page(event1))
+            .thenReturn(page(event2))
+            .thenReturn(page(event3))
+            .thenReturn(page());
         cut
             .fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of())
             .test(0)
@@ -129,7 +135,61 @@ class LatestEventFetcherTest {
             .requestMore(1)
             .assertComplete()
             .assertValueCount(3);
-        verify(eventLatestRepository, times(4)).search(any(), any(), any(), any());
+        verify(eventLatestRepository, times(4)).searchAfter(any(), any(), any(), anyInt());
+    }
+
+    @Test
+    void should_seek_each_page_after_the_last_event_of_the_previous_one() {
+        cut = new LatestEventFetcher(eventLatestRepository, 2);
+        when(eventLatestRepository.searchAfter(any(), any(), isNull(), eq(2))).thenReturn(
+            new EventLatestPage(List.of(event("e1", 1000), event("e2", 2000)), POSITION)
+        );
+        when(eventLatestRepository.searchAfter(any(), any(), eq(POSITION), eq(2))).thenReturn(page(event("e3", 2000)));
+
+        cut.fetchLatest(null, null, Event.EventProperties.AUTHZ_ENTITY_ID, Set.of(), Set.of()).test().assertComplete().assertValueCount(2);
+
+        verify(eventLatestRepository, never()).search(any(), any(), any(), any());
+    }
+
+    @Test
+    void should_page_by_offset_when_repository_has_no_keyset_support() {
+        cut = new LatestEventFetcher(eventLatestRepository, 2);
+        when(eventLatestRepository.searchAfter(any(), any(), any(), anyInt())).thenThrow(new UnsupportedOperationException());
+        when(eventLatestRepository.search(any(), any(), eq(0L), eq(2L))).thenReturn(List.of(event("e1", 1000), event("e2", 2000)));
+        when(eventLatestRepository.search(any(), any(), eq(1L), eq(2L))).thenReturn(List.of(event("e3", 3000)));
+
+        cut.fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of()).test().assertComplete().assertValueCount(2);
+
+        verify(eventLatestRepository, times(1)).searchAfter(any(), any(), any(), anyInt());
+    }
+
+    @Test
+    void should_fail_when_keyset_paging_stops_being_supported_after_the_first_page() {
+        cut = new LatestEventFetcher(eventLatestRepository, 2);
+        when(eventLatestRepository.searchAfter(any(), any(), isNull(), eq(2))).thenReturn(
+            new EventLatestPage(List.of(event("e1", 1000), event("e2", 2000)), POSITION)
+        );
+        when(eventLatestRepository.searchAfter(any(), any(), eq(POSITION), eq(2))).thenThrow(new UnsupportedOperationException());
+
+        cut
+            .fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of())
+            .test()
+            .assertError(UnsupportedOperationException.class);
+
+        verify(eventLatestRepository, never()).search(any(), any(), any(), any());
+    }
+
+    @Test
+    void should_seek_after_an_event_without_update_date_by_its_id() {
+        cut = new LatestEventFetcher(eventLatestRepository, 2);
+        when(eventLatestRepository.searchAfter(any(), any(), isNull(), eq(2))).thenReturn(page(event("u1", null), event("u2", null)));
+        when(eventLatestRepository.searchAfter(any(), any(), eq(new EventLatestCursor(null, "u2")), eq(2))).thenReturn(
+            page(event("e1", 1000))
+        );
+
+        cut.fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of()).test().assertComplete().assertValueCount(2);
+
+        verify(eventLatestRepository, never()).search(any(), any(), any(), any());
     }
 
     @Test
@@ -140,7 +200,7 @@ class LatestEventFetcherTest {
 
     @Test
     void should_emit_on_error_when_repository_thrown_exception() {
-        when(eventLatestRepository.search(any(), any(), any(), any())).thenThrow(new RuntimeException());
+        when(eventLatestRepository.searchAfter(any(), any(), any(), anyInt())).thenThrow(new RuntimeException());
         cut.fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of()).test().assertError(RuntimeException.class);
     }
 
@@ -148,7 +208,7 @@ class LatestEventFetcherTest {
     void fetchLatest_with_property_adds_property_to_criteria() {
         LatestEventFetcher fetcher = new LatestEventFetcher(eventLatestRepository, 10);
         ArgumentCaptor<EventCriteria> captor = ArgumentCaptor.forClass(EventCriteria.class);
-        when(eventLatestRepository.search(captor.capture(), any(), anyLong(), anyLong())).thenReturn(List.of());
+        when(eventLatestRepository.searchAfter(captor.capture(), any(), any(), anyInt())).thenReturn(page());
 
         fetcher
             .fetchLatest(
@@ -208,5 +268,17 @@ class LatestEventFetcherTest {
         when(eventLatestRepository.search(any(), any(), any(), any())).thenThrow(new RuntimeException("db down"));
 
         cut.fetchLatestForApiIds(Set.of("api-1"), Set.of("env"), Set.of(EventType.PUBLISH_API)).test().assertComplete().assertNoValues();
+    }
+
+    private static EventLatestPage page(Event... events) {
+        EventLatestCursor next = events.length == 0 ? null : new EventLatestCursor(null, events[events.length - 1].getId());
+        return new EventLatestPage(List.of(events), next);
+    }
+
+    private static Event event(String id, Integer updatedAt) {
+        Event event = new Event();
+        event.setId(id);
+        event.setUpdatedAt(updatedAt == null ? null : new Date(updatedAt));
+        return event;
     }
 }
