@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.subscriptions;
 
-import io.gravitee.repository.mongodb.management.MongoSubscriptionActiveKeyIndex;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
 import lombok.CustomLog;
@@ -27,12 +26,11 @@ import org.springframework.stereotype.Component;
  * PUSH plan: a unique index on the hash of the unique active key, which only active subscriptions carry. It is the only
  * protection against identical subscription requests processed at the same time, by one or several nodes.
  * <p>
- * No subscription has the hash when the index is created: the repository writes it only once the index is ready, so
- * building the index neither reads nor fails on the existing subscriptions. Duplicates created before are left as they
- * are.
+ * No subscription has the hash yet when the index is created, before the node writes any: building the index neither
+ * reads nor fails on the existing subscriptions. Duplicates created before are left as they are.
  * <p>
- * Never stops the node when the index cannot be created: without it, the repository writes no hash and the node behaves
- * as the previous versions.
+ * Never stops the node when the index cannot be created: without it, identical requests can create several active
+ * subscriptions, as with the previous versions.
  *
  * @author GraviteeSource Team
  */
@@ -40,12 +38,15 @@ import org.springframework.stereotype.Component;
 @Component("SubscriptionsActiveKeyHashIndexUpgrader")
 public class ActiveKeyHashIndexUpgrader extends IndexUpgrader {
 
+    public static final String NAME = "akh1_unique";
+    public static final String FIELD = "activeKeyHash";
+
     @Override
     public boolean upgrade() {
         if (!super.upgrade()) {
             log.error(
                 "Index {} could not be created on {}: subscriptions are not protected against duplicates. Once the cause is fixed, run scripts/create-index.js, or remove the record of this upgrader from the upgrades collection and restart",
-                MongoSubscriptionActiveKeyIndex.NAME,
+                NAME,
                 buildCollectionName("subscriptions")
             );
         }
@@ -56,15 +57,10 @@ public class ActiveKeyHashIndexUpgrader extends IndexUpgrader {
     protected Index buildIndex() {
         return Index.builder()
             .collection("subscriptions")
-            .name(MongoSubscriptionActiveKeyIndex.NAME)
-            .key(MongoSubscriptionActiveKeyIndex.FIELD, ascending())
+            .name(NAME)
+            .key(FIELD, ascending())
             .unique(true)
-            .partialFilterExpression(
-                new Document(
-                    MongoSubscriptionActiveKeyIndex.FIELD,
-                    new Document("$exists", true)
-                )
-            )
+            .partialFilterExpression(new Document(FIELD, new Document("$exists", true)))
             .build();
     }
 }
