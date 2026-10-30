@@ -59,7 +59,7 @@ class AnalyticsService {
 
   findLogs(query: LogsQuery): ng.IPromise<any> {
     return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), `${this.Constants.env.baseURL}/platform` + '/logs?'), {
-      timeout: 30000,
+      timeout: this.getAnalyticsHttpTimeout(),
     });
   }
 
@@ -68,7 +68,7 @@ class AnalyticsService {
     logsQuery.page = 1;
     logsQuery.size = 10000;
     return this.$http.get(this.buildURLWithQuery(logsQuery, `${this.Constants.env.baseURL}/platform` + '/logs/export?'), {
-      timeout: 30000,
+      timeout: this.getAnalyticsHttpTimeout(),
     });
   }
 
