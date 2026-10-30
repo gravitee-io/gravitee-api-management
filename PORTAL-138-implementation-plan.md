@@ -33,8 +33,9 @@ This plan supersedes, for this epic's scope, the story numbering in `PORTAL-138 
 - **D3 — "APIs published" on a portal** = number of distinct APIs referenced by `API` navigation items of that portal that are published to the portal (the set the next-gen portal catalog shows anonymous-or-not, ignoring per-user visibility). Listings are materialized into navigation items, so this works for console-only and automation-managed environments alike. *Confirm with Product; the alternative, "APIs in listings", reads 0 for every console-only customer.*
 - **D4 — Upgrade must not change what the next-gen portal shows.** Today it shows every navigation item of the environment, whatever its `referenceId`. Rule for the upgrader, per environment:
   - no portal exists → create the default portal, re-point zero-UUID items, listings and docs onto it;
-  - exactly one portal exists (created through the Automation API) → mark it default and re-point zero-UUID items onto it;
-  - several portals exist → mark the oldest default (by creation order; `Portal` has no creation date today, so story 5 adds one, backfilled from the upgrade time), re-point zero-UUID items onto it, and **log a warning naming the environment and the other portals**, whose items stop showing on a deployment without `portalId`. *Needs a GKO/Product answer before story 7 merges; count the affected environments on Cloud first.*
+  - exactly one portal exists (created through the Automation API) → mark it default and re-point zero-UUID items onto it.
+
+  No customer has more than one portal per environment today, Automation API included. If the upgrader meets several, it fails for that environment with an error naming it and the portals, and changes nothing there, rather than guessing which one is the default.
 - **D5 — Portal URL.** The default portal's URL is never stored: it is `getPortalUrl(env)` + `/next`, read at request time. Story 5 adds a nullable `url` column for non-default portals (PORTAL-137) so the schema migrates once; nothing writes it in this epic. If Product drops `/next` for Gamma users (open question Q1), only the resolver in story 8 changes.
 - **D6 — Quota.** `limit` comes from the license tier: `universe` → 10, anything else (trial, `planet`, `galaxy`, `oss`, unknown, no license) → 1. Defined once in a core domain service so PORTAL-137's create check reuses it. `used` = number of portals in the environment.
 - **D7 — Logo.** Until PORTAL-319, every portal's logo is the logo of the environment's enabled next-gen theme, returned as the stored string (data URI). The frontend falls back to the portal's initials when it is empty.
@@ -48,9 +49,8 @@ This plan supersedes, for this epic's scope, the story numbering in `PORTAL-138 
 | Q1 | Gamma users' next-gen portal URL without `/next`: how is it derived? (Product, Cloud team) | Story 8 | Keep `/next`. |
 | Q2 | What does "% Completion" on portal tiles measure? (Product) | Story 3 | Not shown. |
 | Q3 | How is a **trial** license recognized in APIM? `License.getTier()` has no trial value. (Licensing) | Story 9 | Trial falls under "anything else → 1", which is already the trial limit. |
-| Q4 | Several automation-created portals in one environment (D4). (GKO, Product) | Story 7 | Oldest becomes default, warning logged. |
-| Q5 | Is the default portal marked on tiles and rows, and how? (Design) | Stories 3, 4 | "Default" badge next to the name. |
-| Q6 | After the host cutover, where do admins open the classic portal editor until PORTAL-36/140 land? (Product) | Story 13 | "Open portal editor" link on the Overview placeholder. |
+| Q4 | Is the default portal marked on tiles and rows, and how? (Design) | Stories 3, 4 | "Default" badge next to the name. |
+| Q5 | After the host cutover, where do admins open the classic portal editor until PORTAL-36/140 land? (Product) | Story 13 | "Open portal editor" link on the Overview placeholder. |
 
 ---
 
@@ -136,7 +136,7 @@ Each story lists the test cases to write **first** (RED), then the files. Paths 
 
 **Tests first** (`features/portals/pages/PortalsDashboardPage.spec.tsx`, MSW)
 - Shows the quota above the list as "1 / 10" from `quota.used` / `quota.limit`.
-- Shows each portal's logo (or initials when `logo` is empty), name, "Default" marker on the default portal (Q5), and number of APIs published.
+- Shows each portal's logo (or initials when `logo` is empty), name, "Default" marker on the default portal (Q4), and number of APIs published.
 - Tiles by default; the toggle switches to a table and back; the choice survives a re-render of the page (kept in the URL as `?view=table`).
 - With 4 portals, tiles show 3 and a "View all Portals" link to `list`; with 6 portals, the table shows 5 and the same link; with 1 portal, no link.
 - Typing in search filters with `matchPortals`; the 3/5 limit applies to the filtered result; no match shows an empty state.
@@ -176,7 +176,7 @@ Each story lists the test cases to write **first** (RED), then the files. Paths 
 
 ### Story 5 · Portal model: default marker, URL, creation date; drop `PortalId.ZERO`
 
-**Why.** A portal must be a real record that can be told apart as the default, so requests without a `portalId` have a portal to act on. The zero UUID placeholder encodes "no portal" and must go before any code relies on real ids. The URL column is added now so the schema migrates once (D5); the creation date serves the list (story 9) and D4.
+**Why.** A portal must be a real record that can be told apart as the default, so requests without a `portalId` have a portal to act on. The zero UUID placeholder encodes "no portal" and must go before any code relies on real ids. The URL column is added now so the schema migrates once (D5); the creation date serves the list (story 9); story 7 backfills it for existing portals with the upgrade time.
 
 **Tests first**
 - `PortalTest`: `Portal.createDefault(env, org, name)` is default; `Portal.create(...)` is not; `createdAt` is set.
@@ -222,7 +222,7 @@ Each story lists the test cases to write **first** (RED), then the files. Paths 
 **Why.** Existing environments carry data on the zero UUID. The epic's first "Done when" is that an upgraded install looks exactly as before: same content, theme and URL. This is the story that can break customers, so it carries the upgrade tests on both databases (epic items 3 and 9).
 
 **Tests first**
-- `DefaultPortalUpgraderTest` (in-memory), one test per D4 branch: no portal; one automation portal; several portals (oldest wins, warning logged); default already present (no-op); re-run after a partial failure finishes the job.
+- `DefaultPortalUpgraderTest` (in-memory), no portal → default created; one automation portal → marked default; default already present → no-op; several portals → that environment fails with an error naming it, its data unchanged, and the other environments still upgrade; a re-run after a partial failure finishes the job; existing portals get `createdAt`.
 - Re-pointing: navigation items with `referenceType=PORTAL, referenceId=zero` → default id; `PortalListing.portalId=zero` (if any) → default id; documentation pages attached through those items keep their links; items with `referenceType=API` are untouched; the navigation `rootId` sentinel is untouched.
 - JDBC and Mongo integration tests seeded with a 4.14-shaped dataset (navigation in all areas including the homepage, listings, pages): after the upgrade the Portal API returns the same navigation tree, homepage and API list as before, item for item.
 
@@ -334,7 +334,7 @@ Each story lists the test cases to write **first** (RED), then the files. Paths 
 **Tests first**
 - Host `AppRoutes.spec.tsx`: `/environments/:envHrid/portals/*` renders the remote module, not the redirect.
 - `ShellLayout.spec.tsx` / `HomePage.spec.tsx`: the Developer Portals app and card link to the module path, in the same tab.
-- Module: the overview placeholder shows "Open portal editor" linking to the classic console editor (Q6), using `consoleUrl` from the Gamma bootstrap.
+- Module: the overview placeholder shows "Open portal editor" linking to the classic console editor (Q5), using `consoleUrl` from the Gamma bootstrap.
 
 **Files**
 - Change [`AppRoutes.tsx`](gravitee-gamma/gravitee-gamma-control-plane-webui/src/app/AppRoutes.tsx), [`ShellLayout.tsx`](gravitee-gamma/gravitee-gamma-control-plane-webui/src/shared/components/ShellLayout.tsx), [`HomePage.tsx`](gravitee-gamma/gravitee-gamma-control-plane-webui/src/pages/home/HomePage.tsx): drop the portals special case.
