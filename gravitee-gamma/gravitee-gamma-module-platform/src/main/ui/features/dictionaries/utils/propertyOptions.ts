@@ -16,12 +16,11 @@
 
 import type { Dictionary, DictionaryPropertyOptions, DictionaryPropertyRow } from '../types/dictionary';
 
-export function toPropertyRows(dictionary: Dictionary): DictionaryPropertyRow[] {
-    return Object.entries(dictionary.properties ?? {}).map(([key, value]) => ({
-        key,
-        value,
-        encrypted: dictionary.propertyOptions?.[key]?.encrypted === true,
-    }));
+export function toPropertyRows(dictionary: Dictionary, markedKeys: ReadonlySet<string>): DictionaryPropertyRow[] {
+    return Object.entries(dictionary.properties ?? {}).map(([key, value]) => {
+        const encrypted = dictionary.propertyOptions?.[key]?.encrypted === true;
+        return { key, value, encrypted, encryptOnSave: !encrypted && markedKeys.has(key) };
+    });
 }
 
 /**

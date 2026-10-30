@@ -122,4 +122,6 @@ export interface DictionaryPropertyRow {
     key: string;
     value: string;
     encrypted: boolean;
+    /** The user marked this plaintext value to be encrypted at the next save. */
+    encryptOnSave: boolean;
 }
