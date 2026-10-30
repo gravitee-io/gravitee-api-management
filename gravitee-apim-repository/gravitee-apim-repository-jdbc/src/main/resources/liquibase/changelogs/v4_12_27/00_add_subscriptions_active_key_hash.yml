@@ -1,21 +1,11 @@
 databaseChangeLog:
   # Hash of the unique active key of the active subscriptions (neither REJECTED nor CLOSED), and a unique index on it: an
   # application cannot have two active subscriptions to the same plan (or channel of a PUSH plan), even when identical
-  # requests are processed at the same time by several nodes. The repository writes the hash only once it sees the
-  # index ready, so no existing subscription has one when the index is built: building it neither reads nor fails on
-  # them, and the duplicates created before are left as they are.
-  #
-  # On large databases the column and the index can be created beforehand, online (see the release notes): the
-  # changesets below then accept them, provided the index is unique and usable.
+  # requests are processed at the same time by several nodes. No existing subscription has the hash when the index is
+  # created: building it neither reads nor fails on them, and the duplicates created before are left as they are.
   - changeSet:
       id: 4.12.27_00_add_subscriptions_active_key_hash
       author: GraviteeSource Team
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            - columnExists:
-                tableName: ${gravitee_prefix}subscriptions
-                columnName: active_key_hash
       changes:
         - addColumn:
             tableName: ${gravitee_prefix}subscriptions
@@ -26,137 +16,26 @@ databaseChangeLog:
                   constraints:
                     nullable: true
 
-  # An index with the expected name that does not enforce uniqueness (not unique, other columns, or left invalid by an
-  # interrupted CREATE INDEX CONCURRENTLY) must not be taken for the expected one: the nodes would write hashes no index
-  # protects, and the index could not be created anymore without repairing data.
+  # Several NULL values are allowed in a unique index.
   - changeSet:
-      id: 4.12.27_01_check_subscriptions_akh_index_postgresql
+      id: 4.12.27_01_add_subscriptions_akh_index
       author: GraviteeSource Team
-      dbms: postgresql
-      preConditions:
-        - onFail: HALT
-        - onFailMessage: Index idx_${gravitee_prefix}subscriptions_akh on ${gravitee_prefix}subscriptions is not a valid unique index on active_key_hash (an interrupted CREATE INDEX CONCURRENTLY leaves it invalid). Drop it and restart.
-        - sqlCheck:
-            expectedResult: 0
-            sql: |
-              SELECT COUNT(*) FROM pg_index i JOIN pg_class c ON c.oid = i.indexrelid
-              WHERE i.indrelid = to_regclass('${gravitee_prefix}subscriptions')
-                AND c.relname = 'idx_${gravitee_prefix}subscriptions_akh'
-                AND NOT COALESCE(
-                  i.indisunique AND i.indisvalid AND i.indisready AND i.indimmediate AND i.indnkeyatts = 1 AND i.indexprs IS NULL
-                  AND i.indkey[0] = (SELECT a.attnum FROM pg_attribute a WHERE a.attrelid = i.indrelid AND a.attname = 'active_key_hash')
-                  AND (i.indpred IS NULL OR pg_get_expr(i.indpred, i.indrelid) = '(active_key_hash IS NOT NULL)'),
-                  false
-                )
+      dbms: postgresql, mysql, mariadb
       changes:
-        - output:
-            message: No index idx_${gravitee_prefix}subscriptions_akh in the way
+        - createIndex:
+            tableName: ${gravitee_prefix}subscriptions
+            indexName: idx_${gravitee_prefix}subscriptions_akh
+            unique: true
+            columns:
+              - column:
+                  name: active_key_hash
 
+  # A unique index without filter would allow a single NULL value. Filtered indexes need ANSI_NULLS and QUOTED_IDENTIFIER
+  # ON for the sessions writing the table, the default of the SQL Server JDBC driver.
   - changeSet:
-      id: 4.12.27_01_check_subscriptions_akh_index_mysql
-      author: GraviteeSource Team
-      dbms: mysql, mariadb
-      preConditions:
-        - onFail: HALT
-        - onFailMessage: Index idx_${gravitee_prefix}subscriptions_akh on ${gravitee_prefix}subscriptions is not a unique index on active_key_hash alone. Drop it and restart.
-        - sqlCheck:
-            expectedResult: 0
-            sql: |
-              SELECT COUNT(*) FROM (
-                SELECT index_name FROM information_schema.statistics
-                WHERE table_schema = DATABASE() AND table_name = '${gravitee_prefix}subscriptions'
-                  AND index_name = 'idx_${gravitee_prefix}subscriptions_akh'
-                GROUP BY index_name
-                HAVING NOT (MAX(non_unique) = 0 AND COUNT(*) = 1 AND MAX(column_name) = 'active_key_hash' AND MAX(sub_part) IS NULL)
-              ) unusable
-      changes:
-        - output:
-            message: No index idx_${gravitee_prefix}subscriptions_akh in the way
-
-  - changeSet:
-      id: 4.12.27_01_check_subscriptions_akh_index_mssql
+      id: 4.12.27_01_add_subscriptions_akh_index_mssql
       author: GraviteeSource Team
       dbms: mssql
-      preConditions:
-        - onFail: HALT
-        - onFailMessage: Index idx_${gravitee_prefix}subscriptions_akh on ${gravitee_prefix}subscriptions is not an enabled unique index on active_key_hash filtered on active_key_hash IS NOT NULL. Drop it and restart.
-        - sqlCheck:
-            expectedResult: 0
-            sql: |
-              SELECT COUNT(*) FROM sys.indexes i
-              WHERE i.object_id = OBJECT_ID('${gravitee_prefix}subscriptions') AND i.name = 'idx_${gravitee_prefix}subscriptions_akh'
-                AND NOT (
-                  i.is_unique = 1 AND i.is_disabled = 0 AND i.is_hypothetical = 0 AND i.has_filter = 1
-                  AND i.filter_definition = '([active_key_hash] IS NOT NULL)'
-                  AND (SELECT COUNT(*) FROM sys.index_columns ic WHERE ic.object_id = i.object_id AND ic.index_id = i.index_id AND ic.is_included_column = 0) = 1
-                  AND EXISTS (
-                    SELECT 1 FROM sys.index_columns ic JOIN sys.columns col ON col.object_id = ic.object_id AND col.column_id = ic.column_id
-                    WHERE ic.object_id = i.object_id AND ic.index_id = i.index_id AND col.name = 'active_key_hash'
-                  )
-                )
       changes:
-        - output:
-            message: No index idx_${gravitee_prefix}subscriptions_akh in the way
-
-  # Created unless a usable unique index on the hash already exists, whatever its name.
-  - changeSet:
-      id: 4.12.27_02_add_subscriptions_akh_index_postgresql
-      author: GraviteeSource Team
-      dbms: postgresql
-      preConditions:
-        - onFail: MARK_RAN
-        - sqlCheck:
-            expectedResult: 0
-            sql: |
-              SELECT COUNT(*) FROM pg_index i
-              WHERE i.indrelid = to_regclass('${gravitee_prefix}subscriptions')
-                AND i.indisunique AND i.indisvalid AND i.indisready AND i.indimmediate AND i.indnkeyatts = 1 AND i.indexprs IS NULL
-                AND i.indkey[0] = (SELECT a.attnum FROM pg_attribute a WHERE a.attrelid = i.indrelid AND a.attname = 'active_key_hash')
-                AND (i.indpred IS NULL OR pg_get_expr(i.indpred, i.indrelid) = '(active_key_hash IS NOT NULL)')
-      changes:
-        - sql:
-            sql: CREATE UNIQUE INDEX idx_${gravitee_prefix}subscriptions_akh ON ${gravitee_prefix}subscriptions (active_key_hash) WHERE active_key_hash IS NOT NULL
-
-  - changeSet:
-      id: 4.12.27_02_add_subscriptions_akh_index_mysql
-      author: GraviteeSource Team
-      dbms: mysql, mariadb
-      preConditions:
-        - onFail: MARK_RAN
-        - sqlCheck:
-            expectedResult: 0
-            sql: |
-              SELECT COUNT(*) FROM (
-                SELECT index_name FROM information_schema.statistics
-                WHERE table_schema = DATABASE() AND table_name = '${gravitee_prefix}subscriptions'
-                GROUP BY index_name
-                HAVING MAX(non_unique) = 0 AND COUNT(*) = 1 AND MAX(column_name) = 'active_key_hash' AND MAX(sub_part) IS NULL
-              ) usable
-      changes:
-        # Several NULL values are allowed in a unique index.
-        - sql:
-            sql: CREATE UNIQUE INDEX idx_${gravitee_prefix}subscriptions_akh ON ${gravitee_prefix}subscriptions (active_key_hash)
-
-  - changeSet:
-      id: 4.12.27_02_add_subscriptions_akh_index_mssql
-      author: GraviteeSource Team
-      dbms: mssql
-      preConditions:
-        - onFail: MARK_RAN
-        - sqlCheck:
-            expectedResult: 0
-            sql: |
-              SELECT COUNT(*) FROM sys.indexes i
-              WHERE i.object_id = OBJECT_ID('${gravitee_prefix}subscriptions')
-                AND i.is_unique = 1 AND i.is_disabled = 0 AND i.is_hypothetical = 0 AND i.has_filter = 1
-                AND i.filter_definition = '([active_key_hash] IS NOT NULL)'
-                AND (SELECT COUNT(*) FROM sys.index_columns ic WHERE ic.object_id = i.object_id AND ic.index_id = i.index_id AND ic.is_included_column = 0) = 1
-                AND EXISTS (
-                  SELECT 1 FROM sys.index_columns ic JOIN sys.columns col ON col.object_id = ic.object_id AND col.column_id = ic.column_id
-                  WHERE ic.object_id = i.object_id AND ic.index_id = i.index_id AND col.name = 'active_key_hash'
-                )
-      changes:
-        # A unique index without filter would allow a single NULL value. Filtered indexes need ANSI_NULLS and
-        # QUOTED_IDENTIFIER ON for the sessions writing the table, the default of the SQL Server JDBC driver.
         - sql:
             sql: CREATE UNIQUE INDEX idx_${gravitee_prefix}subscriptions_akh ON ${gravitee_prefix}subscriptions (active_key_hash) WHERE active_key_hash IS NOT NULL
