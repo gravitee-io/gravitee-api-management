@@ -415,7 +415,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .readValue(apiDefinition, UpdateApiEntity.class);
 
-<<<<<<< HEAD
         // Initialize with a default path
         if (
             Objects.equals(importedApi.getGraviteeDefinitionVersion(), DefinitionVersion.V1.getLabel()) &&
@@ -424,26 +423,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             importedApi.setPaths(Collections.singletonMap("/", new ArrayList<>()));
         }
 
-        //create group if not exist & replace groupName by groupId
-        if (importedApi.getGroups() != null) {
-            Set<String> groupNames = new HashSet<>(importedApi.getGroups());
-            importedApi.getGroups().clear();
-            for (String name : groupNames) {
-                List<GroupEntity> groupEntities = groupService.findByName(executionContext.getEnvironmentId(), name);
-                GroupEntity group;
-                if (groupEntities.isEmpty()) {
-                    NewGroupEntity newGroupEntity = new NewGroupEntity();
-                    newGroupEntity.setName(name);
-                    group = groupService.create(executionContext, newGroupEntity);
-                } else {
-                    group = groupEntities.get(0);
-                }
-                importedApi.getGroups().add(group.getId());
-            }
-        } else {
-=======
         if (importedApi.getGroups() == null) {
->>>>>>> 20582a2 (fix(rest-api): resolve imported API groups after authorization)
             // Using a mutable Set, so we can add groups if necessary
             importedApi.setGroups(new HashSet<>());
         }
