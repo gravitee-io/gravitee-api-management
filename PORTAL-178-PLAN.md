@@ -72,7 +72,7 @@ who loses their subscription stops receiving events and never sees another consu
 | Close to expiry | `ScheduledSubscriptionPreExpirationNotificationService`: hourly cron, global 90/45/30 days, emails the subscriber and the app primary owner. Not a hook. | No inbox notice, no per-user days. |
 | Certificates | `ClientCertificate` (per application): `startsAt`, `endsAt`, `certificateExpiration`, `status` (`ACTIVE`, `ACTIVE_WITH_END`, `SCHEDULED`, `REVOKED`). Revocation scheduler only. | No expiry event. |
 | Next-gen portal | `dashboard` routes (applications, subscriptions, workspaces, analytics), `user-avatar` menu, `api-card` (grid) and list view in `catalog.component`, `configuration.scheduler.notificationsInSeconds`. | No notification code. |
-| Portal API docs | Operations tagged `x-gravitee-portal: next` / `classic` / `both` in `portal-openapi.yaml`. | New operations to tag `next`. |
+| Portal API docs | Operations tagged `x-gravitee-portal: next` / `classic` / `both` in `portal-openapi.yaml`. | New operations to tag `next`; `GET /user/notifications` to tag `both`. |
 
 ## 4. Target design
 
@@ -166,6 +166,11 @@ environment), and receives the hook and fills `hook`, `apiId` and `applicationId
 `API` / `APPLICATION`; an unknown type gives null and a debug log.
 
 ### 4.5 Portal API (OpenAPI first, all new operations tagged `x-gravitee-portal: next`)
+
+`GET /user/notifications` moves from `x-gravitee-portal: classic` to `both`, since the next-gen inbox and badge call
+it. The other existing operations stay `classic`: `GET/PUT /applications/{applicationId}/notifications`,
+`GET /applications/hooks`, `DELETE /user/notifications` and `DELETE /user/notifications/{notificationId}` (the
+next-gen portal does not call them).
 
 | Operation | Auth / checks | Request | Response |
 | --- | --- | --- | --- |
