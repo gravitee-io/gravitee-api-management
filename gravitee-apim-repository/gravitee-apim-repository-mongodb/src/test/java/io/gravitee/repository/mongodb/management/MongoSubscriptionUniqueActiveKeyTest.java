@@ -22,7 +22,6 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.IndexOptions;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.management.AbstractManagementRepositoryTest;
 import io.gravitee.repository.management.api.SubscriptionUniqueActiveKey;
@@ -213,17 +212,21 @@ public class MongoSubscriptionUniqueActiveKeyTest extends AbstractManagementRepo
     @Test
     public void should_stop_the_node_when_the_index_cannot_be_created_and_create_it_at_the_next_startup() throws Exception {
         subscriptions().dropIndex(INDEX);
-        // Same name, other options: the server refuses to create the expected index.
-        subscriptions().createIndex(new Document(FIELD, 1), new IndexOptions().name(INDEX));
+        // Two subscriptions storing the same hash: the server refuses to create the index, whatever its version.
+        subscriptions().insertMany(
+            List.of(new Document("_id", "sub-1").append(FIELD, "hash"), new Document("_id", "sub-2").append(FIELD, "hash"))
+        );
         boolean firstStartup;
+        boolean nextStartup;
         try {
             firstStartup = activeKeyHashIndexUpgrader().upgrade();
         } finally {
-            subscriptions().dropIndex(INDEX);
+            subscriptions().deleteOne(Filters.eq("_id", "sub-2"));
+            nextStartup = activeKeyHashIndexUpgrader().upgrade();
         }
 
         assertThat(firstStartup).isFalse();
-        assertThat(activeKeyHashIndexUpgrader().upgrade()).isTrue();
+        assertThat(nextStartup).isTrue();
         assertThat(index(INDEX).getBoolean("unique")).isTrue();
     }
 
