@@ -39,7 +39,16 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
         if (!error.config || !error.config.silentCall) {
           if (error.config && !error.config.tryItMode) {
             if (error && error.status <= 0 && error.xhrStatus !== 'abort') {
-              notificationService.showError('Server unreachable');
+              if (error.xhrStatus === 'timeout') {
+                // The browser aborted the request after the configured client timeout; the server may still complete it.
+                const timeoutInMs = error.config.timeout;
+                const timeoutHint = typeof timeoutInMs === 'number' ? ` after ${Math.round(timeoutInMs / 1000)}s` : '';
+                notificationService.showError(
+                  `The request took too long and was stopped by the browser${timeoutHint}. It may still be running on the server.`,
+                );
+              } else {
+                notificationService.showError('Server unreachable');
+              }
             }
           } else {
             notificationService.showError('Unable to call the remote service.');

@@ -15,25 +15,45 @@
  */
 import { ActivatedRoute } from '@angular/router';
 
-import AnalyticsService from './analytics.service';
+import AnalyticsService, { LogsQuery } from './analytics.service';
 
 describe('AnalyticsService', () => {
   let analyticsService: AnalyticsService;
+  let httpGetSpy: jest.Mock;
 
   beforeEach(() => {
+    httpGetSpy = jest.fn().mockResolvedValue({ data: {} });
     analyticsService = new AnalyticsService(
-      {},
+      { get: httpGetSpy },
       {
         env: {
           baseURL: 'https://url.test:3000/management/organizations/DEFAULT/environments/DEFAULT',
           settings: {
             analytics: {
-              clientTimeout: 30_000,
+              clientTimeout: 60_000,
             },
           },
         },
       },
     );
+  });
+
+  // Regression for APIM-15676: log searches must honour analytics.clientTimeout instead of a hardcoded 30s,
+  // otherwise a search the Management API completes after 30s is abandoned by the browser.
+  describe('findLogs', () => {
+    it('should use the configured analytics clientTimeout, not a hardcoded value', () => {
+      analyticsService.findLogs(new LogsQuery());
+
+      expect(httpGetSpy).toHaveBeenCalledWith(expect.any(String), { timeout: 60_000 });
+    });
+  });
+
+  describe('exportLogsAsCSV', () => {
+    it('should use the configured analytics clientTimeout, not a hardcoded value', () => {
+      analyticsService.exportLogsAsCSV(new LogsQuery());
+
+      expect(httpGetSpy).toHaveBeenCalledWith(expect.any(String), { timeout: 60_000 });
+    });
   });
 
   describe('parseQueryFilters', () => {
