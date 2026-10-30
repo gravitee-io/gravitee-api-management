@@ -32,6 +32,7 @@ A signed-in consumer of the next-gen portal can, without opening Console:
 | P7 | Bell: blue when at least one event is on for that API. Click on grey: turns on every PN-20 event and keeps the existing close-to-expiry settings. Click on blue: turns every event off, close-to-expiry included. |
 | P8 | Notices (close to expiry, certificate expired) are written to the portal inbox only: no email, no webhook. The platform's global pre-expiration email schedule (`services.subscription.pre-expiration-notification-schedule`) is unchanged. |
 | P9 | API Products are out of scope: no product in the APIs tab, no bell on product cards, no product preference. Product subscription events still reach app preferences, which already handle `apiProduct` in their templates. |
+| P10 | The inbox is scoped to the environment: a notification stores the environment it was triggered in, and the portal of an environment shows that environment's notifications plus those with no environment (organization-level triggers, rows created before 4.14). The unread count follows the same scope. |
 
 ### 2.2 Events per preference
 
@@ -64,8 +65,8 @@ who loses their subscription stops receiving events and never sees another consu
 | Subscription hooks | `SubscriptionServiceImpl.triggerSubscriptionNotificationsForApi` (~l.990) and the core subscription domain services fire the hook on the API **and** on the application. | Consumers on the API never get them. |
 | API-key / lifecycle hooks | `ApiKeyServiceImpl` (`APIKEY_RENEWED`, `APIKEY_EXPIRED`), `RevokeApiKeyDomainService` (`APIKEY_REVOKED`), `ApiServiceImpl` (`API_STARTED`/`STOPPED`), `v4/impl/ApiNotificationServiceImpl` (lifecycle, skipped when the actor is not authenticated). API reference only. | Consumers never get them. |
 | Templates | `templates/notifications/portal/<SCOPE>.<HOOK>.yml`, loaded at startup by `NotificationTemplateServiceImpl.afterPropertiesSet` from the hook enums, overridable per organization. `API.API_*` templates contain "by ${user.displayName}". | No consumer wording. |
-| `portal_notifications` | `id`, `title`, `message`, `user`, `created_at`. `update()` throws. Mongo index `u1` on `user`. | No read state, hook, API or application. |
-| `GET/DELETE /user/notifications` (Portal API) | `findByUser` then in-memory sort and paging, no filters. | No read state, filters, total from the database. |
+| `portal_notifications` | `id`, `title`, `message`, `user`, `created_at`. `update()` throws. Mongo index `u1` on `user` (`portalnotifications/UserIndexUpgrader`). | No read state, hook, API, application or environment. |
+| `GET/DELETE /user/notifications` (Portal API) | `findByUser` then in-memory sort and paging, no filters, every environment of the organization mixed. | No read state, filters, environment scope, total from the database. |
 | `portal_notification_configs` | One row per (`user`, `reference_type`, `reference_id`), `hooks` list (JDBC table `portal_notification_config_hooks`), `groups`, `origin`. Type `APPLICATION` used by the classic portal. Type `API` used by API members (Console). | No consumer per-API type, no days. |
 | `GET/PUT /applications/{id}/notifications` (Portal API) | Flat `string[]`; PUT overwrites the caller's hooks **and** every email/webhook config of the app; no validation. | Unsafe to reuse. |
 | Close to expiry | `ScheduledSubscriptionPreExpirationNotificationService`: hourly cron, global 90/45/30 days, emails the subscriber and the app primary owner. Not a hook. | No inbox notice, no per-user days. |
@@ -85,9 +86,11 @@ who loses their subscription stops receiving events and never sees another consu
 | `hook` | `hook` | `hook` nvarchar(64) | hook or notice name |
 | `apiId` | `apiId` | `api_id` nvarchar(64) | API concerned, if any |
 | `applicationId` | `applicationId` | `application_id` nvarchar(64) | application concerned, if any |
+| `environmentId` | `environmentId` | `environment_id` nvarchar(64) | environment of the trigger; null for an organization-level trigger |
 
-Index: (`user`, `readAt`, `createdAt` desc) — Mongo `IndexUpgrader` next to `portalnotifications/UserIndexUpgrader`,
-JDBC index in the changelog. Existing rows stay as they are: unread, no hook, no API, no application.
+Index: (`user`, `environmentId`, `readAt`, `createdAt` desc) — Mongo `IndexUpgrader` next to
+`portalnotifications/UserIndexUpgrader`, JDBC index in the changelog. Existing rows stay as they are: unread, no hook,
+no API, no application, no environment (so visible in every environment, P10); they are not backfilled.
 
 **`portal_notification_configs`**: new nullable `closeToExpiryDays` (JDBC `close_to_expiry_days` integer).
 `NotificationReferenceType` gains `API_CONSUMER`: a row (`user`, `API_CONSUMER`, `apiId`) is one consumer's preference
@@ -108,8 +111,15 @@ record of notices already sent.
 
 Unique index (`user`, `notice`, `targetId`, `thresholdDays`); index on `endsAt`.
 
-JDBC: one changelog `v4_14_0/0X_portal_notifications_read_state_and_notices.yml` (columns, index, new table),
-included in `master.yml`. No upgrader: additive nullable fields and a new table only.
+Migrations:
+
+- **No data upgrader** (`io.gravitee.rest.api.service.Upgrader`, tracked in `upgrades`): fields are additive and
+  nullable, the new collection/table starts empty, nothing is backfilled.
+- **Mongo indexes**: two new repository `IndexUpgrader` components (idempotent index creation at startup, the existing
+  mechanism): `portalnotifications` (`user`, `environmentId`, `readAt`, `createdAt` desc) in US 1;
+  `portalnotificationnotices` unique (`user`, `notice`, `targetId`, `thresholdDays`) and `endsAt` in US 7.
+- **JDBC**: one changelog `v4_14_0/0X_portal_notifications_read_state_and_notices.yml` (columns, indexes, new table),
+  included in `master.yml`; US 3 and US 7 add their changes to it.
 
 ### 4.2 Hooks and templates
 
@@ -144,7 +154,8 @@ every member). The trigger is already `@Async`.
 
 ### 4.4 Reference extraction
 
-`PortalNotificationService.create` receives the hook and fills `hook`, `apiId` and `applicationId` through one
+`PortalNotificationService.create` fills `environmentId` from the `ExecutionContext` (null when it has no
+environment), and receives the hook and fills `hook`, `apiId` and `applicationId` through one
 `NotificationReferenceExtractor`: reads `params["api"]` and `params["application"]` for each type passed today
 (`ApiEntity`, `GenericApiEntity`, `IndexableApi`, core `Api`, `ApiModel`, `ApplicationEntity`, core
 `BaseApplicationEntity`, `ApplicationModel`, …), falls back to the trigger's reference id when the reference type is
@@ -154,10 +165,10 @@ every member). The trigger is already `@Async`.
 
 | Operation | Auth / checks | Request | Response |
 | --- | --- | --- | --- |
-| `GET /user/notifications` (extended) | authenticated, caller's rows only | `page`, `size`, `read` (bool), `apiId`, `applicationId` | `data[]`: `id`, `title`, `message`, `created_at`, **`read`**, **`hook`**, **`api` {id, name}**, **`application` {id, name}**; `metadata.pagination.total` from the database |
-| `GET /user/notifications/_filters` | authenticated | — | distinct `apis[]` and `applications[]` {id, name} referenced by the caller's notifications |
+| `GET /user/notifications` (extended) | authenticated, caller's rows of the current environment or with no environment (P10) | `page`, `size`, `read` (bool), `apiId`, `applicationId` | `data[]`: `id`, `title`, `message`, `created_at`, **`read`**, **`hook`**, **`api` {id, name}**, **`application` {id, name}**; `metadata.pagination.total` from the database |
+| `GET /user/notifications/_filters` | authenticated, same scope | — | distinct `apis[]` and `applications[]` {id, name} referenced by the caller's notifications |
 | `POST /user/notifications/{notificationId}/_read` | caller owns the notification, else 404 | — | 204 |
-| `POST /user/notifications/_read` | authenticated | — | 204, marks all the caller's unread rows |
+| `POST /user/notifications/_read` | authenticated, same scope | — | 204, marks all the caller's unread rows of that scope |
 | `GET /user/notifications/preferences/applications` | authenticated | — | applications where the caller holds `APPLICATION_NOTIFICATION` (P2): `id`, `name`, `enabledEvents` count |
 | `GET /applications/{applicationId}/notifications/preferences` | `APPLICATION_NOTIFICATION[READ]`, app exists | — | `NotificationPreferences` |
 | `PUT /applications/{applicationId}/notifications/preferences` | `APPLICATION_NOTIFICATION[UPDATE]` | `{ events[], closeToExpiryDays }` | `NotificationPreferences` |
@@ -209,14 +220,18 @@ Inbox names are resolved per page in one batch lookup for APIs and one for appli
 ### US 1 — Inbox (PN-12 to PN-18) · 3 days (backend 2, frontend 1)
 
 Backend:
-- `PortalNotification` + Mongo/JDBC: `readAt`, `hook`, `apiId`, `applicationId`; index; changelog.
-- `PortalNotificationRepository`: `search(PortalNotificationSearchCriteria{user, read, apiId, applicationId}, Pageable)`
-  returning a `Page` sorted by `createdAt` desc; `markAsRead(user, id, date)` returning whether a row was updated;
-  `markAllAsRead(user, date)`; `findDistinctReferences(user)` (API and application ids). `update()` keeps throwing.
+- `PortalNotification` + Mongo/JDBC: `readAt`, `hook`, `apiId`, `applicationId`, `environmentId`; Mongo
+  `IndexUpgrader`; changelog.
+- `PortalNotificationRepository`: `search(PortalNotificationSearchCriteria{user, environmentId, read, apiId,
+  applicationId}, Pageable)` returning a `Page` sorted by `createdAt` desc, where `environmentId` matches that
+  environment or null; `markAsRead(user, id, date)` returning whether a row was updated;
+  `markAllAsRead(user, environmentId, date)`; `findDistinctReferences(user, environmentId)` (API and application ids).
+  `update()` keeps throwing.
 - `NotificationReferenceExtractor` (§4.4); `PortalNotificationServiceImpl.create` stores `hook`, `apiId`,
-  `applicationId`.
+  `applicationId`, `environmentId`.
 - Use cases and `UserNotificationsResource`: list with filters and server paging, `_filters`, `{id}/_read`, `_read`
-  (§4.5). The classic portal keeps working: same response, additional fields only, same paging parameters.
+  (§4.5). The classic portal keeps working: same response, additional fields only, same paging parameters; its list is
+  now limited to the current environment (plus rows with no environment).
 - Console `UserNotificationsResource` (Management API) unchanged.
 
 Frontend:
@@ -229,12 +244,15 @@ Frontend:
 - Empty state when there is no notification or no match.
 
 Tests:
-- TCK (Mongo, JDBC): each filter alone and combined, paging and total, sort, mark read (own row / another user's row
-  not updated), mark all read, distinct references, legacy row without new fields.
+- TCK (Mongo, JDBC): each filter alone and combined, environment scope (current environment and null kept, another
+  environment excluded, also for mark all read and distinct references), paging and total, sort, mark read (own row /
+  another user's row not updated), mark all read, distinct references, legacy row without new fields.
 - Extractor: one parameterized test listing every param type passed today (a new type without a case fails).
-- Service: `create` stores hook and references for an API hook, an application hook and a portal hook (no references).
+- Service: `create` stores hook, references and environment for an API hook, an application hook and a portal hook (no
+  references); a context without environment stores null.
 - Resource: filters passed through, 404 on another user's notification, 204 on read, total in metadata.
-- Regression: Console user notification list and classic portal list return the same content as before.
+- Regression: Console user notification list (Management API, organization-wide) returns the same content as before;
+  classic portal list returns the same fields, limited to the environment scope.
 - Jest: table rendering, each filter, clear filters, open = read, mark all as read, "Deleted API" label, empty state.
 
 ### US 2 — Unread badge (PN-11) · 0.5 day (frontend)
@@ -413,8 +431,10 @@ Dependencies: the next-gen Portal API documentation split (`x-gravitee-portal`) 
 - `API_UPDATED` produces one inbox row per opted-in subscriber on every publisher save.
 - Lifecycle events are not fired when a system or unauthenticated actor triggers them (`ApiNotificationServiceImpl`),
   e.g. some automated deploys: unchanged in 4.14, documented.
-- Existing notifications have no API, application or type: they show as unread with empty columns and do not match
-  API / application filters.
+- Existing notifications have no API, application, type or environment: they show as unread with empty columns in
+  every environment and do not match API / application filters.
+- The classic portal shares `GET /user/notifications`: its list becomes environment-scoped (P10), a visible change for
+  users of several environments.
 - API Products get no consumer preference or bell (P9) until Console offers API Product notifications.
 
 ## 8. Security, compatibility, impact
@@ -422,8 +442,9 @@ Dependencies: the next-gen Portal API documentation split (`x-gravitee-portal`) 
 - Security-sensitive: inbox endpoints are scoped to the caller (ownership check on `{notificationId}`); app
   preferences check `APPLICATION_NOTIFICATION`; API preferences check the subscription rule; delivery re-checks
   membership and subscription at send time; preferences and days are validated.
-- Breaking changes: none. Portal API and database changes are additive, the classic endpoints are unchanged, no
-  upgrader, nothing changes for a user until they opt in.
+- Breaking changes: none. Portal API and database changes are additive, no data upgrader (Mongo indexes through
+  `IndexUpgrader`, JDBC through the changelog), the classic preference endpoints are unchanged, nothing changes for a
+  user until they opt in. Behavior change: the user notification list is scoped to the current environment (P10).
 - Settings and flags: none new; available where the next-gen portal is enabled (`portalNext.access.enabled`).
 - Console / Gamma: display-only label for the new template scope; no new application or API hook.
 - Gateway: none.
