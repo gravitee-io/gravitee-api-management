@@ -78,6 +78,11 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subscription, String> implements SubscriptionRepository {
 
     /**
+     * Hash of the unique active key, on active subscriptions only, under a unique index.
+     */
+    private static final String HASH_COLUMN = "active_key_hash";
+
+    /**
      * Columns the unique active key is computed from, read as they are stored from the subscription holding a hash, to
      * tell whether that hash is stale.
      */
@@ -114,17 +119,9 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     private final TransactionTemplate savepoint;
 
     /**
-     * Writes {@code NULL} as hash: the unique index on it is not ready. {@link #getOrm()} writes the hash.
+     * Writes {@code NULL} as hash, for a duplicate created before the unique index. {@link #getOrm()} writes the hash.
      */
     private final JdbcObjectMapper<Subscription> ormWithoutHash;
-
-    /**
-     * Writes no hash at all: the Liquibase changesets adding its column did not run yet.
-     */
-    private final JdbcObjectMapper<Subscription> ormWithoutHashColumn;
-
-    @Autowired
-    private JdbcSubscriptionActiveKeyIndex activeKeyIndex;
 
     /**
      * Subscriptions already reported as duplicates of another active subscription, so that their every update is not.
@@ -141,7 +138,6 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         savepoint = new TransactionTemplate(transactionManager);
         savepoint.setPropagationBehavior(TransactionDefinition.PROPAGATION_NESTED);
         ormWithoutHash = buildOrm(tableName, subscription -> null);
-        ormWithoutHashColumn = buildOrm(tableName, null);
     }
 
     @Override
@@ -150,10 +146,10 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     }
 
     /**
-     * @param hash what to write in the hash column, {@code null} not to write that column.
+     * @param hash what to write in the hash column.
      */
     private static JdbcObjectMapper<Subscription> buildOrm(String tableName, Function<Subscription, String> hash) {
-        var builder = JdbcObjectMapper.builder(Subscription.class, tableName, "id")
+        return JdbcObjectMapper.builder(Subscription.class, tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("plan", Types.NVARCHAR, String.class)
             .addColumn("application", Types.NVARCHAR, String.class)
@@ -184,31 +180,17 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             .addColumn("type", Types.NVARCHAR, Subscription.Type.class)
             .addColumn("origin", Types.NVARCHAR, String.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, SubscriptionReferenceType.class);
-        if (hash != null) {
+            .addColumn("reference_type", Types.NVARCHAR, SubscriptionReferenceType.class)
             // Written on every insert and update, never read back: not part of the repository model.
-            builder.addMirroredColumn(JdbcSubscriptionActiveKeyIndex.COLUMN, Types.NVARCHAR, hash);
-        }
-        return builder.build();
-    }
-
-    /**
-     * The hash is written only once the unique index on it is ready: a hash written before could duplicate another one,
-     * and the index could not be created anymore.
-     */
-    private JdbcObjectMapper<Subscription> ormForWrites() {
-        return switch (activeKeyIndex.state()) {
-            case READY -> getOrm();
-            case NOT_READY -> ormWithoutHash;
-            case COLUMN_MISSING -> ormWithoutHashColumn;
-        };
+            .addMirroredColumn(HASH_COLUMN, Types.NVARCHAR, hash)
+            .build();
     }
 
     @Override
     public Subscription create(Subscription subscription) throws TechnicalException {
         log.debug("JdbcSubscriptionRepository.create({})", subscription);
         try {
-            UniqueConstraintViolation violation = insert(subscription, ormForWrites());
+            UniqueConstraintViolation violation = insert(subscription, getOrm());
             if (violation != null) {
                 // The insert also fails when the id is already used, a conflict callers cannot act upon.
                 if (findById(subscription.getId()).isPresent()) {
@@ -236,7 +218,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             throw new IllegalStateException("Failed to update null");
         }
         try {
-            UniqueConstraintViolation violation = update(subscription, ormForWrites());
+            UniqueConstraintViolation violation = update(subscription, getOrm());
             if (violation != null) {
                 // The id is not updated: only the hash can conflict.
                 updateConflicting(subscription, violation);
@@ -353,7 +335,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             .map(column -> escapeReservedWord(column))
             .collect(Collectors.joining(", "));
         List<Holder> holders = jdbcTemplate.query(
-            "select id, " + columns + " from " + this.tableName + WHERE_CLAUSE + JdbcSubscriptionActiveKeyIndex.COLUMN + " = ?",
+            "select id, " + columns + " from " + this.tableName + WHERE_CLAUSE + HASH_COLUMN + " = ?",
             (rs, rowNum) -> {
                 Map<String, Object> keyColumns = new HashMap<>();
                 for (String column : KEY_COLUMNS) {
@@ -408,9 +390,9 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         StringBuilder sql = new StringBuilder("update ")
             .append(this.tableName)
             .append(" set ")
-            .append(JdbcSubscriptionActiveKeyIndex.COLUMN)
+            .append(HASH_COLUMN)
             .append(" = ? where id = ? and ")
-            .append(JdbcSubscriptionActiveKeyIndex.COLUMN)
+            .append(HASH_COLUMN)
             .append(" = ?");
         List<Object> arguments = new ArrayList<>(List.of(holder.id(), staleHash));
         arguments.addFirst(upToDateHash);
