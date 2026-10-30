@@ -56,6 +56,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.MessageDeliveryFailedException;
 import io.gravitee.rest.api.service.exceptions.MessageEmptyException;
 import io.gravitee.rest.api.service.exceptions.MessageRecipientFormatException;
 import io.gravitee.rest.api.service.exceptions.MessageUrlForbiddenException;
@@ -258,14 +259,20 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                     }
                 }
 
-                httpClientService.request(
-                    executionContext.getOrganizationId(),
-                    HttpMethod.POST,
-                    url,
-                    message.getParams(),
-                    getPostMessage(executionContext, api, message, executionContext.getOrganizationId()),
-                    Boolean.valueOf(message.isUseSystemProxy())
-                );
+                // Resolved outside the try: a template failure is not a delivery failure.
+                String postMessage = getPostMessage(executionContext, api, message, executionContext.getOrganizationId());
+                try {
+                    httpClientService.request(
+                        executionContext.getOrganizationId(),
+                        HttpMethod.POST,
+                        url,
+                        message.getParams(),
+                        postMessage,
+                        Boolean.valueOf(message.isUseSystemProxy())
+                    );
+                } catch (RuntimeException e) {
+                    throw new MessageDeliveryFailedException(e);
+                }
                 return 1;
             default:
                 return 0;
