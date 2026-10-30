@@ -18,13 +18,9 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_API;
 import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_GROUP;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
-<<<<<<< HEAD
-import static org.junit.Assert.assertEquals;
-=======
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
->>>>>>> 20582a2 (fix(rest-api): resolve imported API groups after authorization)
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.anyString;
