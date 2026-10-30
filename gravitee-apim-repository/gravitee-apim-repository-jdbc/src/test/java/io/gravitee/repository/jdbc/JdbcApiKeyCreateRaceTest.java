@@ -21,12 +21,15 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assumptions.assumeThat;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.DuplicateKeyException;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
 import jakarta.inject.Inject;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -37,9 +40,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -55,6 +60,9 @@ import org.springframework.transaction.support.TransactionTemplate;
  *     (MySQL and MariaDB keep reading the snapshot of the first read in REPEATABLE READ, their default isolation);</li>
  *     <li>several transactions that lost at the same time must all commit.</li>
  * </ul>
+ * With snapshot isolation (on by default since MariaDB 11.6.2), a transaction cannot write a row committed after its first read: a
+ * node that read the keys before the winner committed can neither insert nor link the winner's key. Its insert fails, MariaDB rolls
+ * back its whole transaction, and the subscribe request fails: it can be retried, and the application still has a single key.
  */
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -63,6 +71,7 @@ public class JdbcApiKeyCreateRaceTest extends AbstractRepositoryTest {
     private static final String APPLICATION = "app-racing-for-its-first-shared-key";
     private static final String SHARED_KEY_ID = "first-shared-key-of-the-application";
     private static final long TIMEOUT_SECONDS = 60;
+    private static final int RECORD_CHANGED_SINCE_LAST_READ = 1020;
 
     @Inject
     private ApiKeyRepository apiKeyRepository;
@@ -102,6 +111,8 @@ public class JdbcApiKeyCreateRaceTest extends AbstractRepositoryTest {
 
     @Test
     public void should_link_the_winning_key_from_a_transaction_that_read_the_keys_before_the_winner_committed() throws Exception {
+        assumeThat(hasSnapshotIsolation()).as("snapshot isolation").isFalse();
+
         inTransaction(() -> {
             // The subscribe request reads the keys of the application (none yet) before it creates the first one.
             assertThat(apiKeyRepository.findByApplication(APPLICATION)).isEmpty();
@@ -117,7 +128,27 @@ public class JdbcApiKeyCreateRaceTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void should_roll_back_a_transaction_that_read_the_keys_before_the_winner_committed_with_snapshot_isolation() throws Exception {
+        assumeThat(hasSnapshotIsolation()).as("snapshot isolation").isTrue();
+
+        inTransaction(() -> {
+            // Any earlier statement of the same transaction, like the rest of the subscribe request.
+            apiKeyRepository.create(apiKey("key-created-earlier-in-the-transaction", "another-application", "sub-other"));
+            assertThat(apiKeyRepository.findByApplication(APPLICATION)).isEmpty();
+            onAnotherNode(() -> apiKeyRepository.create(sharedKey("sub-of-the-winner"))).get(TIMEOUT_SECONDS, SECONDS);
+
+            assertRolledBackBySnapshotIsolation(() -> apiKeyRepository.create(sharedKey("sub-of-the-loser")));
+        });
+
+        assertThat(apiKeyRepository.findById("key-created-earlier-in-the-transaction")).isEmpty();
+        assertThat(storedSubscriptions()).containsExactly("sub-of-the-winner");
+        assertTheApplicationHasASingleKey();
+    }
+
+    @Test
     public void should_commit_every_subscribe_transaction_that_lost_the_race_at_the_same_time() throws Exception {
+        assumeThat(hasSnapshotIsolation()).as("snapshot isolation").isFalse();
+
         CountDownLatch losersRead = new CountDownLatch(2);
         CountDownLatch winnerInserted = new CountDownLatch(1);
         CountDownLatch losersInserting = new CountDownLatch(2);
@@ -154,6 +185,63 @@ public class JdbcApiKeyCreateRaceTest extends AbstractRepositoryTest {
 
         assertThat(storedSubscriptions()).containsExactlyInAnyOrder("sub-of-the-winner", "sub-of-loser-1", "sub-of-loser-2");
         assertTheApplicationHasASingleKey();
+    }
+
+    @Test
+    public void should_roll_back_every_transaction_that_lost_the_race_at_the_same_time_with_snapshot_isolation() throws Exception {
+        assumeThat(hasSnapshotIsolation()).as("snapshot isolation").isTrue();
+
+        CountDownLatch losersRead = new CountDownLatch(2);
+        CountDownLatch winnerInserted = new CountDownLatch(1);
+        CountDownLatch losersInserting = new CountDownLatch(2);
+
+        Future<?> winner = onAnotherNode(() -> {
+            assertThat(losersRead.await(TIMEOUT_SECONDS, SECONDS)).isTrue();
+            apiKeyRepository.create(sharedKey("sub-of-the-winner"));
+            winnerInserted.countDown();
+            // Commit only once the losers are waiting for the uncommitted key.
+            assertThat(losersInserting.await(TIMEOUT_SECONDS, SECONDS)).isTrue();
+            Thread.sleep(500);
+        });
+        List<Future<?>> losers = Stream.of("sub-of-loser-1", "sub-of-loser-2")
+            .<Future<?>>map(subscription ->
+                onAnotherNode(() -> {
+                    assertThat(apiKeyRepository.findByApplication(APPLICATION)).isEmpty();
+                    losersRead.countDown();
+                    assertThat(winnerInserted.await(TIMEOUT_SECONDS, SECONDS)).isTrue();
+                    losersInserting.countDown();
+                    assertRolledBackBySnapshotIsolation(() -> apiKeyRepository.create(sharedKey(subscription)));
+                })
+            )
+            .toList();
+
+        winner.get(TIMEOUT_SECONDS, SECONDS);
+        for (Future<?> loser : losers) {
+            loser.get(TIMEOUT_SECONDS, SECONDS);
+        }
+
+        assertThat(storedSubscriptions()).containsExactly("sub-of-the-winner");
+        assertTheApplicationHasASingleKey();
+    }
+
+    /** Whether the database has snapshot isolation on. MySQL and MariaDB before 10.6.18 do not have the variable. */
+    private boolean hasSnapshotIsolation() {
+        if (!isMySqlOrMariaDb()) {
+            return false;
+        }
+        try {
+            return Integer.valueOf(1).equals(jdbcTemplate.queryForObject("select @@innodb_snapshot_isolation", Integer.class));
+        } catch (DataAccessException e) {
+            return false;
+        }
+    }
+
+    /** The insert fails with error 1020 ("Record has changed since last read"), and MariaDB rolls back the whole transaction. */
+    private static void assertRolledBackBySnapshotIsolation(ThrowingCallable insert) {
+        assertThatThrownBy(insert)
+            .isInstanceOf(TechnicalException.class)
+            .rootCause()
+            .isInstanceOfSatisfying(SQLException.class, e -> assertThat(e.getErrorCode()).isEqualTo(RECORD_CHANGED_SINCE_LAST_READ));
     }
 
     /**
