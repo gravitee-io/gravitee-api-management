@@ -233,11 +233,11 @@ Backend:
   `IndexUpgrader`; changelog `0X_portal_notifications_read_state.yml`.
 - `PortalNotificationRepository`: `search(PortalNotificationSearchCriteria{user, environmentId, read, apiId,
   applicationId}, Pageable)` returning a `Page` sorted by `createdAt` desc, where `environmentId` matches that
-  environment or null; `markAsRead(user, environmentId, id, date)` returning whether a row was updated (no row for another user or
-  another environment → 404, in one query);
-  `markAllAsRead(user, environmentId, date)`; `findDistinctReferences(user, environmentId)` (API and application ids);
-  `deleteAll(user, environmentId)` added next to `deleteAll(user)`, which stays for the Console (organization-wide)
-  and user deletion. `update()` keeps throwing.
+  environment or null; `markAsRead(user, environmentId, id, date)` and `delete(user, environmentId, id)` returning
+  whether a row was updated / deleted (no row for another user or another environment → 404, in one query; the
+  resource no longer checks ownership through `findByUser`); `markAllAsRead(user, environmentId, date)`;
+  `findDistinctReferences(user, environmentId)` (API and application ids); `deleteAll(user, environmentId)` added next
+  to `deleteAll(user)`, which stays for the Console (organization-wide) and user deletion. `update()` keeps throwing.
 - `NotificationReferenceExtractor` (§4.4); `PortalNotificationServiceImpl.create` stores `hook`, `apiId`,
   `applicationId`, `environmentId`.
 - Use cases and `UserNotificationsResource`: list with filters and server paging, `_filters`, `{id}/_read`, `_read`;
@@ -257,8 +257,9 @@ Frontend:
 
 Tests:
 - TCK (Mongo, JDBC): each filter alone and combined, environment scope (current environment and null kept, another
-  environment excluded, also for mark all read, delete all and distinct references), paging and total, sort, mark read (own row /
-  another user's row not updated), mark all read, distinct references, legacy row without new fields.
+  environment excluded, also for mark all read, delete all and distinct references), paging and total, sort, mark
+  read and delete by id (own row updated / deleted; another user's row and another environment's row untouched, `false`
+  returned), mark all read, distinct references, legacy row without new fields.
 - Extractor: one parameterized test listing every param type passed today (a new type without a case fails).
 - Service: `create` stores hook, references and environment for an API hook, an application hook and a portal hook (no
   references); a context without environment stores null.
@@ -457,9 +458,9 @@ Dependencies: the next-gen Portal API documentation split (`x-gravitee-portal`) 
 
 ## 8. Security, compatibility, impact
 
-- Security-sensitive: inbox endpoints are scoped to the caller and the environment (ownership and environment check on `{notificationId}`); app
-  preferences check `APPLICATION_NOTIFICATION`; API preferences check the subscription rule; delivery re-checks
-  membership and subscription at send time; preferences and days are validated.
+- Security-sensitive: inbox endpoints are scoped to the caller and the environment (ownership and environment check
+  on `{notificationId}`); app preferences check `APPLICATION_NOTIFICATION`; API preferences check the subscription
+  rule; delivery re-checks membership and subscription at send time; preferences and days are validated.
 - Breaking API changes: none. Portal API and database changes are additive, no data upgrader (Mongo indexes through
   `IndexUpgrader`, JDBC through one changelog per story), the classic preference endpoints are unchanged, nothing
   changes for a user until they opt in.
