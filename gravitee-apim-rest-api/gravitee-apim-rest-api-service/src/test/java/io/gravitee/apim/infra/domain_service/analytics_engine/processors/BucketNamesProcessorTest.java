@@ -36,6 +36,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -84,7 +85,8 @@ class BucketNamesProcessorTest {
             Set.of(API_ID1, API_ID2),
             apiNamesById,
             Map.of(),
-            Map.of()
+            Map.of(),
+            Optional.empty()
         );
 
         when(apiRepository.search(any(ApiCriteria.class), any(ApiFieldFilter.class))).thenReturn(getApiList(API_ID1, API_ID2));
@@ -109,6 +111,103 @@ class BucketNamesProcessorTest {
         }
 
         @Test
+<<<<<<< HEAD
+=======
+        void should_update_api_product_names() {
+            var bucket = newUnnamedBucketResponse(API_PRODUCT_ID1);
+            var response = facetsResponse(bucket);
+
+            var mappedResponse = processor.mapBucketNames(context, List.of(API_PRODUCT), response);
+
+            var expectedResponse = facetsResponse(new FacetBucketResponse(API_PRODUCT_ID1, API_PRODUCT_NAME1, null, bucket.measures()));
+            assertThat(mappedResponse).isEqualTo(expectedResponse);
+        }
+
+        @Test
+        void should_keep_the_key_of_a_plan_that_no_longer_exists() {
+            var bucket = newUnnamedBucketResponse("deleted-plan-id");
+            var response = facetsResponse(bucket);
+
+            var mappedResponse = processor.mapBucketNames(context, List.of(PLAN), response);
+
+            var expectedResponse = facetsResponse(getBucketResponseWithDefaultName(bucket));
+            assertThat(mappedResponse).isEqualTo(expectedResponse);
+        }
+
+        @Test
+        void should_update_api_and_plan_facets() {
+            var innerBucket1 = newUnnamedBucketResponse(PLAN_ID1);
+            var innerBucket2 = newUnnamedBucketResponse(PLAN_ID2);
+            var facetBucketResponse = newUnnamedBucketResponse(API_ID1, List.of(innerBucket1, innerBucket2));
+            var response = facetsResponse(facetBucketResponse);
+
+            var mappedResponse = processor.mapBucketNames(context, List.of(API, PLAN), response);
+
+            var expectedResponse = facetsResponse(
+                getNamedApiBucketResponse(
+                    facetBucketResponse,
+                    List.of(
+                        new FacetBucketResponse(PLAN_ID1, PLAN_NAME1, null, innerBucket1.measures()),
+                        new FacetBucketResponse(PLAN_ID2, PLAN_NAME2, null, innerBucket2.measures())
+                    )
+                )
+            );
+            assertThat(mappedResponse).isEqualTo(expectedResponse);
+        }
+
+        @Test
+        void should_resolve_plan_names_once_for_the_whole_bucket_tree() {
+            var apiBucket1 = newUnnamedBucketResponse(API_ID1, List.of(newUnnamedBucketResponse(PLAN_ID1)));
+            var apiBucket2 = newUnnamedBucketResponse(API_ID2, List.of(newUnnamedBucketResponse(PLAN_ID2)));
+            var response = facetsResponse(apiBucket1, apiBucket2);
+
+            processor.mapBucketNames(context, List.of(API, PLAN), response);
+
+            verify(filterValueNameResolver).resolveNames(
+                eq("DEFAULT"),
+                eq(FilterSpec.Name.PLAN),
+                argThat(ids -> Set.copyOf(ids).equals(Set.of(PLAN_ID1, PLAN_ID2)))
+            );
+            verifyNoMoreInteractions(filterValueNameResolver);
+        }
+
+        @Test
+        void should_keep_the_ids_when_the_name_lookup_fails() {
+            when(filterValueNameResolver.resolveNames(any(), eq(FilterSpec.Name.PLAN), anyList())).thenThrow(
+                new IllegalStateException("plan repository unavailable")
+            );
+            var bucket = newUnnamedBucketResponse(PLAN_ID1);
+            var response = facetsResponse(bucket);
+
+            var mappedResponse = processor.mapBucketNames(context, List.of(PLAN), response);
+
+            assertThat(mappedResponse).isEqualTo(facetsResponse(getBucketResponseWithDefaultName(bucket)));
+        }
+
+        @Test
+        void should_resolve_names_when_the_context_has_no_environment() {
+            var contextWithoutEnvironment = new AnalyticsQueryContext(
+                AuditInfo.builder().build(),
+                new ExecutionContext("DEFAULT"),
+                Set.of(),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Optional.empty()
+            );
+            when(filterValueNameResolver.resolveNames(isNull(), eq(FilterSpec.Name.PLAN), anyList())).thenReturn(
+                Map.of(PLAN_ID1, PLAN_NAME1)
+            );
+            var bucket = newUnnamedBucketResponse(PLAN_ID1);
+            var response = facetsResponse(bucket);
+
+            var mappedResponse = processor.mapBucketNames(contextWithoutEnvironment, List.of(PLAN), response);
+
+            assertThat(mappedResponse).isEqualTo(facetsResponse(new FacetBucketResponse(PLAN_ID1, PLAN_NAME1, null, bucket.measures())));
+        }
+
+        @Test
+>>>>>>> a82217e (fix(analytics): restrict portal analytics to the user's applications)
         void should_update_single_api_name() {
             var facetBucketResponse = newUnnamedBucketResponse(API_ID1);
             var response = facetsResponse(facetBucketResponse);
@@ -667,7 +766,8 @@ class BucketNamesProcessorTest {
                 Set.of(API_ID1, API_ID2),
                 Map.of(),
                 Map.of(),
-                Map.of()
+                Map.of(),
+                Optional.empty()
             );
 
             var facetBucketResponse = newUnnamedBucketResponse(API_ID1);
@@ -689,7 +789,19 @@ class BucketNamesProcessorTest {
 
         @Test
         void should_use_pre_loaded_application_names_and_skip_db_for_facets() {
+<<<<<<< HEAD
             var contextWithApps = context.withApplicationNamesById(applicationNamesById);
+=======
+            var contextWithApps = new AnalyticsQueryContext(
+                context.auditInfo(),
+                context.executionContext(),
+                context.authorizedApiIds(),
+                apiNamesById,
+                applicationNamesById,
+                Map.of(),
+                Optional.empty()
+            );
+>>>>>>> a82217e (fix(analytics): restrict portal analytics to the user's applications)
 
             var facetBucketResponse = newUnnamedBucketResponse(APPLICATION_ID1);
             var response = new FacetsResponse(
@@ -709,7 +821,8 @@ class BucketNamesProcessorTest {
                 Set.of(API_ID1, API_ID2),
                 Map.of(),
                 Map.of(),
-                Map.of()
+                Map.of(),
+                Optional.empty()
             );
 
             var facetBucketResponse = newUnnamedBucketResponse(API_ID1);

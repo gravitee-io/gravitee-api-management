@@ -20,13 +20,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
+import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.infra.domain_service.analytics_engine.ManagementContextLoader;
 import io.gravitee.apim.infra.domain_service.analytics_engine.PortalContextLoader;
+import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ApplicationScopeFilterTransformer;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -50,7 +53,8 @@ class AnalyticsEngineRoutingConfigurationTest {
             Set.of(apiId),
             Map.of(),
             Map.of(),
-            Map.of()
+            Map.of(),
+            Optional.empty()
         );
     }
 
@@ -94,6 +98,15 @@ class AnalyticsEngineRoutingConfigurationTest {
 
             assertThat(resolver.load(auditInfo, AnalyticsScope.MANAGEMENT).authorizedApiIds()).containsExactly("mgmt-api");
             assertThat(resolver.load(auditInfo, AnalyticsScope.PORTAL).authorizedApiIds()).containsExactly("portal-api");
+        }
+    }
+
+    @Test
+    void should_register_a_single_application_scope_filter_transformer_when_both_surfaces_are_loaded_together() {
+        try (var ctx = new AnnotationConfigApplicationContext(ManagementSurfaceConfig.class, PortalSurfaceConfig.class)) {
+            assertThat(ctx.getBeansOfType(QueryFilterTransformer.class).values())
+                .filteredOn(ApplicationScopeFilterTransformer.class::isInstance)
+                .hasSize(1);
         }
     }
 }

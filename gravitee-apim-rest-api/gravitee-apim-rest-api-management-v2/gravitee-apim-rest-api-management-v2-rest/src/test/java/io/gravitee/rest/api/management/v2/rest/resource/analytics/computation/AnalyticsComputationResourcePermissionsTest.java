@@ -43,6 +43,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.BeforeEach;
@@ -147,6 +148,7 @@ class AnalyticsComputationResourcePermissionsTest extends ApiResourceTest {
         when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(Set.of());
     }
 
+<<<<<<< HEAD
     @Test
     void should_return_403_on_measures_when_user_has_no_dashboard_nor_api_permission() {
         givenNoDashboardNorApiPermission();
@@ -213,6 +215,19 @@ class AnalyticsComputationResourcePermissionsTest extends ApiResourceTest {
         );
         when(analyticsQueryContextLoader.load(any(), any())).thenReturn(
             new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
+=======
+    private void givenTheCallerReadsNoApi() {
+        when(analyticsQueryContextLoader.load(any(), any(), any())).thenReturn(
+            new AnalyticsQueryContext(
+                null,
+                new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                Set.of(),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Optional.empty()
+            )
+>>>>>>> a82217e (fix(analytics): restrict portal analytics to the user's applications)
         );
         when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));
 

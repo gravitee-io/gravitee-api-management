@@ -164,6 +164,16 @@ class ManagementContextLoaderTest {
             assertThat(context.apiIdsByType()).isEqualTo(Map.of(ApiType.MESSAGE, Set.of("id2")));
         }
 
+        /** Whoever may read an API in the console reads all its calls, keyless ones included. */
+        @Test
+        void should_not_restrict_the_calls_of_the_readable_apis_to_any_application() {
+            when(readableApis.findReadableApis(EXECUTION_CONTEXT, USER_ID, false, ApiDataKind.AGGREGATES)).thenReturn(List.of(API_2));
+
+            var context = contextLoader.load(auditInfo, ApiDataKind.AGGREGATES);
+
+            assertThat(context.restrictedToApplicationIds()).isEmpty();
+        }
+
         /** An empty scope has to reach the engine as an empty set of API ids, which it turns into a query matching nothing. */
         @Test
         void should_load_an_empty_context_when_the_user_may_read_no_api() {

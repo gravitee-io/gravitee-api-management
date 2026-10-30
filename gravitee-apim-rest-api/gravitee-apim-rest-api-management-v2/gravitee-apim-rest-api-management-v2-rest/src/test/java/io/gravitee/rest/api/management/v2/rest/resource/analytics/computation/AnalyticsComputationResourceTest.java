@@ -65,6 +65,7 @@ import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -138,8 +139,21 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                 )
             );
 
+<<<<<<< HEAD
             when(analyticsQueryContextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
+=======
+            when(analyticsQueryContextLoader.load(any(), any(), any())).thenReturn(
+                new AnalyticsQueryContext(
+                    null,
+                    new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                    Set.of(),
+                    Map.of(),
+                    Map.of(),
+                    Map.of(),
+                    Optional.empty()
+                )
+>>>>>>> a82217e (fix(analytics): restrict portal analytics to the user's applications)
             );
             when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));
         }
@@ -286,8 +300,21 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                 )
             ).thenAnswer(invocation -> invocation.getArgument(2));
 
+<<<<<<< HEAD
             when(analyticsQueryContextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
+=======
+            when(analyticsQueryContextLoader.load(any(), any(), any())).thenReturn(
+                new AnalyticsQueryContext(
+                    null,
+                    new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                    Set.of(),
+                    Map.of(),
+                    Map.of(),
+                    Map.of(),
+                    Optional.empty()
+                )
+>>>>>>> a82217e (fix(analytics): restrict portal analytics to the user's applications)
             );
             when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));
         }
@@ -408,8 +435,21 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                 )
             ).thenAnswer(invocation -> invocation.getArgument(2));
 
+<<<<<<< HEAD
             when(analyticsQueryContextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
+=======
+            when(analyticsQueryContextLoader.load(any(), any(), any())).thenReturn(
+                new AnalyticsQueryContext(
+                    null,
+                    new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                    Set.of(),
+                    Map.of(),
+                    Map.of(),
+                    Map.of(),
+                    Optional.empty()
+                )
+>>>>>>> a82217e (fix(analytics): restrict portal analytics to the user's applications)
             );
             when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));
         }
@@ -507,7 +547,8 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                     Set.of("api-1", "api-2"),
                     Map.of(),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
         }
