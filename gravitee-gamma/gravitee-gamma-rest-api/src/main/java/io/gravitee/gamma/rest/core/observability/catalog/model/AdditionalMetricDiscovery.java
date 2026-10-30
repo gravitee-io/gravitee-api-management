@@ -24,7 +24,8 @@ import java.util.List;
  * @param fields      the additional metric keys found over the last 30 days, the most recently seen first. Built-in
  *                    and declared keys are included, so their {@code lastSeen} can be served.
  * @param refreshedAt when the pass that produced {@code fields} ran.
- * @param truncated   {@code true} when the pass left keys out (cap or timeout).
+ * @param truncated   {@code true} when keys may be missing: the cap left some out, or the pass ran out of time or
+ *                    failed.
  *
  * @author GraviteeSource Team
  */

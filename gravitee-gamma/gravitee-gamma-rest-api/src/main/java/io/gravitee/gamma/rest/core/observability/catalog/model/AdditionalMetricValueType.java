@@ -16,7 +16,6 @@
 package io.gravitee.gamma.rest.core.observability.catalog.model;
 
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterType;
-import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -56,11 +55,5 @@ public enum AdditionalMetricValueType {
             case BOOL -> Optional.of(FilterType.BOOLEAN);
             case STRING, JSON -> Optional.empty();
         };
-    }
-
-    public static Optional<AdditionalMetricValueType> ofRawKey(String rawKey) {
-        return Arrays.stream(values())
-            .filter(type -> rawKey != null && rawKey.startsWith(type.prefix))
-            .findFirst();
     }
 }

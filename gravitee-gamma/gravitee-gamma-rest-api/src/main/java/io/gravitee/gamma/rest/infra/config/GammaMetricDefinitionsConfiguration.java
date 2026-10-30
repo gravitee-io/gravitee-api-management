@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.infra.config;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics_engine.query_service.AdditionalMetricDiscoveryQueryService;
 import io.gravitee.apim.core.analytics_engine.query_service.BuiltInAdditionalMetricsQueryService;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.catalog.port.repository.AdditionalMetricDefinitionRepository;
@@ -24,9 +25,9 @@ import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.A
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricGrammarPort;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.BuiltInAdditionalMetricsPort;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.TrafficReadPermissionPort;
+import io.gravitee.gamma.rest.infra.adapter.AdditionalMetricDiscoveryPortAdapter;
 import io.gravitee.gamma.rest.infra.adapter.AdditionalMetricGrammarPortAdapter;
 import io.gravitee.gamma.rest.infra.adapter.BuiltInAdditionalMetricsPortAdapter;
-import io.gravitee.gamma.rest.infra.adapter.EmptyAdditionalMetricDiscoveryPortAdapter;
 import io.gravitee.gamma.rest.infra.adapter.GammaMetricDefinitionRepositoryAdapter;
 import io.gravitee.gamma.rest.infra.adapter.TrafficReadPermissionPortAdapter;
 import io.gravitee.repository.management.api.GammaMetricDefinitionRepository;
@@ -56,8 +57,11 @@ import org.springframework.context.annotation.Lazy;
 public class GammaMetricDefinitionsConfiguration {
 
     @Bean
-    public AdditionalMetricDefinitionRepository additionalMetricDefinitionRepository(@Lazy GammaMetricDefinitionRepository repository) {
-        return new GammaMetricDefinitionRepositoryAdapter(repository);
+    public AdditionalMetricDefinitionRepository additionalMetricDefinitionRepository(
+        @Lazy GammaMetricDefinitionRepository repository,
+        AdditionalMetricGrammarPort grammar
+    ) {
+        return new GammaMetricDefinitionRepositoryAdapter(repository, grammar);
     }
 
     @Bean
@@ -70,10 +74,12 @@ public class GammaMetricDefinitionsConfiguration {
         return new BuiltInAdditionalMetricsPortAdapter(queryService);
     }
 
-    /** Replaced by the discovery pass of OBS-74. */
     @Bean
-    public AdditionalMetricDiscoveryPort additionalMetricDiscoveryPort() {
-        return new EmptyAdditionalMetricDiscoveryPortAdapter();
+    public AdditionalMetricDiscoveryPort additionalMetricDiscoveryPort(
+        AdditionalMetricDiscoveryQueryService queryService,
+        AdditionalMetricGrammarPort grammar
+    ) {
+        return new AdditionalMetricDiscoveryPortAdapter(queryService, grammar);
     }
 
     @Bean

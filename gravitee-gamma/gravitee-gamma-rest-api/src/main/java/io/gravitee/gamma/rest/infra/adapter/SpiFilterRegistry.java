@@ -56,7 +56,8 @@ import org.slf4j.Logger;
  * contributions; an extensible filter that ends up with no values is omitted.
  *
  * <p>Query-time filtering applies two independent axes ({@link FilterSpec#signals()} and
- * {@link FilterSpec#apiTypes()}) by set intersection; an absent/empty axis is unconstrained.
+ * {@link FilterSpec#apiTypes()}) by set intersection; an absent/empty requested axis is unconstrained. A spec tied to
+ * no API kind answers a narrowing on API kinds as {@link ApiType#admitsUnscoped} says.
  *
  * <p>Contributors are sourced via {@link ServiceLoader} (host classpath only) unless a test passes its own.
  * Cross-plugin module contributions require the separate plugin-handler registration mechanism.
@@ -178,7 +179,9 @@ public class SpiFilterRegistry implements FilterRegistry {
             .values()
             .stream()
             .filter(spec -> matches(spec.signals(), signals))
-            .filter(spec -> matches(spec.apiTypes(), apiTypes))
+            .filter(spec ->
+                spec.apiTypes() == null || spec.apiTypes().isEmpty() ? ApiType.admitsUnscoped(apiTypes) : matches(spec.apiTypes(), apiTypes)
+            )
             .toList();
     }
 

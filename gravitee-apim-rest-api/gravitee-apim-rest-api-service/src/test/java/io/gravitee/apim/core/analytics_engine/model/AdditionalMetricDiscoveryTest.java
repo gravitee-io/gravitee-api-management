@@ -82,6 +82,18 @@ class AdditionalMetricDiscoveryTest {
     }
 
     @Test
+    void should_drop_the_keys_refused_before_capping_so_they_take_no_one_s_place() {
+        var metrics = seenKeys(201);
+        var refused = metrics.get(0).rawKey();
+        var discovery = new AdditionalMetricDiscovery(metrics, REFRESHED_AT, false);
+
+        var capped = discovery.retainKeys(key -> !key.equals(refused)).capDiscovered(Set.of());
+
+        assertThat(capped.metrics()).isEqualTo(metrics.subList(1, 201));
+        assertThat(capped.truncated()).isFalse();
+    }
+
+    @Test
     void should_stay_truncated_when_the_pass_was() {
         var discovery = new AdditionalMetricDiscovery(seenKeys(3), REFRESHED_AT, true);
 

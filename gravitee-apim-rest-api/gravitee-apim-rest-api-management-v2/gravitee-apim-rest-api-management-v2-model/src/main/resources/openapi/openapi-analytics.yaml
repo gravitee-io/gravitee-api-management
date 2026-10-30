@@ -361,6 +361,9 @@ paths:
                   `AUTHZ_SUBJECT_ID`) or one the logs only show. Empty when they read none. Searching `API` by name
                   offers the APIs the caller reads.
                 - NUMBER and STRING filters are not supported and return 400.
+                - An additional metric field `additional-metrics.<rawKey>` (OBS-70 grammar) is accepted as well: a
+                  `keyword_` field returns its distinct values like a KEYWORD filter, any other value type returns 400.
+                  A key holding `/` cannot travel in this path segment.
             tags:
                 - definition
             parameters:
@@ -368,9 +371,12 @@ paths:
                 - name: filterName
                   in: path
                   required: true
-                  description: The filter name for which to retrieve values
+                  description: |
+                      The filter name for which to retrieve values: a `FilterName` value, or an additional metric
+                      field name `additional-metrics.<rawKey>`.
                   schema:
-                      $ref: "#/components/schemas/FilterName"
+                      type: string
+                  example: GATEWAY
                 - name: from
                   in: query
                   required: false

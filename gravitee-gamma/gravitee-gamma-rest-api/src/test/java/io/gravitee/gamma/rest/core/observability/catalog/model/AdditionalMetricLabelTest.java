@@ -22,28 +22,29 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-/** Same cases as the observability library's {@code deriveAdditionalMetricLabel}, so both derive the same label. */
+/**
+ * Same cases as the observability library's {@code deriveAdditionalMetricLabel}, so both derive the same label. The
+ * server labels fields only, typed by the grammar: the library's cases of a key with no type prefix have no field here.
+ */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class AdditionalMetricLabelTest {
 
-    @ParameterizedTest(name = "{0} -> {1}")
+    @ParameterizedTest(name = "{0} -> {2}")
     @CsvSource(
         delimiter = '|',
         value = {
-            "keyword_LLM_modelName | LLM modelName",
-            "long_my-policy_score | My policy score",
-            "long_ | long_",
-            "long_failover_count | Failover count",
-            "keyword_mcp-proxy_tools/call | Mcp proxy tools/call",
-            "json_fraud-signals | Fraud signals",
-            "long_llm-proxy_tokens-received | Llm proxy tokens received",
-            "additional-metrics.long_failover_count | Failover count",
-            "double__checkout--basket__value_ | Checkout basket value",
-            "unknown_type_key | Unknown type key",
-            "bool_-_ | bool_-_",
+            "keyword_LLM_modelName | KEYWORD | LLM modelName",
+            "long_my-policy_score | LONG | My policy score",
+            "long_ | LONG | long_",
+            "long_failover_count | LONG | Failover count",
+            "keyword_mcp-proxy_tools/call | KEYWORD | Mcp proxy tools/call",
+            "json_fraud-signals | JSON | Fraud signals",
+            "long_llm-proxy_tokens-received | LONG | Llm proxy tokens received",
+            "double__checkout--basket__value_ | DOUBLE | Checkout basket value",
+            "bool_-_ | BOOL | bool_-_",
         }
     )
-    void should_derive_the_label_as_the_library_does(String key, String label) {
-        assertThat(AdditionalMetricLabel.derive(key)).isEqualTo(label);
+    void should_derive_the_label_as_the_library_does(String rawKey, AdditionalMetricValueType valueType, String label) {
+        assertThat(AdditionalMetricLabel.derive(new AdditionalMetricField(rawKey, valueType))).isEqualTo(label);
     }
 }

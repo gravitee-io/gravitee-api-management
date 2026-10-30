@@ -46,7 +46,10 @@ class GammaMetricDefinitionRepositoryAdapterTest {
     private static final Instant UPDATED = Instant.parse("2026-10-29T09:00:00Z");
 
     private final GammaMetricDefinitionRepository repository = mock(GammaMetricDefinitionRepository.class);
-    private final GammaMetricDefinitionRepositoryAdapter adapter = new GammaMetricDefinitionRepositoryAdapter(repository);
+    private final GammaMetricDefinitionRepositoryAdapter adapter = new GammaMetricDefinitionRepositoryAdapter(
+        repository,
+        new AdditionalMetricGrammarPortAdapter()
+    );
 
     private static final AdditionalMetricDefinition DEFINITION = new AdditionalMetricDefinition(
         "id-1",

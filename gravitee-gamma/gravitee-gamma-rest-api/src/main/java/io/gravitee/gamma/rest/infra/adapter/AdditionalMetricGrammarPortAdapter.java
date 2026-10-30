@@ -15,9 +15,11 @@
  */
 package io.gravitee.gamma.rest.infra.adapter;
 
+import io.gravitee.apim.core.observability.model.AdditionalMetricField.ValueType;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricField;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricGrammarPort;
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -32,5 +34,13 @@ public class AdditionalMetricGrammarPortAdapter implements AdditionalMetricGramm
         return io.gravitee.apim.core.observability.model.AdditionalMetricField.parse(name).map(field ->
             new AdditionalMetricField(field.rawKey(), AdditionalMetricValueType.valueOf(field.valueType().name()))
         );
+    }
+
+    @Override
+    public Optional<AdditionalMetricValueType> typeDeclaredBy(String rawKey) {
+        return Arrays.stream(ValueType.values())
+            .filter(type -> rawKey != null && rawKey.startsWith(type.prefix()))
+            .findFirst()
+            .map(type -> AdditionalMetricValueType.valueOf(type.name()));
     }
 }

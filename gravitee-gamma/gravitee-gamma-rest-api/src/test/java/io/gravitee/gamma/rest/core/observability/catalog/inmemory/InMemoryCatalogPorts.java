@@ -18,11 +18,14 @@ package io.gravitee.gamma.rest.core.observability.catalog.inmemory;
 import io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinition;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.AnalyticsDefinitionPort;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricDiscovery;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricField;
 import io.gravitee.gamma.rest.core.observability.catalog.model.DiscoveredAdditionalMetric;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricDiscoveryPort;
+import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricGrammarPort;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.BuiltInAdditionalMetricsPort;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.TrafficReadPermissionPort;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
+import io.gravitee.gamma.rest.infra.adapter.AdditionalMetricGrammarPortAdapter;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,6 +46,9 @@ public class InMemoryCatalogPorts
     private final List<MetricDefinition> builtInMetrics = new ArrayList<>();
     private AdditionalMetricDiscovery discovery = AdditionalMetricDiscovery.empty(REFRESHED_AT);
     private boolean readsTraffic = true;
+    private Set<String> lastUncountedKeys = Set.of();
+    private int discoveries;
+    private final AdditionalMetricGrammarPort grammar = new AdditionalMetricGrammarPortAdapter();
 
     public InMemoryCatalogPorts givenBuiltIn(String rawKey, String... names) {
         builtIns.put(rawKey, Set.of(names));
@@ -84,9 +90,35 @@ public class InMemoryCatalogPorts
             .toList();
     }
 
+    /** The grammar's filter, then the platform's cap, applied to the configured pass, as the adapter applies them. */
     @Override
-    public AdditionalMetricDiscovery discover(String organizationId, String environmentId) {
-        return discovery;
+    public AdditionalMetricDiscovery discover(String organizationId, String environmentId, Set<String> uncountedKeys) {
+        discoveries++;
+        lastUncountedKeys = Set.copyOf(uncountedKeys);
+        var capped = PlatformDiscoveryCap.cap(
+            discovery
+                .fields()
+                .stream()
+                .filter(field -> grammar.parse(AdditionalMetricField.NAME_PREFIX + field.rawKey()).isPresent())
+                .map(field -> new PlatformDiscoveryCap.Key(field.rawKey(), field.lastSeen()))
+                .toList(),
+            discovery.truncated(),
+            uncountedKeys
+        );
+        Map<String, DiscoveredAdditionalMetric> byKey = new HashMap<>();
+        discovery.fields().forEach(field -> byKey.putIfAbsent(field.rawKey(), field));
+        var kept = capped.rawKeys().stream().map(byKey::get).toList();
+        return new AdditionalMetricDiscovery(kept, discovery.refreshedAt(), capped.truncated());
+    }
+
+    /** How many discoveries were asked. */
+    public int discoveries() {
+        return discoveries;
+    }
+
+    /** The keys the last discovery was told never count against the cap. */
+    public Set<String> lastUncountedKeys() {
+        return lastUncountedKeys;
     }
 
     @Override

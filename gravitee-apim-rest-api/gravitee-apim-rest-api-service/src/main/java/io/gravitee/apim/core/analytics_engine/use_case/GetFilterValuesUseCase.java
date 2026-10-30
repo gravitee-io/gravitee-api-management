@@ -20,19 +20,23 @@ import io.gravitee.apim.core.analytics.domain_service.AiWorkspaceAnalyticsApisDo
 import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
+import io.gravitee.apim.core.analytics_engine.model.AdditionalMetricName;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
+import io.gravitee.apim.core.analytics_engine.model.FilterName;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterValue;
 import io.gravitee.apim.core.analytics_engine.model.FilterValuesPage;
 import io.gravitee.apim.core.analytics_engine.model.TrafficScope;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.query_service.FilterValuesQueryService;
+import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.query_service.ApplicationQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.apim.core.observability.model.Signal;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
@@ -92,6 +96,7 @@ public class GetFilterValuesUseCase {
     private final PlanQueryService planQueryService;
     private final ApiProductQueryService apiProductQueryService;
     private final AiWorkspaceAnalyticsApisDomainService workspaceApis;
+    private final AnalyticsQueryContextProvider analyticsQueryContextProvider;
 
     public record Input(
         AuditInfo auditInfo,
@@ -175,30 +180,57 @@ public class GetFilterValuesUseCase {
             throw new ValidationDomainException("perPage must be between 1 and 100", Map.of("perPage", String.valueOf(input.perPage())));
         }
 
-        var filterSpecName = validateFilterName(input.filterName());
+        return switch (validateFilterName(input.filterName())) {
+            case FilterSpec.Name builtIn -> builtInValues(input, builtIn);
+            case AdditionalMetricName additionalMetric -> additionalMetricValues(input, additionalMetric);
+        };
+    }
+
+    private Output builtInValues(Input input, FilterSpec.Name filterSpecName) {
         var filterSpec = findFilterSpec(filterSpecName);
-
-        var dataKind = dataKindOf(filterSpec);
-        var analyticsContext = withWorkspaceApis(input, dataKind, contextLoader.load(input.auditInfo(), input.scope(), dataKind));
-        TrafficScope trafficScope = null;
-        if (input.apiTypes() != null && !input.apiTypes().isEmpty()) {
-            var ofTheTypes = narrowByApiTypes(analyticsContext, input.apiTypes());
-            if (input.trafficEntrypointIds().isEmpty()) {
-                analyticsContext = ofTheTypes;
-            } else {
-                // Any readable API may have calls through those entrypoints: the context stays whole.
-                trafficScope = new TrafficScope(ofTheTypes.authorizedApiIds(), input.trafficEntrypointIds());
-            }
-        }
-
+        var scope = scope(input, dataKindOf(filterSpec));
         return switch (filterSpec.type()) {
             case ENUM -> handleEnum(filterSpec, input);
-            case KEYWORD -> handleKeyword(input, filterSpecName, analyticsContext, trafficScope);
-            case NUMBER, STRING -> throw new ValidationDomainException(
-                "Filter type " + filterSpec.type() + " does not support value listing",
-                Map.of("filterName", input.filterName(), "filterType", filterSpec.type().name())
-            );
+            case KEYWORD -> handleKeyword(input, filterSpecName, scope.context(), scope.trafficScope());
+            case NUMBER, STRING -> throw valueListingNotSupported(input, filterSpec.type().name());
         };
+    }
+
+    /**
+     * The values stored under a keyword additional metric field, read like those of a built-in keyword. The field is an
+     * aggregate unless it holds the values of a built-in identifying a caller (OBS-70, security rule).
+     */
+    private Output additionalMetricValues(Input input, AdditionalMetricName name) {
+        var valueType = name.field().valueType();
+        if (valueType != AdditionalMetricField.ValueType.KEYWORD) {
+            throw valueListingNotSupported(input, valueType.name());
+        }
+        var dataKind = analyticsQueryContextProvider.identifiesCaller(name.field()) ? ApiDataKind.PER_REQUEST : ApiDataKind.AGGREGATES;
+        var scope = scope(input, dataKind);
+        return handleDirectValueKeyword(input, name, scope.context(), scope.trafficScope());
+    }
+
+    private static ValidationDomainException valueListingNotSupported(Input input, String filterType) {
+        return new ValidationDomainException(
+            "Filter type " + filterType + " does not support value listing",
+            Map.of("filterName", input.filterName(), "filterType", filterType)
+        );
+    }
+
+    /** The calls the values are read from: the APIs the caller reads, narrowed to the requested API kinds. */
+    private record Scope(AnalyticsQueryContext context, TrafficScope trafficScope) {}
+
+    private Scope scope(Input input, ApiDataKind dataKind) {
+        var analyticsContext = withWorkspaceApis(input, dataKind, contextLoader.load(input.auditInfo(), input.scope(), dataKind));
+        if (input.apiTypes() == null || input.apiTypes().isEmpty()) {
+            return new Scope(analyticsContext, null);
+        }
+        var ofTheTypes = narrowByApiTypes(analyticsContext, input.apiTypes());
+        if (input.trafficEntrypointIds().isEmpty()) {
+            return new Scope(ofTheTypes, null);
+        }
+        // Any readable API may have calls through those entrypoints: the context stays whole.
+        return new Scope(analyticsContext, new TrafficScope(ofTheTypes.authorizedApiIds(), input.trafficEntrypointIds()));
     }
 
     private Output handleEnum(FilterSpec filterSpec, Input input) {
@@ -283,7 +315,7 @@ public class GetFilterValuesUseCase {
     /** A caller scoped neither by kind nor by API product sends exactly the query it always did. */
     private FilterValuesPage searchValues(
         Input input,
-        FilterSpec.Name filterName,
+        FilterName filterName,
         int page,
         int size,
         String searchPattern,
@@ -608,7 +640,7 @@ public class GetFilterValuesUseCase {
 
     private Output handleDirectValueKeyword(
         Input input,
-        FilterSpec.Name filterSpecName,
+        FilterName filterSpecName,
         AnalyticsQueryContext analyticsContext,
         TrafficScope trafficScope
     ) {
@@ -624,14 +656,17 @@ public class GetFilterValuesUseCase {
         return new Output(page);
     }
 
-    private FilterSpec.Name validateFilterName(String filterName) {
+    /** A built-in offered for value listing, else a well-formed additional metric field name (OBS-70). */
+    private FilterName validateFilterName(String filterName) {
         var offered = Arrays.stream(FilterSpec.Name.values())
             .filter(name -> !name.isInternal())
             .toList();
         return offered
             .stream()
             .filter(name -> name.name().equals(filterName))
+            .<FilterName>map(name -> name)
             .findFirst()
+            .or(() -> FilterName.parse(filterName).filter(AdditionalMetricName.class::isInstance))
             .orElseThrow(() ->
                 new ValidationDomainException(
                     "Invalid filter name",

@@ -16,10 +16,12 @@
 package io.gravitee.gamma.rest.core.observability.catalog.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinition;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.AnalyticsDefinitionPort;
 import io.gravitee.gamma.rest.core.observability.catalog.domain_service.AdditionalMetricCatalogDomainService;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricCatalog;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricDiscovery;
 import io.gravitee.gamma.rest.core.observability.catalog.port.repository.AdditionalMetricDefinitionRepository;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricDiscoveryPort;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.BuiltInAdditionalMetricsPort;
@@ -55,14 +57,21 @@ public class ListMetricDefinitionsUseCase {
     public record Output(AdditionalMetricCatalog catalog) {}
 
     public Output execute(Input input) {
+        var builtInNamesByRawKey = builtInAdditionalMetrics.builtInNamesByRawKey();
+        var records = repository.findByEnvironmentId(input.environmentId());
+        var readsTraffic = trafficReadPermission.readsTraffic(input.organizationId(), input.environmentId());
+        // A caller who may not read the traffic gets nothing of a discovery: none is run for them.
+        var discovered = readsTraffic
+            ? discovery.discover(input.organizationId(), input.environmentId(), catalog.keysListedElsewhere(builtInNamesByRawKey, records))
+            : AdditionalMetricDiscovery.empty(TimeProvider.instantNow());
         return new Output(
             catalog.merge(
-                builtInAdditionalMetrics.builtInNamesByRawKey(),
+                builtInNamesByRawKey,
                 filterRegistry.getFilters(Set.of(), Set.of()),
                 builtInMetrics().values(),
-                repository.findByEnvironmentId(input.environmentId()),
-                discovery.discover(input.organizationId(), input.environmentId()),
-                trafficReadPermission.readsTraffic(input.organizationId(), input.environmentId())
+                records,
+                discovered,
+                readsTraffic
             )
         );
     }

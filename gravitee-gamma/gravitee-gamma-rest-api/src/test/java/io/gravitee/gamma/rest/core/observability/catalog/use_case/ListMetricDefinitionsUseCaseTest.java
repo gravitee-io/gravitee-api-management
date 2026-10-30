@@ -28,8 +28,10 @@ import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.catalog.model.DiscoveredAdditionalMetric;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -199,7 +201,7 @@ class ListMetricDefinitionsUseCaseTest {
     }
 
     @Test
-    void should_serve_no_discovered_entry_no_last_seen_and_no_truncation_to_a_caller_who_does_not_read_traffic() {
+    void should_serve_no_discovered_entry_no_last_seen_and_no_truncation_and_run_no_discovery_for_a_caller_who_does_not_read_traffic() {
         fixture.ports.givenBuiltIn("keyword_mcp-proxy_tools/call", "MCP_PROXY_TOOL");
         fixture.givenDeclared(BASKET);
         fixture.ports.givenDiscovered(
@@ -219,7 +221,7 @@ class ListMetricDefinitionsUseCaseTest {
             .containsExactly(CatalogOrigin.BUILT_IN, CatalogOrigin.DECLARED);
         assertThat(catalog.entries()).allSatisfy(entry -> assertThat(entry.lastSeen()).isNull());
         assertThat(catalog.truncated()).isFalse();
-        assertThat(catalog.refreshedAt()).isEqualTo(InMemoryCatalogPorts.REFRESHED_AT);
+        assertThat(fixture.ports.discoveries()).isZero();
     }
 
     @Test
@@ -234,6 +236,37 @@ class ListMetricDefinitionsUseCaseTest {
         fixture.givenDeclared(OTHER_ENVIRONMENT, BASKET, null, null, true);
 
         assertThat(fixture.listed().entries()).isEmpty();
+    }
+
+    @Test
+    void should_list_the_200_most_recently_seen_discovered_keys_never_counting_built_in_or_declared_ones() {
+        fixture.givenDeclared(BASKET);
+        fixture.ports.givenBuiltIn("keyword_mcp-proxy_tools/call", "MCP_PROXY_TOOL");
+        List<DiscoveredAdditionalMetric> found = new ArrayList<>();
+        IntStream.range(0, 201).forEach(i ->
+            found.add(new DiscoveredAdditionalMetric("long_key-%03d".formatted(i), AdditionalMetricValueType.LONG, SEEN.minusSeconds(i)))
+        );
+        found.add(new DiscoveredAdditionalMetric("double_checkout_basket-value", AdditionalMetricValueType.DOUBLE, SEEN.minusSeconds(500)));
+        found.add(
+            new DiscoveredAdditionalMetric("keyword_mcp-proxy_tools/call", AdditionalMetricValueType.KEYWORD, SEEN.minusSeconds(600))
+        );
+        fixture.ports.givenDiscovered(found, false);
+
+        var catalog = fixture.listed();
+
+        assertThat(catalog.entries())
+            .filteredOn(entry -> entry.origin() == CatalogOrigin.DISCOVERED)
+            .hasSize(200);
+        assertThat(entry(catalog.entries(), "additional-metrics.long_key-200")).isEmpty();
+        assertThat(entry(catalog.entries(), BASKET)).hasValueSatisfying(entry ->
+            assertThat(entry.lastSeen()).isEqualTo(SEEN.minusSeconds(500))
+        );
+        assertThat(builtIn("keyword_mcp-proxy_tools/call").lastSeen()).isEqualTo(SEEN.minusSeconds(600));
+        assertThat(catalog.truncated()).isTrue();
+        assertThat(fixture.ports.lastUncountedKeys()).containsExactlyInAnyOrder(
+            "double_checkout_basket-value",
+            "keyword_mcp-proxy_tools/call"
+        );
     }
 
     private static DiscoveredAdditionalMetric discovered(String rawKey, AdditionalMetricValueType valueType) {

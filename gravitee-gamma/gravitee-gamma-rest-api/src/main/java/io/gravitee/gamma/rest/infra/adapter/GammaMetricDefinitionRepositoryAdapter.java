@@ -20,8 +20,8 @@ import io.gravitee.gamma.rest.core.observability.catalog.exception.DuplicateMetr
 import io.gravitee.gamma.rest.core.observability.catalog.exception.MetricDefinitionNotFoundException;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricDefinition;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricField;
-import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
 import io.gravitee.gamma.rest.core.observability.catalog.port.repository.AdditionalMetricDefinitionRepository;
+import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricGrammarPort;
 import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GammaMetricDefinitionRepository;
@@ -40,11 +40,12 @@ import lombok.RequiredArgsConstructor;
 public class GammaMetricDefinitionRepositoryAdapter implements AdditionalMetricDefinitionRepository {
 
     private final GammaMetricDefinitionRepository repository;
+    private final AdditionalMetricGrammarPort grammar;
 
     @Override
     public List<AdditionalMetricDefinition> findByEnvironmentId(String environmentId) {
         return RepositoryCalls.wrap(
-            () -> repository.findByEnvironmentId(environmentId).stream().map(GammaMetricDefinitionRepositoryAdapter::toCore).toList(),
+            () -> repository.findByEnvironmentId(environmentId).stream().map(this::toCore).toList(),
             "Failed to list the metric definitions of environment '%s'".formatted(environmentId)
         );
     }
@@ -52,7 +53,7 @@ public class GammaMetricDefinitionRepositoryAdapter implements AdditionalMetricD
     @Override
     public Optional<AdditionalMetricDefinition> findByEnvironmentIdAndRawKey(String environmentId, String rawKey) {
         return RepositoryCalls.wrap(
-            () -> repository.findByEnvironmentIdAndRawKey(environmentId, rawKey).map(GammaMetricDefinitionRepositoryAdapter::toCore),
+            () -> repository.findByEnvironmentIdAndRawKey(environmentId, rawKey).map(this::toCore),
             "Failed to fetch the metric definition '%s' of environment '%s'".formatted(rawKey, environmentId)
         );
     }
@@ -92,14 +93,18 @@ public class GammaMetricDefinitionRepositoryAdapter implements AdditionalMetricD
         );
     }
 
-    private static AdditionalMetricDefinition toCore(GammaMetricDefinition source) {
-        var valueType = AdditionalMetricValueType.ofRawKey(source.getRawKey()).orElseThrow(() ->
-            new TechnicalDomainException("Persisted metric definition '%s' has no known type prefix".formatted(source.getRawKey()))
-        );
+    private AdditionalMetricDefinition toCore(GammaMetricDefinition source) {
+        var field = grammar
+            .parse(AdditionalMetricField.NAME_PREFIX + source.getRawKey())
+            .orElseThrow(() ->
+                new TechnicalDomainException(
+                    "Persisted metric definition '%s' is not an additional metric key".formatted(source.getRawKey())
+                )
+            );
         return new AdditionalMetricDefinition(
             source.getId(),
             source.getEnvironmentId(),
-            new AdditionalMetricField(source.getRawKey(), valueType),
+            field,
             source.getLabel(),
             source.getDescription(),
             source.getUnit(),

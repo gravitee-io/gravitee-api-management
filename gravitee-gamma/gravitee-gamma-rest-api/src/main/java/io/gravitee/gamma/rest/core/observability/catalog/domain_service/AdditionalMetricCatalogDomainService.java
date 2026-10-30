@@ -74,62 +74,141 @@ public class AdditionalMetricCatalogDomainService {
         AdditionalMetricDiscovery discovery,
         boolean readsTraffic
     ) {
-        Map<String, Instant> lastSeen = readsTraffic
-            ? discovery
-                .fields()
-                .stream()
-                .collect(Collectors.toMap(DiscoveredAdditionalMetric::rawKey, DiscoveredAdditionalMetric::lastSeen, (a, b) -> a))
-            : Map.of();
         Map<String, FilterSpec> specsByName = builtInSpecs
             .stream()
             .collect(Collectors.toMap(FilterSpec::name, Function.identity(), (a, b) -> a));
         Map<String, Description> definedByName = describe(builtInMetrics);
 
         List<AdditionalMetricCatalogEntry> entries = new ArrayList<>();
-        Set<String> taken = new HashSet<>(builtInNamesByRawKey.keySet());
-        new TreeMap<>(builtInNamesByRawKey).forEach((rawKey, names) ->
-            builtInEntry(rawKey, names, specsByName, definedByName, lastSeen.get(rawKey)).ifPresent(entries::add)
-        );
-        for (AdditionalMetricDefinition record : records) {
-            if (taken.add(record.field().rawKey())) {
-                entries.add(declaredEntry(record, lastSeen.get(record.field().rawKey())));
+        for (Resolved key : resolve(builtInNamesByRawKey, records, readsTraffic ? Optional.of(discovery) : Optional.empty())) {
+            switch (key.origin()) {
+                case BUILT_IN -> builtInEntry(key.field(), key.builtInNames(), specsByName, definedByName, key.lastSeen()).ifPresent(
+                    entries::add
+                );
+                case DECLARED -> entries.add(declaredEntry(key.record(), key.lastSeen()));
+                case DISCOVERED -> entries.add(discoveredEntry(key.field(), key.lastSeen()));
             }
-        }
-        if (readsTraffic) {
-            discovery
-                .fields()
-                .stream()
-                .filter(discovered -> taken.add(discovered.rawKey()))
-                .flatMap(discovered -> keys.discovered(discovered.rawKey(), discovered.valueType()).stream())
-                .filter(field -> !field.isReserved())
-                .map(field -> discoveredEntry(field, lastSeen.get(field.rawKey())))
-                .forEach(entries::add);
         }
         return new AdditionalMetricCatalog(entries, discovery.refreshedAt(), readsTraffic && discovery.truncated());
     }
 
+    /** The keys listed under another origin than {@code DISCOVERED}: they neither count against the cap nor are left out. */
+    public Set<String> keysListedElsewhere(Map<String, Set<String>> builtInNamesByRawKey, List<AdditionalMetricDefinition> records) {
+        Set<String> keys = new HashSet<>(builtInNamesByRawKey.keySet());
+        records.forEach(record -> keys.add(record.field().rawKey()));
+        return keys;
+    }
+
     /**
-     * The records the filter catalog offers: exposed ones of a filterable value type, as {@code DECLARED} entries of
-     * the logs and analytics signals. A record is tied to no API kind: a narrowing on API kinds keeps it for any kind
-     * and drops it for the decisions screen ({@code AUTHZ_DECISION}) alone. A key a built-in reads is left to the
-     * built-in entry. {@code lastSeen} is not served here.
+     * Whether a narrowing admits declared and discovered entries: they serve the logs and analytics signals and every API
+     * kind but the decisions screen ({@link ApiType#admitsUnscoped}).
      */
-    public List<FilterSpec> declaredFilterSpecs(
+    public boolean admitsDynamicEntries(Set<Signal> signals, Set<ApiType> apiTypes) {
+        return intersects(signals, DYNAMIC_SIGNALS) && ApiType.admitsUnscoped(apiTypes);
+    }
+
+    /**
+     * The filter catalog of the environment, one entry per key:
+     * <ul>
+     *   <li>the built-in specs, those reading an additional metric flagged {@code BUILT_IN} with its key and value type;</li>
+     *   <li>the exposed records of a filterable value type, as {@code DECLARED} entries;</li>
+     *   <li>for a caller who reads the environment's traffic, the other discovered keys of a filterable value type, as
+     *       {@code DISCOVERED} entries labelled from their key.</li>
+     * </ul>
+     * <p>{@code lastSeen} is served on every flagged entry, to a traffic reader only. Declared and discovered entries
+     * follow {@link #admitsDynamicEntries}. A declared key keeps its origin whatever the discovery finds: a record that
+     * is not exposed hides its key from the catalog.
+     *
+     * @param discovery the environment's discovery, empty when the caller may not read its traffic
+     */
+    public List<FilterSpec> filterCatalog(
+        List<FilterSpec> builtInSpecs,
+        Map<String, Set<String>> builtInNamesByRawKey,
         List<AdditionalMetricDefinition> records,
-        Set<String> builtInRawKeys,
+        Optional<AdditionalMetricDiscovery> discovery,
         Set<Signal> signals,
         Set<ApiType> apiTypes
     ) {
-        if (!intersects(signals, DYNAMIC_SIGNALS) || !intersects(apiTypes, ApiType.API_KINDS)) {
-            return List.of();
-        }
-        return records
+        List<Resolved> resolved = resolve(builtInNamesByRawKey, records, discovery);
+        Map<String, Resolved> builtInByName = new HashMap<>();
+        resolved
             .stream()
-            .filter(AdditionalMetricDefinition::exposed)
-            .filter(record -> !record.field().valueType().isDetailOnly())
-            .filter(record -> !builtInRawKeys.contains(record.field().rawKey()))
-            .map(AdditionalMetricCatalogDomainService::filterSpec)
-            .toList();
+            .filter(key -> key.origin() == CatalogOrigin.BUILT_IN)
+            .forEach(key -> key.builtInNames().forEach(name -> builtInByName.putIfAbsent(name, key)));
+        List<FilterSpec> catalog = new ArrayList<>();
+        builtInSpecs.forEach(spec ->
+            catalog.add(
+                Optional.ofNullable(builtInByName.get(spec.name()))
+                    .map(key -> spec.withCatalog(flags(key)))
+                    .orElse(spec)
+            )
+        );
+        if (!admitsDynamicEntries(signals, apiTypes)) {
+            return catalog;
+        }
+        for (Resolved key : resolved) {
+            if (key.field().valueType().isDetailOnly()) {
+                continue;
+            }
+            switch (key.origin()) {
+                case BUILT_IN -> {}
+                case DECLARED -> {
+                    if (key.record().exposed()) {
+                        catalog.add(dynamicSpec(key, key.record().effectiveLabel()));
+                    }
+                }
+                case DISCOVERED -> catalog.add(dynamicSpec(key, key.field().derivedLabel()));
+            }
+        }
+        return catalog;
+    }
+
+    /**
+     * One key of the environment, its origin resolved {@code BUILT_IN} › {@code DECLARED} › {@code DISCOVERED}.
+     *
+     * @param builtInNames the built-in names reading the key, on a {@code BUILT_IN} key
+     * @param record       the record of a {@code DECLARED} key
+     */
+    private record Resolved(
+        AdditionalMetricField field,
+        CatalogOrigin origin,
+        Set<String> builtInNames,
+        AdditionalMetricDefinition record,
+        Instant lastSeen
+    ) {}
+
+    /**
+     * Every key once: the keys built-ins read, by key, then the records, then the discovered keys of the grammar that
+     * are not reserved, when a discovery is given. A key a built-in reads is never declared nor discovered, a declared
+     * key never discovered. {@code lastSeen} comes from the discovery. A built-in key outside the grammar yields no
+     * entry but stays taken.
+     */
+    private List<Resolved> resolve(
+        Map<String, Set<String>> builtInNamesByRawKey,
+        List<AdditionalMetricDefinition> records,
+        Optional<AdditionalMetricDiscovery> discovery
+    ) {
+        Map<String, Instant> lastSeen = discovery.map(AdditionalMetricCatalogDomainService::lastSeen).orElse(Map.of());
+        List<Resolved> resolved = new ArrayList<>();
+        Set<String> taken = new HashSet<>(builtInNamesByRawKey.keySet());
+        new TreeMap<>(builtInNamesByRawKey).forEach((rawKey, names) ->
+            keys
+                .fieldOfKey(rawKey)
+                .ifPresent(field -> resolved.add(new Resolved(field, CatalogOrigin.BUILT_IN, names, null, lastSeen.get(rawKey))))
+        );
+        for (AdditionalMetricDefinition record : records) {
+            if (taken.add(record.field().rawKey())) {
+                resolved.add(new Resolved(record.field(), CatalogOrigin.DECLARED, Set.of(), record, lastSeen.get(record.field().rawKey())));
+            }
+        }
+        discovery
+            .stream()
+            .flatMap(found -> found.fields().stream())
+            .filter(discovered -> taken.add(discovered.rawKey()))
+            .flatMap(discovered -> keys.discovered(discovered.rawKey(), discovered.valueType()).stream())
+            .filter(field -> !field.isReserved())
+            .forEach(field -> resolved.add(new Resolved(field, CatalogOrigin.DISCOVERED, Set.of(), null, lastSeen.get(field.rawKey()))));
+        return resolved;
     }
 
     /** An axis passes when nothing is requested on it, or when the request shares a value with {@code offered}. */
@@ -137,18 +216,28 @@ public class AdditionalMetricCatalogDomainService {
         return requested == null || requested.isEmpty() || requested.stream().anyMatch(offered::contains);
     }
 
-    private static FilterSpec filterSpec(AdditionalMetricDefinition record) {
-        AdditionalMetricField field = record.field();
+    private static Map<String, Instant> lastSeen(AdditionalMetricDiscovery discovery) {
+        return discovery
+            .fields()
+            .stream()
+            .collect(Collectors.toMap(DiscoveredAdditionalMetric::rawKey, DiscoveredAdditionalMetric::lastSeen, (a, b) -> a));
+    }
+
+    private static CatalogFlags flags(Resolved key) {
+        return new CatalogFlags(key.origin(), key.field().rawKey(), key.field().valueType(), key.lastSeen(), true);
+    }
+
+    private static FilterSpec dynamicSpec(Resolved key, String label) {
         return new FilterSpec(
-            field.name(),
-            record.effectiveLabel(),
-            field.valueType().filterType().orElseThrow(),
-            operators(field.valueType()),
+            key.field().name(),
+            label,
+            key.field().valueType().filterType().orElseThrow(),
+            operators(key.field().valueType()),
             null,
             null,
             DYNAMIC_SIGNALS,
             Set.of(),
-            new CatalogFlags(CatalogOrigin.DECLARED, field.rawKey(), field.valueType(), null, true)
+            flags(key)
         );
     }
 
@@ -166,17 +255,15 @@ public class AdditionalMetricCatalogDomainService {
      * taken so no discovered entry duplicates it.
      */
     private static Optional<AdditionalMetricCatalogEntry> builtInEntry(
-        String rawKey,
+        AdditionalMetricField field,
         Set<String> names,
         Map<String, FilterSpec> specsByName,
         Map<String, Description> definedByName,
         Instant lastSeen
     ) {
-        Optional<AdditionalMetricValueType> valueType = AdditionalMetricValueType.ofRawKey(rawKey);
-        if (names.isEmpty() || valueType.isEmpty()) {
+        if (names.isEmpty()) {
             return Optional.empty();
         }
-        AdditionalMetricField field = new AdditionalMetricField(rawKey, valueType.get());
         List<String> sortedNames = names.stream().sorted().toList();
         Optional<Description> description = sortedNames
             .stream()
