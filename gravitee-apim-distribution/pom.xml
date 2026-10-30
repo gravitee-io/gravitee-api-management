@@ -168,7 +168,7 @@
     <gravitee-policy-traffic-shadowing.version>3.0.3</gravitee-policy-traffic-shadowing.version>
     <gravitee-policy-transform-avro-json.version>5.2.5</gravitee-policy-transform-avro-json.version>
     <gravitee-policy-transform-avro-protobuf.version>3.0.0-alpha.2</gravitee-policy-transform-avro-protobuf.version>
-    <gravitee-policy-transform-protobuf-json.version>3.0.0-alpha.2</gravitee-policy-transform-protobuf-json.version>
+    <gravitee-policy-transform-protobuf-json.version>3.0.0-alpha.3</gravitee-policy-transform-protobuf-json.version>
     <gravitee-policy-transformheaders.version>5.2.1</gravitee-policy-transformheaders.version>
     <gravitee-policy-transformqueryparams.version>2.0.0</gravitee-policy-transformqueryparams.version>
     <gravitee-policy-transform-status-code.version>2.0.0</gravitee-policy-transform-status-code.version>
