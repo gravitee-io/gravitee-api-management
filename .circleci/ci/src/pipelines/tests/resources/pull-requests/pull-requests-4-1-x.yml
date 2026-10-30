@@ -748,7 +748,11 @@ jobs:
           path: << parameters.apim-ui-project-workdir >>/coverage/junit.xml
   job-console-webui-build:
     docker:
+<<<<<<< HEAD
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: large
     steps:
       - checkout
@@ -854,7 +858,11 @@ jobs:
           path: << parameters.apim-ui-project-workdir >>/coverage/junit.xml
   job-portal-webui-build:
     docker:
+<<<<<<< HEAD
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: large
     steps:
       - checkout
@@ -889,7 +897,11 @@ jobs:
             - gravitee-apim-portal-webui/dist
   job-gamma-webui-build:
     docker:
+<<<<<<< HEAD
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: large
     steps:
       - checkout
@@ -1181,7 +1193,11 @@ jobs:
           jobName: job-publish-snapshot
   job-release-helm:
     docker:
+<<<<<<< HEAD
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: medium
     steps:
       - checkout

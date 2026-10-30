@@ -326,7 +326,11 @@ jobs:
             }
   job-console-webui-build:
     docker:
+<<<<<<< HEAD:.circleci/ci/src/pipelines/tests/resources/full-release/release-4-2-0-dry-run.yml
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1):.circleci/ci/src/pipelines/tests/resources/distribution-release/release-4-2-0-dry-run.yml
     resource_class: large
     steps:
       - checkout
@@ -349,7 +353,11 @@ jobs:
             - gravitee-apim-console-webui/dist
   job-portal-webui-build:
     docker:
+<<<<<<< HEAD:.circleci/ci/src/pipelines/tests/resources/full-release/release-4-2-0-dry-run.yml
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1):.circleci/ci/src/pipelines/tests/resources/distribution-release/release-4-2-0-dry-run.yml
     resource_class: large
     steps:
       - checkout
@@ -384,7 +392,11 @@ jobs:
             - gravitee-apim-portal-webui/dist
   job-gamma-webui-build:
     docker:
+<<<<<<< HEAD:.circleci/ci/src/pipelines/tests/resources/full-release/release-4-2-0-dry-run.yml
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1):.circleci/ci/src/pipelines/tests/resources/distribution-release/release-4-2-0-dry-run.yml
     resource_class: large
     steps:
       - checkout
@@ -735,7 +747,11 @@ jobs:
           folder-to-sync: folder_to_sync
   job-release-helm:
     docker:
+<<<<<<< HEAD:.circleci/ci/src/pipelines/tests/resources/full-release/release-4-2-0-dry-run.yml
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1):.circleci/ci/src/pipelines/tests/resources/distribution-release/release-4-2-0-dry-run.yml
     resource_class: medium
     steps:
       - checkout
@@ -881,7 +897,11 @@ jobs:
                 push --yes --skip-errors --verbose graviteeio/nightly/el/7 /packages/*.rpm
   job-release-notes-apim:
     docker:
+<<<<<<< HEAD:.circleci/ci/src/pipelines/tests/resources/full-release/release-4-2-0-dry-run.yml
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1):.circleci/ci/src/pipelines/tests/resources/distribution-release/release-4-2-0-dry-run.yml
     resource_class: medium
     steps:
       - checkout
