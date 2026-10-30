@@ -36,7 +36,7 @@ describe('RenewDictionaryPropertySheet', () => {
     it('shows the property key read-only and asks for a new plaintext value', () => {
         renderSheet();
 
-        expect(screen.getByRole('heading', { name: 'Renew Encryption' })).not.toBeNull();
+        expect(screen.getByRole('heading', { name: 'Replace Value' })).not.toBeNull();
         expect(screen.getByText('TOKEN')).not.toBeNull();
         expect(screen.getByText('Enter a new plaintext value. It will be re-encrypted on save.')).not.toBeNull();
         const value = screen.getByLabelText(/^Value/) as HTMLInputElement;
@@ -47,21 +47,21 @@ describe('RenewDictionaryPropertySheet', () => {
     it('cannot be submitted without a value', () => {
         renderSheet();
 
-        expect(screen.getByRole('button', { name: 'Renew' }).hasAttribute('disabled')).toBe(true);
+        expect(screen.getByRole('button', { name: 'Replace' }).hasAttribute('disabled')).toBe(true);
     });
 
     it('cannot be submitted with a value made only of spaces', () => {
         const { onSubmit } = renderSheet();
         fireEvent.change(screen.getByLabelText(/^Value/), { target: { value: '   ' } });
 
-        expect(screen.getByRole('button', { name: 'Renew' }).hasAttribute('disabled')).toBe(true);
+        expect(screen.getByRole('button', { name: 'Replace' }).hasAttribute('disabled')).toBe(true);
         expect(onSubmit).not.toHaveBeenCalled();
     });
 
     it('submits the new plaintext for the key', async () => {
         const { onSubmit } = renderSheet();
         fireEvent.change(screen.getByLabelText(/^Value/), { target: { value: 'n3w-s3cret' } });
-        fireEvent.click(screen.getByRole('button', { name: 'Renew' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Replace' }));
 
         await waitFor(() => expect(onSubmit).toHaveBeenCalledWith({ key: 'TOKEN', value: 'n3w-s3cret' }));
     });

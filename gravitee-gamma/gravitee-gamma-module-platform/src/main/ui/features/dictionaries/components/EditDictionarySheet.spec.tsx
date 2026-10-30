@@ -204,22 +204,14 @@ describe('EditDictionarySheet', () => {
         });
     });
 
-    it('does not offer Encrypt fetched values for MANUAL', () => {
-        renderSheet();
-        expect(screen.queryByLabelText('Encrypt fetched values')).toBeNull();
-    });
-
-    it('prefills Encrypt fetched values from the dictionary and submits a change', async () => {
+    it('does not offer Encrypt fetched values, and leaves an existing policy to the backend', async () => {
         const { onSubmit } = renderSheet({ dictionary: { ...DYNAMIC_DICTIONARY, encryption: { encryptOnFetch: true } } });
-        const checkbox = screen.getByLabelText('Encrypt fetched values');
-        expect(checkbox.getAttribute('aria-checked')).toBe('true');
 
-        fireEvent.click(checkbox);
+        expect(screen.queryByLabelText('Encrypt fetched values')).toBeNull();
         fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
 
-        await waitFor(() => {
-            expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ encryption: { encryptOnFetch: false } }));
-        });
+        await waitFor(() => expect(onSubmit).toHaveBeenCalled());
+        expect(onSubmit.mock.calls[0][0]).not.toHaveProperty('encryption');
     });
 
     it('preserves property encryption options when saving a DYNAMIC dictionary', async () => {
