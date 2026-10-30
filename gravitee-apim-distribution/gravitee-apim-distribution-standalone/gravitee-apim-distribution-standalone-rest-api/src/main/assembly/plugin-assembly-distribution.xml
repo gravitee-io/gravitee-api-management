@@ -144,6 +144,21 @@
             <fileMode>644</fileMode>
             <filtered>true</filtered>
         </fileSet>
+        <!--
+            The version the node reports: Cockpit hello, node endpoint, startup banner, API exports. All
+            of them read Version.RUNTIME_VERSION, the first version.properties on the classpath, and the
+            core container jar carries one stamped with the core version. lib/ext is the root of the
+            extension class loader, the parent of the one over lib, so this file wins over the jar's.
+        -->
+        <fileSet>
+            <directory>src/main/resources/metadata</directory>
+            <outputDirectory>lib/ext</outputDirectory>
+            <includes>
+                <include>version.properties</include>
+            </includes>
+            <fileMode>644</fileMode>
+            <filtered>true</filtered>
+        </fileSet>
         <fileSet>
             <directory>${project.build.directory}</directory>
             <outputDirectory>.</outputDirectory>
