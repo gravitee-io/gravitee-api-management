@@ -54,7 +54,7 @@ export function RenewDictionaryPropertySheet({
         [onClose],
     );
 
-    const canSubmit = propertyKey !== undefined && value.length > 0 && !isSaving;
+    const canSubmit = propertyKey !== undefined && value.trim().length > 0 && !isSaving;
 
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
