@@ -16,8 +16,15 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_API;
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_GROUP;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+<<<<<<< HEAD
 import static org.junit.Assert.assertEquals;
+=======
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+>>>>>>> 20582a2 (fix(rest-api): resolve imported API groups after authorization)
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.anyString;
@@ -43,12 +50,14 @@ import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.NewGroupEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.ApiIdsCalculatorService;
 import io.gravitee.rest.api.service.ApiMetadataService;
@@ -84,6 +93,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.AdditionalAnswers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -926,5 +936,64 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         } finally {
             verifyNoInteractions(httpClientService);
         }
+    }
+
+    @Test
+    public void shouldCreateMissingGroups_whenUserCanCreateGroups() throws IOException {
+        mockGroupsAndApiCreation();
+
+        apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), readGroupsDefinition());
+
+        verify(groupService, times(1)).create(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(group -> "unknown group".equals(group.getName()))
+        );
+        assertThat(capturedCreatedApi().getGroups()).containsExactlyInAnyOrder("known_group_id", "created_group_id");
+    }
+
+    @Test
+    public void shouldSkipUnknownGroups_whenUserCannotCreateGroups() throws IOException {
+        mockGroupsAndApiCreation();
+        when(permissionService.hasPermission(any(), eq(ENVIRONMENT_GROUP), any(), eq(CREATE))).thenReturn(false);
+
+        apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), readGroupsDefinition());
+
+        verify(groupService, never()).create(any(), any());
+        assertThat(capturedCreatedApi().getGroups()).containsExactly("known_group_id");
+    }
+
+    private String readGroupsDefinition() throws IOException {
+        return Resources.toString(
+            Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+groups.json"),
+            Charsets.UTF_8
+        );
+    }
+
+    private void mockGroupsAndApiCreation() {
+        String environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
+        when(groupService.findByName(environmentId, "known group")).thenReturn(List.of(group("known_group_id", "known group")));
+        when(groupService.findByName(environmentId, "unknown group")).thenReturn(List.of());
+        when(groupService.create(any(), any())).thenAnswer(invocation ->
+            group("created_group_id", invocation.getArgument(1, NewGroupEntity.class).getName())
+        );
+
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId(API_ID);
+        apiEntity.setDefinitionContext(new DefinitionContext());
+        when(apiService.createWithApiDefinition(eq(GraviteeContext.getExecutionContext()), any(), any(), any())).thenReturn(apiEntity);
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
+    }
+
+    private static GroupEntity group(String id, String name) {
+        GroupEntity group = new GroupEntity();
+        group.setId(id);
+        group.setName(name);
+        return group;
+    }
+
+    private UpdateApiEntity capturedCreatedApi() {
+        ArgumentCaptor<UpdateApiEntity> captor = ArgumentCaptor.forClass(UpdateApiEntity.class);
+        verify(apiService).createWithApiDefinition(eq(GraviteeContext.getExecutionContext()), captor.capture(), any(), any());
+        return captor.getValue();
     }
 }

@@ -37,6 +37,7 @@ import io.gravitee.rest.api.model.api.ApiValidationResult;
 import io.gravitee.rest.api.model.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -175,6 +176,20 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         assertEquals(updatedApi, response.readEntity(ApiEntity.class));
+    }
+
+    @Test
+    public void put_import_should_return_403_when_service_denies() {
+        reset(apiDuplicatorService);
+        String apiDefinition = "{ \"content\": \"this-is-a-test-api-definition\"}";
+
+        doThrow(new ForbiddenAccessException())
+            .when(apiDuplicatorService)
+            .updateWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any());
+
+        final Response response = envTarget().path("import").request().put(Entity.json(apiDefinition));
+
+        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
     @Test
