@@ -95,7 +95,11 @@ commands:
 jobs:
   job-danger-js:
     docker:
+<<<<<<< HEAD
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: small
     steps:
       - checkout
@@ -108,7 +112,11 @@ jobs:
           command: cd .circleci/danger && yarn install && yarn run danger
   job-nx-format-check:
     docker:
+<<<<<<< HEAD
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: medium
     steps:
       - checkout
@@ -167,7 +175,11 @@ jobs:
           path: << parameters.apim-ui-project >>/coverage/junit.xml
   job-console-webui-build:
     docker:
+<<<<<<< HEAD
       - image: cimg/node:22.12.0
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: large
     steps:
       - checkout
@@ -188,6 +200,54 @@ jobs:
           root: .
           paths:
             - gravitee-apim-console-webui/dist
+<<<<<<< HEAD
+=======
+  job-nx-webui-lint-test:
+    parameters:
+      apim-ui-project-workdir:
+        type: string
+        default: ""
+        description: the directory name of the UI project
+      nx-project:
+        type: string
+        default: ""
+        description: the Nx project name
+      resource_class:
+        type: string
+        default: medium
+        description: Resource class to use for executor
+      max-workers:
+        type: string
+        default: 35%
+        description: Maximum number of workers for Jest tests
+    docker:
+      - image: cimg/node:24.22.1
+    resource_class: << parameters.resource_class >>
+    steps:
+      - checkout
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - attach_workspace:
+          at: .
+      - run:
+          name: Check License
+          command: yarn nx run << parameters.nx-project >>:lint-license
+      - run:
+          name: Run ESLint
+          command: yarn nx run << parameters.nx-project >>:lint-eslint
+      - run:
+          name: Run unit tests
+          command: yarn << parameters.nx-project >>:test:ci
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - << parameters.apim-ui-project-workdir >>/coverage/lcov.info
+      - store_artifacts:
+          path: << parameters.apim-ui-project-workdir >>/coverage/lcov.info
+      - store_test_results:
+          path: << parameters.apim-ui-project-workdir >>/coverage/junit.xml
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
   job-sonarcloud-analysis:
     parameters:
       working_directory:
