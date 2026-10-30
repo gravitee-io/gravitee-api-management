@@ -63,7 +63,7 @@ export function AddDictionaryPropertySheet({
     );
 
     const trimmedKey = key.trim();
-    const canSubmit = trimmedKey.length > 0 && !isSaving;
+    const canSubmit = trimmedKey.length > 0 && value.trim().length > 0 && !isSaving;
 
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
@@ -99,7 +99,9 @@ export function AddDictionaryPropertySheet({
                         />
                     </Field>
                     <Field orientation="vertical" className="gap-1.5">
-                        <FieldLabel htmlFor="property-value">Value</FieldLabel>
+                        <FieldLabel htmlFor="property-value">
+                            Value <span className="text-destructive">*</span>
+                        </FieldLabel>
                         <Input
                             id="property-value"
                             type={encrypt ? 'password' : 'text'}

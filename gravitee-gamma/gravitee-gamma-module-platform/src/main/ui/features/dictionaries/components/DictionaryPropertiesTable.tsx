@@ -25,7 +25,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@gravitee/graphene-core';
-import { LockIcon, MoreVerticalIcon, RefreshCwIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
+import { LockIcon, MoreVerticalIcon, RefreshCwIcon, Trash2Icon, XIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useState } from 'react';
 
 import type { ColCell } from '../../applications/utils/dataTableTypes';
@@ -33,7 +33,7 @@ import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationCons
 import type { DictionaryPropertyRow } from '../types/dictionary';
 
 const DEFAULT_PAGE_SIZE = 10;
-const MASK = '•'.repeat(8);
+const MASK = '•'.repeat(12);
 
 function paginateProperties(rows: DictionaryPropertyRow[], page: number, pageSize: number): DictionaryPropertyRow[] {
     const start = (page - 1) * pageSize;
@@ -47,6 +47,7 @@ interface ColumnOptions {
     onEdit: (property: DictionaryPropertyRow) => void;
     onRenew: (property: DictionaryPropertyRow) => void;
     onEncrypt: (propertyKey: string) => void;
+    onUndoEncrypt: (propertyKey: string) => void;
     onDelete: (propertyKey: string) => void;
 }
 
@@ -57,9 +58,10 @@ function PropertyActions({
     onEdit,
     onRenew,
     onEncrypt,
+    onUndoEncrypt,
     onDelete,
 }: Readonly<Omit<ColumnOptions, 'canEdit'> & { property: DictionaryPropertyRow }>) {
-    // Dynamic values belong to the provider: all that can be decided here is whether one is encrypted.
+    // The provider owns a dynamic row's value, so only its encryption can be changed, and an encrypted one cannot.
     if (dynamic && property.encrypted) return null;
 
     return (
@@ -78,20 +80,27 @@ function PropertyActions({
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="min-w-48 whitespace-nowrap">
-                    {property.encrypted ? (
+                    {property.encryptOnSave ? (
+                        <DropdownMenuItem onSelect={() => onUndoEncrypt(property.key)}>
+                            <XIcon className="size-4" aria-hidden />
+                            Do not encrypt
+                        </DropdownMenuItem>
+                    ) : null}
+                    {!dynamic && (property.encrypted || property.encryptOnSave) ? (
                         <DropdownMenuItem onSelect={() => onRenew(property)}>
                             <RefreshCwIcon className="size-4" aria-hidden />
-                            Renew encryption
+                            Replace value
                         </DropdownMenuItem>
-                    ) : (
-                        <>
-                            {dynamic ? null : <DropdownMenuItem onSelect={() => onEdit(property)}>Edit value</DropdownMenuItem>}
-                            <DropdownMenuItem onSelect={() => onEncrypt(property.key)}>
-                                <LockIcon className="size-4" aria-hidden />
-                                Encrypt value
-                            </DropdownMenuItem>
-                        </>
-                    )}
+                    ) : null}
+                    {!dynamic && !property.encrypted && !property.encryptOnSave ? (
+                        <DropdownMenuItem onSelect={() => onEdit(property)}>Edit value</DropdownMenuItem>
+                    ) : null}
+                    {!property.encrypted && !property.encryptOnSave ? (
+                        <DropdownMenuItem onSelect={() => onEncrypt(property.key)}>
+                            <LockIcon className="size-4" aria-hidden />
+                            Encrypt
+                        </DropdownMenuItem>
+                    ) : null}
                     {dynamic ? null : (
                         <>
                             <DropdownMenuSeparator />
@@ -107,7 +116,27 @@ function PropertyActions({
     );
 }
 
-function buildColumns({ canEdit, ...actions }: ColumnOptions): DataTableProps<DictionaryPropertyRow>['columns'] {
+function EncryptionBadge({ property }: Readonly<{ property: DictionaryPropertyRow }>) {
+    if (property.encryptOnSave) {
+        return (
+            <Badge variant="secondary" className="gap-1">
+                <LockIcon className="size-3" aria-hidden />
+                Encrypted on save
+            </Badge>
+        );
+    }
+    if (property.encrypted) {
+        return (
+            <Badge className="gap-1" title="This value is encrypted">
+                <LockIcon className="size-3" aria-hidden />
+                Encrypted
+            </Badge>
+        );
+    }
+    return <Badge variant="outline">Unencrypted</Badge>;
+}
+
+function buildColumns({ canEdit, dynamic, ...actions }: ColumnOptions): DataTableProps<DictionaryPropertyRow>['columns'] {
     const columns: DataTableProps<DictionaryPropertyRow>['columns'] = [
         {
             id: 'key',
@@ -121,8 +150,8 @@ function buildColumns({ canEdit, ...actions }: ColumnOptions): DataTableProps<Di
             accessorKey: 'value',
             header: 'Value',
             cell: ({ row }: ColCell<DictionaryPropertyRow>) =>
-                row.original.encrypted ? (
-                    <span className="font-mono text-sm text-muted-foreground">{MASK}</span>
+                row.original.encrypted || row.original.encryptOnSave ? (
+                    <span className="select-none font-mono text-sm text-muted-foreground">{MASK}</span>
                 ) : (
                     <span className="text-sm">{row.original.value}</span>
                 ),
@@ -134,15 +163,8 @@ function buildColumns({ canEdit, ...actions }: ColumnOptions): DataTableProps<Di
             enableSorting: false,
             cell: ({ row }: ColCell<DictionaryPropertyRow>) => (
                 <div className="flex flex-wrap gap-1">
-                    {row.original.encrypted ? (
-                        <Badge className="gap-1">
-                            <LockIcon className="size-3" aria-hidden />
-                            Encrypted
-                        </Badge>
-                    ) : (
-                        <Badge variant="outline">Unencrypted</Badge>
-                    )}
-                    {actions.dynamic ? (
+                    <EncryptionBadge property={row.original} />
+                    {dynamic ? (
                         <Badge variant="outline" className="gap-1">
                             <RefreshCwIcon className="size-3" aria-hidden />
                             Dynamic
@@ -160,7 +182,7 @@ function buildColumns({ canEdit, ...actions }: ColumnOptions): DataTableProps<Di
             size: 64,
             enableSorting: false,
             enableHiding: false,
-            cell: ({ row }: ColCell<DictionaryPropertyRow>) => <PropertyActions property={row.original} {...actions} />,
+            cell: ({ row }: ColCell<DictionaryPropertyRow>) => <PropertyActions property={row.original} dynamic={dynamic} {...actions} />,
         });
     }
 
@@ -175,6 +197,7 @@ export function DictionaryPropertiesTable({
     onEdit,
     onRenew,
     onEncrypt,
+    onUndoEncrypt,
     onDelete,
     emptyMessage,
 }: Readonly<
@@ -192,8 +215,8 @@ export function DictionaryPropertiesTable({
     const paginatedData = useMemo(() => paginateProperties(properties, currentPage, pageSize), [properties, currentPage, pageSize]);
 
     const columns = useMemo(
-        () => buildColumns({ canEdit, dynamic, isMutating, onEdit, onRenew, onEncrypt, onDelete }),
-        [canEdit, dynamic, isMutating, onEdit, onRenew, onEncrypt, onDelete],
+        () => buildColumns({ canEdit, dynamic, isMutating, onEdit, onRenew, onEncrypt, onUndoEncrypt, onDelete }),
+        [canEdit, dynamic, isMutating, onEdit, onRenew, onEncrypt, onUndoEncrypt, onDelete],
     );
 
     useEffect(() => {
