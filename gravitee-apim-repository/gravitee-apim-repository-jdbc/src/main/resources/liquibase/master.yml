@@ -445,3 +445,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_14_0/01_add_encrypt_on_fetch_to_dictionaries.yml
     - include:
         - file: liquibase/changelogs/v4_14_0/02_create_gamma_metric_definitions_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_14_0/03_add_events_latest_type_updated_at_id_index.yml
