@@ -69,6 +69,10 @@ public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y ex
     /** Schema version this node can decode; events with a higher version fail the cycle instead of being misread. */
     private static final int supportedSchemaVersion =
         io.gravitee.gateway.services.sync.process.distributed.service.DefaultDistributedSyncService.EVENT_SCHEMA_VERSION;
+    /** id -> last applied updatedAt, committed only when a cycle succeeds. An event whose timestamp is not newer
+     * than the committed watermark has already been applied on an overlapping window and is skipped. */
+    private final java.util.concurrent.ConcurrentHashMap<String, Long> appliedWatermark = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.concurrent.ConcurrentHashMap<String, Long> pendingWatermark = new java.util.concurrent.ConcurrentHashMap<>();
 
     /**
      * Each subscription (including a {@code retrySynchronizer} resubscribe) gets its own failure flag.
@@ -81,65 +85,113 @@ public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y ex
 
     private Completable synchronizeOnce(final Long from, final Long to) {
         boolean initialSync = from == null || from == -1;
+        if (initialSync) {
+            // A full synchronization re-applies the authoritative set idempotently; the watermark must not suppress it.
+            appliedWatermark.clear();
+        }
+        pendingWatermark.clear();
         AtomicLong launchTime = new AtomicLong();
         AtomicReference<Throwable> transientItemFailure = new AtomicReference<>();
         return distributedEventFetcher
             .fetchLatest(from, to, distributedEventType(), syncActions(initialSync))
             .subscribeOn(Schedulers.from(syncFetcherExecutor))
-            .flatMapMaybe(event -> {
-                if (event.getSchemaVersion() != null && event.getSchemaVersion() > supportedSchemaVersion) {
-                    return Maybe.error(
-                        new io.gravitee.gateway.services.sync.process.distributed.model.DistributedSyncException(
-                            "A " +
-                                distributedEventType() +
-                                " event uses payload schema v" +
-                                event.getSchemaVersion() +
-                                ", this gateway only supports v" +
-                                supportedSchemaVersion +
-                                ". Upgrade this gateway so events are not read incorrectly."
-                        )
-                    );
-                }
-                return mapTo(event);
-            })
-            // per deployable
-            .compose(upstream -> {
-                Y deployer = createDeployer();
-                return upstream
-                    .parallel(syncDeployerExecutor.getMaximumPoolSize())
-                    .runOn(Schedulers.from(syncDeployerExecutor))
-                    .flatMap(deployable -> {
-                        if (deployable.syncAction() == SyncAction.DEPLOY) {
-                            return deploy(deployer, deployable).onErrorResumeNext(throwable ->
-                                resumeOnError(initialSync, throwable, transientItemFailure)
-                            );
-                        } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
-                            return undeploy(deployer, deployable).onErrorResumeNext(throwable ->
-                                resumeOnError(initialSync, throwable, transientItemFailure)
-                            );
-                        } else {
-                            return Flowable.empty();
-                        }
-                    })
-                    .sequential(distributedEventFetcher.bulkItems());
-            })
+            .flatMapMaybe(this::acceptedSchema)
+            .doOnNext(this::rememberPending)
+            .filter(distributedEvent -> shouldApply(distributedEvent, initialSync))
+            .flatMapMaybe(this::mapTo)
+            .compose(upstream -> deployAll(upstream, initialSync, transientItemFailure))
             .count()
             .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
-            .doOnSuccess(count -> {
-                String logMsg = String.format(
-                    "%s %s(s) synchronized in %sms",
-                    count,
-                    distributedEventType().name().toLowerCase(),
-                    (System.currentTimeMillis() - launchTime.get())
-                );
-                if (initialSync) {
-                    log.info(logMsg);
-                } else {
-                    log.debug(logMsg);
-                }
-            })
+            .doOnSuccess(count -> logSynchronized(count, launchTime.get(), initialSync))
             .ignoreElement()
-            .doOnComplete(() -> requestHoldIfNeeded(transientItemFailure.get()));
+            .doOnComplete(() -> commitCycle(transientItemFailure.get()));
+    }
+
+    private Maybe<DistributedEvent> acceptedSchema(final DistributedEvent event) {
+        if (event.getSchemaVersion() == null || event.getSchemaVersion() <= supportedSchemaVersion) {
+            return Maybe.just(event);
+        }
+        return Maybe.error(
+            new io.gravitee.gateway.services.sync.process.distributed.model.DistributedSyncException(
+                "A " +
+                    distributedEventType() +
+                    " event uses payload schema v" +
+                    event.getSchemaVersion() +
+                    ", this gateway only supports v" +
+                    supportedSchemaVersion +
+                    ". Upgrade this gateway so events are not read incorrectly."
+            )
+        );
+    }
+
+    private void rememberPending(final DistributedEvent event) {
+        if (event.getUpdatedAt() != null) {
+            pendingWatermark.merge(event.getId(), event.getUpdatedAt().getTime(), Math::max);
+        }
+    }
+
+    private Flowable<T> deployAll(
+        final Flowable<T> upstream,
+        final boolean initialSync,
+        final AtomicReference<Throwable> transientItemFailure
+    ) {
+        Y deployer = createDeployer();
+        return upstream
+            .parallel(syncDeployerExecutor.getMaximumPoolSize())
+            .runOn(Schedulers.from(syncDeployerExecutor))
+            .flatMap(deployable -> apply(deployer, deployable, initialSync, transientItemFailure))
+            .sequential(distributedEventFetcher.bulkItems());
+    }
+
+    private Flowable<T> apply(
+        final Y deployer,
+        final T deployable,
+        final boolean initialSync,
+        final AtomicReference<Throwable> transientItemFailure
+    ) {
+        if (deployable.syncAction() == SyncAction.DEPLOY) {
+            return deploy(deployer, deployable).onErrorResumeNext(throwable -> resumeOnError(initialSync, throwable, transientItemFailure));
+        }
+        if (deployable.syncAction() == SyncAction.UNDEPLOY) {
+            return undeploy(deployer, deployable).onErrorResumeNext(throwable ->
+                resumeOnError(initialSync, throwable, transientItemFailure)
+            );
+        }
+        return Flowable.empty();
+    }
+
+    private void logSynchronized(final long count, final long launchTime, final boolean initialSync) {
+        String logMsg = String.format(
+            "%s %s(s) synchronized in %sms",
+            count,
+            distributedEventType().name().toLowerCase(),
+            (System.currentTimeMillis() - launchTime)
+        );
+        if (initialSync) {
+            log.info(logMsg);
+            return;
+        }
+        log.debug(logMsg);
+    }
+
+    private void commitCycle(final Throwable transientItemFailure) {
+        if (transientItemFailure == null) {
+            appliedWatermark.putAll(pendingWatermark);
+        }
+        requestHoldIfNeeded(transientItemFailure);
+    }
+
+    /**
+     * An event is skipped when it is not newer than the watermark already committed for its id: it was applied by
+     * an earlier overlapping window. A missing timestamp is always applied; a full synchronization applies every
+     * event regardless.
+     */
+    private boolean shouldApply(final DistributedEvent event, final boolean initialSync) {
+        if (initialSync || event.getUpdatedAt() == null) {
+            return true;
+        }
+        Long applied = appliedWatermark.get(event.getId());
+        return applied == null || applied < event.getUpdatedAt().getTime();
     }
 
     /** Called by the sync configuration so give-ups show up next to the dead letters. */

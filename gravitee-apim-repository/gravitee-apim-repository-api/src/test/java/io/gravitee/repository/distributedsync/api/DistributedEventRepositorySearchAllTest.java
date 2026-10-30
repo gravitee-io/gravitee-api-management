@@ -96,5 +96,6 @@ class DistributedEventRepositorySearchAllTest {
         repository.applyFencedWrite("lease", "node", 1_000L).test().assertComplete();
         repository.createOrUpdateFenced(DistributedEvent.builder().id("event").build(), null).test().assertComplete();
         repository.createOrUpdateFenced(DistributedEvent.builder().id("event").build(), "lease").test().assertComplete();
+        repository.advanceChangeSequence("cluster").test().assertComplete();
     }
 }

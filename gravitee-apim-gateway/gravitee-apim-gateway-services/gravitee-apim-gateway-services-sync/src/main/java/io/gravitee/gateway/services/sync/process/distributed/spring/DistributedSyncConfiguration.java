@@ -55,6 +55,9 @@ import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.distributedsync.api.DistributedEventRepository;
 import io.gravitee.repository.distributedsync.api.DistributedSyncStateRepository;
+import io.gravitee.repository.distributedsync.model.DistributedEventType;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -64,6 +67,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.env.Environment;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -175,9 +179,15 @@ public class DistributedSyncConfiguration {
     public DistributedEventFetcher distributedEventFetcher(
         @Lazy DistributedEventRepository distributedEventRepository,
         ClusterManager clusterManager,
+        Environment environment,
         @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
     ) {
-        return new DistributedEventFetcher(distributedEventRepository, clusterManager, bulkItems);
+        return new DistributedEventFetcher(
+            distributedEventRepository,
+            clusterManager,
+            Math.max(bulkItems, 10),
+            buildBatchSizes(environment)
+        );
     }
 
     @Bean
@@ -471,5 +481,18 @@ public class DistributedSyncConfiguration {
         sb.append(";e:");
         gatewayConfiguration.environments().ifPresentOrElse(envs -> sb.append(String.join(",", envs)), () -> sb.append("*"));
         return sb.toString();
+    }
+
+    static Map<DistributedEventType, Integer> buildBatchSizes(final Environment environment) {
+        Map<DistributedEventType, Integer> sizes = new EnumMap<>(DistributedEventType.class);
+        Integer apiBatchSize = environment.getProperty("services.sync.distributed.batchSize.api", Integer.class, 100);
+        if (apiBatchSize != null) {
+            sizes.put(DistributedEventType.API, apiBatchSize);
+        }
+        Integer subBatchSize = environment.getProperty("services.sync.distributed.batchSize.subscription", Integer.class);
+        if (subBatchSize != null) sizes.put(DistributedEventType.SUBSCRIPTION, subBatchSize);
+        Integer keyBatchSize = environment.getProperty("services.sync.distributed.batchSize.apikey", Integer.class);
+        if (keyBatchSize != null) sizes.put(DistributedEventType.API_KEY, keyBatchSize);
+        return sizes;
     }
 }

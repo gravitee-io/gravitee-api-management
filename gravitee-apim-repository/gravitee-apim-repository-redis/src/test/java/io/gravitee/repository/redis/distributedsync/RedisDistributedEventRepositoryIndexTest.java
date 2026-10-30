@@ -25,9 +25,11 @@ import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.gravitee.repository.redis.common.RedisConnectionFactory;
 import io.gravitee.repository.redis.vertx.RedisClient;
 import io.vertx.core.Vertx;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -87,10 +89,10 @@ class RedisDistributedEventRepositoryIndexTest {
         repository.ensureSearchable().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
         // Recreating an index over existing keys indexes them in the background.
-        long deadline = System.currentTimeMillis() + 10_000;
-        while (!repository.fullyIndexed().blockingGet() && System.currentTimeMillis() < deadline) {
-            Thread.sleep(100);
-        }
+        Awaitility.await()
+            .atMost(Duration.ofSeconds(10))
+            .pollInterval(Duration.ofMillis(100))
+            .until(() -> Boolean.TRUE.equals(repository.fullyIndexed().blockingGet()));
         var events = repository.searchAll(DistributedEventCriteria.builder().clusterId("cluster").build(), 100).toList().blockingGet();
         assertThat(events).extracting(DistributedEvent::getId).containsExactly("api-1");
     }
@@ -99,5 +101,71 @@ class RedisDistributedEventRepositoryIndexTest {
     void should_keep_an_existing_index_untouched() {
         repository.ensureSearchable().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
         repository.fullyIndexed().test().awaitDone(10, TimeUnit.SECONDS).assertValue(true);
+    }
+
+    @Test
+    void should_create_the_v3_index_with_reference_fields() throws Exception {
+        redisClient
+            .redisApi()
+            .flatMap(redisAPI -> redisAPI.ftInfo(List.of("distributed-event-search-idx-v3")))
+            .toCompletionStage()
+            .toCompletableFuture()
+            .get(10, TimeUnit.SECONDS);
+    }
+
+    @Test
+    void should_update_only_the_events_of_the_given_reference_on_v3() throws Exception {
+        repository
+            .createOrUpdate(
+                DistributedEvent.builder()
+                    .clusterId("cluster")
+                    .id("api-1")
+                    .refType(DistributedEventType.API)
+                    .refId("1")
+                    .type(DistributedEventType.API)
+                    .syncAction(DistributedSyncAction.DEPLOY)
+                    .payload("p")
+                    .updatedAt(new java.util.Date())
+                    .build()
+            )
+            .blockingAwait(10, TimeUnit.SECONDS);
+        repository
+            .createOrUpdate(
+                DistributedEvent.builder()
+                    .clusterId("cluster")
+                    .id("api-10")
+                    .refType(DistributedEventType.API)
+                    .refId("10")
+                    .type(DistributedEventType.API)
+                    .syncAction(DistributedSyncAction.DEPLOY)
+                    .payload("p")
+                    .updatedAt(new java.util.Date())
+                    .build()
+            )
+            .blockingAwait(10, TimeUnit.SECONDS);
+        Awaitility.await()
+            .atMost(Duration.ofSeconds(10))
+            .pollInterval(Duration.ofMillis(50))
+            .until(
+                () ->
+                    repository
+                        .searchAll(DistributedEventCriteria.builder().clusterId("cluster").build(), 100)
+                        .toList()
+                        .blockingGet()
+                        .size() >=
+                    2
+            );
+
+        repository
+            .updateAllAtWriteTime("cluster", DistributedEventType.API, "1", DistributedSyncAction.UNDEPLOY)
+            .blockingAwait(10, TimeUnit.SECONDS);
+
+        var events = repository.searchAll(DistributedEventCriteria.builder().clusterId("cluster").build(), 100).toList().blockingGet();
+        assertThat(events)
+            .filteredOn(e -> "api-1".equals(e.getId()) && e.getRefId() != null)
+            .allSatisfy(e -> assertThat(e.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY));
+        assertThat(events)
+            .filteredOn(e -> "api-10".equals(e.getId()))
+            .allSatisfy(e -> assertThat(e.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY));
     }
 }
