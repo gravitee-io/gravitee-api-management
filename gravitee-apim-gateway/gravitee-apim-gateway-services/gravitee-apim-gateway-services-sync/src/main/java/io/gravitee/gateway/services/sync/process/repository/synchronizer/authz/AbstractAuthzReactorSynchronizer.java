@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
 import io.gravitee.gateway.services.sync.process.common.deployer.Deployer;
+import io.gravitee.gateway.services.sync.process.common.deployer.FailClosedUndeploy;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
@@ -265,9 +266,7 @@ public abstract class AbstractAuthzReactorSynchronizer<D extends AuthzScopedDepl
         if (deployable.targetPdpIds().isEmpty()) {
             deployable.targetPdpIds(placement.applied(rk));
         }
-        return deployer
-            .undeploy(deployable)
-            .andThen(deployer.doAfterUndeployment(deployable))
+        return FailClosedUndeploy.undeployThenDistribute(deployer.undeploy(deployable), deployer.doAfterUndeployment(deployable))
             .doOnComplete(() -> {
                 pendingUndeploys.remove(rk);
                 pendingAttempts.remove(rk);

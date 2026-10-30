@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.CustomLog;
 
 /**
@@ -32,8 +34,18 @@ import lombok.CustomLog;
 @CustomLog
 public class MultiEnvironmentDictionaryManager implements DictionaryManager {
 
+    /**
+     * Mutated by the sync deployer threads (in parallel) and read by request threads through the EL template
+     * provider: writes are serialized on this lock and each change publishes an immutable snapshot of the
+     * environment's values, so readers never see a map while it is being modified.
+     */
+    private final Object lock = new Object();
     private final Map<String, Map<String, Dictionary>> dictionaries = new HashMap<>();
     private final Map<String, Map<String, Map<String, String>>> values = new HashMap<>();
+    /** Published snapshots for environments that have an id. Replaced per environment under {@link #lock}. */
+    private final ConcurrentHashMap<String, Map<String, Map<String, String>>> publishedValues = new ConcurrentHashMap<>();
+    /** Published snapshot for events and APIs that have no environment id. {@code ConcurrentHashMap} cannot store a null key. */
+    private final AtomicReference<Map<String, Map<String, String>>> publishedWithoutEnvironment = new AtomicReference<>();
     private final DataEncryptor dataEncryptor;
 
     public MultiEnvironmentDictionaryManager(DataEncryptor dataEncryptor) {
@@ -44,40 +56,57 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
     public void deploy(Dictionary dictionary) {
         String environmentId = dictionary.getEnvironmentId();
         String key = runtimeKey(dictionary);
+        // Decrypt before the lock so one dictionary does not block the others on crypto.
+        Map<String, String> flattenedProperties = flatten(dictionary);
 
-        dictionaries.putIfAbsent(environmentId, new HashMap<>());
-        values.putIfAbsent(environmentId, new HashMap<>());
-
-        Dictionary existing = dictionaries.get(environmentId).get(key);
-        if (existing != null && !Objects.equals(existing.getId(), dictionary.getId())) {
-            log.error(
-                "Dictionary {} (name={}) collides on runtime key '{}' in environment {} with existing dictionary {} (name={}). Incoming deploy is rejected; occupant is kept",
-                dictionary.getId(),
-                dictionary.getName(),
-                key,
-                environmentId,
-                existing.getId(),
-                existing.getName()
-            );
-            return;
-        }
-        if (existing == null || dictionary.getDeployedAt().after(existing.getDeployedAt())) {
-            if (dictionary.getProperties() == null) {
-                dictionary.setProperties(Collections.emptyMap());
+        synchronized (lock) {
+            Map<String, Dictionary> envDictionaries = dictionaries.computeIfAbsent(environmentId, env -> new HashMap<>());
+            Dictionary existing = envDictionaries.get(key);
+            if (existing != null && !Objects.equals(existing.getId(), dictionary.getId())) {
+                log.error(
+                    "Dictionary {} (name={}) collides on runtime key '{}' in environment {} with existing dictionary {} (name={}). Incoming deploy is rejected; occupant is kept",
+                    dictionary.getId(),
+                    dictionary.getName(),
+                    key,
+                    environmentId,
+                    existing.getId(),
+                    existing.getName()
+                );
+                return;
             }
-
-            int propertyCount = dictionary.getProperties().size();
-            log.info("Dictionary {} has been deployed with {} properties", dictionary, propertyCount);
-            dictionaries.get(environmentId).put(key, dictionary);
-            Map<String, String> flattenedProperties = new HashMap<>((propertyCount * 4) / 3 + 1);
-            for (Map.Entry<String, DictionaryProperty> entry : dictionary.getProperties().entrySet()) {
-                DictionaryProperty property = entry.getValue();
-                if (property != null && property.value() != null) {
-                    flattenedProperties.put(entry.getKey(), decryptOrKeep(dictionary, entry.getKey(), property));
-                }
+            if (existing == null || isNewer(dictionary, existing)) {
+                log.info("Dictionary {} has been deployed with {} properties", dictionary, flattenedProperties.size());
+                envDictionaries.put(key, dictionary);
+                values.computeIfAbsent(environmentId, env -> new HashMap<>()).put(key, flattenedProperties);
+                publish(environmentId);
             }
-            values.get(environmentId).put(key, flattenedProperties);
         }
+    }
+
+    private Map<String, String> flatten(Dictionary dictionary) {
+        if (dictionary.getProperties() == null) {
+            dictionary.setProperties(Collections.emptyMap());
+        }
+        int propertyCount = dictionary.getProperties().size();
+        Map<String, String> flattenedProperties = new HashMap<>((propertyCount * 4) / 3 + 1);
+        for (Map.Entry<String, DictionaryProperty> entry : dictionary.getProperties().entrySet()) {
+            DictionaryProperty property = entry.getValue();
+            if (property != null && property.value() != null) {
+                flattenedProperties.put(entry.getKey(), decryptOrKeep(dictionary, entry.getKey(), property));
+            }
+        }
+        return Collections.unmodifiableMap(flattenedProperties);
+    }
+
+    /**
+     * A missing deployment date on either side cannot prove the incoming dictionary is older, so it is deployed:
+     * skipping it would keep stale values forever.
+     */
+    private static boolean isNewer(Dictionary incoming, Dictionary existing) {
+        if (incoming.getDeployedAt() == null || existing.getDeployedAt() == null) {
+            return true;
+        }
+        return incoming.getDeployedAt().after(existing.getDeployedAt());
     }
 
     /**
@@ -100,8 +129,11 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
     public void undeploy(Dictionary dictionary) {
         String environmentId = dictionary.getEnvironmentId();
         String key = runtimeKey(dictionary);
-        Map<String, Dictionary> envDictionaries = dictionaries.get(environmentId);
-        if (envDictionaries != null) {
+        synchronized (lock) {
+            Map<String, Dictionary> envDictionaries = dictionaries.get(environmentId);
+            if (envDictionaries == null) {
+                return;
+            }
             Dictionary occupant = envDictionaries.get(key);
             if (occupant == null) {
                 return;
@@ -128,9 +160,24 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
                     values.remove(environmentId);
                 }
             }
+            publish(environmentId);
 
             log.info("A dictionary has been undeployed: {}", dictionary);
         }
+    }
+
+    private void publish(String environmentId) {
+        Map<String, Map<String, String>> envValues = values.get(environmentId);
+        Map<String, Map<String, String>> snapshot = envValues == null ? null : Collections.unmodifiableMap(new HashMap<>(envValues));
+        if (environmentId == null) {
+            publishedWithoutEnvironment.set(snapshot);
+            return;
+        }
+        if (snapshot == null) {
+            publishedValues.remove(environmentId);
+            return;
+        }
+        publishedValues.put(environmentId, snapshot);
     }
 
     /**
@@ -149,6 +196,9 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
 
     @Override
     public Map<String, Map<String, String>> getDictionaries(String environmentId) {
-        return values.get(environmentId);
+        if (environmentId == null) {
+            return publishedWithoutEnvironment.get();
+        }
+        return publishedValues.get(environmentId);
     }
 }
