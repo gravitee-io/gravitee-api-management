@@ -20,11 +20,8 @@ import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_
 import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_GROUP;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
-<<<<<<< HEAD
-=======
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
->>>>>>> 20582a2 (fix(rest-api): resolve imported API groups after authorization)
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -803,8 +800,6 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
     @Test
     public void shouldNotCreateGroups_whenDefinitionIsInconsistent() throws IOException {
         String toBeImport = readResource("import-api-update.definition+plans.json");
-        when(groupService.findByName(GraviteeContext.getExecutionContext().getEnvironmentId(), "My Group")).thenReturn(List.of());
-        when(groupService.create(any(), any())).thenAnswer(invocation -> group("created_group_id", "My Group"));
         when(planService.anyPlanMismatchWithApi(anyList(), eq(API_ID))).thenReturn(true);
         when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any(), any())).then(AdditionalAnswers.returnsSecondArg());
 
@@ -862,7 +857,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         mockApiUpdate();
         mockApiIdRecalculation();
         authenticateAsEnvironmentAdmin();
-        when(permissionService.hasPermission(any(), eq(ENVIRONMENT_GROUP), any(), eq(CREATE))).thenReturn(false);
+        lenient().when(permissionService.hasPermission(any(), eq(ENVIRONMENT_GROUP), any(), eq(CREATE))).thenReturn(false);
 
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), API_ID, toBeImport);
 
