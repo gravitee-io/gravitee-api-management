@@ -17,7 +17,6 @@ package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.subscri
 
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
-import lombok.CustomLog;
 import org.bson.Document;
 import org.springframework.stereotype.Component;
 
@@ -29,29 +28,17 @@ import org.springframework.stereotype.Component;
  * No subscription has the hash yet when the index is created, before the node writes any: building the index neither
  * reads nor fails on the existing subscriptions. Duplicates created before are left as they are.
  * <p>
- * Never stops the node when the index cannot be created: without it, identical requests can create several active
- * subscriptions, as with the previous versions.
+ * Like the other index upgraders, it stops the node when the index cannot be created, and is tried again at the next
+ * startup: without the index, two identical requests could store the same hash, and the index could not be created
+ * anymore.
  *
  * @author GraviteeSource Team
  */
-@CustomLog
 @Component("SubscriptionsActiveKeyHashIndexUpgrader")
 public class ActiveKeyHashIndexUpgrader extends IndexUpgrader {
 
     public static final String NAME = "akh1_unique";
     public static final String FIELD = "activeKeyHash";
-
-    @Override
-    public boolean upgrade() {
-        if (!super.upgrade()) {
-            log.error(
-                "Index {} could not be created on {}: subscriptions are not protected against duplicates. Once the cause is fixed, run scripts/create-index.js, or remove the record of this upgrader from the upgrades collection and restart",
-                NAME,
-                buildCollectionName("subscriptions")
-            );
-        }
-        return true;
-    }
 
     @Override
     protected Index buildIndex() {
