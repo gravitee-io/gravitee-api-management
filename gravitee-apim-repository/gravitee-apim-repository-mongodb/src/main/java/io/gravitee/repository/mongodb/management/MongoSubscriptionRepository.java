@@ -160,8 +160,9 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
      *     refused.</li>
      * </ul>
      */
-    private Subscription updateConflicting(Subscription subscription, String hash, SubscriptionMongo stored, Exception conflict)
+    private Subscription updateConflicting(Subscription subscription, String hash, SubscriptionMongo stored, Exception firstConflict)
         throws TechnicalException {
+        Exception conflict = firstConflict;
         Optional<SubscriptionMongo> holder = internalSubscriptionRepository.findByActiveKeyHash(hash);
         if (holder.isEmpty()) {
             try {

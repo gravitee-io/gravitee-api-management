@@ -246,7 +246,8 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
      *     refused.</li>
      * </ul>
      */
-    private void updateConflicting(Subscription subscription, UniqueConstraintViolation violation) throws TechnicalException {
+    private void updateConflicting(Subscription subscription, UniqueConstraintViolation firstViolation) throws TechnicalException {
+        UniqueConstraintViolation violation = firstViolation;
         String hash = SubscriptionUniqueActiveKey.hashOf(subscription);
         Optional<Holder> holder = findHolder(hash);
         if (holder.isEmpty()) {
