@@ -1,9 +1,10 @@
 databaseChangeLog:
   # Key of the active subscriptions (neither REJECTED nor CLOSED): reference type, reference id, application, plan,
   # plus a channel token for PUSH subscriptions. NULL when the subscription is not active. Maintained by the repository
-  # of 4.12.26 only, never enforced: duplicated or stale values are left in it, so no index can rely on it. Since 4.12.27
-  # the unique index is on active_key_hash (v4_12_27) and this column is not written anymore; it is kept for the nodes
-  # of 4.12.26, which still write it.
+  # on every insert and update, it is not enforced yet: the unique index comes in a later release, once every node
+  # maintains it. Existing subscriptions are not backfilled here, as it would scan the whole table before the node
+  # starts: each one gets its key the next time it is written. The others keep no key, so no index can rely on the key
+  # before they are repaired.
   - changeSet:
       id: 4.12.26_00_add_subscriptions_unique_active_key
       author: GraviteeSource Team
