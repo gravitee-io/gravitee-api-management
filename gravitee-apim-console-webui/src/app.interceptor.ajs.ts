@@ -14,9 +14,21 @@
  * limitations under the License.
  */
 
+import angular from 'angular';
+
 import NotificationService from './services/notification.service';
 import { CsrfInterceptor } from './shared/interceptors/csrf.interceptor';
 import { IfMatchEtagInterceptor } from './shared/interceptors/if-match-etag.interceptor';
+
+function networkErrorMessage(error: angular.IHttpResponse<unknown>): string {
+  if (error.xhrStatus !== 'timeout') {
+    return 'Server unreachable';
+  }
+  // The browser aborted the request after the configured client timeout; the server may still complete it.
+  const timeoutInMs = error.config.timeout;
+  const timeoutHint = angular.isNumber(timeoutInMs) ? ` after ${Math.round(timeoutInMs / 1000)}s` : '';
+  return `The request took too long and was stopped by the browser${timeoutHint}. It may still be running on the server.`;
+}
 
 function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
   $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -35,15 +47,14 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
         return config;
       },
       responseError: function (error) {
+        if (error.config && error.config.silentCall) {
+          return $q.reject(error);
+        }
         const notificationService = $injector.get('NotificationService') as NotificationService;
-        if (!error.config || !error.config.silentCall) {
-          if (error.config && !error.config.tryItMode) {
-            if (error && error.status <= 0 && error.xhrStatus !== 'abort') {
-              notificationService.showError('Server unreachable');
-            }
-          } else {
-            notificationService.showError('Unable to call the remote service.');
-          }
+        if (!error.config || error.config.tryItMode) {
+          notificationService.showError('Unable to call the remote service.');
+        } else if (error.status <= 0 && error.xhrStatus !== 'abort') {
+          notificationService.showError(networkErrorMessage(error));
         }
         return $q.reject(error);
       },
