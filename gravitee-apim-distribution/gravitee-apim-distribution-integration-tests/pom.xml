@@ -791,4 +791,18 @@
 
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <!-- The version the assembled distributions must report at runtime: see RuntimeVersionDistributionTest -->
+                        <apim.distribution.version>${project.version}</apim.distribution.version>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
