@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_DEFINITION;
 import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_API;
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_GROUP;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static java.util.Collections.singletonList;
@@ -202,6 +203,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
             // import
             UpdateApiEntity importedApi = convertToEntity(executionContext, apiJsonNode.toString(), apiJsonNode);
+            resolveImportedGroups(executionContext, importedApi);
 
             ApiEntity createdApiEntity = apiService.createWithApiDefinition(
                 executionContext,
@@ -251,6 +253,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             checkApiJsonConsistency(executionContext, apiJsonNode, urlApiId);
 
             // import
+            resolveImportedGroups(executionContext, importedApi);
             ApiEntity updatedApiEntity = apiService.update(executionContext, apiJsonNode.getId(), importedApi);
             createOrUpdateApiNestedEntities(executionContext, updatedApiEntity, apiJsonNode);
             return updatedApiEntity;
@@ -286,6 +289,47 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         ) {
             throw new ForbiddenAccessException();
         }
+    }
+
+    /**
+     * Must only be called once the user is allowed to import the API and the definition is validated, as it may persist new groups.
+     */
+    private void resolveImportedGroups(ExecutionContext executionContext, UpdateApiEntity importedApi) {
+        Set<String> groupNames = new HashSet<>(importedApi.getGroups());
+        importedApi.getGroups().clear();
+
+        List<String> unknownGroupNames = new ArrayList<>();
+        for (String name : groupNames) {
+            List<GroupEntity> groupEntities = groupService.findByName(executionContext.getEnvironmentId(), name);
+            if (groupEntities.isEmpty()) {
+                unknownGroupNames.add(name);
+            } else {
+                importedApi.getGroups().add(groupEntities.get(0).getId());
+            }
+        }
+
+        if (unknownGroupNames.isEmpty()) {
+            return;
+        }
+        if (!canCreateEnvironmentGroups(executionContext)) {
+            unknownGroupNames.forEach(name ->
+                log.warn("Group with name {} does not exist and can't be added to API \"{}\"", name, importedApi.getName())
+            );
+            return;
+        }
+        for (String name : unknownGroupNames) {
+            NewGroupEntity newGroupEntity = new NewGroupEntity();
+            newGroupEntity.setName(name);
+            importedApi.getGroups().add(groupService.create(executionContext, newGroupEntity).getId());
+        }
+    }
+
+    private boolean canCreateEnvironmentGroups(ExecutionContext executionContext) {
+        return (
+            isAuthenticated() &&
+            (isEnvironmentAdmin() ||
+                permissionService.hasPermission(executionContext, ENVIRONMENT_GROUP, executionContext.getEnvironmentId(), CREATE))
+        );
     }
 
     private boolean isImportFromUrl(Object apiDefinitionOrURL) {
@@ -367,23 +411,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .readValue(apiDefinition, UpdateApiEntity.class);
 
-        //create group if not exist & replace groupName by groupId
-        if (importedApi.getGroups() != null) {
-            Set<String> groupNames = new HashSet<>(importedApi.getGroups());
-            importedApi.getGroups().clear();
-            for (String name : groupNames) {
-                List<GroupEntity> groupEntities = groupService.findByName(executionContext.getEnvironmentId(), name);
-                GroupEntity group;
-                if (groupEntities.isEmpty()) {
-                    NewGroupEntity newGroupEntity = new NewGroupEntity();
-                    newGroupEntity.setName(name);
-                    group = groupService.create(executionContext, newGroupEntity);
-                } else {
-                    group = groupEntities.get(0);
-                }
-                importedApi.getGroups().add(group.getId());
-            }
-        } else {
+        if (importedApi.getGroups() == null) {
             // Using a mutable Set, so we can add groups if necessary
             importedApi.setGroups(new HashSet<>());
         }
