@@ -117,9 +117,13 @@ Migrations:
   nullable, the new collection/table starts empty, nothing is backfilled.
 - **Mongo indexes**: two new repository `IndexUpgrader` components (idempotent index creation at startup, the existing
   mechanism): `portalnotifications` (`user`, `environmentId`, `readAt`, `createdAt` desc) in US 1;
-  `portalnotificationnotices` unique (`user`, `notice`, `targetId`, `thresholdDays`) and `endsAt` in US 7.
-- **JDBC**: one changelog `v4_14_0/0X_portal_notifications_read_state_and_notices.yml` (columns, indexes, new table),
-  included in `master.yml`; US 3 and US 7 add their changes to it.
+  `portalnotificationnotices` unique (`user`, `notice`, `targetId`, `thresholdDays`) and `endsAt` in US 7. The
+  existing `u1` index on `user` becomes a prefix of the new `portalnotifications` index and is redundant; it is kept in
+  4.14 and noted for a later cleanup. JDBC has no index on `portal_notifications.user`, nothing to clean there.
+- **JDBC**: one changelog file per story, each included in `master.yml`, numbered after the last `v4_14_0` file at merge
+  time: `0X_portal_notifications_read_state.yml` (US 1), `0Y_portal_notification_configs_close_to_expiry_days.yml`
+  (US 3), `0Z_portal_notification_notices.yml` (US 7). A merged changeset is never edited: its checksum is already
+  recorded on dev environments and the nightly, and Liquibase refuses to start on a mismatch.
 
 ### 4.2 Hooks and templates
 
@@ -167,8 +171,13 @@ environment), and receives the hook and fills `hook`, `apiId` and `applicationId
 | --- | --- | --- | --- |
 | `GET /user/notifications` (extended) | authenticated, caller's rows of the current environment or with no environment (P10) | `page`, `size`, `read` (bool), `apiId`, `applicationId` | `data[]`: `id`, `title`, `message`, `created_at`, **`read`**, **`hook`**, **`api` {id, name}**, **`application` {id, name}**; `metadata.pagination.total` from the database |
 | `GET /user/notifications/_filters` | authenticated, same scope | — | distinct `apis[]` and `applications[]` {id, name} referenced by the caller's notifications |
-| `POST /user/notifications/{notificationId}/_read` | caller owns the notification, else 404 | — | 204 |
+| `POST /user/notifications/{notificationId}/_read` | caller owns the notification and it is in scope, else 404 | — | 204 |
 | `POST /user/notifications/_read` | authenticated, same scope | — | 204, marks all the caller's unread rows of that scope |
+| `DELETE /user/notifications` (existing, now scoped) | authenticated, same scope | — | 204, deletes the caller's rows of that scope only |
+| `DELETE /user/notifications/{notificationId}` (existing, now scoped) | caller owns the notification and it is in scope, else 404 | — | 204 |
+
+A notification of another environment answers 404, like a notification of another user, so every operation sees
+exactly what the list shows.
 | `GET /user/notifications/preferences/applications` | authenticated | — | applications where the caller holds `APPLICATION_NOTIFICATION` (P2): `id`, `name`, `enabledEvents` count |
 | `GET /applications/{applicationId}/notifications/preferences` | `APPLICATION_NOTIFICATION[READ]`, app exists | — | `NotificationPreferences` |
 | `PUT /applications/{applicationId}/notifications/preferences` | `APPLICATION_NOTIFICATION[UPDATE]` | `{ events[], closeToExpiryDays }` | `NotificationPreferences` |
@@ -221,17 +230,19 @@ Inbox names are resolved per page in one batch lookup for APIs and one for appli
 
 Backend:
 - `PortalNotification` + Mongo/JDBC: `readAt`, `hook`, `apiId`, `applicationId`, `environmentId`; Mongo
-  `IndexUpgrader`; changelog.
+  `IndexUpgrader`; changelog `0X_portal_notifications_read_state.yml`.
 - `PortalNotificationRepository`: `search(PortalNotificationSearchCriteria{user, environmentId, read, apiId,
   applicationId}, Pageable)` returning a `Page` sorted by `createdAt` desc, where `environmentId` matches that
   environment or null; `markAsRead(user, id, date)` returning whether a row was updated;
-  `markAllAsRead(user, environmentId, date)`; `findDistinctReferences(user, environmentId)` (API and application ids).
-  `update()` keeps throwing.
+  `markAllAsRead(user, environmentId, date)`; `findDistinctReferences(user, environmentId)` (API and application ids);
+  `deleteAll(user, environmentId)` added next to `deleteAll(user)`, which stays for the Console (organization-wide)
+  and user deletion. `update()` keeps throwing.
 - `NotificationReferenceExtractor` (§4.4); `PortalNotificationServiceImpl.create` stores `hook`, `apiId`,
   `applicationId`, `environmentId`.
-- Use cases and `UserNotificationsResource`: list with filters and server paging, `_filters`, `{id}/_read`, `_read`
-  (§4.5). The classic portal keeps working: same response, additional fields only, same paging parameters; its list is
-  now limited to the current environment (plus rows with no environment).
+- Use cases and `UserNotificationsResource`: list with filters and server paging, `_filters`, `{id}/_read`, `_read`;
+  the existing `DELETE` and `DELETE {id}` scoped the same way (§4.5). The classic portal keeps working: same response,
+  additional fields only, same paging parameters; its list and deletions are now limited to the current environment
+  (plus rows with no environment).
 - Console `UserNotificationsResource` (Management API) unchanged.
 
 Frontend:
@@ -245,12 +256,13 @@ Frontend:
 
 Tests:
 - TCK (Mongo, JDBC): each filter alone and combined, environment scope (current environment and null kept, another
-  environment excluded, also for mark all read and distinct references), paging and total, sort, mark read (own row /
+  environment excluded, also for mark all read, delete all and distinct references), paging and total, sort, mark read (own row /
   another user's row not updated), mark all read, distinct references, legacy row without new fields.
 - Extractor: one parameterized test listing every param type passed today (a new type without a case fails).
 - Service: `create` stores hook, references and environment for an API hook, an application hook and a portal hook (no
   references); a context without environment stores null.
-- Resource: filters passed through, 404 on another user's notification, 204 on read, total in metadata.
+- Resource: filters passed through, 404 on another user's notification and on a notification of another environment
+  (`_read` and `DELETE {id}`), 204 on read, total in metadata, `DELETE` leaves other environments' rows.
 - Regression: Console user notification list (Management API, organization-wide) returns the same content as before;
   classic portal list returns the same fields, limited to the environment scope.
 - Jest: table rendering, each filter, clear filters, open = read, mark all as read, "Deleted API" label, empty state.
@@ -264,13 +276,17 @@ Tests:
 - `user-avatar`: "Notifications" menu entry with the count (badge), routing to `dashboard/notifications`; badge also
   on the avatar button when count > 0. Same entry in the mobile navigation.
 
+The count follows the environment scope of the list (P10): no extra parameter, the badge of an environment never counts
+another environment's notifications.
+
 Tests (Jest): count displayed, hidden at 0, refreshed on menu open, refreshed after mark read, polling interval
-respected, no call when logged out.
+respected, no call when logged out, count = the total returned for the current environment.
 
 ### US 3 — App preferences (PN-01 to PN-05) · 1.5 days (backend 0.5, frontend 1)
 
 Backend:
-- `PortalNotificationConfig` + Mongo/JDBC: `closeToExpiryDays`.
+- `PortalNotificationConfig` + Mongo/JDBC: `closeToExpiryDays`; changelog
+  `0Y_portal_notification_configs_close_to_expiry_days.yml`.
 - `NotificationPreferenceValidator` with the App column of §2.2.
 - `GET /user/notifications/preferences/applications` (`applicationService.findIdsByUserAndPermission` on
   `APPLICATION_NOTIFICATION` READ), `GET/PUT /applications/{applicationId}/notifications/preferences` (§4.5).
@@ -350,7 +366,8 @@ views.
 ### US 7 — Close to expiry (PN-04, PN-09) · 2.5 days (backend)
 
 - Repository `PortalNotificationNoticeRepository` (Mongo, JDBC, TCK): `create`, `existsAtOrBelowThreshold(user,
-  notice, targetId, threshold)`, `deleteByEndsAtBefore(date)`, `deleteByUser(user)`.
+  notice, targetId, threshold)`, `deleteByEndsAtBefore(date)`, `deleteByUser(user)`; Mongo `IndexUpgrader`, JDBC
+  changelog `0Z_portal_notification_notices.yml`.
 - `PortalNotificationConfigRepository.findByReferenceTypeAndHook(referenceType, hook)` (all organizations).
 - `ScheduledConsumerExpiryNoticeService` in the `services` layer: daily cron at 03:00, scheduled on every node, runs
   only when `clusterManager.self().primary()` (same pattern as `ScheduledAuditCleanerService`), enabled by the same
@@ -433,18 +450,20 @@ Dependencies: the next-gen Portal API documentation split (`x-gravitee-portal`) 
   e.g. some automated deploys: unchanged in 4.14, documented.
 - Existing notifications have no API, application, type or environment: they show as unread with empty columns in
   every environment and do not match API / application filters.
-- The classic portal shares `GET /user/notifications`: its list becomes environment-scoped (P10), a visible change for
-  users of several environments.
+- The classic portal shares `GET` and `DELETE /user/notifications`: its list and deletions become environment-scoped
+  (P10), a visible change for users of several environments.
 - API Products get no consumer preference or bell (P9) until Console offers API Product notifications.
 
 ## 8. Security, compatibility, impact
 
-- Security-sensitive: inbox endpoints are scoped to the caller (ownership check on `{notificationId}`); app
+- Security-sensitive: inbox endpoints are scoped to the caller and the environment (ownership and environment check on `{notificationId}`); app
   preferences check `APPLICATION_NOTIFICATION`; API preferences check the subscription rule; delivery re-checks
   membership and subscription at send time; preferences and days are validated.
-- Breaking changes: none. Portal API and database changes are additive, no data upgrader (Mongo indexes through
-  `IndexUpgrader`, JDBC through the changelog), the classic preference endpoints are unchanged, nothing changes for a
-  user until they opt in. Behavior change: the user notification list is scoped to the current environment (P10).
+- Breaking API changes: none. Portal API and database changes are additive, no data upgrader (Mongo indexes through
+  `IndexUpgrader`, JDBC through one changelog per story), the classic preference endpoints are unchanged, nothing
+  changes for a user until they opt in.
+- Behavior change: the user notification list, mark-all-read and deletions of the Portal API are scoped to the current
+  environment (P10); the Console user notifications stay organization-wide.
 - Settings and flags: none new; available where the next-gen portal is enabled (`portalNext.access.enabled`).
 - Console / Gamma: display-only label for the new template scope; no new application or API hook.
 - Gateway: none.
