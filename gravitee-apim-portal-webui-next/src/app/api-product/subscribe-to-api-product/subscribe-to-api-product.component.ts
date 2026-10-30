@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { Component, computed, DestroyRef, inject, input, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
@@ -41,6 +42,7 @@ import { CreateSubscription, Subscription } from '../../../entities/subscription
 import { SubscriptionsResponse } from '../../../entities/subscription/subscriptions-response';
 import { ApiProductsService } from '../../../services/api-products.service';
 import { ApplicationService } from '../../../services/application.service';
+import { CurrentUserService } from '../../../services/current-user.service';
 import { SubscriptionService } from '../../../services/subscription.service';
 import { SubscribeToApiStepHeaderComponent } from '../../api/subscribe-to-api/components/subscribe-to-api-step-header/subscribe-to-api-step-header.component';
 import {
@@ -49,6 +51,7 @@ import {
   DEFAULT_APPLICATIONS_PAGE_SIZE,
   SubscribeToApiChooseApplicationComponent,
 } from '../../api/subscribe-to-api/subscribe-to-api-choose-application/subscribe-to-api-choose-application.component';
+import { CreateApplicationComponent } from '../../dashboard/applications/create-application/create-application.component';
 
 export enum SubscribeToApiProductStep {
   PLAN_SELECTION = 'PLAN_SELECTION',
@@ -66,13 +69,17 @@ interface ApplicationsParams {
   page: number;
   pageSize: number;
   planId: string;
+  query: string;
+  reload: number;
 }
 
 @Component({
   selector: 'app-subscribe-to-api-product',
   imports: [
     BannerComponent,
+    CdkTrapFocus,
     ConsumerConfigurationComponent,
+    CreateApplicationComponent,
     LoaderComponent,
     MatButton,
     MatCard,
@@ -80,6 +87,7 @@ interface ApplicationsParams {
     MatCardContent,
     MatChipsModule,
     MatIcon,
+    MatIconButton,
     MobileClassDirective,
     NarrowClassDirective,
     PlanCardComponent,
@@ -95,6 +103,7 @@ export class SubscribeToApiProductComponent {
   private readonly subscriptionService = inject(SubscriptionService);
   private readonly matDialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly currentUser = inject(CurrentUserService).user;
 
   readonly apiProduct = input.required<ApiProduct>();
   readonly cancelFn = input<() => void>();
@@ -105,6 +114,10 @@ export class SubscribeToApiProductComponent {
   readonly currentApplication = signal<Application | undefined>(undefined);
   readonly currentApplicationsPage = signal(1);
   readonly currentApplicationsPageSize = signal(DEFAULT_APPLICATIONS_PAGE_SIZE);
+  readonly applicationsSearchQuery = signal('');
+  readonly applicationsReload = signal(0);
+  readonly createApplicationOpen = signal(false);
+  readonly canCreateApplication = computed(() => this.currentUser().permissions?.APPLICATION?.includes('C') ?? false);
   readonly consumerConfigurationFormData = signal<ConsumerConfigurationFormData>({ value: undefined, isValid: false });
   readonly isSubmitting = signal(false);
   readonly hasSubscriptionError = signal(false);
@@ -148,24 +161,61 @@ export class SubscribeToApiProductComponent {
             page: this.currentApplicationsPage(),
             pageSize: this.currentApplicationsPageSize(),
             planId: plan.id,
+            query: this.applicationsSearchQuery(),
+            reload: this.applicationsReload(),
           }
         : null;
     },
-    stream: ({ params }) =>
-      params ? this.applicationService.list(params.page, params.pageSize, true) : of<ApplicationsResponse | undefined>(undefined),
+    stream: ({ params }) => {
+      if (!params) {
+        return of<ApplicationsResponse | undefined>(undefined);
+      }
+      const trimmedQuery = params.query?.trim();
+      // Older Management APIs ignore `query` when forSubscription=true — fetch a wide page for local filter.
+      const fetchSize = trimmedQuery ? Math.max(params.pageSize * 50, 200) : params.pageSize;
+      const fetchPage = trimmedQuery ? 1 : params.page;
+      return this.applicationService.list(fetchPage, fetchSize, true, trimmedQuery || undefined);
+    },
   });
 
   readonly plans = computed(() => this.plansResource.value()?.data ?? []);
   readonly applicationsData = computed<ApplicationsData>(() => {
     const response = this.applicationsResource.value();
     const subscriptions = this.subscriptionsResource.value();
+    const pageSize = this.currentApplicationsPageSize();
+    const page = this.currentApplicationsPage();
+    const trimmedQuery = this.applicationsSearchQuery().trim();
+
+    if (!response || !subscriptions) {
+      return {
+        applications: [],
+        pagination: { currentPage: page, totalApplications: 0, pageSize },
+      };
+    }
+
+    let applications = this.addApplicationDisabledState(response, subscriptions);
+    if (trimmedQuery) {
+      const normalizedQuery = trimmedQuery.toLowerCase();
+      applications = applications.filter(
+        app => app.name?.toLowerCase().includes(normalizedQuery) || app.id?.toLowerCase() === normalizedQuery,
+      );
+      const start = (page - 1) * pageSize;
+      return {
+        applications: applications.slice(start, start + pageSize),
+        pagination: {
+          currentPage: page,
+          totalApplications: applications.length,
+          pageSize,
+        },
+      };
+    }
 
     return {
-      applications: response && subscriptions ? this.addApplicationDisabledState(response, subscriptions) : [],
+      applications,
       pagination: {
-        currentPage: response?.metadata?.pagination?.current_page ?? 1,
-        totalApplications: response?.metadata?.pagination?.total ?? 0,
-        pageSize: this.currentApplicationsPageSize(),
+        currentPage: response.metadata?.pagination?.current_page ?? 1,
+        totalApplications: response.metadata?.pagination?.total ?? 0,
+        pageSize,
       },
     };
   });
@@ -228,6 +278,27 @@ export class SubscribeToApiProductComponent {
   onApplicationPageSizeChange(pageSize: number): void {
     this.currentApplicationsPageSize.set(pageSize);
     this.currentApplicationsPage.set(1);
+  }
+
+  onApplicationsSearch(query: string): void {
+    this.applicationsSearchQuery.set(query);
+    this.currentApplicationsPage.set(1);
+  }
+
+  openCreateApplication(): void {
+    this.createApplicationOpen.set(true);
+  }
+
+  closeCreateApplication(): void {
+    this.createApplicationOpen.set(false);
+  }
+
+  onApplicationCreated(application: Application): void {
+    this.createApplicationOpen.set(false);
+    this.currentApplication.set(application);
+    this.applicationsSearchQuery.set('');
+    this.currentApplicationsPage.set(1);
+    this.applicationsReload.update(value => value + 1);
   }
 
   retryPlans(): void {

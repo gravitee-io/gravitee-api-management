@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, DestroyRef, effect, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormControl, FormGroup, FormRecord, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -33,7 +33,7 @@ import { FormKeyValuePairsComponent } from '../../../../components/form-key-valu
 import { LoaderComponent } from '../../../../components/loader/loader.component';
 import { MobileClassDirective } from '../../../../directives/mobile-class.directive';
 import { NarrowClassDirective } from '../../../../directives/narrow-class.directive';
-import { ApplicationInput, ApplicationSettings, ApplicationType } from '../../../../entities/application/application';
+import { Application, ApplicationInput, ApplicationSettings, ApplicationType } from '../../../../entities/application/application';
 import { ApplicationTypeTranslatePipe } from '../../../../pipe/application-type-translate.pipe';
 import { ApplicationService } from '../../../../services/application.service';
 import { BreadcrumbService } from '../../../../services/breadcrumb.service';
@@ -80,12 +80,20 @@ interface GrantTypeVM {
   ],
   templateUrl: './create-application.component.html',
   styleUrl: './create-application.component.scss',
+  host: {
+    '[class.embedded]': 'embedded()',
+  },
 })
 export class CreateApplicationComponent {
   readonly applicationService = inject(ApplicationService);
   readonly router = inject(Router);
   readonly destroyRef = inject(DestroyRef);
   readonly breadcrumbService = inject(BreadcrumbService);
+
+  /** When true, render inside another journey (e.g. subscribe sidebar) and emit instead of navigating. */
+  readonly embedded = input(false);
+  readonly applicationCreated = output<Application>();
+  readonly cancelled = output<void>();
 
   readonly typeIdControl = new FormControl<string | null>(null, { nonNullable: false });
 
@@ -131,14 +139,19 @@ export class CreateApplicationComponent {
   });
 
   hasApplicationError = signal(false);
+  creating = signal(false);
 
   constructor() {
-    this.breadcrumbService.set([
-      applicationListBreadcrumb(true),
-      { id: 'create', label: $localize`:@@createApplicationBreadcrumb:Create` },
-    ]);
     this.setupDynamicFormFields();
     this.setupDefaultApplicationType();
+    effect(() => {
+      if (!this.embedded()) {
+        this.breadcrumbService.set([
+          applicationListBreadcrumb(true),
+          { id: 'create', label: $localize`:@@createApplicationBreadcrumb:Create` },
+        ]);
+      }
+    });
   }
 
   get redirectUrisControl(): FormControl<string[]> | null {
@@ -152,7 +165,7 @@ export class CreateApplicationComponent {
   }
 
   onCreate(): void {
-    if (this.form.invalid) {
+    if (this.form.invalid || this.creating()) {
       this.form.markAllAsTouched();
       return;
     }
@@ -165,15 +178,23 @@ export class CreateApplicationComponent {
     }
 
     const applicationInput = this.buildApplicationInput(formValue, selectedType);
+    this.creating.set(true);
+    this.hasApplicationError.set(false);
 
     this.applicationService
       .create(applicationInput)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: application => {
+          this.creating.set(false);
+          if (this.embedded()) {
+            this.applicationCreated.emit(application);
+            return;
+          }
           this.router.navigate(['/dashboard/applications', application.id]);
         },
         error: err => {
+          this.creating.set(false);
           this.hasApplicationError.set(true);
           console.error('Error creating application:', err);
         },
@@ -181,6 +202,10 @@ export class CreateApplicationComponent {
   }
 
   onCancel(): void {
+    if (this.embedded()) {
+      this.cancelled.emit();
+      return;
+    }
     this.router.navigate(['/applications']);
   }
 

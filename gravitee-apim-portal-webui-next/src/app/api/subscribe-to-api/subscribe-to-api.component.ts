@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { CommonModule } from '@angular/common';
 import { Component, computed, DestroyRef, inject, input, OnInit, Signal, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
@@ -43,6 +44,8 @@ import { SubscribeToApiChoosePlanComponent } from './subscribe-to-api-choose-pla
 import { ConsumerConfigurationComponent } from '../../../components';
 import { LoaderComponent } from '../../../components/loader/loader.component';
 import { ConsumerConfigurationFormData } from '../../../components/subscription/webhook/consumer-configuration/consumer-configuration.models';
+import { CreateApplicationComponent } from '../../dashboard/applications/create-application/create-application.component';
+import { MobileClassDirective } from '../../../directives/mobile-class.directive';
 import { Api } from '../../../entities/api/api';
 import { Application, ApplicationsResponse } from '../../../entities/application/application';
 import { Page } from '../../../entities/page/page';
@@ -53,6 +56,7 @@ import { CreateSubscription, Subscription } from '../../../entities/subscription
 import { SubscriptionsResponse } from '../../../entities/subscription/subscriptions-response';
 import { ApplicationService } from '../../../services/application.service';
 import { ConfigService } from '../../../services/config.service';
+import { CurrentUserService } from '../../../services/current-user.service';
 import { PageService } from '../../../services/page.service';
 import { PlanService } from '../../../services/plan.service';
 import { PortalService } from '../../../services/portal.service';
@@ -77,7 +81,9 @@ interface CheckoutData {
 @Component({
   selector: 'app-subscribe-to-api',
   imports: [
+    CdkTrapFocus,
     CommonModule,
+    CreateApplicationComponent,
     MatCard,
     SubscribeToApiCheckoutComponent,
     SubscribeToApiChoosePlanComponent,
@@ -86,9 +92,11 @@ interface CheckoutData {
     MatCardActions,
     MatCardContent,
     MatButton,
+    MatIconButton,
     LoaderComponent,
     MatChipsModule,
     MatIcon,
+    MobileClassDirective,
     ConsumerConfigurationComponent,
   ],
   templateUrl: './subscribe-to-api.component.html',
@@ -107,8 +115,11 @@ export class SubscribeToApiComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly matDialog = inject(MatDialog);
+  private readonly currentUser = inject(CurrentUserService).user;
   private readonly currentApplicationsPage = new BehaviorSubject(1);
   private readonly currentApplicationsPageSize = new BehaviorSubject(DEFAULT_APPLICATIONS_PAGE_SIZE);
+  private readonly applicationsQuery = new BehaviorSubject('');
+  private readonly applicationsReload = new BehaviorSubject(0);
 
   api = input.required<Api>();
   cancelFn = input<() => void>();
@@ -118,6 +129,9 @@ export class SubscribeToApiComponent implements OnInit {
   currentStep = signal<SubscribeStep>(SubscribeStep.PLAN_SELECTION);
   currentPlan = signal<Plan | undefined>(undefined);
   currentApplication = signal<Application | undefined>(undefined);
+  createApplicationOpen = signal(false);
+  applicationsSearchQuery = signal('');
+  canCreateApplication = computed(() => this.currentUser().permissions?.APPLICATION?.includes('C') ?? false);
 
   activeSteps = computed<SubscribeStep[]>(() => {
     const plan = this.currentPlan();
@@ -189,8 +203,13 @@ export class SubscribeToApiComponent implements OnInit {
     );
 
     this.applicationsData$ = this.subscriptionService.list({ apiIds: [this.api().id], statuses: ['PENDING', 'ACCEPTED'], size: -1 }).pipe(
-      combineLatestWith(this.currentApplicationsPage, this.currentApplicationsPageSize),
-      switchMap(([subscriptions, page, pageSize]) => this.getApplicationsData$(page, pageSize, subscriptions)),
+      combineLatestWith(
+        this.currentApplicationsPage,
+        this.currentApplicationsPageSize,
+        this.applicationsQuery,
+        this.applicationsReload,
+      ),
+      switchMap(([subscriptions, page, pageSize, query]) => this.getApplicationsData$(page, pageSize, subscriptions, query)),
       catchError(_ =>
         of({ applications: [], pagination: { currentPage: 0, totalApplications: 0, pageSize: DEFAULT_APPLICATIONS_PAGE_SIZE } }),
       ),
@@ -238,6 +257,29 @@ export class SubscribeToApiComponent implements OnInit {
   onApplicationPageSizeChange(pageSize: number) {
     this.currentApplicationsPageSize.next(pageSize);
     this.currentApplicationsPage.next(1);
+  }
+
+  onApplicationsSearch(query: string) {
+    this.applicationsSearchQuery.set(query);
+    this.applicationsQuery.next(query);
+    this.currentApplicationsPage.next(1);
+  }
+
+  openCreateApplication() {
+    this.createApplicationOpen.set(true);
+  }
+
+  closeCreateApplication() {
+    this.createApplicationOpen.set(false);
+  }
+
+  onApplicationCreated(application: Application) {
+    this.createApplicationOpen.set(false);
+    this.currentApplication.set(application);
+    this.applicationsSearchQuery.set('');
+    this.applicationsQuery.next('');
+    this.currentApplicationsPage.next(1);
+    this.applicationsReload.next(this.applicationsReload.value + 1);
   }
 
   subscribe() {
@@ -307,16 +349,46 @@ export class SubscribeToApiComponent implements OnInit {
     return consumerConfiguration;
   }
 
-  private getApplicationsData$(page: number, pageSize: number, subscriptionsResponse: SubscriptionsResponse): Observable<ApplicationsData> {
-    return this.applicationService.list(page, pageSize, true).pipe(
-      map(response => ({
-        applications: this.addApplicationDisabledState(response, subscriptionsResponse),
-        pagination: {
-          currentPage: response.metadata?.pagination?.current_page ?? 0,
-          totalApplications: response.metadata?.pagination?.total ?? 0,
-          pageSize,
-        },
-      })),
+  private getApplicationsData$(
+    page: number,
+    pageSize: number,
+    subscriptionsResponse: SubscriptionsResponse,
+    query?: string,
+  ): Observable<ApplicationsData> {
+    const trimmedQuery = query?.trim();
+    // Older Management APIs ignore `query` when forSubscription=true. Fetch a wide page and filter
+    // locally so subscribe search still works; newer APIs that honor query remain compatible.
+    const fetchSize = trimmedQuery ? Math.max(pageSize * 50, 200) : pageSize;
+    const fetchPage = trimmedQuery ? 1 : page;
+
+    return this.applicationService.list(fetchPage, fetchSize, true, trimmedQuery).pipe(
+      map(response => {
+        let applications = this.addApplicationDisabledState(response, subscriptionsResponse);
+        if (trimmedQuery) {
+          const normalizedQuery = trimmedQuery.toLowerCase();
+          applications = applications.filter(
+            app => app.name?.toLowerCase().includes(normalizedQuery) || app.id?.toLowerCase() === normalizedQuery,
+          );
+          const start = (page - 1) * pageSize;
+          return {
+            applications: applications.slice(start, start + pageSize),
+            pagination: {
+              currentPage: page,
+              totalApplications: applications.length,
+              pageSize,
+            },
+          };
+        }
+
+        return {
+          applications,
+          pagination: {
+            currentPage: response.metadata?.pagination?.current_page ?? 0,
+            totalApplications: response.metadata?.pagination?.total ?? 0,
+            pageSize,
+          },
+        };
+      }),
       tap(({ applications }) => {
         if (this.currentApplication() && applications.some(app => app.id === this.currentApplication()?.id && app.disabled === true)) {
           this.currentApplication.set(undefined);

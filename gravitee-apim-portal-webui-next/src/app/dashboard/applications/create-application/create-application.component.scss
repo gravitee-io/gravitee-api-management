@@ -21,6 +21,27 @@
   flex-direction: column;
   max-width: theme.$inner-content-width;
   padding: 16px;
+
+  &.embedded {
+    max-width: none;
+    padding: 0;
+
+    .content {
+      padding-top: 0;
+      gap: 24px;
+    }
+
+    .cards-container {
+      flex-direction: column;
+    }
+
+    .actions {
+      position: sticky;
+      bottom: 0;
+      padding-top: 16px;
+      background: theme.$card-background-color;
+    }
+  }
 }
 
 .content {

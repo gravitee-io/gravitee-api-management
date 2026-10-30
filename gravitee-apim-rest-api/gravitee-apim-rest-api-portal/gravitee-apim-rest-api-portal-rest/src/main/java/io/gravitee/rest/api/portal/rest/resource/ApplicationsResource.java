@@ -173,6 +173,22 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
                 RolePermission.APPLICATION_SUBSCRIPTION,
                 RolePermissionAction.CREATE
             );
+            // findIdsByUserAndPermission ignores name filters; apply query within the permitted set.
+            if (query != null && !query.isBlank() && !applicationIds.isEmpty()) {
+                ApplicationQuery applicationQuery = ApplicationQuery.builder()
+                    .user(getAuthenticatedUser())
+                    .status(ApplicationStatus.ACTIVE.name())
+                    .ids(new HashSet<>(applicationIds))
+                    .query(query.trim())
+                    .build();
+                Page<ApplicationListItem> filteredPage = applicationService.search(
+                    executionContext,
+                    applicationQuery,
+                    applicationsOrderParam.toSortable(),
+                    new PageableImpl(1, applicationIds.size())
+                );
+                applicationIds = filteredPage.getContent().stream().map(ApplicationListItem::getId).collect(Collectors.toList());
+            }
         } else {
             ApplicationQuery applicationQuery = ApplicationQuery.builder()
                 .user(getAuthenticatedUser())

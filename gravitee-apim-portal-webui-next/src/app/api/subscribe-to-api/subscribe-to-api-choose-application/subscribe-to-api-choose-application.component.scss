@@ -20,17 +20,40 @@
   gap: 24px;
 }
 
+.choose-application__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.choose-application__search {
+  flex: 0 1 240px;
+  width: 240px;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.choose-application__toolbar > button {
+  margin-left: auto;
+}
+
 .no-applications {
   display: flex;
   flex-flow: column;
   align-items: center;
   padding: 56px 0;
   gap: 8px;
+
+  &__create {
+    margin-top: 16px;
+  }
 }
 
 .applications {
   display: grid;
-  margin-top: 30px;
+  margin-top: 8px;
   gap: 32px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 

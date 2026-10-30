@@ -47,7 +47,8 @@ export class SearchBarComponent implements OnInit {
 
   constructor() {
     effect(() => {
-      this.searchControl.setValue(this.searchParam());
+      // Avoid re-emitting valueChanges when the parent echoes the same term back via searchParam.
+      this.searchControl.setValue(this.searchParam(), { emitEvent: false });
     });
   }
 

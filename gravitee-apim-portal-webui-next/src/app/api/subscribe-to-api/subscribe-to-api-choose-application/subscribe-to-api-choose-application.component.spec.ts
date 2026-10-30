@@ -93,4 +93,22 @@ describe('SubscribeToApiChooseApplicationComponent', () => {
 
     expect(emittedSize).toBe(12);
   });
+
+  it('should emit searchChange when searching applications', () => {
+    let emittedQuery: string | undefined;
+    component.searchChange.subscribe(query => (emittedQuery = query));
+
+    component.searchChange.emit('Payments');
+
+    expect(emittedQuery).toBe('Payments');
+  });
+
+  it('should emit createApplication when create is requested', () => {
+    let created = false;
+    component.createApplication.subscribe(() => (created = true));
+
+    component.createApplication.emit();
+
+    expect(created).toBe(true);
+  });
 });

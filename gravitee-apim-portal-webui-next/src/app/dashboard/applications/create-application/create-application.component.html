@@ -17,10 +17,12 @@
 -->
 <div class="content">
   <div>
-    <div class="page-header">
-      <span class="next-gen-h3" i18n="@@applicationsCreateTitle">Create new application</span>
-      <p class="next-gen-body" i18n="@@applicationsCreateDescription">An application is used to register and agree to plans.</p>
-    </div>
+    @if (!embedded()) {
+      <div class="page-header">
+        <span class="next-gen-h3" i18n="@@applicationsCreateTitle">Create new application</span>
+        <p class="next-gen-body" i18n="@@applicationsCreateDescription">An application is used to register and agree to plans.</p>
+      </div>
+    }
 
     @if (enabledApplicationTypes(); as types) {
       <div class="cards-container" [appIsMobile]="'cards-container--mobile'">
@@ -192,13 +194,18 @@
         mat-flat-button
         color="primary"
         type="button"
-        [disabled]="form.invalid || !selectedType()"
+        [disabled]="form.invalid || !selectedType() || creating()"
         (click)="onCreate()"
-        i18n="@@createApplicationCreateButton"
       >
-        Create
+        @if (creating()) {
+          <span i18n="@@createApplicationCreatingButton">Creating...</span>
+        } @else {
+          <span i18n="@@createApplicationCreateButton">Create</span>
+        }
       </button>
-      <button mat-stroked-button type="button" (click)="onCancel()" i18n="@@createApplicationCancelButton">Cancel</button>
+      <button mat-stroked-button type="button" [disabled]="creating()" (click)="onCancel()" i18n="@@createApplicationCancelButton">
+        Cancel
+      </button>
     </div>
   </div>
 </div>

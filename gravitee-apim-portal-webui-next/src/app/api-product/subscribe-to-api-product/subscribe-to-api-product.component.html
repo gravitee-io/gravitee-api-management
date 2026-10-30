@@ -90,9 +90,13 @@
             [applications]="applicationsData().applications"
             [selectedApplication]="currentApplication()"
             [pagination]="applicationsData().pagination"
+            [searchQuery]="applicationsSearchQuery()"
+            [canCreateApplication]="canCreateApplication()"
             (selectApplication)="selectApplication($event)"
             (pageChange)="onApplicationPageChange($event)"
             (pageSizeChange)="onApplicationPageSizeChange($event)"
+            (searchChange)="onApplicationsSearch($event)"
+            (createApplication)="openCreateApplication()"
           />
         }
       </mat-card-content>
@@ -182,4 +186,49 @@
       }
     </div>
   </mat-card-actions>
+}
+
+@if (createApplicationOpen()) {
+  <div
+    class="subscribe-create-app__backdrop"
+    aria-hidden="true"
+    tabindex="-1"
+    (click)="closeCreateApplication()"
+  ></div>
+  <div
+    class="subscribe-create-app__panel"
+    data-testid="subscribe-create-application-drawer"
+    cdkTrapFocus
+    cdkTrapFocusAutoCapture
+    role="dialog"
+    aria-modal="true"
+    i18n-aria-label="@@subscribeCreateApplicationPanelAria"
+    aria-label="Create application"
+    [appIsMobile]="'subscribe-create-app__panel--mobile'"
+    (keydown.escape)="closeCreateApplication()"
+  >
+    <div class="subscribe-create-app__panel__header">
+      <div>
+        <div class="next-gen-h5" i18n="@@subscribeCreateApplicationTitle">Create application</div>
+        <p class="next-gen-body" i18n="@@subscribeCreateApplicationDescription">
+          Create an application without leaving this subscription.
+        </p>
+      </div>
+      <button
+        class="subscribe-create-app__panel__close"
+        mat-icon-button
+        type="button"
+        (click)="closeCreateApplication()"
+        i18n-aria-label="@@subscribeCreateApplicationClose"
+        aria-label="Close create application"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <app-create-application
+      [embedded]="true"
+      (applicationCreated)="onApplicationCreated($event)"
+      (cancelled)="closeCreateApplication()"
+    />
+  </div>
 }

@@ -499,6 +499,55 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void shouldFilterApplicationsForSubscriptionByQuery() {
+        Set<String> ids = new LinkedHashSet<>(Arrays.asList("A", "B"));
+        doReturn(ids)
+            .when(applicationService)
+            .findIdsByUserAndPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                anyString(),
+                eq(new SortableImpl("name", true)),
+                eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                eq(RolePermissionAction.CREATE)
+            );
+
+        ApplicationListItem applicationA = new ApplicationListItem();
+        applicationA.setId("A");
+        applicationA.setName("Payments App");
+        io.gravitee.common.data.domain.Page<ApplicationListItem> filteredPage = new io.gravitee.common.data.domain.Page<>(
+            Collections.singletonList(applicationA),
+            1,
+            1,
+            1
+        );
+        doReturn(filteredPage)
+            .when(applicationService)
+            .search(eq(GraviteeContext.getExecutionContext()), any(), eq(new SortableImpl("name", true)), any());
+
+        doReturn(new HashSet<>(Collections.singletonList(applicationA)))
+            .when(applicationService)
+            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(Collections.singletonList("A")), eq(ApplicationStatus.ACTIVE));
+        doReturn(new Application().id("A").name("Payments App"))
+            .when(applicationMapper)
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationA), any());
+
+        final Response response = target()
+            .queryParam("page", 1)
+            .queryParam("size", 6)
+            .queryParam("forSubscription", true)
+            .queryParam("query", "Payments")
+            .request()
+            .get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        verify(applicationService).search(eq(GraviteeContext.getExecutionContext()), any(), eq(new SortableImpl("name", true)), any());
+
+        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
+        assertEquals(1, applicationsResponse.getData().size());
+        assertEquals("A", applicationsResponse.getData().get(0).getId());
+    }
+
+    @Test
     public void shouldGetApplicationsWithPaginationUsingSearchBranch() {
         // forSubscription=false with pagination should use applicationService.search and include paginateMetaData
         ApplicationListItem applicationA = new ApplicationListItem();

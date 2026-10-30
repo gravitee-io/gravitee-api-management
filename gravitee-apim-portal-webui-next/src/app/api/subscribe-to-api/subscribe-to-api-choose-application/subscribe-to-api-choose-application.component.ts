@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 
 import { PaginationComponent } from '../../../../components/pagination/pagination.component';
 import { RadioCardComponent } from '../../../../components/radio-card/radio-card.component';
+import { SearchBarComponent } from '../../../../components/search-bar/search-bar.component';
 import { MobileClassDirective } from '../../../../directives/mobile-class.directive';
 import { NarrowClassDirective } from '../../../../directives/narrow-class.directive';
 import { Application } from '../../../../entities/application/application';
@@ -37,7 +40,15 @@ export interface ApplicationsPagination {
 
 @Component({
   selector: 'app-subscribe-to-api-choose-application',
-  imports: [RadioCardComponent, PaginationComponent, MobileClassDirective, NarrowClassDirective],
+  imports: [
+    MatButtonModule,
+    MatIconModule,
+    PaginationComponent,
+    RadioCardComponent,
+    SearchBarComponent,
+    MobileClassDirective,
+    NarrowClassDirective,
+  ],
   templateUrl: './subscribe-to-api-choose-application.component.html',
   styleUrl: './subscribe-to-api-choose-application.component.scss',
 })
@@ -51,6 +62,12 @@ export class SubscribeToApiChooseApplicationComponent {
   @Input()
   pagination: ApplicationsPagination = { currentPage: 0, totalApplications: 0, pageSize: DEFAULT_APPLICATIONS_PAGE_SIZE };
 
+  @Input()
+  searchQuery = '';
+
+  @Input()
+  canCreateApplication = false;
+
   @Output()
   selectApplication = new EventEmitter<ApplicationVM>();
 
@@ -59,6 +76,12 @@ export class SubscribeToApiChooseApplicationComponent {
 
   @Output()
   pageSizeChange = new EventEmitter<number>();
+
+  @Output()
+  searchChange = new EventEmitter<string>();
+
+  @Output()
+  createApplication = new EventEmitter<void>();
 
   protected readonly pageSizeOptions = APPLICATIONS_PAGE_SIZE_OPTIONS;
 }

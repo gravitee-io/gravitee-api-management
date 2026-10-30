@@ -15,6 +15,29 @@
     limitations under the License.
 
 -->
+<div class="choose-application__toolbar">
+  <app-search-bar
+    class="choose-application__search"
+    [searchParam]="searchQuery"
+    [showShortcut]="false"
+    i18n-placeholder="@@subscribeToApiSearchApplicationsPlaceholder"
+    placeholder="Search applications"
+    (searchTerm)="searchChange.emit($event)"
+  />
+  @if (canCreateApplication) {
+    <button
+      mat-stroked-button
+      type="button"
+      class="secondary-button"
+      data-testid="subscribe-create-application"
+      (click)="createApplication.emit()"
+    >
+      <mat-icon>add</mat-icon>
+      <span i18n="@@subscribeToApiCreateApplication">Create application</span>
+    </button>
+  }
+</div>
+
 @if (!!applications.length) {
   <div class="applications" [appIsNarrow]="'applications--narrow'" [appIsMobile]="'applications--mobile'">
     @for (application of applications; track application.id) {
@@ -43,7 +66,27 @@
   />
 } @else {
   <div class="no-applications">
-    <div class="m3-title-medium" i18n="@@subscribeToApiNoApplicationsFound">No application found</div>
-    <div class="m3-body-medium" i18n="@@subscribeToApiNoApplicationsFoundMessage">Create an application and it will show up here.</div>
+    @if (searchQuery.trim()) {
+      <div class="m3-title-medium" i18n="@@subscribeToApiNoApplicationsMatchingSearch">No applications match your search</div>
+      <div class="m3-body-medium" i18n="@@subscribeToApiNoApplicationsMatchingSearchMessage">
+        Try a different name, or create a new application.
+      </div>
+    } @else {
+      <div class="m3-title-medium" i18n="@@subscribeToApiNoApplicationsFound">No application found</div>
+      <div class="m3-body-medium" i18n="@@subscribeToApiNoApplicationsFoundMessage">Create an application and it will show up here.</div>
+    }
+    @if (canCreateApplication) {
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        class="no-applications__create"
+        data-testid="subscribe-create-application-empty"
+        (click)="createApplication.emit()"
+      >
+        <mat-icon>add</mat-icon>
+        <span i18n="@@subscribeToApiCreateApplication">Create application</span>
+      </button>
+    }
   </div>
 }

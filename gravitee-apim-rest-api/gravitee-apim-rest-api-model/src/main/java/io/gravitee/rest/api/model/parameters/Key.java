@@ -501,21 +501,13 @@ public enum Key {
     PORTAL_NEXT_CATALOG_TILE_NAME_ENABLED("portal.next.catalog.tile.name.enabled", "true", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_CATALOG_TILE_TYPE_ENABLED("portal.next.catalog.tile.type.enabled", "true", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_CATALOG_TILE_IMAGE_ENABLED("portal.next.catalog.tile.image.enabled", "true", new HashSet<>(singletonList(ENVIRONMENT))),
-    PORTAL_NEXT_CATALOG_TILE_VERSION_ENABLED(
-        "portal.next.catalog.tile.version.enabled",
-        "true",
-        new HashSet<>(singletonList(ENVIRONMENT))
-    ),
+    PORTAL_NEXT_CATALOG_TILE_VERSION_ENABLED("portal.next.catalog.tile.version.enabled", "true", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_CATALOG_TILE_DESCRIPTION_ENABLED(
         "portal.next.catalog.tile.description.enabled",
         "true",
         new HashSet<>(singletonList(ENVIRONMENT))
     ),
-    PORTAL_NEXT_CATALOG_TILE_STATUS_ENABLED(
-        "portal.next.catalog.tile.status.enabled",
-        "true",
-        new HashSet<>(singletonList(ENVIRONMENT))
-    ),
+    PORTAL_NEXT_CATALOG_TILE_STATUS_ENABLED("portal.next.catalog.tile.status.enabled", "true", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_CATALOG_TILE_OWNER_ENABLED("portal.next.catalog.tile.owner.enabled", "true", new HashSet<>(singletonList(ENVIRONMENT)));
 
     final String key;
