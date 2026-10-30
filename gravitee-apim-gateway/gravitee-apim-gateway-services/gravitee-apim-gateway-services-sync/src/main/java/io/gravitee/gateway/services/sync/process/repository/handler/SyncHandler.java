@@ -60,7 +60,9 @@ public class SyncHandler implements Handler<RoutingContext> {
     }
 
     private JsonObject distributedStatus() {
-        JsonObject distributed = new JsonObject().put("role", repositorySyncManager.actingPrimary() ? "primary" : "secondary");
+        JsonObject distributed = new JsonObject()
+            .put("role", repositorySyncManager.actingPrimary() ? "primary" : "secondary")
+            .put("resyncInProgress", repositorySyncManager.distributedResyncInProgress());
         repositorySyncManager
             .distributedSyncMetrics()
             .ifPresent(metrics ->
@@ -70,10 +72,13 @@ public class SyncHandler implements Handler<RoutingContext> {
                     .put("decodeFailures", metrics.decodeFailures())
                     .put("decodeFailuresByType", byType(metrics.decodeFailuresByType()))
                     .put("distributionFailures", metrics.distributionFailures())
+                    .put("localDeploys", metrics.localDeploys())
                     .put("replayedCycles", metrics.replayedCycles())
                     .put("heldWindows", metrics.heldWindows())
                     .put("skippedAfterRetries", metrics.skippedAfterRetries())
                     .put("skippedAfterRetriesByType", byType(metrics.skippedAfterRetriesByType()))
+                    .put("staleEntriesRemoved", metrics.staleEntriesRemoved())
+                    .put("skippedStaleEntriesRemovals", metrics.skippedStaleEntriesRemovals())
             );
         return distributed;
     }
