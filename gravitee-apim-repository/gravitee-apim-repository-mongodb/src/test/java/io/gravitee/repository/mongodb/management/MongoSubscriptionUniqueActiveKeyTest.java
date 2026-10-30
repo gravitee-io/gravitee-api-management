@@ -207,20 +207,23 @@ public class MongoSubscriptionUniqueActiveKeyTest extends AbstractManagementRepo
     }
 
     /**
-     * Without the index, the node behaves as the previous version: it must start anyway.
+     * Without the index, two identical requests could store the same hash, and the index could not be created anymore:
+     * the node does not start without it, and creates it at its next startup.
      */
     @Test
-    public void should_not_stop_the_node_when_the_index_cannot_be_created() throws Exception {
+    public void should_stop_the_node_when_the_index_cannot_be_created_and_create_it_at_the_next_startup() throws Exception {
         subscriptions().dropIndex(INDEX);
         // Same name, other options: the server refuses to create the expected index.
         subscriptions().createIndex(new Document(FIELD, 1), new IndexOptions().name(INDEX));
+        boolean firstStartup;
         try {
-            assertThat(activeKeyHashIndexUpgrader().upgrade()).isTrue();
+            firstStartup = activeKeyHashIndexUpgrader().upgrade();
         } finally {
             subscriptions().dropIndex(INDEX);
-            activeKeyHashIndexUpgrader().upgrade();
         }
 
+        assertThat(firstStartup).isFalse();
+        assertThat(activeKeyHashIndexUpgrader().upgrade()).isTrue();
         assertThat(index(INDEX).getBoolean("unique")).isTrue();
     }
 
