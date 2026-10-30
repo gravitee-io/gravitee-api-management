@@ -99,7 +99,11 @@ commands:
 jobs:
   job-danger-js:
     docker:
+<<<<<<< HEAD
       - image: cimg/node:20.11.1
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: small
     steps:
       - checkout
@@ -108,7 +112,25 @@ jobs:
           var-name: DANGER_GITHUB_API_TOKEN
       - run:
           name: Run Danger JS
+<<<<<<< HEAD
           command: cd .circleci/danger && yarn run danger
+=======
+          command: cd .circleci/danger && yarn install && yarn run danger
+  job-nx-format-check:
+    docker:
+      - image: cimg/node:24.22.1
+    resource_class: medium
+    steps:
+      - checkout
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - attach_workspace:
+          at: .
+      - run:
+          name: Check prettier formatting for nx projects
+          command: yarn prettier
+      - cmd-notify-on-failure
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
   job-webui-lint-test:
     parameters:
       apim-ui-project:
@@ -120,7 +142,11 @@ jobs:
         default: medium
         description: Resource class to use for executor
     docker:
+<<<<<<< HEAD
       - image: cimg/node:20.11.1
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: << parameters.resource_class >>
     steps:
       - checkout
@@ -152,7 +178,11 @@ jobs:
           path: << parameters.apim-ui-project >>/coverage/junit.xml
   job-portal-webui-build:
     docker:
+<<<<<<< HEAD
       - image: cimg/node:20.11.1
+=======
+      - image: cimg/node:24.22.1
+>>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: large
     steps:
       - checkout
