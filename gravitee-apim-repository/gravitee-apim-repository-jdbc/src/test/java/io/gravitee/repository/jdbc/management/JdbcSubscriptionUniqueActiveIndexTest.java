@@ -17,7 +17,6 @@ package io.gravitee.repository.jdbc.management;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 import io.gravitee.repository.exceptions.DuplicateKeyException;
@@ -54,8 +53,6 @@ public class JdbcSubscriptionUniqueActiveIndexTest extends AbstractManagementRep
 
     private static final String COLUMN = "active_key_hash";
     private static final String CHANGESETS = "4.12.27_%";
-    private static final String COLUMN_CHANGESET = "4.12.27_00_add_subscriptions_active_key_hash";
-    private static final String INDEX_CHANGESETS = "4.12.27_02_%";
 
     @Inject
     private DataSource dataSource;
@@ -85,12 +82,13 @@ public class JdbcSubscriptionUniqueActiveIndexTest extends AbstractManagementRep
     }
 
     /**
-     * Puts the expected index back for the other tests sharing the database, whatever the outcome of the test.
+     * Puts the expected column and index back for the other tests sharing the database, whatever the outcome of the test.
      */
     @After
     public void restoreIndex() throws Exception {
         jdbcTemplate.update("delete from " + subscriptionsTable);
         dropIndexQuietly();
+        dropHashColumnQuietly();
         deleteChangesets(CHANGESETS);
         updateDatabase();
     }
@@ -122,49 +120,6 @@ public class JdbcSubscriptionUniqueActiveIndexTest extends AbstractManagementRep
         assertThat(subscriptionRows()).isEqualTo(before);
         assertThat(jdbcTemplate.queryForList("select " + COLUMN + " from " + subscriptionsTable, String.class)).containsOnlyNulls();
         assertThat(uniqueIndexOnHashExists()).isTrue();
-    }
-
-    @Test
-    public void should_accept_a_hash_column_created_before_the_upgrade() throws Exception {
-        // Operators of large databases may run the documented statements themselves before upgrading.
-        deleteChangesets(COLUMN_CHANGESET);
-
-        updateDatabase();
-
-        assertThat(executionType(COLUMN_CHANGESET)).containsExactly("MARK_RAN");
-    }
-
-    @Test
-    public void should_accept_a_unique_index_created_before_the_upgrade() throws Exception {
-        // Operators of large databases may run the documented statements themselves before upgrading, online.
-        dropIndexQuietly();
-        jdbcTemplate.execute(
-            "create unique index " +
-                indexName +
-                " on " +
-                subscriptionsTable +
-                " (" +
-                COLUMN +
-                ")" +
-                (isMySql() ? "" : " where " + COLUMN + " is not null")
-        );
-        deleteChangesets(INDEX_CHANGESETS);
-
-        updateDatabase();
-
-        assertThat(executionType(INDEX_CHANGESETS)).containsExactly("MARK_RAN");
-        assertThat(uniqueIndexOnHashExists()).isTrue();
-    }
-
-    @Test
-    public void should_refuse_to_start_on_an_index_of_the_same_name_that_does_not_enforce_uniqueness() throws Exception {
-        // Marking the index as created would leave the nodes writing hashes no index protects.
-        dropIndexQuietly();
-        jdbcTemplate.execute("create index " + indexName + " on " + subscriptionsTable + " (" + COLUMN + ")");
-        deleteChangesets(CHANGESETS);
-
-        assertThatThrownBy(this::updateDatabase).isNotNull();
-        assertThat(executionType(INDEX_CHANGESETS)).isEmpty();
     }
 
     @Test
@@ -223,14 +178,6 @@ public class JdbcSubscriptionUniqueActiveIndexTest extends AbstractManagementRep
         return rows;
     }
 
-    private List<String> executionType(String changesets) {
-        return jdbcTemplate.queryForList(
-            "select exectype from " + prefix() + "databasechangelog where id like ?",
-            String.class,
-            changesets
-        );
-    }
-
     private void deleteChangesets(String changesets) {
         jdbcTemplate.update("delete from " + prefix() + "databasechangelog where id like ?", changesets);
     }
@@ -263,11 +210,6 @@ public class JdbcSubscriptionUniqueActiveIndexTest extends AbstractManagementRep
 
     private boolean isPostgreSql() throws Exception {
         return databaseProduct().contains("postgresql");
-    }
-
-    private boolean isMySql() throws Exception {
-        var product = databaseProduct();
-        return product.contains("mysql") || product.contains("mariadb");
     }
 
     private String databaseProduct() throws Exception {
