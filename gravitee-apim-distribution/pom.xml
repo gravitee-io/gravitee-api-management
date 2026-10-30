@@ -84,7 +84,7 @@
             bumping either side.
         -->
         <gravitee-connector-http.version>6.0.5</gravitee-connector-http.version>
-        <gravitee-node.version>9.15.1</gravitee-node.version>
+        <gravitee-node.version>9.16.0</gravitee-node.version>
         <jna.version>5.19.1</jna.version>
         <mariadb-java-client.version>3.5.10</mariadb-java-client.version>
         <mongo.version>5.11.1</mongo.version>
