@@ -144,4 +144,21 @@ public interface AnalyticsRepository {
     default Map<String, Set<String>> builtInAdditionalMetricKeys() {
         return Map.of();
     }
+
+    /**
+     * The additional metrics the requests of the query context's environment carried over the window, each with the
+     * time it was last seen. Typed keys only: a key whose prefix is unknown, a reserved {@code <type>_custom_<name>}
+     * key, or a key stored under another type than its prefix declares is left out, including a key stored under its
+     * declared type in some indexes of the window and another type in others. The keys are not checked against the
+     * rest of the additional metric grammar: callers drop what their parser refuses.
+     *
+     * <p>The default answers none: an implementation that does not say discovers nothing.
+     *
+     * @throws IllegalArgumentException when the query context names no environment, see
+     *     {@link AdditionalMetricDiscoveryQuery#environmentOf}
+     */
+    default AdditionalMetricDiscoveryResult discoverAdditionalMetrics(QueryContext queryContext, AdditionalMetricDiscoveryQuery query) {
+        AdditionalMetricDiscoveryQuery.environmentOf(queryContext);
+        return AdditionalMetricDiscoveryResult.NONE;
+    }
 }
