@@ -95,9 +95,15 @@ class PlatformLogsController {
       queryParamsHandling: 'merge',
     });
 
-    this.AnalyticsService.findLogs(this.query).then(logs => {
-      this.logs = logs.data;
-    });
+    this.AnalyticsService.findLogs(this.query).then(
+      logs => {
+        this.logs = logs.data;
+      },
+      () => {
+        // Clear the table on failure so a stale result set is not mistaken for the current search's result.
+        this.logs = { total: '0', logs: [], metadata: {} };
+      },
+    );
   }
 
   filtersChange(filters) {
