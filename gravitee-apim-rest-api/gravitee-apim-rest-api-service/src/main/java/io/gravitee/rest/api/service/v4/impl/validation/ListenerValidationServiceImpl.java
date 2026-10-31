@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
+import io.gravitee.apim.core.api.model.PathMappingTemplates;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.infra.adapter.PathAdapter;
 import io.gravitee.definition.model.v4.ApiType;
@@ -40,7 +41,6 @@ import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
@@ -53,7 +53,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.stereotype.Component;
@@ -342,17 +341,8 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     }
 
     private void validatePathMappings(final Set<String> pathMappings) {
-        // validate regex on pathMappings
         if (pathMappings != null) {
-            pathMappings.forEach(pathMapping -> {
-                try {
-                    Pattern.compile(pathMapping);
-                } catch (java.util.regex.PatternSyntaxException pse) {
-                    String errorMsg = String.format("An error occurs while trying to parse the path mapping '%s'", pathMapping);
-                    log.error(errorMsg, pse);
-                    throw new TechnicalManagementException(errorMsg, pse);
-                }
-            });
+            PathMappingTemplates.validate(pathMappings);
         }
     }
 }

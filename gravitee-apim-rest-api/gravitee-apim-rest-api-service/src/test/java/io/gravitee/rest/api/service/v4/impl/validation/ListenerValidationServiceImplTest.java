@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -28,6 +29,7 @@ import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.exception.InvalidHostException;
+import io.gravitee.apim.core.api.exception.InvalidPathMappingsException;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
@@ -686,6 +688,45 @@ class ListenerValidationServiceImplTest {
                     emptyList()
                 )
             );
+        }
+
+        @Test
+        void should_throw_invalid_path_mappings_exception_when_mapping_cannot_be_compiled() {
+            HttpListener httpListener = HttpListener.builder()
+                .paths(List.of(new Path("path")))
+                .pathMappings(new java.util.LinkedHashSet<>(Set.of("/a/**")))
+                .build();
+
+            assertThatExceptionOfType(InvalidPathMappingsException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    List.of(buildEndpointGroup())
+                )
+            );
+        }
+
+        @Test
+        void should_accept_existing_non_strict_mapping() {
+            Entrypoint entrypoint = new Entrypoint();
+            entrypoint.setType("type");
+            HttpListener httpListener = HttpListener.builder()
+                .paths(List.of(new Path("path")))
+                .pathMappings(new java.util.LinkedHashSet<>(Set.of("/", "/a/.*")))
+                .entrypoints(List.of(entrypoint))
+                .build();
+
+            when(entrypointService.findById("type")).thenReturn(mock(ConnectorPluginEntity.class));
+
+            assertThatCode(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    List.of(buildEndpointGroup())
+                )
+            ).doesNotThrowAnyException();
         }
     }
 

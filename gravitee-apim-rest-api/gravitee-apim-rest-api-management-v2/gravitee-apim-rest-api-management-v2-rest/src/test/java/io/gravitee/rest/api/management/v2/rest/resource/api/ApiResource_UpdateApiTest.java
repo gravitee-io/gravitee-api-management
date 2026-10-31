@@ -28,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.ApiFixtures;
+import fixtures.ListenerFixtures;
 import inmemory.InMemoryAlternative;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.group.model.Group;
@@ -45,6 +46,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
+import io.gravitee.rest.api.management.v2.rest.model.Listener;
 import io.gravitee.rest.api.management.v2.rest.model.StepV4;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
@@ -167,6 +169,40 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
 
         final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
         assertEquals(BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void should_return_400_when_path_mapping_is_invalid() {
+        ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(apiEntity);
+
+        var updateApiV4 = ApiFixtures.anUpdateApiV4().listeners(
+            List.of(new Listener(ListenerFixtures.aHttpListener().pathMappings(List.of("/a/**"))))
+        );
+
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+
+        var error = response.readEntity(Error.class);
+        assertEquals(BAD_REQUEST_400, (int) error.getHttpStatus());
+        assertEquals("api.listeners.http.pathMappings.invalid", error.getTechnicalCode());
+    }
+
+    @Test
+    public void should_return_400_when_path_mappings_contain_duplicates() {
+        ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(apiEntity);
+
+        var updateApiV4 = ApiFixtures.anUpdateApiV4().listeners(
+            List.of(new Listener(ListenerFixtures.aHttpListener().pathMappings(List.of("/a", "/a"))))
+        );
+
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+
+        var error = response.readEntity(Error.class);
+        assertEquals(BAD_REQUEST_400, (int) error.getHttpStatus());
+        assertEquals("api.listeners.http.pathMappings.invalid", error.getTechnicalCode());
     }
 
     @Test
