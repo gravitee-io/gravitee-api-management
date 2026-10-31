@@ -69,6 +69,13 @@ class OrderTest {
     }
 
     @Test
+    void guardian_order_runs_after_shared_policy_group_and_before_apis() {
+        assertThat(Order.GUARDIAN.index()).isGreaterThan(Order.SHARED_POLICY_GROUP.index());
+        assertThat(Order.GUARDIAN.index()).isLessThan(Order.API_PRODUCT.index());
+        assertThat(Order.GUARDIAN.index()).isLessThan(Order.API.index());
+    }
+
+    @Test
     void enum_contains_all_expected_orders_with_no_silent_removal() {
         Set<String> names = Arrays.stream(Order.values()).map(Order::name).collect(Collectors.toUnmodifiableSet());
         assertThat(names).contains(
@@ -79,6 +86,7 @@ class OrderTest {
             "DICTIONARY",
             "CLUSTER",
             "SHARED_POLICY_GROUP",
+            "GUARDIAN",
             "API_PRODUCT",
             "API",
             "SUBSCRIPTION",

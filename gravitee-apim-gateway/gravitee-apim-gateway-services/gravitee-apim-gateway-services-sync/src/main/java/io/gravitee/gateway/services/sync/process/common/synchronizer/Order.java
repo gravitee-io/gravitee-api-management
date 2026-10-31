@@ -43,11 +43,12 @@ public enum Order {
     AUTHZ_ENTITY(10),
     AUTHZ_POLICY(11),
     CREDENTIAL(12),
-    API_PRODUCT(13),
-    API(14),
-    SUBSCRIPTION(15),
-    API_KEY(16),
-    DEBUG(17);
+    GUARDIAN(13),
+    API_PRODUCT(14),
+    API(15),
+    SUBSCRIPTION(16),
+    API_KEY(17),
+    DEBUG(18);
 
     static {
         Set<Integer> elements = new HashSet<>();

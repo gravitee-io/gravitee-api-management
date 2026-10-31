@@ -500,7 +500,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     });
             }
 
-            Api api = apiMapper.toRepository(executionContext, updateApiEntity);
+            Api api = apiMapper.toRepository(executionContext, updateApiEntity, apiToUpdate);
 
             // Copy fields from existing values
             api.setEnvironmentId(apiToUpdate.getEnvironmentId());

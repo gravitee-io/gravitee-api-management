@@ -88,6 +88,19 @@ public class FlowChainFactory {
         return flowApiChain;
     }
 
+    public FlowChain createInternalFlow(final Api api, final TracingContext tracingContext) {
+        FlowChain flowInternalChain = new FlowChain(
+            "internal",
+            flowResolverFactory.forInternalFlow(api),
+            policyChainFactory,
+            FlowResolverFactory.NO_DEFERRED_CONDITION,
+            true,
+            false
+        );
+        flowInternalChain.addHooks(flowHooks(tracingContext));
+        return flowInternalChain;
+    }
+
     private List<ChainHook> flowHooks(final TracingContext tracingContext) {
         if (tracingContext.isEnabled()) {
             return List.of(tracingHook);

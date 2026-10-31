@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync.process.repository.service;
 
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
+import io.gravitee.gateway.handlers.guardian.ReactableGuardian;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
@@ -77,6 +78,27 @@ public class EnvironmentService {
                     reactableSharedPolicyGroup.setOrganizationId(sharedPolicyGroupOrg.getId());
                     reactableSharedPolicyGroup.setOrganizationHrid(
                         sharedPolicyGroupOrg.getHrids() != null ? sharedPolicyGroupOrg.getHrids().stream().findFirst().orElse(null) : null
+                    );
+                }
+            }
+        }
+    }
+
+    public void fill(final String environmentId, final ReactableGuardian reactableGuardian) {
+        if (environmentId != null) {
+            Environment guardianEnv = loadEnvironment(environmentId);
+            if (guardianEnv != null) {
+                reactableGuardian.setEnvironmentId(guardianEnv.getId());
+                reactableGuardian.setEnvironmentHrid(
+                    guardianEnv.getHrids() != null ? guardianEnv.getHrids().stream().findFirst().orElse(null) : null
+                );
+
+                final io.gravitee.repository.management.model.Organization guardianOrg = organizations.get(guardianEnv.getOrganizationId());
+
+                if (guardianOrg != null) {
+                    reactableGuardian.setOrganizationId(guardianOrg.getId());
+                    reactableGuardian.setOrganizationHrid(
+                        guardianOrg.getHrids() != null ? guardianOrg.getHrids().stream().findFirst().orElse(null) : null
                     );
                 }
             }

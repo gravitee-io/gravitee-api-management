@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.gateway.handlers.guardian.ReactableGuardian;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -87,6 +88,24 @@ class EnvironmentServiceTest {
 
         verify(reactableApi).setEnvironmentId(ENV_ID);
         verify(reactableApi).setOrganizationId(ORG_ID);
+    }
+
+    @Test
+    void should_fill_environment_and_organization_of_a_guardian() throws TechnicalException {
+        Environment environment = environment();
+        environment.setHrids(java.util.List.of("env-hrid"));
+        Organization organization = organization();
+        organization.setHrids(java.util.List.of("org-hrid"));
+        when(environmentRepository.findById(ENV_ID)).thenReturn(Optional.of(environment));
+        when(organizationRepository.findById(ORG_ID)).thenReturn(Optional.of(organization));
+        ReactableGuardian reactableGuardian = ReactableGuardian.builder().id("guardian-id").build();
+
+        cut.fill(ENV_ID, reactableGuardian);
+
+        assertThat(reactableGuardian.getEnvironmentId()).isEqualTo(ENV_ID);
+        assertThat(reactableGuardian.getEnvironmentHrid()).isEqualTo("env-hrid");
+        assertThat(reactableGuardian.getOrganizationId()).isEqualTo(ORG_ID);
+        assertThat(reactableGuardian.getOrganizationHrid()).isEqualTo("org-hrid");
     }
 
     @Test

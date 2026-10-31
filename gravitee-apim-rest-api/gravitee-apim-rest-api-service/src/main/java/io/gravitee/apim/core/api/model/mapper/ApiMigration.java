@@ -124,6 +124,7 @@ class ApiMigration {
                     null /* plans are managed in another place because is in a different collection */,
                     null,
                     null /* flows are managed in another place because is in a different collection */,
+                    null,
                     apiDefinitionV2.getResponseTemplates(),
                     apiServices,
                     false /* allowedInApiProducts - defaults to false for migrated APIs */

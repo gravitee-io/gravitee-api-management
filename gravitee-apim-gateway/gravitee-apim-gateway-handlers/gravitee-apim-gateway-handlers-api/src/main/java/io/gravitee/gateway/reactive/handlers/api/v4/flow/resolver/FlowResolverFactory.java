@@ -125,6 +125,14 @@ public class FlowResolverFactory {
         return apiProductPlanFlowResolver;
     }
 
+    /**
+     * Builds the resolver of the internal flow. It is a single flow, never subject to the flow execution mode of the
+     * API: its condition is evaluated upfront along with the other filters, nothing is left to be deferred.
+     */
+    public FlowResolver forInternalFlow(Api api) {
+        return new InternalFlowResolver(api.getDefinition(), bestMatchApiFlowFilter);
+    }
+
     private ConditionFilter<BaseExecutionContext, Flow> flowFilter(final FlowExecution flowExecution) {
         return isBestMatchFlowMode(flowExecution) ? bestMatchApiFlowFilter : apiFlowFilter;
     }

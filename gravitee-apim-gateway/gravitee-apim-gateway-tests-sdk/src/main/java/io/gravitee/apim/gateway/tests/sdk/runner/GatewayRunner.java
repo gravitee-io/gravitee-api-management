@@ -55,6 +55,7 @@ import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.edge.EdgeApi;
+import io.gravitee.definition.model.v4.guardian.Guardian;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
 import io.gravitee.gateway.dictionary.DictionaryManager;
@@ -62,6 +63,8 @@ import io.gravitee.gateway.dictionary.model.Dictionary;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
+import io.gravitee.gateway.handlers.guardian.ReactableGuardian;
+import io.gravitee.gateway.handlers.guardian.manager.GuardianManager;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
@@ -176,6 +179,8 @@ public class GatewayRunner {
     public static final String API_PRODUCT_ALREADY_DEPLOYED_MESSAGE = "An API Product has already been deployed with id {%s}";
     public static final String CANNOT_UNDEPLOY_CLASS_API_PRODUCT_MESSAGE =
         "An API Product deployed at class level cannot be undeployed (id {%s})";
+    public static final String GUARDIAN_ALREADY_DEPLOYED_MESSAGE = "A Guardian has already been deployed with id {%s}";
+    public static final String CANNOT_UNDEPLOY_CLASS_GUARDIAN_MESSAGE = "A Guardian deployed at class level cannot be undeployed (id {%s})";
     private static final String AT_CLASS_LEVEL = " at class level";
 
     private final GatewayConfigurationBuilder gatewayConfigurationBuilder;
@@ -190,6 +195,8 @@ public class GatewayRunner {
     private final Map<String, ReactableOrganization> deployedOrganizationsForTest;
     private final Map<SharedPolicyGroupKey, ReactableSharedPolicyGroup> deployedSharedPolicyGroupsForTestClass;
     private final Map<SharedPolicyGroupKey, ReactableSharedPolicyGroup> deployedSharedPolicyGroupsForTest;
+    private final Map<GuardianKey, ReactableGuardian> deployedGuardiansForTestClass;
+    private final Map<GuardianKey, ReactableGuardian> deployedGuardiansForTest;
     private final Map<String, ReactableApiProduct> deployedApiProductsForTestClass;
     private final Map<String, ReactableApiProduct> deployedApiProductsForTest;
     private GatewayTestContainer gatewayContainer;
@@ -199,6 +206,8 @@ public class GatewayRunner {
     private GatewayDynamicConfig.GatewayDynamicConfigImpl gatewayDynamicConfig;
 
     record SharedPolicyGroupKey(String sharedPolicyGroupId, String environmentId) {}
+
+    record GuardianKey(String guardianId, String environmentId) {}
 
     public GatewayRunner(GatewayConfigurationBuilder gatewayConfigurationBuilder, AbstractGatewayTest testInstance) {
         this.gatewayConfigurationBuilder = gatewayConfigurationBuilder;
@@ -212,6 +221,8 @@ public class GatewayRunner {
         this.deployedOrganizationsForTest = new HashMap<>();
         this.deployedSharedPolicyGroupsForTestClass = new HashMap<>();
         this.deployedSharedPolicyGroupsForTest = new HashMap<>();
+        this.deployedGuardiansForTestClass = new HashMap<>();
+        this.deployedGuardiansForTest = new HashMap<>();
         this.deployedApiProductsForTestClass = new HashMap<>();
         this.deployedApiProductsForTest = new HashMap<>();
 
@@ -266,6 +277,8 @@ public class GatewayRunner {
             testInstance.setUndeployCallback(this::undeployFromTest);
             testInstance.setDeploySharedPolicyGroupCallback(this::deploySharedPolicyGroupFromTest);
             testInstance.setUndeploySharedPolicyGroupCallback(this::undeploySharedPolicyGroupFromTest);
+            testInstance.setDeployGuardianCallback(this::deployGuardianFromTest);
+            testInstance.setUndeployGuardianCallback(this::undeployGuardianFromTest);
             testInstance.setDeployApiProductCallback(this::deployOrRedeployApiProductFromTest);
             testInstance.setUndeployApiProductCallback(this::undeployApiProductFromTest);
 
@@ -512,6 +525,48 @@ public class GatewayRunner {
         );
     }
 
+    public void deployGuardianForClass(String guardianDefinitionPath) throws IOException {
+        final ReactableGuardian reactableGuardian = loadGuardianDefinition(guardianDefinitionPath);
+        if (deployedGuardiansForTestClass.containsKey(keyOf(reactableGuardian))) {
+            throw new PreconditionViolationException(String.format(GUARDIAN_ALREADY_DEPLOYED_MESSAGE, reactableGuardian.getId()));
+        }
+        deployGuardian(reactableGuardian, deployedGuardiansForTestClass);
+    }
+
+    public void deployGuardianForTest(String guardianDefinitionPath) throws IOException {
+        final ReactableGuardian reactableGuardian = loadGuardianDefinition(guardianDefinitionPath);
+        if (
+            deployedGuardiansForTestClass.containsKey(keyOf(reactableGuardian)) ||
+            deployedGuardiansForTest.containsKey(keyOf(reactableGuardian))
+        ) {
+            throw new PreconditionViolationException(String.format(GUARDIAN_ALREADY_DEPLOYED_MESSAGE, reactableGuardian.getId()));
+        }
+        deployGuardian(reactableGuardian, deployedGuardiansForTest);
+    }
+
+    /**
+     * Deploy a Guardian and add it to the map belonging to its context (Class or Method).
+     * @param reactableGuardian the Guardian to deploy
+     * @param deployedGuardians the map containing deployed guardians.
+     */
+    private void deployGuardian(ReactableGuardian reactableGuardian, Map<GuardianKey, ReactableGuardian> deployedGuardians) {
+        GuardianManager guardianManager = gatewayContainer.applicationContext().getBean(GuardianManager.class);
+
+        testInstance.ensureMinimalRequirementForGuardian(reactableGuardian);
+        reactableGuardian.setDeployedAt(new Date());
+
+        try {
+            guardianManager.register(reactableGuardian);
+        } catch (Exception e) {
+            throw new IllegalStateException("An error occurred deploying the guardian %s".formatted(reactableGuardian.getId()), e);
+        }
+        deployedGuardians.put(keyOf(reactableGuardian), reactableGuardian);
+    }
+
+    private static GuardianKey keyOf(ReactableGuardian reactableGuardian) {
+        return new GuardianKey(reactableGuardian.getId(), reactableGuardian.getEnvironmentId());
+    }
+
     public void deployApiProductForClass(String apiProductDefinitionPath) throws IOException {
         final ReactableApiProduct reactableApiProduct = loadApiProductDefinition(apiProductDefinitionPath);
         if (deployedApiProductsForTestClass.containsKey(reactableApiProduct.getId())) {
@@ -654,6 +709,37 @@ public class GatewayRunner {
         }
     }
 
+    /**
+     * Deploys a Guardian from a test. Throws if trying to deploy a Guardian deployed at class level
+     * @param reactableGuardian is the Guardian to deploy
+     */
+    private void deployGuardianFromTest(ReactableGuardian reactableGuardian) {
+        if (deployedGuardiansForTestClass.containsKey(keyOf(reactableGuardian))) {
+            throw new PreconditionViolationException(
+                String.format(GUARDIAN_ALREADY_DEPLOYED_MESSAGE + AT_CLASS_LEVEL, reactableGuardian.getId())
+            );
+        }
+        if (deployedGuardiansForTest.containsKey(keyOf(reactableGuardian))) {
+            undeployGuardian(reactableGuardian);
+            deployedGuardiansForTest.remove(keyOf(reactableGuardian));
+        }
+        deployGuardian(reactableGuardian, deployedGuardiansForTest);
+    }
+
+    /**
+     * Undeploys a Guardian from a test. Throws if the Guardian is deployed at class level
+     */
+    private void undeployGuardianFromTest(String guardianId, String environmentId) {
+        GuardianKey key = new GuardianKey(guardianId, environmentId);
+        if (deployedGuardiansForTestClass.containsKey(key)) {
+            throw new PreconditionViolationException(String.format(CANNOT_UNDEPLOY_CLASS_GUARDIAN_MESSAGE, guardianId));
+        }
+        if (deployedGuardiansForTest.containsKey(key)) {
+            gatewayContainer.applicationContext().getBean(GuardianManager.class).unregister(guardianId, environmentId);
+            deployedGuardiansForTest.remove(key);
+        }
+    }
+
     private void deployOrRedeployApiProductFromTest(ReactableApiProduct reactableApiProduct) {
         if (deployedApiProductsForTestClass.containsKey(reactableApiProduct.getId())) {
             throw new PreconditionViolationException(
@@ -786,6 +872,21 @@ public class GatewayRunner {
     public void undeploySharedPolicyGroup(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
         SharedPolicyGroupManager sharedPolicyGroupManager = gatewayContainer.applicationContext().getBean(SharedPolicyGroupManager.class);
         sharedPolicyGroupManager.unregister(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId());
+    }
+
+    public void undeployGuardianForClass() {
+        deployedGuardiansForTestClass.forEach((key, value) -> undeployGuardian(value));
+        deployedGuardiansForTestClass.clear();
+    }
+
+    public void undeployGuardianForTest() {
+        deployedGuardiansForTest.forEach((key, value) -> undeployGuardian(value));
+        deployedGuardiansForTest.clear();
+    }
+
+    public void undeployGuardian(ReactableGuardian reactableGuardian) {
+        GuardianManager guardianManager = gatewayContainer.applicationContext().getBean(GuardianManager.class);
+        guardianManager.unregister(reactableGuardian.getId(), reactableGuardian.getEnvironmentId());
     }
 
     public void undeployApiProductForClass() {
@@ -1024,6 +1125,11 @@ public class GatewayRunner {
     private ReactableSharedPolicyGroup loadSharedPolicyGroupDefinition(String sharedPolicyGroupDefinitionPath) throws IOException {
         final SharedPolicyGroup sharedPolicyGroup = loadResource(sharedPolicyGroupDefinitionPath, SharedPolicyGroup.class);
         return new ReactableSharedPolicyGroup(sharedPolicyGroup);
+    }
+
+    private ReactableGuardian loadGuardianDefinition(String guardianDefinitionPath) throws IOException {
+        final Guardian guardian = loadResource(guardianDefinitionPath, Guardian.class);
+        return new ReactableGuardian(guardian);
     }
 
     private ReactableApiProduct loadApiProductDefinition(String apiProductDefinitionPath) throws IOException {

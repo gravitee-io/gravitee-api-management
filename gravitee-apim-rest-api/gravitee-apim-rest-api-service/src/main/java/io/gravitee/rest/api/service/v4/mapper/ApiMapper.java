@@ -480,6 +480,13 @@ public class ApiMapper {
     }
 
     public Api toRepository(final ExecutionContext executionContext, final UpdateApiEntity updateApiEntity) {
+        return toRepository(executionContext, updateApiEntity, null);
+    }
+
+    /**
+     * The internal flow is managed by the platform and never part of an {@link UpdateApiEntity}: it is taken from the existing API.
+     */
+    public Api toRepository(final ExecutionContext executionContext, final UpdateApiEntity updateApiEntity, final Api existingApi) {
         Api repoApi = new Api();
         String apiId = updateApiEntity.getId();
         repoApi.setId(apiId.trim());
@@ -503,7 +510,7 @@ public class ApiMapper {
         repoApi.setBackground(updateApiEntity.getBackground());
 
         repoApi.setDefinitionVersion(updateApiEntity.getDefinitionVersion());
-        repoApi.setDefinition(toApiDefinition(updateApiEntity));
+        repoApi.setDefinition(toApiDefinition(updateApiEntity, internalFlowOf(existingApi)));
 
         repoApi.setCategories(categoryMapper.toCategoryId(executionContext.getEnvironmentId(), updateApiEntity.getCategories()));
 
@@ -518,7 +525,19 @@ public class ApiMapper {
         return repoApi;
     }
 
-    private String toApiDefinition(final UpdateApiEntity updateApiEntity) {
+    private Flow internalFlowOf(final Api api) {
+        if (api == null || api.getDefinition() == null) {
+            return null;
+        }
+        try {
+            var internalFlow = objectMapper.readTree(api.getDefinition()).get("internalFlow");
+            return internalFlow == null || internalFlow.isNull() ? null : objectMapper.treeToValue(internalFlow, Flow.class);
+        } catch (JsonProcessingException jse) {
+            throw new TechnicalManagementException("An error occurs while reading the internal flow of API " + api.getId(), jse);
+        }
+    }
+
+    private String toApiDefinition(final UpdateApiEntity updateApiEntity, final Flow internalFlow) {
         try {
             io.gravitee.definition.model.v4.Api apiDefinition = new io.gravitee.definition.model.v4.Api();
 
@@ -538,6 +557,7 @@ public class ApiMapper {
             apiDefinition.setResources(updateApiEntity.getResources());
             apiDefinition.setFlowExecution(updateApiEntity.getFlowExecution());
             apiDefinition.setFlows(updateApiEntity.getFlows());
+            apiDefinition.setInternalFlow(internalFlow);
             apiDefinition.setResponseTemplates(updateApiEntity.getResponseTemplates());
             apiDefinition.setServices(updateApiEntity.getServices());
             if (ApiProductComposition.supports(updateApiEntity.getType()) && updateApiEntity.getAllowedInApiProducts() != null) {
