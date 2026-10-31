@@ -65,6 +65,7 @@ import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -139,7 +140,15 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
             );
 
             when(analyticsQueryContextLoader.load(any(), any(), any())).thenReturn(
-                new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
+                new AnalyticsQueryContext(
+                    null,
+                    new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                    Set.of(),
+                    Map.of(),
+                    Map.of(),
+                    Map.of(),
+                    Optional.empty()
+                )
             );
             when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));
         }
@@ -287,7 +296,15 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
             ).thenAnswer(invocation -> invocation.getArgument(2));
 
             when(analyticsQueryContextLoader.load(any(), any(), any())).thenReturn(
-                new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
+                new AnalyticsQueryContext(
+                    null,
+                    new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                    Set.of(),
+                    Map.of(),
+                    Map.of(),
+                    Map.of(),
+                    Optional.empty()
+                )
             );
             when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));
         }
@@ -409,7 +426,15 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
             ).thenAnswer(invocation -> invocation.getArgument(2));
 
             when(analyticsQueryContextLoader.load(any(), any(), any())).thenReturn(
-                new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
+                new AnalyticsQueryContext(
+                    null,
+                    new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                    Set.of(),
+                    Map.of(),
+                    Map.of(),
+                    Map.of(),
+                    Optional.empty()
+                )
             );
             when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));
         }
@@ -507,7 +532,8 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                     Set.of("api-1", "api-2"),
                     Map.of(),
                     Map.of(),
-                    Map.of()
+                    Map.of(),
+                    Optional.empty()
                 )
             );
         }
