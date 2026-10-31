@@ -18,6 +18,7 @@ package io.gravitee.apim.core.theme.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.ThemeCrudServiceInMemory;
+import inmemory.ThemeImageWriteValidatorInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.theme.domain_service.ValidateThemeDomainService;
@@ -40,7 +41,52 @@ class ValidatePortalThemeUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new ValidatePortalThemeUseCase(new ValidateThemeDomainService(new ThemeCrudServiceInMemory()));
+        useCase = new ValidatePortalThemeUseCase(
+            new ValidateThemeDomainService(new ThemeCrudServiceInMemory(), new ThemeImageWriteValidatorInMemory())
+        );
+    }
+
+    @Test
+    void should_return_severe_errors_for_invalid_images_without_throwing() {
+        var input = new ValidateThemeDomainService.Input(
+            AUDIT_INFO,
+            "my-theme",
+            "My Theme",
+            new ThemeDefinition(),
+            "data:text/html;base64,PGh0bWw+PC9odG1sPg==",
+            null,
+            "data:image/png;base64,not-base64",
+            null
+        );
+
+        var output = useCase.execute(input);
+
+        assertThat(output.errors())
+            .hasSize(2)
+            .allMatch(error -> error.isSevere());
+        assertThat(output.errors()).anyMatch(error -> error.getMessage().contains("spec.logo"));
+        assertThat(output.errors()).anyMatch(error -> error.getMessage().contains("spec.favicon"));
+        assertThat(output.theme().getName()).isEqualTo(input.name());
+    }
+
+    @Test
+    void should_preserve_valid_data_uri_source_in_the_preview() {
+        var image = "DATA:IMAGE/X-PNG;BASE64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jrFYAAAAASUVORK5CYII=";
+        var input = new ValidateThemeDomainService.Input(
+            AUDIT_INFO,
+            "my-theme",
+            "My Theme",
+            new ThemeDefinition(),
+            image,
+            null,
+            null,
+            null
+        );
+
+        var output = useCase.execute(input);
+
+        assertThat(output.errors()).isEmpty();
+        assertThat(output.theme().getLogo()).isEqualTo(image);
     }
 
     @Test

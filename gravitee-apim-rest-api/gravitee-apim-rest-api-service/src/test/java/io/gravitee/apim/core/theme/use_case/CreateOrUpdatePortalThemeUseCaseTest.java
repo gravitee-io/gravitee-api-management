@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.ThemeCrudServiceInMemory;
+import inmemory.ThemeImageWriteValidatorInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -51,8 +52,8 @@ class CreateOrUpdatePortalThemeUseCaseTest {
     @BeforeEach
     void setUp() {
         useCase = new CreateOrUpdatePortalThemeUseCase(
-            new ValidateThemeDomainService(themeCrudService),
-            new ThemeDomainService(themeCrudService),
+            new ValidateThemeDomainService(themeCrudService, new ThemeImageWriteValidatorInMemory()),
+            new ThemeDomainService(themeCrudService, new ThemeImageWriteValidatorInMemory()),
             themeCrudService
         );
     }
@@ -60,6 +61,25 @@ class CreateOrUpdatePortalThemeUseCaseTest {
     @AfterEach
     void tearDown() {
         themeCrudService.reset();
+    }
+
+    @Test
+    void should_reject_invalid_images_before_creating_a_theme() {
+        var input = new ValidateThemeDomainService.Input(
+            AUDIT_INFO,
+            THEME_HRID,
+            "My Theme",
+            new ThemeDefinition(),
+            null,
+            null,
+            "data:text/html;base64,PGh0bWw+PC9odG1sPg==",
+            null
+        );
+
+        assertThatThrownBy(() -> useCase.execute(input))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("spec.favicon");
+        assertThat(themeCrudService.storage()).isEmpty();
     }
 
     @Test
@@ -85,18 +105,18 @@ class CreateOrUpdatePortalThemeUseCaseTest {
             THEME_HRID,
             "My Theme",
             new ThemeDefinition(),
-            "data:image/png;base64,LOGO",
-            "data:image/png;base64,OPT",
-            "data:image/png;base64,FAV",
-            "data:image/png;base64,BG"
+            "DATA:IMAGE/X-PNG;BASE64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jrFYAAAAASUVORK5CYII=",
+            "https://example.test/optional-logo.png",
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jrFYAAAAASUVORK5CYII=",
+            "https://example.test/background.png"
         );
 
         var output = useCase.execute(input);
 
-        assertThat(output.theme().getLogo()).isEqualTo("data:image/png;base64,LOGO");
-        assertThat(output.theme().getOptionalLogo()).isEqualTo("data:image/png;base64,OPT");
-        assertThat(output.theme().getFavicon()).isEqualTo("data:image/png;base64,FAV");
-        assertThat(output.theme().getBackgroundImage()).isEqualTo("data:image/png;base64,BG");
+        assertThat(output.theme().getLogo()).isEqualTo(input.logo());
+        assertThat(output.theme().getOptionalLogo()).isEqualTo(input.optionalLogo());
+        assertThat(output.theme().getFavicon()).isEqualTo(input.favicon());
+        assertThat(output.theme().getBackgroundImage()).isEqualTo(input.backgroundImage());
     }
 
     @Test

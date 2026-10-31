@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import inmemory.InMemoryAlternative;
 import inmemory.ParametersDomainServiceInMemory;
 import inmemory.ThemeCrudServiceInMemory;
+import inmemory.ThemeImageWriteValidatorInMemory;
 import inmemory.ThemePortalNextAssetsDomainServiceInMemory;
 import inmemory.ThemeServiceLegacyWrapperInMemory;
 import io.gravitee.apim.core.theme.domain_service.DefaultThemeDomainService;
@@ -67,8 +68,8 @@ public class GetDefaultThemeUseCaseTest {
         .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
         .name("Default Portal Next Theme")
         .definitionPortalNext(EXPECTED_PORTAL_NEXT_THEME_DEFINITION)
-        .logo("logo.png")
-        .favicon("favicon.png")
+        .logo("https://example.test/logo.png")
+        .favicon("https://example.test/favicon.png")
         .build();
 
     ThemeCrudServiceInMemory themeCrudService = new ThemeCrudServiceInMemory();
@@ -133,7 +134,7 @@ public class GetDefaultThemeUseCaseTest {
         );
         var defaultThemeDomainService = new DefaultThemeDomainService(
             parametersDomainService,
-            new ThemeDomainService(themeCrudService),
+            new ThemeDomainService(themeCrudService, new ThemeImageWriteValidatorInMemory()),
             themeServiceLegacyWrapper,
             themePortalNextAssetsDomainService
         );

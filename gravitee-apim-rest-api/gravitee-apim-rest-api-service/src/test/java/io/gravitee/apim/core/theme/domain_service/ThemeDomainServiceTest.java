@@ -19,7 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.ThemeCrudServiceInMemory;
+import inmemory.ThemeImageWriteValidatorInMemory;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.theme.model.NewTheme;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeType;
@@ -35,6 +37,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class ThemeDomainServiceTest {
 
@@ -43,7 +47,7 @@ public class ThemeDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        cut = new ThemeDomainService(themeCrudService);
+        cut = new ThemeDomainService(themeCrudService, new ThemeImageWriteValidatorInMemory());
     }
 
     @AfterEach
@@ -53,6 +57,25 @@ public class ThemeDomainServiceTest {
 
     @Nested
     class Create {
+
+        @ParameterizedTest
+        @ValueSource(strings = { "logo", "optionalLogo", "favicon", "backgroundImage" })
+        void should_reject_an_invalid_image_without_creating_the_theme(String field) {
+            var theme = NewTheme.builder().name("Theme").build();
+            var invalid = "data:text/html;base64,PGh0bWw+PC9odG1sPg==";
+            switch (field) {
+                case "logo" -> theme.setLogo(invalid);
+                case "optionalLogo" -> theme.setOptionalLogo(invalid);
+                case "favicon" -> theme.setFavicon(invalid);
+                case "backgroundImage" -> theme.setBackgroundImage(invalid);
+                default -> throw new IllegalArgumentException("Unexpected image field: " + field);
+            }
+
+            assertThatThrownBy(() -> cut.create(theme))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining(field);
+            assertThat(themeCrudService.storage()).isEmpty();
+        }
 
         @Test
         void should_create_portal_theme() {
@@ -128,6 +151,37 @@ public class ThemeDomainServiceTest {
                         .build()
                 )
             );
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "logo", "optionalLogo", "favicon", "backgroundImage" })
+        void should_reject_an_invalid_image_without_updating_the_theme(String field) {
+            var existing = themeCrudService.get("portal");
+            var update = UpdateTheme.builder().id("portal").name("Changed").build();
+            var invalid = "data:text/html;base64,PGh0bWw+PC9odG1sPg==";
+            switch (field) {
+                case "logo" -> update.setLogo(invalid);
+                case "optionalLogo" -> update.setOptionalLogo(invalid);
+                case "favicon" -> update.setFavicon(invalid);
+                case "backgroundImage" -> update.setBackgroundImage(invalid);
+                default -> throw new IllegalArgumentException("Unexpected image field: " + field);
+            }
+
+            assertThatThrownBy(() -> cut.update(update, existing))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining(field);
+            assertThat(themeCrudService.get("portal")).isEqualTo(existing);
+        }
+
+        @Test
+        void should_reject_an_unchanged_invalid_image_in_a_full_update() {
+            var existing = themeCrudService.get("portal");
+            existing.setFavicon("data:text/html;base64,PGh0bWw+PC9odG1sPg==");
+            var update = UpdateTheme.builder().id("portal").name("Changed").enabled(false).favicon(existing.getFavicon()).build();
+
+            assertThatThrownBy(() -> cut.update(update, existing)).isInstanceOf(ValidationDomainException.class);
+            assertThat(themeCrudService.get("portal")).isEqualTo(existing);
+            assertThat(themeCrudService.get("portal").isEnabled()).isTrue();
         }
 
         @Test

@@ -28,6 +28,9 @@ import static java.util.Comparator.reverseOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.theme.domain_service.ThemeImageWriteValidator;
+import io.gravitee.apim.core.theme.exception.ThemeImageInvalidException;
+import io.gravitee.apim.core.theme.model.ThemeImageDataUri;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ThemeRepository;
 import io.gravitee.repository.management.model.Theme;
@@ -49,7 +52,6 @@ import io.gravitee.rest.api.service.exceptions.DuplicateThemeNameException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.ThemeNotFoundException;
 import jakarta.activation.MimetypesFileTypeMap;
-import jakarta.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -85,6 +87,9 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
 
     @Autowired
     private AuditService auditService;
+
+    @Autowired
+    private ThemeImageWriteValidator themeImageWriteValidator;
 
     @Value("${portal.themes.path:${gravitee.home}/themes}")
     private String themesPath;
@@ -140,30 +145,40 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
      */
     @Override
     public ThemeEntity createPortalTheme(final ExecutionContext executionContext, final NewThemeEntity themeEntity) {
-        // First we prevent the duplicate name
         try {
             if (this.findByName(executionContext, themeEntity.getName(), null).isPresent()) {
                 throw new DuplicateThemeNameException(themeEntity.getName());
             }
 
-            Theme theme = themeRepository.create(convert(executionContext, themeEntity));
-
-            auditService.createAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(THEME, theme.getId()))
-                    .event(THEME_CREATED)
-                    .createdAt(theme.getCreatedAt())
-                    .oldValue(null)
-                    .newValue(theme)
-                    .build()
-            );
-
-            return convertToPortalThemeEntity(theme);
+            Theme theme = convert(executionContext, themeEntity);
+            validateThemeImages(theme);
+            return saveNewPortalTheme(executionContext, theme);
         } catch (TechnicalException ex) {
             final String error = "An error occurred while trying to create theme " + themeEntity;
             throw new TechnicalManagementException(error, ex);
         }
+    }
+
+    private ThemeEntity saveNewPortalTheme(ExecutionContext executionContext, Theme candidate) throws TechnicalException {
+        Theme theme = themeRepository.create(candidate);
+        auditService.createAuditLog(
+            executionContext,
+            AuditService.AuditLogData.builder()
+                .properties(Collections.singletonMap(THEME, theme.getId()))
+                .event(THEME_CREATED)
+                .createdAt(theme.getCreatedAt())
+                .oldValue(null)
+                .newValue(theme)
+                .build()
+        );
+        return convertToPortalThemeEntity(theme);
+    }
+
+    private void validateThemeImages(Theme theme) {
+        themeImageWriteValidator.validate("logo", theme.getLogo());
+        themeImageWriteValidator.validate("optionalLogo", theme.getOptionalLogo());
+        themeImageWriteValidator.validate("favicon", theme.getFavicon());
+        themeImageWriteValidator.validate("backgroundImage", theme.getBackgroundImage());
     }
 
     private Optional<GenericThemeEntity> findByName(final ExecutionContext executionContext, String name, String excludedId) {
@@ -227,6 +242,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                     theme.setFavicon(this.getDefaultFavicon());
                 }
 
+                validateThemeImages(theme);
                 final ThemeEntity savedTheme = convertToPortalThemeEntity(themeRepository.update(theme));
                 auditService.createAuditLog(
                     executionContext,
@@ -306,9 +322,15 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     }
 
     private Optional<ThemeEntity> findEnvironmentPortalThemes(final ExecutionContext executionContext) throws TechnicalException {
+        return findEnvironmentPortalThemes(executionContext, null);
+    }
+
+    private Optional<ThemeEntity> findEnvironmentPortalThemes(final ExecutionContext executionContext, String excludedId)
+        throws TechnicalException {
         return themeRepository
             .findByReferenceIdAndReferenceTypeAndType(executionContext.getEnvironmentId(), ENVIRONMENT.name(), ThemeType.PORTAL)
             .stream()
+            .filter(theme -> excludedId == null || !excludedId.equals(theme.getId()))
             .sorted(comparing(Theme::isEnabled, reverseOrder()))
             .findFirst()
             .map(this::convertToPortalThemeEntity);
@@ -455,6 +477,16 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
         try {
             log.debug("Reset to default theme by ID: {}", themeId);
             final GenericThemeEntity previousTheme = findById(executionContext, themeId);
+            ThemeEntity replacement = null;
+            Theme preparedDefault = null;
+            if (io.gravitee.rest.api.model.theme.ThemeType.PORTAL.equals(previousTheme.getType())) {
+                replacement = findEnvironmentPortalThemes(executionContext, previousTheme.getId()).orElse(null);
+                if (replacement == null) {
+                    preparedDefault = convert(executionContext, convert(buildDefaultPortalTheme()));
+                    // Validate the replacement before deleting the current theme, and persist these same bytes.
+                    validateThemeImages(preparedDefault);
+                }
+            }
             themeRepository.delete(previousTheme.getId());
             auditService.createAuditLog(
                 executionContext,
@@ -466,10 +498,12 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                     .newValue(null)
                     .build()
             );
-            if (io.gravitee.rest.api.model.theme.ThemeType.PORTAL.equals(previousTheme.getType())) {
-                return findOrCreateDefaultPortalTheme(executionContext);
+            if (preparedDefault != null) {
+                return saveNewPortalTheme(executionContext, preparedDefault);
             }
-            return null;
+            return replacement;
+        } catch (ThemeImageInvalidException ex) {
+            throw ex;
         } catch (Exception ex) {
             final String error = "Error while trying to reset a default theme";
             throw new TechnicalManagementException(error, ex);
@@ -519,16 +553,14 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
         if (StringUtils.isEmpty(picture)) {
             return null;
         }
-        if (picture.matches("^(http|https)://.*$")) {
+        if (ThemeImageDataUri.isHttpUrl(picture)) {
             return new UrlPictureEntity(picture);
-        } else {
-            InlinePictureEntity imageEntity = new InlinePictureEntity();
-            String[] parts = picture.split(";", 2);
-            imageEntity.setType(parts[0].split(":")[1]);
-            String base64Content = picture.split(",", 2)[1];
-            imageEntity.setContent(DatatypeConverter.parseBase64Binary(base64Content));
-            return imageEntity;
         }
+        ThemeImageDataUri image = ThemeImageDataUri.parse("image", picture);
+        InlinePictureEntity imageEntity = new InlinePictureEntity();
+        imageEntity.setType(image.mimeType());
+        imageEntity.setContent(image.bytes());
+        return imageEntity;
     }
 
     private Theme convert(final ExecutionContext executionContext, NewThemeEntity themeEntity) {

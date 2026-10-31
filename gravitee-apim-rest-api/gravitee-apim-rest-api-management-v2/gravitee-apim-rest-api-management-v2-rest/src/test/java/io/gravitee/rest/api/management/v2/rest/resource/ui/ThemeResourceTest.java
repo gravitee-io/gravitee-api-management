@@ -47,13 +47,19 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ThemeResourceTest extends AbstractResourceTest {
+
+    private static final String PNG_IMAGE =
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jrFYAAAAASUVORK5CYII=";
 
     private final String ENVIRONMENT = "env-id";
     private final String THEME_ID = "theme-id";
@@ -154,13 +160,56 @@ public class ThemeResourceTest extends AbstractResourceTest {
                 .hasMessage("Theme [ " + THEME_ID + " ] not found");
         }
 
+        @ParameterizedTest
+        @CsvSource(
+            {
+                "PORTAL,logo",
+                "PORTAL,optionalLogo",
+                "PORTAL,favicon",
+                "PORTAL,backgroundImage",
+                "PORTAL_NEXT,logo",
+                "PORTAL_NEXT,optionalLogo",
+                "PORTAL_NEXT,favicon",
+            }
+        )
+        void should_reject_mismatched_image_without_updating_theme(ThemeType type, String field) {
+            var existingTheme = type == ThemeType.PORTAL ? aPortalTheme() : aPortalNextTheme();
+            var expectedTheme = existingTheme.toBuilder().build();
+            themeQueryService.initWith(List.of(existingTheme));
+            themeCrudService.initWith(List.of(existingTheme));
+            var definition = type == ThemeType.PORTAL ? Map.of("data", List.of()) : Map.of("customCss", "a new style");
+            var updateTheme = Map.of(
+                "id",
+                THEME_ID,
+                "type",
+                type.name(),
+                "name",
+                "new name",
+                "enabled",
+                false,
+                "definition",
+                definition,
+                field,
+                "data:image/png;base64,PGh0bWw+PC9odG1sPg=="
+            );
+
+            try (Response response = rootTarget().request().put(Entity.json(updateTheme))) {
+                MAPIAssertions.assertThat(response)
+                    .hasStatus(BAD_REQUEST_400)
+                    .asError()
+                    .hasHttpStatus(BAD_REQUEST_400)
+                    .hasMessage("Invalid theme image in " + field + ": image content does not match its declared media type");
+            }
+            assertThat(themeCrudService.storage()).containsExactly(expectedTheme);
+        }
+
         @Test
         public void should_update_portal_theme() {
             themeQueryService.initWith(List.of(aPortalTheme()));
             themeCrudService.initWith(List.of(aPortalTheme()));
 
             var updateTheme = (UpdateThemePortal) new UpdateThemePortal()
-                .backgroundImage("background image")
+                .backgroundImage(PNG_IMAGE)
                 .definition(
                     new PortalDefinition().data(
                         List.of(
@@ -173,8 +222,9 @@ public class ThemeResourceTest extends AbstractResourceTest {
                 .id(THEME_ID)
                 .name("new name")
                 .enabled(false)
-                .logo("background image")
-                .optionalLogo("background image");
+                .logo(PNG_IMAGE)
+                .optionalLogo(PNG_IMAGE)
+                .favicon(PNG_IMAGE);
 
             final Response response = rootTarget().request().put(Entity.json(updateTheme));
 
@@ -189,6 +239,7 @@ public class ThemeResourceTest extends AbstractResourceTest {
                     assertThat(theme.getEnabled()).isEqualTo(updateTheme.getEnabled());
                     assertThat(theme.getLogo()).isEqualTo(updateTheme.getLogo());
                     assertThat(theme.getOptionalLogo()).isEqualTo(updateTheme.getOptionalLogo());
+                    assertThat(theme.getFavicon()).isEqualTo(updateTheme.getFavicon());
                     assertThat(theme.getBackgroundImage()).isEqualTo(updateTheme.getBackgroundImage());
                 });
         }
@@ -208,8 +259,9 @@ public class ThemeResourceTest extends AbstractResourceTest {
                 .id(THEME_ID)
                 .name("new name")
                 .enabled(false)
-                .optionalLogo("background image")
-                .logo("background image");
+                .optionalLogo(PNG_IMAGE)
+                .logo(PNG_IMAGE)
+                .favicon(PNG_IMAGE);
 
             final Response response = rootTarget().request().put(Entity.json(updateTheme));
 
@@ -224,6 +276,7 @@ public class ThemeResourceTest extends AbstractResourceTest {
                     assertThat(theme.getEnabled()).isEqualTo(updateTheme.getEnabled());
                     assertThat(theme.getLogo()).isEqualTo(updateTheme.getLogo());
                     assertThat(theme.getOptionalLogo()).isEqualTo(updateTheme.getOptionalLogo());
+                    assertThat(theme.getFavicon()).isEqualTo(updateTheme.getFavicon());
                 });
         }
 
@@ -245,8 +298,8 @@ public class ThemeResourceTest extends AbstractResourceTest {
                 .id(THEME_ID)
                 .name("new name")
                 .enabled(true)
-                .logo("background image")
-                .optionalLogo("background image");
+                .logo(PNG_IMAGE)
+                .optionalLogo(PNG_IMAGE);
 
             final Response response = rootTarget().request().put(Entity.json(updateTheme));
 

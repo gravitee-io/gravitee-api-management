@@ -32,6 +32,8 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.infra.domain_service.theme.ThemeImageWriteValidatorImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ThemeRepository;
 import io.gravitee.repository.management.model.Theme;
@@ -54,6 +56,8 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.ThemeNotFoundException;
 import io.gravitee.rest.api.service.impl.ThemeServiceImpl.ThemeDefinitionMapper;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -62,6 +66,8 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -94,6 +100,7 @@ public class ThemeServiceTest {
     @BeforeEach
     public void init() {
         ReflectionTestUtils.setField(themeService, "themesPath", THEMES_PATH);
+        ReflectionTestUtils.setField(themeService, "themeImageWriteValidator", new ThemeImageWriteValidatorImpl());
         ReflectionTestUtils.setField(themeServiceImpl, "themesPath", THEMES_PATH);
         GraviteeContext.cleanContext();
     }
@@ -850,5 +857,188 @@ public class ThemeServiceTest {
         PictureEntity logo = themeService.getLogo(GraviteeContext.getExecutionContext(), THEME_ID);
         assertNotNull(logo);
         assertTrue(logo instanceof InlinePictureEntity);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "logo", "optionalLogo", "favicon", "backgroundImage" })
+    void should_reject_active_images_before_creating_a_theme(String field) throws TechnicalException {
+        when(themeRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        NewThemeEntity theme = new NewThemeEntity();
+        theme.setName("Unsafe theme");
+        ReflectionTestUtils.setField(theme, field, htmlImage("text/html"));
+
+        assertThrows(ValidationDomainException.class, () -> themeService.createPortalTheme(GraviteeContext.getExecutionContext(), theme));
+
+        verify(themeRepository, never()).create(any());
+        verifyNoInteractions(auditService);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "logo", "optionalLogo", "favicon", "backgroundImage" })
+    void should_reject_unchanged_legacy_images_before_updating_a_theme(String field) throws TechnicalException {
+        when(themeRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        Theme existing = storedTheme();
+        ReflectionTestUtils.setField(existing, field, htmlImage("image/png"));
+        when(themeRepository.findById(THEME_ID)).thenReturn(of(existing));
+        UpdateThemeEntity update = new UpdateThemeEntity();
+        update.setId(THEME_ID);
+        ReflectionTestUtils.setField(update, field, htmlImage("image/png"));
+
+        assertThrows(ValidationDomainException.class, () -> themeService.updatePortalTheme(GraviteeContext.getExecutionContext(), update));
+
+        verify(themeRepository, never()).update(any());
+        verifyNoInteractions(auditService);
+    }
+
+    @Test
+    void should_validate_default_images_before_updating_a_theme() throws TechnicalException {
+        when(themeRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(themeRepository.findById(THEME_ID)).thenReturn(of(storedTheme()));
+        ThemeServiceImpl service = spy((ThemeServiceImpl) themeService);
+        doReturn(htmlImage("image/png")).when(service).getDefaultLogo();
+        UpdateThemeEntity update = new UpdateThemeEntity();
+        update.setId(THEME_ID);
+
+        assertThrows(ValidationDomainException.class, () -> service.updatePortalTheme(GraviteeContext.getExecutionContext(), update));
+
+        verify(themeRepository, never()).update(any());
+        verifyNoInteractions(auditService);
+    }
+
+    @Test
+    void should_preserve_the_previous_theme_when_reset_defaults_are_invalid() throws TechnicalException {
+        when(themeRepository.findById(THEME_ID)).thenReturn(of(storedTheme()));
+        when(themeRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        ThemeServiceImpl service = spy((ThemeServiceImpl) themeService);
+        doReturn(htmlImage("image/png")).when(service).getDefaultFavicon();
+
+        assertThrows(ValidationDomainException.class, () -> service.resetToDefaultTheme(GraviteeContext.getExecutionContext(), THEME_ID));
+
+        verify(themeRepository, never()).delete(anyString());
+        verify(themeRepository, never()).create(any());
+        verifyNoInteractions(auditService);
+    }
+
+    @Test
+    void should_reuse_an_existing_theme_on_reset_without_loading_default_images() throws TechnicalException {
+        Theme previous = storedTheme();
+        Theme replacement = storedTheme();
+        replacement.setId("other-theme");
+        replacement.setEnabled(true);
+        when(themeRepository.findById(THEME_ID)).thenReturn(of(previous));
+        when(themeRepository.findByReferenceIdAndReferenceTypeAndType("DEFAULT", ENVIRONMENT.name(), ThemeType.PORTAL)).thenReturn(
+            Set.of(previous, replacement)
+        );
+        ThemeServiceImpl service = spy((ThemeServiceImpl) themeService);
+
+        GenericThemeEntity result = service.resetToDefaultTheme(GraviteeContext.getExecutionContext(), THEME_ID);
+
+        assertEquals("other-theme", result.getId());
+        verify(themeRepository).delete(THEME_ID);
+        verify(themeRepository, never()).create(any());
+        verify(service, never()).getDefaultLogo();
+        verify(service, never()).getDefaultFavicon();
+    }
+
+    @Test
+    void should_persist_the_same_default_image_that_was_validated_on_reset() throws TechnicalException {
+        when(themeRepository.findById(THEME_ID)).thenReturn(of(storedTheme()));
+        when(themeRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        ThemeServiceImpl service = spy((ThemeServiceImpl) themeService);
+        String validatedImage = themeServiceImpl.getDefaultFavicon();
+        doReturn(validatedImage, htmlImage("text/html")).when(service).getDefaultFavicon();
+
+        GenericThemeEntity result = service.resetToDefaultTheme(GraviteeContext.getExecutionContext(), THEME_ID);
+
+        assertEquals(validatedImage, result.getFavicon());
+        verify(service).getDefaultFavicon();
+        verify(themeRepository).create(argThat(theme -> validatedImage.equals(theme.getFavicon())));
+    }
+
+    @Test
+    void should_preserve_valid_image_strings_when_creating_a_theme() throws TechnicalException {
+        String image = themeServiceImpl.getDefaultLogo();
+        NewThemeEntity theme = new NewThemeEntity();
+        theme.setName("Valid theme");
+        theme.setLogo(image);
+        theme.setOptionalLogo("");
+        theme.setFavicon("https://example.test/favicon.ico");
+        when(themeRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ThemeEntity result = themeService.createPortalTheme(GraviteeContext.getExecutionContext(), theme);
+
+        assertEquals(image, result.getLogo());
+        assertEquals("", result.getOptionalLogo());
+        assertEquals("https://example.test/favicon.ico", result.getFavicon());
+        assertNull(result.getBackgroundImage());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "logo", "optionalLogo", "favicon", "backgroundImage" })
+    void should_reject_active_legacy_images_on_read_without_loading_defaults(String field) throws TechnicalException {
+        Theme existing = storedTheme();
+        ReflectionTestUtils.setField(existing, field, htmlImage("text/html"));
+        when(themeRepository.findById(THEME_ID)).thenReturn(of(existing));
+        ThemeServiceImpl service = spy((ThemeServiceImpl) themeService);
+
+        assertThrows(ValidationDomainException.class, () -> readImage(service, field));
+
+        verify(service, never()).getDefaultLogo();
+        verify(service, never()).getDefaultOptionalLogo();
+        verify(service, never()).getDefaultFavicon();
+        verify(service, never()).getDefaultBackgroundImage();
+    }
+
+    @Test
+    void should_keep_passive_content_type_for_unverified_legacy_bytes_on_read() throws TechnicalException {
+        Theme existing = storedTheme();
+        existing.setFavicon(htmlImage("image/png"));
+        when(themeRepository.findById(THEME_ID)).thenReturn(of(existing));
+
+        InlinePictureEntity result = (InlinePictureEntity) themeService.getFavicon(GraviteeContext.getExecutionContext(), THEME_ID);
+
+        assertEquals("image/png", result.getType());
+        assertArrayEquals("<!doctype html><html>not an image</html>".getBytes(StandardCharsets.UTF_8), result.getContent());
+    }
+
+    @Test
+    void should_allow_deleting_a_theme_with_invalid_legacy_images() throws TechnicalException {
+        Theme existing = storedTheme();
+        existing.setFavicon(htmlImage("text/html"));
+        when(themeRepository.findById(THEME_ID)).thenReturn(of(existing));
+
+        themeService.delete(GraviteeContext.getExecutionContext(), THEME_ID);
+
+        verify(themeRepository).delete(THEME_ID);
+    }
+
+    private Theme storedTheme() {
+        Theme theme = new Theme();
+        theme.setId(THEME_ID);
+        theme.setName("Existing theme");
+        theme.setType(ThemeType.PORTAL);
+        theme.setDefinition("{}");
+        theme.setReferenceId("DEFAULT");
+        theme.setReferenceType(ENVIRONMENT.name());
+        return theme;
+    }
+
+    private String htmlImage(String mimeType) {
+        return (
+            "data:" +
+            mimeType +
+            ";base64," +
+            Base64.getEncoder().encodeToString("<!doctype html><html>not an image</html>".getBytes(StandardCharsets.UTF_8))
+        );
+    }
+
+    private PictureEntity readImage(ThemeService service, String field) {
+        return switch (field) {
+            case "logo" -> service.getLogo(GraviteeContext.getExecutionContext(), THEME_ID);
+            case "optionalLogo" -> service.getOptionalLogo(GraviteeContext.getExecutionContext(), THEME_ID);
+            case "favicon" -> service.getFavicon(GraviteeContext.getExecutionContext(), THEME_ID);
+            case "backgroundImage" -> service.getBackgroundImage(GraviteeContext.getExecutionContext(), THEME_ID);
+            default -> throw new IllegalArgumentException(field);
+        };
     }
 }

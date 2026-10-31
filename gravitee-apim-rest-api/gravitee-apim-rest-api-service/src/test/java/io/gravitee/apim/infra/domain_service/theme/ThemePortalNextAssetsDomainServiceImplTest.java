@@ -34,12 +34,12 @@ public class ThemePortalNextAssetsDomainServiceImplTest {
     @Test
     void should_get_default_logo() {
         var result = service.getPortalNextLogo();
-        assertThat(result).isEqualTo("logo.png");
+        assertThat(result).isEqualTo("https://example.test/logo.png");
     }
 
     @Test
     void should_get_default_favicon() {
         var result = service.getPortalNextFavicon();
-        assertThat(result).isEqualTo("favicon.png");
+        assertThat(result).isEqualTo("https://example.test/favicon.png");
     }
 }

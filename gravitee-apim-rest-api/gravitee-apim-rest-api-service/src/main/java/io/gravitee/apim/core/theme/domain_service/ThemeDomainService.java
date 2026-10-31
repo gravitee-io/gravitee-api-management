@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 public class ThemeDomainService {
 
     private final ThemeCrudService themeCrudService;
+    private final ThemeImageWriteValidator themeImageWriteValidator;
 
     public Theme create(NewTheme newTheme) {
         return this.create(newTheme, UuidString.generateRandom());
@@ -55,6 +56,7 @@ public class ThemeDomainService {
             .updatedAt(currentTime)
             .build();
 
+        validateImages(themeToBeCreated);
         return this.themeCrudService.create(themeToBeCreated);
     }
 
@@ -73,6 +75,14 @@ public class ThemeDomainService {
             .updatedAt(ZonedDateTime.now())
             .build();
 
+        validateImages(existingThemeWithUpdates);
         return this.themeCrudService.update(existingThemeWithUpdates);
+    }
+
+    private void validateImages(Theme theme) {
+        themeImageWriteValidator.validate("logo", theme.getLogo());
+        themeImageWriteValidator.validate("optionalLogo", theme.getOptionalLogo());
+        themeImageWriteValidator.validate("favicon", theme.getFavicon());
+        themeImageWriteValidator.validate("backgroundImage", theme.getBackgroundImage());
     }
 }
