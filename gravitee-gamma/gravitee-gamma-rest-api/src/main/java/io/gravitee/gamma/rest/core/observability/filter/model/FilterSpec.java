@@ -43,8 +43,8 @@ import java.util.Set;
  *                    only surfaces for LLM APIs; use {@link ApiType#ALL} for cross-cutting filters.
  *                    The two axes are independent: applicability is the rectangle
  *                    {@code signals × apiTypes}.
- * @param catalog     Catalog flags of an entry backed by an additional metric field with no built-in
- *                    name, the one holder of its value type; {@code null} on a built-in entry.
+ * @param catalog     Catalog flags of an entry backed by an additional metric field, the one holder of its
+ *                    value type; {@code null} on a built-in entry reading no additional metric.
  *
  * @author GraviteeSource Team
  */
@@ -81,6 +81,11 @@ public record FilterSpec(
     /** A number filter whose values may carry decimals: those of a {@code double_} additional metric field. */
     public boolean takesDecimals() {
         return valueType() == AdditionalMetricValueType.DOUBLE;
+    }
+
+    /** This spec flagged as backed by an additional metric field. */
+    public FilterSpec withCatalog(CatalogFlags catalog) {
+        return new FilterSpec(name, label, type, operators, enumValues, range, signals, apiTypes, catalog);
     }
 
     /** Inclusive numeric bounds for {@link FilterType#NUMBER} filters. */

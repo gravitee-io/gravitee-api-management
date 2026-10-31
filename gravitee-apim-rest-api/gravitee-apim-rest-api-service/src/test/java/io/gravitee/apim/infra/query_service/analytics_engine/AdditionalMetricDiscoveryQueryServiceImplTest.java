@@ -162,14 +162,23 @@ class AdditionalMetricDiscoveryQueryServiceImplTest {
     }
 
     @Test
-    void should_try_again_on_the_next_request_after_a_failed_first_pass() {
+    void should_not_retry_a_failing_discovery_within_a_minute_then_retry_in_the_background() {
         when(analyticsRepository.discoverAdditionalMetrics(any(), any()))
             .thenThrow(new IllegalStateException("No endpoint available"))
             .thenReturn(AdditionalMetricDiscoveryResult.NONE);
 
         assertThat(service.discover(ORG_ID, ENV_ID)).isEqualTo(AdditionalMetricDiscovery.unavailable(NOW));
-        assertThat(service.discover(ORG_ID, ENV_ID)).isEqualTo(new AdditionalMetricDiscovery(List.of(), NOW, false));
+        nanos.addAndGet(AdditionalMetricDiscoveryQueryServiceImpl.RETRY_UNAVAILABLE_AFTER.minusSeconds(1).toNanos());
+        assertThat(service.discover(ORG_ID, ENV_ID)).isEqualTo(AdditionalMetricDiscovery.unavailable(NOW));
 
+        verify(analyticsRepository, times(1)).discoverAdditionalMetrics(new QueryContext(ORG_ID, ENV_ID), query());
+        assertThat(refreshes).isEmpty();
+
+        nanos.addAndGet(Duration.ofSeconds(2).toNanos());
+        assertThat(service.discover(ORG_ID, ENV_ID)).isEqualTo(AdditionalMetricDiscovery.unavailable(NOW));
+        runRefreshes();
+
+        assertThat(service.discover(ORG_ID, ENV_ID)).isEqualTo(new AdditionalMetricDiscovery(List.of(), NOW, false));
         verify(analyticsRepository, times(2)).discoverAdditionalMetrics(new QueryContext(ORG_ID, ENV_ID), query());
     }
 

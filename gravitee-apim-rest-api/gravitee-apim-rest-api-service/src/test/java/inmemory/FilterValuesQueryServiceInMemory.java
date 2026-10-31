@@ -15,6 +15,8 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.analytics_engine.model.AdditionalMetricName;
+import io.gravitee.apim.core.analytics_engine.model.FilterName;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterValue;
 import io.gravitee.apim.core.analytics_engine.model.FilterValuesPage;
@@ -33,11 +35,13 @@ public class FilterValuesQueryServiceInMemory
     implements FilterValuesQueryService {
 
     public record Call(String apiId, String apiProductId, Map<FilterSpec.Name, String> fields) {
-        String valueOf(FilterSpec.Name filterName) {
+        /** Calls stored here carry no additional metric. */
+        String valueOf(FilterName filterName) {
             return switch (filterName) {
-                case API -> apiId;
-                case API_PRODUCT -> apiProductId;
-                default -> fields.get(filterName);
+                case FilterSpec.Name.API -> apiId;
+                case FilterSpec.Name.API_PRODUCT -> apiProductId;
+                case FilterSpec.Name builtIn -> fields.get(builtIn);
+                case AdditionalMetricName _ -> null;
             };
         }
     }
@@ -46,7 +50,7 @@ public class FilterValuesQueryServiceInMemory
     public FilterValuesPage searchFilterValues(
         String organizationId,
         String environmentId,
-        FilterSpec.Name filterName,
+        FilterName filterName,
         Instant from,
         Instant to,
         int page,
@@ -82,7 +86,7 @@ public class FilterValuesQueryServiceInMemory
         return valuesOf(filterName, authorizedApiIds, apiProductId).filter(values::contains).collect(Collectors.toSet());
     }
 
-    private Stream<String> valuesOf(FilterSpec.Name filterName, Set<String> authorizedApiIds, String apiProductId) {
+    private Stream<String> valuesOf(FilterName filterName, Set<String> authorizedApiIds, String apiProductId) {
         return storage
             .stream()
             .filter(call -> authorizedApiIds == null || authorizedApiIds.contains(call.apiId()))

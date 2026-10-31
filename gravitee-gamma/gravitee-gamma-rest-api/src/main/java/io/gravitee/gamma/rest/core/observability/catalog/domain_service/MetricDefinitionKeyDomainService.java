@@ -50,7 +50,12 @@ public class MetricDefinitionKeyDomainService {
      * discovered keys come from traffic, not from a validated write.
      */
     public Optional<AdditionalMetricField> discovered(String rawKey, AdditionalMetricValueType valueType) {
-        return grammar.parse(AdditionalMetricField.NAME_PREFIX + rawKey).filter(field -> field.valueType() == valueType);
+        return fieldOfKey(rawKey).filter(field -> field.valueType() == valueType);
+    }
+
+    /** The field of a key, type prefix included; empty when the key is outside the grammar. */
+    public Optional<AdditionalMetricField> fieldOfKey(String rawKey) {
+        return grammar.parse(AdditionalMetricField.NAME_PREFIX + rawKey);
     }
 
     public AdditionalMetricField writableField(String name) {
@@ -67,7 +72,7 @@ public class MetricDefinitionKeyDomainService {
     }
 
     /** Explains a name the parser refused; the parser alone decides what is accepted. */
-    private static InvalidMetricDefinitionException refusal(String name) {
+    private InvalidMetricDefinitionException refusal(String name) {
         if (name == null || name.isBlank()) {
             return InvalidMetricDefinitionException.invalidName("A metric definition needs the name of an additional metric field");
         }
@@ -81,7 +86,7 @@ public class MetricDefinitionKeyDomainService {
                 "'%s' is not an additional metric field: it must start with '%s'".formatted(name, AdditionalMetricField.NAME_PREFIX)
             );
         }
-        if (AdditionalMetricValueType.ofRawKey(name.substring(AdditionalMetricField.NAME_PREFIX.length())).isEmpty()) {
+        if (grammar.typeDeclaredBy(name.substring(AdditionalMetricField.NAME_PREFIX.length())).isEmpty()) {
             return InvalidMetricDefinitionException.unknownTypePrefix(name);
         }
         return InvalidMetricDefinitionException.invalidName(

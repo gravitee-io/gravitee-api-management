@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.resources.observability.filters;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.use_case.GetObservabilityFilterDefinitionsUseCase;
@@ -55,12 +56,15 @@ import java.util.List;
  *   <li>{@code GET /{filterName}/values?query=&page=&perPage=&apiProduct=} — paginated selectable values for one
  *       filter. ENUM filters return their labelled static values (optionally substring-filtered by
  *       {@code query}); other types are handled in the use case.</li>
+ *   <li>{@code GET /values?name=…} — the same, the filter named by a query parameter: an additional metric field
+ *       name may hold a {@code /}, which cannot travel in a path segment.</li>
  *   <li>{@code POST /resolve?apiProduct=} — labels of stored filter ids, grouped per filter.</li>
  * </ul>
  *
  * <h2>Authorization</h2>
- * No permission guard: the catalog holds no traffic data, and values and labels come from the rows the
- * caller reads, so a caller who reads no API gets empty answers. A request scoped to one AI workspace
+ * No permission guard: the catalog serves its traffic data ({@code DISCOVERED} entries, {@code lastSeen}) to a
+ * caller who reads the environment's traffic only, and values and labels come from the rows the caller reads, so a
+ * caller who reads no API gets empty answers. A request scoped to one AI workspace
  * ({@code apiProduct}) follows the analytics workspace rule: its reader also gets what the workspace's
  * aggregates show them.
  *
@@ -84,14 +88,16 @@ public class ObservabilityFiltersResource {
         @QueryParam("signal") List<String> signals,
         @QueryParam("apiType") List<String> apiTypes
     ) {
+        var executionContext = GraviteeContext.getExecutionContext();
         var output = getFilterDefinitionsUseCase.execute(
             new GetObservabilityFilterDefinitionsUseCase.Input(
-                GraviteeContext.getExecutionContext().getEnvironmentId(),
+                executionContext.getOrganizationId(),
+                executionContext.getEnvironmentId(),
                 EnumQueryParam.parse(signals, Signal.class, "signal"),
                 EnumQueryParam.parse(apiTypes, ApiType.class, "apiType")
             )
         );
-        return new FilterSpecsResponseDto(output.filters().stream().map(FilterSpecDto::from).toList());
+        return new FilterSpecsResponseDto(output.filters().stream().map(FilterSpecDto::from).toList(), output.truncated() ? true : null);
     }
 
     @GET
@@ -106,6 +112,38 @@ public class ObservabilityFiltersResource {
         @QueryParam("perPage") Integer perPage,
         @QueryParam("apiType") List<String> apiTypes,
         @QueryParam("apiProduct") String apiProduct
+    ) {
+        return values(filterName, query, from, to, page, perPage, apiTypes, apiProduct);
+    }
+
+    @GET
+    @Path("/values")
+    @Produces(MediaType.APPLICATION_JSON)
+    public PaginatedResponseDto<FilterValueDto> getFilterValuesByName(
+        @QueryParam("name") String name,
+        @QueryParam("query") String query,
+        @QueryParam("from") Long from,
+        @QueryParam("to") Long to,
+        @QueryParam("page") Integer page,
+        @QueryParam("perPage") Integer perPage,
+        @QueryParam("apiType") List<String> apiTypes,
+        @QueryParam("apiProduct") String apiProduct
+    ) {
+        if (name == null || name.isBlank()) {
+            throw UnsupportedObservabilityFilterException.nameRequired();
+        }
+        return values(name, query, from, to, page, perPage, apiTypes, apiProduct);
+    }
+
+    private PaginatedResponseDto<FilterValueDto> values(
+        String filterName,
+        String query,
+        Long from,
+        Long to,
+        Integer page,
+        Integer perPage,
+        List<String> apiTypes,
+        String apiProduct
     ) {
         var output = getFilterValuesUseCase.execute(
             new GetObservabilityFilterValuesUseCase.Input(

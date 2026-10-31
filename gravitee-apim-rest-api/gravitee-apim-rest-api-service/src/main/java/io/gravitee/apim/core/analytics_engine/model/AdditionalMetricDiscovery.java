@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * The additional metrics found on the requests of an environment by one discovery pass.
@@ -36,6 +37,18 @@ public record AdditionalMetricDiscovery(List<DiscoveredAdditionalMetric> metrics
     /** What a pass that failed answers: nothing, flagged as incomplete. */
     public static AdditionalMetricDiscovery unavailable(Instant refreshedAt) {
         return new AdditionalMetricDiscovery(List.of(), refreshedAt, true);
+    }
+
+    /** The keys {@code kept} accepts, before any cap: a key a caller cannot list must take no one's place. */
+    public AdditionalMetricDiscovery retainKeys(Predicate<String> kept) {
+        return new AdditionalMetricDiscovery(
+            metrics
+                .stream()
+                .filter(metric -> kept.test(metric.rawKey()))
+                .toList(),
+            refreshedAt,
+            truncated
+        );
     }
 
     /**

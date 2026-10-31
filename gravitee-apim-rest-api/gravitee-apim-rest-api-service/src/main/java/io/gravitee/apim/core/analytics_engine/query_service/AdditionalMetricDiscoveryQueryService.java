@@ -21,8 +21,9 @@ public interface AdditionalMetricDiscoveryQueryService {
     /**
      * The additional metrics the requests of the environment carried over the last 30 days, uncapped. A pass is
      * refreshed in the background a few minutes after it ran, the previous one served meanwhile, so a key a newly
-     * deployed plugin starts writing shows up after the next refresh. A first pass that fails answers
-     * {@link AdditionalMetricDiscovery#unavailable} and is not kept; a refresh that fails keeps the previous pass.
+     * deployed plugin starts writing shows up after the next refresh. A pass that fails keeps the previous successful
+     * one, or answers {@link AdditionalMetricDiscovery#unavailable} when there is none; it is run again a minute later,
+     * never on each request.
      *
      * <p>A key stored under another type than its prefix declares is left out, including a key stored under its declared
      * type in some indexes of the window and another type in others. Keys are not checked against the rest of the

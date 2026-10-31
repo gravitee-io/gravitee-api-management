@@ -108,7 +108,9 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
                 Set.of(Signal.LOGS, Signal.ANALYTICS),
                 Set.of(ApiType.HTTP_PROXY, ApiType.LLM)
             );
-            when(getFilterDefinitionsUseCase.execute(any())).thenReturn(new GetObservabilityFilterDefinitionsUseCase.Output(List.of(spec)));
+            when(getFilterDefinitionsUseCase.execute(any())).thenReturn(
+                new GetObservabilityFilterDefinitionsUseCase.Output(List.of(spec), false)
+            );
 
             Response response = rootTarget("definition").request().get();
 
@@ -139,7 +141,9 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
                 Set.of(Signal.LOGS, Signal.ANALYTICS),
                 Set.of(ApiType.HTTP_PROXY)
             );
-            when(getFilterDefinitionsUseCase.execute(any())).thenReturn(new GetObservabilityFilterDefinitionsUseCase.Output(List.of(spec)));
+            when(getFilterDefinitionsUseCase.execute(any())).thenReturn(
+                new GetObservabilityFilterDefinitionsUseCase.Output(List.of(spec), false)
+            );
 
             JsonNode body = rootTarget("definition").request().get().readEntity(JsonNode.class);
 
@@ -153,7 +157,9 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
 
         @Test
         void should_forward_multi_valued_signal_and_api_type_axes_to_the_use_case() {
-            when(getFilterDefinitionsUseCase.execute(any())).thenReturn(new GetObservabilityFilterDefinitionsUseCase.Output(List.of()));
+            when(getFilterDefinitionsUseCase.execute(any())).thenReturn(
+                new GetObservabilityFilterDefinitionsUseCase.Output(List.of(), false)
+            );
 
             Response response = rootTarget("definition")
                 .queryParam("signal", "LOGS")
@@ -174,7 +180,9 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_full_catalog_when_no_axis_is_provided() {
-            when(getFilterDefinitionsUseCase.execute(any())).thenReturn(new GetObservabilityFilterDefinitionsUseCase.Output(List.of()));
+            when(getFilterDefinitionsUseCase.execute(any())).thenReturn(
+                new GetObservabilityFilterDefinitionsUseCase.Output(List.of(), false)
+            );
 
             Response response = rootTarget("definition").request().get();
 
@@ -188,6 +196,33 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_ask_the_catalog_of_the_organization_and_say_when_it_is_truncated() {
+            when(getFilterDefinitionsUseCase.execute(any())).thenReturn(
+                new GetObservabilityFilterDefinitionsUseCase.Output(List.of(), true)
+            );
+
+            JsonNode body = rootTarget("definition").request().get().readEntity(JsonNode.class);
+
+            assertThat(body.get("truncated").asBoolean()).isTrue();
+            ArgumentCaptor<GetObservabilityFilterDefinitionsUseCase.Input> captor = ArgumentCaptor.forClass(
+                GetObservabilityFilterDefinitionsUseCase.Input.class
+            );
+            Mockito.verify(getFilterDefinitionsUseCase).execute(captor.capture());
+            assertThat(captor.getValue().organizationId()).isEqualTo(ORGANIZATION);
+        }
+
+        @Test
+        void should_leave_truncated_out_when_nothing_was_left_out() {
+            when(getFilterDefinitionsUseCase.execute(any())).thenReturn(
+                new GetObservabilityFilterDefinitionsUseCase.Output(List.of(), false)
+            );
+
+            JsonNode body = rootTarget("definition").request().get().readEntity(JsonNode.class);
+
+            assertThat(body.has("truncated")).isFalse();
+        }
+
+        @Test
         void should_return_400_for_an_unknown_signal_value() {
             Response response = rootTarget("definition").queryParam("signal", "NOPE").request().get();
 
@@ -195,15 +230,84 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
             Mockito.verifyNoInteractions(getFilterDefinitionsUseCase);
         }
 
-        /** The catalog holds no traffic data. */
+        /** No guard: the use case serves the traffic data of the catalog to a caller who reads the traffic only. */
         @Test
         void should_return_the_catalog_to_a_caller_without_any_permission() {
             when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
-            when(getFilterDefinitionsUseCase.execute(any())).thenReturn(new GetObservabilityFilterDefinitionsUseCase.Output(List.of()));
+            when(getFilterDefinitionsUseCase.execute(any())).thenReturn(
+                new GetObservabilityFilterDefinitionsUseCase.Output(List.of(), false)
+            );
 
             Response response = rootTarget("definition").request().get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+    }
+
+    @Nested
+    class GetFilterValuesByName {
+
+        @Test
+        void should_read_the_name_from_the_query_so_it_may_hold_a_slash() {
+            when(getFilterValuesUseCase.execute(any())).thenReturn(
+                new GetObservabilityFilterValuesUseCase.Output(new FilterValuesPage(List.of(new FilterValue("search", null)), 1L), 1, 10)
+            );
+
+            Response response = rootTarget("values")
+                .queryParam("name", "additional-metrics.keyword_mcp-proxy_tools/call")
+                .queryParam("query", "sea")
+                .request()
+                .get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            assertThat(response.readEntity(JsonNode.class).get("data").get(0).get("value").asText()).isEqualTo("search");
+            ArgumentCaptor<GetObservabilityFilterValuesUseCase.Input> captor = ArgumentCaptor.forClass(
+                GetObservabilityFilterValuesUseCase.Input.class
+            );
+            Mockito.verify(getFilterValuesUseCase).execute(captor.capture());
+            assertThat(captor.getValue().filterName()).isEqualTo("additional-metrics.keyword_mcp-proxy_tools/call");
+            assertThat(captor.getValue().query()).isEqualTo("sea");
+        }
+
+        @Test
+        void should_return_400_without_a_name() {
+            Response response = rootTarget("values").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("message").asText()).isEqualTo("The name of the filter is required");
+            assertThat(body.get("technicalCode").asText()).isEqualTo("observability.filter.name_required");
+            Mockito.verifyNoInteractions(getFilterValuesUseCase);
+        }
+
+        @Test
+        void should_return_400_for_a_field_whose_values_cannot_be_listed() {
+            when(getFilterValuesUseCase.execute(any())).thenThrow(
+                UnsupportedObservabilityFilterException.valueListingNotSupported("additional-metrics.long_failover_count", "NUMBER")
+            );
+
+            Response response = rootTarget("values").queryParam("name", "additional-metrics.long_failover_count").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("message").asText()).isEqualTo(
+                "Filter 'additional-metrics.long_failover_count' of type NUMBER does not support value listing"
+            );
+            assertThat(body.get("technicalCode").asText()).isEqualTo("observability.filter.value_listing_not_supported");
+        }
+
+        @Test
+        void should_return_404_for_a_name_neither_listed_nor_well_formed() {
+            when(getFilterValuesUseCase.execute(any())).thenThrow(
+                new ObservabilityFilterNotFoundException("additional-metrics.unknown_count")
+            );
+
+            Response response = rootTarget("values").queryParam("name", "additional-metrics.unknown_count").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+            assertThat(response.readEntity(JsonNode.class).get("message").asText()).isEqualTo(
+                "Observability filter 'additional-metrics.unknown_count' not found"
+            );
         }
     }
 
