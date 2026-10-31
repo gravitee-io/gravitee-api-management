@@ -15,12 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.upgrade.upgrader.subscription;
 
-import com.mongodb.client.model.Filters;
 import io.gravitee.node.api.upgrader.UpgraderException;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.ApiReferenceBackfill;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
-import java.util.List;
 import lombok.CustomLog;
-import org.bson.Document;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -35,18 +33,7 @@ public class SubscriptionReferenceTypeUpgrader extends MongoUpgrader {
         return this.wrapException(() -> {
             log.debug("Starting subscription reference type upgrader");
 
-            var filter = Filters.and(
-                Filters.exists("api", true),
-                Filters.ne("api", null),
-                Filters.ne("api", ""),
-                Filters.or(Filters.exists("referenceType", false), Filters.eq("referenceType", null))
-            );
-
-            var pipeline = List.of(new Document("$set", new Document("referenceType", "API").append("referenceId", "$api")));
-
-            var result = this.getCollection("subscriptions").updateMany(filter, pipeline);
-            log.debug("Upgraded {} subscription(s) with reference type and reference id", result.getModifiedCount());
-            return result.wasAcknowledged();
+            return ApiReferenceBackfill.apply(this.getCollection("subscriptions"));
         });
     }
 
