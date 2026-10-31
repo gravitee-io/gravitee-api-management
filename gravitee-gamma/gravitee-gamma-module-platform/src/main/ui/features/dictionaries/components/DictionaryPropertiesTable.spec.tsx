@@ -21,18 +21,20 @@ import type { ComponentProps } from 'react';
 import { DictionaryPropertiesTable } from './DictionaryPropertiesTable';
 
 const PROPERTIES = [
-    { key: 'MUC', value: 'Munich', encrypted: false },
-    { key: 'FRA', value: 'Frankfurt', encrypted: false },
+    { key: 'MUC', value: 'Munich', encrypted: false, encryptOnSave: false },
+    { key: 'FRA', value: 'Frankfurt', encrypted: false, encryptOnSave: false },
 ];
 
-const ENCRYPTED_ROW = { key: 'TOKEN', value: '••••••••••••', encrypted: true };
+// The value is deliberately a readable string: a leak would show as this text, which the server's mask could not reveal.
+const ENCRYPTED_ROW = { key: 'TOKEN', value: 'leaked-plaintext', encrypted: true, encryptOnSave: false };
+const MARKED_ROW = { key: 'MUC', value: 'Munich', encrypted: false, encryptOnSave: true };
 
 function manyProperties(count: number) {
-    return Array.from({ length: count }, (_, i) => ({ key: `KEY_${i}`, value: `value-${i}`, encrypted: false }));
+    return Array.from({ length: count }, (_, i) => ({ key: `KEY_${i}`, value: `value-${i}`, encrypted: false, encryptOnSave: false }));
 }
 
 function renderTable(props: Partial<ComponentProps<typeof DictionaryPropertiesTable>> = {}) {
-    const handlers = { onEdit: jest.fn(), onRenew: jest.fn(), onEncrypt: jest.fn(), onDelete: jest.fn() };
+    const handlers = { onEdit: jest.fn(), onRenew: jest.fn(), onEncrypt: jest.fn(), onUndoEncrypt: jest.fn(), onDelete: jest.fn() };
     const result = render(
         <DictionaryPropertiesTable
             properties={PROPERTIES}
@@ -71,13 +73,13 @@ describe('DictionaryPropertiesTable', () => {
             const { onEdit, onEncrypt, onDelete } = renderTable({ canEdit: true });
 
             const user = await openActions('MUC');
-            expect(menuItemNames()).toEqual(['Edit value', 'Encrypt value', 'Delete']);
+            expect(menuItemNames()).toEqual(['Edit value', 'Encrypt', 'Delete']);
 
             await user.click(screen.getByRole('menuitem', { name: 'Edit value' }));
             expect(onEdit).toHaveBeenCalledWith(PROPERTIES[0]);
 
             await user.click(screen.getByRole('button', { name: 'Actions for MUC' }));
-            await user.click(screen.getByRole('menuitem', { name: 'Encrypt value' }));
+            await user.click(screen.getByRole('menuitem', { name: 'Encrypt' }));
             expect(onEncrypt).toHaveBeenCalledWith('MUC');
 
             await user.click(screen.getByRole('button', { name: 'Actions for FRA' }));
@@ -85,50 +87,67 @@ describe('DictionaryPropertiesTable', () => {
             expect(onDelete).toHaveBeenCalledWith('FRA');
         });
 
-        it('offers renew and delete, but no edit, on an encrypted row', async () => {
+        it('offers replace and delete, but no edit, on an encrypted row', async () => {
             const { onRenew } = renderTable({ properties: [ENCRYPTED_ROW], canEdit: true });
 
             const user = await openActions('TOKEN');
-            expect(menuItemNames()).toEqual(['Renew encryption', 'Delete']);
+            expect(menuItemNames()).toEqual(['Replace value', 'Delete']);
 
-            await user.click(screen.getByRole('menuitem', { name: 'Renew encryption' }));
+            await user.click(screen.getByRole('menuitem', { name: 'Replace value' }));
             expect(onRenew).toHaveBeenCalledWith(ENCRYPTED_ROW);
         });
 
-        it('masks an encrypted value with eight bullets and badges it Encrypted', () => {
+        it('offers do not encrypt, replace and delete on a row marked to be encrypted on save', async () => {
+            const { onUndoEncrypt, onRenew } = renderTable({ properties: [MARKED_ROW], canEdit: true });
+            expect(within(screen.getByRole('row', { name: /MUC/ })).getByText('Encrypted on save')).not.toBeNull();
+
+            const user = await openActions('MUC');
+            expect(menuItemNames()).toEqual(['Do not encrypt', 'Replace value', 'Delete']);
+
+            await user.click(screen.getByRole('menuitem', { name: 'Do not encrypt' }));
+            expect(onUndoEncrypt).toHaveBeenCalledWith('MUC');
+
+            await user.click(screen.getByRole('button', { name: 'Actions for MUC' }));
+            await user.click(screen.getByRole('menuitem', { name: 'Replace value' }));
+            expect(onRenew).toHaveBeenCalledWith(MARKED_ROW);
+        });
+
+        it('masks an encrypted value with twelve bullets and badges it Encrypted with a tooltip', () => {
             renderTable({ properties: [ENCRYPTED_ROW, ...PROPERTIES] });
 
-            expect(screen.getByText('•'.repeat(8))).not.toBeNull();
+            expect(screen.getByText('•'.repeat(12))).not.toBeNull();
             expect(screen.queryByText(ENCRYPTED_ROW.value)).toBeNull();
-            expect(within(screen.getByRole('row', { name: /TOKEN/ })).getByText('Encrypted')).not.toBeNull();
+            const badge = within(screen.getByRole('row', { name: /TOKEN/ })).getByText('Encrypted');
+            expect(badge.closest('[title]')?.getAttribute('title')).toBe('This value is encrypted');
             expect(within(screen.getByRole('row', { name: /MUC/ })).getByText('Unencrypted')).not.toBeNull();
+        });
+
+        it('keeps a masked value out of reach: it cannot be selected and clicking it opens nothing', async () => {
+            const { onEdit, onRenew } = renderTable({ properties: [ENCRYPTED_ROW], canEdit: true });
+            const mask = screen.getByText('•'.repeat(12));
+
+            await userEvent.setup().click(mask);
+
+            expect(mask.className).toContain('select-none');
+            expect(onEdit).not.toHaveBeenCalled();
+            expect(onRenew).not.toHaveBeenCalled();
         });
     });
 
     describe('dynamic dictionary', () => {
-        it('badges every row Dynamic and offers only Encrypt value on a plaintext row', async () => {
-            const { onEncrypt } = renderTable({ dynamic: true, canEdit: true });
+        it("badges every row Dynamic, masks encrypted values and shows each row's encryption state", () => {
+            renderTable({ dynamic: true, canEdit: true, properties: [...PROPERTIES, ENCRYPTED_ROW] });
 
-            expect(screen.getAllByText('Dynamic')).toHaveLength(PROPERTIES.length);
-
-            const user = await openActions('MUC');
-            expect(menuItemNames()).toEqual(['Encrypt value']);
-
-            await user.click(screen.getByRole('menuitem', { name: 'Encrypt value' }));
-            expect(onEncrypt).toHaveBeenCalledWith('MUC');
-        });
-
-        it('offers no action on an encrypted row', () => {
-            renderTable({ dynamic: true, canEdit: true, properties: [ENCRYPTED_ROW] });
-
-            expect(screen.queryByRole('button', { name: 'Actions for TOKEN' })).toBeNull();
+            expect(screen.getAllByText('Dynamic')).toHaveLength(PROPERTIES.length + 1);
             expect(within(screen.getByRole('row', { name: /TOKEN/ })).getByText('Encrypted')).not.toBeNull();
+            expect(within(screen.getByRole('row', { name: /MUC/ })).getByText('Unencrypted')).not.toBeNull();
         });
 
-        it('offers no action to a user who cannot edit', () => {
-            renderTable({ dynamic: true, canEdit: false });
+        it('offers no action, even to a user who can edit', () => {
+            renderTable({ dynamic: true, canEdit: true, properties: [...PROPERTIES, ENCRYPTED_ROW] });
 
             expect(screen.queryByRole('button', { name: /Actions for/ })).toBeNull();
+            expect(screen.queryByRole('columnheader', { name: 'Actions' })).toBeNull();
         });
     });
 
@@ -159,7 +178,7 @@ describe('DictionaryPropertiesTable', () => {
 
     it('clamps back to the last valid page when properties shrink out from under the current page', async () => {
         const user = userEvent.setup();
-        const { rerender, onEdit, onRenew, onEncrypt, onDelete } = renderTable({ properties: manyProperties(15) });
+        const { rerender, onEdit, onRenew, onEncrypt, onUndoEncrypt, onDelete } = renderTable({ properties: manyProperties(15) });
 
         await user.click(screen.getByRole('button', { name: /next page/i }));
         expect(screen.getByText('KEY_10')).not.toBeNull();
@@ -174,6 +193,7 @@ describe('DictionaryPropertiesTable', () => {
                 onEdit={onEdit}
                 onRenew={onRenew}
                 onEncrypt={onEncrypt}
+                onUndoEncrypt={onUndoEncrypt}
                 onDelete={onDelete}
                 emptyMessage="No properties yet."
             />,

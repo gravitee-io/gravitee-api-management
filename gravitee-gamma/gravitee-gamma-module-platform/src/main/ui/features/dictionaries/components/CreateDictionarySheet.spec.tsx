@@ -166,7 +166,6 @@ describe('CreateDictionarySheet', () => {
                 name: 'gamma-dict-dynamix',
                 description: 'Dynamic lookup',
                 type: 'DYNAMIC',
-                encryption: { encryptOnFetch: false },
                 trigger: { rate: 5, unit: 'HOURS' },
                 provider: {
                     type: 'HTTP',
@@ -183,19 +182,11 @@ describe('CreateDictionarySheet', () => {
         });
     });
 
-    it('offers Encrypt fetched values only for DYNAMIC and submits it when checked', async () => {
-        const { onSubmit } = renderSheet();
-        fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: 'gamma-dict-dynamix' } });
-        expect(screen.queryByLabelText('Encrypt fetched values')).toBeNull();
-
+    it('does not offer Encrypt fetched values, which the provider owns', async () => {
+        renderSheet();
         selectType('Dynamic');
-        fireEvent.click(screen.getByLabelText('Encrypt fetched values'));
-        fireEvent.change(screen.getByLabelText(/HTTP Service URL/), { target: { value: 'https://service.internal/dictionary' } });
-        fireEvent.click(screen.getByRole('button', { name: 'Create' }));
 
-        await waitFor(() => {
-            expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ type: 'DYNAMIC', encryption: { encryptOnFetch: true } }));
-        });
+        expect(screen.queryByLabelText('Encrypt fetched values')).toBeNull();
     });
 
     it('shows inline API error when create fails', async () => {

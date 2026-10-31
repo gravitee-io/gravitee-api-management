@@ -25,7 +25,7 @@ import {
     PlayIcon,
     PlusIcon,
 } from '@gravitee/graphene-core/icons';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { AddDictionaryPropertySheet } from '../features/dictionaries/components/AddDictionaryPropertySheet';
@@ -35,7 +35,6 @@ import { DictionaryStateBadge } from '../features/dictionaries/components/Dictio
 import { TRIGGER_UNIT_OPTIONS } from '../features/dictionaries/components/DictionaryTriggerFields';
 import { DictionaryTypeBadge } from '../features/dictionaries/components/DictionaryTypeBadge';
 import { EditDictionaryPropertySheet } from '../features/dictionaries/components/EditDictionaryPropertySheet';
-import { EncryptDictionaryPropertySheet } from '../features/dictionaries/components/EncryptDictionaryPropertySheet';
 import { RenewDictionaryPropertySheet } from '../features/dictionaries/components/RenewDictionaryPropertySheet';
 import {
     useDeployDictionary,
@@ -79,6 +78,8 @@ function toUpdatePayload(dictionary: Dictionary, nextProperties: Record<string, 
     };
 }
 
+const PENDING_VALUE_MASK = '•'.repeat(12);
+
 export function DictionaryDetailPage() {
     const { dictionaryId } = useParams<{ dictionaryId: string }>();
     const navigate = useNavigate();
@@ -91,10 +92,26 @@ export function DictionaryDetailPage() {
     const [addPropertyOpen, setAddPropertyOpen] = useState(false);
     const [propertyToEdit, setPropertyToEdit] = useState<DictionaryPropertyRow | undefined>();
     const [propertyToRenew, setPropertyToRenew] = useState<DictionaryPropertyRow | undefined>();
-    const [propertyToEncrypt, setPropertyToEncrypt] = useState<string | undefined>();
+    const [markedKeys, setMarkedKeys] = useState<ReadonlySet<string>>(new Set());
+    const [pendingAdds, setPendingAdds] = useState<Readonly<Record<string, string>>>({});
     const [propertyToDelete, setPropertyToDelete] = useState<string | undefined>();
 
-    const propertyRows = useMemo(() => (dictionary ? toPropertyRows(dictionary) : []), [dictionary]);
+    const propertyRows = useMemo(() => {
+        if (!dictionary) return [];
+        const pendingRows = Object.keys(pendingAdds).map(key => ({
+            key,
+            value: PENDING_VALUE_MASK,
+            encrypted: false,
+            encryptOnSave: true,
+        }));
+        return [...toPropertyRows(dictionary, markedKeys), ...pendingRows];
+    }, [dictionary, markedKeys, pendingAdds]);
+    const keysToEncryptOnSave = useMemo(() => propertyRows.filter(row => row.encryptOnSave).map(row => row.key), [propertyRows]);
+
+    useEffect(() => {
+        setMarkedKeys(new Set());
+        setPendingAdds({});
+    }, [dictionaryId]);
     const propertyCount = propertyRows.length;
     const isDynamic = dictionary?.type === 'DYNAMIC';
     // Classic Console gates property add/edit/delete with environment-dictionary-u.
@@ -125,12 +142,13 @@ export function DictionaryDetailPage() {
     }
 
     async function handleAddProperty(property: { key: string; value: string; encrypt: boolean }) {
+        if (property.encrypt) {
+            setPendingAdds(previous => ({ ...previous, [property.key]: property.value }));
+            setAddPropertyOpen(false);
+            return;
+        }
         try {
-            await saveProperties(
-                current => ({ ...current, [property.key]: property.value }),
-                'Property added successfully',
-                property.encrypt ? [property.key] : [],
-            );
+            await saveProperties(current => ({ ...current, [property.key]: property.value }), 'Property added successfully');
             setAddPropertyOpen(false);
         } catch (error) {
             notify.error(error, 'Failed to add property');
@@ -155,35 +173,57 @@ export function DictionaryDetailPage() {
         }
     }
 
-    async function handleRenewProperty(renewal: { key: string; value: string }) {
+    function unmark(propertyKey: string) {
+        setMarkedKeys(previous => new Set([...previous].filter(key => key !== propertyKey)));
+    }
+
+    function discardPending(propertyKey: string) {
+        setPendingAdds(previous => Object.fromEntries(Object.entries(previous).filter(([key]) => key !== propertyKey)));
+    }
+
+    async function handleReplaceProperty(replacement: { key: string; value: string }) {
+        if (replacement.key in pendingAdds) {
+            setPendingAdds(previous => ({ ...previous, [replacement.key]: replacement.value }));
+            setPropertyToRenew(undefined);
+            return;
+        }
         try {
-            await saveProperties(current => ({ ...current, [renewal.key]: renewal.value }), 'Property encryption renewed successfully', [
-                renewal.key,
-            ]);
+            await saveProperties(
+                current => ({ ...current, [replacement.key]: replacement.value }),
+                'Property value replaced successfully',
+                [replacement.key],
+            );
+            unmark(replacement.key);
             setPropertyToRenew(undefined);
         } catch (error) {
-            notify.error(error, 'Failed to renew property encryption');
+            notify.error(error, 'Failed to replace property value');
         }
     }
 
-    async function handleEncryptProperty() {
-        if (!propertyToEncrypt) return;
+    async function handleSaveMarked() {
         try {
-            await saveProperties(current => current, 'Property encrypted successfully', [propertyToEncrypt]);
-            setPropertyToEncrypt(undefined);
+            await saveProperties(current => ({ ...current, ...pendingAdds }), 'Properties encrypted successfully', keysToEncryptOnSave);
+            setMarkedKeys(new Set());
+            setPendingAdds({});
         } catch (error) {
-            notify.error(error, 'Failed to encrypt property');
+            notify.error(error, 'Failed to encrypt properties');
         }
     }
 
     async function handleDeleteProperty() {
         if (!propertyToDelete) return;
+        if (propertyToDelete in pendingAdds) {
+            discardPending(propertyToDelete);
+            setPropertyToDelete(undefined);
+            return;
+        }
         try {
             await saveProperties(current => {
                 const updated = { ...current };
                 delete updated[propertyToDelete];
                 return updated;
             }, 'Property deleted successfully');
+            unmark(propertyToDelete);
             setPropertyToDelete(undefined);
         } catch (error) {
             notify.error(error, 'Failed to delete property');
@@ -370,12 +410,6 @@ export function DictionaryDetailPage() {
                             <div className="text-sm font-medium">{providerConfig.useSystemProxy ? 'Yes' : 'No'}</div>
                         </div>
                         <div className="space-y-1">
-                            <div className="text-xs text-muted-foreground">Encrypt fetched values</div>
-                            <div className="text-sm font-medium" data-testid="encrypt-on-fetch">
-                                {dictionary.encryption?.encryptOnFetch ? 'Yes' : 'No'}
-                            </div>
-                        </div>
-                        <div className="space-y-1">
                             <div className="text-xs text-muted-foreground">Headers</div>
                             {providerHeaders.length > 0 ? (
                                 <ul className="space-y-1 text-sm">
@@ -432,6 +466,32 @@ export function DictionaryDetailPage() {
                     ) : null}
                 </div>
 
+                {canEditManualProperties && keysToEncryptOnSave.length > 0 ? (
+                    <div className="flex items-center justify-between gap-4 rounded-lg border bg-muted/40 px-4 py-3">
+                        <p className="text-sm">
+                            {keysToEncryptOnSave.length === 1
+                                ? '1 value will be encrypted on save.'
+                                : `${keysToEncryptOnSave.length} values will be encrypted on save.`}
+                        </p>
+                        <div className="flex shrink-0 gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => {
+                                    setMarkedKeys(new Set());
+                                    setPendingAdds({});
+                                }}
+                                disabled={updateMutation.isPending}
+                            >
+                                Discard
+                            </Button>
+                            <Button type="button" onClick={() => void handleSaveMarked()} disabled={updateMutation.isPending}>
+                                Save
+                            </Button>
+                        </div>
+                    </div>
+                ) : null}
+
                 <DictionaryPropertiesTable
                     key={dictionary.id}
                     properties={propertyRows}
@@ -440,7 +500,11 @@ export function DictionaryDetailPage() {
                     isMutating={updateMutation.isPending}
                     onEdit={setPropertyToEdit}
                     onRenew={setPropertyToRenew}
-                    onEncrypt={setPropertyToEncrypt}
+                    onEncrypt={key => setMarkedKeys(previous => new Set(previous).add(key))}
+                    onUndoEncrypt={key => {
+                        unmark(key);
+                        discardPending(key);
+                    }}
                     onDelete={setPropertyToDelete}
                     emptyMessage={
                         isDynamic
@@ -455,7 +519,7 @@ export function DictionaryDetailPage() {
                 onClose={() => setAddPropertyOpen(false)}
                 onSubmit={handleAddProperty}
                 isSaving={updateMutation.isPending}
-                existingKeys={Object.keys(dictionary?.properties ?? {})}
+                existingKeys={[...Object.keys(dictionary?.properties ?? {}), ...Object.keys(pendingAdds)]}
             />
 
             <EditDictionaryPropertySheet
@@ -471,16 +535,8 @@ export function DictionaryDetailPage() {
                 open={propertyToRenew !== undefined}
                 propertyKey={propertyToRenew?.key}
                 onClose={() => setPropertyToRenew(undefined)}
-                onSubmit={handleRenewProperty}
+                onSubmit={handleReplaceProperty}
                 isSaving={updateMutation.isPending}
-            />
-
-            <EncryptDictionaryPropertySheet
-                open={propertyToEncrypt !== undefined}
-                propertyKey={propertyToEncrypt}
-                onClose={() => setPropertyToEncrypt(undefined)}
-                onConfirm={() => void handleEncryptProperty()}
-                isEncrypting={updateMutation.isPending}
             />
 
             <DeleteDictionaryPropertySheet

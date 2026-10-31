@@ -66,7 +66,7 @@ export function RenewDictionaryPropertySheet({
         <Sheet open={open} onOpenChange={handleOpenChange}>
             <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: '480px' }}>
                 <SheetHeader>
-                    <SheetTitle>Renew Encryption</SheetTitle>
+                    <SheetTitle>Replace Value</SheetTitle>
                     <SheetDescription>Enter a new plaintext value. It will be re-encrypted on save.</SheetDescription>
                 </SheetHeader>
 
@@ -96,7 +96,7 @@ export function RenewDictionaryPropertySheet({
                         Cancel
                     </Button>
                     <Button type="submit" form="renew-dictionary-property-form" disabled={!canSubmit}>
-                        {isSaving ? 'Renewing…' : 'Renew'}
+                        {isSaving ? 'Replacing…' : 'Replace'}
                     </Button>
                 </SheetFooter>
             </SheetContent>
