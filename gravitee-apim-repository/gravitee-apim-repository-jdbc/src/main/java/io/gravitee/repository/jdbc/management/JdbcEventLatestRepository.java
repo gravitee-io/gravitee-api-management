@@ -29,6 +29,8 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.EventLatestCursor;
+import io.gravitee.repository.management.api.search.EventLatestPage;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import java.sql.Connection;
@@ -36,17 +38,20 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
@@ -78,6 +83,42 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
         var pageNumber = page != null ? page : 0;
         var pageSize = size != null ? size : 10;
 
+        return queryPage(criteria, group, null, pageNumber, pageSize, getOrm().getRowMapper());
+    }
+
+    @Override
+    public EventLatestPage searchAfter(EventCriteria criteria, Event.EventProperties group, EventLatestCursor after, int size) {
+        log.debug("JdbcEventLatestRepository.searchAfter({}, {})", criteriaToString(criteria), after);
+
+        var position = new AtomicReference<>(after);
+        RowMapper<Event> mapper = (rs, rowNum) -> {
+            Event event = getOrm().getRowMapper().mapRow(rs, rowNum);
+            position.set(new EventLatestCursor(rs.getObject("updated_at", LocalDateTime.class), event.getId()));
+            return event;
+        };
+
+        List<Event> page = new ArrayList<>();
+        boolean undatedNotDone = after == null || after.updatedAt() == null;
+        // Undated events have no position in (updated_at, id): they are paged first, by id.
+        if (undatedNotDone && criteria.getFrom() <= 0 && criteria.getTo() <= 0) {
+            page.addAll(queryPage(criteria, group, Seek.undated(after), 0L, (long) size, mapper));
+        }
+        if (page.size() < size) {
+            page.addAll(
+                queryPage(criteria, group, undatedNotDone ? Seek.DATED : Seek.after(after), 0L, (long) (size - page.size()), mapper)
+            );
+        }
+        return new EventLatestPage(page, position.get());
+    }
+
+    private List<Event> queryPage(
+        EventCriteria criteria,
+        Event.EventProperties group,
+        Seek seek,
+        Long page,
+        Long size,
+        RowMapper<Event> mapper
+    ) {
         final List<Object> args = new ArrayList<>();
         var select = """
             WITH PagedEvents AS (%s)
@@ -89,13 +130,13 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
                 LEFT JOIN %s evo ON evt.id = evo.event_id
             ORDER BY evt.updated_at ASC, evt.id ASC
             """.formatted(
-                buildSelectIn(criteria, group, pageNumber, pageSize, args),
+                buildSelectIn(criteria, group, seek, page, size, args),
                 tableName,
                 EVENT_PROPERTIES,
                 EVENT_ENVIRONMENTS,
                 EVENT_ORGANIZATIONS
             );
-        return queryEvents(select, args);
+        return queryEvents(select, args, mapper);
     }
 
     /**
@@ -107,11 +148,12 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
      *
      * @param criteria the event search criteria.
      * @param group    the specific event property to filter by. If null, no event property filter is applied.
+     * @param seek     keyset position. If null, no seek is applied.
      * @param page     the page number used for pagination. If null, pagination is not applied.
      * @param size     the size of each page used for pagination. If null or less than or equal to zero, pagination is not applied.
      * @return a SQL query string selecting event IDs with optional filtering and pagination.
      */
-    private String buildSelectIn(EventCriteria criteria, Event.EventProperties group, Long page, Long size, List<Object> args) {
+    private String buildSelectIn(EventCriteria criteria, Event.EventProperties group, Seek seek, Long page, Long size, List<Object> args) {
         if (group != null || !criteria.getProperties().isEmpty()) {
             final StringBuilder where = new StringBuilder();
             appendCriteria(where, criteria, args, "e1", "ee1", "eo1");
@@ -123,6 +165,7 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
             }
             if (!criteria.getProperties().isEmpty()) {
                 where.append(!where.isEmpty() ? AND_CLAUSE : WHERE_CLAUSE);
+                where.append("( ");
                 var first = true;
                 for (Map.Entry<String, Object> property : criteria.getProperties().entrySet()) {
                     if (property.getValue() instanceof Collection<?> collection) {
@@ -133,10 +176,13 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
                         first = addCondition(first, where, property.getKey(), property.getValue(), args);
                     }
                 }
+                where.append(") ");
             }
 
+            appendSeek(where, seek, args);
+
             var selectIn = """
-                select e1.id from %s e1
+                select distinct e1.id, e1.updated_at from %s e1
                   inner join %s prop on e1.id = prop.event_id
                   left join %s ee1 on e1.id = ee1.event_id
                   left join %s eo1 on e1.id = eo1.event_id
@@ -153,9 +199,10 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
 
         var where = new StringBuilder();
         appendCriteria(where, criteria, args, "e1", "ee1", "eo1");
+        appendSeek(where, seek, args);
 
         var selectIn = """
-            select e1.id from %s e1
+            select distinct e1.id, e1.updated_at from %s e1
               left join %s ee1 on e1.id = ee1.event_id
               left join %s eo1 on e1.id = eo1.event_id
             %s
@@ -270,13 +317,13 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
     }
 
     private List<Event> queryEvents(String sql, List<Object> args) {
+        return queryEvents(sql, args, getOrm().getRowMapper());
+    }
+
+    private List<Event> queryEvents(String sql, List<Object> args, RowMapper<Event> mapper) {
         log.debug("SQL: {}", sql);
         log.debug("Args: {}", args);
-        final JdbcHelper.CollatingRowMapper<Event> rowCallbackHandler = new JdbcHelper.CollatingRowMapper<>(
-            getOrm().getRowMapper(),
-            CHILD_ADDER,
-            "id"
-        );
+        final JdbcHelper.CollatingRowMapper<Event> rowCallbackHandler = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
         jdbcTemplate.query(
             (Connection cnctn) -> {
                 PreparedStatement stmt = cnctn.prepareStatement(sql);
@@ -349,6 +396,34 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
             storeOrganizations(event, true);
         }
         return event;
+    }
+
+    private static void appendSeek(StringBuilder where, Seek seek, List<Object> args) {
+        if (seek == null) {
+            return;
+        }
+        where.append(!where.isEmpty() ? AND_CLAUSE : WHERE_CLAUSE);
+        where.append("( ").append(seek.condition()).append(" )");
+        args.addAll(seek.args());
+    }
+
+    private record Seek(String condition, List<Object> args) {
+        static final Seek DATED = new Seek("e1.updated_at is not null", List.of());
+
+        static Seek undated(EventLatestCursor after) {
+            return after == null
+                ? new Seek("e1.updated_at is null", List.of())
+                : new Seek("e1.updated_at is null and e1.id > ?", List.of(after.id()));
+        }
+
+        static Seek after(EventLatestCursor after) {
+            LocalDateTime marker = after.updatedAt();
+            // The redundant lower bound is sargable: it lets the planner start the index range at the cursor.
+            return new Seek(
+                "e1.updated_at >= ? and ( e1.updated_at > ? or ( e1.updated_at = ? and e1.id > ? ) )",
+                List.of(marker, marker, marker, after.id())
+            );
+        }
     }
 
     protected static void appendCriteria(

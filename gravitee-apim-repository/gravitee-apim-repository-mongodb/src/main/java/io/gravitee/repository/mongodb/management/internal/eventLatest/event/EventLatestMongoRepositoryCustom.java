@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.eventLatest.event;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.EventLatestCursor;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.mongodb.management.internal.model.EventLatestMongo;
@@ -30,4 +31,6 @@ import java.util.List;
  */
 public interface EventLatestMongoRepositoryCustom {
     List<EventLatestMongo> search(EventCriteria criteria, Event.EventProperties group, Long page, Long size);
+
+    List<EventLatestMongo> searchAfter(EventCriteria criteria, Event.EventProperties group, EventLatestCursor after, int size);
 }

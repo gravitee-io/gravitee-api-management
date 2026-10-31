@@ -18,6 +18,8 @@ package io.gravitee.gateway.services.sync.process.repository.fetcher;
 import io.gravitee.gateway.services.sync.process.repository.DefaultSyncManager;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.EventLatestCursor;
+import io.gravitee.repository.management.api.search.EventLatestPage;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.reactivex.rxjava3.core.Flowable;
@@ -63,21 +65,17 @@ public class LatestEventFetcher {
         Set<String> environments,
         Set<EventType> eventTypes
     ) {
-        return Flowable.<List<Event>, EventPageable>generate(
-            () ->
-                EventPageable.builder()
-                    .index(0)
-                    .size(bulkItems)
-                    .criteria(buildCriteria(from, to, propertyKey, propertyValue, environments, eventTypes))
-                    .build(),
+        EventCriteria criteria = buildCriteria(from, to, propertyKey, propertyValue, environments, eventTypes);
+        return Flowable.<List<Event>, SeekPage>generate(
+            () -> new SeekPage(),
             (page, emitter) -> {
                 try {
-                    List<Event> events = eventLatestRepository.search(page.criteria, group, page.index, page.size);
+                    List<Event> events = nextPage(page, criteria, group);
                     if (events != null && !events.isEmpty()) {
                         emitter.onNext(events);
                         page.index++;
                     }
-                    if (events == null || events.size() < page.size) {
+                    if (events == null || events.size() < bulkItems) {
                         emitter.onComplete();
                     }
                 } catch (Exception e) {
@@ -85,6 +83,23 @@ public class LatestEventFetcher {
                 }
             }
         );
+    }
+
+    private List<Event> nextPage(SeekPage page, EventCriteria criteria, Event.EventProperties group) {
+        if (!page.offsetOnly) {
+            try {
+                EventLatestPage latest = eventLatestRepository.searchAfter(criteria, group, page.cursor, bulkItems);
+                page.cursor = latest.next();
+                return latest.events();
+            } catch (UnsupportedOperationException e) {
+                if (page.cursor != null) {
+                    throw e;
+                }
+                log.debug("Latest events are paged by offset: {}", e.getMessage());
+                page.offsetOnly = true;
+            }
+        }
+        return eventLatestRepository.search(criteria, group, page.index, (long) bulkItems);
     }
 
     private EventCriteria buildCriteria(
@@ -147,6 +162,13 @@ public class LatestEventFetcher {
                 }
             }
         );
+    }
+
+    private static class SeekPage {
+
+        private long index;
+        private EventLatestCursor cursor;
+        private boolean offsetOnly;
     }
 
     @Builder
