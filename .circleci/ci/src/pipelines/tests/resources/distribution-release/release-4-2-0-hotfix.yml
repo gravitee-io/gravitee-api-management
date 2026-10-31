@@ -331,7 +331,7 @@ jobs:
             }
   job-console-webui-build:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: large
     steps:
       - checkout
@@ -354,7 +354,7 @@ jobs:
             - gravitee-apim-console-webui/dist
   job-portal-webui-build:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: large
     steps:
       - checkout
@@ -389,7 +389,7 @@ jobs:
             - gravitee-apim-portal-webui/dist
   job-gamma-webui-build:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: large
     steps:
       - checkout
@@ -741,7 +741,7 @@ jobs:
           folder-to-sync: folder_to_sync
   job-release-helm:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: medium
     steps:
       - checkout
@@ -881,7 +881,7 @@ jobs:
                 push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
   job-release-notes-apim:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: medium
     steps:
       - checkout

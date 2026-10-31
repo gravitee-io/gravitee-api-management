@@ -325,7 +325,7 @@ jobs:
             - gravitee-apim-distribution/gravitee-apim-distribution-e2e/lib/portal-webclient-sdk
   job-e2e-lint-build:
     docker:
-      - image: cimg/node:24.18.0
+      - image: cimg/node:24.22.1
     resource_class: small
     steps:
       - checkout
