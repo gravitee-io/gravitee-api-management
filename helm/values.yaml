@@ -510,6 +510,9 @@ cloud:
         - https://cloud-controller.gravitee.io
       ssl:
         verifyHost: true
+        # On the FIPS images (BC-FIPS in approved-only mode), PKCS12 is not available and JKS cannot hold the client key:
+        # convert the keystore to BCFKS and set `keystore.type: bcfks`. The truststore can be BCFKS too (`truststore.type: bcfks`) or PEM (`truststore.type: pem`).
+        # `path`, `password` and `value` keep their meaning; the file names under `/opt/graviteeio-management-api/cloud` do not matter.
         keystore:
           type: pkcs12
           path: /opt/graviteeio-management-api/cloud/keystore.p12
