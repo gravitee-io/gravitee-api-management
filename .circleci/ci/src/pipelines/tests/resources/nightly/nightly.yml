@@ -1307,17 +1307,10 @@ jobs:
           command: |-
             IMAGES="
             graviteeio.azurecr.io/apim-portal-ui:master-latest
-            graviteeio.azurecr.io/apim-portal-ui:master-latest-chainguard-fips
             graviteeio.azurecr.io/apim-management-ui:master-latest
-            graviteeio.azurecr.io/apim-management-ui:master-latest-chainguard-fips
             graviteeio.azurecr.io/gamma-ui:master-latest
-            graviteeio.azurecr.io/gamma-ui:master-latest-chainguard-fips
-            graviteeio.azurecr.io/apim-management-api:master-latest
             graviteeio.azurecr.io/apim-management-api:master-latest-debian
-            graviteeio.azurecr.io/apim-management-api:master-latest-chainguard-fips
-            graviteeio.azurecr.io/apim-gateway:master-latest
             graviteeio.azurecr.io/apim-gateway:master-latest-debian
-            graviteeio.azurecr.io/apim-gateway:master-latest-chainguard-fips
             "
             : > /tmp/aikido-images.txt
             for image in $IMAGES; do
@@ -1679,15 +1672,10 @@ workflows:
           name: Scan docker images with Aikido
           requires:
             - Build APIM Portal docker image
-            - Build APIM Portal chainguard-fips docker image
             - Build APIM Console docker image
-            - Build APIM Console chainguard-fips docker image
             - Build Gamma Console docker image
-            - Build Gamma Console chainguard-fips docker image
             - Build APIM Management API docker image
-            - Build APIM Management API chainguard-fips docker image
             - Build APIM Gateway docker image
-            - Build APIM Gateway chainguard-fips docker image
 orbs:
   keeper: gravitee-io/keeper@0.7.1
   slack: circleci/slack@4.12.5
