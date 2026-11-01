@@ -98,8 +98,8 @@ describe('Distribution release tests', () => {
   );
 
   describe('Aikido scan', () => {
-    const scannedImagesOf = (version: string): string[] => {
-      const generated = generateDistributionReleaseConfig({
+    const releaseConfigOf = (version: string): string =>
+      generateDistributionReleaseConfig({
         action: 'distribution_release',
         sha1: '784ff35ca',
         changedFiles: [],
@@ -113,8 +113,8 @@ describe('Distribution release tests', () => {
         apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
       }).stringify();
 
-      return (generated.match(/IMAGES="\n([\s\S]*?)\n\s*"/)?.[1] ?? '').trim().split(/\s+/);
-    };
+    const scannedImagesOf = (version: string): string[] =>
+      (releaseConfigOf(version).match(/IMAGES="\n([\s\S]*?)\n\s*"/)?.[1] ?? '').trim().split(/\s+/);
 
     it('should scan the minor version tag of a release', () => {
       expect(scannedImagesOf('4.2.3')).toStrictEqual([
@@ -126,14 +126,18 @@ describe('Distribution release tests', () => {
       ]);
     });
 
-    it('should scan the full tag of a qualified release, which has no minor version tag', () => {
-      expect(scannedImagesOf('4.2.0-alpha.1')).toStrictEqual([
-        'graviteeio/apim-portal-ui:4.2.0-alpha.1',
-        'graviteeio/apim-management-ui:4.2.0-alpha.1',
-        'graviteeio/gamma-ui:4.2.0-alpha.1',
-        'graviteeio/apim-management-api:4.2.0-alpha.1-debian',
-        'graviteeio/apim-gateway:4.2.0-alpha.1-debian',
+    it('should scan the full tag of a hotfix, which has no minor version tag', () => {
+      expect(scannedImagesOf('4.2.0-hotfix.1')).toStrictEqual([
+        'graviteeio/apim-portal-ui:4.2.0-hotfix.1',
+        'graviteeio/apim-management-ui:4.2.0-hotfix.1',
+        'graviteeio/gamma-ui:4.2.0-hotfix.1',
+        'graviteeio/apim-management-api:4.2.0-hotfix.1-debian',
+        'graviteeio/apim-gateway:4.2.0-hotfix.1-debian',
       ]);
+    });
+
+    it.each(['4.2.0-alpha.1', '4.2.0-beta.1'])('should not scan the pre-release %s', (version) => {
+      expect(releaseConfigOf(version)).not.toContain('aikido');
     });
   });
 
