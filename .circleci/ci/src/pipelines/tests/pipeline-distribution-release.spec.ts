@@ -97,6 +97,46 @@ describe('Distribution release tests', () => {
     },
   );
 
+  describe('Aikido scan', () => {
+    const scannedImagesOf = (version: string): string[] => {
+      const generated = generateDistributionReleaseConfig({
+        action: 'distribution_release',
+        sha1: '784ff35ca',
+        changedFiles: [],
+        buildNum: '1234',
+        buildId: '1234',
+        graviteeioVersion: version,
+        tag: version,
+        branch: '',
+        baseBranch: '4.2.x',
+        isDryRun: false,
+        apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
+      }).stringify();
+
+      return (generated.match(/IMAGES="\n([\s\S]*?)\n\s*"/)?.[1] ?? '').trim().split(/\s+/);
+    };
+
+    it('should scan the minor version tag of a release', () => {
+      expect(scannedImagesOf('4.2.3')).toStrictEqual([
+        'graviteeio/apim-portal-ui:4.2',
+        'graviteeio/apim-management-ui:4.2',
+        'graviteeio/gamma-ui:4.2',
+        'graviteeio/apim-management-api:4.2-debian',
+        'graviteeio/apim-gateway:4.2-debian',
+      ]);
+    });
+
+    it('should scan the full tag of a qualified release, which has no minor version tag', () => {
+      expect(scannedImagesOf('4.2.0-alpha.1')).toStrictEqual([
+        'graviteeio/apim-portal-ui:4.2.0-alpha.1',
+        'graviteeio/apim-management-ui:4.2.0-alpha.1',
+        'graviteeio/gamma-ui:4.2.0-alpha.1',
+        'graviteeio/apim-management-api:4.2.0-alpha.1-debian',
+        'graviteeio/apim-gateway:4.2.0-alpha.1-debian',
+      ]);
+    });
+  });
+
   // The specs live in the core's jars, the site publishes them under the product's number. Sent one
   // version, the docs pipeline looks up a jar that will never exist.
   it('should send the docs site the pin to fetch and the release to publish under', () => {
