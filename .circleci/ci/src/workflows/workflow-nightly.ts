@@ -83,10 +83,7 @@ export class NightlyWorkflow {
         requires: ['Integration tests', 'Run Cypress UI tests'],
       }),
 
-      // What this workflow builds: the standard images and the FIPS variants. FIPS is scanned
-      // nowhere else between two releases; the chainguard variants are scanned on the branch
-      // push that builds them.
-      ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, false, '', ['chainguard-fips']),
+      ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, false, ''),
     ]);
   }
 }
