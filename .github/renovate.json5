@@ -6,6 +6,18 @@
         "(^|/).circleci/config.yml$"
       ]
     },
+    "customManagers": [
+        {
+            "customType": "regex",
+            "description": "Reads the gbuddy pin (hub: x.y.z) in .ai/manifest.yaml as a version of the @gravitee-io/gbuddy package.",
+            "managerFilePatterns": ["/(^|/)\\.ai/manifest\\.yaml$/"],
+            "matchStrings": ["(?:^|\\n)hub:\\s*[\"']?(?<currentValue>\\d+\\.\\d+\\.\\d+)[\"']?"],
+            "depNameTemplate": "@gravitee-io/gbuddy",
+            "datasourceTemplate": "npm",
+            "registryUrlTemplate": "https://npm.pkg.github.com"
+        }
+    ],
+    "gitIgnoredAuthors": ["gbuddy-update@users.noreply.github.com"],
     "packageRules": [
         {
             // Group all angular related packages updates together
@@ -103,6 +115,14 @@
             "matchPackageNames": ["com.graviteesource{/,}**", "io.gravitee{/,}**"],
             "matchCurrentVersion": "/-beta\\./",
             "allowedVersions": "/-beta\\./"
+        },
+        {
+            "description": "The gbuddy pin pull request opens at once, so the update workflow can report on it.",
+            "matchDepNames": ["@gravitee-io/gbuddy"],
+            "prCreation": "immediate",
+            "prBodyNotes": [
+                "This pull request raises the gbuddy pin. A workflow adds the regenerated AI context files and removes the ones this release no longer generates. Review the rule and skill text that changed. Questions: the Builder Experience team."
+            ]
         }
     ]
 }

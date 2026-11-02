@@ -1,0 +1,154 @@
+name: Update AI context
+
+on:
+  push:
+    branches: ["renovate/**"]
+
+permissions:
+  contents: read
+  pull-requests: write
+  packages: read
+
+concurrency:
+  group: update-ai-context-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  BOT_NAME: gbuddy update
+  BOT_EMAIL: gbuddy-update@users.noreply.github.com
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check whether the pin moved
+        id: pin
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if git diff --quiet "origin/$DEFAULT_BRANCH...HEAD" -- .ai/manifest.yaml; then
+            echo "moved=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "moved=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check who made the last commit
+        id: author
+        run: |
+          if [ "$(git log -1 --format=%ae)" = "$BOT_EMAIL" ]; then
+            echo "bot=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "bot=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v7
+        if: steps.pin.outputs.moved == 'true' && steps.author.outputs.bot != 'true'
+        with:
+          node-version: 22.12.0
+          registry-url: https://npm.pkg.github.com
+          scope: "@gravitee-io"
+
+      - name: Install gbuddy
+        if: steps.pin.outputs.moved == 'true' && steps.author.outputs.bot != 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm install -g @gravitee-io/gbuddy --@gravitee-io:registry=https://npm.pkg.github.com
+
+      - name: Regenerate the AI context
+        id: setup
+        if: steps.pin.outputs.moved == 'true' && steps.author.outputs.bot != 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gbuddy setup --json > "$RUNNER_TEMP/setup.json"
+
+      - name: Commit the result
+        id: commit
+        if: steps.setup.outcome == 'success' && steps.pin.outputs.moved == 'true' && steps.author.outputs.bot != 'true'
+        env:
+          PUSH_URL: https://x-access-token:${{ secrets.GBUDDY_BOT_TOKEN }}@github.com/${{ github.repository }}.git
+        run: |
+          git add -A -- . ':!.claude/' ':!.agents/'
+          if git diff --cached --quiet; then
+            echo "committed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name "$BOT_NAME"
+          git config user.email "$BOT_EMAIL"
+          git -c core.hooksPath=/dev/null commit --no-verify -m "chore: regenerate AI context for the new gbuddy release"
+          git -c core.hooksPath=/dev/null push "$PUSH_URL" "HEAD:$GITHUB_REF_NAME"
+          echo "committed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Report on the pull request
+        if: ${{ !cancelled() && steps.pin.outputs.moved == 'true' && steps.author.outputs.bot != 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SETUP_OUTCOME: ${{ steps.setup.outcome }}
+          COMMIT_OUTCOME: ${{ steps.commit.outcome }}
+          COMMITTED: ${{ steps.commit.outputs.committed }}
+        run: |
+          marker='<!-- gbuddy-update-report -->'
+          failed='<!-- gbuddy-update-failed -->'
+          report="$RUNNER_TEMP/setup.json"
+          body="$RUNNER_TEMP/comment.md"
+          looked=
+          find_comment() {
+            [ -z "$looked" ] || return 0
+            looked=yes
+            pr=$(gh pr list --head "$GITHUB_REF_NAME" --json number --jq '.[0].number // empty')
+            id=
+            was_failure=
+            if [ -n "$pr" ]; then
+              found=$(gh api "repos/$GITHUB_REPOSITORY/issues/$pr/comments" --paginate --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\"))) | [.id, (.body | contains(\"$failed\"))] | map(tostring) | join(\" \")" | tail -n 1)
+              read -r id was_failure <<< "$found"
+            fi
+          }
+          if [ "$SETUP_OUTCOME" != "success" ] || [ "$COMMIT_OUTCOME" != "success" ]; then
+            printf '%s\n%s\n\n' "$marker" "$failed" > "$body"
+            echo "gbuddy could not regenerate or publish the AI context for this release, so this pull request may hold only the new pin. See the failed step in $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID." >> "$body"
+          else
+            printf '%s\n\n' "$marker" > "$body"
+            removed=$(jq -r '.outputs[] | select(.status == "removed") | "- `" + .outputFile + "`"' "$report")
+            replaced=$(jq -r '(.backups // [])[] | "- `" + .path + "`"' "$report")
+            kept=$(jq -r '(.kept // [])[] | .path' "$report")
+            if [ "$COMMITTED" != "true" ] && [ -z "$removed$replaced$kept" ]; then
+              find_comment
+              [ "$was_failure" = "true" ] || exit 0
+              echo "gbuddy regenerated the AI context for this release, and there is nothing more to report." >> "$body"
+            else
+              kept_section() {
+                files=$(jq -r --arg cause "$1" '(.kept // [])[] | select(.cause == $cause) | "- `" + .path + "`"' "$report")
+                if [ -n "$files" ]; then
+                  printf '\n%s\n%s\n' "$2" "$files" >> "$body"
+                fi
+              }
+              echo "gbuddy regenerated the AI context for this release." >> "$body"
+              if [ -n "$removed" ]; then
+                printf '\nRemoved, because gbuddy no longer generates them and nobody had edited them:\n%s\n' "$removed" >> "$body"
+              fi
+              if [ -n "$replaced" ]; then
+                printf '\nReplaced, because they had been changed by hand (the earlier text is in the history of this branch):\n%s\n' "$replaced" >> "$body"
+              fi
+              kept_section changed 'Kept, because they were changed by hand. Move anything you added or changed into a rule under `.ai/rules/`, then delete the file and push to this branch; the workflow runs again:'
+              kept_section unsafe 'Kept, because gbuddy cannot confirm they are the files it wrote (a link, not a plain file, or a path that leads outside the repository). Check each one; if it is inside the repository and stale, delete it:'
+              kept_section sibling 'Kept, because the `AGENTS.md` beside each one stays. If you delete that `AGENTS.md`, delete the file listed here too:'
+              kept_section held 'Kept with their skill folder:'
+              kept_section unrecognised 'Recorded as generated, but not files gbuddy generates. Ask the Builder Experience team:'
+              if [ -n "$kept" ]; then
+                printf '\nThe AI context check stays red only for a kept file that still carries the generated-by header.\n' >> "$body"
+              fi
+            fi
+          fi
+          cat "$body" >> "$GITHUB_STEP_SUMMARY"
+          find_comment
+          [ -n "$pr" ] || exit 0
+          if [ -n "$id" ]; then
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -F body=@"$body" > /dev/null
+          else
+            gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$pr/comments" -F body=@"$body" > /dev/null
+          fi
