@@ -27,6 +27,7 @@ import { SearchQueryParam, SearchRequestParams } from '../../../utils/search-que
 import { ConfigurationService } from '../../../services/configuration.service';
 import { createPromiseList } from '../../../utils/utils';
 import { GvFormControlDirective } from '../../../directives/gv-form-control.directive';
+import { MarkdownDescriptionPipe } from '../../../pipes/markdown-description.pipe';
 
 @Component({
   selector: 'app-search',
@@ -41,6 +42,7 @@ export class CatalogSearchComponent implements OnInit {
   private activatedRoute = inject(ActivatedRoute);
   private router = inject(Router);
   private config = inject(ConfigurationService);
+  private markdownDescription = inject(MarkdownDescriptionPipe);
 
   searchForm: FormGroup<{ query: FormControl<string> }>;
   pageSize: number;
@@ -101,7 +103,7 @@ export class CatalogSearchComponent implements OnInit {
         }
 
         apisResponse.data.forEach(api => {
-          deferredList.shift().resolve(api);
+          deferredList.shift().resolve(this.markdownDescription.transform(api));
         });
       })
       .catch(err => {
