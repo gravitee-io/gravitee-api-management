@@ -39,6 +39,8 @@ const CLUSTERS = [
   { crossId: 'dev', name: 'Dev', connections: [{ crossId: 'dev-plain', name: 'Plaintext' }] },
 ] as DeployedCluster[];
 
+const NOT_A_MEMBER_OF_PRODUCTION = CLUSTERS.map(cluster => ({ ...cluster, bindable: cluster.crossId !== 'prod' }));
+
 @Component({
   template: '<formly-form [form]="form" [fields]="fields" [model]="model"></formly-form>',
   standalone: false,
@@ -53,12 +55,12 @@ describe('ClusterConnectionTypeComponent', () => {
   let fixture: ComponentFixture<HostComponent>;
   let httpTestingController: HttpTestingController;
 
-  async function render(fields: FormlyFieldConfig[], model: Record<string, unknown>, expectedUrl: string) {
+  async function render(fields: FormlyFieldConfig[], model: Record<string, unknown>, expectedUrl: string, clusters = CLUSTERS) {
     fixture = TestBed.createComponent(HostComponent);
     fixture.componentInstance.fields = fields;
     fixture.componentInstance.model = model;
     fixture.detectChanges();
-    httpTestingController.expectOne(expectedUrl).flush(CLUSTERS);
+    httpTestingController.expectOne(expectedUrl).flush(clusters);
     fixture.detectChanges();
     return TestbedHarnessEnvironment.loader(fixture).getHarness(MatAutocompleteHarness);
   }
@@ -110,5 +112,35 @@ describe('ClusterConnectionTypeComponent', () => {
     await autocomplete.selectOption({ text: /External/ });
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).not.toContain('Connection not found!');
+  });
+
+  it('offers only the connection the API already uses on a cluster the user is not a member of', async () => {
+    const autocomplete = await render(
+      [{ key: 'clusterCrossId', type: 'input' }, connectionField],
+      { clusterCrossId: 'prod', connectionCrossId: 'internal' },
+      `${CONSTANTS_TESTING.env.v2BaseURL}/clusters/deployed`,
+      NOT_A_MEMBER_OF_PRODUCTION,
+    );
+
+    await autocomplete.clear();
+    const options = await autocomplete.getOptions();
+    expect(await Promise.all(options.map(option => option.getText()))).toEqual(['Internal (internal)']);
+    expect(fixture.nativeElement.textContent).not.toContain('Connection not found!');
+  });
+
+  it('leaves out the connections of the clusters the user is not a member of when the cluster is picked in another form', async () => {
+    const autocomplete = await render(
+      [connectionField],
+      { connectionCrossId: 'external' },
+      `${CONSTANTS_TESTING.env.v2BaseURL}/clusters/deployed?type=KAFKA_CLUSTER`,
+      NOT_A_MEMBER_OF_PRODUCTION,
+    );
+
+    await autocomplete.clear();
+    const options = await autocomplete.getOptions();
+    expect(await Promise.all(options.map(option => option.getText()))).toEqual([
+      'Production / External (external)',
+      'Dev / Plaintext (dev-plain)',
+    ]);
   });
 });
