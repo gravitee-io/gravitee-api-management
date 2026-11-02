@@ -20,7 +20,9 @@ import {
   InstallYarnCommand,
   NotifyOnFailureCommand,
   RestoreMavenJobCacheCommand,
+  RestoreYarnWorkspaceCacheCommand,
   SaveMavenJobCacheCommand,
+  SaveYarnWorkspaceCacheCommand,
 } from '../../commands';
 import { OpenJdkNodeExecutor } from '../../executors';
 import { CircleCIEnvironment } from '../../pipelines';
@@ -37,11 +39,15 @@ export class PublishJob {
     // The Gamma UI build runs `yarn install`; with the image's yarn 1 it would ignore the berry
     // lockfile and let swagger-ui's React 18 into the shared React.
     const installYarnCmd = InstallYarnCommand.get();
+    const restoreYarnWorkspaceCacheCmd = RestoreYarnWorkspaceCacheCommand.get(environment);
+    const saveYarnWorkspaceCacheCmd = SaveYarnWorkspaceCacheCommand.get();
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(saveMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
     dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
     dynamicConfig.addReusableCommand(installYarnCmd);
+    dynamicConfig.addReusableCommand(restoreYarnWorkspaceCacheCmd);
+    dynamicConfig.addReusableCommand(saveYarnWorkspaceCacheCmd);
 
     const steps: Command[] = [
       new commands.Checkout(),
@@ -49,6 +55,7 @@ export class PublishJob {
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName }),
       new reusable.ReusedCommand(azureArtifactsTokenCmd),
       new reusable.ReusedCommand(installYarnCmd),
+      new reusable.ReusedCommand(restoreYarnWorkspaceCacheCmd),
       // The profile is still active for what it carries besides the repository — signing and
       // the other deploy settings — while altDeploymentRepository points the deploy at the
       // Azure feed.
@@ -83,6 +90,7 @@ export class PublishJob {
           MAVEN_OPTS: '-Xmx2048m',
         },
       }),
+      new reusable.ReusedCommand(saveYarnWorkspaceCacheCmd),
       // The distribution is a reactor of its own: the steps above never reach it. When it pins a
       // SNAPSHOT core, that core comes from the local repository the first step installed into,
       // hence -nsu; a released pin resolves from the feed.

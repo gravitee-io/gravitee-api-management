@@ -20,7 +20,9 @@ import {
   InstallYarnCommand,
   NotifyOnFailureCommand,
   RestoreMavenJobCacheCommand,
+  RestoreYarnWorkspaceCacheCommand,
   SaveMavenJobCacheCommand,
+  SaveYarnWorkspaceCacheCommand,
 } from '../../commands';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
@@ -38,11 +40,15 @@ export class BuildBackendJob {
     // generate-resources). Without corepack the image's yarn 1 cannot read the berry lockfile
     // and resolves the whole workspace from the registry instead.
     const installYarnCmd = InstallYarnCommand.get();
+    const restoreYarnWorkspaceCacheCmd = RestoreYarnWorkspaceCacheCommand.get(environment);
+    const saveYarnWorkspaceCacheCmd = SaveYarnWorkspaceCacheCommand.get();
     const azureArtifactsTokenCmd = AzureArtifactsTokenCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(saveMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
     dynamicConfig.addReusableCommand(installYarnCmd);
+    dynamicConfig.addReusableCommand(restoreYarnWorkspaceCacheCmd);
+    dynamicConfig.addReusableCommand(saveYarnWorkspaceCacheCmd);
     dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
 
     // A change that can only affect the distribution is assembled against the core it pins, not the
@@ -56,6 +62,7 @@ export class BuildBackendJob {
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: jobName }),
       new reusable.ReusedCommand(installYarnCmd),
+      new reusable.ReusedCommand(restoreYarnWorkspaceCacheCmd),
       new reusable.ReusedCommand(azureArtifactsTokenCmd),
       new commands.Run({
         name: 'Build core',
@@ -69,6 +76,7 @@ export class BuildBackendJob {
           MAVEN_OPTS: '-Xmx2048m',
         },
       }),
+      new reusable.ReusedCommand(saveYarnWorkspaceCacheCmd),
       new commands.Run({
         // Second phase: assemble against the engine just installed above, not the released one.
         // -nsu so a published snapshot cannot take its place.

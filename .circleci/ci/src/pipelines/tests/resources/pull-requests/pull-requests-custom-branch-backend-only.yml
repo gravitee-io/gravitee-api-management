@@ -118,6 +118,22 @@ commands:
             # base64url and dots, nothing the shell can expand — and it never came from Keeper.
             echo "export AZURE_ARTIFACTS_PAT='${TOKEN}'" >> "$BASH_ENV"
     description: Get a short-lived Azure Artifacts token
+  cmd-restore-yarn-workspace-cache:
+    steps:
+      - restore_cache:
+          name: Restore Yarn workspace cache
+          keys:
+            - gravitee-api-management-v16-yarn-workspace-openjdk-25.0.3-{{ .Branch }}-{{ checksum "yarn.lock" }}
+            - gravitee-api-management-v16-yarn-workspace-openjdk-25.0.3-{{ .Branch }}
+            - gravitee-api-management-v16-yarn-workspace-openjdk-25.0.3-master-
+  cmd-save-yarn-workspace-cache:
+    steps:
+      - save_cache:
+          name: Save Yarn workspace cache
+          key: gravitee-api-management-v16-yarn-workspace-openjdk-25.0.3-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          paths:
+            - ./node_modules
+            - ./.yarn/install-state.gz
   cmd-install-jdk:
     steps:
       - restore_cache:
@@ -257,6 +273,7 @@ jobs:
       - cmd-restore-maven-job-cache:
           jobName: job-build
       - cmd-install-yarn
+      - cmd-restore-yarn-workspace-cache
       - cmd-azure-artifacts-token
       - run:
           name: Build core
@@ -266,6 +283,7 @@ jobs:
             BUILD_NUMBER: "1234"
             GIT_COMMIT: 784ff35ca
             MAVEN_OPTS: -Xmx2048m
+      - cmd-save-yarn-workspace-cache
       - run:
           name: Build distribution
           command: mvn -s .gravitee.settings.xml -f gravitee-apim-distribution/pom.xml clean install --no-transfer-progress -nsu -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -Dbundle=dev -Pintegration-tests-modules -Dapim.core.version=4.2.0 -DwithJavadoc
