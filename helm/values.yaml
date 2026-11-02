@@ -1666,6 +1666,19 @@ gateway:
 #      # per refresh. Only applies when the backend metadata max age is above 0. Default is true.
 #      refreshConnectionReuse: true
 #
+#    # Maximum number of client connections a gateway instance accepts on the Kafka port; connections past it are
+#    # refused before TLS. Unset or 0: no limit. Loopback clients (127.0.0.1, ::1) are not counted.
+#    maxConnections: 0
+#    # Same limit expressed per GiB of JVM max heap. When both are set, the smaller one applies. Unset or 0: off.
+#    maxConnectionsPerGiB: 0
+#    readiness:
+#      # Adds the `kafka-readiness` probe: the pod reports not ready once it holds `notReadyPercent` of its connection
+#      # limit, and ready again at `readyPercent` or below. Needs a connection limit, and the probe named in the
+#      # readiness check only (never in liveness). 1 <= readyPercent < notReadyPercent <= 100. Default is false.
+#      enabled: false
+#      notReadyPercent: 90
+#      readyPercent: 80
+#
 #    # `secured` is deprecated: use `probe.secured` above. `probe.secured` wins when both are set.
 #    ssl:
 #      # Forced to `true` when routingMode is `host`
