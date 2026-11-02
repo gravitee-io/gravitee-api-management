@@ -44,6 +44,8 @@ tags:
     description: Everything about subscription forms for API consumers
   - name: Portal Categories
     description: Everything about Portal Next categories used to group APIs on the New Developer Portal
+  - name: Portals
+    description: Everything about the developer portals of an environment
 
 paths:
   # Environment Analytics
@@ -978,6 +980,75 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/InstanceDetailResponse"
+        default:
+          $ref: "#/components/responses/Error"
+
+  # Portals
+  /portals:
+    get:
+      tags:
+        - Portals
+      summary: List the portals of the environment
+      description: |-
+        User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
+        Returns every portal of the environment with the environment's portal quota. The list is not paged: an
+        environment holds at most 10 portals.
+      operationId: listPortals
+      responses:
+        "200":
+          description: The portals of the environment and its portal quota
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalsResponse"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /portals/{portalId}:
+    parameters:
+      - $ref: "#/components/parameters/portalId"
+    get:
+      tags:
+        - Portals
+      summary: Get a portal
+      description: User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
+      operationId: getPortal
+      responses:
+        "200":
+          description: Portal found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Portal"
+        "404":
+          description: The portal does not exist in this environment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /portals/{portalId}/logo:
+    parameters:
+      - $ref: "#/components/parameters/portalId"
+    get:
+      tags:
+        - Portals
+      summary: Get a portal's logo
+      description: |-
+        User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
+        Returns the logo of the portal's theme.
+      operationId: getPortalLogo
+      responses:
+        "200":
+          $ref: "#/components/responses/ImageResponse"
+        "404":
+          description: The portal does not exist in this environment, or its theme has no logo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
 
@@ -3320,6 +3391,73 @@ components:
           API: "#/components/schemas/UpdatePortalNavigationApi"
           API_PRODUCT: "#/components/schemas/UpdatePortalNavigationApiProduct"
 
+    Portal:
+      type: object
+      description: A developer portal of the environment
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique ID of the portal
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        name:
+          type: string
+          description: The name of the portal
+          example: Developer Portal
+        url:
+          type: string
+          nullable: true
+          description: The URL the portal is served at; null when no portal URL is configured for the environment.
+          example: https://portal.example.com/next
+        default:
+          type: boolean
+          description: Whether this portal is the default portal of the environment. Every environment has exactly one.
+          example: true
+        logoUrl:
+          type: string
+          nullable: true
+          description: The URL of the portal's logo; null when the portal's theme has no logo.
+          example: https://gravitee.example.com/management/v2/environments/DEFAULT/portals/00f8c9e7-78fc-4907-b8c9-e778fc790750/logo
+        publishedApisCount:
+          type: integer
+          format: int32
+          description: |-
+            The number of distinct APIs listed in the portal's navigation and published to the portal, ignoring
+            per-user visibility.
+          example: 12
+        createdAt:
+          type: string
+          format: date-time
+          description: The date the portal was created
+          example: 2026-01-15T09:30:00Z
+      required: [ id, name, url, default, logoUrl, publishedApisCount, createdAt ]
+    PortalQuota:
+      type: object
+      description: How many portals the environment holds, and how many its license allows
+      properties:
+        used:
+          type: integer
+          format: int32
+          description: The number of portals in the environment
+          example: 1
+        limit:
+          type: integer
+          format: int32
+          description: The maximum number of portals the license allows in the environment
+          example: 10
+      required: [ used, limit ]
+    PortalsResponse:
+      type: object
+      description: The portals of the environment and its portal quota
+      properties:
+        data:
+          type: array
+          description: Every portal of the environment
+          items:
+            $ref: "#/components/schemas/Portal"
+        quota:
+          $ref: "#/components/schemas/PortalQuota"
+      required: [ data, quota ]
     PortalCategory:
       type: object
       description: A Portal Next category, used to group APIs on the New Developer Portal
@@ -3783,6 +3921,16 @@ components:
       schema:
         $ref: "#/components/schemas/ScoringFunctionName"
 
+    # Portal
+    portalId:
+      name: portalId
+      in: path
+      description: The unique ID of the portal
+      required: true
+      schema:
+        type: string
+        format: uuid
+
     # Cluster
     clusterId:
       name: clusterId
@@ -3904,6 +4052,13 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Error"
+    ImageResponse:
+      description: An image
+      content:
+        "image/*":
+          schema:
+            type: string
+            format: binary
 
     # Members (Shared by api, cluster, integration, ...)
     MembersResponse:
