@@ -3454,12 +3454,7 @@ components:
             The number of distinct APIs listed in the portal's navigation and published to the portal, ignoring
             per-user visibility.
           example: 12
-        createdAt:
-          type: string
-          format: date-time
-          description: The date the portal was created
-          example: 2026-01-15T09:30:00Z
-      required: [ id, name, url, default, logoUrl, publishedApisCount, createdAt ]
+      required: [ id, name, url, default, logoUrl, publishedApisCount ]
     PortalQuota:
       type: object
       description: How many portals the environment holds, and how many its license allows
