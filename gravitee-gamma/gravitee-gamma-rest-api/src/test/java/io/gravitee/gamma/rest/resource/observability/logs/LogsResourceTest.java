@@ -27,17 +27,26 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
+import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
+import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import io.gravitee.gamma.rest.core.observability.logs.model.AuthzDecision;
 import io.gravitee.gamma.rest.core.observability.logs.model.HttpPayload;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogDetail;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
+import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
 import io.gravitee.gamma.rest.core.observability.logs.model.MessageLog;
 import io.gravitee.gamma.rest.core.observability.logs.model.MessageLogsPage;
+import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort;
+import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
 import io.gravitee.gamma.rest.core.observability.logs.use_case.GetAuthzDecisionUseCase;
 import io.gravitee.gamma.rest.core.observability.logs.use_case.GetObservabilityLogDetailUseCase;
 import io.gravitee.gamma.rest.core.observability.logs.use_case.SearchObservabilityLogMessagesUseCase;
 import io.gravitee.gamma.rest.core.observability.logs.use_case.SearchObservabilityLogsUseCase;
+import io.gravitee.gamma.rest.infra.adapter.EntrypointScopeProviderAdapter;
+import io.gravitee.gamma.rest.infra.adapter.SpiFilterRegistry;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
 import io.gravitee.gamma.rest.resource.observability.logs.LogsResourceTest.LogsTestConfiguration;
 import io.gravitee.gamma.rest.spring.ResourceContextConfiguration;
@@ -61,6 +70,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -308,6 +318,129 @@ class LogsResourceTest extends AbstractResourceTest {
             arguments(Map.of("timeRange", Map.of("form", "2026-10-11T12:00:00Z", "to", "2026-10-12T12:00:00Z")), "form"),
             arguments(Map.of("filters", List.of(Map.of("name", "API", "operator", "IN", "values", List.of("api-1")))), "values")
         );
+    }
+
+    static Stream<Arguments> additionalMetricRefusals() {
+        return Stream.of(
+            arguments(
+                "a malformed name",
+                List.of(Map.of("name", "additional-metrics.keyword_bad\"name", "operator", "EQ", "value", "x")),
+                "Filter 'additional-metrics.keyword_bad\"name' is not supported by this backend",
+                "observability.filter.unknown_name"
+            ),
+            arguments(
+                "a field indexed as text",
+                List.of(Map.of("name", "additional-metrics.json_fraud-signals", "operator", "EQ", "value", "x")),
+                "Operator 'EQ' is not supported yet for filter 'additional-metrics.json_fraud-signals'",
+                "observability.filter.unsupported_operator"
+            ),
+            arguments(
+                "decimals on a whole number field",
+                List.of(Map.of("name", "additional-metrics.long_failover_count", "operator", "GTE", "value", "1.5")),
+                "Value '1.5' is not a whole number, as filter 'additional-metrics.long_failover_count' requires",
+                "observability.filter.invalid_number"
+            ),
+            arguments(
+                "an int_ value beyond the integer range",
+                List.of(Map.of("name", "additional-metrics.int_retry_count", "operator", "GTE", "value", "2147483648")),
+                "Value '2147483648' is outside the range [-2147483648, 2147483647] of filter 'additional-metrics.int_retry_count'",
+                "observability.filter.value_out_of_range"
+            ),
+            arguments(
+                "a double_ value beyond the finite doubles",
+                List.of(Map.of("name", "additional-metrics.double_fraud-check_score", "operator", "GTE", "value", "1e400")),
+                "Value '1e400' is outside the range [-1.7976931348623157E308, 1.7976931348623157E308] of filter 'additional-metrics.double_fraud-check_score'",
+                "observability.filter.value_out_of_range"
+            ),
+            arguments(
+                "a bool_ value other than true or false",
+                List.of(Map.of("name", "additional-metrics.bool_fraud-check_flagged", "operator", "EQ", "value", "yes")),
+                "Value 'yes' is not a valid value for filter 'additional-metrics.bool_fraud-check_flagged'",
+                "observability.filter.unknown_enum_value"
+            ),
+            arguments(
+                "the decision search",
+                List.of(
+                    Map.of("name", "RECORD_TYPE", "operator", "EQ", "value", "AUTHZ_DECISION"),
+                    Map.of("name", "additional-metrics.keyword_fraud-check_tier", "operator", "EQ", "value", "high")
+                ),
+                "Filters [additional-metrics.keyword_fraud-check_tier] do not apply to RECORD_TYPE=AUTHZ_DECISION.",
+                "observability.filter.not_applicable_to_decisions"
+            )
+        );
+    }
+
+    /**
+     * Dynamic names through the real use case and registry behind the resource: every 400 names the field so the caller
+     * can attach it to its condition, and a value reaches the search as written.
+     */
+    @Nested
+    class AdditionalMetricFields {
+
+        private static final Map<String, String> TIME_RANGE = Map.of("from", "2026-06-10T00:00:00Z", "to", "2026-06-11T00:00:00Z");
+        private final ObservabilityLogsDataPort logsDataPort = mock(ObservabilityLogsDataPort.class);
+        private final SearchObservabilityLogsUseCase realUseCase = new SearchObservabilityLogsUseCase(
+            logsDataPort,
+            new ObservabilityFilterValidator(new SpiFilterRegistry(List.of())),
+            new AccessibleApiScopeDomainService(),
+            new EntrypointScopeProviderAdapter()
+        );
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("io.gravitee.gamma.rest.resource.observability.logs.LogsResourceTest#additionalMetricRefusals")
+        void should_answer_400_naming_the_field(String refused, List<Map<String, String>> filters, String message, String code) {
+            when(searchLogsUseCase.execute(any())).thenAnswer(invocation -> realUseCase.execute(invocation.getArgument(0)));
+
+            Response response = rootTarget("search")
+                .request()
+                .post(Entity.entity(Map.of("timeRange", TIME_RANGE, "filters", filters), MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("message").asText()).startsWith(message);
+            assertThat(body.get("technicalCode").asText()).isEqualTo(code);
+            verifyNoInteractions(logsDataPort);
+        }
+
+        @ParameterizedTest
+        @CsvSource(
+            delimiter = '|',
+            value = { "additional-metrics.long_failover_count|GTE|' 1'", "additional-metrics.int_retry_count|EQ|'3 '" }
+        )
+        void should_search_on_a_number_written_with_spaces(String name, String operator, String value) {
+            when(searchLogsUseCase.execute(any())).thenAnswer(invocation -> realUseCase.execute(invocation.getArgument(0)));
+            when(logsDataPort.loadAccessibleApis(any(), any())).thenReturn(
+                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
+            );
+            when(logsDataPort.searchLogs(any(), any(), any())).thenReturn(LogsPage.EMPTY);
+            var filters = List.of(Map.of("name", name, "operator", operator, "value", value));
+
+            Response response = rootTarget("search")
+                .request()
+                .post(Entity.entity(Map.of("timeRange", TIME_RANGE, "filters", filters), MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
+            verify(logsDataPort).searchLogs(any(), any(), captor.capture());
+            assertThat(captor.getValue().conditions()).extracting(FilterCondition::values).containsExactly(List.of(value));
+        }
+
+        @Test
+        void should_forward_a_dynamic_name_as_written() {
+            when(searchLogsUseCase.execute(any())).thenReturn(new SearchObservabilityLogsUseCase.Output(LogsPage.EMPTY, 1, 20));
+            var body = Map.of(
+                "filters",
+                List.of(Map.of("name", "additional-metrics.keyword_fraud-check_tier", "operator", "IN", "value", List.of("high", "low")))
+            );
+
+            Response response = rootTarget("search").request().post(Entity.entity(body, MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            var captor = ArgumentCaptor.forClass(SearchObservabilityLogsUseCase.Input.class);
+            verify(searchLogsUseCase).execute(captor.capture());
+            assertThat(captor.getValue().filters().getFirst().name()).isEqualTo("additional-metrics.keyword_fraud-check_tier");
+            assertThat(captor.getValue().filters().getFirst().values()).containsExactly("high", "low");
+        }
     }
 
     @Nested

@@ -16,6 +16,11 @@
 package io.gravitee.repository.elasticsearch.v4.log.adapter.connection;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
+import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query;
+import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.HTTPFieldResolver;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
 import io.gravitee.repository.elasticsearch.v4.shared.EntrypointScopeClause;
 import io.gravitee.repository.elasticsearch.v4.shared.StatusCodeGroups;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
@@ -36,6 +41,8 @@ public class SearchMetricsQueryAdapter {
         RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME;
     private static final String NATIVE_CLIENT_SOFTWARE_VERSION_FIELD =
         RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION;
+    // The request documents analytics reads too: an additional metric field resolves here as it does there.
+    private static final FieldResolver REQUEST_FIELDS = new HTTPFieldResolver();
 
     private SearchMetricsQueryAdapter() {}
 
@@ -113,6 +120,8 @@ public class SearchMetricsQueryAdapter {
 
         addTenantsFilter(filter, mustFilterList);
 
+        addAdditionalMetricsFilter(filter, mustFilterList);
+
         if (!mustFilterList.isEmpty()) {
             return JsonObject.of("bool", JsonObject.of("must", new JsonArray(mustFilterList)));
         }
@@ -182,6 +191,46 @@ public class SearchMetricsQueryAdapter {
         if (!CollectionUtils.isEmpty(filter.getTenants())) {
             mustFilterList.add(JsonObject.of("terms", JsonObject.of(RequestV2MetricsV4Fields.TENANT, filter.getTenants().toArray())));
         }
+    }
+
+    /**
+     * One clause per condition, but the bounds of a number field, merged into one range. No native guard: native
+     * documents carry the map like any other, so a condition narrows them alike.
+     */
+    private static void addAdditionalMetricsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (CollectionUtils.isEmpty(filter.getAdditionalMetrics())) {
+            return;
+        }
+        var boundsByField = new LinkedHashMap<String, JsonObject>();
+        for (var condition : filter.getAdditionalMetrics()) {
+            var field = REQUEST_FIELDS.fromAdditionalMetric(condition.field());
+            var values = condition
+                .values()
+                .stream()
+                .map(value -> typedValue(condition.field(), value))
+                .toList();
+            switch (condition.operator()) {
+                case EQ -> mustFilterList.add(JsonObject.of(Query.TERM, JsonObject.of(field, values.getFirst())));
+                case IN -> mustFilterList.add(JsonObject.of(Tokens.TERMS, JsonObject.of(field, new JsonArray(values))));
+                case GTE -> boundsByField.computeIfAbsent(field, _ -> new JsonObject()).put(Query.GTE, values.getFirst());
+                case LTE -> boundsByField.computeIfAbsent(field, _ -> new JsonObject()).put(Query.LTE, values.getFirst());
+            }
+        }
+        boundsByField.forEach((field, bounds) -> mustFilterList.add(JsonObject.of(Query.RANGE, JsonObject.of(field, bounds))));
+    }
+
+    // Each value is read with the type its field is indexed with: a number compares as one, decimals only on a double.
+    // A number is read trimmed, as the validator reads it; a keyword is matched as written.
+    private static Object typedValue(AdditionalMetricField field, String value) {
+        return switch (field.valueType()) {
+            case KEYWORD -> value;
+            case LONG, INT -> Long.parseLong(value.trim());
+            case DOUBLE -> Double.parseDouble(value.trim());
+            case BOOL -> Boolean.parseBoolean(value);
+            case STRING, JSON -> throw new IllegalArgumentException(
+                "Additional metric " + field.name() + " is indexed as text: no filter applies"
+            );
+        };
     }
 
     /**

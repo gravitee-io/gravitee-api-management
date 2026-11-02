@@ -139,7 +139,11 @@ public interface AnalyticsMeasuresAdapter {
     Facet toFacet(FacetSpec.Name name);
 
     default AdditionalMetricField toAdditionalMetricField(AdditionalMetricName name) {
-        return new AdditionalMetricField(toValueType(name.field().valueType()), name.field().rawKey());
+        return toAdditionalMetricField(name.field());
+    }
+
+    default AdditionalMetricField toAdditionalMetricField(io.gravitee.apim.core.observability.model.AdditionalMetricField field) {
+        return new AdditionalMetricField(toValueType(field.valueType()), field.rawKey());
     }
 
     /** One value type per prefix on both sides; MapStruct fails the build if they drift apart. */

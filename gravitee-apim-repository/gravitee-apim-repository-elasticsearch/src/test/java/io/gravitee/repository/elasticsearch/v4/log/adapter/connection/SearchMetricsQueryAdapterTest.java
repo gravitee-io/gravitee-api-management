@@ -18,10 +18,15 @@ package io.gravitee.repository.elasticsearch.v4.log.adapter.connection;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static net.javacrumbs.jsonunit.core.Option.IGNORING_ARRAY_ORDER;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField.ValueType;
+import io.gravitee.repository.analytics.engine.api.query.Filter.Operator;
 import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
+import io.gravitee.repository.log.v4.model.connection.MetricsQuery.Filter.AdditionalMetricCondition;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -1396,6 +1401,158 @@ class SearchMetricsQueryAdapterTest {
                 .build();
 
             assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.TENANT)).isFalse();
+        }
+    }
+
+    @Nested
+    class AdditionalMetricsFilter {
+
+        private static final AdditionalMetricField TIER = new AdditionalMetricField(ValueType.KEYWORD, "keyword_fraud-check_tier");
+        private static final AdditionalMetricField FAILOVERS = new AdditionalMetricField(ValueType.LONG, "long_failover_count");
+        private static final AdditionalMetricField RETRIES = new AdditionalMetricField(ValueType.INT, "int_retry_count");
+        private static final AdditionalMetricField SCORE = new AdditionalMetricField(ValueType.DOUBLE, "double_fraud-check_score");
+        private static final AdditionalMetricField FLAGGED = new AdditionalMetricField(ValueType.BOOL, "bool_fraud-check_flagged");
+
+        @Test
+        void should_match_a_keyword_value_with_a_term() {
+            var clauses = mustClausesOf(condition(TIER, Operator.EQ, "high"));
+
+            assertThat(clauses).containsExactly(
+                JsonObject.of("term", JsonObject.of("additional-metrics.keyword_fraud-check_tier", "high"))
+            );
+        }
+
+        @Test
+        void should_match_any_of_several_keyword_values_with_terms() {
+            var clauses = mustClausesOf(condition(TIER, Operator.IN, "high", "medium"));
+
+            assertThat(clauses).containsExactly(
+                JsonObject.of("terms", JsonObject.of("additional-metrics.keyword_fraud-check_tier", JsonArray.of("high", "medium")))
+            );
+        }
+
+        @Test
+        void should_match_a_whole_number_with_a_term_on_its_numeric_value() {
+            var clauses = mustClausesOf(condition(FAILOVERS, Operator.EQ, "2"));
+
+            assertThat(clauses).containsExactly(JsonObject.of("term", JsonObject.of("additional-metrics.long_failover_count", 2L)));
+        }
+
+        @Test
+        void should_read_a_lower_bound_alone_as_an_open_range() {
+            var clauses = mustClausesOf(condition(FAILOVERS, Operator.GTE, "1"));
+
+            assertThat(clauses).containsExactly(
+                JsonObject.of("range", JsonObject.of("additional-metrics.long_failover_count", JsonObject.of("gte", 1L)))
+            );
+        }
+
+        @Test
+        void should_merge_both_bounds_of_a_field_into_one_range() {
+            var clauses = mustClausesOf(condition(RETRIES, Operator.GTE, "1"), condition(RETRIES, Operator.LTE, "5"));
+
+            assertThat(clauses).containsExactly(
+                JsonObject.of("range", JsonObject.of("additional-metrics.int_retry_count", JsonObject.of("gte", 1L, "lte", 5L)))
+            );
+        }
+
+        @Test
+        void should_read_a_number_trimmed_as_the_validator_does() {
+            var clauses = mustClausesOf(
+                condition(FAILOVERS, Operator.GTE, " 1"),
+                condition(RETRIES, Operator.EQ, "3 "),
+                condition(SCORE, Operator.LTE, " 0.5 ")
+            );
+
+            assertThat(clauses).containsExactlyInAnyOrder(
+                JsonObject.of("term", JsonObject.of("additional-metrics.int_retry_count", 3L)),
+                JsonObject.of("range", JsonObject.of("additional-metrics.long_failover_count", JsonObject.of("gte", 1L))),
+                JsonObject.of("range", JsonObject.of("additional-metrics.double_fraud-check_score", JsonObject.of("lte", 0.5d)))
+            );
+        }
+
+        @Test
+        void should_match_a_keyword_value_as_written() {
+            var clauses = mustClausesOf(condition(TIER, Operator.IN, " high", "low "));
+
+            assertThat(clauses).containsExactly(
+                JsonObject.of("terms", JsonObject.of("additional-metrics.keyword_fraud-check_tier", JsonArray.of(" high", "low ")))
+            );
+        }
+
+        @Test
+        void should_keep_the_decimals_of_a_double_field() {
+            var clauses = mustClausesOf(condition(SCORE, Operator.LTE, "0.75"));
+
+            assertThat(clauses).containsExactly(
+                JsonObject.of("range", JsonObject.of("additional-metrics.double_fraud-check_score", JsonObject.of("lte", 0.75d)))
+            );
+        }
+
+        @Test
+        void should_match_a_boolean_field_on_its_boolean_value() {
+            var clauses = mustClausesOf(condition(FLAGGED, Operator.EQ, "true"));
+
+            assertThat(clauses).containsExactly(JsonObject.of("term", JsonObject.of("additional-metrics.bool_fraud-check_flagged", true)));
+        }
+
+        @Test
+        void should_and_every_field_next_to_the_built_in_filters() {
+            var query = MetricsQuery.builder()
+                .filter(
+                    MetricsQuery.Filter.builder()
+                        .apiIds(Set.of("api-1"))
+                        .statuses(Set.of(200))
+                        .additionalMetrics(List.of(condition(TIER, Operator.EQ, "high"), condition(FAILOVERS, Operator.GTE, "1")))
+                        .build()
+                )
+                .build();
+
+            var clauses = mustClausesOf(query);
+
+            assertThat(clauses).contains(
+                JsonObject.of("terms", JsonObject.of(RequestV2MetricsV4Fields.STATUS, JsonArray.of(200))),
+                JsonObject.of("term", JsonObject.of("additional-metrics.keyword_fraud-check_tier", "high")),
+                JsonObject.of("range", JsonObject.of("additional-metrics.long_failover_count", JsonObject.of("gte", 1L)))
+            );
+            assertThat(clauses).hasSize(4);
+        }
+
+        @Test
+        void should_refuse_a_condition_on_a_field_indexed_as_text() {
+            var text = new AdditionalMetricField(ValueType.STRING, "string_fraud-check_reason");
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().additionalMetrics(List.of(condition(text, Operator.EQ, "velocity"))).build())
+                .build();
+
+            assertThatThrownBy(() -> SearchMetricsQueryAdapter.adapt(query))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("additional-metrics.string_fraud-check_reason");
+        }
+
+        @Test
+        void should_add_no_clause_without_conditions() {
+            var withNone = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().apiIds(Set.of("api-1")).build()).build();
+            var withEmpty = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("api-1")).additionalMetrics(List.of()).build())
+                .build();
+
+            assertThat(mustClausesOf(withEmpty)).isEqualTo(mustClausesOf(withNone)).hasSize(1);
+        }
+
+        private static AdditionalMetricCondition condition(AdditionalMetricField field, Operator operator, String... values) {
+            return new AdditionalMetricCondition(field, operator, List.of(values));
+        }
+
+        private List<JsonObject> mustClausesOf(AdditionalMetricCondition... conditions) {
+            return mustClausesOf(
+                MetricsQuery.builder().filter(MetricsQuery.Filter.builder().additionalMetrics(List.of(conditions)).build()).build()
+            );
+        }
+
+        private List<JsonObject> mustClausesOf(MetricsQuery query) {
+            var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
+            return result.getJsonObject("query").getJsonObject("bool").getJsonArray("must").stream().map(JsonObject.class::cast).toList();
         }
     }
 

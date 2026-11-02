@@ -38,6 +38,7 @@ import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricGrammarPort;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
@@ -128,6 +129,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
     private final InstanceQueryService instanceQueryService;
     private final ApiProductQueryService apiProductQueryService;
     private final ApiCrudService apiCrudService;
+    private final AdditionalMetricGrammarPort additionalMetricGrammar;
 
     @Override
     public List<AccessibleApi> loadAccessibleApis(String organizationId, String environmentId) {
@@ -418,6 +420,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         String uri = null;
         List<Range> responseTimeRanges = new ArrayList<>();
         var responseTimeAccumulator = new NumericRangeAccumulator<Long>("HTTP_GATEWAY_RESPONSE_TIME");
+        List<SearchLogsFilters.AdditionalMetricCondition> additionalMetrics = new ArrayList<>();
 
         for (FilterCondition condition : query.conditions()) {
             var values = condition.values() != null ? condition.values() : List.<String>of();
@@ -469,7 +472,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                         .findFirst()
                         .orElse(null);
                 }
-                default -> throw UnsupportedObservabilityFilterException.searchTranslationNotSupported(condition.name());
+                default -> additionalMetrics.add(toAdditionalMetricCondition(condition, values));
             }
         }
 
@@ -512,8 +515,25 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         builder.uri(uri);
         builder.bodyText(bodyText);
         builder.responseTimeRanges(responseTimeRanges);
+        builder.additionalMetrics(additionalMetrics);
 
         return builder.build();
+    }
+
+    private SearchLogsFilters.AdditionalMetricCondition toAdditionalMetricCondition(FilterCondition condition, List<String> values) {
+        if (additionalMetricGrammar.parse(condition.name()).isEmpty()) {
+            throw UnsupportedObservabilityFilterException.searchTranslationNotSupported(condition.name());
+        }
+        var operator = switch (condition.operator()) {
+            case EQ -> SearchLogsFilters.AdditionalMetricCondition.Operator.EQ;
+            case IN -> SearchLogsFilters.AdditionalMetricCondition.Operator.IN;
+            case GTE -> SearchLogsFilters.AdditionalMetricCondition.Operator.GTE;
+            case LTE -> SearchLogsFilters.AdditionalMetricCondition.Operator.LTE;
+            default -> throw new IllegalStateException(
+                "Operator " + condition.operator() + " should have been rejected by filter validation"
+            );
+        };
+        return new SearchLogsFilters.AdditionalMetricCondition(condition.name(), operator, values);
     }
 
     private LogsPage searchDecisionLogs(ExecutionContext executionContext, LogsSearchQuery query, PageableImpl pageable) {

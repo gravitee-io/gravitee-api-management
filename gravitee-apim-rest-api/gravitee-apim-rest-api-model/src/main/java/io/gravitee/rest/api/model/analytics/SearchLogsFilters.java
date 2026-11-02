@@ -54,7 +54,8 @@ public record SearchLogsFilters(
     Set<String> failureOrigins,
     Set<String> tenants,
     EntrypointScope entrypointScope,
-    TrafficScope trafficScope
+    TrafficScope trafficScope,
+    List<AdditionalMetricCondition> additionalMetrics
 ) {
     /**
      * An inclusive HTTP status code range bound for {@code HTTP_STATUS GTE/LTE}.
@@ -95,6 +96,25 @@ public record SearchLogsFilters(
         public TrafficScope {
             apiIds = apiIds == null ? Set.of() : Set.copyOf(apiIds);
             entrypointIds = entrypointIds == null ? Set.of() : Set.copyOf(entrypointIds);
+        }
+    }
+
+    /**
+     * A condition on an additional metric field, by its wire name {@code additional-metrics.<rawKey>}: the request
+     * phase reads it with the platform's grammar, the body phase never sees it.
+     */
+    public record AdditionalMetricCondition(String name, Operator operator, List<String> values) {
+        public AdditionalMetricCondition {
+            Objects.requireNonNull(name, "An additional metric condition needs a field name");
+            Objects.requireNonNull(operator, "An additional metric condition needs an operator");
+            values = List.copyOf(Objects.requireNonNull(values, "An additional metric condition needs values"));
+        }
+
+        public enum Operator {
+            EQ,
+            IN,
+            GTE,
+            LTE,
         }
     }
 }

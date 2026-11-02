@@ -794,6 +794,21 @@ paths:
                 are rejected with 400. Use `GET /observability/filters/definition?signal=LOGS` to
                 discover valid filters.
 
+                **Additional metric fields**: a condition may also name an additional metric field,
+                `additional-metrics.<type>_<key>`, with the operators its type prefix takes: `EQ`/`IN` on
+                `keyword_`, `EQ`/`GTE`/`LTE` on `long_`, `int_` and `double_` (decimals on `double_` only),
+                `EQ` on `bool_`, none on `string_` and `json_`. One `GTE` and one `LTE` on the same field
+                select the values between them. A row matches only when it carries the field; a
+                well-formed name no row carries answers an empty page, whether or not the field is listed
+                by `GET /observability/filters/definition`. Native connection rows are matched like any
+                request row. Every refusal names the field in `message`: a malformed name is
+                `observability.filter.unknown_name`, an operator its type does not take
+                `observability.filter.unsupported_operator`, a value it does not take
+                `observability.filter.invalid_number`, `observability.filter.value_out_of_range` (an `int_`
+                value beyond the integer range, a `double_` one beyond the finite doubles) or `observability.filter.unknown_enum_value`, and any
+                additional metric field alongside `RECORD_TYPE=AUTHZ_DECISION`
+                `observability.filter.not_applicable_to_decisions`.
+
                 **Record kind**: the `RECORD_TYPE` filter selects which document contract the rows
                 are read from — `REQUEST` (the default when the filter is absent) or
                 `AUTHZ_DECISION`. Decisions are read from a different index with a different shape,
@@ -2667,7 +2682,10 @@ components:
                     $ref: "#/components/schemas/TimeRange"
                 filters:
                     type: array
-                    description: Filter conditions to apply. Validated against the LOGS signal catalog.
+                    description: |
+                        Filter conditions to apply, all ANDed. Validated against the LOGS signal catalog; an
+                        additional metric field `additional-metrics.<type>_<key>` is accepted off the catalog
+                        (see the operation).
                     items:
                         $ref: "#/components/schemas/FilterCondition"
 
@@ -2699,8 +2717,9 @@ components:
                 A condition breaking one of these rules is refused with a 400:
 
                 - `name` is in the catalog and applies to the signal (`unknown_name`, `signal_mismatch`). On
-                  analytics, a well-formed additional metric field `additional-metrics.<type>_<key>` is
-                  accepted off the catalog, typed by its prefix, whether or not any request carries it yet;
+                  analytics and the logs search, a well-formed additional metric field
+                  `additional-metrics.<type>_<key>` is accepted off the catalog, typed by its prefix, whether
+                  or not any request carries it yet;
                 - `operator` is one the filter advertises, or the value type of an additional metric field
                   takes (`unsupported_operator`): `EQ`/`IN` on `keyword_`, `EQ`/`GTE`/`LTE` on `long_`,
                   `int_` and `double_`, `EQ` on `bool_`, none on `string_` and `json_`;
@@ -2708,8 +2727,8 @@ components:
                 - `IN` and `NOT_IN` take one or more values, every other operator exactly one
                   (`invalid_arity`, `blank_value`);
                 - an ENUM value is one the filter advertises; a NUMBER value is a whole number within the
-                  filter's range, or any number on a `double_` field; a `bool_` value is `true` or `false`
-                  (`unknown_enum_value`, `invalid_number`, `value_out_of_range`);
+                  filter's range, or a number within ±`Double.MAX_VALUE` on a `double_` field; a `bool_` value
+                  is `true` or `false` (`unknown_enum_value`, `invalid_number`, `value_out_of_range`);
                 - on logs, a filter appears once per request; the only repetition is one `GTE` and one
                   `LTE` on the same NUMBER filter, a closed range whose lower bound is not above its upper
                   bound (`repeated`, `inverted_range`). Analytics ANDs a repeated filter instead.
@@ -2719,7 +2738,7 @@ components:
             properties:
                 name:
                     type: string
-                    description: Canonical filter name from the catalog, or an additional metric field name on analytics.
+                    description: Canonical filter name from the catalog, or an additional metric field name on analytics and the logs search.
                     example: HTTP_STATUS
                 operator:
                     $ref: "#/components/schemas/FilterOperator"

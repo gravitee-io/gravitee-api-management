@@ -38,6 +38,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -69,12 +70,12 @@ class AdditionalMetricFilterTest {
         }
 
         @Test
-        void should_type_a_keyword_field_on_the_analytics_signal() {
+        void should_type_a_keyword_field_on_both_signals() {
             var spec = registry.specFor(TIER).orElseThrow();
 
             assertThat(spec.type()).isEqualTo(FilterType.KEYWORD);
             assertThat(spec.operators()).containsExactlyInAnyOrder(FilterOperator.EQ, FilterOperator.IN);
-            assertThat(spec.signals()).containsExactly(Signal.ANALYTICS);
+            assertThat(spec.signals()).containsExactlyInAnyOrder(Signal.ANALYTICS, Signal.LOGS);
             assertThat(spec.apiTypes()).isEmpty();
             assertThat(spec.valueType()).isEqualTo(AdditionalMetricValueType.KEYWORD);
             assertThat(spec.label()).as("a validation spec, not a catalog entry").isNull();
@@ -157,16 +158,6 @@ class AdditionalMetricFilterTest {
         }
 
         @Test
-        void should_leave_the_logs_signal_to_its_own_story() {
-            var conditions = List.of(new FilterCondition(TIER, FilterOperator.EQ, List.of("high")));
-
-            assertThatThrownBy(() -> validator.validate(conditions, Signal.LOGS))
-                .isInstanceOf(UnsupportedObservabilityFilterException.class)
-                .extracting("technicalCode")
-                .isEqualTo("observability.filter.signal_mismatch");
-        }
-
-        @Test
         void should_refuse_any_operator_on_a_detail_only_field() {
             var conditions = List.of(new FilterCondition(SIGNALS, FilterOperator.EQ, List.of("x")));
 
@@ -218,6 +209,135 @@ class AdditionalMetricFilterTest {
             var conditions = List.of(new FilterCondition(TIER, FilterOperator.EQ, List.of()));
 
             assertThatCode(() -> validator.validateDashboardFilters(conditions)).doesNotThrowAnyException();
+        }
+    }
+
+    @Nested
+    class LogsSearch {
+
+        @Test
+        void should_accept_every_operator_its_value_type_takes() {
+            var conditions = List.of(
+                new FilterCondition(TIER, FilterOperator.IN, List.of("high", "medium")),
+                new FilterCondition(FAILOVERS, FilterOperator.GTE, List.of("1")),
+                new FilterCondition(FAILOVERS, FilterOperator.LTE, List.of("2")),
+                new FilterCondition(SCORE, FilterOperator.LTE, List.of("0.75")),
+                new FilterCondition(CACHE_HIT, FilterOperator.EQ, List.of("true"))
+            );
+
+            assertThatCode(() -> validator.validate(conditions, Signal.LOGS)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_refuse_a_malformed_name_naming_it() {
+            var malformed = "additional-metrics.keyword_bad\"name";
+            var conditions = List.of(new FilterCondition(malformed, FilterOperator.EQ, List.of("x")));
+
+            assertThatThrownBy(() -> validator.validate(conditions, Signal.LOGS))
+                .hasMessage("Filter '" + malformed + "' is not supported by this backend")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.unknown_name");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { SIGNALS, "additional-metrics.string_fraud-check_reason" })
+        void should_refuse_any_operator_on_a_field_indexed_as_text_naming_it(String name) {
+            var conditions = List.of(new FilterCondition(name, FilterOperator.EQ, List.of("x")));
+
+            assertThatThrownBy(() -> validator.validate(conditions, Signal.LOGS))
+                .hasMessage("Operator 'EQ' is not supported yet for filter '" + name + "'")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.unsupported_operator");
+        }
+
+        @Test
+        void should_refuse_an_operator_the_value_type_does_not_take_naming_it() {
+            var conditions = List.of(new FilterCondition(CACHE_HIT, FilterOperator.IN, List.of("true", "false")));
+
+            assertThatThrownBy(() -> validator.validate(conditions, Signal.LOGS))
+                .hasMessageContaining("'" + CACHE_HIT + "'")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.unsupported_operator");
+        }
+
+        @Test
+        void should_refuse_decimals_on_a_whole_number_field_naming_it() {
+            var conditions = List.of(new FilterCondition(FAILOVERS, FilterOperator.GTE, List.of("1.5")));
+
+            assertThatThrownBy(() -> validator.validate(conditions, Signal.LOGS))
+                .hasMessage("Value '1.5' is not a whole number, as filter '" + FAILOVERS + "' requires")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.invalid_number");
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = Signal.class, names = { "ANALYTICS", "LOGS" })
+        void should_refuse_a_value_an_int_field_cannot_hold_naming_it(Signal signal) {
+            var retries = "additional-metrics.int_retry_count";
+            var conditions = List.of(new FilterCondition(retries, FilterOperator.GTE, List.of("2147483648")));
+
+            assertThatThrownBy(() -> validator.validate(conditions, signal))
+                .hasMessage("Value '2147483648' is outside the range [-2147483648, 2147483647] of filter '" + retries + "'")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.value_out_of_range");
+        }
+
+        @ParameterizedTest
+        @CsvSource({ "ANALYTICS, 1e400", "LOGS, 1e400", "ANALYTICS, -1e400", "LOGS, -1e400" })
+        void should_refuse_a_value_a_double_field_cannot_hold_naming_it(Signal signal, String value) {
+            var conditions = List.of(new FilterCondition(SCORE, FilterOperator.GTE, List.of(value)));
+
+            assertThatThrownBy(() -> validator.validate(conditions, signal))
+                .hasMessage(
+                    "Value '" + value + "' is outside the range [-1.7976931348623157E308, 1.7976931348623157E308] of filter '" + SCORE + "'"
+                )
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.value_out_of_range");
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = Signal.class, names = { "ANALYTICS", "LOGS" })
+        void should_refuse_non_ascii_digits_on_a_double_field_naming_it(Signal signal) {
+            var conditions = List.of(new FilterCondition(SCORE, FilterOperator.GTE, List.of("\u0663.\u0665")));
+
+            assertThatThrownBy(() -> validator.validate(conditions, signal))
+                .hasMessage("Value '\u0663.\u0665' is not a number, as filter '" + SCORE + "' requires")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.invalid_number");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "1.7976931348623157E308", "-1.7976931348623157E308" })
+        void should_accept_the_largest_finite_values_of_a_double_field(String bound) {
+            var conditions = List.of(new FilterCondition(SCORE, FilterOperator.GTE, List.of(bound)));
+
+            assertThatCode(() -> validator.validate(conditions, Signal.LOGS)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_refuse_bounds_nothing_lies_between() {
+            var conditions = List.of(
+                new FilterCondition(FAILOVERS, FilterOperator.GTE, List.of("5")),
+                new FilterCondition(FAILOVERS, FilterOperator.LTE, List.of("1"))
+            );
+
+            assertThatThrownBy(() -> validator.validate(conditions, Signal.LOGS))
+                .hasMessageContaining("'" + FAILOVERS + "'")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.inverted_range");
+        }
+
+        @Test
+        void should_refuse_a_field_named_twice_but_for_a_range() {
+            var conditions = List.of(
+                new FilterCondition(TIER, FilterOperator.EQ, List.of("high")),
+                new FilterCondition(TIER, FilterOperator.EQ, List.of("low"))
+            );
+
+            assertThatThrownBy(() -> validator.validate(conditions, Signal.LOGS))
+                .hasMessageContaining("'" + TIER + "'")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.repeated");
         }
     }
 

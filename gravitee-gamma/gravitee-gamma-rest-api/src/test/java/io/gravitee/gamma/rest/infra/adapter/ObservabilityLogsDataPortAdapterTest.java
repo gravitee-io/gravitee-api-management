@@ -60,6 +60,7 @@ import io.gravitee.gamma.rest.core.observability.logs.model.MessageLogsPage;
 import io.gravitee.gamma.rest.core.observability.logs.model.TrafficScope;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
+import io.gravitee.rest.api.model.analytics.SearchLogsFilters.AdditionalMetricCondition;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import java.time.Instant;
@@ -74,6 +75,8 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -129,7 +132,8 @@ class ObservabilityLogsDataPortAdapterTest {
             applicationCrudService,
             instanceQueryService,
             apiProductQueryService,
-            apiCrudService
+            apiCrudService,
+            new AdditionalMetricGrammarPortAdapter()
         );
     }
 
@@ -669,6 +673,95 @@ class ObservabilityLogsDataPortAdapterTest {
             assertThat(entry.clientId()).isNull();
             assertThat(entry.brokerId()).isNull();
             assertThat(entry.connectionDurationMs()).isNull();
+        }
+    }
+
+    @Nested
+    class AdditionalMetricFields {
+
+        @Test
+        void should_carry_each_condition_by_its_wire_name() {
+            stubEmptySearchResult();
+            var query = queryWith(
+                new FilterCondition("additional-metrics.keyword_fraud-check_tier", FilterOperator.IN, List.of("high", "medium")),
+                new FilterCondition("additional-metrics.long_failover_count", FilterOperator.GTE, List.of("1")),
+                new FilterCondition("additional-metrics.long_failover_count", FilterOperator.LTE, List.of("2")),
+                new FilterCondition("additional-metrics.bool_cache_hit", FilterOperator.EQ, List.of("true"))
+            );
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().additionalMetrics()).containsExactly(
+                new AdditionalMetricCondition(
+                    "additional-metrics.keyword_fraud-check_tier",
+                    AdditionalMetricCondition.Operator.IN,
+                    List.of("high", "medium")
+                ),
+                new AdditionalMetricCondition(
+                    "additional-metrics.long_failover_count",
+                    AdditionalMetricCondition.Operator.GTE,
+                    List.of("1")
+                ),
+                new AdditionalMetricCondition(
+                    "additional-metrics.long_failover_count",
+                    AdditionalMetricCondition.Operator.LTE,
+                    List.of("2")
+                ),
+                new AdditionalMetricCondition("additional-metrics.bool_cache_hit", AdditionalMetricCondition.Operator.EQ, List.of("true"))
+            );
+        }
+
+        @Test
+        void should_keep_them_next_to_the_built_in_filters() {
+            stubEmptySearchResult();
+            var query = queryWith(
+                new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of("200")),
+                new FilterCondition("additional-metrics.keyword_fraud-check_tier", FilterOperator.EQ, List.of("high"))
+            );
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            var filters = captureSearchFilters();
+            assertThat(filters.statuses()).containsExactly(200);
+            assertThat(filters.additionalMetrics())
+                .extracting(AdditionalMetricCondition::name)
+                .containsExactly("additional-metrics.keyword_fraud-check_tier");
+        }
+
+        @Test
+        void should_leave_them_empty_when_not_requested() {
+            stubEmptySearchResult();
+
+            adapter.searchLogs(ORG, ENV, queryWith());
+
+            assertThat(captureSearchFilters().additionalMetrics()).isEmpty();
+        }
+
+        @ParameterizedTest
+        @EnumSource(AdditionalMetricCondition.Operator.class)
+        void should_carry_every_operator_a_condition_can_take(AdditionalMetricCondition.Operator operator) {
+            stubEmptySearchResult();
+            var query = queryWith(
+                new FilterCondition("additional-metrics.long_failover_count", FilterOperator.valueOf(operator.name()), List.of("1"))
+            );
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().additionalMetrics())
+                .extracting(AdditionalMetricCondition::operator)
+                .containsExactly(operator);
+        }
+
+        @Test
+        void should_refuse_a_name_outside_the_grammar_naming_it() {
+            var query = queryWith(new FilterCondition("additional-metrics.float_ratio", FilterOperator.EQ, List.of("1")));
+
+            assertThatThrownBy(() -> adapter.searchLogs(ORG, ENV, query))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessage("Filter 'additional-metrics.float_ratio' is not yet supported for log search")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.search_translation_not_supported");
+            verifyNoInteractions(connectionLogsCrudService);
         }
     }
 
