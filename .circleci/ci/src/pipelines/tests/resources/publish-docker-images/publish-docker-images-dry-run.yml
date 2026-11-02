@@ -459,9 +459,7 @@ jobs:
             IMAGES="
             graviteeio.azurecr.io/apim-portal-ui:apim-1234-branch-name-latest
             graviteeio.azurecr.io/apim-management-ui:apim-1234-branch-name-latest
-            graviteeio.azurecr.io/apim-management-api:apim-1234-branch-name-latest
             graviteeio.azurecr.io/apim-management-api:apim-1234-branch-name-latest-debian
-            graviteeio.azurecr.io/apim-gateway:apim-1234-branch-name-latest
             graviteeio.azurecr.io/apim-gateway:apim-1234-branch-name-latest-debian
             "
             : > /tmp/aikido-images.txt
