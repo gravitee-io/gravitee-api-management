@@ -1,7 +1,7 @@
 # PORTAL-138 — Implementation plan
 
-Epic: [PORTAL-138 · Gamma Portal - Default portal (foundation)](https://gravitee.atlassian.net/browse/PORTAL-138) · Target 4.15.0
-Written Oct 30, 2026, from the epic description as of that date and the code on `master`.
+Epic: [PORTAL-138 · Gamma Portal - Default portal (foundation)](https://gravitee.atlassian.net/browse/PORTAL-138) · Target 4.14.0
+Written Oct 30, 2026, from the epic description as of that date and the code on `master`. Updated Nov 2 after the review on this PR and the contract in [#22125](https://github.com/gravitee-io/gravitee-api-management/pull/22125) (PORTAL-333).
 
 **Goal (from the epic):** admins see and open their existing developer portal from the Gamma Developer Portals module. Under the hood, the portal becomes a real record in each environment: navigation (homepage included), API listings and documentation belong to it, and the next-gen portal and Gamma read them per portal. Customers still have exactly one portal.
 
@@ -18,7 +18,7 @@ This plan supersedes, for this epic's scope, the story numbering in `PORTAL-138 
 | Gamma portals module | [`AppRoutes.tsx`](gravitee-gamma/gravitee-gamma-module-portals/src/main/ui/app/AppRoutes.tsx) renders a single `<h1>`; no data layer, no tests, no MSW. [`PortalsModule.restResource()`](gravitee-gamma/gravitee-gamma-module-portals/src/main/java/io/gravitee/gamma/module/portals/PortalsModule.java) returns `null`. | The whole frontend is new. Copy the structure of the APIM module (`config/`, `features/<x>/{types,services,hooks,utils,components,pages}`, `testing/`). |
 | Gamma host | The "Developer Portals" app is never mounted: [`AppRoutes.tsx`](gravitee-gamma/gravitee-gamma-control-plane-webui/src/app/AppRoutes.tsx) swaps it for [`PortalNextEditorRedirect`](gravitee-gamma/gravitee-gamma-control-plane-webui/src/features/modules/components/PortalNextEditorRedirect.tsx); [`ShellLayout.tsx`](gravitee-gamma/gravitee-gamma-control-plane-webui/src/shared/components/ShellLayout.tsx) and [`HomePage.tsx`](gravitee-gamma/gravitee-gamma-control-plane-webui/src/pages/home/HomePage.tsx) link to the classic console editor via [`buildPortalNextEditorUrl`](gravitee-gamma/gravitee-gamma-control-plane-webui/src/features/modules/portal-next.ts). | Frontend PRs can merge without users seeing them. Story 13 flips the host once the backend is live. |
 | Core portal model | [`Portal`](gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/portal/model/Portal.java) (id, env, org, name, navigation structure, activeThemeId) exists, created only by the Automation API (`CreateOrUpdatePortalUseCase`). [`PortalId.ZERO`](gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/portal/model/PortalId.java) is a placeholder. | No default marker, no URL, no portal in a console-only environment. |
-| Navigation items | Repository [`PortalNavigationItem.referenceId`](gravitee-apim-repository/gravitee-apim-repository-api/src/main/java/io/gravitee/repository/management/model/PortalNavigationItem.java) defaults to the zero UUID; [`NavigationItemReference.defaultReference()`](gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/portal_page/model/NavigationItemReference.java) returns `PortalReference(PortalId.ZERO)`. Portal API [`PortalNavigationItemsResource`](gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/java/io/gravitee/rest/api/portal/rest/resource/PortalNavigationItemsResource.java) lists items **per environment, not per portal**. | Items authored through the Automation API reference a real portal id; console-authored items reference the zero UUID. Today both show on the one next-gen portal. The upgrader must keep that (see decision D4). |
+| Navigation items | Repository [`PortalNavigationItem.referenceId`](gravitee-apim-repository/gravitee-apim-repository-api/src/main/java/io/gravitee/repository/management/model/PortalNavigationItem.java) defaults to the zero UUID; [`NavigationItemReference.defaultReference()`](gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/portal_page/model/NavigationItemReference.java) returns `PortalReference(PortalId.ZERO)`. Portal API [`PortalNavigationItemsResource`](gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/java/io/gravitee/rest/api/portal/rest/resource/PortalNavigationItemsResource.java) lists items **per environment, not per portal**. | Every portal-type item references the zero UUID, whoever wrote it: the Automation API sync ([`PortalNavigationSyncDomainService`](gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/portal/domain_service/PortalNavigationSyncDomainService.java:104), [`NavigationItemEntryMaterializer`](gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/portal_listing/domain_service/NavigationItemEntryMaterializer.java:142)) also passes `defaultReference()` and keeps the portal id only in `automationMetadata`. All of them show on the one next-gen portal. The upgrader must keep that (see decision D4). |
 | Portal listings | [`PortalListing`](gravitee-apim-repository/gravitee-apim-repository-api/src/main/java/io/gravitee/repository/management/model/PortalListing.java) (`portalId`, `apis`) is written only by the Automation API and CRD import, then materialized into navigation items. | Console-only environments have no listings; API counts cannot come from listings alone (decision D3). |
 | Portal URL | [`InstallationAccessQueryServiceImpl.getPortalUrl`](gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/infra/query_service/installation/InstallationAccessQueryServiceImpl.java:322) — Cloud access point when multi-tenant, else the configured/environment `portal.url`. The next-gen portal is that URL + `/next` ([`ConsoleAuthenticationResource`](gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/java/io/gravitee/rest/api/portal/rest/resource/auth/ConsoleAuthenticationResource.java:92)). | The default portal's URL is derived, not stored. |
 | Portal bootstrap | [`PortalUIBootstrapResource`](gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/java/io/gravitee/rest/api/portal/rest/resource/bootstrap/PortalUIBootstrapResource.java) returns `organizationId`, `environmentId`, `baseURL`. Next-gen [`ConfigService`](gravitee-apim-portal-webui-next/src/services/config.service.ts) reads `assets/config.json` then `/ui/bootstrap`. | Add `portalId` (the default portal's id) to the bootstrap; add optional `portalId` to `config.json`. |
@@ -36,11 +36,11 @@ This plan supersedes, for this epic's scope, the story numbering in `PORTAL-138 
   - exactly one portal exists (created through the Automation API) → mark it default and re-point zero-UUID items onto it;
   - in both cases, re-attach to the default portal every listing whose `portalId` points to no existing portal (the zero UUID included).
 
-  No customer has more than one portal per environment today, Automation API included. If the upgrader meets several, it fails for that environment with an error naming it and the portals, and changes nothing there, rather than guessing which one is the default.
+  No customer has more than one portal per environment today; only an install with `automation.portal.allowMultiplePortalPerEnv=true` (off by default) can have several. The upgrader checks every environment first. If any has several portals, it throws `UpgraderException` before changing anything, naming each such environment and its portals, rather than guessing which one is the default. gravitee-node ([`UpgraderServiceImpl`](https://github.com/gravitee-io/gravitee-node/blob/9.14.2/gravitee-node-services/gravitee-node-services-upgrader/src/main/java/io/gravitee/node/services/upgrader/UpgraderServiceImpl.java#L57-L110)) then records nothing, skips the remaining upgraders and stops the node with exit code 1. Failing the whole start-up is intended: everything after the upgrade relies on each environment having one default portal. The Management API, and with it the Automation API, stays down until the data is fixed, so the error message and the upgrade notes say how: which portal records to remove from the database.
 - **D5 — Portal URL.** The default portal's URL is never stored: it is `getPortalUrl(env)` + `/next`, read at request time. Story 5 adds a nullable `url` column for non-default portals (PORTAL-137) so the schema migrates once; nothing writes it in this epic. If Product drops `/next` for Gamma users (open question Q1), only the resolver in story 8 changes.
 - **D6 — Quota.** `limit` comes from the license tier: `universe` → 10, anything else (trial, `planet`, `galaxy`, `oss`, unknown, no license) → 1. Defined once in a core domain service so PORTAL-137's create check reuses it. `used` = number of portals in the environment.
 - **D7 — Logo.** Until PORTAL-319, every portal's logo is the logo of the environment's enabled next-gen theme. The list does not embed it: the Management API v2 serves it at `GET /portals/{portalId}/logo`, and each portal's `logoUrl` points there (null when the theme has no logo). Gamma is the admin app and never calls the Portal API; this follows the API picture (`_links.pictureUrl` → `/apis/{apiId}/picture`). The frontend falls back to the portal's initials when `logoUrl` is null or the image fails to load.
-- **D8 — Fuzzy search** runs in the browser over at most 10 portals with a small in-module subsequence matcher (no new dependency). The list API neither pages nor searches.
+- **D8 — Search and paging** happen in the API, as the contract in #22125 defines: `GET /portals` takes `q` (portals whose name contains it, ignoring case) and the usual `page` / `perPage`, and returns the default portal first, then the others by name. Pagination counts the portals matching `q`; the quota always counts every portal of the environment.
 - **D9 — Permissions.** `GET /portals`, `GET /portals/{portalId}` and `GET /portals/{portalId}/logo` require `ENVIRONMENT_DOCUMENTATION[READ]`, the permission of the existing navigation endpoints. The frontend hides "Configure" without `ENVIRONMENT_DOCUMENTATION[UPDATE]`. *Security-sensitive: confirm in story 1 review.*
 
 ## 3. Open questions (owner)
@@ -48,29 +48,31 @@ This plan supersedes, for this epic's scope, the story numbering in `PORTAL-138 
 | # | Question | Blocks | Default if unanswered |
 | --- | --- | --- | --- |
 | Q1 | Gamma users' next-gen portal URL without `/next`: how is it derived? (Product, Cloud team) | Story 8 | Keep `/next`. |
-| Q2 | What does "% Completion" on portal tiles measure? (Product) | Story 3 | Not shown. |
+| Q2 | Which dashboard metrics (the epic's open question)? (a) What does "% Completion" on portal tiles measure? (b) Do API Products, which the catalog also shows ([`GetVisiblePortalCatalogItemsUseCase`](gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/portal_page/use_case/GetVisiblePortalCatalogItemsUseCase.java:33)), count towards "APIs published", or get their own number? (c) Is there a dashboard total of APIs published? Summing `publishedApisCount` breaks once portals span several pages and counts an API published on several portals more than once, so a total needs an environment-wide count in the contract. (Product) | Stories 1, 3, 9 | (a) Not shown. (b) APIs only (D3). (c) No total. |
 | Q3 | How is a **trial** license recognized in APIM? `License.getTier()` has no trial value. (Licensing) | Story 9 | Trial falls under "anything else → 1", which is already the trial limit. |
 | Q4 | Is the default portal marked on tiles and rows, and how? (Design) | Stories 3, 4 | "Default" badge next to the name. |
+| Q5 | The epic, edited Nov 2, lists only the dashboard (one tile or row per portal) and puts "the license limit" under PORTAL-137. With one portal per customer, the tiles/table toggle, search, the 3/5 limits, the Portals page and the quota can't be seen on real data until PORTAL-137. Do they stay in this epic, or move to PORTAL-137? (Product: Varun) | Stories 1, 3, 4, 9 | Keep them: #22125 and PORTAL-334 to 337 already include them. Moving them out removes about 3 to 4 frontend days and `PortalQuotaDomainService`. |
+| Q6 | The Automation API's `DELETE` of the portal that D4 makes the default (`@gravitee-io/gko`) | Story 6 | See story 6: the portal record stays, the content the Automation API created goes, `DELETE` succeeds. |
 
 ---
 
 ## 4. Sequencing
 
-| # | Story | Side | Depends on | Est. (dev-days) |
-| --- | --- | --- | --- | --- |
-| 1 | Portals contract in OpenAPI | Contract | — | 0.5 |
-| 2 | Portals module foundation: routes, data layer, tests | Gamma FE | 1 | 2 *(proposed)* |
-| 3 | Dashboard: quota, tiles/table, search | Gamma FE | 2 | 3.5 *(proposed)* |
-| 4 | Portals page | Gamma FE | 2 (3 for shared components) | 2 *(proposed)* |
-| 5 | Portal model: default marker, URL, creation date | BE | — | 2 |
-| 6 | Default portal for every new environment; every write path names its portal | BE | 5 | 3 |
-| 7 | Upgrader: default portal for existing environments, placeholder removed, upgrade tests | BE | 5, 6 (merge right after 6) | 5.5 |
-| 8 | Default portal URL and `portalId` in Portal API bootstrap | BE | 6 | 1 |
-| 9 | Management API v2: list and get portals with quota, logo | BE | 1, 7, 8 | 3.5 |
-| 10 | Management API v2: per-portal navigation and page content endpoints | BE | 7 | 3 |
-| 11 | Portal API: `/portal/{portalId}/...` navigation, search, API lists | BE | 7 | 4 |
-| 12 | Next-gen portal: optional `portalId`, calls through `/portal/{portalId}/...` | Portal FE | 8, 11 | 1.5 |
-| 13 | Gamma host opens the Developer Portals module | Gamma FE | 2–4, 9 released | 1 *(proposed)* |
+| # | Jira | Story | Side | Depends on | Est. (dev-days) |
+| --- | --- | --- | --- | --- | --- |
+| 1 | [PORTAL-333](https://gravitee.atlassian.net/browse/PORTAL-333) | Portals contract in OpenAPI | Contract | — | 0.5 |
+| 2 | [PORTAL-334](https://gravitee.atlassian.net/browse/PORTAL-334) | Portals module foundation: routes, data layer, tests | Gamma FE | 1 | 2 *(proposed)* |
+| 3 | [PORTAL-335](https://gravitee.atlassian.net/browse/PORTAL-335) | Dashboard: quota, tiles/table, search | Gamma FE | 2 | 3.5 *(proposed)* |
+| 4 | [PORTAL-336](https://gravitee.atlassian.net/browse/PORTAL-336) | Portals page | Gamma FE | 2 (3 for shared components) | 2 *(proposed)* |
+| 5 | — | Portal model: default marker, URL, creation date | BE | — | 2 |
+| 6 | — | Default portal for every environment; every write path names its portal | BE | 5 | 3.5 |
+| 7 | — | Upgrader: content moved onto the default portal, placeholder removed, upgrade tests | BE | 6 | 5 |
+| 8 | — | Default portal URL and `portalId` in Portal API bootstrap | BE | 6 | 1 |
+| 9 | — | Management API v2: list and get portals with quota, logo | BE | 1, 7, 8 | 3.5 |
+| 10 | — | Management API v2: per-portal navigation and page content endpoints | BE | 7 | 3 |
+| 11 | — | Portal API: `/portal/{portalId}/...` navigation, search, API lists | BE | 7 | 4 |
+| 12 | — | Next-gen portal: optional `portalId`, calls through `/portal/{portalId}/...` | Portal FE | 8, 11 | 1.5 |
+| 13 | [PORTAL-337](https://gravitee.atlassian.net/browse/PORTAL-337) | Gamma host opens the Developer Portals module | Gamma FE | 2–4, 9 released | 1 *(proposed)* |
 
 Backend total 23.5 dev-days, about a day over the epic's 4.5 dev-weeks, review not counted. Frontend 8.5 dev-days proposed.
 
@@ -88,12 +90,12 @@ Each story lists the test cases to write **first** (RED), then the files. Paths 
 
 **Files**
 - Change [`openapi-environments.yaml`](gravitee-apim-rest-api/gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-model/src/main/resources/openapi/openapi-environments.yaml):
-  - `GET /portals` → `PortalsResponse { data: Portal[], quota: PortalQuota }`; no `page`/`perPage`/`q`.
+  - `GET /portals?q=&page=&perPage=` → `PortalsResponse { data: Portal[], pagination, quota: PortalQuota }` (D8).
   - `GET /portals/{portalId}` → `Portal`; `404` when the portal is not in the environment.
   - `GET /portals/{portalId}/logo` → the logo image (D7); `404` when the theme has no logo or the portal is not in the environment.
   - `Portal { id, name, url, default: boolean, logoUrl?: string, publishedApisCount: integer, createdAt: date-time }`; `url` and `logoUrl` are nullable.
   - `PortalQuota { used: integer, limit: integer }`.
-  - Descriptions state the permission (D9) and that the list is unpaged because an environment holds at most 10 portals.
+  - Descriptions state the permission (D9), the order, and that the pagination counts the portals matching `q` while the quota counts every portal.
 - Run `mvn -pl gravitee-apim-rest-api/gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-model -am compile` and check the generated `Portal`, `PortalsResponse`, `PortalQuota` models.
 
 **Acceptance criteria**
@@ -107,8 +109,7 @@ Each story lists the test cases to write **first** (RED), then the files. Paths 
 
 **Tests first**
 - `config/routes.spec.ts`: `getActiveNavKey` returns `dashboard` for the module root, `portals` for `/portals`, and `portals` for `/portals/:portalId/overview` (portal pages sit under the Portals menu item).
-- `features/portals/hooks/usePortals.spec.tsx` (MSW): returns `data` and `quota` from `GET …/environments/:envId/portals`; exposes an error state on 500; refetches when the environment changes.
-- `features/portals/utils/matchPortals.spec.ts`: empty query returns all portals in input order; case-insensitive; matches a subsequence (`"dvprt"` → "Dev Portal"); ranks contiguous matches before scattered ones; ignores surrounding spaces.
+- `features/portals/hooks/usePortals.spec.tsx` (MSW): returns `data`, `pagination` and `quota` from `GET …/environments/:envId/portals`; sends `q`, `page` and `perPage`, omitting an empty `q`; exposes an error state on 500; refetches when the environment or the query changes.
 - `app/AppRoutes.spec.tsx`: the index renders the dashboard route; `/portals/:portalId` redirects to `/portals/:portalId/overview`; the overview placeholder has the portal id from the URL.
 
 **Files**
@@ -117,8 +118,8 @@ Each story lists the test cases to write **first** (RED), then the files. Paths 
 - Add `MODULE/app/useModuleNavigation.ts`, `MODULE/app/useModuleBreadcrumbs.ts` (copy-adapt from the APIM module; do not share code across modules).
 - Add `MODULE/shared/api/apimClient.ts` re-exporting `gamma-ui-shared/src/api` as the APIM module does.
 - Add `MODULE/features/portals/types/portal.ts` — `Portal`, `PortalQuota`, `PortalsResponse`, mirroring story 1's schemas.
-- Add `MODULE/features/portals/services/portals.ts` — `listPortals(envId)` via `apimFetchJsonV2`. `getPortal` and its hook come with PORTAL-140, the first page that needs one portal.
-- Add `MODULE/features/portals/utils/queryKeys.ts`, `MODULE/features/portals/utils/matchPortals.ts`.
+- Add `MODULE/features/portals/services/portals.ts` — `listPortals(envId, { q, page, perPage })` via `apimFetchJsonV2`. `getPortal` and its hook come with PORTAL-140, the first page that needs one portal.
+- Add `MODULE/features/portals/utils/queryKeys.ts`.
 - Add `MODULE/features/portals/hooks/usePortals.ts`, `usePortalIdParam.ts`.
 - Add `MODULE/features/portals/pages/PortalOverviewPlaceholderPage.tsx` (shows the portal id only; PORTAL-140 replaces it).
 - Add `MODULE/testing/server.ts`, `MODULE/testing/handlers/{index,portals.handlers}.ts`, `MODULE/testing/factories.ts` (`aPortal()`, `aPortalsResponse()`), `MODULE/test-setup.ts`.
@@ -136,11 +137,11 @@ Each story lists the test cases to write **first** (RED), then the files. Paths 
 
 **Tests first** (`features/portals/pages/PortalsDashboardPage.spec.tsx`, MSW)
 - Shows the quota above the list as "1 / 10" from `quota.used` / `quota.limit`; the client never computes the limit.
-- Shows the total number of APIs published, the sum of `publishedApisCount` across portals, next to the quota.
 - Shows each portal's logo from `logoUrl` (initials when `logoUrl` is null or the image fails to load), name, "Default" marker on the default portal (Q4), and `publishedApisCount`.
 - Tiles by default; the toggle switches to a table and back without refetching. The choice is local to the page; remembering it is out of scope.
 - With 4 portals, tiles show 3 and a "View all Portals" link to `portals`; with 6 portals, the table shows 5 and the same link; with 1 portal, no link.
-- Typing in search filters with `matchPortals`; the 3/5 limit applies to the filtered result; no match shows an empty state.
+- Typing in search refetches with `q` (debounced); the 3/5 limit applies to the result; no match shows an empty state.
+- No dashboard total of APIs published until Q2 (c) is answered.
 - "View Portal" is a link to `portal.url` with `target="_blank"` and `rel="noopener noreferrer"`; when `url` is null it is disabled, with a tooltip saying the portal URL is not configured.
 - "Configure" navigates to `portals/:portalId/overview`; it is hidden without `ENVIRONMENT_DOCUMENTATION[UPDATE]` (mock `useHasPermission`).
 - "New Portal" is rendered and disabled, with a tooltip saying creating portals is coming soon.
@@ -148,12 +149,12 @@ Each story lists the test cases to write **first** (RED), then the files. Paths 
 
 **Files**
 - Add `MODULE/features/portals/pages/PortalsDashboardPage.tsx`.
-- Add `MODULE/features/portals/components/`: `PortalQuota.tsx`, `PublishedApisSummary.tsx`, `PortalTile.tsx`, `PortalTiles.tsx`, `PortalTable.tsx` (graphene `DataTable`), `PortalLogo.tsx`, `ViewPortalLink.tsx`, `PortalSearchInput.tsx`, `NewPortalButton.tsx`, `PortalsViewToggle.tsx`, `index.ts`.
+- Add `MODULE/features/portals/components/`: `PortalQuota.tsx`, `PortalTile.tsx`, `PortalTiles.tsx`, `PortalTable.tsx` (graphene `DataTable`), `PortalLogo.tsx`, `ViewPortalLink.tsx`, `PortalSearchInput.tsx`, `NewPortalButton.tsx`, `PortalsViewToggle.tsx`, `index.ts`.
 - Change `MODULE/app/AppRoutes.tsx` to route the index to the page.
 
 **Acceptance criteria**
 - Matches the epic's frontend item 1 and the PRD layout; design sign-off on a screenshot in the PR.
-- No API call other than `GET /portals` and the logo images at each `logoUrl`; search and limits run in the browser.
+- No API call other than `GET /portals` (with `q` when searching) and the logo images at each `logoUrl`.
 - Keyboard: the toggle, search, links and buttons are reachable and labelled (axe check in the spec passes).
 
 ### Story 4 · Portals page
@@ -161,7 +162,7 @@ Each story lists the test cases to write **first** (RED), then the files. Paths 
 **Why.** The Portal menu's full list: the dashboard only shows a preview, and admins need one place to find any portal and open its configuration.
 
 **Tests first** (`features/portals/pages/PortalsListPage.spec.tsx`)
-- Shows the quota above a table of **all** portals in the API's order (no 5-row limit, no paging), with search.
+- Shows the quota above a table of all portals in the API's order (no 5-row limit), with search through `q` and page controls driven by `pagination`; a new search goes back to page 1.
 - Columns: logo and name (with the default marker), URL, APIs published, created (via `formatRelativeDateTime` from `gamma-ui-shared/src/time`), and a "View Portal" action.
 - Clicking a row navigates to `portals/:portalId/overview`; "View Portal" in a row opens the URL in a new tab **without** navigating the row.
 - Keyboard: Enter on a focused row opens it; "View Portal" is reachable on its own.
@@ -179,7 +180,7 @@ Each story lists the test cases to write **first** (RED), then the files. Paths 
 
 ### Story 5 · Portal model: default marker, URL, creation date
 
-**Why.** A portal must be a real record that can be told apart as the default, so requests without a `portalId` have a portal to act on. The URL column is added now so the schema migrates once (D5); the creation date serves the list (story 9); story 7 backfills it for existing portals with the upgrade time. The zero UUID placeholder stays until story 7 has moved the data off it.
+**Why.** A portal must be a real record that can be told apart as the default, so requests without a `portalId` have a portal to act on. The URL column is added now so the schema migrates once (D5); the creation date serves the list (story 9); story 6's upgrader backfills it for existing portals with the upgrade time. The zero UUID placeholder stays until story 7 has moved the data off it.
 
 **Tests first**
 - `PortalTest`: `Portal.createDefault(env, org, name)` is default; `Portal.create(...)` is not; `createdAt` is set.
@@ -192,7 +193,7 @@ Each story lists the test cases to write **first** (RED), then the files. Paths 
 - Change `CORE/core/portal/crud_service/PortalCrudService.java` (+ infra impl and the in-memory test double): `findDefaultByEnvironmentId`.
 - Change [`CORE/core/portal/use_case/CreateOrUpdatePortalUseCase.java`](gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/portal/use_case/CreateOrUpdatePortalUseCase.java): an update keeps the stored `defaultPortal`, `url` and `createdAt`. The Automation API's `PUT` replaces the whole definition and does not carry these fields (§6).
 - Change [`PortalRepository`](gravitee-apim-repository/gravitee-apim-repository-api/src/main/java/io/gravitee/repository/management/api/PortalRepository.java), [`model/Portal.java`](gravitee-apim-repository/gravitee-apim-repository-api/src/main/java/io/gravitee/repository/management/model/Portal.java), `JdbcPortalRepository`, `MongoPortalRepository`, `PortalMongo`, `PortalAdapter` (infra).
-- Add Liquibase changelog `gravitee-apim-repository-jdbc/src/main/resources/liquibase/changelogs/v4_14_0/02_add_default_url_created_at_to_portals.yml` (the next free number; use a `v4_15_0` folder instead if the 4.14 release branch is cut by then) (+ master changelog entry); Mongo needs no migration, add an index on `(environmentId, defaultPortal)`.
+- Add Liquibase changelog `gravitee-apim-repository-jdbc/src/main/resources/liquibase/changelogs/v4_14_0/02_add_default_url_created_at_to_portals.yml` (the next free number) (+ master changelog entry); Mongo needs no migration, add an index on `(environmentId, defaultPortal)`.
 - Keep the zero-UUID defaults on `PortalNavigationItem.referenceId` / `PortalNavigationItemMongo` until story 7 has re-pointed the data; remove them in story 7.
 
 **Acceptance criteria**
@@ -201,57 +202,58 @@ Each story lists the test cases to write **first** (RED), then the files. Paths 
 - An Automation API upsert of an existing portal keeps its default marker, URL and creation date.
 - Automation API output is unchanged (the new fields are not mapped there — see §6).
 
-### Story 6 · Default portal for every new environment; every write path names its portal
+### Story 6 · Default portal for every environment; every write path names its portal
 
-**Why.** A new environment must start with the portal that requests without a `portalId` act on; otherwise the first navigation item created in the console has nowhere to go. Code that creates navigation items today relies on the zero placeholder (`NavigationItemReference.defaultReference()` → `PortalId.ZERO`); each such path must resolve the default portal instead, so story 7 can remove the placeholder. The default portal must also not be deletable.
+**Why.** Every environment, new or existing, must have the portal that requests without a `portalId` act on; otherwise the first navigation item created in the console has nowhere to go. Code that creates navigation items today relies on the zero placeholder (`NavigationItemReference.defaultReference()` → `PortalId.ZERO`); each such path must name its portal instead, so story 7 can remove the placeholder. This story ships its own small upgrader for existing environments, so `master` keeps working between this merge and story 7's.
 
 **Tests first**
-- `DefaultPortalDomainServiceTest`, `ensureDefault(org, env)`: no portal → creates one, default, named "Developer Portal" (*confirm copy*), with `createdAt`; one non-default portal (created through the Automation API) → marks it default; a default already present → returns it unchanged; several portals → fails loudly naming the environment (D4). `getDefault(env)` throws `DefaultPortalNotFoundException` when there is none.
+- `DefaultPortalDomainServiceTest`, `ensureDefault(org, env)`: no portal → creates one, default, named "Developer Portal" (*confirm copy*), with `createdAt`; one non-default portal (created through the Automation API) → marks it default and sets `createdAt` when it is null; a default already present → returns it unchanged; several portals → fails loudly naming the environment (D4). `getDefault(env)` throws `DefaultPortalNotFoundException` when there is none.
+- `DefaultPortalUpgraderTest` (in-memory): every environment ends with one default portal; a re-run changes nothing; several portals in **any** environment → throws `UpgraderException` naming each such environment and its portals, and **no** environment is changed.
 - `CreateDefaultPortalNavigationItemsUseCaseTest`: `should_attach_seeded_items_to_default_portal` — the seeded homepage, top navbar and APIs folder reference the default portal, not the zero id.
 - `EnvironmentCommandHandlerTest`: `should_create_default_portal_with_environment`; the same for `EnvironmentServiceImpl.createOrUpdate` on a new environment. Running environment creation twice creates no second portal.
-- `DeletePortalUseCaseTest`: `should_refuse_to_delete_default_portal`; nothing is deleted.
-- One test per changed caller below: it writes the default portal's id, never the zero id.
+- `PortalNavigationSyncDomainServiceTest`, `NavigationItemEntryMaterializerTest`: items are written with `PortalReference(portalId)` of the portal being synced, not the default portal; with `allowMultiplePortalPerEnv=true`, a second portal's rows stay on that portal.
+- `DeletePortalUseCaseTest` for the default portal: the portal record and the console-authored content stay, the content the Automation API created for it is removed, its automation ownership is cleared, and the call succeeds (Q6).
+- One test per other changed caller below: it writes the default portal's id, never the zero id.
 
 **Files**
-- Add `CORE/core/portal/domain_service/DefaultPortalDomainService.java` (`ensureDefault`, `getDefault`). Story 7's upgrader reuses `ensureDefault`, so the D4 rule lives in one place.
-- Add `CORE/core/portal/exception/DefaultPortalNotFoundException.java`, `DefaultPortalDeletionException.java`.
-- Change [`CORE/core/portal/use_case/DeletePortalUseCase.java`](gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/portal/use_case/DeletePortalUseCase.java): refuse to delete the default portal (reachable through the Automation API).
+- Add `CORE/core/portal/domain_service/DefaultPortalDomainService.java` (`ensureDefault`, `getDefault`), so the D4 rule lives in one place.
+- Add `gravitee-apim-rest-api-service/src/main/java/io/gravitee/rest/api/service/impl/upgrade/upgrader/DefaultPortalUpgrader.java`: first checks every environment for several portals and throws before changing anything (D4); then calls `ensureDefault` for every environment. Register its order constant in `UpgraderOrder` after `PORTAL_NAVIGATION_ITEM_API_OWNED_CONSOLE_MIGRATION_UPGRADER` (726).
+- Add `CORE/core/portal/exception/DefaultPortalNotFoundException.java`.
+- Change [`CORE/core/portal/use_case/DeletePortalUseCase.java`](gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/portal/use_case/DeletePortalUseCase.java) (its only caller is the Automation API's `DELETE`): for the default portal, keep the record and remove only what the Automation API created for it, so GKO's reconcile of a deleted CRD succeeds. *Pending Q6 with `@gravitee-io/gko`; a refusal would fail every reconcile.*
 - Change [`CORE/core/portal_page/use_case/CreateDefaultPortalNavigationItemsUseCase.java`](gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/portal_page/use_case/CreateDefaultPortalNavigationItemsUseCase.java) (seeds a new environment's navigation): call `ensureDefault` first and attach the seeded items to it. Cockpit ([`EnvironmentCommandHandler`](gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/rest/api/service/cockpit/command/handler/EnvironmentCommandHandler.java)) and the seeding upgraders (`EnvironmentsDefaultPortalNavigationItemsUpgrader`, `EnvironmentsDefaultApisFolderUpgrader`) already go through it.
 - Change [`EnvironmentServiceImpl.createOrUpdate`](gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/rest/api/service/impl/EnvironmentServiceImpl.java:163): a new environment ends with a default portal.
-- Change every caller of `NavigationItemReference.defaultReference()` to pass the default portal:
-  - `CORE/core/portal_page/model/CreatePortalNavigationItem.java`, `CORE/core/portal_page/model/PortalNavigationItem.java`;
-  - `CORE/core/portal_page/domain_service/PortalNavigationItemDomainService.java`, `CORE/core/portal_page/domain_service/reconciliation/HomepageReconciler.java`;
-  - `CORE/core/portal_page/use_case/ImportPortalNavigationUseCase.java`;
-  - `CORE/core/portal/domain_service/PortalNavigationSyncDomainService.java`, `CORE/core/portal_listing/domain_service/NavigationItemEntryMaterializer.java`.
+- Change every caller of `NavigationItemReference.defaultReference()`:
+  - the two Automation API paths already receive a `portalId` and write `PortalReference(portalId)`: `CORE/core/portal/domain_service/PortalNavigationSyncDomainService.java` (`syncArea`), `CORE/core/portal_listing/domain_service/NavigationItemEntryMaterializer.java`;
+  - the others pass the default portal: `CORE/core/portal_page/model/CreatePortalNavigationItem.java`, `CORE/core/portal_page/model/PortalNavigationItem.java`, `CORE/core/portal_page/domain_service/PortalNavigationItemDomainService.java`, `CORE/core/portal_page/domain_service/reconciliation/HomepageReconciler.java`, `CORE/core/portal_page/use_case/ImportPortalNavigationUseCase.java`.
 - The tests, `fixtures/…` and `inmemory/…` of each changed class.
 
 **Acceptance criteria**
-- Every new environment (self-hosted start-up, Cockpit, Management API) has exactly one default portal.
-- The seeded navigation, and any navigation item created afterwards, stores the default portal's id as `referenceId`.
-- No code path outside story 7's upgrader writes `PortalId.ZERO`.
-- Deleting the default portal through any entry point, the Automation API included, returns a validation error and deletes nothing.
-- Merge story 7 right after this one: in between, an environment created before this story has no default portal, so navigation writes fail loudly there. Both ship in the same release.
+- Every environment, new (self-hosted start-up, Cockpit, Management API) or existing, has exactly one default portal.
+- The seeded navigation, and any navigation item created afterwards, stores its portal's id as `referenceId`: the synced portal for the Automation API, the default portal otherwise.
+- No code path writes `PortalId.ZERO`. Existing rows stay on it until story 7.
+- `master` works after this merge on databases created before it (dev, QA, test seeds): the upgrader has given them a default portal.
+- The Automation API's `DELETE` of the default portal follows Q6's answer, and §6 records it.
 
-### Story 7 · Upgrader: default portal for existing environments, placeholder removed, upgrade tests
+### Story 7 · Upgrader: content moved onto the default portal, placeholder removed, upgrade tests
 
-**Why.** Existing environments carry data on the zero UUID. The epic's first "Done when" is that an upgraded install looks exactly as before: same content, theme and URL. Once every environment is moved onto its default portal, the placeholder can go. This is the story that can break customers, so it carries the upgrade tests on both databases (epic items 3 and 9).
+**Why.** Existing environments carry data on the zero UUID. The epic's first "Done when" is that an upgraded install looks exactly as before: same content, theme and URL. Story 6 has given every environment its default portal; this story moves the content onto it, after which the placeholder can go. This is the story that can break customers, so it carries the upgrade tests on both databases (epic items 3 and 9).
 
 **Tests first**
-- `DefaultPortalUpgraderTest` (in-memory), no portal → default created; one automation portal → marked default; default already present → no-op; several portals → that environment fails with an error naming it, its data unchanged, and the other environments still upgrade; a re-run after a partial failure finishes the job; existing portals get `createdAt`.
+- `PortalReferencesUpgraderTest` (in-memory): re-points each environment onto its default portal (`DefaultPortalDomainService.getDefault`); a re-run changes nothing; an environment without a default portal throws `UpgraderException` naming it, before changing anything (story 6's upgrader should have prevented it).
 - Re-pointing: navigation items with `referenceType=PORTAL, referenceId=zero` → default id; a `PortalListing` whose `portalId` matches no portal of the environment (the zero UUID included) → default id, while a listing on an existing portal is untouched; documentation pages attached through those items keep their links; items with `referenceType=API` are untouched; the navigation `rootId` sentinel is untouched.
 - Page contents, item order, visibility, published state, categories and automation metadata are unchanged, item for item.
 - JDBC and Mongo integration tests seeded with a 4.14-shaped dataset (navigation in all areas including the homepage, listings, pages): after the upgrade the Portal API returns the same navigation tree, homepage and API list as before, item for item.
 - `PortalIdTest`: `PortalId.of("00000000-…")` returns a plain id (no special instance).
 
 **Files**
-- Add `gravitee-apim-rest-api-service/src/main/java/io/gravitee/rest/api/service/impl/upgrade/upgrader/DefaultPortalUpgrader.java`: per environment, `DefaultPortalDomainService.ensureDefault` (story 6), then the re-pointing above. Register its order constant in `UpgraderOrder` after `PORTAL_NAVIGATION_ITEM_API_OWNED_CONSOLE_MIGRATION_UPGRADER` (726), so it runs after every existing navigation upgrader, [`PortalNavigationItemRootIdUpgrader`](gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/rest/api/service/impl/upgrade/upgrader/PortalNavigationItemRootIdUpgrader.java) included.
+- Add `gravitee-apim-rest-api-service/src/main/java/io/gravitee/rest/api/service/impl/upgrade/upgrader/PortalReferencesUpgrader.java`: the re-pointing above, per environment. Register its order constant in `UpgraderOrder` right after story 6's `DefaultPortalUpgrader`, so it also runs after every existing navigation upgrader, [`PortalNavigationItemRootIdUpgrader`](gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/rest/api/service/impl/upgrade/upgrader/PortalNavigationItemRootIdUpgrader.java) included.
 - Add repository methods for the bulk re-point: `PortalNavigationItemRepository.updateReferenceId(envId, PORTAL, from, to)`, `PortalListingRepository.updatePortalId(envId, from, to)` (+ JDBC, Mongo, contract tests).
 - Remove the placeholder:
   - [`CORE/core/portal/model/PortalId.java`](gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/portal/model/PortalId.java): drop `ZERO`;
   - [`CORE/core/portal_page/model/NavigationItemReference.java`](gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/portal_page/model/NavigationItemReference.java): drop `PortalReference.DEFAULT` and `defaultReference()` (story 6 removed their callers);
   - [`PortalNavigationItem`](gravitee-apim-repository/gravitee-apim-repository-api/src/main/java/io/gravitee/repository/management/model/PortalNavigationItem.java) and `PortalNavigationItemMongo`: drop the zero-UUID builder default and its follow-up comment;
   - a new Liquibase changeset in the story 5 folder dropping the column default on `portal_navigation_items.reference_id` (set in `v4_13_0/14_add_reference_columns_to_portal_navigation_items.yml`).
-- Keep [`PortalNavigationItemDefaultReferenceMongoUpgrader`](gravitee-apim-repository/gravitee-apim-repository-mongodb/src/main/java/io/gravitee/repository/mongodb/management/upgrade/upgrader/portalnavigationitem/PortalNavigationItemDefaultReferenceMongoUpgrader.java): older data still needs it before `DefaultPortalUpgrader` runs. Point its "follow-up" comment at the new upgrader.
+- Keep [`PortalNavigationItemDefaultReferenceMongoUpgrader`](gravitee-apim-repository/gravitee-apim-repository-mongodb/src/main/java/io/gravitee/repository/mongodb/management/upgrade/upgrader/portalnavigationitem/PortalNavigationItemDefaultReferenceMongoUpgrader.java): older data still needs it before `PortalReferencesUpgrader` runs. Point its "follow-up" comment at the new upgrader.
 - Add upgrade test fixtures under `gravitee-apim-repository-test/src/test/resources/data/` (`portalnavigationitem-tests`, `portallisting-tests`, `portal-tests`), or the rest-api integration test resources, whichever the existing upgrader tests use.
 
 **Acceptance criteria**
@@ -283,7 +285,7 @@ Each story lists the test cases to write **first** (RED), then the files. Paths 
 **Why.** Implements story 1's contract so the Gamma screens show real data and the host can mount the module (story 13).
 
 **Tests first**
-- `ListPortalsUseCaseTest`: returns the environment's portals, default portal first then by creation date, never another environment's, with URL (story 8, null when not configured), default marker, `publishedApisCount` (D3), `createdAt`; `quota.used` = count; `quota.limit` per D6 for `universe`, `galaxy`, `planet`, `oss`, null license.
+- `ListPortalsUseCaseTest`: returns a page of the environment's portals, default portal first then by name, never another environment's; `q` matches names containing it, ignoring case; the pagination counts the portals matching `q`; with URL (story 8, null when not configured), default marker, `publishedApisCount` (D3), `createdAt`; `quota.used` = count of every portal in the environment, whatever `q`; `quota.limit` per D6 for `universe`, `galaxy`, `planet`, `oss`, null license.
 - `PortalQuotaDomainServiceTest` for D6 alone.
 - `GetPortalUseCaseTest`: 404 for a portal of another environment.
 - `PortalsResourceTest` (Jersey): 200 shapes match the spec; `logoUrl` points to `…/portals/{portalId}/logo` when the enabled theme has a logo and is null otherwise; 403 without `ENVIRONMENT_DOCUMENTATION[READ]`; 404 on unknown id.
@@ -395,6 +397,8 @@ Run on a JDBC and a MongoDB distribution built with `task build-distribution`, s
 ## 6. Automation API / CRD impact
 
 No change to the Automation API module in this epic (owned by `@gravitee-io/gko`, `@gravitee-io/tech-lead`). Story 5 adds `defaultPortal`, `url` and `createdAt` to the core `Portal` model, which the Automation API's portal mapper reads; they are **not** mapped there. GKO-3426 mirrors them. Story 5 must check that the Automation API's portal `PUT` still round-trips (a `PUT` replaces the whole definition and must not reset `defaultPortal`): `CreateOrUpdatePortalUseCase` keeps the stored `defaultPortal`, `url` and `createdAt` when the input lacks them. That use case sits in `core/portal`, outside the owned surface, but raise it with the GKO team on the story 5 PR.
+
+`DELETE` changes too (story 6, Q6). D4 makes an Automation-created portal the default, and the default portal must always exist, so the Automation API's `DELETE` of it can no longer remove the record. The plan keeps the record, removes only the content the Automation API created, and returns success, so GKO's reconcile of a deleted CRD doesn't fail on every run. Agree this with `@gravitee-io/gko` before story 6 starts; the alternative, refusing the `DELETE`, needs GKO to handle the error.
 
 ## 7. Security-sensitive changes
 
