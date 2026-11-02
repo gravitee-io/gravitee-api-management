@@ -539,6 +539,7 @@ export interface DynamicPropertyHttpConfiguration {
     body?: string;
     specification?: string;
     useSystemProxy?: boolean;
+    encryption?: { encryptOnFetch?: boolean };
     httpClientOptions?: DynamicPropertyHttpClientOptions;
     httpProxyOptions?: DynamicPropertyHttpProxyOptions;
     sslOptions?: DynamicPropertySslOptions;
