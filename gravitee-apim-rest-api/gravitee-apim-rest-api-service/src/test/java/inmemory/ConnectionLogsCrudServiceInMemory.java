@@ -16,6 +16,7 @@
 package inmemory;
 
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
+import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
@@ -24,6 +25,7 @@ import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Predicate;
@@ -287,7 +289,26 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
             predicate = predicate.and(connectionLog -> connectionLog.getUri().startsWith(normalizedUri));
         }
 
+        if (!CollectionUtils.isEmpty(logsFilters.additionalMetrics())) {
+            for (var condition : logsFilters.additionalMetrics()) {
+                predicate = predicate.and(connectionLog -> matches(condition, connectionLog.getAdditionalMetrics()));
+            }
+        }
+
         return predicate;
+    }
+
+    private static boolean matches(SearchLogsFilters.AdditionalMetricCondition condition, Map<String, Object> additionalMetrics) {
+        var rawKey = AdditionalMetricField.parse(condition.name()).orElseThrow().rawKey();
+        var value = additionalMetrics == null ? null : additionalMetrics.get(rawKey);
+        if (value == null) {
+            return false;
+        }
+        return switch (condition.operator()) {
+            case EQ, IN -> condition.values().contains(String.valueOf(value));
+            case GTE -> new BigDecimal(value.toString()).compareTo(new BigDecimal(condition.values().getFirst())) >= 0;
+            case LTE -> new BigDecimal(value.toString()).compareTo(new BigDecimal(condition.values().getFirst())) <= 0;
+        };
     }
 
     private static @NonNull String getNormalizedUri(String uri) {

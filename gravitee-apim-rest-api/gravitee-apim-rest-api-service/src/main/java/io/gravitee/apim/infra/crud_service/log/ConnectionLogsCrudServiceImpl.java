@@ -285,7 +285,8 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             .nativeClientSoftwareNames(searchLogsFilters.nativeClientSoftwareNames())
             .nativeClientSoftwareVersions(searchLogsFilters.nativeClientSoftwareVersions())
             .failureOrigins(searchLogsFilters.failureOrigins())
-            .tenants(searchLogsFilters.tenants());
+            .tenants(searchLogsFilters.tenants())
+            .additionalMetrics(ConnectionLogAdapter.INSTANCE.convertAdditionalMetrics(searchLogsFilters.additionalMetrics()));
     }
 
     /**

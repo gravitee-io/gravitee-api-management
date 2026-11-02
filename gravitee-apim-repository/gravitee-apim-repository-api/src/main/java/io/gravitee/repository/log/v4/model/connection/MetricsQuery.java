@@ -16,6 +16,8 @@
 package io.gravitee.repository.log.v4.model.connection;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
+import io.gravitee.repository.analytics.engine.api.query.Filter.Operator;
 import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
 import java.util.Collection;
 import java.util.List;
@@ -75,6 +77,20 @@ public class MetricsQuery {
         private Set<String> nativeClientSoftwareVersions;
         private Set<String> failureOrigins;
         private Set<String> tenants;
+        /** Conditions on the {@code additional-metrics} map of the v4 metrics documents, all ANDed. */
+        private List<AdditionalMetricCondition> additionalMetrics;
+
+        /**
+         * A condition on an additional metric field; its values are written as the request gave them and read with the
+         * field's value type.
+         */
+        public record AdditionalMetricCondition(AdditionalMetricField field, Operator operator, List<String> values) {
+            public AdditionalMetricCondition {
+                Objects.requireNonNull(field, "An additional metric condition needs a field");
+                Objects.requireNonNull(operator, "An additional metric condition needs an operator");
+                values = List.copyOf(Objects.requireNonNull(values, "An additional metric condition needs values"));
+            }
+        }
 
         /**
          * Which documents an entrypoint predicate selects: everything but the given ids (a default scope, which by
