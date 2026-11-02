@@ -34,7 +34,8 @@ permissions:
 
 jobs:
     verify:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-slim
+        timeout-minutes: 5
         steps:
             - uses: actions/checkout@v6.1.0
             - run: node .github/scripts/verify-ai-context.mjs
