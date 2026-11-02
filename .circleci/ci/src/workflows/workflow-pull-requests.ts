@@ -815,8 +815,8 @@ export class PullRequestsWorkflow {
           ]
         : []),
 
-      // Aikido image scans, once every variant of a component has been pushed
-      ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, false, '', true),
+      // Aikido image scans, once every image they cover has been pushed
+      ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, false, ''),
     ];
   }
 }

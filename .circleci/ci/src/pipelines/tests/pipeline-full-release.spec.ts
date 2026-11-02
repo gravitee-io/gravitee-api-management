@@ -46,6 +46,49 @@ describe('Full release tests', () => {
     },
   );
 
+  describe('Aikido scan', () => {
+    const releaseConfigOf = (version: string): string =>
+      generateFullReleaseConfig({
+        action: 'full_release',
+        sha1: '784ff35ca',
+        changedFiles: [],
+        buildNum: '1234',
+        buildId: '1234',
+        graviteeioVersion: version,
+        branch: '4.2.x',
+        baseBranch: '4.2.x',
+        isDryRun: false,
+        apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
+      }).stringify();
+
+    const scannedImagesOf = (version: string): string[] =>
+      (releaseConfigOf(version).match(/IMAGES="\n([\s\S]*?)\n\s*"/)?.[1] ?? '').trim().split(/\s+/);
+
+    it('should scan the minor version tag of a release', () => {
+      expect(scannedImagesOf('4.2.3')).toStrictEqual([
+        'graviteeio/apim-portal-ui:4.2',
+        'graviteeio/apim-management-ui:4.2',
+        'graviteeio/gamma-ui:4.2',
+        'graviteeio/apim-management-api:4.2-debian',
+        'graviteeio/apim-gateway:4.2-debian',
+      ]);
+    });
+
+    it('should scan the full tag of a hotfix, which has no minor version tag', () => {
+      expect(scannedImagesOf('4.2.0-hotfix.1')).toStrictEqual([
+        'graviteeio/apim-portal-ui:4.2.0-hotfix.1',
+        'graviteeio/apim-management-ui:4.2.0-hotfix.1',
+        'graviteeio/gamma-ui:4.2.0-hotfix.1',
+        'graviteeio/apim-management-api:4.2.0-hotfix.1-debian',
+        'graviteeio/apim-gateway:4.2.0-hotfix.1-debian',
+      ]);
+    });
+
+    it.each(['4.2.0-alpha.1', '4.2.0-beta.1'])('should not scan the pre-release %s', (version) => {
+      expect(releaseConfigOf(version)).not.toContain('aikido');
+    });
+  });
+
   it('should build full release config from any branch (not only support branches)', () => {
     const result = generateFullReleaseConfig({
       action: 'full_release',
