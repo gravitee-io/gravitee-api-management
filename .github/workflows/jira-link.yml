@@ -1,6 +1,8 @@
 # Fails the pull request unless it cites a Jira key.
 # The key may be in the title, the head branch, or the body. One key may cover a train.
-# A missing Atlassian Team is a warning. Jira being down does not fail the check.
+# A missing Atlassian Team is a warning once JIRA_API_TOKEN is set.
+# With no token the Team lookup is skipped and prints nothing.
+# Jira being down does not fail the check.
 # Runs from the base branch, never from the pull request head, so a pull request
 # cannot change the gate and a fork never receives the Jira credentials.
 name: Jira link
