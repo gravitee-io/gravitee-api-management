@@ -117,6 +117,14 @@ describe('CreateDictionarySheet', () => {
         expect((screen.getByRole('button', { name: 'Create' }) as HTMLButtonElement).disabled).toBe(false);
     });
 
+    it('starts a DYNAMIC dictionary with a pass-through JOLT specification', () => {
+        renderSheet();
+        selectType('Dynamic');
+
+        const specification = (screen.getByLabelText(/JOLT Specification/) as HTMLTextAreaElement).value;
+        expect(JSON.parse(specification)).toEqual([{ operation: 'default', spec: {} }]);
+    });
+
     it('rejects trigger rate of 0 for DYNAMIC', () => {
         renderSheet();
         fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: 'gamma-dict-dynamix' } });
