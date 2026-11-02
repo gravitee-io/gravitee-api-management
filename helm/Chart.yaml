@@ -35,3 +35,5 @@ annotations:
       links:
         - name: Github PR
           url: https://github.com/gravitee-io/gravitee-api-management/pull/22114
+    - kind: added
+      description: "Add `gateway.kafka.backendMetadataMaxAge` and `gateway.kafka.mesh.refreshConnectionReuse` to bound the gateway's own all-topics METADATA requests to Kafka backends"

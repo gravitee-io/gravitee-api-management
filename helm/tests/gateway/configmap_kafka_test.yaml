@@ -317,3 +317,33 @@ tests:
             kafka:
               enabled: true
               secured: false
+  - it: Enable Kafka and set backend metadata max age and mesh refresh connection reuse
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          requestTimeout: 42
+          backendMetadataMaxAge: 30
+          mesh:
+            refreshConnectionReuse: false
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: true
+              requestTimeout: 42
+              backendMetadataMaxAge: 30
+              mesh:
+                refreshConnectionReuse: false
+  - it: Enable Kafka and keep backend metadata max age and mesh unset by default
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "backendMetadataMaxAge|refreshConnectionReuse"

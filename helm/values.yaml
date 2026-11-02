@@ -1654,6 +1654,18 @@ gateway:
 #    tcpKeepAlive: true
 #    instances: 0
 #    requestTimeout: 35_000 # default is 35_000 ms
+#
+#    # How long, in seconds (0 to 3600), a gateway instance trusts the topics and brokers it last read from a backend
+#    # before its next connection to that backend sends the gateway's own all-topics METADATA request again.
+#    # Default is 0: every upstream connection sends it, which costs the backend one authorization check per topic
+#    # per connection. Applies to endpoints, Kafka clusters and Virtual Clusters that set no `backendMetadataMaxAge`
+#    # of their own.
+#    backendMetadataMaxAge: 0
+#    mesh:
+#      # Whether the metadata refreshes of a Virtual Cluster reuse one connection per backend instead of opening one
+#      # per refresh. Only applies when the backend metadata max age is above 0. Default is true.
+#      refreshConnectionReuse: true
+#
 #    # `secured` is deprecated: use `probe.secured` above. `probe.secured` wins when both are set.
 #    ssl:
 #      # Forced to `true` when routingMode is `host`

@@ -5,6 +5,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 
 ### 4.13.2
 - Bump the Gravitee node Hazelcast cache and cluster plugins to 9.16.1, to stay consistent with `gravitee-node.version` in the APIM `pom.xml`.
+- Add `gateway.kafka.backendMetadataMaxAge` and `gateway.kafka.mesh.refreshConnectionReuse`, rendered as `kafka.backendMetadataMaxAge` and `kafka.mesh.refreshConnectionReuse` in the gateway `gravitee.yml` (ESM-322). The gateway already read both keys, but the chart only renders the Kafka keys it knows, so they were dropped from the values. `backendMetadataMaxAge` is the gateway-wide default, in seconds, for how long a gateway instance trusts the metadata it last read from a backend before sending its own all-topics METADATA request again, for endpoints, Kafka clusters and Virtual Clusters that set none. `mesh.refreshConnectionReuse` lets Virtual Cluster metadata refreshes reuse one connection per backend, and only applies with a max age above 0. Both are unset by default, so the gateway keeps its defaults (`0` and `true`) and nothing changes.
 
 ### 4.13.0
 - Bump the Gravitee node Hazelcast cache and cluster plugins to 9.14.2, to stay consistent with `gravitee-node.version` in the APIM `pom.xml`.
