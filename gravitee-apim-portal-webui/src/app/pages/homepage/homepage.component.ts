@@ -19,6 +19,7 @@ import { Router } from '@angular/router';
 import { Api, ApiMetrics, ApiService, Page, PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { ApiStatesPipe } from '../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../pipes/api-labels.pipe';
+import { MarkdownDescriptionPipe } from '../../pipes/markdown-description.pipe';
 import '@gravitee/ui-components/wc/gv-card-list';
 import { ConfigurationService } from '../../services/configuration.service';
 
@@ -29,6 +30,17 @@ import { ConfigurationService } from '../../services/configuration.service';
   standalone: false,
 })
 export class HomepageComponent implements OnInit {
+<<<<<<< HEAD
+=======
+  private portalService = inject(PortalService);
+  private apiService = inject(ApiService);
+  private router = inject(Router);
+  private apiStates = inject(ApiStatesPipe);
+  private apiLabels = inject(ApiLabelsPipe);
+  private config = inject(ConfigurationService);
+  private markdownDescription = inject(MarkdownDescriptionPipe);
+
+>>>>>>> 76ee0e6 (fix(portal): sanitize API descriptions in search results and homepage)
   public homepage: Page;
   public topApis: { item: Api; metric: Promise<ApiMetrics> }[] = [];
   public pageBaseUrl = '/documentation/root';
@@ -49,14 +61,16 @@ export class HomepageComponent implements OnInit {
 
     const size = this.config.get('homepage.featured.size', 9);
     this.apiService.getApis({ filter: 'FEATURED', size }).subscribe(response => {
-      this.topApis = response.data.map(a => {
-        const metric = this.apiService.getApiMetricsByApiId({ apiId: a.id }).toPromise();
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        a.states = this.apiStates.transform(a);
-        a.labels = this.apiLabels.transform(a);
-        return { item: a, metric };
-      });
+      this.topApis = response.data
+        .map(api => this.markdownDescription.transform(api))
+        .map(a => {
+          const metric = this.apiService.getApiMetricsByApiId({ apiId: a.id }).toPromise();
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          a.states = this.apiStates.transform(a);
+          a.labels = this.apiLabels.transform(a);
+          return { item: a, metric };
+        });
     });
   }
 
