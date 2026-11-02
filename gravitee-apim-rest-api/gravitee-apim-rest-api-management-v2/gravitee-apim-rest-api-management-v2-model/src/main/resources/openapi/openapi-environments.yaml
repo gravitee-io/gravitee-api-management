@@ -991,12 +991,15 @@ paths:
       summary: List the portals of the environment
       description: |-
         User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
-        Returns every portal of the environment with the environment's portal quota. The list is not paged: an
-        environment holds at most 10 portals.
+        Returns a page of the environment's portals, the default portal first and then by name, with the
+        environment's portal quota.
       operationId: listPortals
+      parameters:
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/perPageParam"
       responses:
         "200":
-          description: The portals of the environment and its portal quota
+          description: A page of the environment's portals and its portal quota
           content:
             application/json:
               schema:
@@ -3448,16 +3451,20 @@ components:
       required: [ used, limit ]
     PortalsResponse:
       type: object
-      description: The portals of the environment and its portal quota
+      description: A page of the environment's portals and its portal quota
       properties:
         data:
           type: array
-          description: Every portal of the environment
+          description: The portals of the requested page
           items:
             $ref: "#/components/schemas/Portal"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+        links:
+          $ref: "#/components/schemas/Links"
         quota:
           $ref: "#/components/schemas/PortalQuota"
-      required: [ data, quota ]
+      required: [ data, pagination, quota ]
     PortalCategory:
       type: object
       description: A Portal Next category, used to group APIs on the New Developer Portal
