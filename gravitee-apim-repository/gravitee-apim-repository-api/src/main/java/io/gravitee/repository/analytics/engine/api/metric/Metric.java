@@ -19,7 +19,7 @@ package io.gravitee.repository.analytics.engine.api.metric;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum Metric {
+public enum Metric implements MetricName {
     HTTP_REQUESTS,
     HTTP_ERRORS,
     HTTP_ERROR_RATE,

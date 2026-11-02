@@ -17,6 +17,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.repository.analytics.engine.api.metric.MetricName;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
@@ -69,7 +70,7 @@ public class AuthzMeasuresQueryAdapter implements AuthzMeasuresAdapter {
         return boolAdapter.adaptForAuthz(query);
     }
 
-    static String scopeAggName(Metric metric) {
+    static String scopeAggName(MetricName metric) {
         return metric.name() + AggregationAdapter.AGG_NAME_SEPARATOR + AggregationAdapter.FILTER_AGG_SUFFIX;
     }
 
@@ -78,7 +79,7 @@ public class AuthzMeasuresQueryAdapter implements AuthzMeasuresAdapter {
         var aggs = new JsonObject();
         for (var metric : metrics) {
             var measureAggs = buildMeasureAggs(metric);
-            var scope = scopeFilter(metric.metric(), filters);
+            var scope = scopeFilter(BuiltInMetric.of(metric.metric()), filters);
             if (scope == null) {
                 aggs.mergeIn(measureAggs);
             } else {
@@ -116,7 +117,7 @@ public class AuthzMeasuresQueryAdapter implements AuthzMeasuresAdapter {
             );
         }
         var aggs = new JsonObject();
-        var field = fieldResolver.fromMetric(metric.metric());
+        var field = fieldResolver.fromMetric(BuiltInMetric.of(metric.metric()));
         for (var measure : metric.measures()) {
             var aggName = AggregationAdapter.adaptName(metric.metric(), measure);
             aggregate(aggName, field, measure).ifPresent(agg -> {

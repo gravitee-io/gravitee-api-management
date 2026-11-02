@@ -23,6 +23,7 @@ import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.apim.core.observability.model.AdditionalMetricField.ValueType;
 import io.gravitee.apim.core.observability.model.FilterOperator;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import java.time.Instant;
 import java.util.List;
 import java.util.function.Predicate;
@@ -40,11 +41,48 @@ class AnalyticsNameTest {
     private static final AdditionalMetricName TIER = new AdditionalMetricName(
         new AdditionalMetricField(ValueType.KEYWORD, "keyword_fraud-check_tier")
     );
+    private static final AdditionalMetricName FAILOVERS = new AdditionalMetricName(
+        new AdditionalMetricField(ValueType.LONG, "long_failover_count")
+    );
 
     @Test
     void should_read_a_built_in_name_as_its_constant() {
         assertThat(FilterName.parse("MCP_PROXY_TOOL")).contains(FilterSpec.Name.MCP_PROXY_TOOL);
         assertThat(FacetName.parse("MCP_PROXY_TOOL")).contains(FacetSpec.Name.MCP_PROXY_TOOL);
+        assertThat(MetricName.parse("HTTP_GATEWAY_LATENCY")).contains(MetricSpec.Name.HTTP_GATEWAY_LATENCY);
+    }
+
+    /** Whether it holds a number is the validator's to say, so a request naming a keyword gets a 400 naming its type. */
+    @Test
+    void should_read_a_well_formed_dynamic_metric_name_of_any_value_type() {
+        assertThat(MetricName.parse("additional-metrics.long_failover_count")).contains(FAILOVERS);
+        assertThat(MetricName.parse("additional-metrics.keyword_fraud-check_tier")).contains(TIER);
+    }
+
+    @Test
+    void should_read_what_elasticsearch_answers_over_no_request_carrying_an_additional_metric() {
+        for (var measure : AdditionalMetricName.MEASURES) {
+            var expected = measure == MetricSpec.Measure.SUM || measure == MetricSpec.Measure.COUNT ? 0 : null;
+            assertThat(MetricName.emptyValue(FAILOVERS, measure)).as(measure.name()).isEqualTo(expected);
+            assertThat(MetricName.emptyValue(MetricSpec.Name.HTTP_GATEWAY_LATENCY, measure)).as(measure.name()).isEqualTo(0);
+        }
+    }
+
+    @Test
+    void should_measure_an_additional_metric_on_average_by_default_and_never_as_a_percentage() {
+        assertThat(AdditionalMetricName.MEASURES.getFirst()).isEqualTo(MetricSpec.Measure.AVG);
+        assertThat(AdditionalMetricName.MEASURES).doesNotContain(MetricSpec.Measure.PERCENTAGE).doesNotHaveDuplicates();
+        assertThat(AdditionalMetricName.MEASURES).containsExactlyInAnyOrder(
+            MetricSpec.Measure.AVG,
+            MetricSpec.Measure.SUM,
+            MetricSpec.Measure.MIN,
+            MetricSpec.Measure.MAX,
+            MetricSpec.Measure.P50,
+            MetricSpec.Measure.P90,
+            MetricSpec.Measure.P95,
+            MetricSpec.Measure.P99,
+            MetricSpec.Measure.COUNT
+        );
     }
 
     @Test
@@ -70,6 +108,7 @@ class AnalyticsNameTest {
     void should_read_nothing_from_a_name_that_is_neither(String name) {
         assertThat(FilterName.parse(name)).isEmpty();
         assertThat(FacetName.parse(name)).isEmpty();
+        assertThat(MetricName.parse(name)).isEmpty();
     }
 
     @Test
@@ -84,6 +123,18 @@ class AnalyticsNameTest {
         var json = new ObjectMapper().readTree(new ObjectMapper().writeValueAsString(metric));
 
         assertThat(json.at("/ignoredFilters").toString()).isEqualTo("[\"API\",\"additional-metrics.keyword_fraud-check_tier\"]");
+    }
+
+    /** Through the mapper the Management API serves its responses with: a measure with no value has no value key. */
+    @Test
+    void should_name_a_measured_additional_metric_after_its_wire_name_and_leave_out_a_missing_value() throws JsonProcessingException {
+        var metric = new MetricMeasuresResponse(FAILOVERS, null, List.of(new Measure(MetricSpec.Measure.AVG, null)), List.of());
+
+        var json = new ObjectMapper().readTree(new GraviteeMapper(false).writeValueAsString(metric));
+
+        assertThat(json.at("/name").asText()).isEqualTo("additional-metrics.long_failover_count");
+        assertThat(json.at("/measures/0").has("value")).isFalse();
+        assertThat(json.has("unit")).isFalse();
     }
 
     @Nested

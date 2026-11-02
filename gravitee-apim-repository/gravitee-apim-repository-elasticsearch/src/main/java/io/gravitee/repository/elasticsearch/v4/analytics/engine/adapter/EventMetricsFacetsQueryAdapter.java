@@ -101,7 +101,7 @@ public class EventMetricsFacetsQueryAdapter {
         if (metric.sorts() == null || metric.sorts().isEmpty()) {
             return;
         }
-        if (fieldResolver.isAccumulatedDuration(metric.metric())) {
+        if (fieldResolver.isAccumulatedDuration(BuiltInMetric.of(metric.metric()))) {
             // The average is a bucket_script, and Elasticsearch cannot order a terms aggregation by a
             // pipeline aggregation. Fail rather than emit a query whose ranking would silently be
             // something else — a widget claiming "slowest operations" must not be ordered by volume.
@@ -113,7 +113,7 @@ public class EventMetricsFacetsQueryAdapter {
         }
         var order = new JsonObject();
         for (var sort : metric.sorts()) {
-            order.put(AggregationAdapter.adaptName(metric.metric(), sort.measure()), sort.order().name().toLowerCase());
+            order.put(AggregationAdapter.orderPath(metric.metric(), sort.measure()), sort.order().name().toLowerCase());
         }
         terms.put("order", order);
     }

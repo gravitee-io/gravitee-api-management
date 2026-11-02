@@ -2165,6 +2165,7 @@ components:
                 - `interval` is missing or not positive, on time-series (`observability.query.invalid_interval`)
                 - `limit` is above 100, on time-series (`observability.query.invalid_limit`)
                 - A metric, measure, facet or sort order the engine does not know (`observability.query.unknown_metric`, `unknown_measure`, `unknown_facet`, `unknown_sort_order`)
+                - A metric naming an additional metric field that holds no number, a `keyword_`, `bool_`, `string_` or `json_` one (`observability.query.not_a_metric`)
                 - An array of the body holds a null entry (`observability.query.null_entry`)
                 - A combination the engine refuses, such as a facet a metric does not support (no technical code)
                 - A key the schema does not declare, at any depth: the message names it (no technical code)
@@ -2191,6 +2192,12 @@ components:
                                 http_status: 400
                                 message: "Metric 'HTTP_REQUEST' is not supported"
                                 technicalCode: "observability.query.unknown_metric"
+                        not-a-metric:
+                            summary: An additional metric field holding no number, named as a metric
+                            value:
+                                http_status: 400
+                                message: "'additional-metrics.keyword_fraud-check_tier' is not a metric: it holds KEYWORD values, not numbers"
+                                technicalCode: "observability.query.not_a_metric"
         MetricDefinitionRefused:
             description: |
                 The name or a field breaks a rule, named by `technicalCode`:
@@ -3277,13 +3284,19 @@ components:
                     type: string
                     description: |
                         Metric name from the analytics engine catalog (e.g. `HTTP_REQUESTS`,
-                        `HTTP_GATEWAY_RESPONSE_TIME`, `HTTP_ERRORS`, `LLM_PROMPT_TOTAL_TOKEN`).
+                        `HTTP_GATEWAY_RESPONSE_TIME`, `HTTP_ERRORS`, `LLM_PROMPT_TOTAL_TOKEN`), or an
+                        additional metric field holding a number, `additional-metrics.<rawKey>` with a
+                        `long_`, `int_` or `double_` key (`additional-metrics.long_failover_count`). Such a
+                        field is measured over the requests carrying it, on the HTTP request documents,
+                        and a well-formed one no request carries answers like an empty window. A field of
+                        another type is refused (`observability.query.not_a_metric`).
                     example: "HTTP_REQUESTS"
                 measures:
                     type: array
                     description: |
                         Aggregation functions to apply. Valid values: `COUNT`, `AVG`, `MIN`, `MAX`,
-                        `SUM`, `P50`, `P90`, `P95`, `P99`, `PERCENTAGE`.
+                        `SUM`, `P50`, `P90`, `P95`, `P99`, `PERCENTAGE`. An additional metric field takes
+                        all but `PERCENTAGE`; its `COUNT` counts the requests carrying it.
                     items:
                         type: string
                     example: ["COUNT"]
@@ -3323,10 +3336,14 @@ components:
             properties:
                 name:
                     type: string
-                    description: Metric name from the analytics engine catalog.
+                    description: |
+                        Metric name from the analytics engine catalog, or an additional metric field
+                        holding a number, as on the measures endpoint. Such a field is grouped by the
+                        built-in facets of `HTTP_REQUESTS` and by any additional metric field that groups.
                     example: "HTTP_REQUESTS"
                 measures:
                     type: array
+                    description: Aggregation functions to apply, as on the measures endpoint.
                     items:
                         type: string
                     example: ["COUNT"]
@@ -3485,7 +3502,12 @@ components:
                     example: "COUNT"
                 value:
                     type: number
-                    description: Computed value.
+                    description: |
+                        Computed value. A built-in metric counts a request without its field as 0. An
+                        additional metric field counts only the requests carrying it: `value` is absent
+                        for `AVG`, `MIN`, `MAX` and the percentiles when the window has no document carrying
+                        the field, while `SUM` and `COUNT` are 0. Values are numbers of double precision, so
+                        a whole number above 2^53 is rounded.
                     example: 42
 
         MetricResult:
@@ -3500,11 +3522,13 @@ components:
                     example: "server-errors"
                 name:
                     type: string
-                    description: Metric name.
+                    description: Metric name, as the request named it.
                     example: "HTTP_REQUESTS"
                 unit:
                     type: string
-                    description: Unit of the metric values.
+                    description: |
+                        Unit of the metric values. Absent for an additional metric field: its declared unit
+                        is served by the metric definitions.
                     example: "NUMBER"
                 measures:
                     type: array
@@ -3577,10 +3601,11 @@ components:
             properties:
                 metric:
                     type: string
-                    description: Metric name.
+                    description: Metric name, as the request named it.
                     example: "HTTP_REQUESTS"
                 unit:
                     type: string
+                    description: Unit of the metric values, absent for an additional metric field.
                     example: "NUMBER"
                 buckets:
                     type: array
@@ -3649,9 +3674,11 @@ components:
             properties:
                 name:
                     type: string
+                    description: Metric name, as the request named it.
                     example: "HTTP_REQUESTS"
                 unit:
                     type: string
+                    description: Unit of the metric values, absent for an additional metric field.
                     example: "NUMBER"
                 buckets:
                     type: array

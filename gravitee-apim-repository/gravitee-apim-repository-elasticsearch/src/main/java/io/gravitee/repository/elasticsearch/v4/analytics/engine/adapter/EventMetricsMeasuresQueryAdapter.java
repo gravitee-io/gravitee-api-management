@@ -105,7 +105,7 @@ public class EventMetricsMeasuresQueryAdapter {
         }
         var breakdown = metrics
             .stream()
-            .map(metric -> metric.metric() + " (" + fieldResolver.docType(metric.metric()) + ")")
+            .map(metric -> metric.metric().name() + " (" + fieldResolver.docType(BuiltInMetric.of(metric.metric())) + ")")
             .toList();
         throw new UnsupportedOperationException(
             "Native event metrics " + queryKind + " cannot mix documents types in a single query, got: " + breakdown
@@ -118,7 +118,7 @@ public class EventMetricsMeasuresQueryAdapter {
         }
         var docTypes = metrics
             .stream()
-            .map(metric -> fieldResolver.docType(metric.metric()))
+            .map(metric -> fieldResolver.docType(BuiltInMetric.of(metric.metric())))
             .distinct()
             .toList();
         return docTypes.size() == 1 ? Optional.of(docTypes.getFirst()) : Optional.empty();
@@ -147,7 +147,7 @@ public class EventMetricsMeasuresQueryAdapter {
             } else {
                 var filterName = metric.metric().name() + AggregationAdapter.AGG_NAME_SEPARATOR + AggregationAdapter.FILTER_AGG_SUFFIX;
                 var filterAgg = new JsonObject()
-                    .put("filter", docTypeTerm(fieldResolver.docType(metric.metric())))
+                    .put("filter", docTypeTerm(fieldResolver.docType(BuiltInMetric.of(metric.metric()))))
                     .put("aggs", measureAggs);
                 aggs.put(filterName, filterAgg);
             }
@@ -167,7 +167,7 @@ public class EventMetricsMeasuresQueryAdapter {
         var aggs = new JsonObject();
         for (var measure : metric.measures()) {
             var aggName = AggregationAdapter.adaptName(metric.metric(), measure);
-            aggregate(aggName, metric.metric(), measure).ifPresent(agg ->
+            aggregate(aggName, BuiltInMetric.of(metric.metric()), measure).ifPresent(agg ->
                 aggs.put(agg.keySet().iterator().next(), agg.values().iterator().next())
             );
         }

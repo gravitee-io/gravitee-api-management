@@ -20,8 +20,10 @@ import static java.util.Optional.ofNullable;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.elasticsearch.model.Aggregation;
+import io.gravitee.repository.analytics.engine.api.metric.AdditionalMetric;
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.repository.analytics.engine.api.metric.MetricName;
 import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.FacetName;
@@ -32,6 +34,7 @@ import io.gravitee.repository.analytics.engine.api.result.FacetBucketResult;
 import io.gravitee.repository.analytics.engine.api.result.MetricFacetsResult;
 import io.gravitee.repository.analytics.engine.api.result.MetricTimeSeriesResult;
 import io.gravitee.repository.analytics.engine.api.result.TimeSeriesBucketResult;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimplePercentileBuilder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -67,16 +70,39 @@ public class AggregationAdapter {
      *  an internal formalism for aggregation names to avoid duplicates, appending
      *  the name of the aggregation to the metric name, using a '#' as a separator.
      */
-    public static String adaptName(Metric metric, Measure measure) {
+    public static String adaptName(MetricName metric, Measure measure) {
         return metric.name() + AGG_NAME_SEPARATOR + measure.name();
     }
 
-    public static String adaptName(Metric metric, FacetName facet) {
+    public static String adaptName(MetricName metric, FacetName facet) {
         return metric.name() + AGG_NAME_SEPARATOR + facet.name();
     }
 
-    public static String adaptName(Metric metric, String customAggName) {
+    public static String adaptName(MetricName metric, String customAggName) {
         return metric.name() + AGG_NAME_SEPARATOR + customAggName;
+    }
+
+    /**
+     * The path a terms aggregation orders its buckets by. A percentile is a multi-value aggregation, read by its percent
+     * in brackets; so is the value of an additional metric's aggregation, whose name holds dots Elasticsearch would
+     * otherwise read as the separator of a metric key.
+     */
+    public static String orderPath(MetricName metric, Measure measure) {
+        var aggName = adaptName(metric, measure);
+        return SimplePercentileBuilder.percent(measure)
+            .map(percent -> aggName + "[" + percent + "]")
+            .orElseGet(() -> metric instanceof AdditionalMetric ? aggName + "[" + ES_VALUE_PROP + "]" : aggName);
+    }
+
+    /**
+     * What a measure reads where no document matches. A built-in reads 0. An additional metric reads what
+     * Elasticsearch answers over no document carrying its field: 0 for a sum or a count, no value otherwise.
+     */
+    public static Number emptyValue(MetricName metric, Measure measure) {
+        return switch (metric) {
+            case Metric _ -> 0;
+            case AdditionalMetric _ -> measure == Measure.SUM || measure == Measure.COUNT ? 0 : null;
+        };
     }
 
     public static List<MetricTimeSeriesResult> toMetricsAndTimeSeries(Map<String, Aggregation> aggregations, TimeSeriesQuery query) {
@@ -105,19 +131,18 @@ public class AggregationAdapter {
         return result;
     }
 
-    public static Map<Metric, Map<Measure, Number>> toMetricsAndMeasures(Map<String, Aggregation> aggregations, Query query) {
-        var metricsAndMeasures = new HashMap<Metric, Map<Measure, Number>>();
+    public static Map<MetricName, Map<Measure, Number>> toMetricsAndMeasures(Map<String, Aggregation> aggregations, Query query) {
+        var metricsAndMeasures = new HashMap<MetricName, Map<Measure, Number>>();
         var aggNames = adaptNames(query);
 
         for (var entry : aggregations.entrySet()) {
             var aggName = entry.getKey();
             var agg = entry.getValue();
 
-            if (aggNames.contains(aggName)) {
-                var metric = getMetricFromName(aggName);
-                var measures = metricsAndMeasures.computeIfAbsent(metric, m -> new HashMap<>());
-                var measure = getMeasureFromName(aggName);
-                measures.put(measure, getValue(agg));
+            if (aggNames.containsKey(aggName)) {
+                var measured = aggNames.get(aggName);
+                var measures = metricsAndMeasures.computeIfAbsent(measured.metric(), m -> new HashMap<>());
+                measures.put(measured.measure(), getValue(measured.metric(), agg));
                 continue;
             }
 
@@ -131,14 +156,12 @@ public class AggregationAdapter {
 
             if (agg.getBuckets() != null) {
                 for (var bucket : agg.getBuckets()) {
-                    for (var name : aggNames) {
+                    aggNames.forEach((name, measured) -> {
                         if (bucket.hasNonNull(name)) {
-                            var metric = getMetricFromName(name);
-                            var measures = metricsAndMeasures.computeIfAbsent(metric, m -> new HashMap<>());
-                            var measure = getMeasureFromName(name);
-                            measures.put(measure, getValue(bucket.get(name)));
+                            var measures = metricsAndMeasures.computeIfAbsent(measured.metric(), m -> new HashMap<>());
+                            measures.put(measured.measure(), getValue(measured.metric(), bucket.get(name)));
                         }
-                    }
+                    });
                 }
             }
         }
@@ -146,8 +169,8 @@ public class AggregationAdapter {
     }
 
     private static Map<Measure, Number> getMeasuresWithDefaults(
-        Metric metric,
-        Map<Metric, Map<Measure, Number>> metricAndMeasures,
+        MetricName metric,
+        Map<MetricName, Map<Measure, Number>> metricAndMeasures,
         Query query
     ) {
         var measures = metricAndMeasures.get(metric);
@@ -158,25 +181,29 @@ public class AggregationAdapter {
         var expectedMeasures = query
             .metrics()
             .stream()
-            .filter(m -> m.metric() == metric)
+            .filter(m -> m.metric().equals(metric))
             .flatMap(m -> m.measures().stream())
             .toList();
 
         var defaultMeasures = new HashMap<Measure, Number>();
         for (var measure : expectedMeasures) {
-            defaultMeasures.put(measure, 0);
+            defaultMeasures.put(measure, emptyValue(metric, measure));
         }
         return defaultMeasures;
     }
 
-    private static List<TimeSeriesBucketResult> toTimeSeriesBucketResults(Metric metric, Aggregation aggregation, TimeSeriesQuery query) {
+    private static List<TimeSeriesBucketResult> toTimeSeriesBucketResults(
+        MetricName metric,
+        Aggregation aggregation,
+        TimeSeriesQuery query
+    ) {
         var result = new ArrayList<TimeSeriesBucketResult>();
         var buckets = aggregation.getBuckets();
 
         var aggNames = query
             .metrics()
             .stream()
-            .filter(m -> m.metric() == metric)
+            .filter(m -> m.metric().equals(metric))
             .flatMap(m -> m.measures().stream())
             .map(measure -> adaptName(metric, measure))
             .toList();
@@ -205,7 +232,7 @@ public class AggregationAdapter {
      *                    never read here
      */
     private static List<FacetBucketResult> toFacetBucketResults(
-        Metric metric,
+        MetricName metric,
         JsonNode bucket,
         FacetName bucketFacet,
         List<FacetName> facets,
@@ -245,7 +272,7 @@ public class AggregationAdapter {
     }
 
     private static List<FacetBucketResult> toFacetBucketResults(
-        Metric metric,
+        MetricName metric,
         Map<String, Aggregation> aggregations,
         List<FacetName> facets,
         List<String> aggNames,
@@ -263,7 +290,7 @@ public class AggregationAdapter {
     }
 
     private static FacetBucketResult toFacetBucketResult(
-        Metric metric,
+        MetricName metric,
         FacetName facet,
         JsonNode bucket,
         List<FacetName> facets,
@@ -289,7 +316,7 @@ public class AggregationAdapter {
     }
 
     private static List<FacetBucketResult> toFacetBucketResults(
-        Metric metric,
+        MetricName metric,
         List<JsonNode> buckets,
         FacetName bucketsFacet,
         List<FacetName> facets,
@@ -399,34 +426,44 @@ public class AggregationAdapter {
         return StreamSupport.stream(buckets.spliterator(), false).toList();
     }
 
-    private static List<String> adaptNames(Query query) {
-        var names = new ArrayList<String>();
+    /**
+     * The metric and measure of each aggregation the query asks for, by name. The name is read from the query rather
+     * than parsed back: an additional metric's name is its wire name, which only the core parses.
+     */
+    private static Map<String, MeasuredMetric> adaptNames(Query query) {
+        var names = new HashMap<String, MeasuredMetric>();
         for (var metric : query.metrics()) {
             for (var measure : metric.measures()) {
-                names.add(adaptName(metric.metric(), measure));
+                names.put(adaptName(metric.metric(), measure), new MeasuredMetric(metric.metric(), measure));
             }
         }
         return names;
     }
 
-    private static Number getValue(Aggregation agg) {
-        return lookupForCount(agg)
+    private record MeasuredMetric(MetricName metric, Measure measure) {}
+
+    /** An additional metric keeps Elasticsearch's absent value, and reads NaN as one too: it is not 0. */
+    private static Number getValue(MetricName metric, Aggregation agg) {
+        var value = lookupForCount(agg)
             .or(() -> lookupForValue(agg))
             .or(() -> lookupForValues(agg))
-            .map(Number::doubleValue)
-            .orElse(0.0);
+            .map(Number::doubleValue);
+        return switch (metric) {
+            case Metric _ -> value.orElse(0.0);
+            case AdditionalMetric _ -> value.filter(number -> !Double.isNaN(number)).orElse(null);
+        };
     }
 
-    private static Number getValue(JsonNode bucketNode) {
+    private static Number getValue(MetricName metric, JsonNode bucketNode) {
         var value = bucketNode.get(ES_VALUE_PROP);
         if (value != null && value.isNumber()) {
-            return value.asDouble();
+            return metric instanceof AdditionalMetric && Double.isNaN(value.asDouble()) ? null : value.asDouble();
         }
         var values = bucketNode.get(ES_VALUES_PROP);
         if (values != null && values.isArray()) {
             return values.get(0).asDouble();
         }
-        return 0;
+        return metric instanceof AdditionalMetric ? null : 0;
     }
 
     private static Optional<Number> lookupForCount(Aggregation agg) {
@@ -442,13 +479,5 @@ public class AggregationAdapter {
             .flatMap(keyValues -> ofNullable(keyValues.values()))
             .flatMap(values -> values.stream().filter(Objects::nonNull).findFirst())
             .map(Double::doubleValue);
-    }
-
-    private static Metric getMetricFromName(String aggregationName) {
-        return Metric.valueOf(aggregationName.split(AGG_NAME_SEPARATOR)[0]);
-    }
-
-    private static Measure getMeasureFromName(String aggregationName) {
-        return Measure.valueOf(aggregationName.split(AGG_NAME_SEPARATOR)[1]);
     }
 }

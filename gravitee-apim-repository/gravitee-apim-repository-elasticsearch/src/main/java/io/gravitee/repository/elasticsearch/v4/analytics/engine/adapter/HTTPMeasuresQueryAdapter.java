@@ -15,11 +15,13 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
+import io.gravitee.repository.analytics.engine.api.metric.AdditionalMetric;
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.AdditionalMetricMeasureBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountWithSumBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.HttpErrorRateBuilder;
@@ -58,6 +60,7 @@ public class HTTPMeasuresQueryAdapter {
     private final HttpErrorRateBuilder errorRateBuilder = new HttpErrorRateBuilder();
     private final LLMTotalTokenBuilder llmTotalTokenBuilder = new LLMTotalTokenBuilder();
     private final LLMTotalCostBuilder llmTotalCostBuilder = new LLMTotalCostBuilder();
+    private final AdditionalMetricMeasureBuilder additionalMetricBuilder = new AdditionalMetricMeasureBuilder();
 
     private final FieldResolver fieldResolver = new HTTPFieldResolver();
 
@@ -94,8 +97,20 @@ public class HTTPMeasuresQueryAdapter {
         var aggs = new JsonObject();
         for (var measure : metric.measures()) {
             var aggName = AggregationAdapter.adaptName(metric.metric(), measure);
-            var field = isComputedMetric(metric.metric()) ? null : fieldResolver.fromMetric(metric.metric());
-            aggregate(aggName, field, metric.metric(), measure).ifPresent(agg -> {
+            var measureAgg = switch (metric.metric()) {
+                case Metric builtIn -> aggregate(
+                    aggName,
+                    isComputedMetric(builtIn) ? null : fieldResolver.fromMetric(builtIn),
+                    builtIn,
+                    measure
+                );
+                case AdditionalMetric additionalMetric -> additionalMetricBuilder.build(
+                    aggName,
+                    fieldResolver.fromMetric(additionalMetric),
+                    measure
+                );
+            };
+            measureAgg.ifPresent(agg -> {
                 aggs.put(agg.keySet().iterator().next(), agg.values().iterator().next());
             });
         }

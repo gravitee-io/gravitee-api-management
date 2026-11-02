@@ -20,6 +20,7 @@ import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
+import io.gravitee.apim.core.analytics_engine.model.MetricName;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
@@ -45,7 +46,15 @@ public interface AnalyticsEngineQueryService {
      * one. Only the search of the request documents does; a condition on such a field goes through {@link #narrowsBy}'s
      * rule like any other: skipped where the search cannot apply it.
      */
-    default boolean groupsByAdditionalMetrics(MetricSpec.Name metric) {
+    default boolean groupsByAdditionalMetrics(MetricName metric) {
+        return false;
+    }
+
+    /**
+     * Whether this service measures the additional metric fields holding a number. Only the search of the request
+     * documents does, and one service at most: the other searches read documents that never carry such a field.
+     */
+    default boolean measuresAdditionalMetrics() {
         return false;
     }
 
