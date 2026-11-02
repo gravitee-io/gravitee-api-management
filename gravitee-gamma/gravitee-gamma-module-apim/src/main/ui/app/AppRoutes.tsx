@@ -84,6 +84,7 @@ import { ScratchWizardPage } from '../features/apis/pages/ScratchWizardPage';
 import { TemplateWizardPage } from '../features/apis/pages/TemplateWizardPage';
 import { QuickStartPage } from '../features/dashboard/pages/QuickStartPage';
 import { ApimLicenseFeature, RequireFeatureLicense } from '../features/license';
+import { RuntimeOverlaysPage } from '../features/runtime-overlays/pages/RuntimeOverlaysPage';
 import { SettingsPage } from '../features/settings/pages/SettingsPage';
 import { createTracingApiPaginatedLoader } from '../lib/api/tracing-api-loader';
 import { useEnvironmentId } from '../lib/hooks/useEnvironmentId';
@@ -179,6 +180,7 @@ export function AppRoutes() {
                     <Route element={<ModuleLayout />}>
                         <Route index element={<QuickStartPage />} />
                         <Route path="quick-start" element={<QuickStartPage />} />
+                        <Route path="runtime-overlays" element={<RuntimeOverlaysPage />} />
                         <Route path="apis">
                             <Route index element={<ApisPage />} />
                             <Route path="new" element={<CreateApiGate />}>

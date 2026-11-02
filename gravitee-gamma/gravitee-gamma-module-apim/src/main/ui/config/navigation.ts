@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { NavGroup } from '@gravitee/graphene-core';
-import { ArchiveIcon, RadioIcon, RocketIcon } from '@gravitee/graphene-core/icons';
+import { ArchiveIcon, LayersIcon, RadioIcon, RocketIcon } from '@gravitee/graphene-core/icons';
 
 import { observability } from './observability';
 import { ROUTES } from './routes';
@@ -29,6 +29,7 @@ export const NAV_GROUPS: NavGroup[] = [
         items: [
             { key: 'apis', title: ROUTES.apis.label, icon: RadioIcon },
             { key: 'api-products', title: ROUTES['api-products'].label, icon: ArchiveIcon },
+            { key: 'runtime-overlays', title: ROUTES['runtime-overlays'].label, icon: LayersIcon },
         ],
     },
     observability.navGroup,

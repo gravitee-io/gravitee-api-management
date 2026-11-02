@@ -26,6 +26,7 @@ export const ROUTE_KEYS = [
     'observe/dashboards',
     'observe/logs',
     'observe/tracing',
+    'runtime-overlays',
 ] as const;
 export type RouteKey = (typeof ROUTE_KEYS)[number];
 
@@ -41,6 +42,7 @@ export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: s
     'observe/dashboards': { path: 'observe/dashboards', label: 'Dashboards' },
     'observe/logs': { path: 'observe/logs', label: 'Logs' },
     'observe/tracing': { path: 'observe/tracing', label: 'Tracing' },
+    'runtime-overlays': { path: 'runtime-overlays', label: 'Runtime overlays' },
 };
 
 export function isRouteKey(segment: string): segment is RouteKey {
