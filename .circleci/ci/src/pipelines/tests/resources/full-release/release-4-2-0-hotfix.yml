@@ -864,9 +864,7 @@ jobs:
             IMAGES="
             graviteeio/apim-portal-ui:4.2.0-hotfix.1
             graviteeio/apim-management-ui:4.2.0-hotfix.1
-            graviteeio/apim-management-api:4.2.0-hotfix.1
             graviteeio/apim-management-api:4.2.0-hotfix.1-debian
-            graviteeio/apim-gateway:4.2.0-hotfix.1
             graviteeio/apim-gateway:4.2.0-hotfix.1-debian
             "
             : > /tmp/aikido-images.txt

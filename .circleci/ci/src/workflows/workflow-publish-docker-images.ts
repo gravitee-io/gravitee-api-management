@@ -109,7 +109,6 @@ export class PublishDockerImagesWorkflow {
         ],
       }),
 
-      // Aikido image scans. This workflow only builds the alpine and debian variants.
       ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, false, ''),
     ];
 

@@ -20,7 +20,7 @@ import { DockerLoginCommand, DockerLogoutCommand } from '../commands';
 import { orbs } from '../orbs';
 import { config, Variant } from '../config';
 import { UbuntuExecutor } from '../executors';
-import { parse } from '../utils';
+import { isBlank, parse } from '../utils';
 import { dockerTagsArgument } from './job-build-docker-image';
 
 const IMAGE_LIST_FILE = '/tmp/aikido-images.txt';
@@ -32,7 +32,7 @@ const IMAGE_LIST_FILE = '/tmp/aikido-images.txt';
  * provide, so this cannot be extra steps of the build jobs: it is a single machine
  * executor job pulling the images back from the registry they were pushed to. Scanning
  * them all in one job keeps a single daemon, so the layers the images share (the java and
- * nginx bases, and the variants of a component) are pulled once instead of once per job.
+ * nginx bases) are pulled once instead of once per job.
  */
 export class AikidoScanDockerImagesJob {
   private static jobName = 'job-aikido-scan-docker-images';
@@ -97,7 +97,8 @@ export class AikidoScanDockerImagesJob {
   /**
    * Declares the scan job and the workflow entry waiting for every build job that pushes
    * an image it scans. `nameSuffix` matches the suffix the build job names carry in that
-   * workflow. Nothing is scanned on a release dry run, where no image is pushed.
+   * workflow. Nothing is scanned on a release dry run, where no image is pushed, nor on a
+   * pre-release.
    */
   public static workflowJobs(
     dynamicConfig: Config,
@@ -105,20 +106,29 @@ export class AikidoScanDockerImagesJob {
     isProd: boolean,
     nameSuffix: string,
   ): workflow.WorkflowJob[] {
-    if (isProd && environment.isDryRun) {
+    const parsedGraviteeioVersion = parse(environment.graviteeioVersion);
+    // A hotfix ships to customers like a release does, every other qualified version is a pre-release.
+    const { qualifier } = parsedGraviteeioVersion;
+    const isPrerelease = !isBlank(qualifier.full) && qualifier.name !== 'hotfix';
+    const isReleaseScanEligible = !environment.isDryRun && !isPrerelease;
+    if (isProd && !isReleaseScanEligible) {
       return [];
     }
 
+    // The alpine variants, which are being phased out, are not scanned.
     const components = [
-      { label: 'APIM Portal', image: config.components.portal.image, variants: [undefined] },
-      { label: 'APIM Console', image: config.components.console.image, variants: [undefined] },
-      { label: 'APIM Management API', image: config.components.managementApi.image, variants: ['alpine', 'debian'] },
-      { label: 'APIM Gateway', image: config.components.gateway.image, variants: ['alpine', 'debian'] },
-    ] as { label: string; image: string; variants: (Variant | undefined)[] }[];
+      { label: 'APIM Portal', image: config.components.portal.image },
+      { label: 'APIM Console', image: config.components.console.image },
+      { label: 'APIM Management API', image: config.components.managementApi.image, variant: 'debian' },
+      { label: 'APIM Gateway', image: config.components.gateway.image, variant: 'debian' },
+    ] as { label: string; image: string; variant?: Variant }[];
 
-    const parsedGraviteeioVersion = parse(environment.graviteeioVersion);
-    const imagesToScan = components.flatMap(({ image, variants }) =>
-      variants.map((variant) => dockerTagsArgument(environment, parsedGraviteeioVersion, isProd, variant, image)[0]),
+    // A release is tagged with its full version first then, unless it is qualified, with its X.Y
+    // version. That moving tag always holds the latest patch, so scanning it keeps a single Aikido
+    // image per minor version instead of one per patch.
+    const scannedTagIndex = isProd && isBlank(qualifier.full) ? 1 : 0;
+    const imagesToScan = components.map(
+      ({ image, variant }) => dockerTagsArgument(environment, parsedGraviteeioVersion, isProd, variant, image)[scannedTagIndex],
     );
 
     const scanJob = AikidoScanDockerImagesJob.create(dynamicConfig, environment, isProd, imagesToScan);

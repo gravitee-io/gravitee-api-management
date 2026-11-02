@@ -863,12 +863,10 @@ jobs:
           name: Pull docker images to scan
           command: |-
             IMAGES="
-            graviteeio/apim-portal-ui:4.2.0
-            graviteeio/apim-management-ui:4.2.0
-            graviteeio/apim-management-api:4.2.0
-            graviteeio/apim-management-api:4.2.0-debian
-            graviteeio/apim-gateway:4.2.0
-            graviteeio/apim-gateway:4.2.0-debian
+            graviteeio/apim-portal-ui:4.2
+            graviteeio/apim-management-ui:4.2
+            graviteeio/apim-management-api:4.2-debian
+            graviteeio/apim-gateway:4.2-debian
             "
             : > /tmp/aikido-images.txt
             for image in $IMAGES; do
