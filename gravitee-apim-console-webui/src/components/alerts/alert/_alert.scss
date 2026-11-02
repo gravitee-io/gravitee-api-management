@@ -43,9 +43,11 @@
   .md-tab.md-disabled {
     display: none !important;
   }
+  .gv-forms {
+    max-width: none;
+  }
   .form {
     overflow: hidden;
-    max-width: 960px;
   }
   md-tabs {
     display: inline;
