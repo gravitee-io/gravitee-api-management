@@ -152,6 +152,13 @@ jobs:
                   name: Lint & Test CI Project
                   working_directory: .circleci/ci
                   command: |
+                      # Same reference and three-dot diff as the generator. No reference means master, a
+                      # support branch or a tag, and a failing diff exits non-zero: both run the checks.
+                      DIFF_REF="${GIT_COMMON_COMMIT_HASH:-${GIT_BASE_BRANCH:-}}"
+                      if [ -n "${DIFF_REF}" ] && git diff --quiet "${DIFF_REF}...HEAD" -- ':/.circleci'; then
+                        echo "Nothing changed under .circleci/ since ${DIFF_REF}, skipping."
+                        exit 0
+                      fi
                       npm run lint && npm run test
             - run:
                   name: Generate config
