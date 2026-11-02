@@ -7,7 +7,7 @@ buildFileProbes: ["angular.json","build.gradle","build.gradle.kts","ng-package.j
 inputs:
   - { dir: ".", buildFiles: ["package.json","pom.xml"] }
   - { path: ".ai/manifest.yaml", hash: "sha256:03750eb8f92cb1ea9801e93e28f741ae65239dcd5eab884b5424bee9a5fe08b7" }
-  - { path: ".ai/rules/ai-context-authoring.md", hash: "sha256:da3b2d09f7c8e8f34d4dba3550038cc1db089751ebf641aef27c8ad8f33d83d4" }
+  - { path: ".ai/rules/ai-context-authoring.md", hash: "sha256:53f31c71d869cfa939b7344834333c0f352aa795f81c147a19ce0e80d5bb5476" }
   - { path: ".ai/rules/apim-angular.md", hash: "sha256:9e7472cc16201f62230b0de128c0c47c370fffe517cf1b0482dd43a584f17850" }
   - { path: ".ai/rules/apim-automation-api.md", hash: "sha256:c24ccb1f03041b276a0e5ee06836cc78fbb1118f415ca67d306a95850261ff65" }
   - { path: ".ai/rules/apim-automation-module-ownership.md", hash: "sha256:817b9be54a62e3cdf2cd17cf16432f05aaddcf888971c7772f877b0560d7a229" }
@@ -60,7 +60,7 @@ inputs:
   - { dir: "gravitee-gamma/gravitee-gamma-rest-api", buildFiles: ["pom.xml"] }
 entries:
   - path: ".ai/AGENTS.md"
-    hash: sha256:c97be23e2984ae9e86f36fde09261efeef0817616c6b989204a07064708c24d4
+    hash: sha256:d0c46296456cadef8c8b406bc29db58d223429a38e8360fa97827ba6bf00c6c1
     status: generated
     scope: committed
   - path: ".ai/CLAUDE.md"
@@ -271,4 +271,4 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-record: sha256:89c458c1694194080b3734c08bccebbd1db745f3e3ff00770df57fa9dd4deb6c
+record: sha256:2b9e79b8589320f4b68f05af8261135b853ab4ce6bc01ffbc10055f53a9ee47b
