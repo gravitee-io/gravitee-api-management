@@ -390,8 +390,8 @@ export class FullReleaseWorkflow {
         ],
       }),
 
-      // Aikido image scans, once every variant of a component has been pushed
-      ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, true, ` for APIM ${environment.graviteeioVersion}`, true),
+      // Aikido image scans, once every image they cover has been pushed
+      ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, true, ` for APIM ${environment.graviteeioVersion}`),
     ]);
   }
 }
