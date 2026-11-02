@@ -991,9 +991,8 @@ paths:
       summary: List the portals of the environment
       description: |-
         User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
-        Returns a page of the environment's portals, the default portal first and then by name, with the
-        environment's portal quota. The pagination counts the portals matching `q`; the quota always counts every
-        portal of the environment.
+        Returns a page of the environment's portals, the default portal first and then by name. The pagination
+        counts the portals matching `q`.
       operationId: listPortals
       parameters:
         - name: q
@@ -1006,11 +1005,31 @@ paths:
         - $ref: "#/components/parameters/perPageParam"
       responses:
         "200":
-          description: A page of the environment's portals and its portal quota
+          description: A page of the environment's portals
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PortalsResponse"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /portals/_stats:
+    get:
+      tags:
+        - Portals
+      summary: Get the environment's portal figures
+      description: |-
+        User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
+        Returns the environment's portal quota and the number of APIs published on its portals, the figures shown
+        above the portal list. They always cover every portal of the environment.
+      operationId: getPortalsStats
+      responses:
+        "200":
+          description: The environment's portal figures
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalsStats"
         default:
           $ref: "#/components/responses/Error"
 
@@ -3458,7 +3477,7 @@ components:
       required: [ used, limit ]
     PortalsResponse:
       type: object
-      description: A page of the environment's portals and its portal quota
+      description: A page of the environment's portals
       properties:
         data:
           type: array
@@ -3469,9 +3488,21 @@ components:
           $ref: "#/components/schemas/Pagination"
         links:
           $ref: "#/components/schemas/Links"
+      required: [ data, pagination ]
+    PortalsStats:
+      type: object
+      description: Figures about every portal of the environment
+      properties:
         quota:
           $ref: "#/components/schemas/PortalQuota"
-      required: [ data, pagination, quota ]
+        publishedApisCount:
+          type: integer
+          format: int32
+          description: |-
+            The number of distinct APIs published on at least one portal of the environment. An API published on
+            several portals counts once, so this is not the sum of each portal's publishedApisCount.
+          example: 25
+      required: [ quota, publishedApisCount ]
     PortalCategory:
       type: object
       description: A Portal Next category, used to group APIs on the New Developer Portal
