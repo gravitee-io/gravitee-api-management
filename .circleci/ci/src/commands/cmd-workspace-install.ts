@@ -16,6 +16,9 @@
 import { commands, reusable } from '../circleci-config';
 import { config } from '../config';
 
+// The image version is in the key because the native addons built at install time depend on its Node.
+const keyPrefix = `${config.cache.prefix}-yarn-workspace-node-${config.executor.node.version}`;
+
 export class WorkspaceInstallCommand {
   private static commandName = 'cmd-workspace-install';
 
@@ -23,10 +26,7 @@ export class WorkspaceInstallCommand {
     return new reusable.ReusableCommand(WorkspaceInstallCommand.commandName, [
       new commands.cache.Restore({
         name: 'Restore Yarn workspace cache',
-        keys: [
-          `${config.cache.prefix}-workspace-{{ .Branch }}-{{ checksum "yarn.lock" }}`,
-          `${config.cache.prefix}-workspace-{{ .Branch }}`,
-        ],
+        keys: [`${keyPrefix}-{{ .Branch }}-{{ checksum "yarn.lock" }}`, `${keyPrefix}-{{ .Branch }}`],
       }),
       new commands.Run({
         name: 'Install workspace dependencies',
@@ -34,8 +34,10 @@ export class WorkspaceInstallCommand {
       }),
       new commands.cache.Save({
         name: 'Save Yarn workspace cache',
-        key: `${config.cache.prefix}-workspace-{{ .Branch }}-{{ checksum "yarn.lock" }}`,
-        paths: ['./node_modules'],
+        key: `${keyPrefix}-{{ .Branch }}-{{ checksum "yarn.lock" }}`,
+        // node_modules alone is not enough: without install-state.gz yarn takes every package as
+        // never built and runs all their install scripts again.
+        paths: ['./node_modules', './.yarn/install-state.gz'],
       }),
     ]);
   }
