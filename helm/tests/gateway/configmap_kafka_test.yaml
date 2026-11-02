@@ -347,3 +347,39 @@ tests:
       - notMatchRegex:
           path: data["gravitee.yml"]
           pattern: "backendMetadataMaxAge|refreshConnectionReuse"
+  - it: Enable Kafka and set the client connection limit and readiness thresholds
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          requestTimeout: 42
+          maxConnections: 5000
+          maxConnectionsPerGiB: 2000
+          readiness:
+            enabled: true
+            notReadyPercent: 95
+            readyPercent: 85
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: true
+              requestTimeout: 42
+              maxConnections: 5000
+              maxConnectionsPerGiB: 2000
+              readiness:
+                enabled: true
+                notReadyPercent: 95
+                readyPercent: 85
+  - it: Enable Kafka and keep the connection limit and readiness unset by default
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "maxConnections|readiness:|notReadyPercent|readyPercent"

@@ -298,6 +298,25 @@ data:
       mesh:
         refreshConnectionReuse: {{ $kafkaMesh.refreshConnectionReuse }}
       {{- end}}
+      {{- if hasKey .Values.gateway.kafka "maxConnections" }}
+      maxConnections: {{ .Values.gateway.kafka.maxConnections }}
+      {{- end}}
+      {{- if hasKey .Values.gateway.kafka "maxConnectionsPerGiB" }}
+      maxConnectionsPerGiB: {{ .Values.gateway.kafka.maxConnectionsPerGiB }}
+      {{- end}}
+      {{- $kafkaReadiness := .Values.gateway.kafka.readiness | default dict }}
+      {{- if $kafkaReadiness }}
+      readiness:
+        {{- if hasKey $kafkaReadiness "enabled" }}
+        enabled: {{ $kafkaReadiness.enabled }}
+        {{- end}}
+        {{- if hasKey $kafkaReadiness "notReadyPercent" }}
+        notReadyPercent: {{ $kafkaReadiness.notReadyPercent }}
+        {{- end}}
+        {{- if hasKey $kafkaReadiness "readyPercent" }}
+        readyPercent: {{ $kafkaReadiness.readyPercent }}
+        {{- end}}
+      {{- end}}
       {{- /* `secured` only drives the kafka-server health probe; `gateway.kafka.secured` is its deprecated name */}}
       {{- $kafkaProbe := .Values.gateway.kafka.probe | default dict }}
       {{- if hasKey $kafkaProbe "secured" }}
