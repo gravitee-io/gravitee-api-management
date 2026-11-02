@@ -17,6 +17,7 @@ package io.gravitee.rest.api.standalone.spring;
 
 import io.gravitee.apim.rest.api.automation.spring.GammaAutomationConfiguration;
 import io.gravitee.gamma.rest.infra.config.GammaObservabilityConfiguration;
+import io.gravitee.gamma.rest.infra.config.GammaRuntimeOverlayConfiguration;
 import io.gravitee.integration.controller.spring.IntegrationControllerConfiguration;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.NodeMetadataResolver;
@@ -46,6 +47,7 @@ import org.springframework.context.annotation.Import;
         IntegrationControllerConfiguration.class,
         RestPortalConfiguration.class,
         GammaObservabilityConfiguration.class,
+        GammaRuntimeOverlayConfiguration.class,
         GammaAutomationConfiguration.class,
     }
 )

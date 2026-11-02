@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.resources;
 
 import io.gravitee.gamma.rest.resources.observability.GammaObservabilityResource;
+import io.gravitee.gamma.rest.resources.runtimeoverlay.RuntimeOverlaysResource;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
@@ -47,5 +48,10 @@ public class GammaRootResource {
     @Path("/organizations/{orgId}/environments/{envId}/observability")
     public GammaObservabilityResource getObservabilityResource() {
         return resourceContext.getResource(GammaObservabilityResource.class);
+    }
+
+    @Path("/organizations/{orgId}/environments/{envId}/runtime-overlays")
+    public RuntimeOverlaysResource getRuntimeOverlaysResource() {
+        return resourceContext.getResource(RuntimeOverlaysResource.class);
     }
 }

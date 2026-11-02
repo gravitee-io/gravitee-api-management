@@ -8725,6 +8725,7 @@ components:
                 - DEPLOY_SHARED_POLICY_GROUP
                 - GATEWAY_STARTED
                 - GATEWAY_STOPPED
+                - GENERIC_EVENT
                 - PUBLISH_API
                 - PUBLISH_API_RESULT
                 - PUBLISH_DICTIONARY
