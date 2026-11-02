@@ -1,9 +1,11 @@
 """Fail a pull request unless it cites a Jira key.
 
 The key may be in the title, the head branch, or the body. One key may cover
-many pull requests. A missing Atlassian Team is a warning: the merge does not
-depend on a Jira field the author may not own, or on Jira being up. This
-script never chooses a team. For a subtask it reads the parent's team.
+many pull requests. Only Gravitee project keys count, so SHA-256 and UTF-8 do
+not. A missing Atlassian Team is a warning when Jira credentials are set: the
+merge does not depend on a Jira field the author may not own, or on Jira being
+up. With no token the Team lookup is skipped and prints nothing. This script
+never chooses a team. For a subtask it reads the parent's team.
 """
 
 import base64
@@ -15,7 +17,48 @@ import time
 import urllib.error
 import urllib.request
 
-KEY_PATTERN = re.compile(r"\b[A-Z][A-Z0-9]+-\d+\b")
+# `_` is a word character, so a trailing `\b` misses APIM-1234_fix. The
+# lookarounds still reject APIM-12AB and a key glued to letters.
+KEY_PATTERN = re.compile(r"(?<![A-Za-z0-9])([A-Z][A-Z0-9]+-\d+)(?![A-Za-z0-9])")
+# Projects on gravitee.atlassian.net. A new project key has to be added here.
+PROJECT_KEYS = frozenset(
+    {
+        "AE",
+        "AIAM",
+        "AM",
+        "APIM",
+        "ARCHI",
+        "AUTHZ",
+        "BLUEYON",
+        "BX",
+        "CJ",
+        "CP",
+        "CUJ",
+        "DES",
+        "DOC",
+        "EDGE",
+        "ES",
+        "ESM",
+        "EXT",
+        "FOUND",
+        "GKO",
+        "GMA",
+        "IDN",
+        "INFOSEC",
+        "LAB",
+        "MLAI",
+        "OBS",
+        "P1ACT",
+        "PEN",
+        "PERF",
+        "PLS",
+        "PORTAL",
+        "PULSAR",
+        "SE",
+        "ST",
+        "TT",
+    }
+)
 MAX_CANDIDATES = 10
 # One attempt plus three retries. A 401 or 403 never retries.
 MAX_ATTEMPTS = 4
@@ -39,12 +82,13 @@ class JiraUnreachable(Exception):
 
 
 def candidate_keys(title, branch, body):
-    """Keys from the title, then the uppercased branch, then the body. At most 10."""
+    """Known project keys from the title, then the uppercased branch, then the body. At most 10."""
     found = []
     seen = set()
     for text in (title or "", (branch or "").upper(), body or ""):
         for key in KEY_PATTERN.findall(text):
-            if key in seen:
+            project = key.split("-", 1)[0]
+            if project not in PROJECT_KEYS or key in seen:
                 continue
             seen.add(key)
             found.append(key)
@@ -263,20 +307,18 @@ def main(argv=None):
         return 1
     event = load_event(event_path)
     exempt = {item.strip() for item in os.environ.get("TEAM_EXEMPT_PROJECTS", "PEN").split(",") if item.strip()}
-    # An exemption or a missing key must not need Jira credentials.
-    if exempt_reason(event) or not _pull_request_keys(event):
-        message, warnings = evaluate(event, lambda key: None, exempt)
+    email = os.environ.get("JIRA_USER_EMAIL", "").strip()
+    token = os.environ.get("JIRA_API_TOKEN", "").strip()
+    keys = _pull_request_keys(event)
+    # An exemption, a missing key, or a missing token must not call Jira.
+    # The Team warning returns once both credentials are set.
+    if keys and email and token and not exempt_reason(event):
+        call = urllib_call(os.environ.get("JIRA_BASE_URL", "https://gravitee.atlassian.net"), email, token)
+        message, warnings = evaluate(event, fetching(call, time.sleep), exempt)
+    elif keys and not exempt_reason(event):
+        message, warnings = _pass_line(keys), []
     else:
-        try:
-            call = urllib_call(
-                os.environ.get("JIRA_BASE_URL", "https://gravitee.atlassian.net"),
-                os.environ.get("JIRA_USER_EMAIL", ""),
-                os.environ.get("JIRA_API_TOKEN", ""),
-            )
-        except JiraRejected:
-            message, warnings = _pass_line(_pull_request_keys(event)), [WARN_CREDENTIALS]
-        else:
-            message, warnings = evaluate(event, fetching(call, time.sleep), exempt)
+        message, warnings = evaluate(event, lambda key: None, exempt)
     print(message)
     for warning in warnings:
         print(f"::warning::{warning}")

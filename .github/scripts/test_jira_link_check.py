@@ -67,6 +67,16 @@ class CandidateTest(unittest.TestCase):
     def test_branch_is_uppercased(self):
         self.assertEqual(check.candidate_keys("", "feat/cj-5407-widget", ""), ["CJ-5407"])
 
+    def test_underscore_around_a_key_still_matches(self):
+        self.assertEqual(check.candidate_keys("", "APIM-1234_fix", ""), ["APIM-1234"])
+        self.assertEqual(check.candidate_keys("", "fix_apim-1234", ""), ["APIM-1234"])
+
+    def test_letters_glued_to_a_key_do_not_match(self):
+        self.assertEqual(check.candidate_keys("APIM-12AB", "XAPIM-1", ""), [])
+
+    def test_hash_and_encoding_names_are_not_jira_keys(self):
+        self.assertEqual(check.candidate_keys("SHA-256", "chore/utf-8", "NETTY-4 COMMON-5"), [])
+
     def test_order_is_title_then_branch_then_body_and_deduped(self):
         keys = check.candidate_keys("AM-1", "feat/am-1-and-APIM-2", "see APIM-2 and GMA-3")
         self.assertEqual(keys, ["AM-1", "APIM-2", "GMA-3"])
@@ -86,21 +96,28 @@ class CandidateTest(unittest.TestCase):
 class LookupTest(unittest.TestCase):
     def test_not_found_then_a_real_key_with_a_team(self):
         def transport(key):
-            if key == "SHA-256":
+            if key == "APIM-1":
                 return None
             if key == "APIM-15565":
                 return issue()
             raise AssertionError(key)
 
-        message, warnings = check.evaluate(event(title="SHA-256", body="APIM-15565"), transport, {"PEN"})
-        self.assertEqual(message, "PASS: Jira key SHA-256")
+        message, warnings = check.evaluate(event(title="APIM-1", body="APIM-15565"), transport, {"PEN"})
+        self.assertEqual(message, "PASS: Jira key APIM-1")
         self.assertEqual(warnings, [])
 
+    def test_hash_name_alone_fails(self):
+        called = []
+        message, warnings = check.evaluate(event(title="SHA-256", body="UTF-8"), lambda key: called.append(key), {"PEN"})
+        self.assertIn("no Jira key", message)
+        self.assertEqual(warnings, [])
+        self.assertEqual(called, [])
+
     def test_every_candidate_missing(self):
-        message, warnings = check.evaluate(event(title="SHA-256"), lambda key: None, {"PEN"})
-        self.assertEqual(message, "PASS: Jira key SHA-256")
+        message, warnings = check.evaluate(event(title="APIM-99999"), lambda key: None, {"PEN"})
+        self.assertEqual(message, "PASS: Jira key APIM-99999")
         self.assertEqual(len(warnings), 1)
-        self.assertIn("`SHA-256` was not found in Jira or not visible", warnings[0])
+        self.assertIn("`APIM-99999` was not found in Jira or not visible", warnings[0])
         self.assertNotIn(check.EXTERNAL_CONTRIBUTOR, warnings[0])
 
     def test_existing_issue_without_a_team(self):
@@ -130,7 +147,7 @@ class LookupTest(unittest.TestCase):
                 return issue(team=None)
             return None
 
-        message, warnings = check.evaluate(event(title="APIM-1 SHA-256"), transport, {"PEN"})
+        message, warnings = check.evaluate(event(title="APIM-1 GKO-2"), transport, {"PEN"})
         self.assertTrue(message.startswith("PASS:"))
         self.assertIn("`APIM-1` has no Team", warnings[0])
 
@@ -230,7 +247,7 @@ class MainTest(unittest.TestCase):
             code = check.main()
         self.assertEqual(code, 0)
 
-    def test_missing_credentials_warn_when_a_key_is_present(self):
+    def test_missing_credentials_skip_the_team_check(self):
         import io
         import json
         import tempfile
@@ -240,13 +257,15 @@ class MainTest(unittest.TestCase):
             path = handle.name
         env = {"GITHUB_EVENT_PATH": path, "JIRA_USER_EMAIL": "", "JIRA_API_TOKEN": ""}
         output = io.StringIO()
-        with mock.patch.dict(os.environ, env, clear=False), mock.patch("sys.stdout", output):
+        with mock.patch.dict(os.environ, env, clear=False), mock.patch("sys.stdout", output), mock.patch.object(
+            check.urllib.request, "urlopen", side_effect=AssertionError("Jira was called")
+        ):
             code = check.main()
         self.assertEqual(code, 0)
         text = output.getvalue()
         self.assertIn("PASS: Jira key APIM-15565", text)
-        self.assertIn("::warning::", text)
-        self.assertIn(check.WARN_CREDENTIALS, text)
+        self.assertNotIn("::warning::", text)
+        self.assertNotIn("WARN:", text)
 
 
 class SummaryTest(unittest.TestCase):
