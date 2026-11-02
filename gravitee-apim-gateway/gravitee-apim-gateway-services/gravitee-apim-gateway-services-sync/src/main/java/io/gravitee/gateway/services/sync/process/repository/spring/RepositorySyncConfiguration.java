@@ -25,6 +25,7 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.services.ApiKeyCacheService;
 import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
+import io.gravitee.gateway.reactive.core.v4.generic.GenericEventObservers;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiProductSubscriptionRefresher;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
@@ -35,6 +36,7 @@ import io.gravitee.gateway.services.sync.process.repository.RepositorySynchroniz
 import io.gravitee.gateway.services.sync.process.repository.fetcher.AccessPointFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.ApiKeyFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.DebugEventFetcher;
+import io.gravitee.gateway.services.sync.process.repository.fetcher.GenericEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.InstallationIdFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LicenseFetcher;
@@ -78,6 +80,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.credent
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.credential.CredentialSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.debug.DebugSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionarySynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.generic.DispatchingSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.node.NodeMetadataSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.FlowAppender;
@@ -183,6 +186,20 @@ public class RepositorySyncConfiguration {
     @Bean
     public DebugEventFetcher debugEventFetcher(EventRepository eventRepository, Node node) {
         return new DebugEventFetcher(eventRepository, node);
+    }
+
+    @Bean
+    public GenericEventFetcher genericEventFetcher(EventRepository eventRepository) {
+        return new GenericEventFetcher(eventRepository);
+    }
+
+    @Bean
+    public DispatchingSynchronizer dispatchingSynchronizer(
+        GenericEventFetcher genericEventFetcher,
+        GenericEventObservers genericEventObservers,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor
+    ) {
+        return new DispatchingSynchronizer(genericEventFetcher, genericEventObservers, syncFetcherExecutor);
     }
 
     @Bean

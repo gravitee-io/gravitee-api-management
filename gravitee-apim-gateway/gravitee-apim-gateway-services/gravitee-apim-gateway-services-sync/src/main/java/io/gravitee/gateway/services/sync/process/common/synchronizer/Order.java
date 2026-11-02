@@ -47,7 +47,8 @@ public enum Order {
     API(14),
     SUBSCRIPTION(15),
     API_KEY(16),
-    DEBUG(17);
+    DEBUG(17),
+    GENERIC_EVENT(18);
 
     static {
         Set<Integer> elements = new HashSet<>();

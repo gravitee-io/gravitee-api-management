@@ -41,6 +41,7 @@ import io.gravitee.gateway.reactive.handlers.api.processor.shutdown.ShutdownProc
 import io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.transaction.TransactionPostProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
+import io.gravitee.gateway.reactive.handlers.api.v4.overlay.demo.DemoRuntimeOverlayProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogInitProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogResponseProcessor;
@@ -92,7 +93,10 @@ class ApiProcessorChainFactoryTest {
         ProcessorChain processorChain = apiProcessorChainFactory.beforeHandle(api);
         assertThat(processorChain.getId()).isEqualTo("before-api-handle");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
-        processors.test().assertNoValues();
+        processors
+            .test()
+            .assertValueCount(1)
+            .assertValueAt(0, processor -> processor instanceof DemoRuntimeOverlayProcessor);
     }
 
     @Test
@@ -108,7 +112,10 @@ class ApiProcessorChainFactoryTest {
         ProcessorChain processorChain = apiProcessorChainFactory.beforeHandle(api);
         assertThat(processorChain.getId()).isEqualTo("before-api-handle");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
-        processors.test().assertNoValues();
+        processors
+            .test()
+            .assertValueCount(1)
+            .assertValueAt(0, processor -> processor instanceof DemoRuntimeOverlayProcessor);
     }
 
     @Test
@@ -127,9 +134,10 @@ class ApiProcessorChainFactoryTest {
         processors
             .test()
             .assertComplete()
-            .assertValueCount(2)
+            .assertValueCount(3)
             .assertValueAt(0, processor -> processor instanceof LogInitProcessor)
-            .assertValueAt(1, processor -> processor instanceof LogRequestProcessor);
+            .assertValueAt(1, processor -> processor instanceof LogRequestProcessor)
+            .assertValueAt(2, processor -> processor instanceof DemoRuntimeOverlayProcessor);
     }
 
     @Test

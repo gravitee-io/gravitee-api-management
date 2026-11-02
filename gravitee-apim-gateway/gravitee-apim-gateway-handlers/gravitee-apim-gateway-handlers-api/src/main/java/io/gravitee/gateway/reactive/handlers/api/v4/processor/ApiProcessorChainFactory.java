@@ -41,6 +41,7 @@ import io.gravitee.gateway.reactive.handlers.api.processor.transaction.Transacti
 import io.gravitee.gateway.reactive.handlers.api.processor.transaction.TransactionPostProcessorConfiguration;
 import io.gravitee.gateway.reactive.handlers.api.processor.validation.NullByteRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
+import io.gravitee.gateway.reactive.handlers.api.v4.overlay.demo.DemoRuntimeOverlayProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogInitProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogResponseProcessor;
@@ -95,6 +96,7 @@ public class ApiProcessorChainFactory {
             processors.add(LogInitProcessor.instance());
             processors.add(LogRequestProcessor.instance());
         }
+        processors.add(DemoRuntimeOverlayProcessor.instance());
 
         return new ProcessorChain("before-api-handle", processors, List.of());
     }

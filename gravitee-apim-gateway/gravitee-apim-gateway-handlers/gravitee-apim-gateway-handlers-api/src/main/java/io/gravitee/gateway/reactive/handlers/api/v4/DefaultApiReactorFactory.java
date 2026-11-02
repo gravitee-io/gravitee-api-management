@@ -38,9 +38,11 @@ import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactive.core.condition.CompositeConditionFilter;
 import io.gravitee.gateway.reactive.core.connection.ConnectionDrainManager;
 import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
+import io.gravitee.gateway.reactive.core.tracing.TracingSamplingSettings;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsUtils;
 import io.gravitee.gateway.reactive.core.v4.endpoint.DefaultEndpointManager;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
+import io.gravitee.gateway.reactive.core.v4.overlay.RuntimeOverlays;
 import io.gravitee.gateway.reactive.handlers.api.ApiPolicyManager;
 import io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariableProvider;
 import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
@@ -62,6 +64,7 @@ import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.api.opentelemetry.InstrumenterTracerFactory;
 import io.gravitee.node.api.opentelemetry.Tracer;
+import io.gravitee.node.api.opentelemetry.sampling.SamplingConfig;
 import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
@@ -71,6 +74,7 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import java.util.List;
+import java.util.function.Supplier;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.ResolvableType;
@@ -394,7 +398,28 @@ public class DefaultApiReactorFactory extends AbstractApiReactorFactory<Api> {
             apiProductRegistry,
             apiProductPlanPolicyManagerFactory
         );
+        reactor.setRuntimeOverlays(runtimeOverlays());
+        reactor.setTracingSampling(tracingSampling(api));
         return reactor;
+    }
+
+    /** The gateway's sampling, replaced by the one of an active runtime overlay of the API; read on each root span. */
+    protected Supplier<SamplingConfig> tracingSampling(final Api api) {
+        final SamplingConfig gatewaySampling = TracingSamplingSettings.from(configuration);
+        final RuntimeOverlays overlays = runtimeOverlays();
+        if (overlays == null) {
+            return () -> gatewaySampling;
+        }
+        return () -> overlays.samplingFor(api.getId()).orElse(gatewaySampling);
+    }
+
+    protected RuntimeOverlays runtimeOverlays() {
+        try {
+            return applicationContext.getBean(RuntimeOverlays.class);
+        } catch (BeansException e) {
+            // Runtime overlays may not be loaded: the reactor then behaves as deployed.
+            return null;
+        }
     }
 
     protected ApiProductPlanPolicyManagerFactory createApiProductPlanPolicyManagerFactory(
@@ -446,7 +471,8 @@ public class DefaultApiReactorFactory extends AbstractApiReactorFactory<Api> {
                 Version.RUNTIME_VERSION.MAJOR_VERSION,
                 instrumenterTracerFactories,
                 TracerResourceAttributes.of(module, api.getId(), api.getName(), apiType, api.getOrganizationId(), api.getEnvironmentId()),
-                TracingRedactionMapper.toRedactionConfig(api)
+                TracingRedactionMapper.toRedactionConfig(api),
+                tracingSampling(api)
             );
             return new TracingContext(tracer, true, isApiTracingVerboseEnabled(api));
         }

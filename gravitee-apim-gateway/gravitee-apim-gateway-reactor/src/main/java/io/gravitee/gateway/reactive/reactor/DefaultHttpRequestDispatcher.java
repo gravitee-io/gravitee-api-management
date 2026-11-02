@@ -49,6 +49,7 @@ import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
+import io.gravitee.gateway.reactive.core.tracing.TracingSamplingSettings;
 import io.gravitee.gateway.reactive.http.vertx.ClientCloseClassifier;
 import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest;
 import io.gravitee.gateway.reactive.reactor.handler.HttpAcceptorResolver;
@@ -61,6 +62,7 @@ import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.node.api.opentelemetry.Span;
 import io.gravitee.node.api.opentelemetry.http.ObservableHttpServerRequest;
 import io.gravitee.node.api.opentelemetry.http.ObservableHttpServerResponse;
+import io.gravitee.node.api.opentelemetry.sampling.SamplingConfig;
 import io.gravitee.node.opentelemetry.tracer.vertx.VertxContext;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
@@ -321,6 +323,12 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                         .doFinally(() -> {
                             Span rootSpan = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
                             Throwable throwable = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ERROR);
+                            markTailSamplingDecision(
+                                mutableCtx,
+                                rootSpan,
+                                httpServerRequest.getDelegate().response().getStatusCode(),
+                                throwable
+                            );
                             mutableCtx
                                 .getTracer()
                                 .endWithResponseAndError(
@@ -372,6 +380,22 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             ClientCloseClassifier.decorate(ctx, throwable);
         } else {
             ctx.withLogger(log).debug("Ignoring non-client-close error on the response stream", throwable);
+        }
+    }
+
+    /**
+     * The status is only known now: evaluate the tail criteria here, where the sampling config lives, and leave the
+     * collector a single boolean to keep or drop the whole trace.
+     */
+    private static void markTailSamplingDecision(
+        final MutableExecutionContext ctx,
+        final Span rootSpan,
+        final int status,
+        final Throwable error
+    ) {
+        final SamplingConfig sampling = ctx.getInternalAttribute(TracingSamplingSettings.ATTR_INTERNAL_TRACING_SAMPLING);
+        if (rootSpan != null && sampling != null && sampling.hasTailCriteria()) {
+            rootSpan.withAttribute(SamplingConfig.ATTR_KEEP, sampling.keeps(status, error != null));
         }
     }
 

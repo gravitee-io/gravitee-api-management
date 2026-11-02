@@ -32,18 +32,24 @@ import io.gravitee.gateway.reactive.api.hook.InvokerHook;
 import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
 import io.gravitee.gateway.reactive.core.context.HttpRequestInternal;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
+import io.gravitee.gateway.reactive.core.tracing.TracingSamplingSettings;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
+import io.gravitee.gateway.reactive.core.v4.overlay.ActiveRuntimeOverlay;
+import io.gravitee.gateway.reactive.core.v4.overlay.RuntimeOverlays;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.api.opentelemetry.sampling.SamplingConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import lombok.CustomLog;
+import lombok.Setter;
 
 @CustomLog
 public abstract class AbstractApiReactor extends AbstractLifecycleComponent<ReactorHandler> implements ApiReactor<Api> {
@@ -63,6 +69,14 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
     private final long pendingRequestsTimeout;
     protected final List<InvokerHook> invokerHooks = new ArrayList<>();
+
+    /** Set by the factory rather than passed to the constructor, which reactor plugins extending this class already call. */
+    @Setter
+    protected RuntimeOverlays runtimeOverlays;
+
+    /** Sampling of this API's tracer, recorded on each request so the tail criteria can be evaluated at its end. */
+    @Setter
+    protected Supplier<SamplingConfig> tracingSampling;
 
     AbstractApiReactor(
         Configuration configuration,
@@ -85,6 +99,23 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
     }
 
     abstract ExecutionFailure noEntrypointFailure();
+
+    /**
+     * Applies the contributions of the active runtime overlays of this API to the request. When two runtime overlays
+     * contribute the same attribute, the first one registered wins.
+     */
+    protected void applyRuntimeOverlays(final MutableExecutionContext ctx) {
+        if (tracingSampling != null && tracingContext.isEnabled()) {
+            ctx.setInternalAttribute(TracingSamplingSettings.ATTR_INTERNAL_TRACING_SAMPLING, tracingSampling.get());
+        }
+        if (runtimeOverlays == null) {
+            return;
+        }
+        final List<ActiveRuntimeOverlay> actives = runtimeOverlays.activeFor(api.getId());
+        for (int i = actives.size() - 1; i >= 0; i--) {
+            actives.get(i).contribution().internalAttributes().forEach(ctx::setInternalAttribute);
+        }
+    }
 
     protected <C extends BaseExecutionContext> Completable handleEntrypointRequest(final MutableExecutionContext ctx) {
         return Completable.defer(() -> {

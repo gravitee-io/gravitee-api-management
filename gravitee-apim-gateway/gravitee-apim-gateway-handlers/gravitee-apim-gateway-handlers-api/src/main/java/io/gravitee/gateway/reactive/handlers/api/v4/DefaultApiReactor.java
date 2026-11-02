@@ -345,6 +345,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED, tracingContext.isVerbose());
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_VALIDATE_SUBSCRIPTION, validateSubscriptionEnabled);
         ctx.logEntries(DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES);
+        applyRuntimeOverlays(ctx);
     }
 
     private void prepareMetrics(HttpExecutionContext ctx) {

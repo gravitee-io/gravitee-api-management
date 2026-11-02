@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.spring;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
@@ -44,11 +45,16 @@ import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
 import io.gravitee.gateway.reactive.core.condition.CompositeConditionFilter;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
 import io.gravitee.gateway.reactive.core.connection.ConnectionDrainManager;
+import io.gravitee.gateway.reactive.core.v4.generic.GenericEventObservers;
+import io.gravitee.gateway.reactive.core.v4.overlay.RuntimeOverlays;
 import io.gravitee.gateway.reactive.flow.condition.evaluation.HttpMethodConditionFilter;
 import io.gravitee.gateway.reactive.flow.condition.evaluation.PathBasedConditionFilter;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactorFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.TcpApiReactorFactory;
+import io.gravitee.gateway.reactive.handlers.api.v4.overlay.RuntimeOverlayEventObserver;
+import io.gravitee.gateway.reactive.handlers.api.v4.overlay.demo.DemoRuntimeOverlayContributor;
+import io.gravitee.gateway.reactive.handlers.api.v4.overlay.tracing.TracingRuntimeOverlayContributor;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
 import io.gravitee.gateway.reactive.policy.HttpPolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
@@ -121,6 +127,22 @@ public class ApiHandlerConfiguration {
     @Bean
     public NodeApisEndpointInitializer nodeApisEndpointInitializer() {
         return new NodeApisEndpointInitializer();
+    }
+
+    @Bean
+    public RuntimeOverlays runtimeOverlays() {
+        final RuntimeOverlays runtimeOverlays = new RuntimeOverlays();
+        runtimeOverlays.registerContributor(new DemoRuntimeOverlayContributor());
+        runtimeOverlays.registerContributor(new TracingRuntimeOverlayContributor());
+        return runtimeOverlays;
+    }
+
+    /** Observers are registered here, before the first sync, so no generic event is missed. */
+    @Bean
+    public GenericEventObservers genericEventObservers(final RuntimeOverlays runtimeOverlays, final ObjectMapper objectMapper) {
+        final GenericEventObservers observers = new GenericEventObservers();
+        observers.register(new RuntimeOverlayEventObserver(runtimeOverlays, objectMapper));
+        return observers;
     }
 
     @Bean

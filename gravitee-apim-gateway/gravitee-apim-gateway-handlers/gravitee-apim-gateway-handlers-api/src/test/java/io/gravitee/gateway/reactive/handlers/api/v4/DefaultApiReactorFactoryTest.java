@@ -490,14 +490,14 @@ class DefaultApiReactorFactoryTest {
             when(api.getOrganizationId()).thenReturn("org-id");
             when(api.getEnvironmentId()).thenReturn("env-id");
             when(openTelemetryConfiguration.isTracesEnabled()).thenReturn(true);
-            when(openTelemetryFactory.createTracer(any(), any(), any(), any(), any(), anyMap(), any(RedactionConfig.class))).thenReturn(
-                mock(Tracer.class)
-            );
+            when(
+                openTelemetryFactory.createTracer(any(), any(), any(), any(), any(), anyMap(), any(RedactionConfig.class), any())
+            ).thenReturn(mock(Tracer.class));
 
             cut.createTracingContext(api, "test-namespace");
 
             ArgumentCaptor<RedactionConfig> captor = ArgumentCaptor.forClass(RedactionConfig.class);
-            verify(openTelemetryFactory).createTracer(any(), any(), any(), any(), any(), anyMap(), captor.capture());
+            verify(openTelemetryFactory).createTracer(any(), any(), any(), any(), any(), anyMap(), captor.capture(), any());
             assertThat(captor.getValue().rules()).hasSize(1);
             assertThat(captor.getValue().rules().get(0).attributeNamePattern()).isEqualTo("enduser.id");
             assertThat(captor.getValue().rules().get(0).maskingStrategy()).isInstanceOf(FullMaskingStrategy.class);
@@ -526,9 +526,9 @@ class DefaultApiReactorFactoryTest {
             when(openTelemetryConfiguration.isTracesEnabled()).thenReturn(true);
             when(node.id()).thenReturn("node-id");
             when(node.application()).thenReturn("apim-gateway");
-            when(openTelemetryFactory.createTracer(any(), any(), any(), any(), any(), anyMap(), any(RedactionConfig.class))).thenReturn(
-                mock(Tracer.class)
-            );
+            when(
+                openTelemetryFactory.createTracer(any(), any(), any(), any(), any(), anyMap(), any(RedactionConfig.class), any())
+            ).thenReturn(mock(Tracer.class));
 
             cut.createTracingContext(api, "API_V4");
 
@@ -540,7 +540,8 @@ class DefaultApiReactorFactoryTest {
                 any(),
                 anyList(),
                 mapCaptor.capture(),
-                any(RedactionConfig.class)
+                any(RedactionConfig.class),
+                any()
             );
             assertThat(mapCaptor.getValue())
                 .containsEntry("gravitee.module", "apim")
