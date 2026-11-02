@@ -78,18 +78,10 @@
         <apim.core.version>4.14.0-SNAPSHOT</apim.core.version>
 
         <!--
-            Versions shared with the engine. They are declared here as well because the distribution
-            uses them directly and must keep resolving them once it no longer inherits the root pom.
-            Copies on purpose, not moves: the engine still needs its own. Keep them aligned when
-            bumping either side.
+            Versions of artifacts the distribution uses directly and the APIM core does not manage
+            through gravitee-apim-bom; anything it does manage takes its version from the BOM.
         -->
         <gravitee-connector-http.version>6.0.5</gravitee-connector-http.version>
-        <gravitee-node.version>9.16.1</gravitee-node.version>
-        <jna.version>5.19.1</jna.version>
-        <mariadb-java-client.version>3.5.10</mariadb-java-client.version>
-        <mongo.version>5.11.1</mongo.version>
-        <mssql-jdbc.version>13.6.0.jre11</mssql-jdbc.version>
-        <postgresql.version>42.7.13</postgresql.version>
 
         <!--
             Assembly poms are not published. They were deployed because the distribution happened to
