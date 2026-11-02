@@ -140,6 +140,7 @@ export interface DynamicPropertiesFormState {
     body: string;
     specification: string;
     useSystemProxy: boolean;
+    encryptOnFetch: boolean;
     httpClient: HttpClientFormState;
     proxy: ProxyFormState;
     ssl: SslFormState;
@@ -211,6 +212,7 @@ export const DEFAULT_FORM: DynamicPropertiesFormState = {
     body: '',
     specification: DEFAULT_JOLT,
     useSystemProxy: false,
+    encryptOnFetch: false,
     httpClient: DEFAULT_HTTP_CLIENT,
     proxy: DEFAULT_PROXY,
     ssl: DEFAULT_SSL,
@@ -271,6 +273,7 @@ export function fromDtoToFormState(dto: DynamicPropertyConfig): DynamicPropertie
         body: cfg.body ?? '',
         specification: cfg.specification ?? DEFAULT_JOLT,
         useSystemProxy: cfg.useSystemProxy ?? false,
+        encryptOnFetch: cfg.encryption?.encryptOnFetch ?? false,
         httpClient: {
             connectTimeout: httpClientOpts.connectTimeout ?? DEFAULT_HTTP_CLIENT.connectTimeout,
             readTimeout: httpClientOpts.readTimeout ?? DEFAULT_HTTP_CLIENT.readTimeout,
@@ -342,6 +345,7 @@ export function fromFormStateToDto(state: DynamicPropertiesFormState): DynamicPr
             body: state.body || undefined,
             specification: state.specification,
             useSystemProxy: state.useSystemProxy,
+            encryption: { encryptOnFetch: state.encryptOnFetch },
             httpClientOptions: {
                 connectTimeout: state.httpClient.connectTimeout,
                 readTimeout: state.httpClient.readTimeout,

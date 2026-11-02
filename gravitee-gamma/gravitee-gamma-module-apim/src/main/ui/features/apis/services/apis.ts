@@ -266,12 +266,23 @@ export async function deleteApiBackground(environmentId: string, apiId: string):
     });
 }
 
-export async function updateApiProperties(environmentId: string, apiId: string, properties: Property[]): Promise<void> {
-    const current = await apimFetchJsonV2<Record<string, unknown>>(environmentId, `/apis/${encodeURIComponent(apiId)}`);
+/**
+ * Builds the next list from the properties as the server holds them now, like classic `saveProperties$`: a dynamic
+ * property synced since the page loaded must survive, and a rejecting `change` sends nothing.
+ */
+export async function updateApiProperties(
+    environmentId: string,
+    apiId: string,
+    change: (current: Property[]) => Property[],
+): Promise<void> {
+    const current = await apimFetchJsonV2<Record<string, unknown> & { properties?: Property[] }>(
+        environmentId,
+        `/apis/${encodeURIComponent(apiId)}`,
+    );
     await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}`, {
         method: 'PUT',
         headers: JSON_HEADERS,
-        body: JSON.stringify({ ...current, properties }),
+        body: JSON.stringify({ ...current, properties: change(current.properties ?? []) }),
     });
 }
 
