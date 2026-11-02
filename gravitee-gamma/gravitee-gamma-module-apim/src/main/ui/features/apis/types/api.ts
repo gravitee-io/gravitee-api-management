@@ -546,6 +546,7 @@ export interface DynamicPropertyHttpConfiguration {
 
 export interface DynamicPropertyConfig {
     enabled: boolean;
+    type?: string;
     schedule?: string;
     provider?: DynamicPropertyProvider;
     configuration?: DynamicPropertyHttpConfiguration;
