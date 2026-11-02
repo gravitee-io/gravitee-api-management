@@ -24,6 +24,11 @@ import { Api, ApiService, ApisResponse } from '../../../../../projects/portal-we
 import { SearchQueryParam, SearchRequestParams } from '../../../utils/search-query-param.enum';
 import { ConfigurationService } from '../../../services/configuration.service';
 import { createPromiseList } from '../../../utils/utils';
+<<<<<<< HEAD
+=======
+import { GvFormControlDirective } from '../../../directives/gv-form-control.directive';
+import { MarkdownDescriptionPipe } from '../../../pipes/markdown-description.pipe';
+>>>>>>> 76ee0e6 (fix(portal): sanitize API descriptions in search results and homepage)
 
 @Component({
   selector: 'app-search',
@@ -32,6 +37,16 @@ import { createPromiseList } from '../../../utils/utils';
   standalone: false,
 })
 export class CatalogSearchComponent implements OnInit {
+<<<<<<< HEAD
+=======
+  private formBuilder = inject(FormBuilder);
+  private apiService = inject(ApiService);
+  private activatedRoute = inject(ActivatedRoute);
+  private router = inject(Router);
+  private config = inject(ConfigurationService);
+  private markdownDescription = inject(MarkdownDescriptionPipe);
+
+>>>>>>> 76ee0e6 (fix(portal): sanitize API descriptions in search results and homepage)
   searchForm: FormGroup<{ query: FormControl<string> }>;
   pageSize: number;
   pageSizes: Array<number>;
@@ -95,7 +110,7 @@ export class CatalogSearchComponent implements OnInit {
         }
 
         apisResponse.data.forEach(api => {
-          deferredList.shift().resolve(api);
+          deferredList.shift().resolve(this.markdownDescription.transform(api));
         });
       })
       .catch(err => {
