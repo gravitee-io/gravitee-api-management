@@ -67,11 +67,20 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gbuddy setup --json > "$RUNNER_TEMP/setup.json"
 
+      - name: Get a push token
+        id: app-token
+        if: steps.setup.outcome == 'success' && steps.pin.outputs.moved == 'true' && steps.author.outputs.bot != 'true'
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.GBUDDY_APP_CLIENT_ID }}
+          private-key: ${{ secrets.GBUDDY_APP_PRIVATE_KEY }}
+          permission-contents: write
+
       - name: Commit the result
         id: commit
         if: steps.setup.outcome == 'success' && steps.pin.outputs.moved == 'true' && steps.author.outputs.bot != 'true'
         env:
-          PUSH_URL: https://x-access-token:${{ secrets.GBUDDY_BOT_TOKEN }}@github.com/${{ github.repository }}.git
+          PUSH_URL: https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }}.git
         run: |
           git add -A -- . ':!.claude/' ':!.agents/'
           if git diff --cached --quiet; then
