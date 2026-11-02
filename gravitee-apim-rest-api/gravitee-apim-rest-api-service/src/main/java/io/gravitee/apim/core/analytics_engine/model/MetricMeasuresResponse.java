@@ -25,7 +25,7 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public record MetricMeasuresResponse(
-    MetricSpec.Name name,
+    MetricName name,
     MetricSpec.Unit unit,
     List<Measure> measures,
     @JsonInclude(JsonInclude.Include.NON_EMPTY) List<FilterName> ignoredFilters

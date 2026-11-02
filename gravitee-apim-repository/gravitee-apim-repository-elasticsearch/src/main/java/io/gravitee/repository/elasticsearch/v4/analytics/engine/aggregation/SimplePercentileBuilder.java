@@ -15,8 +15,13 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation;
 
+import io.gravitee.repository.analytics.engine.api.metric.Measure;
+import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs;
+import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -24,19 +29,25 @@ import io.vertx.core.json.JsonObject;
  */
 public class SimplePercentileBuilder {
 
-    public static JsonObject build(String field, double percentile) {
-        return JsonObject.of("percentiles", field(field, percentile));
+    /** The percent a percentile measure reads, which also keys its value in the response; empty for any other measure. */
+    public static Optional<Double> percent(Measure measure) {
+        return switch (measure) {
+            case P50 -> Optional.of(50.0);
+            case P90 -> Optional.of(90.0);
+            case P95 -> Optional.of(95.0);
+            case P99 -> Optional.of(99.0);
+            case COUNT, AVG, MIN, MAX, PERCENTAGE, SUM -> Optional.empty();
+        };
     }
 
-    private static JsonObject field(String field, double percentile) {
-        return JsonObject.of("field", field).put("missing", 0).put("percents", percents(percentile));
-    }
-
-    private static JsonArray percents(double percentile) {
-        return JsonArray.of(percentile);
-    }
-
-    private static JsonObject missing() {
-        return JsonObject.of("missing", 0);
+    /** A built-in percentile, a document without the field counted as 0. */
+    public static Map<String, JsonObject> build(String aggName, String field, Measure percentile) {
+        var percents = JsonArray.of(
+            percent(percentile).orElseThrow(() -> new IllegalArgumentException(percentile + " is not a percentile"))
+        );
+        return Map.of(
+            aggName,
+            JsonObject.of(Aggs.PERCENTILES, JsonObject.of(Tokens.FIELD, field, Aggs.MISSING, 0, Aggs.PERCENTS, percents))
+        );
     }
 }

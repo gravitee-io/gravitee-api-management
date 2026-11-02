@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,9 +34,14 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class AggregationAdapterTest {
@@ -235,6 +241,56 @@ class AggregationAdapterTest {
             .sum();
 
         assertThat(measures.get(Metric.HTTP_REQUESTS).get(Measure.COUNT).longValue()).isEqualTo(total).isEqualTo(facetsSum);
+    }
+
+    /**
+     * Elasticsearch refuses to order terms by a multi-value aggregation unless the path names its key. The native
+     * and event metrics paths measure no percentile; their single-value orders are pinned by their own tests.
+     */
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("facetsSearchedOnEveryPath")
+    void should_order_facet_buckets_by_a_percentile_through_its_percent_on_every_search_path(
+        String path,
+        Function<FacetsQuery, String> adapt,
+        Metric metric,
+        Facet facet
+    ) throws Exception {
+        var sorted = new MetricMeasuresQuery(
+            metric,
+            Set.of(Measure.P90),
+            List.of(new MetricMeasuresQuery.Sort(Measure.P90, MetricMeasuresQuery.Sort.Order.DESC))
+        );
+
+        var orders = JSON.readTree(adapt.apply(new FacetsQuery(TIME_RANGE, List.of(), List.of(sorted), List.of(facet)))).findValues(
+            "order"
+        );
+
+        assertThat(orders)
+            .singleElement()
+            .satisfies(order -> assertThat(order.fieldNames()).toIterable().containsExactly(metric.name() + "#P90[90.0]"));
+    }
+
+    static Stream<Arguments> facetsSearchedOnEveryPath() {
+        return Stream.of(
+            arguments(
+                "HTTP",
+                (Function<FacetsQuery, String>) new HTTPFacetsQueryAdapter()::adapt,
+                Metric.HTTP_GATEWAY_RESPONSE_TIME,
+                Facet.API
+            ),
+            arguments(
+                "MESSAGE",
+                (Function<FacetsQuery, String>) query -> new MessageFacetsQueryAdapter().adapt(query, Set.of("req-1")),
+                Metric.MESSAGE_GATEWAY_LATENCY,
+                Facet.API
+            ),
+            arguments(
+                "AUTHZ",
+                (Function<FacetsQuery, String>) new AuthzFacetsQueryAdapter(new AuthzMeasuresQueryAdapter())::adapt,
+                Metric.AUTHZ_EVAL_DURATION,
+                Facet.AUTHZ_ACTION
+            )
+        );
     }
 
     private static ObjectNode buildBucketWithFilterAgg(String key, int docCount, String metricName, String measureName, double value) {

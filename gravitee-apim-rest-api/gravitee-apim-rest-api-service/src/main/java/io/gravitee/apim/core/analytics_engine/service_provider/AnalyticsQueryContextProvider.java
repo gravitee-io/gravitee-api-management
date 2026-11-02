@@ -23,6 +23,7 @@ import io.gravitee.apim.core.analytics_engine.model.FacetName;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.MetricName;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
@@ -42,12 +43,19 @@ public class AnalyticsQueryContextProvider {
 
     private final Map<MetricSpec.Name, AnalyticsEngineQueryService> services = new HashMap<>();
 
+    private final Optional<AnalyticsEngineQueryService> additionalMetricsService;
+
     public AnalyticsQueryContextProvider(List<AnalyticsEngineQueryService> impl) {
         for (var service : impl) {
             for (var metric : service.metrics()) {
                 services.put(metric, service);
             }
         }
+        var measuringAdditionalMetrics = impl.stream().filter(AnalyticsEngineQueryService::measuresAdditionalMetrics).toList();
+        if (measuringAdditionalMetrics.size() > 1) {
+            throw new IllegalStateException("More than one analytics service measures additional metrics: " + measuringAdditionalMetrics);
+        }
+        additionalMetricsService = measuringAdditionalMetrics.stream().findFirst();
     }
 
     public Map<AnalyticsEngineQueryService, MeasuresRequest> resolve(MeasuresRequest measureRequest) {
@@ -94,16 +102,23 @@ public class AnalyticsQueryContextProvider {
             .anyMatch(FilterSpec.Name::isIdentifying);
     }
 
-    /** See {@link AnalyticsEngineQueryService#narrowsBy}, asked of the service the metric is routed to. */
-    public boolean narrowsBy(MetricSpec.Name metric, FilterSpec.Name filter) {
-        return resolve(metric).narrowsBy(metric, filter);
+    /**
+     * See {@link AnalyticsEngineQueryService#narrowsBy}, asked of the service the metric is routed to. An additional
+     * metric is searched in the request documents like the built-in whose dimensions it takes.
+     */
+    public boolean narrowsBy(MetricName metric, FilterSpec.Name filter) {
+        var searchedLike = switch (metric) {
+            case MetricSpec.Name builtIn -> builtIn;
+            case AdditionalMetricName _ -> AdditionalMetricName.DIMENSIONS_OF;
+        };
+        return resolve(metric).narrowsBy(searchedLike, filter);
     }
 
     /**
      * The service of a metric grouped by these facets. An additional metric field is in no metric's declaration, so
      * the validator cannot tell which metrics it groups: the service the metric is routed to does.
      */
-    private AnalyticsEngineQueryService resolve(MetricSpec.Name metric, List<FacetName> facets) {
+    private AnalyticsEngineQueryService resolve(MetricName metric, List<FacetName> facets) {
         var service = resolve(metric);
         Stream.ofNullable(facets)
             .flatMap(List::stream)
@@ -116,7 +131,12 @@ public class AnalyticsQueryContextProvider {
         return service;
     }
 
-    public AnalyticsEngineQueryService resolve(MetricSpec.Name metric) {
-        return Optional.ofNullable(services.get(metric)).orElseThrow(() -> new UnsupportedMetricException(metric.name()));
+    /** An additional metric field is measured by the one service reading the request documents (OBS-70). */
+    public AnalyticsEngineQueryService resolve(MetricName metric) {
+        var service = switch (metric) {
+            case MetricSpec.Name builtIn -> Optional.ofNullable(services.get(builtIn));
+            case AdditionalMetricName _ -> additionalMetricsService;
+        };
+        return service.orElseThrow(() -> new UnsupportedMetricException(metric.name()));
     }
 }

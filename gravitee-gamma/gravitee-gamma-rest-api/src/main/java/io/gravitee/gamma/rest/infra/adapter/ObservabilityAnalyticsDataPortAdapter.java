@@ -37,6 +37,7 @@ import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresResponse;
+import io.gravitee.apim.core.analytics_engine.model.MetricName;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.model.TimeRange;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
@@ -174,7 +175,7 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
 
     // What the engine answers when no document matches, without asking it: no readable API meets the conditions.
     private MeasuresResponse zeroValued(MeasuresRequest request) {
-        var measuresByMetric = new LinkedHashMap<MetricSpec.Name, LinkedHashSet<MetricSpec.Measure>>();
+        var measuresByMetric = new LinkedHashMap<MetricName, LinkedHashSet<MetricSpec.Measure>>();
         request
             .metrics()
             .forEach(metric -> measuresByMetric.computeIfAbsent(metric.name(), name -> new LinkedHashSet<>()).addAll(metric.measures()));
@@ -190,7 +191,7 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
                             metric
                                 .getValue()
                                 .stream()
-                                .map(measure -> new Measure(measure, 0))
+                                .map(measure -> new Measure(measure, MetricName.emptyValue(metric.getKey(), measure)))
                                 .toList(),
                             List.of()
                         )
@@ -454,8 +455,13 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
         return facets.stream().map(ObservabilityAnalyticsDataPortAdapter::toApimFacetName).toList();
     }
 
-    private static MetricSpec.Name toApimMetricName(String metric) {
-        return toEnum(MetricSpec.Name.class, metric).orElseThrow(() -> InvalidObservabilityQueryException.unknownMetric(metric));
+    /** A built-in, or a well-formed additional metric field holding a number. */
+    private static MetricName toApimMetricName(String metric) {
+        var name = MetricName.parse(metric).orElseThrow(() -> InvalidObservabilityQueryException.unknownMetric(metric));
+        if (name instanceof AdditionalMetricName additionalMetric && !additionalMetric.field().valueType().isNumber()) {
+            throw InvalidObservabilityQueryException.notAMetric(metric, additionalMetric.field().valueType().name());
+        }
+        return name;
     }
 
     private static MetricSpec.Measure toApimMeasure(String metric, String measure) {

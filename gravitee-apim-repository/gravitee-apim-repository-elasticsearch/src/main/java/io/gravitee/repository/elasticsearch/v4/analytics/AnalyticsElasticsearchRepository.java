@@ -364,7 +364,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         return client
             .search(index, null, esQuery)
-            .map(response -> facetsResponseAdapter.adapt(response, query))
+            .map(response -> facetsResponseAdapter.adapt(AuthzScopedFacetAggregation.unwrap(response, query), query))
             .blockingGet();
     }
 
@@ -377,7 +377,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         return client
             .search(index, null, esQuery)
-            .map(response -> facetsResponseAdapter.adapt(response, query))
+            .map(response -> facetsResponseAdapter.adapt(AuthzScopedFacetAggregation.unwrap(response, query), query))
             .blockingGet();
     }
 
@@ -403,7 +403,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         return client
             .search(index, null, esQuery)
-            .map(response -> timeSeriesResponseAdapter.adapt(response, query))
+            .map(response -> timeSeriesResponseAdapter.adapt(AuthzScopedFacetAggregation.unwrap(response, query), query))
             .blockingGet();
     }
 

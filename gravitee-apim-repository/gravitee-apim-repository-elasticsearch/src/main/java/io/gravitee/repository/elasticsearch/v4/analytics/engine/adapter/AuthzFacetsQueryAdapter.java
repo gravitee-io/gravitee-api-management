@@ -62,7 +62,7 @@ public class AuthzFacetsQueryAdapter {
             measuresAdapter.fieldResolver().fromFacet(facet),
             limit,
             measuresAdapter.buildMeasureAggs(metric),
-            measuresAdapter.scopeFilter(metric.metric(), filters)
+            measuresAdapter.scopeFilter(BuiltInMetric.of(metric.metric()), filters)
         );
     }
 

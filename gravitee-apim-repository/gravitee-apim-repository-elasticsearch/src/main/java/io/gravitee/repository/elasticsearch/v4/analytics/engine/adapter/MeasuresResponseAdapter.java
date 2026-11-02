@@ -23,9 +23,9 @@ import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
 import io.gravitee.repository.analytics.engine.api.result.MetricMeasuresResult;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -63,6 +63,9 @@ public class MeasuresResponseAdapter extends AbstractResponseAdapter {
     }
 
     private Map<Measure, Number> emptyMeasures(MetricMeasuresQuery query) {
-        return query.measures().stream().collect(Collectors.toMap(measure -> measure, measure -> 0));
+        // Not Collectors.toMap, which refuses the null an additional metric reads
+        var measures = new HashMap<Measure, Number>();
+        query.measures().forEach(measure -> measures.put(measure, AggregationAdapter.emptyValue(query.metric(), measure)));
+        return measures;
     }
 }

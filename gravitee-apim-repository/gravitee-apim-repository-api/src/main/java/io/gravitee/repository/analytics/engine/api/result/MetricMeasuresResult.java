@@ -16,11 +16,11 @@
 package io.gravitee.repository.analytics.engine.api.result;
 
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
-import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.repository.analytics.engine.api.metric.MetricName;
 import java.util.Map;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record MetricMeasuresResult(Metric metric, Map<Measure, Number> measures) {}
+public record MetricMeasuresResult(MetricName metric, Map<Measure, Number> measures) {}

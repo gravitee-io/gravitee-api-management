@@ -67,7 +67,7 @@ public class AuthzTrafficMeasuresQueryAdapter implements AuthzMeasuresAdapter {
         var aggs = new JsonObject();
         for (var metric : metrics) {
             var measureAggs = buildMeasureAggs(metric);
-            var scope = scopeFilter(metric.metric(), filters);
+            var scope = scopeFilter(BuiltInMetric.of(metric.metric()), filters);
             if (scope == null) {
                 aggs.mergeIn(measureAggs);
             } else {

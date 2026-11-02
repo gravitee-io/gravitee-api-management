@@ -26,7 +26,7 @@ public record MetricSpec(
     List<FilterSpec.Name> filters,
     List<FacetSpec.Name> facets
 ) {
-    public enum Name {
+    public enum Name implements MetricName {
         HTTP_REQUESTS,
         HTTP_ERRORS,
         HTTP_ERROR_RATE,

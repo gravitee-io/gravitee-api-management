@@ -99,6 +99,15 @@ public interface AnalyticsMeasuresMapper {
         };
     }
 
+    /** This API names built-in metrics only; additional metric fields are a Gamma observability feature. */
+    default io.gravitee.apim.core.analytics_engine.model.MetricName mapMetricName(MetricName metricName) {
+        return metricName == null ? null : MetricSpec.Name.valueOf(metricName.name());
+    }
+
+    default MetricName mapMetricName(io.gravitee.apim.core.analytics_engine.model.MetricName metricName) {
+        return metricName == null ? null : MetricName.fromValue(metricName.name());
+    }
+
     default FilterSpec.Name mapFilterName(FilterName filterName) {
         return FilterSpec.Name.valueOf(filterName.name());
     }

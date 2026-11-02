@@ -75,6 +75,13 @@ public class InvalidQueryException extends ValidationDomainException {
         return new InvalidQueryException("Measure " + measure + " is not supported for metric " + metric);
     }
 
+    public static InvalidQueryException forNotAMetric(String metric, String valueType) {
+        return new InvalidQueryException(
+            "'" + metric + "' is not a metric: it holds " + valueType + " values, not numbers",
+            "analytics.metric.not_a_metric"
+        );
+    }
+
     public static InvalidQueryException forNullFilterValue(String filterName) {
         return new InvalidQueryException("Filter '" + filterName + "' requires a non-null value");
     }
