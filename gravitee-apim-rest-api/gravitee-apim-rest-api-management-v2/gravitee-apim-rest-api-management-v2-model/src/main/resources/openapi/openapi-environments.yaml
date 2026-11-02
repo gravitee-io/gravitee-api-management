@@ -992,9 +992,16 @@ paths:
       description: |-
         User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
         Returns a page of the environment's portals, the default portal first and then by name, with the
-        environment's portal quota.
+        environment's portal quota. The pagination counts the portals matching `q`; the quota always counts every
+        portal of the environment.
       operationId: listPortals
       parameters:
+        - name: q
+          in: query
+          description: Only the portals whose name contains this text, ignoring case.
+          schema:
+            type: string
+            example: partners
         - $ref: "#/components/parameters/pageParam"
         - $ref: "#/components/parameters/perPageParam"
       responses:
