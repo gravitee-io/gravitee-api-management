@@ -80,7 +80,6 @@
         <dependency>
             <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-cache-plugin-standalone</artifactId>
-            <version>${gravitee-node.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
             <exclusions>
@@ -93,7 +92,6 @@
         <dependency>
             <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-cluster-plugin-standalone</artifactId>
-            <version>${gravitee-node.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
             <exclusions>
@@ -1061,19 +1059,16 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>${postgresql.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
-            <version>${mariadb-java-client.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
-            <version>${mssql-jdbc.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -1374,7 +1369,6 @@
                                     <artifactItem>
                                         <groupId>org.mongodb</groupId>
                                         <artifactId>mongodb-crypt</artifactId>
-                                        <version>${mongo.version}</version>
                                         <outputDirectory>
                                             ${project.build.directory}/distribution/plugins/ext/repository-mongodb
                                         </outputDirectory>
@@ -1382,7 +1376,6 @@
                                     <artifactItem>
                                         <groupId>net.java.dev.jna</groupId>
                                         <artifactId>jna</artifactId>
-                                        <version>${jna.version}</version>
                                         <outputDirectory>
                                             ${project.build.directory}/distribution/plugins/ext/repository-mongodb
                                         </outputDirectory>
@@ -2840,7 +2833,6 @@
                 <dependency>
                     <groupId>io.gravitee.node</groupId>
                     <artifactId>gravitee-node-cluster-plugin-hazelcast</artifactId>
-                    <version>${gravitee-node.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
