@@ -50,3 +50,5 @@ annotations:
       links:
         - name: Github PR
           url: https://github.com/gravitee-io/gravitee-api-management/pull/21756
+    - kind: added
+      description: "Add `gateway.kafka.maxConnections`, `gateway.kafka.maxConnectionsPerGiB` and `gateway.kafka.readiness` to cap the client connections of a gateway instance and report it not ready near the cap"
