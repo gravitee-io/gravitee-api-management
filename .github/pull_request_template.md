@@ -2,7 +2,7 @@
 
 https://gravitee.atlassian.net/browse/APIM-XXX
 
-The key may be in the title or the branch instead of this link. `no-jira` is the opt-out. A maintainer adds it for an external pull request.
+The key may be in the title or the branch instead of this link. `no-jira` is the opt-out. A maintainer adds it for an external pull request. A missing Atlassian Team is reported and does not fail the check.
 
 ## Description
 

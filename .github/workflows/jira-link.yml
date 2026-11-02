@@ -1,5 +1,6 @@
-# Fails the pull request unless it cites a Jira issue that has an Atlassian Team.
+# Fails the pull request unless it cites a Jira key.
 # The key may be in the title, the head branch, or the body. One key may cover a train.
+# A missing Atlassian Team is a warning. Jira being down does not fail the check.
 # Runs from the base branch, never from the pull request head, so a pull request
 # cannot change the gate and a fork never receives the Jira credentials.
 name: Jira link
@@ -23,7 +24,7 @@ jobs:
             - uses: actions/checkout@v6.1.0
               with:
                   ref: ${{ github.event.pull_request.base.sha }}
-            - name: Require a Jira key and an Atlassian Team
+            - name: Require a Jira key
               env:
                   JIRA_BASE_URL: https://gravitee.atlassian.net
                   JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}

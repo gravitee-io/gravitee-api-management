@@ -1,9 +1,9 @@
-"""Fail a pull request unless it cites a Jira issue that has an Atlassian Team.
+"""Fail a pull request unless it cites a Jira key.
 
 The key may be in the title, the head branch, or the body. One key may cover
-many pull requests. This script never chooses a team: it only checks that
-Atlassian Team (customfield_10001) is set, reading the parent when the issue
-is a subtask.
+many pull requests. A missing Atlassian Team is a warning: the merge does not
+depend on a Jira field the author may not own, or on Jira being up. This
+script never chooses a team. For a subtask it reads the parent's team.
 """
 
 import base64
@@ -24,8 +24,10 @@ TEAM_FIELD = "customfield_10001"
 ISSUE_FIELDS = "issuetype,parent,project,customfield_10001"
 
 EXTERNAL_CONTRIBUTOR = "External contributor? A maintainer will add the `no-jira` label."
-CREDENTIALS_REJECTED = "FAIL: Jira credentials rejected, the JIRA_API_TOKEN secret needs attention"
-JIRA_UNREACHABLE = "FAIL: Jira unreachable, rerun the check"
+WARN_CREDENTIALS = (
+    "WARN: Team was not checked: Jira credentials rejected, the JIRA_API_TOKEN secret needs attention"
+)
+WARN_UNREACHABLE = "WARN: Team was not checked: Jira unreachable"
 
 
 class JiraRejected(Exception):
@@ -90,29 +92,25 @@ def _parent_key(fields):
     return parent.get("key") or ""
 
 
-def evaluate(event, transport, exempt_projects):
-    """Return the line to print. transport(key) returns the issue fields, or None on 404.
-
-    It raises JiraRejected or JiraUnreachable. The first issue with a Team passes.
-    If none has a Team but one exists, the failure names the first existing one.
-    """
-    reason = exempt_reason(event)
-    if reason:
-        return reason
-
+def _pull_request_keys(event):
     pull_request = event.get("pull_request") or {}
-    keys = candidate_keys(
+    return candidate_keys(
         pull_request.get("title"),
         (pull_request.get("head") or {}).get("ref"),
         pull_request.get("body"),
     )
-    if not keys:
-        return (
-            "FAIL: no Jira key in the title, head branch, or body. "
-            "Add a key such as APIM-1234 to the title or the head branch. "
-            + EXTERNAL_CONTRIBUTOR
-        )
 
+
+def _pass_line(keys):
+    return f"PASS: Jira key {keys[0]}"
+
+
+def _team_warning(keys, transport, exempt_projects):
+    """A warning about Team, or none. The first issue with a Team silences it.
+
+    transport(key) returns the issue fields, or None on 404. It raises
+    JiraRejected or JiraUnreachable.
+    """
     missing = []
     first_without_team = None
     for key in keys:
@@ -121,7 +119,7 @@ def evaluate(event, transport, exempt_projects):
             missing.append(key)
             continue
         if _project_key(fields) in exempt_projects:
-            return f"PASS: {key} is in {_project_key(fields)}, which needs no Team"
+            return None
         team_fields = fields
         if _is_subtask(fields):
             parent = _parent_key(fields)
@@ -136,23 +134,47 @@ def evaluate(event, transport, exempt_projects):
                 continue
             team_fields = parent_fields
         if team_is_set(team_fields.get(TEAM_FIELD)):
-            return f"PASS: {key} has an Atlassian Team"
+            return None
         if first_without_team is None:
             first_without_team = key
 
     if first_without_team is not None:
         url = f"https://gravitee.atlassian.net/browse/{first_without_team}"
         return (
-            f"FAIL: `{first_without_team}` has no Team; set Atlassian Team on {url} "
-            "(on the parent if it is a subtask), then rerun"
+            f"WARN: `{first_without_team}` has no Team; set Atlassian Team on {url} "
+            "(on the parent if it is a subtask)"
         )
 
     quoted = ", ".join(f"`{key}`" for key in missing)
     verb = "was" if len(missing) == 1 else "were"
-    return (
-        f"FAIL: {quoted} {verb} not found in Jira or not visible to the check's account. "
-        + EXTERNAL_CONTRIBUTOR
-    )
+    return f"WARN: {quoted} {verb} not found in Jira or not visible to the check's account"
+
+
+def evaluate(event, transport, exempt_projects):
+    """Return (message, warnings). The message starts with PASS or FAIL.
+
+    Only a missing Jira key fails. Team, an unknown key, and Jira errors are warnings.
+    """
+    reason = exempt_reason(event)
+    if reason:
+        return reason, []
+
+    keys = _pull_request_keys(event)
+    if not keys:
+        return (
+            "FAIL: no Jira key in the title, head branch, or body. "
+            "Add a key such as APIM-1234 to the title or the head branch. "
+            + EXTERNAL_CONTRIBUTOR,
+            [],
+        )
+
+    try:
+        warning = _team_warning(keys, transport, exempt_projects)
+    except JiraRejected:
+        return _pass_line(keys), [WARN_CREDENTIALS]
+    except JiraUnreachable:
+        return _pass_line(keys), [WARN_UNREACHABLE]
+    return _pass_line(keys), [warning] if warning else []
 
 
 def _retry_after_seconds(headers):
@@ -241,22 +263,24 @@ def main(argv=None):
         return 1
     event = load_event(event_path)
     exempt = {item.strip() for item in os.environ.get("TEAM_EXEMPT_PROJECTS", "PEN").split(",") if item.strip()}
-    # An exemption must not need Jira credentials.
-    message = exempt_reason(event)
-    if message is None:
+    # An exemption or a missing key must not need Jira credentials.
+    if exempt_reason(event) or not _pull_request_keys(event):
+        message, warnings = evaluate(event, lambda key: None, exempt)
+    else:
         try:
             call = urllib_call(
                 os.environ.get("JIRA_BASE_URL", "https://gravitee.atlassian.net"),
                 os.environ.get("JIRA_USER_EMAIL", ""),
                 os.environ.get("JIRA_API_TOKEN", ""),
             )
-            message = evaluate(event, fetching(call, time.sleep), exempt)
         except JiraRejected:
-            message = CREDENTIALS_REJECTED
-        except JiraUnreachable:
-            message = JIRA_UNREACHABLE
+            message, warnings = _pass_line(_pull_request_keys(event)), [WARN_CREDENTIALS]
+        else:
+            message, warnings = evaluate(event, fetching(call, time.sleep), exempt)
     print(message)
-    write_summary(message)
+    for warning in warnings:
+        print(f"::warning::{warning}")
+    write_summary("\n".join([message, *warnings]))
     return 0 if message.startswith("PASS") else 1
 
 
