@@ -30,6 +30,29 @@ annotations:
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
   artifacthub.io/changes: |
+<<<<<<< HEAD
+=======
+    - kind: changed
+      description: "The gateway readiness probe includes `kafka-readiness` only when `gateway.kafka.enabled` and `gateway.kafka.readiness.enabled` are true; liveness and startup probes are unchanged"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/22223
+    - kind: added
+      description: "`ldap.lookup.activations` restricts where the LDAP user search of the Management API is allowed: a list of organization ids or `organization id:environment id` pairs, empty by default"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/21733
+    - kind: deprecated
+      description: "The `mongodb` and `elasticsearch` subcharts are deprecated and will be removed in 4.15: they run Bitnami images that no longer receive security updates"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/20497
+    - kind: fixed
+      description: "The Management API gravitee.yml now always declares the otel-traces and otel-logs repository types, so the Gamma trace explorer answers empty results instead of a 500 when OpenTelemetry tracing is not configured"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/19977
+>>>>>>> 66ef24d (fix(helm): add the kafka-readiness probe to the gateway readiness path when it is enabled)
     - kind: changed
       description: "Additional and cluster plugins can be given by name: they are installed from the release manifest of the component image, at the version that image ships with. With federation enabled, the Hazelcast cache and cluster plugins are installed that way instead of from URLs pinned in values.yaml"
       links:
