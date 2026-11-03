@@ -297,16 +297,17 @@ data:
       maxConnectionsPerGiB: {{ .Values.gateway.kafka.maxConnectionsPerGiB }}
       {{- end}}
       {{- $kafkaReadiness := .Values.gateway.kafka.readiness | default dict }}
-      {{- if $kafkaReadiness }}
+      {{- /* The gateway validates the thresholds even when the probe is off, so they are rendered only when it is enabled */}}
+      {{- if hasKey $kafkaReadiness "enabled" }}
       readiness:
-        {{- if hasKey $kafkaReadiness "enabled" }}
         enabled: {{ $kafkaReadiness.enabled }}
-        {{- end}}
+        {{- if $kafkaReadiness.enabled }}
         {{- if hasKey $kafkaReadiness "notReadyPercent" }}
         notReadyPercent: {{ $kafkaReadiness.notReadyPercent }}
         {{- end}}
         {{- if hasKey $kafkaReadiness "readyPercent" }}
         readyPercent: {{ $kafkaReadiness.readyPercent }}
+        {{- end}}
         {{- end}}
       {{- end}}
       {{- if hasKey .Values.gateway.kafka "backendMetadataMaxAge" }}

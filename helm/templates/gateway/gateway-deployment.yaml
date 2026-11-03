@@ -215,13 +215,22 @@ spec:
           livenessProbe: {{ toYaml .Values.gateway.deployment.customLivenessProbe | nindent 12 }}
           {{- end }}
           {{- if .Values.gateway.deployment.readinessProbe.enabled }}
+          {{- $readinessProbes := "http-server" }}
+          {{- if hasKey .Values.gateway "kafka" }}
+          {{- if .Values.gateway.kafka.enabled }}
+          {{- $readinessProbes = print $readinessProbes ",kafka-server" }}
+          {{- if and .Values.gateway.kafka.readiness .Values.gateway.kafka.readiness.enabled }}
+          {{- $readinessProbes = print $readinessProbes ",kafka-readiness" }}
+          {{- end }}
+          {{- end }}
+          {{- end }}
           readinessProbe:
             periodSeconds: 10
             timeoutSeconds: 2
             successThreshold: 1
             failureThreshold: 2
             httpGet:
-              path: /_node/health?probes=http-server{{ if hasKey .Values.gateway "kafka"}}{{ if .Values.gateway.kafka.enabled }},kafka-server{{ end }}{{ end }}
+              path: /_node/health?probes={{ $readinessProbes }}
               scheme: HTTP
               port: 18082
               {{- if eq .Values.gateway.services.core.http.authentication.type "basic" }}
