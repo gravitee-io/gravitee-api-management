@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.dictionary;
 
+import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -138,6 +139,16 @@ class ValidateDictionaryDomainServiceTest {
             assertThatThrownBy(() -> service.validate(dictionary))
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessageContaining("hostname");
+        }
+
+        @Test
+        void should_accept_a_masked_value_so_a_read_can_be_applied_back() {
+            var dictionary = Dictionary.builder()
+                .type(DictionaryType.MANUAL)
+                .properties(List.of(new DictionaryProperty("apiKey", ENCRYPTED_VALUE_MASK, null, true)))
+                .build();
+
+            assertThatNoException().isThrownBy(() -> service.validate(dictionary));
         }
 
         @Test

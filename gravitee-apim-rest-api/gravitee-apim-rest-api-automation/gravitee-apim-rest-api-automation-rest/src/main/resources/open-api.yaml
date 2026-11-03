@@ -1785,8 +1785,10 @@ components:
         encryptedProperties:
           type: object
           description: >-
-            Secret properties, keyed by the property key. A key must not appear in both
-            `properties` and `encryptedProperties`.
+            Secret properties, keyed by the property key. A read reports every key here with its
+            value masked, which proves only that a value is stored: the mask is a fixed literal, so a
+            value changed outside the manifest cannot be detected by comparing reads. A key must not
+            appear in both `properties` and `encryptedProperties`.
           additionalProperties:
             $ref: "#/components/schemas/EncryptableValue"
     EncryptableValue:
@@ -1798,6 +1800,7 @@ components:
             `••••••••••••` on a read. On a write, the plaintext to encrypt, or the mask to keep
             the stored value.
           type: string
+          minLength: 1
       required:
         - value
     DynamicDictionarySpec:
