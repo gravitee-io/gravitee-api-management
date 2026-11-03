@@ -123,6 +123,7 @@ export class RepositoriesTestsWorkflow {
             'redis/redis-stack:7.0.6-RC9',
             'redis/redis-stack:7.2.0-v20',
             'redis/redis-stack:7.4.0-v8',
+            'redis:8.2',
             'redis:8',
           ],
         },
