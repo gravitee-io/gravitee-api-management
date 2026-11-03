@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.search.CommandCriteria;
+import io.gravitee.repository.management.api.search.CommandCursor;
 import io.gravitee.repository.management.model.Command;
 import io.gravitee.repository.mongodb.management.internal.message.CommandMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.CommandMongo;
@@ -104,6 +105,24 @@ public class MongoCommandRepository implements CommandRepository {
         log.debug("Search Command [{}]", criteria);
         List<CommandMongo> result = internalMessageRepo.search(criteria);
         return mapper.mapCommands(result);
+    }
+
+    @Override
+    public List<Command> searchAfter(CommandCriteria criteria, CommandCursor after, int pageSize) {
+        log.debug("Search Command [{}] after {} limited to {}", criteria, after, pageSize);
+        if (pageSize < 1) {
+            throw new IllegalArgumentException("pageSize must be at least 1, got " + pageSize);
+        }
+        return mapper.mapCommands(internalMessageRepo.searchAfter(criteria, after, pageSize));
+    }
+
+    @Override
+    public boolean deleteIfExists(String commandId) throws TechnicalException {
+        try {
+            return internalMessageRepo.deleteIfExists(commandId);
+        } catch (Exception e) {
+            throw new TechnicalException("An error occurred when deleting command [" + commandId + "]", e);
+        }
     }
 
     @Override
