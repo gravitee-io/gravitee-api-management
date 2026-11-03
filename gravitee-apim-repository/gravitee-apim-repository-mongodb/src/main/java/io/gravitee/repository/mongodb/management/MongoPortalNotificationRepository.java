@@ -15,12 +15,17 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNotificationRepository;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.PortalNotificationSearchCriteria;
 import io.gravitee.repository.management.model.PortalNotification;
+import io.gravitee.repository.management.model.PortalNotificationReferences;
 import io.gravitee.repository.mongodb.management.internal.model.PortalNotificationMongo;
 import io.gravitee.repository.mongodb.management.internal.notification.PortalNotificationMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -51,6 +56,48 @@ public class MongoPortalNotificationRepository implements PortalNotificationRepo
             .stream()
             .map(n -> mapper.map(n))
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<PortalNotification> search(PortalNotificationSearchCriteria criteria, Pageable pageable) {
+        log.debug("Search notifications: {}, {}", criteria, pageable);
+        var result = internalRepo.search(criteria, pageable);
+        return new Page<>(
+            result.getContent().stream().map(mapper::map).toList(),
+            result.getPageNumber(),
+            (int) result.getPageElements(),
+            result.getTotalElements()
+        );
+    }
+
+    @Override
+    public PortalNotificationReferences findDistinctReferences(String user, String environmentId) {
+        log.debug("Find notification references of user {} in environment {}", user, environmentId);
+        return internalRepo.findDistinctReferences(user, environmentId);
+    }
+
+    @Override
+    public boolean markAsRead(String user, String environmentId, String id, Date readAt) {
+        log.debug("Mark notification {} of user {} as read", id, user);
+        return internalRepo.markAsRead(user, environmentId, id, readAt);
+    }
+
+    @Override
+    public void markAllAsRead(String user, String environmentId, Date readAt) {
+        log.debug("Mark all notifications of user {} in environment {} as read", user, environmentId);
+        internalRepo.markAllAsRead(user, environmentId, readAt);
+    }
+
+    @Override
+    public boolean delete(String user, String environmentId, String id) {
+        log.debug("Delete notification {} of user {}", id, user);
+        return internalRepo.delete(user, environmentId, id);
+    }
+
+    @Override
+    public void deleteAll(String user, String environmentId) {
+        log.debug("Delete notifications of user {} in environment {}", user, environmentId);
+        internalRepo.deleteAll(user, environmentId);
     }
 
     @Override

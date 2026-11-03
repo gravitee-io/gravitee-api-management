@@ -26,7 +26,8 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface PortalNotificationMongoRepository extends MongoRepository<PortalNotificationMongo, String> {
+public interface PortalNotificationMongoRepository
+    extends MongoRepository<PortalNotificationMongo, String>, PortalNotificationMongoRepositoryCustom {
     @Query("{ user: ?0 }")
     Set<PortalNotificationMongo> findByUser(String username);
 
