@@ -249,4 +249,18 @@ class EventGroupKeyHelperTest {
             assertThat(result.referenceId()).isEqualTo("approval-rule-1");
         }
     }
+
+    @Test
+    void should_group_approval_state_events_by_approval_request_id() {
+        EventType[] approvalStateEventTypes = { EventType.PUBLISH_APPROVAL_STATE, EventType.UNPUBLISH_APPROVAL_STATE };
+        Map<String, String> properties = new HashMap<>();
+        properties.put(Event.EventProperties.APPROVAL_REQUEST_ID.getValue(), "approval-request-1");
+
+        for (EventType eventType : approvalStateEventTypes) {
+            EventRepository.EventToCleanGroup result = EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
+            assertThat(result).as("non-null group for %s", eventType).isNotNull();
+            assertThat(result.type()).isEqualTo(eventType.name());
+            assertThat(result.referenceId()).isEqualTo("approval-request-1");
+        }
+    }
 }

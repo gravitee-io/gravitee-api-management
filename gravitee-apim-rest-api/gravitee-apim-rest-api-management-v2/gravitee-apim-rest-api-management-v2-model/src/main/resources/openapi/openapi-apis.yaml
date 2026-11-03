@@ -8752,6 +8752,8 @@ components:
                 - UNPUBLISH_CREDENTIAL
                 - PUBLISH_APPROVAL_RULE
                 - UNPUBLISH_APPROVAL_RULE
+                - PUBLISH_APPROVAL_STATE
+                - UNPUBLISH_APPROVAL_STATE
 
         # Documentation pages
         AccessControl:
