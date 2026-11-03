@@ -92,4 +92,5 @@ public class UpgraderOrder {
     public static final int EDGE_MANAGER_API_CREATE_PERMISSION_UPGRADER = 962;
     public static final int GAMMA_AUTHZ_SCIM_PERMISSIONS_UPGRADER = 963;
     public static final int GAMMA_AUTHZ_PDP_PERMISSION_UPGRADER = 964;
+    public static final int GAMMA_HITL_PERMISSIONS_UPGRADER = 965;
 }
