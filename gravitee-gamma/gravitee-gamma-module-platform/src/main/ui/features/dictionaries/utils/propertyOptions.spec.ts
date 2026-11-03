@@ -26,16 +26,35 @@ describe('toPropertyRows', () => {
                 properties: { PLAIN: 'visible', SECRET: '••••••••••••' },
                 propertyOptions: { SECRET: { encrypted: true } },
             }),
+            new Set(),
         );
 
         expect(rows).toEqual([
-            { key: 'PLAIN', value: 'visible', encrypted: false },
-            { key: 'SECRET', value: '••••••••••••', encrypted: true },
+            { key: 'PLAIN', value: 'visible', encrypted: false, encryptOnSave: false },
+            { key: 'SECRET', value: '••••••••••••', encrypted: true, encryptOnSave: false },
         ]);
     });
 
+    it('flags a plain row the user marked to be encrypted on save', () => {
+        const rows = toPropertyRows(dictionary({ properties: { A: '1', B: '2' } }), new Set(['B']));
+
+        expect(rows.map(row => [row.key, row.encryptOnSave])).toEqual([
+            ['A', false],
+            ['B', true],
+        ]);
+    });
+
+    it('ignores a mark on a key that is gone or already encrypted', () => {
+        const rows = toPropertyRows(
+            dictionary({ properties: { SECRET: '••••••••••••' }, propertyOptions: { SECRET: { encrypted: true } } }),
+            new Set(['SECRET', 'GONE']),
+        );
+
+        expect(rows).toEqual([{ key: 'SECRET', value: '••••••••••••', encrypted: true, encryptOnSave: false }]);
+    });
+
     it('returns no rows when the dictionary has no properties', () => {
-        expect(toPropertyRows(dictionary({}))).toEqual([]);
+        expect(toPropertyRows(dictionary({}), new Set())).toEqual([]);
     });
 });
 

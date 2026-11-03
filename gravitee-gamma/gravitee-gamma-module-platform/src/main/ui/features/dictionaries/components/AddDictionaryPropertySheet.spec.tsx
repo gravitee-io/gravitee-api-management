@@ -60,4 +60,13 @@ describe('AddDictionaryPropertySheet', () => {
 
         await waitFor(() => expect(onSubmit).toHaveBeenCalledWith({ key: 'TOKEN', value: 's3cret', encrypt: true }));
     });
+
+    it.each(['', '   '])('cannot be submitted with the blank value "%s"', value => {
+        const { onSubmit } = renderSheet();
+        fireEvent.change(screen.getByLabelText(/^Key/), { target: { value: 'FRA' } });
+        fireEvent.change(screen.getByLabelText(/^Value/), { target: { value } });
+
+        expect(screen.getByRole('button', { name: 'Add' }).hasAttribute('disabled')).toBe(true);
+        expect(onSubmit).not.toHaveBeenCalled();
+    });
 });

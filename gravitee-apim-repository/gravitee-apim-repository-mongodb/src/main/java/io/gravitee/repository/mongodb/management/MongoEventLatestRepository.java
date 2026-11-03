@@ -18,10 +18,15 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.EventLatestCursor;
+import io.gravitee.repository.management.api.search.EventLatestPage;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.mongodb.management.internal.eventLatest.event.EventLatestMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.EventLatestMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import lombok.CustomLog;
@@ -80,5 +85,19 @@ public class MongoEventLatestRepository implements EventLatestRepository {
     public List<Event> search(EventCriteria criteria, Event.EventProperties group, Long page, Long size) {
         List<EventLatestMongo> eventsMongo = internalEventRepo.search(criteria, group, page, size);
         return mapper.mapEventLatests(eventsMongo);
+    }
+
+    @Override
+    public EventLatestPage searchAfter(EventCriteria criteria, Event.EventProperties group, EventLatestCursor after, int size) {
+        List<Event> events = mapper.mapEventLatests(internalEventRepo.searchAfter(criteria, group, after, size));
+        return new EventLatestPage(events, events.isEmpty() ? after : positionOf(events.getLast()));
+    }
+
+    private static EventLatestCursor positionOf(Event event) {
+        Date updatedAt = event.getUpdatedAt();
+        return new EventLatestCursor(
+            updatedAt == null ? null : LocalDateTime.ofInstant(updatedAt.toInstant(), ZoneOffset.UTC),
+            event.getId()
+        );
     }
 }

@@ -30,3 +30,19 @@ it('keeps a stored maxConcurrentConnections through a load and save', () => {
 
     expect(fromFormStateToDto(fromDtoToFormState(dto)).configuration?.httpClientOptions?.maxConcurrentConnections).toBe(10);
 });
+
+describe('dynamic properties type', () => {
+    it('sends the http-dynamic-properties type the Management API requires', () => {
+        const dto: DynamicPropertyConfig = {
+            enabled: true,
+            provider: 'HTTP',
+            configuration: { method: 'GET', url: 'https://api.example.com/properties' },
+        };
+
+        expect(fromFormStateToDto(fromDtoToFormState(dto)).type).toBe('http-dynamic-properties');
+    });
+
+    it('sends the type when dynamic properties are disabled', () => {
+        expect(fromFormStateToDto(fromDtoToFormState({ enabled: false })).type).toBe('http-dynamic-properties');
+    });
+});

@@ -324,12 +324,15 @@ function serializeKeyStore(ks: KeyStoreFormState): DynamicPropertySslStore | und
     return { type: ks.type, path: ks.path || undefined, password: ks.password || undefined, alias: ks.alias || undefined };
 }
 
+const HTTP_DYNAMIC_PROPERTIES_TYPE = 'http-dynamic-properties';
+
 export function fromFormStateToDto(state: DynamicPropertiesFormState): DynamicPropertyConfig {
     const trustStore = serializeTrustStore(state.ssl.trustStore);
     const keyStore = serializeKeyStore(state.ssl.keyStore);
 
     return {
         enabled: state.enabled,
+        type: HTTP_DYNAMIC_PROPERTIES_TYPE,
         provider: 'HTTP',
         schedule: state.schedule,
         configuration: {

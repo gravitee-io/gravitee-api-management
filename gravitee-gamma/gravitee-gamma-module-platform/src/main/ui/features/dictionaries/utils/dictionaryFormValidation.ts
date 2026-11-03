@@ -19,10 +19,8 @@ export const DICTIONARY_NAME_MAX = 50;
 
 export const DEFAULT_JOLT_SPECIFICATION = `[
   {
-    "operation": "shift",
-    "spec": {
-      "*": "&"
-    }
+    "operation": "default",
+    "spec": {}
   }
 ]`;
 

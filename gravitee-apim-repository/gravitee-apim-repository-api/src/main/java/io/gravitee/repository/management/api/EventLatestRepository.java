@@ -17,6 +17,8 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.EventLatestCursor;
+import io.gravitee.repository.management.api.search.EventLatestPage;
 import io.gravitee.repository.management.model.Event;
 import java.util.List;
 
@@ -38,6 +40,18 @@ public interface EventLatestRepository {
      * @return the list of the latest events.
      */
     List<Event> search(EventCriteria criteria, Event.EventProperties group, Long page, Long size);
+
+    /**
+     * Same filter as {@link #search(EventCriteria, Event.EventProperties, Long, Long)}, paged by keyset: returns up to
+     * {@code size} events strictly after {@code after}. Events without an update date come first, ordered by id, then
+     * the others in {@code (updatedAt, id)} order. Unlike an offset, the cost of a page does not grow with its position.
+     *
+     * @param after the {@link EventLatestPage#next()} of the previous page, <code>null</code> for the first page.
+     * @throws UnsupportedOperationException when the repository cannot page by keyset; callers page by offset instead.
+     */
+    default EventLatestPage searchAfter(EventCriteria criteria, Event.EventProperties group, EventLatestCursor after, int size) {
+        throw new UnsupportedOperationException("searchAfter is not supported by " + getClass().getName());
+    }
 
     /**
      * This method allows to create an event if it does not exist in database or update it if it's present (replace old values by new ones).
