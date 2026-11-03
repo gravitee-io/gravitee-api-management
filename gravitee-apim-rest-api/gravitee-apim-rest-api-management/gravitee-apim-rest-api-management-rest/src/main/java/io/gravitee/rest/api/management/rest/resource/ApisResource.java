@@ -47,7 +47,6 @@ import io.gravitee.rest.api.model.api.ApiValidationResult;
 import io.gravitee.rest.api.model.api.NewApiEntity;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.model.common.Sortable;
-import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
@@ -196,10 +195,7 @@ public class ApisResource extends AbstractResource {
             apiQuery.setCategory(categoryService.findById(apisParam.getCategory(), executionContext.getEnvironmentId()).getId());
         }
 
-        Sortable sortable = null;
-        if (apisParam.getOrder() != null) {
-            sortable = new SortableImpl(apisParam.getOrder().getField(), apisParam.getOrder().isOrder());
-        }
+        Sortable sortable = apisParam.getOrder();
 
         io.gravitee.rest.api.model.common.Pageable commonPageable = null;
 
