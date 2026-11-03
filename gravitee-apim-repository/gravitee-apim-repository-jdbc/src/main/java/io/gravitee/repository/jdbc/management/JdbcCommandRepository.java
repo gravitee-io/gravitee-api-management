@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.lang.String.format;
 
@@ -22,9 +23,11 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.search.CommandCriteria;
+import io.gravitee.repository.management.api.search.CommandCursor;
 import io.gravitee.repository.management.model.Command;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.Instant;
 import java.util.*;
@@ -186,9 +189,40 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
     }
 
     @Override
+    public boolean deleteIfExists(String id) throws TechnicalException {
+        log.debug("JdbcCommandRepository.deleteIfExists({})", id);
+        try {
+            // Same table order as delete, for the same deadlock reason.
+            jdbcTemplate.update("delete from " + COMMAND_ACKNOWLEDGMENTS + " where command_id = ?", id);
+            jdbcTemplate.update("delete from " + COMMAND_TAGS + " where command_id = ?", id);
+            return jdbcTemplate.update(getOrm().getDeleteSql(), id) == 1;
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to delete command " + id, ex);
+        }
+    }
+
+    @Override
     public List<Command> search(CommandCriteria criteria) {
         log.debug("JdbcCommandRepository.search({})", criteria);
+        List<Command> commands = findCommands(criteria, null, "");
+        log.debug("command records found ({}): {}", commands.size(), commands);
+        return commands;
+    }
+
+    @Override
+    public List<Command> searchAfter(CommandCriteria criteria, CommandCursor after, int pageSize) {
+        log.debug("JdbcCommandRepository.searchAfter({}, {}, {})", criteria, after, pageSize);
+        if (pageSize < 1) {
+            throw new IllegalArgumentException("pageSize must be at least 1, got " + pageSize);
+        }
+        List<Command> commands = findCommands(criteria, after, " order by c.created_at, c.id " + createPagingClause(pageSize, 0));
+        log.debug("command records found ({}): {}", commands.size(), commands);
+        return commands;
+    }
+
+    private List<Command> findCommands(CommandCriteria criteria, CommandCursor after, String suffix) {
         final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql() + " c where 1=1 ");
+        final List<String> tags = criteria.getTags() != null ? Arrays.asList(criteria.getTags()) : List.of();
 
         if (criteria.getNotAckBy() != null) {
             query
@@ -213,10 +247,21 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         if (criteria.isNotExpired()) {
             query.append(" and c.expired_at >= ? ");
         }
+        if (!tags.isEmpty()) {
+            query
+                .append(" and exists (")
+                .append("select 1 from " + COMMAND_TAGS + " ct ")
+                .append("where ct.command_id = c.id ")
+                .append("and ct.tag in (" + getOrm().buildInClause(tags) + ") ")
+                .append(")");
+        }
+        if (after != null) {
+            query.append(" and ( c.created_at > ? or ( c.created_at = ? and c.id > ? ) ) ");
+        }
+        query.append(suffix);
 
-        List<Command> commands;
         try {
-            commands = jdbcTemplate.query(
+            List<Command> commands = jdbcTemplate.query(
                 query.toString(),
                 (PreparedStatement ps) -> {
                     int lastIndex = 1;
@@ -238,26 +283,26 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
                     if (criteria.isNotExpired()) {
                         ps.setDate(lastIndex++, new java.sql.Date(System.currentTimeMillis()));
                     }
+                    lastIndex = getOrm().setArguments(ps, tags, lastIndex);
+                    if (after != null) {
+                        Timestamp createdAt = new Timestamp(after.createdAt());
+                        ps.setTimestamp(lastIndex++, createdAt);
+                        ps.setTimestamp(lastIndex++, createdAt);
+                        ps.setString(lastIndex, after.id());
+                    }
                 },
                 getOrm().getRowMapper()
             );
             loadAcknowledgmentsAndTags(commands);
+            if (!tags.isEmpty()) {
+                // The tags are read by a second query: a command another node deleted in between has none left.
+                commands.removeIf(command -> command.getTags() == null || command.getTags().stream().noneMatch(tags::contains));
+            }
+            return commands;
         } catch (final Exception ex) {
             log.error("Failed to find command records for criteria {}", criteria, ex);
             throw new IllegalStateException("Failed to find command records", ex);
         }
-
-        if (criteria.getTags() != null && criteria.getTags().length > 0) {
-            commands = commands
-                .stream()
-                .filter(
-                    command -> command.getTags() != null && command.getTags().stream().anyMatch(Arrays.asList(criteria.getTags())::contains)
-                )
-                .collect(Collectors.toList());
-        }
-
-        log.debug("command records found ({}): {}", commands.size(), commands);
-        return commands;
     }
 
     /**
