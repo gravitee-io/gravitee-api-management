@@ -20,6 +20,7 @@ import { useCallback } from 'react';
 
 import { policyStudioKeys } from './usePolicyStudioData';
 import { getAndUpdatePlanFlows, getFullApiDetail, updateApi } from '../services/policyStudioService';
+import { apiDetailKeys } from '../utils/queryKeys';
 
 /**
  * Returns a memoized `onSave` callback for the PolicyStudio component.
@@ -30,6 +31,8 @@ import { getAndUpdatePlanFlows, getFullApiDetail, updateApi } from '../services/
  * - Invalidates the api and plans queries in parallel after success: the studio receives
  *   them as two updates, and until the second one arrives, the flows it carries still
  *   show their previous version
+ * - Also invalidates the API detail query, which carries the deployment state behind the
+ *   "Deploy" banner
  */
 export function usePolicyStudioSave(apiId: string | undefined) {
     const env = useEnvironment();
@@ -58,6 +61,7 @@ export function usePolicyStudioSave(apiId: string | undefined) {
                 await Promise.all([
                     queryClient.invalidateQueries({ queryKey: policyStudioKeys.api(envId, apiId) }),
                     queryClient.invalidateQueries({ queryKey: policyStudioKeys.plans(envId, apiId) }),
+                    queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(envId, apiId) }),
                 ]);
             } catch (error) {
                 console.error('[PolicyStudio] Save failed:', error);
