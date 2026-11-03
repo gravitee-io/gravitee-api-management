@@ -27,11 +27,14 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.PlanFixtures;
+import io.gravitee.apim.core.api.model.utils.MigrationResult;
+import io.gravitee.apim.core.api.model.utils.MigrationWarnings;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.infra.json.jackson.JsonMapperFactory;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Endpoint;
@@ -40,6 +43,7 @@ import io.gravitee.definition.model.HttpClientOptions;
 import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.LoadBalancer;
 import io.gravitee.definition.model.LoadBalancerType;
+import io.gravitee.definition.model.PathMapping;
 import io.gravitee.definition.model.ProtocolVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -58,8 +62,10 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.service.Service;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -134,6 +140,102 @@ class V2ToV4MigrationOperatorTest {
 
             assertThat(result.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
             assertThat(result.getType()).isEqualTo(ApiType.PROXY);
+        }
+
+        @Test
+        void should_keep_v2_path_mappings_on_http_listener() {
+            var result = get(mapper.mapApi(v2ProxyApi(petPathMappings())));
+
+            assertThat(result.getApiDefinitionHttpV4().getListeners())
+                .singleElement()
+                .isInstanceOfSatisfying(HttpListener.class, httpListener -> {
+                    assertThat(httpListener.getPathMappings()).containsExactly("/pets", "/pets/:petId");
+                });
+        }
+
+        @Test
+        void should_serialize_migrated_path_mappings() throws Exception {
+            var result = get(mapper.mapApi(v2ProxyApi(petPathMappings())));
+            var jsonMapper = JsonMapperFactory.build();
+            var json = jsonMapper.writeValueAsString(result.getApiDefinitionHttpV4());
+
+            assertThat(jsonMapper.readTree(json).get("listeners").get(0).get("pathMappings").toString()).isEqualTo(
+                "[\"/pets\",\"/pets/:petId\"]"
+            );
+        }
+
+        @Test
+        void should_not_fail_when_v2_api_has_no_path_mappings() {
+            var result = get(mapper.mapApi(v2ProxyApi(null)));
+
+            assertThat(result.getApiDefinitionHttpV4().getListeners())
+                .singleElement()
+                .isInstanceOfSatisfying(HttpListener.class, httpListener -> {
+                    assertThat(httpListener.getPathMappings()).isEmpty();
+                });
+        }
+
+        @Test
+        void should_drop_v2_path_mappings_outside_the_form_rule() {
+            var pathMappings = petPathMappings();
+            pathMappings.put("/", PathMapping.buildPattern("/"));
+            pathMappings.put("/users/@me", PathMapping.buildPattern("/users/@me"));
+
+            var result = get(mapper.mapApi(v2ProxyApi(pathMappings)));
+
+            assertThat(result.getApiDefinitionHttpV4().getListeners())
+                .singleElement()
+                .isInstanceOfSatisfying(HttpListener.class, httpListener -> {
+                    assertThat(httpListener.getPathMappings()).containsExactly("/pets", "/pets/:petId");
+                });
+        }
+
+        @Test
+        void should_migrate_when_the_only_v2_path_mapping_is_root() {
+            var pathMappings = new LinkedHashMap<String, Pattern>();
+            pathMappings.put("/", PathMapping.buildPattern("/"));
+
+            var result = get(mapper.mapApi(v2ProxyApi(pathMappings)));
+
+            assertThat(result.getApiDefinitionHttpV4().getListeners())
+                .singleElement()
+                .isInstanceOfSatisfying(HttpListener.class, httpListener -> {
+                    assertThat(httpListener.getPathMappings()).isEmpty();
+                });
+        }
+
+        @Test
+        void should_fail_migration_when_all_v2_path_mappings_are_invalid() {
+            var pathMappings = new LinkedHashMap<String, Pattern>();
+            pathMappings.put("/", PathMapping.buildPattern("/"));
+            pathMappings.put("/users/@me", PathMapping.buildPattern("/users/@me"));
+
+            var migrationResult = mapper.mapApi(v2ProxyApi(pathMappings));
+
+            assertThat(migrationResult.issues()).hasSize(1);
+            assertThat(migrationResult.issues().iterator().next().message()).isEqualTo(
+                MigrationWarnings.PATH_MAPPINGS_INVALID.formatted(List.of("/", "/users/@me"))
+            );
+            assertThat(migrationResult.issues().iterator().next().state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
+        }
+
+        private static LinkedHashMap<String, Pattern> petPathMappings() {
+            var pathMappings = new LinkedHashMap<String, Pattern>();
+            pathMappings.put("/pets", PathMapping.buildPattern("/pets"));
+            pathMappings.put("/pets/:petId", PathMapping.buildPattern("/pets/:petId"));
+            return pathMappings;
+        }
+
+        private static io.gravitee.apim.core.api.model.Api v2ProxyApi(LinkedHashMap<String, Pattern> pathMappings) {
+            var apiDef = new Api();
+            apiDef.setId("test-api");
+            apiDef.setName("Test API");
+            apiDef.setVersion("1.0");
+            apiDef.setProxy(new Proxy());
+            if (pathMappings != null) {
+                apiDef.setPathMappings(pathMappings);
+            }
+            return ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
         }
     }
 
