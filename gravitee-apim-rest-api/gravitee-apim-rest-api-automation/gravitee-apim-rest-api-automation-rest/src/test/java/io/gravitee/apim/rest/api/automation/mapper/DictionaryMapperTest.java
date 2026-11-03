@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.rest.api.automation.mapper;
 
+import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -87,7 +88,7 @@ class DictionaryMapperTest {
 
         assertThat(state.getManual().getProperties()).containsExactlyInAnyOrderEntriesOf(Map.of("plain-key", "plain-value"));
         assertThat(state.getManual().getEncryptedProperties()).containsOnlyKeys("secret-key");
-        assertThat(state.getManual().getEncryptedProperties().get("secret-key").getValue()).isNull();
+        assertThat(state.getManual().getEncryptedProperties().get("secret-key").getValue()).isEqualTo(ENCRYPTED_VALUE_MASK);
     }
 
     @Test
@@ -109,7 +110,7 @@ class DictionaryMapperTest {
 
         assertThat(state.getManual().getProperties()).containsExactlyInAnyOrderEntriesOf(spec.getManual().getProperties());
         assertThat(state.getManual().getEncryptedProperties()).containsOnlyKeys(spec.getManual().getEncryptedProperties().keySet());
-        assertThat(state.getManual().getEncryptedProperties().get("secret-key").getValue()).isNull();
+        assertThat(state.getManual().getEncryptedProperties().get("secret-key").getValue()).isEqualTo(ENCRYPTED_VALUE_MASK);
     }
 
     @Test
@@ -119,7 +120,7 @@ class DictionaryMapperTest {
         DictionaryState state = DictionaryMapper.INSTANCE.toDictionaryState(spec);
 
         assertThat(state.getManual().getEncryptedProperties()).containsOnlyKeys("apiKey");
-        assertThat(state.getManual().getEncryptedProperties().get("apiKey").getValue()).isNull();
+        assertThat(state.getManual().getEncryptedProperties().get("apiKey").getValue()).isEqualTo(ENCRYPTED_VALUE_MASK);
         assertThat(state.getManual().getProperties()).containsExactlyInAnyOrderEntriesOf(Map.of("url", "https://backend"));
     }
 
