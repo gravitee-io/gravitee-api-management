@@ -40,18 +40,14 @@ class MsgPackFormatterWithRulesTest extends AbstractFormatterTest {
         return Type.MESSAGE_PACK;
     }
 
-    @Test // FIXME including nested objects should be supported
+    @Test
     void should_format_logs() throws IOException {
         var given = readGiven("log.json", Log.class);
         var expected = readExpected("json/log-with-rules.json");
 
         resetFormatter(MetricsType.REQUEST_LOG);
 
-        assertThat(MESSAGE_PACK.readTree(formatter.format(given).getBytes()))
-            .usingRecursiveComparison()
-            .ignoringFields("_children.clientResponse._children")
-            .ignoringFields("_children.clientRequest._children")
-            .isEqualTo(JSON.readTree(expected));
+        assertThat(MESSAGE_PACK.readTree(formatter.format(given).getBytes())).usingRecursiveComparison().isEqualTo(JSON.readTree(expected));
     }
 
     @Test
