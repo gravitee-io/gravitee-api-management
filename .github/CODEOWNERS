@@ -1,3 +1,10 @@
 # Default
 *                                                             @gravitee-io/apim
 /helm/                                                        @gravitee-io/platform @gravitee-io/apim
+
+# Automation API, CRD and Terraform surface: see "Automation API, CRD and Terraform Ownership" in AGENTS.md.
+# The CRD endpoint methods sit in shared resource classes and are not covered here.
+/gravitee-apim-rest-api/gravitee-apim-rest-api-automation/    @gravitee-io/gko @gravitee-io/tech-lead
+/gravitee-apim-rest-api/**/*CRD*.java                         @gravitee-io/gko @gravitee-io/tech-lead
+/gravitee-apim-rest-api/**/model/crd/                         @gravitee-io/gko @gravitee-io/tech-lead
+/gravitee-apim-console-webui/src/management/api/general-info/api-general-info-export-v4-dialog/ @gravitee-io/gko @gravitee-io/tech-lead

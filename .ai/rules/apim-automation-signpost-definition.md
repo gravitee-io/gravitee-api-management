@@ -1,10 +1,10 @@
 ---
 name: Automation API signpost (definition)
 layer: local
-description: Signpost only - the triggers and checklist live in the root rule and the sync guide
+description: Signpost only - the owned surface and the hand-off live in the root ownership rule
 dirs: [gravitee-apim-definition]
 ---
 
 # Automation API Impact
 
-When you add or change a v4 API definition model, it may be surfaced through Management API v2. Check whether the **Automation API** must mirror the change: the triggers and the checklist live in the root `AGENTS.md` section **Automation API Sync** and `.ai/guides/automation-api-sync.md`.
+A v4 API definition model change may reach the Automation API and the CRD classes through Management API v2. Do not mirror it there: flag it as the root `AGENTS.md` section **Automation API, CRD and Terraform Ownership** says.
