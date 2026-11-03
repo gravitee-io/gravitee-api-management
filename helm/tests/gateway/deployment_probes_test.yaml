@@ -47,6 +47,62 @@ tests:
       - notExists:
           path: spec.template.spec.containers[0].readinessProbe.tcpSocket
 
+  - it: Check readinessProbe names kafka-readiness when the kafka readiness check is enabled
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          readiness:
+            enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /_node/health?probes=http-server,kafka-server,kafka-readiness
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /_node/health?probes=http-server,kafka-server
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.httpGet.path
+          value: /_node/health?probes=http-server,sync-process,kafka-server
+
+  - it: Check readinessProbe does not name kafka-readiness when the kafka readiness key is not set
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /_node/health?probes=http-server,kafka-server
+
+  - it: Check readinessProbe does not name kafka-readiness when the kafka readiness check is disabled
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          readiness:
+            enabled: false
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /_node/health?probes=http-server,kafka-server
+
+  - it: Check readinessProbe does not name kafka-readiness when kafka is disabled
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: false
+          readiness:
+            enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /_node/health?probes=http-server
+
   - it: Check default livenessProbe
     template: gateway/gateway-deployment.yaml
     asserts:
