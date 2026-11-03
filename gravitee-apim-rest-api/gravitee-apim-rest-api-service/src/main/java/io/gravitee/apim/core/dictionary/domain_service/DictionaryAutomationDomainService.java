@@ -25,6 +25,10 @@ public interface DictionaryAutomationDomainService {
 
     DictionaryEntity update(ExecutionContext executionContext, String id, Dictionary dictionary);
 
+    void validateCreate(ExecutionContext executionContext, Dictionary dictionary);
+
+    void validateUpdate(ExecutionContext executionContext, String id, Dictionary dictionary);
+
     void delete(ExecutionContext executionContext, String id);
 
     DictionaryEntity handleDeployment(ExecutionContext executionContext, DictionaryEntity dictionary, boolean deploy);

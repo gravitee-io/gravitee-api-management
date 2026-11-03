@@ -21,6 +21,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE
 import io.gravitee.apim.core.dictionary.domain_service.DictionaryAutomationDomainService;
 import io.gravitee.apim.core.dictionary.domain_service.ValidateDictionaryDomainService;
 import io.gravitee.apim.core.dictionary.use_case.CreateOrUpdateDictionaryUseCase;
+import io.gravitee.apim.core.dictionary.use_case.ValidateDictionaryUseCase;
 import io.gravitee.apim.rest.api.automation.mapper.DictionaryMapper;
 import io.gravitee.apim.rest.api.automation.model.DictionarySpec;
 import io.gravitee.common.http.MediaType;
@@ -58,6 +59,9 @@ public class DictionariesResource extends AbstractResource {
     private CreateOrUpdateDictionaryUseCase createOrUpdateDictionaryCRDUseCase;
 
     @Inject
+    private ValidateDictionaryUseCase validateDictionaryUseCase;
+
+    @Inject
     private DictionaryAutomationDomainService dictionaryAutomationDomainService;
 
     @Path("/{hrid}")
@@ -81,13 +85,14 @@ public class DictionariesResource extends AbstractResource {
             dictionaryAutomationDomainService.findById(executionContext, dictionary.getId()).map(DictionaryEntity::getId).orElse(null)
         );
 
+        var input = new CreateOrUpdateDictionaryUseCase.Input(executionContext, dictionary, spec.getDeployed());
+
         if (dryRun) {
+            validateDictionaryUseCase.execute(input);
             return Response.ok(DictionaryMapper.INSTANCE.toDictionaryState(spec)).build();
         }
 
-        var result = createOrUpdateDictionaryCRDUseCase.execute(
-            new CreateOrUpdateDictionaryUseCase.Input(executionContext, dictionary, spec.getDeployed())
-        );
+        var result = createOrUpdateDictionaryCRDUseCase.execute(input);
 
         return Response.ok(DictionaryMapper.INSTANCE.toDictionaryState(result.dictionary(), executionContext)).build();
     }
