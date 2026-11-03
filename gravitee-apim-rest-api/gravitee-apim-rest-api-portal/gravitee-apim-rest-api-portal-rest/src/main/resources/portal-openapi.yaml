@@ -4998,10 +4998,19 @@ components:
             description: |
                 Used to sort result.
 
-                By default, sort is ASC. If *type* starts with '-', the order sort is DESC
+                By default, sort is ASC. If *field* starts with '-', the order sort is DESC.
             example: "order=-created_at"
             schema:
                 type: string
+                enum:
+                    - created_at
+                    - -created_at
+                    - api
+                    - -api
+                    - application
+                    - -application
+                    - subject
+                    - -subject
         logOrderQueryParam:
             name: order
             in: query
