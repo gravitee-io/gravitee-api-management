@@ -8750,6 +8750,8 @@ components:
                 - UNPUBLISH_AUTHZ_SCHEMA
                 - PUBLISH_CREDENTIAL
                 - UNPUBLISH_CREDENTIAL
+                - PUBLISH_APPROVAL_RULE
+                - UNPUBLISH_APPROVAL_RULE
 
         # Documentation pages
         AccessControl:
