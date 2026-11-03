@@ -17,7 +17,10 @@ package io.gravitee.rest.api.management.rest.resource.param;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.rest.param.SortableFields;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.ws.rs.QueryParam;
 
 /**
@@ -25,6 +28,8 @@ import jakarta.ws.rs.QueryParam;
  * @author GraviteeSource Team
  */
 public class ApisParam {
+
+    private static final SortableFields SORTABLE_FIELDS = new SortableFields("name", "created_at", "updated_at");
 
     @Parameter(description = "filter by category id")
     @QueryParam("category")
@@ -74,7 +79,7 @@ public class ApisParam {
     private boolean portal;
 
     @JsonIgnore
-    private Order order;
+    private String order;
 
     @Parameter(description = "filter by crossId")
     @QueryParam("crossId")
@@ -169,15 +174,17 @@ public class ApisParam {
     }
 
     @QueryParam("order")
-    @Parameter(description = "The field used to sort results. Can be asc or desc (prefix with minus '-') ", example = "-name")
-    public void setOrder(String param) {
-        if (param != null) {
-            order = Order.parse(param);
-        }
+    @Parameter(
+        description = "The field used to sort results. Can be asc or desc (prefix with minus '-') ",
+        example = "-name",
+        schema = @Schema(allowableValues = { "name", "-name", "created_at", "-created_at", "updated_at", "-updated_at" })
+    )
+    public void setOrder(String order) {
+        this.order = order;
     }
 
-    public Order getOrder() {
-        return order;
+    public Sortable getOrder() {
+        return SORTABLE_FIELDS.toSortable(order);
     }
 
     public String getCrossId() {
