@@ -17,18 +17,22 @@ package io.gravitee.apim.core.cluster.domain_service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.cluster.domain_service.ClusterBoundApisQueryService.ClusterUse;
 import io.gravitee.apim.core.cluster.exception.ClusterBindingNotAllowedException;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.query_service.ClusterQueryService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.definition.model.cluster.ClusterType;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import jakarta.annotation.Nullable;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -94,6 +98,27 @@ public class ClusterBindingPermissionDomainService {
             userId,
             ClusterBoundApisQueryService.clusterUses(previous, objectMapper),
             ClusterBoundApisQueryService.clusterUses(definition, objectMapper)
+        );
+    }
+
+    /**
+     * {@link #validate(String, String, String, Collection, Collection)} for the endpoint groups of an API of {@code type},
+     * as a CRD declares them, replacing {@code previous}, {@code null} on create.
+     */
+    public void validate(
+        String organizationId,
+        String environmentId,
+        @Nullable String userId,
+        @Nullable Api previous,
+        ApiType type,
+        List<? extends AbstractEndpointGroup<?>> endpointGroups
+    ) {
+        validate(
+            organizationId,
+            environmentId,
+            userId,
+            previous == null ? List.of() : ClusterBoundApisQueryService.clusterUses(previous, objectMapper),
+            ClusterBoundApisQueryService.clusterUses(type, endpointGroups, objectMapper)
         );
     }
 
