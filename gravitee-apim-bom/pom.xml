@@ -199,6 +199,12 @@
 
             <dependency>
                 <groupId>io.gravitee.resource</groupId>
+                <artifactId>gravitee-resource-schema-registry-provider-api</artifactId>
+                <version>${gravitee-resource-schema-registry-provider-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.resource</groupId>
                 <artifactId>gravitee-resource-content-provider-api</artifactId>
                 <version>${gravitee-resource-content-provider-api.version}</version>
             </dependency>
