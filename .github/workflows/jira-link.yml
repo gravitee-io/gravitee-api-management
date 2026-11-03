@@ -3,8 +3,9 @@
 # A missing Atlassian Team is a warning once JIRA_API_TOKEN is set.
 # With no token the Team lookup is skipped and prints nothing.
 # Jira being down does not fail the check.
-# Runs from the base branch, never from the pull request head, so a pull request
+# Checks out the default branch, never the pull request head, so a pull request
 # cannot change the gate and a fork never receives the Jira credentials.
+# A commit on a support branch cannot change the script either.
 name: Jira link
 
 on:
@@ -25,7 +26,7 @@ jobs:
         steps:
             - uses: actions/checkout@v6.1.0
               with:
-                  ref: ${{ github.event.pull_request.base.sha }}
+                  ref: ${{ github.event.repository.default_branch }}
             - name: Require a Jira key
               env:
                   JIRA_BASE_URL: https://gravitee.atlassian.net
