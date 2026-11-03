@@ -25,6 +25,7 @@ import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
@@ -115,6 +116,22 @@ public class ClusterBoundApisQueryService {
      */
     public static Set<String> clusterCrossIds(List<ClusterUse> uses) {
         return uses.stream().map(ClusterUse::clusterCrossId).filter(Objects::nonNull).collect(Collectors.toCollection(TreeSet::new));
+    }
+
+    /** The clusters the endpoint groups of an API of {@code type} use, as an import declares them. */
+    @SuppressWarnings("unchecked")
+    public static List<ClusterUse> clusterUses(
+        ApiType type,
+        List<? extends AbstractEndpointGroup<?>> endpointGroups,
+        ObjectMapper objectMapper
+    ) {
+        if (type == ApiType.NATIVE) {
+            return nativeClusterUses((List<NativeEndpointGroup>) endpointGroups, objectMapper);
+        }
+        if (type == ApiType.MESSAGE) {
+            return messageClusterUses((List<EndpointGroup>) endpointGroups, objectMapper);
+        }
+        return List.of();
     }
 
     /** The clusters the {@code kafka} endpoints in {@code CLUSTER} mode of a Message API use. */

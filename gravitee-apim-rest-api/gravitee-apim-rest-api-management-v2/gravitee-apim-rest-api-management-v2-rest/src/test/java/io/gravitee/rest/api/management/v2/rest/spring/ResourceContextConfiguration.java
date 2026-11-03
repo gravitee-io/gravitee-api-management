@@ -125,6 +125,7 @@ import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
 import io.gravitee.apim.core.cluster.use_case.CountClustersByLifecycleStateUseCase;
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
@@ -897,7 +898,8 @@ public class ResourceContextConfiguration {
         PageCrudService pageCrudService,
         KafkaPortRangeCrudServiceInMemory kafkaPortRangeCrudService,
         DataEncryptor dataEncryptor,
-        CRDMembersDomainServiceInMemory crdMembersDomainService
+        CRDMembersDomainServiceInMemory crdMembersDomainService,
+        ClusterBindingPermissionDomainService clusterBindingPermissionDomainService
     ) {
         ValidateGroupsDomainService groupsValidator = new ValidateGroupsDomainService(groupQueryService);
         return new ValidateApiCRDUseCase(
@@ -922,7 +924,8 @@ public class ResourceContextConfiguration {
                 new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
                 apiQueryService,
                 new PropertyDomainService(dataEncryptor),
-                crdMembersDomainService
+                crdMembersDomainService,
+                clusterBindingPermissionDomainService
             )
         );
     }
@@ -1181,6 +1184,11 @@ public class ResourceContextConfiguration {
     @Bean
     public CreateClusterUseCase createClusterUseCase() {
         return mock(CreateClusterUseCase.class);
+    }
+
+    @Bean
+    public ClusterBindingPermissionDomainService clusterBindingPermissionDomainService() {
+        return mock(ClusterBindingPermissionDomainService.class);
     }
 
     @Bean
