@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -135,7 +136,7 @@ class DictionaryResourceTest extends AbstractResourceTest {
                 var state = MAPPER.readValue(body, DictionaryState.class);
                 assertThat(state.getManual().getProperties()).containsExactlyEntriesOf(Map.of("url", "https://backend"));
                 assertThat(state.getManual().getEncryptedProperties()).containsOnlyKeys("apiKey");
-                assertThat(state.getManual().getEncryptedProperties().get("apiKey").getValue()).isNull();
+                assertThat(state.getManual().getEncryptedProperties().get("apiKey").getValue()).isEqualTo(ENCRYPTED_VALUE_MASK);
             }
         }
 
