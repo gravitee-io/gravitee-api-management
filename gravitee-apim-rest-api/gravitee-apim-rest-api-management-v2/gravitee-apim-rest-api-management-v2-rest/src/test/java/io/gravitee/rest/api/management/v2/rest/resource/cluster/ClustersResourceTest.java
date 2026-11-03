@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -250,6 +251,38 @@ class ClustersResourceTest extends AbstractResourceTest {
                 () -> assertThat(clustersResponse.getPagination().getTotalCount()).isEqualTo(23),
                 () -> assertThat(clustersResponse.getLinks()).isNotNull()
             );
+        }
+
+        @Test
+        void should_pass_a_supported_sort_to_the_use_case() {
+            when(searchClusterUseCase.execute(any())).thenReturn(new SearchClusterUseCase.Output(new Page<>(List.of(), 1, 10, 0)));
+
+            final Response response = rootTarget().queryParam("sortBy", "-updatedAt").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var captor = ArgumentCaptor.forClass(SearchClusterUseCase.Input.class);
+            verify(searchClusterUseCase).execute(captor.capture());
+            assertThat(captor.getValue().sortBy()).isEqualTo("-updatedAt");
+        }
+
+        @Test
+        void should_not_sort_when_the_sort_is_empty() {
+            when(searchClusterUseCase.execute(any())).thenReturn(new SearchClusterUseCase.Output(new Page<>(List.of(), 1, 10, 0)));
+
+            final Response response = rootTarget().queryParam("sortBy", "").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var captor = ArgumentCaptor.forClass(SearchClusterUseCase.Input.class);
+            verify(searchClusterUseCase).execute(captor.capture());
+            assertThat(captor.getValue().sortBy()).isNull();
+        }
+
+        @Test
+        void should_return_400_for_an_unsupported_sort() {
+            final Response response = rootTarget().queryParam("sortBy", "name) , (select 1 from users").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+            verifyNoInteractions(searchClusterUseCase);
         }
 
         @Test
