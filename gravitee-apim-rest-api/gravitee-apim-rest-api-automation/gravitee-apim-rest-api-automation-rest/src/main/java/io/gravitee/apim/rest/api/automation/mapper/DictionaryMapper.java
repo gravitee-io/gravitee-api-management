@@ -70,10 +70,15 @@ public interface DictionaryMapper {
     /**
      * Merges the manifest's two property maps into one core list.
      *
-     * <p>A key in {@code properties} states nothing about encryption, so the stored classification
-     * stands and a manifest written before {@code encryptedProperties} existed applies unchanged. A
-     * key in {@code encryptedProperties} carries either a plaintext value to encrypt on save or the
-     * mask, which keeps the stored value.
+     * <p>A key in {@code properties} asserts that the value is plain, so moving a key out of
+     * {@code encryptedProperties} in a single apply is refused with
+     * {@code dictionary.property.encryptedToPlain} rather than silently leaving it encrypted. Making a
+     * secret plain stays a two-step change: remove the key, apply, then declare it under
+     * {@code properties}. The same refusal reaches a manifest written before
+     * {@code encryptedProperties} existed whose key was encrypted from the Console.
+     *
+     * <p>A key in {@code encryptedProperties} carries either a plaintext value to encrypt on save or
+     * the mask, which keeps the stored value.
      */
     default List<DictionaryProperty> mapManualProperties(DictionarySpec spec) {
         if (spec.getManual() == null) {
@@ -92,7 +97,7 @@ public interface DictionaryMapper {
     }
 
     private static DictionaryProperty toPlainProperty(Map.Entry<String, String> property) {
-        return DictionaryProperty.builder().key(property.getKey()).value(property.getValue()).build();
+        return DictionaryProperty.builder().key(property.getKey()).value(property.getValue()).encrypted(false).build();
     }
 
     private static DictionaryProperty toSecretProperty(Map.Entry<String, EncryptableValue> property) {

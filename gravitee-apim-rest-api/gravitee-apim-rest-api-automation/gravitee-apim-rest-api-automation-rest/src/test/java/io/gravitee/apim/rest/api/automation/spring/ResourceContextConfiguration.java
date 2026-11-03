@@ -109,6 +109,7 @@ import io.gravitee.apim.core.dictionary.domain_service.DictionaryAutomationDomai
 import io.gravitee.apim.core.dictionary.domain_service.ValidateDictionaryDomainService;
 import io.gravitee.apim.core.dictionary.use_case.CreateOrUpdateDictionaryUseCase;
 import io.gravitee.apim.core.dictionary.use_case.DeleteDictionaryUseCase;
+import io.gravitee.apim.core.dictionary.use_case.ValidateDictionaryUseCase;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessControlsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
@@ -1383,6 +1384,11 @@ public class ResourceContextConfiguration {
     @Bean
     public CreateOrUpdateDictionaryUseCase createOrUpdateDictionaryUseCase() {
         return mock(CreateOrUpdateDictionaryUseCase.class);
+    }
+
+    @Bean
+    public ValidateDictionaryUseCase validateDictionaryUseCase() {
+        return mock(ValidateDictionaryUseCase.class);
     }
 
     @Bean

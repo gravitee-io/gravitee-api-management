@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -32,7 +33,9 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.dictionary.domain_service.DictionaryAutomationDomainService;
 import io.gravitee.apim.core.dictionary.domain_service.ValidateDictionaryDomainService;
+import io.gravitee.apim.core.dictionary.model.Dictionary;
 import io.gravitee.apim.core.dictionary.use_case.CreateOrUpdateDictionaryUseCase;
+import io.gravitee.apim.core.dictionary.use_case.ValidateDictionaryUseCase;
 import io.gravitee.apim.rest.api.automation.model.DictionaryState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import io.gravitee.common.component.Lifecycle;
@@ -43,6 +46,7 @@ import io.gravitee.rest.api.model.configuration.dictionary.DictionaryType;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
+import io.gravitee.rest.api.service.impl.configuration.dictionary.DictionaryPropertyMaskedValueException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
@@ -68,11 +72,19 @@ class DictionariesResourceTest extends AbstractResourceTest {
     private ValidateDictionaryDomainService validateDictionaryDomainService;
 
     @Inject
+    private ValidateDictionaryUseCase validateDictionaryUseCase;
+
+    @Inject
     private DictionaryAutomationDomainService dictionaryAutomationDomainService;
 
     @AfterEach
     void tearDown() {
-        reset(createOrUpdateDictionaryUseCase, validateDictionaryDomainService);
+        reset(
+            createOrUpdateDictionaryUseCase,
+            validateDictionaryDomainService,
+            dictionaryAutomationDomainService,
+            validateDictionaryUseCase
+        );
     }
 
     @Override
@@ -109,6 +121,66 @@ class DictionariesResourceTest extends AbstractResourceTest {
                 assertThat(response.getStatus()).isEqualTo(200);
                 assertThat(response.readEntity(String.class)).doesNotContain("my secret API key");
                 verifyNoInteractions(createOrUpdateDictionaryUseCase);
+            }
+        }
+
+        @Test
+        void should_reject_a_masked_value_the_apply_would_reject() {
+            doThrow(new DictionaryPropertyMaskedValueException("apiKey")).when(validateDictionaryUseCase).execute(any());
+
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", true)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("masked-manual-dictionary.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(400);
+                assertThat(response.readEntity(String.class)).contains("dictionary.property.maskedValue");
+                verifyNoInteractions(createOrUpdateDictionaryUseCase);
+            }
+        }
+
+        @Test
+        void should_return_400_when_a_key_is_declared_in_both_property_maps() {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", true)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("both-maps-manual-dictionary.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(400);
+                assertThat(response.readEntity(String.class)).contains("dictionary.propertyOptions.invalid");
+                verifyNoInteractions(createOrUpdateDictionaryUseCase);
+            }
+        }
+
+        @Test
+        void should_run_the_same_property_checks_as_the_apply() {
+            var mixedDictId = HRIDToUUID.dictionary().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("mixed-dict").id();
+
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", true)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("masked-manual-dictionary.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(200);
+                verify(validateDictionaryUseCase).execute(
+                    argThat(
+                        (CreateOrUpdateDictionaryUseCase.Input validated) ->
+                            mixedDictId.equals(validated.dictionary().getId()) &&
+                            validated
+                                .dictionary()
+                                .getProperties()
+                                .stream()
+                                .anyMatch(
+                                    property -> "apiKey".equals(property.getKey()) && ENCRYPTED_VALUE_MASK.equals(property.getValue())
+                                )
+                    )
+                );
             }
         }
 
@@ -172,7 +244,7 @@ class DictionariesResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_apply_a_manifest_written_before_encrypted_properties_existed() {
+        void should_send_a_key_under_properties_as_plain() {
             var entity = DictionaryEntity.builder()
                 .id("dict-id")
                 .name("My Dictionary")
@@ -203,7 +275,7 @@ class DictionariesResourceTest extends AbstractResourceTest {
                                 property ->
                                     "key1".equals(property.getKey()) &&
                                     "value1".equals(property.getValue()) &&
-                                    property.getEncrypted() == null &&
+                                    Boolean.FALSE.equals(property.getEncrypted()) &&
                                     property.getEncryptable() == null
                             )
                     )
@@ -247,7 +319,7 @@ class DictionariesResourceTest extends AbstractResourceTest {
                             .findFirst()
                             .orElseThrow();
                         return (
-                            plain.getEncrypted() == null &&
+                            Boolean.FALSE.equals(plain.getEncrypted()) &&
                             plain.getEncryptable() == null &&
                             "https://backend".equals(plain.getValue()) &&
                             Boolean.TRUE.equals(encrypted.getEncryptable()) &&

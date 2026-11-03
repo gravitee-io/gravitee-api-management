@@ -57,6 +57,16 @@ public class DictionaryAutomationDomainServiceLegacyWrapper implements Dictionar
         return dictionaryService.update(executionContext, id, toUpdateDictionaryEntity(dictionary));
     }
 
+    @Override
+    public void validateCreate(ExecutionContext executionContext, Dictionary dictionary) {
+        dictionaryService.validateCreate(executionContext, toNewDictionaryEntity(dictionary));
+    }
+
+    @Override
+    public void validateUpdate(ExecutionContext executionContext, String id, Dictionary dictionary) {
+        dictionaryService.validateUpdate(executionContext, id, toUpdateDictionaryEntity(dictionary));
+    }
+
     public Optional<DictionaryEntity> findById(ExecutionContext executionContext, String id) {
         try {
             return Optional.of(dictionaryService.findById(executionContext, id));

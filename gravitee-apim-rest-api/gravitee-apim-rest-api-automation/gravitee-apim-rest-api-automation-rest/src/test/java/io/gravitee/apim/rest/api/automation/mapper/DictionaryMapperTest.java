@@ -47,7 +47,7 @@ class DictionaryMapperTest {
 
         var dictionary = DictionaryMapper.INSTANCE.toDictionary(spec);
 
-        assertThat(dictionary.getProperties()).containsExactly(new DictionaryProperty("hostname", "api.example.com", null, null));
+        assertThat(dictionary.getProperties()).containsExactly(new DictionaryProperty("hostname", "api.example.com", false, null));
     }
 
     @Test
@@ -66,7 +66,7 @@ class DictionaryMapperTest {
         var dictionary = DictionaryMapper.INSTANCE.toDictionary(spec);
 
         assertThat(dictionary.getProperties()).containsExactlyInAnyOrder(
-            new DictionaryProperty("url", "https://backend", null, null),
+            new DictionaryProperty("url", "https://backend", false, null),
             new DictionaryProperty("apiKey", "plaintext", null, true)
         );
     }

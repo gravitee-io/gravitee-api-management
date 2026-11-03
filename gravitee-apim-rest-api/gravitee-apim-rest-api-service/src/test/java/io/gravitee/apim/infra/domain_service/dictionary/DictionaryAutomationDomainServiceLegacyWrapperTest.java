@@ -81,6 +81,47 @@ class DictionaryAutomationDomainServiceLegacyWrapperTest {
     }
 
     @Test
+    void should_validate_an_update_through_the_dictionary_service() {
+        Dictionary dictionary = Dictionary.builder()
+            .id("dictionary-id")
+            .name("My Dictionary")
+            .type(DictionaryType.MANUAL)
+            .properties(mixedProperties())
+            .build();
+
+        wrapper.validateUpdate(GraviteeContext.getExecutionContext(), "dictionary-id", dictionary);
+
+        verify(dictionaryService).validateUpdate(
+            eq(GraviteeContext.getExecutionContext()),
+            eq("dictionary-id"),
+            argThat(
+                (UpdateDictionaryEntity entity) ->
+                    entity.getProperties().equals(EXPECTED_PROPERTIES) && entity.getPropertyOptions().equals(EXPECTED_OPTIONS)
+            )
+        );
+    }
+
+    @Test
+    void should_validate_a_create_through_the_dictionary_service() {
+        Dictionary dictionary = Dictionary.builder()
+            .id("dictionary-id")
+            .name("My Dictionary")
+            .type(DictionaryType.MANUAL)
+            .properties(mixedProperties())
+            .build();
+
+        wrapper.validateCreate(GraviteeContext.getExecutionContext(), dictionary);
+
+        verify(dictionaryService).validateCreate(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                (NewDictionaryEntity entity) ->
+                    entity.getProperties().equals(EXPECTED_PROPERTIES) && entity.getPropertyOptions().equals(EXPECTED_OPTIONS)
+            )
+        );
+    }
+
+    @Test
     void should_skip_null_property_when_creating_a_legacy_dictionary() {
         List<DictionaryProperty> properties = new ArrayList<>(mixedProperties());
         properties.add(null);

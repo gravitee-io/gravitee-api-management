@@ -1,0 +1,17 @@
+{
+  "hrid": "mixed-dict",
+  "name": "Mixed Dictionary",
+  "description": "A read of the mixed dictionary, applied back unchanged",
+  "type": "MANUAL",
+  "deployed": false,
+  "manual": {
+    "properties": {
+      "url": "https://backend"
+    },
+    "encryptedProperties": {
+      "apiKey": {
+        "value": "••••••••••••"
+      }
+    }
+  }
+}
