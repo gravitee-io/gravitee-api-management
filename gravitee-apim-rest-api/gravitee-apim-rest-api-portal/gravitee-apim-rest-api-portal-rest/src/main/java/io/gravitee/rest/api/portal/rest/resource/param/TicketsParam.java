@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.portal.rest.resource.param;
 
+import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.rest.param.SortableFields;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.ws.rs.QueryParam;
 
@@ -23,6 +25,8 @@ import jakarta.ws.rs.QueryParam;
  * @author GraviteeSource Team
  */
 public class TicketsParam {
+
+    private static final SortableFields SORTABLE_FIELDS = new SortableFields("created_at", "api", "application", "subject");
 
     @QueryParam("apiId")
     @Parameter(description = "The api identifier used to filter tickets")
@@ -34,7 +38,7 @@ public class TicketsParam {
 
     @QueryParam("order")
     @Parameter(description = "The field used to sort results. Can be asc or desc (prefix with minus '-') ", example = "-subject")
-    private OrderParam order;
+    private String order;
 
     public String getApi() {
         return api;
@@ -52,7 +56,7 @@ public class TicketsParam {
         this.application = application;
     }
 
-    public OrderParam.Order getOrder() {
-        return (order == null) ? null : order.getValue();
+    public Sortable getOrder() {
+        return SORTABLE_FIELDS.toSortable(order);
     }
 }

@@ -22,8 +22,6 @@ import io.gravitee.rest.api.management.rest.resource.param.TicketsParam;
 import io.gravitee.rest.api.model.NewTicketEntity;
 import io.gravitee.rest.api.model.TicketEntity;
 import io.gravitee.rest.api.model.api.TicketQuery;
-import io.gravitee.rest.api.model.common.Sortable;
-import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -95,12 +93,9 @@ public class PlatformTicketsResource extends AbstractResource {
         query.setApi(ticketsParam.getApi());
         query.setFromUser(getAuthenticatedUser());
 
-        Sortable sortable = null;
-        if (ticketsParam.getOrder() != null) {
-            sortable = new SortableImpl(ticketsParam.getOrder().getField(), ticketsParam.getOrder().isOrder());
-        }
-
-        return new TicketEntityPage(ticketService.search(GraviteeContext.getExecutionContext(), query, sortable, pageable.toPageable()));
+        return new TicketEntityPage(
+            ticketService.search(GraviteeContext.getExecutionContext(), query, ticketsParam.getOrder(), pageable.toPageable())
+        );
     }
 
     @GET
