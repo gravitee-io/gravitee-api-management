@@ -41,10 +41,8 @@ import java.util.List;
 import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mockito;
 
 /**
@@ -52,16 +50,15 @@ import org.mockito.Mockito;
  * MongoDB (the one of the integration tests) accepts. These tests pin the way the writes are issued, so that a pipeline
  * update cannot sneak back in unnoticed.
  */
-@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class ApiReferenceBackfillTest {
+public class ApiReferenceBackfillTest {
 
     private MongoCollection<Document> collection;
     private MongoCursor<Document> cursor;
     private final List<WriteModel<Document>> written = new ArrayList<>();
 
-    @BeforeEach
+    @Before
     @SuppressWarnings("unchecked")
-    void setUp() {
+    public void setUp() {
         collection = mock(MongoCollection.class);
         cursor = mock(MongoCursor.class);
         // a mock turns the default Iterator.forEachRemaining into a no-op, whereas a real cursor drains through hasNext/next
@@ -98,7 +95,7 @@ class ApiReferenceBackfillTest {
     }
 
     @Test
-    void should_never_use_an_update_with_aggregation_pipeline() {
+    public void should_never_use_an_update_with_aggregation_pipeline() {
         cursorReturns(ApiReferenceBackfill.BATCH_SIZE + 3);
 
         ApiReferenceBackfill.apply(collection);
@@ -118,7 +115,7 @@ class ApiReferenceBackfillTest {
     }
 
     @Test
-    void should_write_plain_set_operators_copying_api_into_reference_id() {
+    public void should_write_plain_set_operators_copying_api_into_reference_id() {
         cursorReturns(1);
 
         ApiReferenceBackfill.apply(collection);
@@ -133,7 +130,7 @@ class ApiReferenceBackfillTest {
     }
 
     @Test
-    void should_only_update_a_document_that_still_has_no_reference_type() {
+    public void should_only_update_a_document_that_still_has_no_reference_type() {
         cursorReturns(1);
 
         ApiReferenceBackfill.apply(collection);
@@ -144,7 +141,7 @@ class ApiReferenceBackfillTest {
     }
 
     @Test
-    void should_flush_in_batches() {
+    public void should_flush_in_batches() {
         cursorReturns(ApiReferenceBackfill.BATCH_SIZE * 2 + 5);
 
         ApiReferenceBackfill.apply(collection);
@@ -154,7 +151,7 @@ class ApiReferenceBackfillTest {
     }
 
     @Test
-    void should_not_write_anything_when_nothing_to_upgrade() {
+    public void should_not_write_anything_when_nothing_to_upgrade() {
         cursorReturns(0);
 
         var result = ApiReferenceBackfill.apply(collection);
@@ -164,7 +161,7 @@ class ApiReferenceBackfillTest {
     }
 
     @Test
-    void should_return_false_when_a_write_is_not_acknowledged() {
+    public void should_return_false_when_a_write_is_not_acknowledged() {
         cursorReturns(1);
         var notAcknowledged = bulkResult(false);
         when(collection.bulkWrite(anyList(), any(BulkWriteOptions.class))).thenReturn(notAcknowledged);
@@ -173,7 +170,7 @@ class ApiReferenceBackfillTest {
     }
 
     @Test
-    void should_return_false_and_stop_writing_when_a_batch_other_than_the_last_is_not_acknowledged() {
+    public void should_return_false_and_stop_writing_when_a_batch_other_than_the_last_is_not_acknowledged() {
         cursorReturns(ApiReferenceBackfill.BATCH_SIZE + 1);
         var notAcknowledged = bulkResult(false);
         var acknowledged = bulkResult(true);
@@ -185,7 +182,7 @@ class ApiReferenceBackfillTest {
     }
 
     @Test
-    void should_propagate_write_errors_instead_of_swallowing_them() {
+    public void should_propagate_write_errors_instead_of_swallowing_them() {
         cursorReturns(1);
         var error = new MongoWriteException(new WriteError(303, "boom", new BsonDocument()), new ServerAddress());
         when(collection.bulkWrite(anyList(), any(BulkWriteOptions.class))).thenThrow(error);
@@ -194,7 +191,7 @@ class ApiReferenceBackfillTest {
     }
 
     @Test
-    void should_close_the_cursor() {
+    public void should_close_the_cursor() {
         cursorReturns(1);
 
         ApiReferenceBackfill.apply(collection);
