@@ -1,0 +1,114 @@
+{
+  "id": "policy-actions",
+  "name": "policy-actions",
+  "gravitee": "4.0.0",
+  "type": "proxy",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/policy-actions"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-proxy"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/endpoint"
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "api",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/",
+          "pathOperator": "START_WITH"
+        }
+      ],
+      "request": [
+        {
+          "name": "flow-trace",
+          "enabled": true,
+          "policy": "flow-trace",
+          "configuration": {
+            "name": "api-request"
+          }
+        },
+        {
+          "name": "action-trace",
+          "enabled": true,
+          "policy": "action-trace",
+          "configuration": {
+            "name": "api-action"
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "flow-trace",
+          "enabled": true,
+          "policy": "flow-trace",
+          "configuration": {
+            "name": "api-response"
+          }
+        }
+      ]
+    }
+  ],
+  "internalFlow": {
+    "name": "internal",
+    "enabled": true,
+    "request": [
+      {
+        "name": "flow-trace",
+        "enabled": true,
+        "policy": "flow-trace",
+        "configuration": {
+          "name": "internal-request"
+        }
+      },
+      {
+        "name": "action-trace",
+        "enabled": true,
+        "policy": "action-trace",
+        "configuration": {
+          "name": "internal-action"
+        }
+      }
+    ],
+    "response": [
+      {
+        "name": "flow-trace",
+        "enabled": true,
+        "policy": "flow-trace",
+        "configuration": {
+          "name": "internal-response"
+        }
+      }
+    ]
+  },
+  "analytics": {
+    "enabled": true
+  }
+}
