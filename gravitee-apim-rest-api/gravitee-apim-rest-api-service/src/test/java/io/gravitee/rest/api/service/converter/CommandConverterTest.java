@@ -114,6 +114,16 @@ public class CommandConverterTest {
     }
 
     @Test
+    void should_convert_the_creation_date() {
+        final Command command = command(Instant.now());
+        command.setCreatedAt(new Date(1_000L));
+
+        CommandEntity commandEntity = converter.toCommandEntity(command);
+
+        assertEquals(new Date(1_000L), commandEntity.getCreatedAt());
+    }
+
+    @Test
     public void shouldConvertCommandEntityTags() {
         final Command command = command(Instant.now(), List.of(), List.of("DATA_TO_INDEX"));
 
