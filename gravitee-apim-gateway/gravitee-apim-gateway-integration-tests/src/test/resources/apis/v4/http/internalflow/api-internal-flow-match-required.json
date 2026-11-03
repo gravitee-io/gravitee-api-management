@@ -1,0 +1,102 @@
+{
+  "id": "internal-flow-match-required",
+  "name": "internal-flow-match-required",
+  "gravitee": "4.0.0",
+  "type": "proxy",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/internal-flow-match-required"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-proxy"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/endpoint"
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "api",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/never-matched",
+          "pathOperator": "START_WITH"
+        }
+      ],
+      "request": [
+        {
+          "name": "flow-trace",
+          "enabled": true,
+          "policy": "flow-trace",
+          "configuration": {
+            "name": "api-request"
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "flow-trace",
+          "enabled": true,
+          "policy": "flow-trace",
+          "configuration": {
+            "name": "api-response"
+          }
+        }
+      ]
+    }
+  ],
+  "internalFlow": {
+    "name": "internal",
+    "enabled": true,
+    "request": [
+      {
+        "name": "flow-trace",
+        "enabled": true,
+        "policy": "flow-trace",
+        "configuration": {
+          "name": "internal-request"
+        }
+      }
+    ],
+    "response": [
+      {
+        "name": "flow-trace",
+        "enabled": true,
+        "policy": "flow-trace",
+        "configuration": {
+          "name": "internal-response"
+        }
+      }
+    ]
+  },
+  "analytics": {
+    "enabled": false
+  },
+  "flowExecution": {
+    "mode": "default",
+    "matchRequired": true
+  }
+}

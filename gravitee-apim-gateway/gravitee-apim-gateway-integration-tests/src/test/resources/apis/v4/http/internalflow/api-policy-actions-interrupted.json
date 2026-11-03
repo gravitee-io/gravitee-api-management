@@ -1,0 +1,78 @@
+{
+  "id": "policy-actions-interrupted",
+  "name": "policy-actions-interrupted",
+  "gravitee": "4.0.0",
+  "type": "proxy",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/policy-actions-interrupted"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-proxy"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/endpoint"
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "api",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/",
+          "pathOperator": "START_WITH"
+        }
+      ],
+      "request": [
+        {
+          "name": "interrupt",
+          "enabled": true,
+          "policy": "interrupt",
+          "configuration": {}
+        }
+      ],
+      "response": []
+    }
+  ],
+  "internalFlow": {
+    "name": "internal",
+    "enabled": true,
+    "request": [
+      {
+        "name": "action-trace",
+        "enabled": true,
+        "policy": "action-trace",
+        "configuration": {
+          "name": "internal-action"
+        }
+      }
+    ],
+    "response": []
+  },
+  "analytics": {
+    "enabled": true
+  }
+}
