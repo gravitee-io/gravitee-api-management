@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_DICTIONARY;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
@@ -261,7 +262,7 @@ class DictionariesResourceTest extends AbstractResourceTest {
                 var state = MAPPER.readValue(body, DictionaryState.class);
                 assertThat(state.getManual().getProperties()).containsOnlyKeys("url");
                 assertThat(state.getManual().getEncryptedProperties()).containsOnlyKeys("apiKey");
-                assertThat(state.getManual().getEncryptedProperties().get("apiKey").getValue()).isNull();
+                assertThat(state.getManual().getEncryptedProperties().get("apiKey").getValue()).isEqualTo(ENCRYPTED_VALUE_MASK);
             }
         }
 

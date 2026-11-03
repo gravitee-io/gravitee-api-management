@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.rest.api.automation.mapper;
 
+import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.dictionary.model.Dictionary;
 import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
@@ -70,7 +72,8 @@ public interface DictionaryMapper {
      *
      * <p>A key in {@code properties} states nothing about encryption, so the stored classification
      * stands and a manifest written before {@code encryptedProperties} existed applies unchanged. A
-     * key in {@code encryptedProperties} carries a plaintext value to encrypt on save.
+     * key in {@code encryptedProperties} carries either a plaintext value to encrypt on save or the
+     * mask, which keeps the stored value.
      */
     default List<DictionaryProperty> mapManualProperties(DictionarySpec spec) {
         if (spec.getManual() == null) {
@@ -134,8 +137,8 @@ public interface DictionaryMapper {
     }
 
     /**
-     * Reports a secret property as its key alone. The value is never returned, so a client can compare
-     * a {@code GET} against its manifest without seeing a difference on a value it cannot read back.
+     * Reports a secret property as its key and the mask. Neither the plaintext nor the ciphertext is
+     * returned, and resubmitting the mask keeps the stored value, so a client can re-apply what it read.
      *
      * <p>Returns {@code null} rather than an empty map when nothing is encrypted, so a dictionary
      * without secrets serializes exactly as it did before this field existed.
@@ -146,7 +149,11 @@ public interface DictionaryMapper {
         }
         return encryptedKeys
             .stream()
-            .collect(LinkedHashMap::new, (values, key) -> values.put(key, new EncryptableValue()), LinkedHashMap::putAll);
+            .collect(
+                LinkedHashMap::new,
+                (values, key) -> values.put(key, new EncryptableValue().value(ENCRYPTED_VALUE_MASK)),
+                LinkedHashMap::putAll
+            );
     }
 
     private static Set<String> encryptedKeys(Map<String, DictionaryPropertyOptions> options) {
