@@ -26,6 +26,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ClustersResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateCluster;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.param.ClusterSortByParam;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -95,7 +96,7 @@ public class ClustersResource extends AbstractResource {
     public ClustersResponse searchClusters(
         @QueryParam("q") String q,
         @BeanParam @Valid PaginationParam paginationParam,
-        @QueryParam("sortBy") String sortBy
+        @BeanParam ClusterSortByParam sortByParam
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
 
@@ -104,7 +105,7 @@ public class ClustersResource extends AbstractResource {
                 executionContext.getEnvironmentId(),
                 q,
                 paginationParam.toPageable(),
-                sortBy,
+                sortByParam.getSortBy(),
                 isAdmin(),
                 getAuthenticatedUser()
             )
