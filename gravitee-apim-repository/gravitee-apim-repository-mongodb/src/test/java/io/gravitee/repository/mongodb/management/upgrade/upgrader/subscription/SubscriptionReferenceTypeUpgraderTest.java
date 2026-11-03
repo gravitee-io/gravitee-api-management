@@ -20,15 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.repository.management.AbstractManagementRepositoryTest;
 import jakarta.inject.Inject;
 import org.bson.Document;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
-@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class SubscriptionReferenceTypeUpgraderTest extends AbstractManagementRepositoryTest {
 
     @Inject
@@ -46,7 +43,7 @@ public class SubscriptionReferenceTypeUpgraderTest extends AbstractManagementRep
         return null;
     }
 
-    @BeforeEach
+    @Before
     public void initUpgrader() {
         upgrader = new SubscriptionReferenceTypeUpgrader();
         upgrader.setMongoTemplate(mongoTemplate);
@@ -57,7 +54,7 @@ public class SubscriptionReferenceTypeUpgraderTest extends AbstractManagementRep
         mongoTemplate.getCollection(collectionName).deleteMany(new Document());
     }
 
-    @AfterEach
+    @After
     public void cleanUp() {
         mongoTemplate.getCollection(collectionName).deleteMany(new Document());
     }
