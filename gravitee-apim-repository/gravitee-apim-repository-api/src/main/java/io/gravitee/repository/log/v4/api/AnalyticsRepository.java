@@ -18,6 +18,7 @@ package io.gravitee.repository.log.v4.api;
 import io.gravitee.repository.analytics.engine.api.query.AnalyticsSearchPath;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
+import io.gravitee.repository.analytics.engine.api.query.FilterName;
 import io.gravitee.repository.analytics.engine.api.query.FilterOutcome;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
@@ -30,7 +31,9 @@ import io.gravitee.repository.log.v4.model.analytics.*;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public interface AnalyticsRepository {
     Optional<CountAggregate> searchRequestsCount(QueryContext queryContext, RequestsCountQuery requestsCountQuery);
@@ -125,7 +128,39 @@ public interface AnalyticsRepository {
      * <p>The default answers {@link FilterOutcome#APPLIED} for everything: an implementation that does
      * not say is taken to skip nothing, so callers report nothing rather than something wrong.
      */
-    default FilterOutcome filterOutcome(AnalyticsSearchPath path, Filter.Name filter) {
+    default FilterOutcome filterOutcome(AnalyticsSearchPath path, FilterName filter) {
         return FilterOutcome.APPLIED;
+    }
+
+    /**
+     * The additional metrics read under a built-in name: each key, type prefix included (e.g.
+     * {@code keyword_mcp-proxy_tools/call}), with the built-in metric, filter and facet names that read it, on the
+     * analytics and the logs paths. A key read by the logs path through a constant only maps to no name. A record or a
+     * discovered field on one of these keys would duplicate the built-in entry.
+     *
+     * <p>The default answers none: an implementation that does not say reads no additional metric under a built-in
+     * name.
+     */
+    default Map<String, Set<String>> builtInAdditionalMetricKeys() {
+        return Map.of();
+    }
+
+    /**
+     * The additional metrics the requests of the query context's environment carried over the window, each with the
+     * time it was last seen. Typed keys only: a key whose prefix is unknown, a reserved {@code <type>_custom_<name>}
+     * key, or a key stored under another type than its prefix declares is left out. The type is checked across every
+     * retained index, not only the window's, because searches read every retained index and filter the window inside the
+     * query: a key stored under another type in any one of them, by any environment, could fail a typed filter or
+     * aggregation on it, so it is left out until that index is gone. The keys are not checked against the rest of the
+     * additional metric grammar: callers drop what their parser refuses.
+     *
+     * <p>The default answers none: an implementation that does not say discovers nothing.
+     *
+     * @throws IllegalArgumentException when the query context names no environment, see
+     *     {@link AdditionalMetricDiscoveryQuery#environmentOf}
+     */
+    default AdditionalMetricDiscoveryResult discoverAdditionalMetrics(QueryContext queryContext, AdditionalMetricDiscoveryQuery query) {
+        AdditionalMetricDiscoveryQuery.environmentOf(queryContext);
+        return AdditionalMetricDiscoveryResult.NONE;
     }
 }

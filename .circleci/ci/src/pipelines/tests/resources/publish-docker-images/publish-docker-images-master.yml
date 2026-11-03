@@ -545,9 +545,7 @@ jobs:
             graviteeio.azurecr.io/apim-portal-ui:master-latest
             graviteeio.azurecr.io/apim-management-ui:master-latest
             graviteeio.azurecr.io/gamma-ui:master-latest
-            graviteeio.azurecr.io/apim-management-api:master-latest
             graviteeio.azurecr.io/apim-management-api:master-latest-debian
-            graviteeio.azurecr.io/apim-gateway:master-latest
             graviteeio.azurecr.io/apim-gateway:master-latest-debian
             "
             : > /tmp/aikido-images.txt

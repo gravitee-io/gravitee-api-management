@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.api.search.ApiKeyCursor;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.stereotype.Repository;
 
@@ -47,4 +48,8 @@ public interface ApiKeyMongoRepositoryCustom {
     List<ApiKeyMongo> findByPlan(String plan);
 
     UpdateResult addSubscription(String id, String subscriptionId);
+
+    UpdateResult addSubscriptions(String id, Collection<String> subscriptionIds);
+
+    UpdateResult updateAllButSubscriptions(ApiKeyMongo apiKey);
 }

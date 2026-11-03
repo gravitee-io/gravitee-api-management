@@ -19,8 +19,8 @@ package io.gravitee.repository.analytics.engine.api.query;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record Filter(Filter.Name name, Operator operator, Object value) {
-    public enum Name {
+public record Filter(FilterName name, Operator operator, Object value) {
+    public enum Name implements FilterName {
         API,
         APPLICATION,
         PLAN,

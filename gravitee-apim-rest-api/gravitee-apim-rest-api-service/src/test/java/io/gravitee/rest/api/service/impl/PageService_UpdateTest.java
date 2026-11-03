@@ -207,7 +207,7 @@ public class PageService_UpdateTest {
 
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(pageOrder1));
         when(pageRepository.search(argThat(o -> o == null || "LINK".equals(o.getType())))).thenReturn(Collections.emptyList());
-        when(pageRepository.search(argThat(o -> o == null || API_ID.equals(o.getReferenceId())))).thenReturn(
+        when(pageRepository.search(argThat(o -> o == null || (o.getType() == null && API_ID.equals(o.getReferenceId()))))).thenReturn(
             asList(pageOrder1, pageOrder2, pageOrder3)
         );
         when(pageRepository.update(any(Page.class))).thenReturn(pageOrder1);
@@ -468,6 +468,8 @@ public class PageService_UpdateTest {
         assertThrows(PageActionException.class, () -> {
             Page parentPage = new Page();
             parentPage.setType("SYSTEM_FOLDER");
+            parentPage.setReferenceType(PageReferenceType.ENVIRONMENT);
+            parentPage.setReferenceId("DEFAULT");
             doReturn(Optional.of(parentPage)).when(pageRepository).findById("SYS_FOLDER");
 
             Page translationPage = new Page();
@@ -500,6 +502,8 @@ public class PageService_UpdateTest {
         assertThrows(PageActionException.class, () -> {
             Page parentPage = new Page();
             parentPage.setType("ROOT");
+            parentPage.setReferenceType(PageReferenceType.ENVIRONMENT);
+            parentPage.setReferenceId("DEFAULT");
             doReturn(Optional.of(parentPage)).when(pageRepository).findById("ROOT");
 
             Page translationPage = new Page();

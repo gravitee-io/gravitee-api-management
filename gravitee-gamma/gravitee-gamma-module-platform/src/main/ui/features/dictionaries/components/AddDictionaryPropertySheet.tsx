@@ -25,6 +25,7 @@ import {
     SheetFooter,
     SheetHeader,
     SheetTitle,
+    Switch,
 } from '@gravitee/graphene-core';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 
@@ -39,17 +40,19 @@ export function AddDictionaryPropertySheet({
 }: Readonly<{
     open: boolean;
     onClose: () => void;
-    onSubmit: (property: { key: string; value: string }) => Promise<void>;
+    onSubmit: (property: { key: string; value: string; encrypt: boolean }) => Promise<void>;
     isSaving: boolean;
     existingKeys: string[];
 }>) {
     const [key, setKey] = useState('');
     const [value, setValue] = useState('');
+    const [encrypt, setEncrypt] = useState(false);
 
     useEffect(() => {
         if (!open) return;
         setKey('');
         setValue('');
+        setEncrypt(false);
     }, [open]);
 
     const handleOpenChange = useCallback(
@@ -60,7 +63,7 @@ export function AddDictionaryPropertySheet({
     );
 
     const trimmedKey = key.trim();
-    const canSubmit = trimmedKey.length > 0 && !isSaving;
+    const canSubmit = trimmedKey.length > 0 && value.trim().length > 0 && !isSaving;
 
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
@@ -69,7 +72,7 @@ export function AddDictionaryPropertySheet({
             notify.error(`Property key "${trimmedKey}" already exists`);
             return;
         }
-        await onSubmit({ key: trimmedKey, value });
+        await onSubmit({ key: trimmedKey, value, encrypt });
     }
 
     return (
@@ -96,15 +99,30 @@ export function AddDictionaryPropertySheet({
                         />
                     </Field>
                     <Field orientation="vertical" className="gap-1.5">
-                        <FieldLabel htmlFor="property-value">Value</FieldLabel>
+                        <FieldLabel htmlFor="property-value">
+                            Value <span className="text-destructive">*</span>
+                        </FieldLabel>
                         <Input
                             id="property-value"
+                            type={encrypt ? 'password' : 'text'}
+                            autoComplete="off"
                             value={value}
                             onChange={e => setValue(e.target.value)}
                             placeholder="e.g. Munich"
                             disabled={isSaving}
                         />
                     </Field>
+                    <div className="space-y-2 rounded-lg border border-border p-3">
+                        <div className="flex items-center justify-between gap-3">
+                            <FieldLabel htmlFor="property-encrypt" className="text-sm font-medium">
+                                Encrypt on save
+                            </FieldLabel>
+                            <Switch id="property-encrypt" checked={encrypt} onCheckedChange={setEncrypt} disabled={isSaving} />
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            The value will be encrypted on save, and cannot be retrieved later on.
+                        </p>
+                    </div>
                 </form>
 
                 <SheetFooter className="shrink-0 flex-row justify-end gap-2 border-t pt-4">

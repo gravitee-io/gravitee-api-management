@@ -15,20 +15,28 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import io.gravitee.apim.core.analytics_engine.model.AdditionalMetricName;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.FacetName;
+import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
+import io.gravitee.apim.core.analytics_engine.model.FilterName;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.Measure;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresResponse;
+import io.gravitee.apim.core.analytics_engine.model.MetricName;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesMetricResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
+import io.gravitee.repository.analytics.engine.api.metric.AdditionalMetric;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
+import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
@@ -101,9 +109,77 @@ public interface AnalyticsMeasuresAdapter {
     /** Every engine filter has a catalog name; MapStruct fails the build if one is added without. */
     FilterSpec.Name fromFilterName(Filter.Name name);
 
-    default MetricSpec.Name fromResult(Metric result) {
-        return MetricSpec.Name.valueOf(result.name());
+    default FilterName fromFilterName(io.gravitee.repository.analytics.engine.api.query.FilterName name) {
+        return switch (name) {
+            case Filter.Name builtIn -> fromFilterName(builtIn);
+            case AdditionalMetricField field -> new AdditionalMetricName(
+                new io.gravitee.apim.core.observability.model.AdditionalMetricField(fromValueType(field.valueType()), field.rawKey())
+            );
+        };
     }
+
+    default io.gravitee.repository.analytics.engine.api.query.FilterName toFilterName(FilterName name) {
+        return switch (name) {
+            case FilterSpec.Name builtIn -> toFilterName(builtIn);
+            case AdditionalMetricName additionalMetric -> toAdditionalMetricField(additionalMetric);
+        };
+    }
+
+    default io.gravitee.repository.analytics.engine.api.query.FacetName toFacetName(FacetName facet) {
+        return switch (facet) {
+            case FacetSpec.Name builtIn -> toFacet(builtIn);
+            case AdditionalMetricName additionalMetric -> toAdditionalMetricField(additionalMetric);
+        };
+    }
+
+    default List<io.gravitee.repository.analytics.engine.api.query.FacetName> toFacetNames(List<FacetName> facets) {
+        return facets == null ? null : facets.stream().map(this::toFacetName).toList();
+    }
+
+    Facet toFacet(FacetSpec.Name name);
+
+    default AdditionalMetricField toAdditionalMetricField(AdditionalMetricName name) {
+        return toAdditionalMetricField(name.field());
+    }
+
+    default AdditionalMetricField toAdditionalMetricField(io.gravitee.apim.core.observability.model.AdditionalMetricField field) {
+        return new AdditionalMetricField(toValueType(field.valueType()), field.rawKey());
+    }
+
+    /** One value type per prefix on both sides; MapStruct fails the build if they drift apart. */
+    AdditionalMetricField.ValueType toValueType(io.gravitee.apim.core.observability.model.AdditionalMetricField.ValueType valueType);
+
+    io.gravitee.apim.core.observability.model.AdditionalMetricField.ValueType fromValueType(AdditionalMetricField.ValueType valueType);
+
+    default MetricName fromResult(io.gravitee.repository.analytics.engine.api.metric.MetricName result) {
+        return switch (result) {
+            case Metric builtIn -> fromMetric(builtIn);
+            case AdditionalMetric additionalMetric -> new AdditionalMetricName(
+                new io.gravitee.apim.core.observability.model.AdditionalMetricField(
+                    fromValueType(additionalMetric.field().valueType()),
+                    additionalMetric.field().rawKey()
+                )
+            );
+        };
+    }
+
+    default io.gravitee.repository.analytics.engine.api.metric.MetricName toMetricName(MetricName name) {
+        return switch (name) {
+            case MetricSpec.Name builtIn -> toMetric(builtIn);
+            case AdditionalMetricName additionalMetric -> new AdditionalMetric(toAdditionalMetricField(additionalMetric));
+        };
+    }
+
+    /**
+     * A built-in engine metric has a catalog name and back, MapStruct failing the build if one is added without; an
+     * additional metric goes through {@link #fromResult(io.gravitee.repository.analytics.engine.api.metric.MetricName)}.
+     */
+    // No search answers these two: the catalog has no metric for them.
+    @ValueMapping(source = "SUBSCRIPTIONS", target = MappingConstants.THROW_EXCEPTION)
+    @ValueMapping(source = "APIS", target = MappingConstants.THROW_EXCEPTION)
+    MetricSpec.Name fromMetric(Metric metric);
+
+    Metric toMetric(MetricSpec.Name name);
 
     default MetricSpec.Measure fromResult(io.gravitee.repository.analytics.engine.api.metric.Measure result) {
         return MetricSpec.Measure.valueOf(result.name());

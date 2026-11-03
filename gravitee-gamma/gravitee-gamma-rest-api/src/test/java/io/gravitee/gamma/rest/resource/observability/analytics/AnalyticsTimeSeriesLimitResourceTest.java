@@ -30,8 +30,10 @@ import io.gravitee.apim.core.analytics.domain_service.AiWorkspaceAnalyticsApisDo
 import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.model.FacetBucketResponse;
+import io.gravitee.apim.core.analytics_engine.model.FacetName;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
+import io.gravitee.apim.core.analytics_engine.model.FilterName;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.Measure;
 import io.gravitee.apim.core.analytics_engine.model.MetricFacetsResponse;
@@ -97,6 +99,7 @@ class AnalyticsTimeSeriesLimitResourceTest extends AbstractResourceTest {
         io.gravitee.apim.core.observability.model.FilterOperator.IN,
         List.of("POST")
     );
+    private static final String FRAUD_TIER = "additional-metrics.keyword_fraud-check_tier";
     private static final Filter API_RESTRICTION = new Filter(
         FilterSpec.Name.API,
         io.gravitee.apim.core.observability.model.FilterOperator.IN,
@@ -187,6 +190,41 @@ class AnalyticsTimeSeriesLimitResourceTest extends AbstractResourceTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         verify(computeFacetsUseCase, never()).executeForApis(any(), any(), any());
         assertThat(timeSeriesRequest().limit()).isNull();
+    }
+
+    @Test
+    void should_draw_the_same_top_series_of_an_additional_metric_field_in_every_bucket() {
+        givenTheRangeTotals(Map.of("low", 1, "medium", 20, "high", 30));
+        givenTheHourlyBuckets(List.of(List.of("low", "high"), List.of("medium")));
+        var body = body(Map.of("limit", 2));
+        body.put("by", List.of(FRAUD_TIER));
+
+        var response = rootTarget("time-series").request().post(Entity.entity(body, MediaType.APPLICATION_JSON_TYPE));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        var tier = FilterName.parse(FRAUD_TIER).orElseThrow();
+        assertThat(timeSeriesRequest().facets()).containsExactly((FacetName) tier);
+        assertThat(timeSeriesRequest().filters()).contains(
+            new Filter(tier, io.gravitee.apim.core.observability.model.FilterOperator.IN, List.of("high", "medium"))
+        );
+        var drawn = new LinkedHashSet<String>();
+        response
+            .readEntity(JsonNode.class)
+            .at("/metrics/0/buckets")
+            .forEach(bucket -> drawn.addAll(bucket.path("buckets").findValuesAsText("key")));
+        assertThat(drawn).containsExactlyInAnyOrder("high", "medium");
+    }
+
+    @Test
+    void should_refuse_a_malformed_additional_metric_condition_naming_it() {
+        var body = body(Map.of());
+        body.put("filters", List.of(Map.of("name", "additional-metrics.keyword_a..b", "operator", "EQ", "value", "x")));
+
+        var response = rootTarget("time-series").request().post(Entity.entity(body, MediaType.APPLICATION_JSON_TYPE));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        assertThat(response.readEntity(String.class)).contains("additional-metrics.keyword_a..b");
+        verify(computeTimeSeriesUseCase, never()).executeForApis(any(), any(), any());
     }
 
     private JsonNode postTimeSeries(String limitField) {

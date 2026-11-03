@@ -16,11 +16,9 @@
 package io.gravitee.gateway.reactive.handlers.api.v4;
 
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.gateway.reactor.AbstractReactableApi;
 import java.util.Collections;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class EdgeApi extends AbstractReactableApi<io.gravitee.definition.model.v4.edge.EdgeApi> {
 
@@ -59,15 +57,9 @@ public class EdgeApi extends AbstractReactableApi<io.gravitee.definition.model.v
 
     @Override
     public Set<String> getSubscribablePlans() {
-        return definition.getPlans() != null
-            ? definition.getPlans().stream().filter(AbstractPlan::isSubscribable).map(AbstractPlan::getId).collect(Collectors.toSet())
-            : Set.of();
+        return Collections.emptySet();
     }
 
-    /**
-     * An Edge API cannot carry an api-key plan: the daemon authenticates with a client certificate, and the
-     * subscription is resolved from its thumbprint, never from a key.
-     */
     @Override
     public Set<String> getApiKeyPlans() {
         return Collections.emptySet();

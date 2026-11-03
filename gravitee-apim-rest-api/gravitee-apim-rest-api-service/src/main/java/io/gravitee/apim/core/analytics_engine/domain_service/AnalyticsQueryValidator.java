@@ -19,13 +19,18 @@ import static io.gravitee.apim.core.analytics_engine.exception.InternalDefinitio
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.analytics_engine.exception.InvalidQueryException;
+import io.gravitee.apim.core.analytics_engine.model.AdditionalMetricName;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.FacetName;
 import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
+import io.gravitee.apim.core.analytics_engine.model.FilterName;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.MetricName;
+import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.model.TimeRange;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
@@ -98,24 +103,78 @@ public class AnalyticsQueryValidator {
         }
     }
 
-    private void validateFacets(List<FacetSpec.Name> facets, List<FacetMetricMeasuresRequest> metrics) {
+    /**
+     * A built-in facet must be one the metric declares; an additional metric declares those of the request documents
+     * it is read from. An additional metric field is not in any declaration: its value type alone says whether it
+     * groups, and the engine the metric is routed to whether it reads the field (see
+     * {@code AnalyticsQueryContextProvider}).
+     */
+    private void validateFacets(List<FacetName> facets, List<FacetMetricMeasuresRequest> metrics) {
         for (var metric : metrics) {
-            var metricSpec = definition.findMetric(metric.name()).orElseThrow(() -> forUnknownMetric(metric.name().name()));
-            for (var facet : facets) {
-                if (!metricSpec.facets().contains(facet)) {
-                    throw InvalidQueryException.forIncompatibleFacet(facet.name(), metric.name().name());
+            var builtInFacets = builtInFacetsOf(metric.name());
+            for (var level = 0; level < facets.size(); level++) {
+                var facet = facets.get(level);
+                switch (facet) {
+                    case FacetSpec.Name builtIn -> {
+                        if (!builtInFacets.contains(builtIn)) {
+                            throw InvalidQueryException.forIncompatibleFacet(builtIn.name(), metric.name().name());
+                        }
+                    }
+                    case AdditionalMetricName additionalMetric -> validateGrouping(additionalMetric, level == facets.size() - 1);
                 }
             }
         }
     }
 
-    private void validateRanges(List<FacetSpec.Name> facets, List<NumberRange> ranges) throws InvalidQueryException {
+    private List<FacetSpec.Name> builtInFacetsOf(MetricName metric) {
+        var declaring = switch (metric) {
+            case MetricSpec.Name builtIn -> builtIn;
+            case AdditionalMetricName _ -> AdditionalMetricName.DIMENSIONS_OF;
+        };
+        return definition
+            .findMetric(declaring)
+            .orElseThrow(() -> forUnknownMetric(declaring.name()))
+            .facets();
+    }
+
+    /** A keyword or a boolean groups by its values at any level; a number by the request's ranges, as the last facet. */
+    private static void validateGrouping(AdditionalMetricName facet, boolean last) {
+        var valueType = facet.field().valueType();
+        if (valueType.groupsByTerms()) {
+            return;
+        }
+        if (!valueType.groupsByRanges()) {
+            throw InvalidQueryException.forUngroupableFacet(facet.name());
+        }
+        if (!last) {
+            throw InvalidQueryException.forRangesOnlyFacet(facet.name());
+        }
+    }
+
+    private void validateRanges(List<FacetName> facets, List<NumberRange> ranges) throws InvalidQueryException {
         if (CollectionUtils.isEmpty(facets)) {
             return;
         }
         var rangedFacet = facets.getLast();
-        if (rangedFacet == FacetSpec.Name.HTTP_STATUS_CODE_GROUP && CollectionUtils.isNotEmpty(ranges)) {
-            throw InvalidQueryException.forForbiddenRanges(rangedFacet.name());
+        var ranged = CollectionUtils.isNotEmpty(ranges);
+        if (ranged && ranges.stream().anyMatch(range -> range.from() == null || range.to() == null)) {
+            throw InvalidQueryException.forOpenRange(rangedFacet.name());
+        }
+        switch (rangedFacet) {
+            case FacetSpec.Name builtIn -> {
+                if (builtIn == FacetSpec.Name.HTTP_STATUS_CODE_GROUP && ranged) {
+                    throw InvalidQueryException.forForbiddenRanges(builtIn.name());
+                }
+            }
+            case AdditionalMetricName additionalMetric -> {
+                var groupsByRanges = additionalMetric.field().valueType().groupsByRanges();
+                if (groupsByRanges && !ranged) {
+                    throw InvalidQueryException.forRangesOnlyFacet(additionalMetric.name());
+                }
+                if (!groupsByRanges && ranged) {
+                    throw InvalidQueryException.forForbiddenRanges(additionalMetric.name());
+                }
+            }
         }
     }
 
@@ -145,7 +204,7 @@ public class AnalyticsQueryValidator {
             if (!supportsAnalytics(filter.name())) {
                 throw InvalidQueryException.forUnsupportedAnalyticsFilter(filter.name().name());
             }
-            if (filter.operator() != null && !ANALYTICS_OPERATORS.contains(filter.operator())) {
+            if (filter.operator() != null && !supportsAnalytics(filter.name(), filter.operator())) {
                 throw InvalidQueryException.forUnsupportedAnalyticsOperator(filter.operator().name(), filter.name().name());
             }
             if (filter.value() == null) {
@@ -169,13 +228,28 @@ public class AnalyticsQueryValidator {
      * <p>A name the catalog does not describe at all is accepted, as it was before the axis existed: the
      * catalog omits a few names the engines still know ({@code MESSAGE_CONNECTOR_ID} and the edge dimensions, pinned by
      * AnalyticsDefinitionYAMLQueryServiceTest for their owners to decide), and rejecting those here would be a
-     * behaviour change rather than a refactor.
+     * behaviour change rather than a refactor. An additional metric field is in no catalog: its value type
+     * decides, through the operators it takes.
      */
-    private boolean supportsAnalytics(FilterSpec.Name name) {
-        return definition
-            .findFilter(name)
-            .map(spec -> spec.appliesTo(Signal.ANALYTICS))
-            .orElse(true);
+    private boolean supportsAnalytics(FilterName name) {
+        return switch (name) {
+            case FilterSpec.Name builtIn -> definition
+                .findFilter(builtIn)
+                .map(spec -> spec.appliesTo(Signal.ANALYTICS))
+                .orElse(true);
+            case AdditionalMetricName _ -> true;
+        };
+    }
+
+    /** An additional metric field takes the operators of its value type: none for a detail-only one. */
+    private static boolean supportsAnalytics(FilterName name, FilterOperator operator) {
+        if (!ANALYTICS_OPERATORS.contains(operator)) {
+            return false;
+        }
+        return switch (name) {
+            case FilterSpec.Name _ -> true;
+            case AdditionalMetricName additionalMetric -> additionalMetric.field().valueType().operators().contains(operator);
+        };
     }
 
     private void validateTimeRange(TimeRange timeRange) {
@@ -211,13 +285,33 @@ public class AnalyticsQueryValidator {
             // (which projects to MetricMeasuresRequest with empty filters).
             validateFilters(query.filters());
             var metric = query.name();
-            var metricSpec = definition.findMetric(metric).orElseThrow(() -> forUnknownMetric(metric.name()));
+            var measures = measuresOf(metric);
 
             for (var measure : query.measures()) {
-                if (!metricSpec.measures().contains(measure)) {
+                if (!measures.contains(measure)) {
                     throw InvalidQueryException.forInvalidMeasure(metric.name(), measure.name());
                 }
             }
         }
+    }
+
+    /**
+     * A built-in's declared measures. An additional metric is in no declaration: a well-formed field holding a number
+     * takes {@link AdditionalMetricName#MEASURES} without a lookup, so one no request carries reads as an empty result.
+     */
+    private List<MetricSpec.Measure> measuresOf(MetricName metric) {
+        return switch (metric) {
+            case MetricSpec.Name builtIn -> definition
+                .findMetric(builtIn)
+                .orElseThrow(() -> forUnknownMetric(builtIn.name()))
+                .measures();
+            case AdditionalMetricName additionalMetric -> {
+                var valueType = additionalMetric.field().valueType();
+                if (!valueType.isNumber()) {
+                    throw InvalidQueryException.forNotAMetric(additionalMetric.name(), valueType.name());
+                }
+                yield AdditionalMetricName.MEASURES;
+            }
+        };
     }
 }

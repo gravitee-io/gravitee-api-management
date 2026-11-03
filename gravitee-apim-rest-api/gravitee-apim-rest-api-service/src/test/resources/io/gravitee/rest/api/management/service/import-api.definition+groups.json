@@ -1,0 +1,30 @@
+{
+  "id": "id-api",
+  "crossId": "api-cross-id",
+  "name": "test",
+  "version": "1",
+  "description": "bmll",
+  "visibility": "PRIVATE",
+  "lifecycle_state": "CREATED",
+  "tags": [],
+  "groups": ["known group", "unknown group"],
+  "proxy": {
+    "context_path": "/test",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://google.fr",
+        "weight": 1,
+        "backup": false,
+        "healthcheck": true
+      }
+    ],
+    "load_balancing": {
+      "type": "ROUND_ROBIN"
+    },
+    "strip_context_path": false
+  },
+  "paths": {
+    "/": []
+  }
+}

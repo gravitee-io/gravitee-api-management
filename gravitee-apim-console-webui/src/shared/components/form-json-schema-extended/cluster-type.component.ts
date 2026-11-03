@@ -41,12 +41,18 @@ export class ClusterTypeComponent extends FieldType<FieldTypeConfig> implements 
       catchError(() => of([])),
       shareReplay(1),
     );
+    // The management API refuses a binding to a cluster the user is not a member of, except the one the API already has.
+    const boundCrossId = this.formControl.value;
+    const offeredClusters$ = allClusters$.pipe(
+      map(clusters => clusters.filter(c => c.bindable !== false || c.crossId === boundCrossId)),
+      shareReplay(1),
+    );
 
     this.filteredClusters$ = this.formControl.valueChanges.pipe(
       startWith(this.formControl.value ?? ''),
       switchMap(term => {
-        if (!term) return allClusters$;
-        return allClusters$.pipe(
+        if (!term) return offeredClusters$;
+        return offeredClusters$.pipe(
           map(clusters =>
             clusters.filter(c => c.name.toLowerCase().includes(term.toLowerCase()) || c.crossId.toLowerCase().includes(term.toLowerCase())),
           ),

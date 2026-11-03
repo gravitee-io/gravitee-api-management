@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
@@ -35,7 +36,7 @@ class MessageFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
 
     private final MessageFacetsQueryAdapter adapter = new MessageFacetsQueryAdapter();
 
-    private FacetsQuery sortedQuery(List<Facet> facets, Integer limit) {
+    private FacetsQuery sortedQuery(List<FacetName> facets, Integer limit) {
         return new FacetsQuery(
             buildTimeRange(),
             List.of(),
@@ -52,7 +53,7 @@ class MessageFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         );
     }
 
-    private FacetsQuery query(List<Facet> facets, Integer limit) {
+    private FacetsQuery query(List<FacetName> facets, Integer limit) {
         return new FacetsQuery(
             buildTimeRange(),
             List.of(),
@@ -79,7 +80,7 @@ class MessageFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
      */
     @Test
     void should_nest_dimensions_outermost_first() throws JsonProcessingException {
-        var facets = List.of(Facet.MESSAGE_CONNECTOR_TYPE, Facet.MESSAGE_OPERATION_TYPE);
+        List<FacetName> facets = List.of(Facet.MESSAGE_CONNECTOR_TYPE, Facet.MESSAGE_OPERATION_TYPE);
 
         var json = JSON.readTree(adapter.adapt(query(facets, null), Set.of("req-1")));
 
@@ -103,7 +104,7 @@ class MessageFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
      */
     @Test
     void should_order_and_size_only_the_innermost_bucket() throws JsonProcessingException {
-        var facets = List.of(Facet.MESSAGE_CONNECTOR_TYPE, Facet.MESSAGE_OPERATION_TYPE);
+        List<FacetName> facets = List.of(Facet.MESSAGE_CONNECTOR_TYPE, Facet.MESSAGE_OPERATION_TYPE);
 
         var json = JSON.readTree(adapter.adapt(sortedQuery(facets, 5), Set.of("req-1")));
 

@@ -103,8 +103,6 @@ export function publishAndDeployJobs(dynamicConfig: Config, environment: CircleC
         ]
       : []),
 
-    // Everything this path pushes. The chainguard-fips variants are not among them: the
-    // environment does not run them, so the scheduled build both builds and scans those.
-    ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, false, '', ['chainguard']),
+    ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, false, ''),
   ];
 }

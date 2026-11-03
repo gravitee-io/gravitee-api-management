@@ -166,6 +166,30 @@ export function DynamicPropertiesForm({ initialState, onSave, isSaving, saveErro
                 </CardContent>
             </Card>
 
+            {/* ─── Encryption ──────────────────────────────────────────────────── */}
+            <Card>
+                <CardContent className="py-3 px-4">
+                    <div className="flex items-start justify-between gap-4">
+                        <div className="space-y-0.5">
+                            <Label htmlFor="dp-encrypt-on-fetch" className="text-sm font-medium">
+                                Encrypt on fetch
+                            </Label>
+                            <p className="text-xs text-muted-foreground">
+                                When enabled, every fetched value is encrypted before storage, regardless of per-key classification. A value
+                                already classified keeps its classification; an unencrypted property is encrypted the next time it is
+                                fetched. Once encrypted, a value cannot be made plain again.
+                            </p>
+                        </div>
+                        <Switch
+                            id="dp-encrypt-on-fetch"
+                            checked={form.encryptOnFetch}
+                            onCheckedChange={v => patch({ encryptOnFetch: v })}
+                            disabled={configDisabled}
+                        />
+                    </div>
+                </CardContent>
+            </Card>
+
             {/* ─── Advanced collapsible sections ─────────────────────────────── */}
             <div className="space-y-3">
                 <HttpClientSection

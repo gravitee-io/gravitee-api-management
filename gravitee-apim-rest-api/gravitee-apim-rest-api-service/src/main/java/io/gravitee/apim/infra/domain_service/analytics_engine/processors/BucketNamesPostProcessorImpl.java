@@ -67,7 +67,7 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
     private final FilterValueNameResolver filterValueNameResolver;
 
     @Override
-    public FacetsResponse mapBucketNames(AnalyticsQueryContext context, List<FacetSpec.Name> facets, FacetsResponse response) {
+    public FacetsResponse mapBucketNames(AnalyticsQueryContext context, List<FacetName> facets, FacetsResponse response) {
         var buckets = response
             .metrics()
             .stream()
@@ -87,7 +87,7 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
 
     MetricFacetsResponse mapFacetMetrics(
         Map<FacetSpec.Name, Map<String, String>> namesByFacet,
-        List<FacetSpec.Name> facets,
+        List<FacetName> facets,
         MetricFacetsResponse metric
     ) {
         var mappedBuckets = this.mapFacetBuckets(namesByFacet, facets, metric.buckets());
@@ -96,7 +96,7 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
 
     List<FacetBucketResponse> mapFacetBuckets(
         Map<FacetSpec.Name, Map<String, String>> namesByFacet,
-        List<FacetSpec.Name> facets,
+        List<FacetName> facets,
         List<FacetBucketResponse> buckets
     ) {
         if (facets.isEmpty()) {
@@ -111,7 +111,7 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
 
     FacetBucketResponse mapFacetBucket(
         Map<FacetSpec.Name, Map<String, String>> namesByFacet,
-        List<FacetSpec.Name> facets,
+        List<FacetName> facets,
         FacetBucketResponse bucket
     ) {
         var facet = facets.getFirst();
@@ -128,7 +128,7 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
     }
 
     @Override
-    public TimeSeriesResponse mapBucketNames(AnalyticsQueryContext context, List<FacetSpec.Name> facets, TimeSeriesResponse response) {
+    public TimeSeriesResponse mapBucketNames(AnalyticsQueryContext context, List<FacetName> facets, TimeSeriesResponse response) {
         var buckets = response
             .metrics()
             .stream()
@@ -151,7 +151,7 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
 
     private TimeSeriesMetricResponse mapTimeSeriesMetrics(
         Map<FacetSpec.Name, Map<String, String>> namesByFacet,
-        List<FacetSpec.Name> facets,
+        List<FacetName> facets,
         TimeSeriesMetricResponse metric
     ) {
         var mappedBuckets = mapTimeSeriesBuckets(namesByFacet, facets, metric.buckets());
@@ -160,7 +160,7 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
 
     private List<TimeSeriesBucketResponse> mapTimeSeriesBuckets(
         Map<FacetSpec.Name, Map<String, String>> namesByFacet,
-        List<FacetSpec.Name> filters,
+        List<FacetName> filters,
         List<TimeSeriesBucketResponse> buckets
     ) {
         if (filters.isEmpty()) {
@@ -175,7 +175,7 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
 
     private TimeSeriesBucketResponse mapTimeSeriesBucket(
         Map<FacetSpec.Name, Map<String, String>> namesByFacet,
-        List<FacetSpec.Name> facets,
+        List<FacetName> facets,
         TimeSeriesBucketResponse bucket
     ) {
         var updatedBuckets = bucket
@@ -192,7 +192,7 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
      */
     private Map<FacetSpec.Name, Map<String, String>> loadNames(
         AnalyticsQueryContext context,
-        List<FacetSpec.Name> facets,
+        List<FacetName> facets,
         List<FacetBucketResponse> buckets
     ) {
         var namesByFacet = new EnumMap<FacetSpec.Name, Map<String, String>>(FacetSpec.Name.class);
@@ -235,7 +235,7 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
         return executionContext != null && executionContext.hasEnvironmentId() ? executionContext.getEnvironmentId() : null;
     }
 
-    private Set<String> getIdsFromBuckets(FacetSpec.Name target, List<FacetSpec.Name> facets, List<FacetBucketResponse> buckets) {
+    private Set<String> getIdsFromBuckets(FacetSpec.Name target, List<FacetName> facets, List<FacetBucketResponse> buckets) {
         if (facets.isEmpty()) {
             return Set.of();
         }

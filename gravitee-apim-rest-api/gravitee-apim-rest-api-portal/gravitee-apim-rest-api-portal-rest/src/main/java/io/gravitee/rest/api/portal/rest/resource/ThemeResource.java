@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.theme.exception.ThemeImageInvalidException;
 import io.gravitee.apim.core.theme.use_case.GetCurrentThemeUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.InlinePictureEntity;
@@ -38,6 +39,7 @@ import jakarta.ws.rs.core.*;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.util.Objects;
+import java.util.function.Supplier;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ThemeResource extends AbstractResource {
@@ -74,32 +76,43 @@ public class ThemeResource extends AbstractResource {
     @GET
     @Path("{themeId}/logo")
     public Response getLogo(@PathParam("themeId") String id, @Context Request request) {
-        return this.buildPictureResponse(themeService.getLogo(GraviteeContext.getExecutionContext(), id), request);
+        return this.buildPictureResponse(() -> themeService.getLogo(GraviteeContext.getExecutionContext(), id), request);
     }
 
     @GET
     @Path("{themeId}/optionalLogo")
     public Response getOptionalLogo(@PathParam("themeId") String id, @Context Request request) {
-        PictureEntity optionalLogo = themeService.getOptionalLogo(GraviteeContext.getExecutionContext(), id);
-        if (optionalLogo != null) {
-            return this.buildPictureResponse(optionalLogo, request);
-        }
-        return this.getLogo(id, request);
+        return this.buildPictureResponse(
+            () -> {
+                PictureEntity optionalLogo = themeService.getOptionalLogo(GraviteeContext.getExecutionContext(), id);
+                return optionalLogo != null ? optionalLogo : themeService.getLogo(GraviteeContext.getExecutionContext(), id);
+            },
+            request
+        );
     }
 
     @GET
     @Path("{themeId}/backgroundImage")
     public Response getBackgroundImage(@PathParam("themeId") String id, @Context Request request) {
-        return this.buildPictureResponse(themeService.getBackgroundImage(GraviteeContext.getExecutionContext(), id), request);
+        return this.buildPictureResponse(() -> themeService.getBackgroundImage(GraviteeContext.getExecutionContext(), id), request);
     }
 
     @GET
     @Path("{themeId}/favicon")
     public Response getFavicon(@PathParam("themeId") String id, @Context Request request) {
-        return this.buildPictureResponse(themeService.getFavicon(GraviteeContext.getExecutionContext(), id), request);
+        return this.buildPictureResponse(() -> themeService.getFavicon(GraviteeContext.getExecutionContext(), id), request);
     }
 
-    private Response buildPictureResponse(PictureEntity picture, @Context Request request) {
+    private Response buildPictureResponse(Supplier<PictureEntity> pictureSupplier, @Context Request request) {
+        final PictureEntity picture;
+        try {
+            picture = pictureSupplier.get();
+        } catch (ThemeImageInvalidException ex) {
+            CacheControl cacheControl = new CacheControl();
+            cacheControl.setNoStore(true);
+            return Response.status(Response.Status.NOT_FOUND).cacheControl(cacheControl).build();
+        }
+
         if (picture == null) {
             return Response.ok().build();
         }

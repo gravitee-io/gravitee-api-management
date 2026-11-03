@@ -33,7 +33,7 @@ public record MeasuresResponse(List<MetricMeasuresResponse> metrics) {
         );
     }
 
-    public MeasuresResponse withIgnoredFilters(List<FilterSpec.Name> ignoredFilters) {
+    public MeasuresResponse withIgnoredFilters(List<FilterName> ignoredFilters) {
         return new MeasuresResponse(
             metrics
                 .stream()

@@ -201,8 +201,8 @@ public class EventMetricsFieldResolver implements FieldResolver {
     }
 
     @Override
-    public String fromFilter(Filter filter) {
-        return fromDimension(filter.name().name(), "filter");
+    public String fromFilter(Filter.Name name) {
+        return fromDimension(name.name(), "filter");
     }
 
     @Override

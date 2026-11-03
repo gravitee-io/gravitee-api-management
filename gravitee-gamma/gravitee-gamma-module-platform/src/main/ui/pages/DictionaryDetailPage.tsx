@@ -25,7 +25,7 @@ import {
     PlayIcon,
     PlusIcon,
 } from '@gravitee/graphene-core/icons';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { AddDictionaryPropertySheet } from '../features/dictionaries/components/AddDictionaryPropertySheet';
@@ -35,16 +35,24 @@ import { DictionaryStateBadge } from '../features/dictionaries/components/Dictio
 import { TRIGGER_UNIT_OPTIONS } from '../features/dictionaries/components/DictionaryTriggerFields';
 import { DictionaryTypeBadge } from '../features/dictionaries/components/DictionaryTypeBadge';
 import { EditDictionaryPropertySheet } from '../features/dictionaries/components/EditDictionaryPropertySheet';
+import { RenewDictionaryPropertySheet } from '../features/dictionaries/components/RenewDictionaryPropertySheet';
 import {
     useDeployDictionary,
     useStartDictionary,
     useStopDictionary,
-    useUpdateDictionary,
+    useUpdateDictionaryProperties,
 } from '../features/dictionaries/hooks/useDictionaryMutations';
 import { useDictionaryPermissions } from '../features/dictionaries/hooks/useDictionaryPermissions';
 import { useEnvironmentDictionary } from '../features/dictionaries/hooks/useEnvironmentDictionary';
-import type { Dictionary, DictionaryHttpProviderConfiguration, UpdateDictionaryPayload } from '../features/dictionaries/types/dictionary';
+import type {
+    Dictionary,
+    DictionaryHttpProviderConfiguration,
+    DictionaryPropertyRow,
+    UpdateDictionaryPayload,
+} from '../features/dictionaries/types/dictionary';
 import { formatDictionaryDate } from '../features/dictionaries/utils/formatDictionaryDate';
+import { buildPropertyOptions, toPropertyRows } from '../features/dictionaries/utils/propertyOptions';
+import { ConfirmDialog } from '../shared/components/ConfirmDialog';
 import { notify } from '../shared/notify';
 
 function triggerUnitLabel(unit: string | undefined): string {
@@ -59,36 +67,75 @@ function asHttpProviderConfig(configuration: unknown): DictionaryHttpProviderCon
     return {};
 }
 
-function toUpdatePayload(dictionary: Dictionary, nextProperties: Record<string, string>): UpdateDictionaryPayload {
+function toUpdatePayload(dictionary: Dictionary, nextProperties: Record<string, string>, keysToEncrypt: string[]): UpdateDictionaryPayload {
     return {
         name: dictionary.name,
         description: dictionary.description,
         type: dictionary.type,
         properties: nextProperties,
+        propertyOptions: buildPropertyOptions(keysToEncrypt, nextProperties),
         provider: dictionary.provider ?? undefined,
         trigger: dictionary.trigger ?? undefined,
     };
 }
 
+/** A staged new key may have been added by someone else since the page loaded; saving over it would silently replace their value. */
+function withStagedAdds(current: Record<string, string>, stagedAdds: Readonly<Record<string, string>>): Record<string, string> {
+    const clash = Object.keys(stagedAdds).find(key => key in current);
+    if (clash) throw new Error(`Property "${clash}" already exists`);
+    return { ...current, ...stagedAdds };
+}
+
 export function DictionaryDetailPage() {
     const { dictionaryId } = useParams<{ dictionaryId: string }>();
+    // Keyed by id so staged marks and new rows never carry over to another dictionary.
+    return <DictionaryDetail key={dictionaryId} dictionaryId={dictionaryId} />;
+}
+
+function DictionaryDetail({ dictionaryId }: Readonly<{ dictionaryId: string | undefined }>) {
     const navigate = useNavigate();
     const { canUpdate } = useDictionaryPermissions();
     const { data: dictionary, isLoading, isError } = useEnvironmentDictionary(dictionaryId);
-    const updateMutation = useUpdateDictionary();
+    const updateMutation = useUpdateDictionaryProperties();
     const deployMutation = useDeployDictionary();
     const startMutation = useStartDictionary();
     const stopMutation = useStopDictionary();
     const [addPropertyOpen, setAddPropertyOpen] = useState(false);
-    const [propertyToEdit, setPropertyToEdit] = useState<{ key: string; value: string } | undefined>();
+    const [propertyToEdit, setPropertyToEdit] = useState<DictionaryPropertyRow | undefined>();
+    const [propertyToRenew, setPropertyToRenew] = useState<DictionaryPropertyRow | undefined>();
+    const [markedKeys, setMarkedKeys] = useState<ReadonlySet<string>>(new Set());
+    const [pendingAdds, setPendingAdds] = useState<Readonly<Record<string, string>>>({});
     const [propertyToDelete, setPropertyToDelete] = useState<string | undefined>();
+    const [leaveOpen, setLeaveOpen] = useState(false);
 
-    const properties = dictionary?.properties;
-    const propertyRows = useMemo(() => Object.entries(properties ?? {}).map(([key, value]) => ({ key, value })), [properties]);
+    const propertyRows = useMemo(() => {
+        if (!dictionary) return [];
+        const pendingRows = Object.keys(pendingAdds).map(key => ({
+            key,
+            value: '',
+            encrypted: false,
+            encryptOnSave: true,
+        }));
+        return [...toPropertyRows(dictionary, markedKeys), ...pendingRows];
+    }, [dictionary, markedKeys, pendingAdds]);
+    const pendingCount = Object.keys(pendingAdds).length;
+    const takenKeys = useMemo(() => propertyRows.map(row => row.key), [propertyRows]);
+    const keysToEncryptOnSave = useMemo(() => propertyRows.filter(row => row.encryptOnSave).map(row => row.key), [propertyRows]);
+    const hasUnsavedStaging = keysToEncryptOnSave.length > 0;
+
+    useEffect(() => {
+        if (!hasUnsavedStaging) return;
+        const warnBeforeUnload = (event: BeforeUnloadEvent) => event.preventDefault();
+        window.addEventListener('beforeunload', warnBeforeUnload);
+        return () => window.removeEventListener('beforeunload', warnBeforeUnload);
+    }, [hasUnsavedStaging]);
+
     const propertyCount = propertyRows.length;
     const isDynamic = dictionary?.type === 'DYNAMIC';
     // Classic Console gates property add/edit/delete with environment-dictionary-u.
     const canEditManualProperties = canUpdate && !isDynamic;
+    // Dynamic values are the provider's, but their encryption can still be staged, like in classic Console.
+    const canStageEncryption = canUpdate;
     const isStarted = dictionary?.state === 'STARTED';
     const lifecyclePending = startMutation.isPending || stopMutation.isPending;
     const providerConfig = asHttpProviderConfig(dictionary?.provider?.configuration);
@@ -96,18 +143,32 @@ export function DictionaryDetailPage() {
     const providerBody = providerConfig.body?.trim() ?? '';
     const providerSpecification = providerConfig.specification?.trim() ?? '';
 
-    async function saveProperties(nextProperties: Record<string, string>, successMessage: string) {
-        if (!dictionary || dictionary.type !== 'MANUAL') return;
+    async function saveProperties(
+        edit: (current: Record<string, string>) => Record<string, string>,
+        successMessage: string,
+        keysToEncrypt: string[] = [],
+    ) {
+        if (!dictionary) return;
         await updateMutation.mutateAsync({
             dictionaryId: dictionary.id,
-            data: toUpdatePayload(dictionary, nextProperties),
+            change: current => {
+                const nextProperties = edit(current.properties ?? {});
+                const missingKey = keysToEncrypt.find(key => !(key in nextProperties));
+                if (missingKey) throw new Error(`Property "${missingKey}" no longer exists`);
+                return toUpdatePayload(current, nextProperties, keysToEncrypt);
+            },
         });
         notify.success(successMessage);
     }
 
-    async function handleAddProperty(property: { key: string; value: string }) {
+    async function handleAddProperty(property: { key: string; value: string; encrypt: boolean }) {
+        if (property.encrypt) {
+            setPendingAdds(previous => ({ ...previous, [property.key]: property.value }));
+            setAddPropertyOpen(false);
+            return;
+        }
         try {
-            await saveProperties({ ...(properties ?? {}), [property.key]: property.value }, 'Property added successfully');
+            await saveProperties(current => ({ ...current, [property.key]: property.value }), 'Property added successfully');
             setAddPropertyOpen(false);
         } catch (error) {
             notify.error(error, 'Failed to add property');
@@ -116,13 +177,15 @@ export function DictionaryDetailPage() {
     }
 
     async function handleEditProperty(next: { originalKey: string; key: string; value: string }) {
-        const updated = { ...(properties ?? {}) };
-        if (next.key !== next.originalKey) {
-            delete updated[next.originalKey];
-        }
-        updated[next.key] = next.value;
         try {
-            await saveProperties(updated, 'Property updated successfully');
+            await saveProperties(current => {
+                const updated = { ...current };
+                if (next.key !== next.originalKey) {
+                    delete updated[next.originalKey];
+                }
+                updated[next.key] = next.value;
+                return updated;
+            }, 'Property updated successfully');
             setPropertyToEdit(undefined);
         } catch (error) {
             notify.error(error, 'Failed to update property');
@@ -130,12 +193,71 @@ export function DictionaryDetailPage() {
         }
     }
 
+    function unmark(propertyKey: string) {
+        setMarkedKeys(previous => new Set([...previous].filter(key => key !== propertyKey)));
+    }
+
+    function discardPending(propertyKey: string) {
+        setPendingAdds(previous => Object.fromEntries(Object.entries(previous).filter(([key]) => key !== propertyKey)));
+    }
+
+    async function handleUndoEncrypt(propertyKey: string) {
+        unmark(propertyKey);
+        if (!(propertyKey in pendingAdds)) return;
+        try {
+            await saveProperties(
+                current => withStagedAdds(current, { [propertyKey]: pendingAdds[propertyKey] }),
+                'Property added successfully',
+            );
+            discardPending(propertyKey);
+        } catch (error) {
+            notify.error(error, 'Failed to add property');
+        }
+    }
+
+    async function handleReplaceProperty(replacement: { key: string; value: string }) {
+        if (replacement.key in pendingAdds) {
+            setPendingAdds(previous => ({ ...previous, [replacement.key]: replacement.value }));
+            setPropertyToRenew(undefined);
+            return;
+        }
+        try {
+            await saveProperties(
+                current => ({ ...current, [replacement.key]: replacement.value }),
+                'Property value replaced successfully',
+                [replacement.key],
+            );
+            unmark(replacement.key);
+            setPropertyToRenew(undefined);
+        } catch (error) {
+            notify.error(error, 'Failed to replace property value');
+        }
+    }
+
+    async function handleSaveMarked() {
+        try {
+            await saveProperties(current => withStagedAdds(current, pendingAdds), 'Properties encrypted successfully', keysToEncryptOnSave);
+            setMarkedKeys(new Set());
+            setPendingAdds({});
+        } catch (error) {
+            notify.error(error, 'Failed to encrypt properties');
+        }
+    }
+
     async function handleDeleteProperty() {
         if (!propertyToDelete) return;
-        const updated = { ...(properties ?? {}) };
-        delete updated[propertyToDelete];
+        if (propertyToDelete in pendingAdds) {
+            discardPending(propertyToDelete);
+            setPropertyToDelete(undefined);
+            return;
+        }
         try {
-            await saveProperties(updated, 'Property deleted successfully');
+            await saveProperties(current => {
+                const updated = { ...current };
+                delete updated[propertyToDelete];
+                return updated;
+            }, 'Property deleted successfully');
+            unmark(propertyToDelete);
             setPropertyToDelete(undefined);
         } catch (error) {
             notify.error(error, 'Failed to delete property');
@@ -197,7 +319,14 @@ export function DictionaryDetailPage() {
     return (
         <div className="space-y-6">
             <Button type="button" variant="ghost" className="gap-1.5 px-0 text-muted-foreground" asChild>
-                <Link to="..">
+                <Link
+                    to=".."
+                    onClick={event => {
+                        if (!hasUnsavedStaging) return;
+                        event.preventDefault();
+                        setLeaveOpen(true);
+                    }}
+                >
                     <ArrowLeftIcon className="size-4" aria-hidden />
                     Back to Dictionaries
                 </Link>
@@ -322,6 +451,12 @@ export function DictionaryDetailPage() {
                             <div className="text-sm font-medium">{providerConfig.useSystemProxy ? 'Yes' : 'No'}</div>
                         </div>
                         <div className="space-y-1">
+                            <div className="text-xs text-muted-foreground">Encrypt fetched values</div>
+                            <div className="text-sm font-medium" data-testid="encrypt-on-fetch">
+                                {dictionary.encryption?.encryptOnFetch ? 'Yes' : 'No'}
+                            </div>
+                        </div>
+                        <div className="space-y-1">
                             <div className="text-xs text-muted-foreground">Headers</div>
                             {providerHeaders.length > 0 ? (
                                 <ul className="space-y-1 text-sm">
@@ -378,12 +513,45 @@ export function DictionaryDetailPage() {
                     ) : null}
                 </div>
 
+                {canStageEncryption && keysToEncryptOnSave.length > 0 ? (
+                    <div className="flex items-center justify-between gap-4 rounded-lg border bg-muted/40 px-4 py-3">
+                        <p className="text-sm">
+                            {keysToEncryptOnSave.length === 1
+                                ? '1 value will be encrypted on save.'
+                                : `${keysToEncryptOnSave.length} values will be encrypted on save.`}
+                            {pendingCount > 0
+                                ? ` Discard also removes the ${pendingCount === 1 ? 'new property' : `${pendingCount} new properties`} you added.`
+                                : ''}
+                        </p>
+                        <div className="flex shrink-0 gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => {
+                                    setMarkedKeys(new Set());
+                                    setPendingAdds({});
+                                }}
+                                disabled={updateMutation.isPending}
+                            >
+                                Discard
+                            </Button>
+                            <Button type="button" onClick={() => void handleSaveMarked()} disabled={updateMutation.isPending}>
+                                Save
+                            </Button>
+                        </div>
+                    </div>
+                ) : null}
+
                 <DictionaryPropertiesTable
                     key={dictionary.id}
                     properties={propertyRows}
-                    canEdit={canEditManualProperties}
+                    canEdit={canUpdate}
+                    dynamic={isDynamic}
                     isMutating={updateMutation.isPending}
                     onEdit={setPropertyToEdit}
+                    onRenew={setPropertyToRenew}
+                    onEncrypt={key => setMarkedKeys(previous => new Set(previous).add(key))}
+                    onUndoEncrypt={key => void handleUndoEncrypt(key)}
                     onDelete={setPropertyToDelete}
                     emptyMessage={
                         isDynamic
@@ -398,7 +566,7 @@ export function DictionaryDetailPage() {
                 onClose={() => setAddPropertyOpen(false)}
                 onSubmit={handleAddProperty}
                 isSaving={updateMutation.isPending}
-                existingKeys={Object.keys(properties ?? {})}
+                existingKeys={takenKeys}
             />
 
             <EditDictionaryPropertySheet
@@ -407,7 +575,24 @@ export function DictionaryDetailPage() {
                 onClose={() => setPropertyToEdit(undefined)}
                 onSubmit={handleEditProperty}
                 isSaving={updateMutation.isPending}
-                existingKeys={Object.keys(properties ?? {})}
+                existingKeys={takenKeys}
+            />
+
+            <ConfirmDialog
+                open={leaveOpen}
+                onOpenChange={setLeaveOpen}
+                title="Unsaved changes"
+                description="Leave this page? Staged encryptions and new properties that are not saved will be lost."
+                confirmLabel="Leave"
+                onConfirm={() => navigate('..')}
+            />
+
+            <RenewDictionaryPropertySheet
+                open={propertyToRenew !== undefined}
+                propertyKey={propertyToRenew?.key}
+                onClose={() => setPropertyToRenew(undefined)}
+                onSubmit={handleReplaceProperty}
+                isSaving={updateMutation.isPending}
             />
 
             <DeleteDictionaryPropertySheet

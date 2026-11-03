@@ -66,7 +66,8 @@ public class ImportDefinitionPageDomainServiceTestInitializer {
         return new ImportDefinitionPageDomainService(
             apiDocumentationDomainService,
             createApiDocumentationDomainService,
-            updateApiDocumentationDomainService
+            updateApiDocumentationDomainService,
+            new ImportDefinitionPageParentValidationDomainService(pageCrudServiceInMemory)
         );
     }
 
@@ -75,6 +76,7 @@ public class ImportDefinitionPageDomainServiceTestInitializer {
             auditCrudServiceInMemory,
             pageCrudServiceInMemory,
             pageQueryServiceInMemory,
+            pageRevisionCrudServiceInMemory,
             planQueryServiceInMemory,
             userCrudServiceInMemory
         ).forEach(InMemoryAlternative::reset);

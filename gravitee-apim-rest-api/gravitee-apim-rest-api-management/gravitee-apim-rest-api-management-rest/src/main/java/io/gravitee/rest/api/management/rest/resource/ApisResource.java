@@ -584,7 +584,8 @@ public class ApisResource extends AbstractResource {
     @Path("import")
     @Operation(
         summary = "Update the API from the API definition",
-        description = "Requires API_DEFINITION[UPDATE] on the API in the definition. A URL body also requires ENVIRONMENT_API[UPDATE] before it is fetched."
+        description = "Requires API_DEFINITION[UPDATE] on the API in the definition. A URL body also requires ENVIRONMENT_API[UPDATE] before it is fetched. " +
+            "Groups of the definition that do not exist are created only with ENVIRONMENT_GROUP[CREATE], otherwise they are ignored."
     )
     @ApiResponse(
         responseCode = "200",

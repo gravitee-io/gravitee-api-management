@@ -99,12 +99,6 @@ public class ApiKeyEntity {
         return generateForSubscription(subscription, UuidString.generateRandom(), false);
     }
 
-    public ApiKeyEntity addSubscription(String subscriptionId) {
-        var list = new ArrayList<>(subscriptions);
-        list.add(subscriptionId);
-        return this.toBuilder().subscriptions(list).updatedAt(TimeProvider.now()).build();
-    }
-
     public ApiKeyEntity revoke() {
         var now = TimeProvider.now();
         return this.toBuilder().revoked(true).updatedAt(now).revokedAt(now).build();

@@ -149,4 +149,11 @@ public class SubscriptionMongo extends DeprecatedAuditable {
     private String referenceId;
 
     private String referenceType;
+
+    /**
+     * {@link io.gravitee.repository.management.api.SubscriptionUniqueActiveKey#hashOf hash of the unique active key} of
+     * an active subscription, computed by the repository on every write. Absent, never {@code null}, from the others: a
+     * {@code null} value would still be indexed by the unique index on active subscriptions.
+     */
+    private String activeKeyHash;
 }

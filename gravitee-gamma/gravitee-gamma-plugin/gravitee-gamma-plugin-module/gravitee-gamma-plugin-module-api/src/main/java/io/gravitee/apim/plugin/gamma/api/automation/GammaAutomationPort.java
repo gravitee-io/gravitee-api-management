@@ -80,6 +80,19 @@ public interface GammaAutomationPort {
     boolean deleteById(AutomationContext context, ResourceKind kind, String id);
 
     /**
+     * Dry run of {@link #deleteById}: deletes nothing and reports what the delete would take with it, so a caller
+     * sees the dependents before it commits. A module whose delete cascades or narrows other resources overrides
+     * it and returns one finding per dependent.
+     *
+     * @return the current state of the resource and the findings the delete would raise, or empty when there is
+     *     nothing to delete. By default it is the current state with no findings, which is also what a module
+     *     whose delete has no side effect on other resources answers.
+     */
+    default Optional<UpsertResult<ObjectNode>> validateDeleteById(AutomationContext context, ResourceKind kind, String id) {
+        return findById(context, kind, id).map(UpsertResult::of);
+    }
+
+    /**
      * @return the module's automation OpenAPI document (YAML), describing every kind it serves under its
      *     mount. It must be self-contained and use module-prefixed component names so it can be merged into
      *     the Automation API document without collisions. Empty when the module publishes none.

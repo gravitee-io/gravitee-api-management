@@ -17,6 +17,7 @@ package io.gravitee.apim.core.dashboard.model;
 
 import io.gravitee.apim.core.analytics_engine.exception.InvalidQueryException;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.FacetName;
 import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
@@ -76,7 +77,7 @@ public final class DashboardWidgetRequestMapper {
         }
         var timeRange = toTimeRange(request.getTimeRange());
         var metrics = toFacetMetricMeasuresRequests(request.getMetrics());
-        var facets = request.getBy() != null ? toFacetNames(request.getBy()) : List.<FacetSpec.Name>of();
+        var facets = request.getBy() != null ? toFacetNames(request.getBy()) : List.<FacetName>of();
         var filters = toFilters(request.getFilters());
         return new TimeSeriesRequest(timeRange, interval, filters, metrics, facets, request.getLimit(), List.of());
     }
@@ -154,11 +155,11 @@ public final class DashboardWidgetRequestMapper {
         }
     }
 
-    private static List<FacetSpec.Name> toFacetNames(List<String> by) {
+    private static List<FacetName> toFacetNames(List<String> by) {
         if (CollectionUtils.isEmpty(by)) {
             return List.of();
         }
-        return by.stream().map(DashboardWidgetRequestMapper::parseFacetName).toList();
+        return by.stream().<FacetName>map(DashboardWidgetRequestMapper::parseFacetName).toList();
     }
 
     private static MetricSpec.Name parseMetricName(String value) {

@@ -160,6 +160,7 @@ export function usePolicyStudioData(apiId: string | undefined): PolicyStudioData
                 icon: p.icon,
                 category: p.category,
                 flowPhaseCompatibility: p.flowPhaseCompatibility,
+                supportsMessageCondition: p.supportsMessageCondition,
             })),
         [policiesQuery.data],
     );

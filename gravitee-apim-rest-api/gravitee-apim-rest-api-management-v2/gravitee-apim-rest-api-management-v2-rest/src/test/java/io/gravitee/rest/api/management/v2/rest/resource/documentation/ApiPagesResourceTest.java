@@ -86,6 +86,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class ApiPagesResourceTest extends AbstractResourceTest {
@@ -1000,6 +1001,48 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             assertThat(createdPage.getUpdatedAt()).isNotNull();
         }
 
+        @ParameterizedTest
+        @CsvSource({ "API,another-api", "ENVIRONMENT,api-id", "ENVIRONMENT,another-environment" })
+        void should_reject_foreign_parent_without_writing_documentation(Page.ReferenceType referenceType, String referenceId) {
+            var parent = Page.builder()
+                .id("parent-id")
+                .name("Foreign folder")
+                .type(Page.Type.FOLDER)
+                .referenceType(referenceType)
+                .referenceId(referenceId)
+                .build();
+            pageCrudServiceInMemory.initWith(List.of(parent));
+            var request = new CreateDocumentationFolder()
+                .name("Child folder")
+                .type(CreateDocumentation.TypeEnum.FOLDER)
+                .parentId(parent.getId());
+
+            try (var response = rootTarget().request().post(Entity.json(request))) {
+                assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+                assertThat(response.readEntity(String.class)).doesNotContain(parent.getName(), referenceId);
+            }
+            assertThat(pageCrudServiceInMemory.storage()).containsExactly(parent);
+            assertThat(pageRevisionCrudServiceInMemory.storage()).isEmpty();
+            assertThat(auditCrudService.storage()).isEmpty();
+            assertThat(indexer.storage()).isEmpty();
+        }
+
+        @Test
+        void should_reject_missing_parent_instead_of_creating_in_root() {
+            var request = new CreateDocumentationFolder()
+                .name("Child folder")
+                .type(CreateDocumentation.TypeEnum.FOLDER)
+                .parentId("missing-parent");
+
+            try (var response = rootTarget().request().post(Entity.json(request))) {
+                assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+            }
+            assertThat(pageCrudServiceInMemory.storage()).isEmpty();
+            assertThat(pageRevisionCrudServiceInMemory.storage()).isEmpty();
+            assertThat(auditCrudService.storage()).isEmpty();
+            assertThat(indexer.storage()).isEmpty();
+        }
+
         @Test
         public void should_create_swagger_page() {
             var pageToCreate = (CreateDocumentationSwagger) new CreateDocumentationSwagger()
@@ -1228,6 +1271,42 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         private static final String API_ID = "api-id";
         private static final String PAGE_ID = "page-id";
+
+        @ParameterizedTest
+        @ValueSource(booleans = { true, false })
+        void should_reject_unavailable_stored_parent_without_writing_documentation(boolean parentExists) {
+            var parent = Page.builder()
+                .id("unavailable-parent")
+                .name("Foreign folder")
+                .type(Page.Type.FOLDER)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("another-api")
+                .build();
+            var page = Page.builder()
+                .id(PAGE_ID)
+                .name("Documentation")
+                .type(Page.Type.MARKDOWN)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .content("Unchanged content")
+                .parentId(parent.getId())
+                .build();
+            var existingPages = parentExists ? List.of(page, parent) : List.of(page);
+            givenApiPagesQuery(existingPages);
+            var request = new UpdateDocumentationMarkdown()
+                .content(page.getContent())
+                .name(page.getName())
+                .type(UpdateDocumentation.TypeEnum.MARKDOWN);
+
+            try (var response = rootTarget().path(PAGE_ID).request().put(Entity.json(request))) {
+                assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+                assertThat(response.readEntity(String.class)).doesNotContain(parent.getName(), parent.getReferenceId());
+            }
+            assertThat(pageCrudServiceInMemory.storage()).containsExactlyElementsOf(existingPages);
+            assertThat(pageRevisionCrudServiceInMemory.storage()).isEmpty();
+            assertThat(auditCrudService.storage()).isEmpty();
+            assertThat(indexer.storage()).isEmpty();
+        }
 
         @BeforeEach
         void setUp() {

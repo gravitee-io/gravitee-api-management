@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<definitions name="FileSchemeImport"
+             targetNamespace="http://example.com/file-scheme"
+             xmlns:tns="http://example.com/file-scheme"
+             xmlns="http://schemas.xmlsoap.org/wsdl/">
+    <import namespace="http://example.com/nested-xxe/child" location="file:///etc/passwd"/>
+    <service name="FileSchemeService"/>
+</definitions>

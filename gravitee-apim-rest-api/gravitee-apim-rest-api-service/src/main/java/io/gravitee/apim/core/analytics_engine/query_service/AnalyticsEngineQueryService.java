@@ -20,9 +20,11 @@ import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
+import io.gravitee.apim.core.analytics_engine.model.MetricName;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
+import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Set;
 
@@ -38,6 +40,31 @@ public interface AnalyticsEngineQueryService {
      * search takes ignores the condition, or empties the result whatever it is.
      */
     boolean narrowsBy(MetricSpec.Name metric, FilterSpec.Name filter);
+
+    /**
+     * Whether the search of {@code metric} reads the additional metric fields of the requests, so it can be grouped by
+     * one. Only the search of the request documents does; a condition on such a field goes through {@link #narrowsBy}'s
+     * rule like any other: skipped where the search cannot apply it.
+     */
+    default boolean groupsByAdditionalMetrics(MetricName metric) {
+        return false;
+    }
+
+    /**
+     * Whether this service measures the additional metric fields holding a number. Only the search of the request
+     * documents does, and one service at most: the other searches read documents that never carry such a field.
+     */
+    default boolean measuresAdditionalMetrics() {
+        return false;
+    }
+
+    /**
+     * The built-in names whose values the analytics store keeps under the field's key: a query naming either reads the
+     * same data. The services that do not read the store's additional metric fields know none.
+     */
+    default Set<FilterSpec.Name> builtInsStoredAs(AdditionalMetricField field) {
+        return Set.of();
+    }
 
     MeasuresResponse searchMeasures(ExecutionContext context, MeasuresRequest request);
 

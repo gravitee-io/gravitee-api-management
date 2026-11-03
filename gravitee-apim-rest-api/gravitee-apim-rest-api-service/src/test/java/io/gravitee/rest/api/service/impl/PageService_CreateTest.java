@@ -134,6 +134,20 @@ public class PageService_CreateTest {
         return pageEntity;
     }
 
+    private Page environmentPage() {
+        Page page = new Page();
+        page.setReferenceType(PageReferenceType.ENVIRONMENT);
+        page.setReferenceId("DEFAULT");
+        return page;
+    }
+
+    private void mockEnvironmentParent(String id, PageType type) throws TechnicalException {
+        Page parent = environmentPage();
+        parent.setId(id);
+        parent.setType(type.name());
+        doReturn(Optional.of(parent)).when(pageRepository).findById(id);
+    }
+
     @Test
     public void shouldCreatePage() throws TechnicalException, IOException {
         final String name = "MARKDOWN";
@@ -213,12 +227,12 @@ public class PageService_CreateTest {
     @Test
     public void shouldNotCreateFolderinFolderOfSystemFolderPage() throws TechnicalException {
         assertThrows(PageFolderActionException.class, () -> {
-            Page systemFolder = new Page();
+            Page systemFolder = environmentPage();
             systemFolder.setId("SYS");
             systemFolder.setType("SYSTEM_FOLDER");
             doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
 
-            Page folderInSystemFolder = new Page();
+            Page folderInSystemFolder = environmentPage();
             folderInSystemFolder.setId("FOLD_IN_SYS");
             folderInSystemFolder.setType("FOLDER");
             folderInSystemFolder.setParentId("SYS");
@@ -234,7 +248,7 @@ public class PageService_CreateTest {
 
     @Test
     public void shouldCreateFolderInSystemFolderPage() throws TechnicalException {
-        Page systemFolder = new Page();
+        Page systemFolder = environmentPage();
         systemFolder.setId("SYS");
         systemFolder.setType("SYSTEM_FOLDER");
         doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
@@ -261,7 +275,7 @@ public class PageService_CreateTest {
     @Test
     public void shouldNotCreateSwaggerInSystemFolderPage() throws TechnicalException {
         assertThrows(PageActionException.class, () -> {
-            Page systemFolder = new Page();
+            Page systemFolder = environmentPage();
             systemFolder.setId("SYS");
             systemFolder.setType("SYSTEM_FOLDER");
             doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
@@ -277,7 +291,7 @@ public class PageService_CreateTest {
     @Test
     public void shouldNotCreateMarkdownInSystemFolderPage() throws TechnicalException {
         assertThrows(PageActionException.class, () -> {
-            Page systemFolder = new Page();
+            Page systemFolder = environmentPage();
             systemFolder.setId("SYS");
             systemFolder.setType("SYSTEM_FOLDER");
             doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
@@ -293,7 +307,7 @@ public class PageService_CreateTest {
     @Test
     public void shouldNotCreateLinkOfSystemFolder() throws TechnicalException {
         assertThrows(PageActionException.class, () -> {
-            Page systemFolder = new Page();
+            Page systemFolder = environmentPage();
             systemFolder.setId("SYS");
             systemFolder.setType("SYSTEM_FOLDER");
             doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
@@ -314,12 +328,12 @@ public class PageService_CreateTest {
     @Test
     public void shouldNotCreateLinkOfFolderInSystemFolder() throws TechnicalException {
         assertThrows(PageActionException.class, () -> {
-            Page systemFolder = new Page();
+            Page systemFolder = environmentPage();
             systemFolder.setId("SYS");
             systemFolder.setType("SYSTEM_FOLDER");
             doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
 
-            Page folderInSystemFolder = new Page();
+            Page folderInSystemFolder = environmentPage();
             folderInSystemFolder.setId("FOLD_IN_SYS");
             folderInSystemFolder.setType("FOLDER");
             folderInSystemFolder.setParentId("SYS");
@@ -340,6 +354,7 @@ public class PageService_CreateTest {
 
     @Test
     public void shouldCreatePublishedLinkForRoot() throws TechnicalException {
+        mockEnvironmentParent("SYS", PageType.SYSTEM_FOLDER);
         Map<String, String> conf = new HashMap<>();
         conf.put(PageConfigurationKeys.LINK_RESOURCE_TYPE, PageConfigurationKeys.LINK_RESOURCE_TYPE_EXTERNAL);
 
@@ -366,7 +381,8 @@ public class PageService_CreateTest {
 
     @Test
     public void shouldCopyPublishedStateWhenCreateLink() throws TechnicalException {
-        Page page = new Page();
+        mockEnvironmentParent("SYS", PageType.SYSTEM_FOLDER);
+        Page page = environmentPage();
         page.setId("PAGE");
         page.setType("MARKDOWN");
         page.setPublished(true);
@@ -409,6 +425,7 @@ public class PageService_CreateTest {
 
     @Test
     public void shouldNotCreateTranslationPageWithoutConfiguration() throws TechnicalException {
+        mockEnvironmentParent("FOLDER", PageType.FOLDER);
         assertThrows(PageActionException.class, () -> {
             NewPageEntity newTranslation = new NewPageEntity();
             newTranslation.setType(PageType.TRANSLATION);
@@ -420,6 +437,7 @@ public class PageService_CreateTest {
 
     @Test
     public void shouldNotCreateTranslationPageWithoutLang() throws TechnicalException {
+        mockEnvironmentParent("FOLDER", PageType.FOLDER);
         assertThrows(PageActionException.class, () -> {
             NewPageEntity newTranslation = new NewPageEntity();
             newTranslation.setType(PageType.TRANSLATION);
@@ -435,7 +453,7 @@ public class PageService_CreateTest {
     @Test
     public void shouldNotCreateTranslationPageIfParentIsSystemFolder() throws TechnicalException {
         assertThrows(PageActionException.class, () -> {
-            Page parentPage = new Page();
+            Page parentPage = environmentPage();
             parentPage.setType("SYSTEM_FOLDER");
             doReturn(Optional.of(parentPage)).when(pageRepository).findById("SYS_FOLDER");
 
@@ -453,7 +471,7 @@ public class PageService_CreateTest {
     @Test
     public void shouldNotCreateTranslationPageIfParentIsRoot() throws TechnicalException {
         assertThrows(PageActionException.class, () -> {
-            Page parentPage = new Page();
+            Page parentPage = environmentPage();
             parentPage.setType("ROOT");
             doReturn(Optional.of(parentPage)).when(pageRepository).findById("ROOT");
 
@@ -471,7 +489,7 @@ public class PageService_CreateTest {
     @Test
     public void shouldNotCreateTranslationPageIfParentIsTranslation() throws TechnicalException {
         assertThrows(PageActionException.class, () -> {
-            Page parentPage = new Page();
+            Page parentPage = environmentPage();
             parentPage.setType("TRANSLATION");
             doReturn(Optional.of(parentPage)).when(pageRepository).findById("TRANSLATION");
 
@@ -489,7 +507,7 @@ public class PageService_CreateTest {
 
     @Test
     public void shouldCopyPublishedStateWhenCreateTranslation() throws TechnicalException {
-        Page page = new Page();
+        Page page = environmentPage();
         page.setId(PAGE_ID);
         page.setType("MARKDOWN");
         page.setPublished(true);
@@ -522,10 +540,9 @@ public class PageService_CreateTest {
     public void shouldNotCreateTranslationBecausePageContentUnsafeException() throws TechnicalException {
         assertThrows(PageContentUnsafeException.class, () -> {
             setField(pageService, "markdownSanitize", true);
-            Page page = new Page();
+            Page page = environmentPage();
             page.setId(PAGE_ID);
             page.setType("MARKDOWN");
-            page.setReferenceId(API_ID);
             page.setPublished(true);
             doReturn(Optional.of(page)).when(pageRepository).findById(PAGE_ID);
 

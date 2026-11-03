@@ -72,6 +72,47 @@ import { apiDetailKeys } from '../../../utils/queryKeys';
 
 type DialogState = null | { type: 'add' } | { type: 'edit'; property: Property };
 
+type PropertiesChange = (current: Property[]) => Property[];
+
+const ENCRYPTED_VALUE_MASK = '•'.repeat(8);
+
+function byKey(a: Property, b: Property): number {
+    return a.key.localeCompare(b.key);
+}
+
+function replaceProperty(key: string, next: (existing: Property) => Property): PropertiesChange {
+    return current => {
+        if (!current.some(property => property.key === key)) throw new Error(`Property "${key}" no longer exists`);
+        return current.map(property => (property.key === key ? next(property) : property));
+    };
+}
+
+function addProperty(added: Property): PropertiesChange {
+    return current => {
+        if (current.some(property => property.key === added.key)) throw new Error(`A property with the key "${added.key}" already exists`);
+        return [...current, added].sort(byKey);
+    };
+}
+
+function removeProperty(key: string): PropertiesChange {
+    return current => current.filter(property => property.key !== key);
+}
+
+/**
+ * An encrypted property is never overwritten by an import, like classic. The preview already leaves out the keys the page
+ * knows are encrypted, so one that only the server holds encrypted now fails the import instead of being dropped silently.
+ */
+function importProperties(imported: Property[], knownEncryptedKeys: ReadonlySet<string>): PropertiesChange {
+    return current => {
+        const encryptedKeys = new Set(current.filter(property => property.encrypted).map(property => property.key));
+        const toImport = imported.filter(property => !knownEncryptedKeys.has(property.key));
+        const newlyEncrypted = toImport.find(property => encryptedKeys.has(property.key));
+        if (newlyEncrypted) throw new Error(`Property "${newlyEncrypted.key}" is now encrypted and cannot be overwritten`);
+        const importedKeys = new Set(toImport.map(property => property.key));
+        return [...current.filter(property => !importedKeys.has(property.key)), ...toImport].sort(byKey);
+    };
+}
+
 function matchesPropertySearch(property: Property, query: string): boolean {
     return property.key.toLowerCase().includes(query);
 }
@@ -168,11 +209,12 @@ interface PropertyDialogProps {
     state: NonNullable<DialogState>;
     existingKeys: string[];
     isSaving: boolean;
+    error: string | null;
     onClose: () => void;
     onSave: (property: Property) => void;
 }
 
-function PropertyDialog({ state, existingKeys, isSaving, onClose, onSave }: PropertyDialogProps) {
+function PropertyDialog({ state, existingKeys, isSaving, error, onClose, onSave }: PropertyDialogProps) {
     const isAdd = state.type === 'add';
     const editProp = state.type === 'edit' ? state.property : null;
     const isEditEncrypted = !!editProp?.encrypted;
@@ -254,6 +296,8 @@ function PropertyDialog({ state, existingKeys, isSaving, onClose, onSave }: Prop
                             </p>
                         </div>
                     ) : null}
+
+                    {error ? <p className="text-sm text-destructive">{error}</p> : null}
                 </div>
 
                 <SheetFooter className="flex-row justify-end border-t">
@@ -274,11 +318,12 @@ function PropertyDialog({ state, existingKeys, isSaving, onClose, onSave }: Prop
 interface ImportPropertiesDialogProps {
     existingProperties: Property[];
     isSaving: boolean;
+    error: string | null;
     onClose: () => void;
-    onImport: (merged: Property[]) => void;
+    onImport: (imported: Property[]) => void;
 }
 
-function ImportPropertiesDialog({ existingProperties, isSaving, onClose, onImport }: ImportPropertiesDialogProps) {
+function ImportPropertiesDialog({ existingProperties, isSaving, error, onClose, onImport }: ImportPropertiesDialogProps) {
     const [raw, setRaw] = useState('');
 
     const parsed = useMemo(() => parsePropertiesStringFormat(raw), [raw]);
@@ -296,13 +341,7 @@ function ImportPropertiesDialog({ existingProperties, isSaving, onClose, onImpor
     const hasErrors = parsed.errors.length > 0;
     const hasValidProperties = parsed.properties.length > 0;
 
-    const handleImport = () => {
-        const encryptedKeys = new Set(existingProperties.filter(p => p.encrypted).map(p => p.key));
-        const toImport = parsed.properties.filter(p => !encryptedKeys.has(p.key));
-        const toImportKeys = new Set(toImport.map(i => i.key));
-        const toKeep = existingProperties.filter(p => !toImportKeys.has(p.key));
-        onImport([...toKeep, ...toImport].sort((a, b) => a.key.localeCompare(b.key)));
-    };
+    const handleImport = () => onImport(parsed.properties);
 
     return (
         <Sheet open onOpenChange={open => !open && onClose()}>
@@ -355,6 +394,8 @@ function ImportPropertiesDialog({ existingProperties, isSaving, onClose, onImpor
                             ) : null}
                         </div>
                     ) : null}
+
+                    {error ? <p className="text-sm text-destructive">{error}</p> : null}
                 </div>
 
                 <SheetFooter className="flex-row justify-end border-t">
@@ -380,8 +421,9 @@ export function ApiPropertiesPage() {
     const env = useEnvironment();
     const queryClient = useQueryClient();
 
-    const canEdit = useHasPermission({ anyOf: ['api-definition-u'] });
+    const hasUpdatePermission = useHasPermission({ anyOf: ['api-definition-u'] });
     const { data: api, isLoading, isError } = useApiDetail(apiId);
+    const canEdit = hasUpdatePermission && api?.definitionContext?.origin !== 'KUBERNETES';
     const properties = useMemo<Property[]>(() => api?.properties ?? [], [api?.properties]);
 
     const { search, page, pageSize, totalCount, pageData, handleSearchChange, setPage, handlePageSizeChange } = useClientFilteredPagination(
@@ -394,7 +436,7 @@ export function ApiPropertiesPage() {
     const [saveError, setSaveError] = useState<string | null>(null);
 
     const mutation = useMutation({
-        mutationFn: (newProps: Property[]) => updateApiProperties(env!.id, apiId!, newProps),
+        mutationFn: (change: PropertiesChange) => updateApiProperties(env!.id, apiId!, change),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env?.id ?? '', apiId ?? '') });
             setDialog(null);
@@ -410,33 +452,41 @@ export function ApiPropertiesPage() {
     const encryptedCount = properties.filter(p => p.encrypted).length;
     const dynamicCount = properties.filter(p => p.dynamic).length;
 
+    const openDialog = (state: DialogState) => {
+        setSaveError(null);
+        setDialog(state);
+    };
+
+    const openImportDialog = () => {
+        setSaveError(null);
+        setShowImportDialog(true);
+    };
+
     const existingKeys = useMemo(() => properties.map(p => p.key), [properties]);
 
     const handleSaveProperty = useCallback(
         (newProp: Property) => {
             if (dialog?.type === 'add') {
-                const updated = [...properties, newProp].sort((a, b) => a.key.localeCompare(b.key));
-                mutation.mutate(updated);
+                mutation.mutate(addProperty(newProp));
             } else if (dialog?.type === 'edit') {
-                const updated = properties.map(p => (p.key === dialog.property.key ? newProp : p));
-                mutation.mutate(updated);
+                const isRenew = dialog.property.encrypted;
+                mutation.mutate(
+                    replaceProperty(dialog.property.key, existing => {
+                        if (isRenew) return { ...existing, value: newProp.value, encrypted: false, encryptable: true };
+                        if (existing.encrypted) throw new Error(`Property "${existing.key}" is now encrypted, renew it instead`);
+                        return { ...existing, value: newProp.value };
+                    }),
+                );
             }
         },
-        [dialog, mutation, properties],
+        [dialog, mutation],
     );
 
-    const handleDelete = useCallback(
-        (propKey: string) => {
-            mutation.mutate(properties.filter(p => p.key !== propKey));
-        },
-        [mutation, properties],
-    );
+    const handleDelete = useCallback((propKey: string) => mutation.mutate(removeProperty(propKey)), [mutation]);
 
-    const handleEncryptValue = useCallback(
-        (propKey: string) => {
-            mutation.mutate(properties.map(p => (p.key === propKey ? { ...p, encryptable: true } : p)));
-        },
-        [mutation, properties],
+    const handleMarkEncryptable = useCallback(
+        (propKey: string) => mutation.mutate(replaceProperty(propKey, existing => ({ ...existing, encryptable: true }))),
+        [mutation],
     );
 
     const columns: DataTableProps<Property>['columns'] = [
@@ -454,7 +504,9 @@ export function ApiPropertiesPage() {
             cell: ({ row }: ColCell<Property>) => {
                 const prop = row.original;
                 return prop.encrypted ? (
-                    <span className="font-mono text-sm text-muted-foreground">{'•'.repeat(8)}</span>
+                    <span className="select-none font-mono text-sm text-muted-foreground" title="Encrypted - value hidden for security">
+                        {ENCRYPTED_VALUE_MASK}
+                    </span>
                 ) : (
                     <MonoCell value={prop.value} />
                 );
@@ -497,23 +549,6 @@ export function ApiPropertiesPage() {
                       enableHiding: false,
                       cell: ({ row }: ColCell<Property>) => {
                           const prop = row.original;
-                          if (prop.dynamic) {
-                              return (
-                                  <div className="flex justify-end">
-                                      <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="size-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                          aria-label={`Remove ${prop.key}`}
-                                          title="Remove (re-added on next sync)"
-                                          disabled={mutation.isPending}
-                                          onClick={() => handleDelete(prop.key)}
-                                      >
-                                          <Trash2Icon className="size-4" />
-                                      </Button>
-                                  </div>
-                              );
-                          }
                           return (
                               <div className="flex justify-end">
                                   <DropdownMenu>
@@ -522,31 +557,29 @@ export function ApiPropertiesPage() {
                                               <MoreVerticalIcon className="size-4" />
                                           </Button>
                                       </DropdownMenuTrigger>
-                                      <DropdownMenuContent align="end" className="whitespace-nowrap min-w-48">
-                                          {!prop.dynamic ? (
+                                      <DropdownMenuContent align="end" className="whitespace-nowrap" style={{ minWidth: '16rem' }}>
+                                          {prop.encrypted ? (
+                                              <DropdownMenuItem onSelect={() => openDialog({ type: 'edit', property: prop })}>
+                                                  <RefreshCwIcon className="size-4" />
+                                                  Renew encryption
+                                              </DropdownMenuItem>
+                                          ) : (
                                               <>
-                                                  {prop.encrypted ? (
-                                                      <DropdownMenuItem onSelect={() => setDialog({ type: 'edit', property: prop })}>
-                                                          <RefreshCwIcon className="size-4" />
-                                                          Renew encryption
+                                                  {prop.dynamic ? null : (
+                                                      <DropdownMenuItem onSelect={() => openDialog({ type: 'edit', property: prop })}>
+                                                          Edit value
                                                       </DropdownMenuItem>
-                                                  ) : (
-                                                      <>
-                                                          <DropdownMenuItem onSelect={() => setDialog({ type: 'edit', property: prop })}>
-                                                              Edit value
-                                                          </DropdownMenuItem>
-                                                          <DropdownMenuItem
-                                                              onSelect={() => handleEncryptValue(prop.key)}
-                                                              disabled={mutation.isPending}
-                                                          >
-                                                              <LockIcon className="size-4" />
-                                                              Encrypt value
-                                                          </DropdownMenuItem>
-                                                      </>
                                                   )}
-                                                  <DropdownMenuSeparator />
+                                                  <DropdownMenuItem
+                                                      onSelect={() => handleMarkEncryptable(prop.key)}
+                                                      disabled={mutation.isPending}
+                                                  >
+                                                      <LockIcon className="size-4" />
+                                                      Encrypt value
+                                                  </DropdownMenuItem>
                                               </>
-                                          ) : null}
+                                          )}
+                                          <DropdownMenuSeparator />
                                           <DropdownMenuItem
                                               className="text-destructive"
                                               onSelect={() => handleDelete(prop.key)}
@@ -614,7 +647,7 @@ export function ApiPropertiesPage() {
                 </div>
                 <div className="flex items-center gap-2">
                     {canEdit ? (
-                        <Button variant="outline" size="sm" onClick={() => setShowImportDialog(true)}>
+                        <Button variant="outline" size="sm" onClick={openImportDialog}>
                             <UploadIcon className="size-4" />
                             Import
                         </Button>
@@ -624,7 +657,7 @@ export function ApiPropertiesPage() {
                         Manage dynamically
                     </Button>
                     {canEdit ? (
-                        <Button size="sm" onClick={() => setDialog({ type: 'add' })}>
+                        <Button size="sm" onClick={() => openDialog({ type: 'add' })}>
                             <PlusIcon className="size-4" />
                             Add property
                         </Button>
@@ -632,7 +665,7 @@ export function ApiPropertiesPage() {
                 </div>
             </div>
 
-            {saveError ? (
+            {saveError && !dialog && !showImportDialog ? (
                 <Card className="border-destructive/30">
                     <CardContent className="pt-4 pb-4">
                         <p className="text-sm text-destructive">{saveError}</p>
@@ -700,6 +733,7 @@ export function ApiPropertiesPage() {
                     state={dialog}
                     existingKeys={existingKeys}
                     isSaving={mutation.isPending}
+                    error={saveError}
                     onClose={() => {
                         setDialog(null);
                         setSaveError(null);
@@ -712,11 +746,14 @@ export function ApiPropertiesPage() {
                 <ImportPropertiesDialog
                     existingProperties={properties}
                     isSaving={mutation.isPending}
+                    error={saveError}
                     onClose={() => {
                         setShowImportDialog(false);
                         setSaveError(null);
                     }}
-                    onImport={merged => mutation.mutate(merged)}
+                    onImport={imported =>
+                        mutation.mutate(importProperties(imported, new Set(properties.filter(p => p.encrypted).map(p => p.key))))
+                    }
                 />
             ) : null}
         </div>

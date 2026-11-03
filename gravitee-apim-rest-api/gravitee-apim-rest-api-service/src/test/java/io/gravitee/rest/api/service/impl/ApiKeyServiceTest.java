@@ -22,6 +22,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -229,7 +230,8 @@ public class ApiKeyServiceTest {
         assertEquals("existing-id", reused.getId());
         assertFalse(reused.isRevoked());
         assertNull(reused.getRevokedAt());
-        assertTrue(reused.getSubscriptions().contains(SUBSCRIPTION_ID));
+        // update does not write the links: the new subscription is linked atomically
+        verify(apiKeyRepository).addSubscription("existing-id", SUBSCRIPTION_ID);
     }
 
     @Test
@@ -824,6 +826,7 @@ public class ApiKeyServiceTest {
         // The audited value is built from the stored key rather than from the entity passed to update, so this
         // is the value that must not reach the record.
         existingApiKey.setKey("123-456-789");
+        existingApiKey.setSubscriptions(List.of("subscription-id"));
         when(apiKeyRepository.findById("api-key-id")).thenReturn(Optional.of(existingApiKey));
 
         SubscriptionEntity subscription = new SubscriptionEntity();
@@ -905,6 +908,100 @@ public class ApiKeyServiceTest {
 
         verify(apiKeyRepository, times(1)).update(existingApiKey);
         verifyNoInteractions(notifierService);
+    }
+
+    @Test
+    public void update_should_keep_the_stored_subscriptions_and_limit_the_expiry_with_them() throws TechnicalException {
+        ApiKey storedApiKey = new ApiKey();
+        storedApiKey.setId("api-key-id");
+        storedApiKey.setApplication(APPLICATION_ID);
+        storedApiKey.setSubscriptions(new ArrayList<>(List.of("stored-subscription")));
+        when(apiKeyRepository.findById("api-key-id")).thenReturn(Optional.of(storedApiKey));
+        when(apiKeyRepository.update(any())).thenAnswer(returnsFirstArg());
+
+        Date storedSubscriptionEnd = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+        SubscriptionEntity storedSubscription = buildTestSubscription("stored-subscription");
+        storedSubscription.setEndingAt(storedSubscriptionEnd);
+        when(subscriptionService.findById("stored-subscription")).thenReturn(storedSubscription);
+        when(subscriptionService.findByIdIn(List.of("stored-subscription"))).thenReturn(Set.of(storedSubscription));
+        SubscriptionEntity otherSubscription = buildTestSubscription("other-subscription");
+        lenient().when(subscriptionService.findById("other-subscription")).thenReturn(otherSubscription);
+
+        // notification mocks
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(PlanEntity.class));
+        when(apiTemplateService.findByIdForTemplates(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(ApiModel.class));
+
+        // Links are only changed by addSubscription(s): the subscriptions of the given entity are ignored
+        ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
+        apiKeyEntity.setId("api-key-id");
+        apiKeyEntity.setApplication(application);
+        apiKeyEntity.setSubscriptions(Set.of(otherSubscription));
+        apiKeyEntity.setExpireAt(Date.from(Instant.now().plus(10, ChronoUnit.DAYS)));
+
+        ApiKeyEntity updated = apiKeyService.update(GraviteeContext.getExecutionContext(), apiKeyEntity);
+
+        ArgumentCaptor<ApiKey> written = ArgumentCaptor.forClass(ApiKey.class);
+        verify(apiKeyRepository).update(written.capture());
+        assertEquals(List.of("stored-subscription"), written.getValue().getSubscriptions());
+        assertEquals(storedSubscriptionEnd, written.getValue().getExpireAt());
+        assertEquals(Set.of(storedSubscription), updated.getSubscriptions());
+    }
+
+    @Test
+    public void update_should_return_the_api_key_as_stored() throws TechnicalException {
+        ApiKey storedApiKey = new ApiKey();
+        storedApiKey.setId("api-key-id");
+        storedApiKey.setApplication(APPLICATION_ID);
+        storedApiKey.setSubscriptions(new ArrayList<>(List.of("stored-subscription")));
+        when(apiKeyRepository.findById("api-key-id")).thenReturn(Optional.of(storedApiKey));
+        lenient().when(subscriptionService.findById("stored-subscription")).thenReturn(buildTestSubscription("stored-subscription"));
+
+        // Another request linked a subscription to the key since it was read
+        ApiKey afterUpdate = new ApiKey(storedApiKey);
+        afterUpdate.setSubscriptions(List.of("stored-subscription", "concurrent-subscription"));
+        when(apiKeyRepository.update(any())).thenReturn(afterUpdate);
+        Set<SubscriptionEntity> linkedSubscriptions = Set.of(
+            buildTestSubscription("stored-subscription"),
+            buildTestSubscription("concurrent-subscription")
+        );
+        when(subscriptionService.findByIdIn(List.of("stored-subscription", "concurrent-subscription"))).thenReturn(linkedSubscriptions);
+
+        ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
+        apiKeyEntity.setId("api-key-id");
+        apiKeyEntity.setApplication(application);
+        apiKeyEntity.setSubscriptions(Set.of());
+
+        ApiKeyEntity updated = apiKeyService.update(GraviteeContext.getExecutionContext(), apiKeyEntity);
+
+        assertEquals(linkedSubscriptions, updated.getSubscriptions());
+    }
+
+    @Test
+    public void update_should_return_the_api_key_as_changed_when_the_repository_returns_none() throws TechnicalException {
+        ApiKey storedApiKey = new ApiKey();
+        storedApiKey.setId("api-key-id");
+        storedApiKey.setApplication(APPLICATION_ID);
+        storedApiKey.setSubscriptions(new ArrayList<>(List.of("stored-subscription")));
+        when(apiKeyRepository.findById("api-key-id")).thenReturn(Optional.of(storedApiKey));
+        lenient().when(subscriptionService.findById("stored-subscription")).thenReturn(buildTestSubscription("stored-subscription"));
+        Set<SubscriptionEntity> storedSubscriptions = Set.of(buildTestSubscription("stored-subscription"));
+        when(subscriptionService.findByIdIn(List.of("stored-subscription"))).thenReturn(storedSubscriptions);
+        // JDBC returns no key when it is deleted between its UPDATE and the read of the stored key
+        when(apiKeyRepository.update(any())).thenReturn(null);
+
+        ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
+        apiKeyEntity.setId("api-key-id");
+        apiKeyEntity.setApplication(application);
+        apiKeyEntity.setEnvironmentId("environment-of-the-request");
+        apiKeyEntity.setSubscriptions(Set.of());
+
+        ApiKeyEntity updated = apiKeyService.update(GraviteeContext.getExecutionContext(), apiKeyEntity);
+
+        assertEquals("api-key-id", updated.getId());
+        assertEquals("environment-of-the-request", updated.getEnvironmentId());
+        assertNotNull(updated.getUpdatedAt());
+        assertEquals(storedSubscriptions, updated.getSubscriptions());
     }
 
     @Test
@@ -1320,16 +1417,12 @@ public class ApiKeyServiceTest {
 
         apiKeyService.renew(GraviteeContext.getExecutionContext(), application);
 
-        // the new key has been updated with 3 subscriptions from expired keys
-        verify(apiKeyRepository, times(1)).update(
-            argThat(
-                apiKey ->
-                    apiKey.getId().equals("apiKey-X") &&
-                    apiKey.getSubscriptions().contains("sub1") &&
-                    apiKey.getSubscriptions().contains("sub2") &&
-                    apiKey.getSubscriptions().contains("sub3")
-            )
+        // the 3 subscriptions of the expired keys have been linked to the new key, atomically
+        verify(apiKeyRepository, times(1)).addSubscriptions(
+            eq("apiKey-X"),
+            argThat(subscriptions -> subscriptions.containsAll(List.of("sub1", "sub2", "sub3")))
         );
+        verify(apiKeyRepository, never()).update(argThat(apiKey -> apiKey.getId().equals("apiKey-X")));
     }
 
     @Test
@@ -1382,6 +1475,7 @@ public class ApiKeyServiceTest {
 
         ApiKey existingApiKey = new ApiKey();
         existingApiKey.setApplication(APPLICATION_ID);
+        existingApiKey.setSubscriptions(List.of(SUBSCRIPTION_ID));
         when(apiKeyRepository.findById("api-key-id")).thenReturn(Optional.of(existingApiKey));
 
         SubscriptionEntity apiProductSubscription = new SubscriptionEntity();
@@ -1437,6 +1531,7 @@ public class ApiKeyServiceTest {
 
         ApiKey existingApiKey = new ApiKey();
         existingApiKey.setApplication(APPLICATION_ID);
+        existingApiKey.setSubscriptions(List.of(SUBSCRIPTION_ID));
         when(apiKeyRepository.findById("api-key-id")).thenReturn(Optional.of(existingApiKey));
 
         SubscriptionEntity apiProductSubscription = new SubscriptionEntity();
@@ -1490,6 +1585,7 @@ public class ApiKeyServiceTest {
 
         ApiKey existingApiKey = new ApiKey();
         existingApiKey.setApplication(APPLICATION_ID);
+        existingApiKey.setSubscriptions(List.of(SUBSCRIPTION_ID));
         when(apiKeyRepository.findById("api-key-id")).thenReturn(Optional.of(existingApiKey));
 
         SubscriptionEntity apiProductSubscription = new SubscriptionEntity();

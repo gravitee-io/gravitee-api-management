@@ -23,6 +23,7 @@ import static io.vertx.core.http.WebSocketFrame.textFrame;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.reactive.api.exception.InvalidTextPayloadException;
 import io.gravitee.gateway.reactive.api.ws.WebSocket;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
@@ -32,6 +33,9 @@ import io.vertx.core.http.WebSocketFrame;
 import io.vertx.core.internal.buffer.BufferInternal;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.http.ServerWebSocket;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -75,6 +79,19 @@ public class VertxWebSocket implements WebSocket {
             return webSocket.rxWrite(BufferInternal.buffer(buffer.getNativeBuffer()));
         }
 
+        return closedOrComplete();
+    }
+
+    @Override
+    public boolean supportsTextFrames() {
+        return true;
+    }
+
+    @Override
+    public Completable writeText(Buffer buffer) {
+        if (isValid()) {
+            return Completable.defer(() -> webSocket.rxWriteTextMessage(decodeUtf8(buffer)));
+        }
         return closedOrComplete();
     }
 
@@ -166,6 +183,18 @@ public class VertxWebSocket implements WebSocket {
     @Override
     public boolean closed() {
         return webSocket.isClosed();
+    }
+
+    private static String decodeUtf8(Buffer buffer) throws InvalidTextPayloadException {
+        try {
+            return StandardCharsets.UTF_8.newDecoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT)
+                .decode(buffer.getNativeBuffer().nioBuffer())
+                .toString();
+        } catch (CharacterCodingException e) {
+            throw new InvalidTextPayloadException("Payload is not valid UTF-8", e);
+        }
     }
 
     private boolean isValid() {

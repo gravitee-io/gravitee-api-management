@@ -338,7 +338,7 @@ class UnitEnrichmentPostProcessorTest {
     @Nested
     class IgnoredFilters {
 
-        private static final List<FilterSpec.Name> SKIPPED = List.of(FilterSpec.Name.NATIVE_CLIENT_ID);
+        private static final List<FilterName> SKIPPED = List.of(FilterSpec.Name.NATIVE_CLIENT_ID);
 
         @Test
         void should_keep_them_on_measures() {

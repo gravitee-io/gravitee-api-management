@@ -23,6 +23,7 @@ import static java.util.Comparator.reverseOrder;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api_key.crud_service.ApiKeyCrudService;
+import io.gravitee.apim.core.api_key.exception.ApiKeyIdAlreadyExistsException;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.api_key.query_service.ApiKeyQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
@@ -32,6 +33,7 @@ import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiKeyAuditEvent;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.parameters.model.ParameterContext;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
@@ -41,10 +43,15 @@ import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExistingException;
+import io.gravitee.rest.api.service.exceptions.ApiKeyNotFoundException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -52,6 +59,8 @@ import lombok.RequiredArgsConstructor;
 @CustomLog
 @RequiredArgsConstructor
 public class GenerateApiKeyDomainService {
+
+    private static final String FIRST_SHARED_KEY_ID_PREFIX = "shared-api-key:";
 
     private final ApiKeyCrudService apiKeyCrudService;
     private final ApiKeyQueryService apiKeyQueryService;
@@ -83,6 +92,20 @@ public class GenerateApiKeyDomainService {
     }
 
     private ApiKeyEntity generate(AuditInfo auditInfo, SubscriptionEntity subscription, String apiKeyValue, boolean federated) {
+        return generate(auditInfo, subscription, apiKeyValue, federated, UnaryOperator.identity());
+    }
+
+    /**
+     * @param withId gives the key to create its id, or keeps the random one
+     * @throws ApiKeyIdAlreadyExistsException when the id given by {@code withId} is already used
+     */
+    private ApiKeyEntity generate(
+        AuditInfo auditInfo,
+        SubscriptionEntity subscription,
+        String apiKeyValue,
+        boolean federated,
+        UnaryOperator<ApiKeyEntity> withId
+    ) {
         log.debug("Generate an API Key for subscription {}", subscription);
 
         if (!federated && Objects.nonNull(apiKeyValue) && !apiKeyValue.isEmpty()) {
@@ -95,7 +118,7 @@ public class GenerateApiKeyDomainService {
             }
         }
 
-        ApiKeyEntity apiKey = generateForSubscription(subscription, apiKeyValue, federated);
+        ApiKeyEntity apiKey = withId.apply(generateForSubscription(subscription, apiKeyValue, federated));
         apiKeyCrudService.create(apiKey);
 
         // Audit
@@ -166,14 +189,11 @@ public class GenerateApiKeyDomainService {
      * the gateway only resolves a key through its active subscriptions, so the closed one stays inert.
      */
     private ApiKeyEntity reuseExistingKey(ApiKeyEntity existingKey, SubscriptionEntity subscription, AuditInfo auditInfo) {
-        var reused = existingKey
-            .reactivate()
-            .addSubscription(subscription.getId())
-            .toBuilder()
-            .expireAt(subscription.getEndingAt())
-            .build();
+        // The update writes the reactivation fields only; the link is added atomically so that links written since the key
+        // was read are kept.
+        apiKeyCrudService.update(existingKey.reactivate().toBuilder().expireAt(subscription.getEndingAt()).build());
+        var reused = apiKeyCrudService.addSubscription(existingKey.getId(), subscription.getId()).orElseThrow(ApiKeyNotFoundException::new);
 
-        apiKeyCrudService.update(reused);
         createAuditLog(reused, subscription, auditInfo, ApiKeyAuditEvent.APIKEY_REACTIVATED);
 
         return reused;
@@ -186,15 +206,67 @@ public class GenerateApiKeyDomainService {
         String customApiKey,
         boolean federated
     ) {
-        return apiKeyQueryService
-            .findByApplication(application.getId())
-            .peek(apiKey -> addSubscription(apiKey, subscription))
-            .max(comparing(ApiKeyEntity::isRevoked, reverseOrder()).thenComparing(ApiKeyEntity::getExpireAt, nullsLast(naturalOrder())))
-            .orElseGet(() -> generate(auditInfo, subscription, customApiKey, federated));
+        return addSubscriptionToEveryKey(apiKeyQueryService.findByApplication(application.getId()), subscription).orElseGet(() ->
+            generateFirstSharedKey(auditInfo, application, subscription, customApiKey, federated)
+        );
     }
 
-    private void addSubscription(ApiKeyEntity apiKey, SubscriptionEntity subscription) {
-        apiKeyCrudService.update(apiKey.addSubscription(subscription.getId()));
+    /**
+     * Every key of the application gets the subscription, revoked and expired ones included, so that the previous key keeps
+     * working on the new subscription during the overlap that follows a shared key renewal.
+     *
+     * @return the key the application uses now (the non-revoked one that expires last), or empty when the application has no key
+     */
+    private Optional<ApiKeyEntity> addSubscriptionToEveryKey(Stream<ApiKeyEntity> keysOfTheApplication, SubscriptionEntity subscription) {
+        return keysOfTheApplication
+            .flatMap(apiKey -> addSubscription(apiKey, subscription).stream())
+            .max(comparing(ApiKeyEntity::isRevoked, reverseOrder()).thenComparing(ApiKeyEntity::getExpireAt, nullsLast(naturalOrder())));
+    }
+
+    /**
+     * The first shared key of an application has an id derived from the application, so that the database rejects all but one
+     * of the first keys that requests handled at the same time by several Management API nodes try to create. A request whose
+     * key was rejected adds its subscription to the key created by the other one. Later keys (renewals) keep random ids.
+     */
+    private ApiKeyEntity generateFirstSharedKey(
+        AuditInfo auditInfo,
+        BaseApplicationEntity application,
+        SubscriptionEntity subscription,
+        String customApiKey,
+        boolean federated
+    ) {
+        String firstSharedKeyId = firstSharedKeyId(application.getId());
+        try {
+            return generate(auditInfo, subscription, customApiKey, federated, apiKey -> apiKey.toBuilder().id(firstSharedKeyId).build());
+        } catch (ApiKeyIdAlreadyExistsException e) {
+            log.debug("The shared API Key of application {} was created by another request meanwhile, reusing it", application.getId());
+            var sharedKey = addSubscriptionToEveryKey(apiKeyQueryService.findByApplication(application.getId()), subscription);
+            if (sharedKey.isPresent()) {
+                return sharedKey.get();
+            }
+            throw new TechnicalDomainException(
+                "Cannot create the shared API Key of application [" +
+                    application.getId() +
+                    "]: its id [" +
+                    firstSharedKeyId +
+                    "] is already used, but the application has no API Key",
+                e
+            );
+        }
+    }
+
+    private static String firstSharedKeyId(String applicationId) {
+        return UUID.nameUUIDFromBytes((FIRST_SHARED_KEY_ID_PREFIX + applicationId).getBytes(StandardCharsets.UTF_8)).toString();
+    }
+
+    /**
+     * Attaches the subscription to the key atomically: the key read by {@link #findOrGenerate} may already be outdated (other
+     * Management API nodes attach subscriptions to the same shared key concurrently), so it must not be written back.
+     *
+     * @return the key as stored after the change, or empty when it was deleted in the meantime
+     */
+    private Optional<ApiKeyEntity> addSubscription(ApiKeyEntity apiKey, SubscriptionEntity subscription) {
+        return apiKeyCrudService.addSubscription(apiKey.getId(), subscription.getId());
     }
 
     private void createAuditLog(

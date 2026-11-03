@@ -480,5 +480,31 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
                 assertThat(body(response).get("technicalCode").asText()).isEqualTo("hrid.notFound");
             }
         }
+
+        @Test
+        void should_report_the_findings_of_a_dry_run_without_deleting() {
+            var id = derivedId(KIND_PATH, "github-mcp");
+            when(port.validateDeleteById(any(), eq(KIND), eq(id))).thenReturn(
+                Optional.of(new UpsertResult<>(view("github-mcp"), List.of(AutomationIssue.warning("deletes the tool [github.search]"))))
+            );
+
+            try (var response = rootTarget(MODULE + "/" + KIND_PATH + "/github-mcp").queryParam("dryRun", true).request().delete()) {
+                assertThat(response.getStatus()).isEqualTo(200);
+                var body = body(response);
+                assertThat(body.get("hrid").asText()).isEqualTo("github-mcp");
+                assertThat(body.get("errors").get("warning").get(0).asText()).isEqualTo("deletes the tool [github.search]");
+            }
+            verify(port, never()).deleteById(any(), any(), any());
+        }
+
+        @Test
+        void should_return_404_on_a_dry_run_when_absent() {
+            when(port.validateDeleteById(any(), any(), any())).thenReturn(Optional.empty());
+
+            try (var response = rootTarget(MODULE + "/" + KIND_PATH + "/unknown").queryParam("dryRun", true).request().delete()) {
+                assertThat(response.getStatus()).isEqualTo(404);
+            }
+            verify(port, never()).deleteById(any(), any(), any());
+        }
     }
 }

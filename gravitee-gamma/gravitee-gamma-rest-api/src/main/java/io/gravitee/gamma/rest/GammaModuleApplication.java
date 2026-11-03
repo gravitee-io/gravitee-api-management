@@ -20,6 +20,7 @@ import io.gravitee.gamma.rest.resources.GammaRootResource;
 import io.gravitee.gamma.rest.resources.GammaUIResource;
 import io.gravitee.gamma.rest.resources.OpenAPIResource;
 import io.gravitee.gamma.rest.resources.observability.GammaObservabilityResource;
+import io.gravitee.gamma.rest.resources.observability.analytics.AnalyticsDefinitionResource;
 import io.gravitee.gamma.rest.resources.observability.analytics.AnalyticsResource;
 import io.gravitee.gamma.rest.resources.observability.capabilities.ObservabilityCapabilitiesResource;
 import io.gravitee.gamma.rest.resources.observability.dashboards.ObservabilityDashboardResource;
@@ -27,6 +28,8 @@ import io.gravitee.gamma.rest.resources.observability.dashboards.ObservabilityDa
 import io.gravitee.gamma.rest.resources.observability.dashboards.exception.DashboardVersionConflictExceptionMapper;
 import io.gravitee.gamma.rest.resources.observability.filters.ObservabilityFiltersResource;
 import io.gravitee.gamma.rest.resources.observability.logs.LogsResource;
+import io.gravitee.gamma.rest.resources.observability.metricdefinitions.MetricDefinitionResource;
+import io.gravitee.gamma.rest.resources.observability.metricdefinitions.MetricDefinitionsResource;
 import io.gravitee.gamma.rest.resources.tracing.TracingResource;
 import io.gravitee.rest.api.management.rest.provider.BadRequestExceptionMapper;
 import io.gravitee.rest.api.management.rest.provider.ByteArrayOutputStreamWriter;
@@ -68,8 +71,11 @@ public class GammaModuleApplication extends ResourceConfig {
         register(ObservabilityFiltersResource.class);
         register(LogsResource.class);
         register(AnalyticsResource.class);
+        register(AnalyticsDefinitionResource.class);
         register(ObservabilityDashboardsResource.class);
         register(ObservabilityDashboardResource.class);
+        register(MetricDefinitionsResource.class);
+        register(MetricDefinitionResource.class);
         register(ObservabilityCapabilitiesResource.class);
 
         register(MultiPartFeature.class);

@@ -410,6 +410,13 @@
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
+		<!-- Test only: AnalyticsFilterElasticsearchCoverageTest checks the catalog against the ES filter adapters. -->
+		<dependency>
+			<groupId>io.gravitee.apim.repository</groupId>
+			<artifactId>gravitee-apim-repository-elasticsearch</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
                <dependency>
                        <groupId>org.awaitility</groupId>
                        <artifactId>awaitility</artifactId>

@@ -20,7 +20,6 @@ import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,12 +59,12 @@ public class ApiKeySubscriptionsUpgrader implements Upgrader {
     private void updateApiKeySubscriptions(ApiKey apiKey) throws TechnicalException {
         try {
             log.debug("Updating subscriptions for API Key [{}]", apiKey);
-            List<String> allSubscriptions = apiKey.getSubscriptions() != null ? apiKey.getSubscriptions() : new ArrayList<>();
-            if (apiKey.getSubscription() != null && !allSubscriptions.contains(apiKey.getSubscription())) {
-                allSubscriptions.add(apiKey.getSubscription());
+            String legacySubscription = apiKey.getSubscription();
+            List<String> subscriptions = apiKey.getSubscriptions() != null ? apiKey.getSubscriptions() : List.of();
+            if (legacySubscription != null && !subscriptions.contains(legacySubscription)) {
+                // ApiKeyRepository.update does not write the subscriptions: the legacy one is linked explicitly.
+                apiKeyRepository.addSubscription(apiKey.getId(), legacySubscription);
             }
-            apiKey.setSubscriptions(allSubscriptions);
-            apiKeyRepository.update(apiKey);
         } catch (TechnicalException e) {
             throw new TechnicalException("Failed to update subscriptions for API Key [" + apiKey + "]", e);
         }

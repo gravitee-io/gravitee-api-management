@@ -27,9 +27,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.IntFunction;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.apache.commons.lang3.StringUtils;
 
 public class DatabaseHydrator {
+
+    /** How far back {@code dateDaysAgo} and {@code indexNameDaysAgo} reach: past the 30-day windows the tests query. */
+    private static final int MAX_DAYS_AGO = 60;
 
     Client client;
     FreeMarkerComponent freeMarkerComponent;
@@ -123,7 +129,9 @@ public class DatabaseHydrator {
                             "indexNameYesterdayEntrypoint",
                             indexTemplate(type, this.timeProvider.getYesterdayWithDot(), "entrypoint")
                         ),
-                        Map.entry("indexNameYesterdayEndpoint", indexTemplate(type, this.timeProvider.getYesterdayWithDot(), "endpoint"))
+                        Map.entry("indexNameYesterdayEndpoint", indexTemplate(type, this.timeProvider.getYesterdayWithDot(), "endpoint")),
+                        Map.entry("dateDaysAgo", daysAgo(this.timeProvider::dateDaysAgo)),
+                        Map.entry("indexNameDaysAgo", daysAgo(days -> indexTemplate(type, this.timeProvider.dateWithDotDaysAgo(days))))
                     );
                 }
                 var filename = type + ".ftl";
@@ -131,6 +139,11 @@ public class DatabaseHydrator {
             })
             .map(Buffer::buffer)
             .toList();
+    }
+
+    /** Keyed by the number of days, as a string: {@code ${dateDaysAgo["11"]}} in a template. */
+    private static Map<String, String> daysAgo(IntFunction<String> format) {
+        return IntStream.rangeClosed(0, MAX_DAYS_AGO).boxed().collect(Collectors.toMap(String::valueOf, format::apply));
     }
 
     private static boolean isDataStream(String typeOrIndexName) {

@@ -23,8 +23,12 @@ import io.gravitee.apim.core.documentation.domain_service.PageSourceDomainServic
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Breadcrumb;
 import io.gravitee.apim.core.documentation.model.Page;
-import java.util.*;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 @UseCase
 public class ApiGetDocumentationPagesUseCase {
@@ -59,8 +63,7 @@ public class ApiGetDocumentationPagesUseCase {
                 throw new InvalidPageParentException(page.getId());
             }
 
-            // Calculate breadcrumb list
-            var pageBreadcrumbList = this.constructBreadcrumbs(page).toList();
+            var pageBreadcrumbList = this.constructBreadcrumbs(page, input.apiId);
             for (int i = 0; i < pageBreadcrumbList.size(); i++) {
                 var pageBreadcrumb = pageBreadcrumbList.get(i);
                 breadcrumbList.add(Breadcrumb.builder().id(pageBreadcrumb.getId()).name(pageBreadcrumb.getName()).position(i + 1).build());
@@ -85,14 +88,27 @@ public class ApiGetDocumentationPagesUseCase {
 
     public record Output(List<Page> pages, List<Breadcrumb> breadcrumbList) {}
 
-    private Stream<Page> constructBreadcrumbs(Page page) {
-        if (this.isNotEmpty(page.getParentId())) {
-            var parent = pageCrudService.findById(page.getParentId());
-            if (parent.isPresent()) {
-                return Stream.concat(this.constructBreadcrumbs(parent.get()), Stream.of(page));
+    private List<Page> constructBreadcrumbs(Page page, String apiId) {
+        List<Page> breadcrumbs = new ArrayList<>();
+        Set<String> visited = new HashSet<>();
+        var currentPage = page;
+        while (visited.add(currentPage.getId())) {
+            breadcrumbs.add(currentPage);
+            if (!this.isNotEmpty(currentPage.getParentId())) {
+                break;
             }
+            var parent = pageCrudService
+                .findById(currentPage.getParentId())
+                .filter(
+                    candidate -> Page.ReferenceType.API.equals(candidate.getReferenceType()) && apiId.equals(candidate.getReferenceId())
+                );
+            if (parent.isEmpty()) {
+                break;
+            }
+            currentPage = parent.get();
         }
-        return Stream.of(page);
+        Collections.reverse(breadcrumbs);
+        return breadcrumbs;
     }
 
     private boolean isNotEmpty(String str) {

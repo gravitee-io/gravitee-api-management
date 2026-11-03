@@ -22,6 +22,7 @@ import {
     createEnvironmentDictionary,
     deleteEnvironmentDictionary,
     deployEnvironmentDictionary,
+    getEnvironmentDictionary,
     startEnvironmentDictionary,
     stopEnvironmentDictionary,
     updateEnvironmentDictionary,
@@ -102,6 +103,16 @@ export function useCreateDictionary() {
 export function useUpdateDictionary() {
     return useDictionaryMutation<{ dictionaryId: string; data: UpdateDictionaryPayload }>((envId, { dictionaryId, data }) =>
         updateEnvironmentDictionary(envId, dictionaryId, data),
+    );
+}
+
+/** Re-reads the dictionary before writing, like classic `saveDictionary`, so a provider refresh is not overwritten by a stale cache. */
+export function useUpdateDictionaryProperties() {
+    return useDictionaryMutation<{ dictionaryId: string; change: (current: Dictionary) => UpdateDictionaryPayload }>(
+        async (envId, { dictionaryId, change }) => {
+            const current = await getEnvironmentDictionary(envId, dictionaryId);
+            return updateEnvironmentDictionary(envId, dictionaryId, change(current));
+        },
     );
 }
 

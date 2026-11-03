@@ -17,7 +17,7 @@ package io.gravitee.gamma.rest.infra.adapter;
 
 import io.gravitee.apim.core.analytics_engine.model.FacetBucketResponse;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
-import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
+import io.gravitee.apim.core.analytics_engine.model.FilterName;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesBucketResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesMetricResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
@@ -65,7 +65,7 @@ final class RankedSeriesFilter {
     private static TimeSeriesMetricResponse keepRankedSeries(
         TimeSeriesMetricResponse metric,
         SeriesRanking ranking,
-        Set<FilterSpec.Name> gammaOnly
+        Set<FilterName> gammaOnly
     ) {
         var metricName = metric.name().name();
         var buckets = metric.buckets() == null

@@ -34,14 +34,7 @@ public class UnitEnrichmentPostProcessorImpl implements UnitEnrichmentPostProces
         var enriched = response
             .metrics()
             .stream()
-            .map(metric ->
-                new MetricMeasuresResponse(
-                    metric.name(),
-                    definitionQueryService.findMetric(metric.name()).map(MetricSpec::unit).orElse(null),
-                    metric.measures(),
-                    metric.ignoredFilters()
-                )
-            )
+            .map(metric -> new MetricMeasuresResponse(metric.name(), unitOf(metric.name()), metric.measures(), metric.ignoredFilters()))
             .toList();
         return new MeasuresResponse(enriched);
     }
@@ -51,14 +44,7 @@ public class UnitEnrichmentPostProcessorImpl implements UnitEnrichmentPostProces
         var enriched = response
             .metrics()
             .stream()
-            .map(metric ->
-                new MetricFacetsResponse(
-                    metric.metric(),
-                    definitionQueryService.findMetric(metric.metric()).map(MetricSpec::unit).orElse(null),
-                    metric.buckets(),
-                    metric.ignoredFilters()
-                )
-            )
+            .map(metric -> new MetricFacetsResponse(metric.metric(), unitOf(metric.metric()), metric.buckets(), metric.ignoredFilters()))
             .toList();
         return new FacetsResponse(enriched);
     }
@@ -68,15 +54,16 @@ public class UnitEnrichmentPostProcessorImpl implements UnitEnrichmentPostProces
         var enriched = response
             .metrics()
             .stream()
-            .map(metric ->
-                new TimeSeriesMetricResponse(
-                    metric.name(),
-                    definitionQueryService.findMetric(metric.name()).map(MetricSpec::unit).orElse(null),
-                    metric.buckets(),
-                    metric.ignoredFilters()
-                )
-            )
+            .map(metric -> new TimeSeriesMetricResponse(metric.name(), unitOf(metric.name()), metric.buckets(), metric.ignoredFilters()))
             .toList();
         return new TimeSeriesResponse(enriched);
+    }
+
+    /** A built-in takes the unit its definition declares; an additional metric stays unset: no definition on this path carries one. */
+    private MetricSpec.Unit unitOf(MetricName metric) {
+        return switch (metric) {
+            case MetricSpec.Name builtIn -> definitionQueryService.findMetric(builtIn).map(MetricSpec::unit).orElse(null);
+            case AdditionalMetricName _ -> null;
+        };
     }
 }

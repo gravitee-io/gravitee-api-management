@@ -53,7 +53,6 @@ import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 import { MarkdownService } from '../../../services/markdown.service';
 import { GvPageComponent } from '../../../components/gv-page/gv-page.component';
 import { GvFormControlDirective } from '../../../directives/gv-form-control.directive';
-import { SafePipe } from '../../../pipes/safe.pipe';
 
 type RatingFormType = FormGroup<{
   title: FormControl<string>;
@@ -73,7 +72,7 @@ type SearchableKeys = keyof typeof searchableKeysMapping;
   selector: 'app-api-general',
   templateUrl: './api-general.component.html',
   styleUrls: ['./api-general.component.css'],
-  imports: [NgIf, GvPageComponent, ReactiveFormsModule, GvFormControlDirective, NgFor, TranslatePipe, SafePipe],
+  imports: [NgIf, GvPageComponent, ReactiveFormsModule, GvFormControlDirective, NgFor, TranslatePipe],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ApiGeneralComponent implements OnInit {

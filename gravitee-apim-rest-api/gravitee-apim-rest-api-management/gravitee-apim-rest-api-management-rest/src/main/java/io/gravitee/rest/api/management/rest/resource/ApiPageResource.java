@@ -185,6 +185,7 @@ public class ApiPageResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    @ApiResponse(responseCode = "404", description = "Page or parent not found or does not belong to this API")
     public PageEntity updateApiPage(@Parameter(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
         PageEntity existingPage = pageService.findById(page);
         if (
@@ -242,6 +243,7 @@ public class ApiPageResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    @ApiResponse(responseCode = "404", description = "Page or parent not found or does not belong to this API")
     public PageEntity partialUpdateApiPage(@Parameter(name = "page") UpdatePageEntity updatePageEntity) {
         PageEntity existingPage = pageService.findById(page);
         if (

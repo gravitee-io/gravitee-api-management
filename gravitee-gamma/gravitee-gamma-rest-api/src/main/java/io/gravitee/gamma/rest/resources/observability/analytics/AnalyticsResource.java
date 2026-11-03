@@ -35,6 +35,8 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import java.util.List;
 
 /**
@@ -49,6 +51,9 @@ import java.util.List;
  */
 public class AnalyticsResource {
 
+    @Context
+    private ResourceContext resourceContext;
+
     @Inject
     private ComputeObservabilityMeasuresUseCase computeMeasuresUseCase;
 
@@ -57,6 +62,12 @@ public class AnalyticsResource {
 
     @Inject
     private ComputeObservabilityTimeSeriesUseCase computeTimeSeriesUseCase;
+
+    /** The metrics, measures and facets the widget editor offers. See {@link AnalyticsDefinitionResource}. */
+    @Path("/definition")
+    public AnalyticsDefinitionResource getAnalyticsDefinitionResource() {
+        return resourceContext.getResource(AnalyticsDefinitionResource.class);
+    }
 
     @POST
     @Path("/measures")

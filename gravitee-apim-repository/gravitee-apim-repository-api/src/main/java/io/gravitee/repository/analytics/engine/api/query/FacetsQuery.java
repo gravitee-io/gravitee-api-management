@@ -25,11 +25,11 @@ public record FacetsQuery(
     TimeRange timeRange,
     List<Filter> filters,
     List<MetricMeasuresQuery> metrics,
-    List<Facet> facets,
+    List<FacetName> facets,
     Integer limit,
     List<NumberRange> ranges
 ) implements Query {
-    public FacetsQuery(TimeRange timeRange, List<Filter> filters, List<MetricMeasuresQuery> metrics, List<Facet> facets) {
+    public FacetsQuery(TimeRange timeRange, List<Filter> filters, List<MetricMeasuresQuery> metrics, List<FacetName> facets) {
         this(timeRange, filters, metrics, facets, null, List.of());
     }
 
@@ -37,13 +37,19 @@ public record FacetsQuery(
         TimeRange timeRange,
         List<Filter> filters,
         List<MetricMeasuresQuery> metrics,
-        List<Facet> facets,
+        List<FacetName> facets,
         List<NumberRange> ranges
     ) {
         this(timeRange, filters, metrics, facets, null, ranges);
     }
 
-    public FacetsQuery(TimeRange timeRange, List<Filter> filters, List<MetricMeasuresQuery> metrics, List<Facet> facets, Integer limit) {
+    public FacetsQuery(
+        TimeRange timeRange,
+        List<Filter> filters,
+        List<MetricMeasuresQuery> metrics,
+        List<FacetName> facets,
+        Integer limit
+    ) {
         this(timeRange, filters, metrics, facets, limit, List.of());
     }
 }

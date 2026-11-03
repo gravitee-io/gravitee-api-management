@@ -1,0 +1,41 @@
+databaseChangeLog:
+  # Hash of the unique active key of the active subscriptions (neither REJECTED nor CLOSED), and a unique index on it: an
+  # application cannot have two active subscriptions to the same plan (or channel of a PUSH plan), even when identical
+  # requests are processed at the same time by several nodes. No existing subscription has the hash when the index is
+  # created: building it neither reads nor fails on them, and the duplicates created before are left as they are.
+  - changeSet:
+      id: 4.12.27_00_add_subscriptions_active_key_hash
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}subscriptions
+            columns:
+              - column:
+                  name: active_key_hash
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+
+  # Several NULL values are allowed in a unique index.
+  - changeSet:
+      id: 4.12.27_01_add_subscriptions_akh_index
+      author: GraviteeSource Team
+      dbms: postgresql, mysql, mariadb
+      changes:
+        - createIndex:
+            tableName: ${gravitee_prefix}subscriptions
+            indexName: idx_${gravitee_prefix}subscriptions_akh
+            unique: true
+            columns:
+              - column:
+                  name: active_key_hash
+
+  # A unique index without filter would allow a single NULL value. Filtered indexes need ANSI_NULLS and QUOTED_IDENTIFIER
+  # ON for the sessions writing the table, the default of the SQL Server JDBC driver.
+  - changeSet:
+      id: 4.12.27_01_add_subscriptions_akh_index_mssql
+      author: GraviteeSource Team
+      dbms: mssql
+      changes:
+        - sql:
+            sql: CREATE UNIQUE INDEX idx_${gravitee_prefix}subscriptions_akh ON ${gravitee_prefix}subscriptions (active_key_hash) WHERE active_key_hash IS NOT NULL

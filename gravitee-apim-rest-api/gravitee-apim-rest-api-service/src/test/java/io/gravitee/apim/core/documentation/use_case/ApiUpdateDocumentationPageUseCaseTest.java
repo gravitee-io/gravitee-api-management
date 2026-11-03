@@ -17,6 +17,10 @@ package io.gravitee.apim.core.documentation.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
@@ -34,6 +38,7 @@ import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
 import io.gravitee.apim.core.documentation.model.AccessControl;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.PageSource;
+import io.gravitee.apim.core.exception.NotFoundDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
@@ -153,7 +158,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
     private final PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     private final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     private final PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
-    private final PageSourceDomainServiceInMemory pageSourceDomainService = new PageSourceDomainServiceInMemory();
+    private final PageSourceDomainServiceInMemory pageSourceDomainService = spy(new PageSourceDomainServiceInMemory());
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     private final IndexerInMemory indexer = new IndexerInMemory();
@@ -249,6 +254,59 @@ class ApiUpdateDocumentationPageUseCaseTest {
             membershipQueryService,
             groupQueryService
         ).forEach(InMemoryAlternative::reset);
+    }
+
+    @Nested
+    class ParentOwnership {
+
+        @ParameterizedTest
+        @ValueSource(booleans = { true, false })
+        void should_reject_foreign_stored_parent_even_when_content_is_unchanged(boolean unchangedContent) {
+            initPageServices(List.of(PARENT_FOLDER.toBuilder().referenceId("other-api").build(), OLD_MARKDOWN_PAGE));
+
+            assertThatThrownBy(() ->
+                apiUpdateDocumentationPageUsecase.execute(
+                    ApiUpdateDocumentationPageUseCase.Input.builder()
+                        .apiId(API_ID)
+                        .pageId(PAGE_ID)
+                        .name(OLD_MARKDOWN_PAGE.getName())
+                        .content(unchangedContent ? OLD_MARKDOWN_PAGE.getContent() : "new content")
+                        .order(OLD_MARKDOWN_PAGE.getOrder())
+                        .visibility(OLD_MARKDOWN_PAGE.getVisibility())
+                        .auditInfo(AUDIT_INFO)
+                        .build()
+                )
+            ).isInstanceOf(NotFoundDomainException.class);
+
+            assertThat(pageCrudService.get(PAGE_ID)).isEqualTo(OLD_MARKDOWN_PAGE);
+            assertThat(pageRevisionCrudService.storage()).isEmpty();
+            assertThat(auditCrudService.storage()).isEmpty();
+            verify(pageSourceDomainService, never()).setContentFromSource(any());
+        }
+
+        @Test
+        void should_validate_parent_without_fetching_unchanged_source() {
+            var source = PageSource.builder().type("http").build();
+            var page = OLD_MARKDOWN_PAGE.toBuilder().source(source).build();
+            initPageServices(List.of(PARENT_FOLDER, page));
+
+            var result = apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUseCase.Input.builder()
+                    .apiId(API_ID)
+                    .pageId(PAGE_ID)
+                    .name(page.getName())
+                    .content(page.getContent())
+                    .source(source)
+                    .order(page.getOrder())
+                    .visibility(page.getVisibility())
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(result.page().getParentId()).isEqualTo(PARENT_ID);
+            assertThat(result.page().getContent()).isEqualTo(page.getContent());
+            verify(pageSourceDomainService, never()).setContentFromSource(any());
+        }
     }
 
     @Nested
@@ -404,7 +462,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
                 .homepage(true)
                 .build();
 
-            initPageServices(List.of(OLD_MARKDOWN_PAGE.toBuilder().homepage(false).build(), existingHomepage));
+            initPageServices(List.of(PARENT_FOLDER, OLD_MARKDOWN_PAGE.toBuilder().homepage(false).build(), existingHomepage));
 
             var res = apiUpdateDocumentationPageUsecase.execute(
                 ApiUpdateDocumentationPageUseCase.Input.builder()
@@ -810,7 +868,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
                 .homepage(true)
                 .build();
 
-            initPageServices(List.of(OLD_SWAGGER_PAGE.toBuilder().homepage(false).build(), existingHomepage));
+            initPageServices(List.of(PARENT_FOLDER, OLD_SWAGGER_PAGE.toBuilder().homepage(false).build(), existingHomepage));
 
             var res = apiUpdateDocumentationPageUsecase.execute(
                 ApiUpdateDocumentationPageUseCase.Input.builder()
@@ -1086,7 +1144,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
                 .homepage(true)
                 .build();
 
-            initPageServices(List.of(OLD_ASYNC_API_PAGE.toBuilder().homepage(false).build(), existingHomepage));
+            initPageServices(List.of(PARENT_FOLDER, OLD_ASYNC_API_PAGE.toBuilder().homepage(false).build(), existingHomepage));
 
             var res = apiUpdateDocumentationPageUsecase.execute(
                 ApiUpdateDocumentationPageUseCase.Input.builder()

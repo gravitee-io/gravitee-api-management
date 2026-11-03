@@ -15,6 +15,8 @@
  */
 package io.gravitee.gamma.rest.core.observability.filter.model;
 
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
+import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogFlags;
 import java.util.List;
 import java.util.Set;
 
@@ -41,6 +43,8 @@ import java.util.Set;
  *                    only surfaces for LLM APIs; use {@link ApiType#ALL} for cross-cutting filters.
  *                    The two axes are independent: applicability is the rectangle
  *                    {@code signals × apiTypes}.
+ * @param catalog     Catalog flags of an entry backed by an additional metric field with no built-in
+ *                    name, the one holder of its value type; {@code null} on a built-in entry.
  *
  * @author GraviteeSource Team
  */
@@ -52,8 +56,33 @@ public record FilterSpec(
     List<EnumValue> enumValues,
     Range range,
     Set<Signal> signals,
-    Set<ApiType> apiTypes
+    Set<ApiType> apiTypes,
+    CatalogFlags catalog
 ) {
+    /** A built-in entry. */
+    public FilterSpec(
+        String name,
+        String label,
+        FilterType type,
+        List<FilterOperator> operators,
+        List<EnumValue> enumValues,
+        Range range,
+        Set<Signal> signals,
+        Set<ApiType> apiTypes
+    ) {
+        this(name, label, type, operators, enumValues, range, signals, apiTypes, null);
+    }
+
+    /** The value type of the additional metric field this spec reads, named by its type prefix (OBS-70); null for a built-in filter. */
+    public AdditionalMetricValueType valueType() {
+        return catalog == null ? null : catalog.valueType();
+    }
+
+    /** A number filter whose values may carry decimals: those of a {@code double_} additional metric field. */
+    public boolean takesDecimals() {
+        return valueType() == AdditionalMetricValueType.DOUBLE;
+    }
+
     /** Inclusive numeric bounds for {@link FilterType#NUMBER} filters. */
     public record Range(Number min, Number max) {}
 

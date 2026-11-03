@@ -15,11 +15,13 @@
  */
 package io.gravitee.repository.management.api;
 
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.api.search.ApiKeyCursor;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.ApiKey;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -61,14 +63,22 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
      *
      * @param apiKey API Key
      * @return Newly created API Key
+     * @throws DuplicateKeyException when a key with the same id already exists. Nothing is written then (no link to the
+     * subscriptions either), and a surrounding transaction stays usable: its later reads find the existing key.
      */
     ApiKey create(ApiKey apiKey) throws TechnicalException;
 
     /**
-     * Update an API Key
+     * Update an API Key: every field except {@link ApiKey#getSubscriptions() subscriptions}, which is ignored. Links to
+     * subscriptions are only changed by {@link #addSubscription(String, String)} and {@link #addSubscriptions(String, Collection)},
+     * so that an update made from a copy of the key read earlier cannot drop links added in the meantime.
+     * <p>
+     * {@link ApiKey#getUpdatedAt() updatedAt} never moves backwards: the stored value is kept when it is more recent than the given
+     * one, or when none is given. Gateways synchronise keys by {@code updatedAt}, so an update made from a copy read before a
+     * concurrent change (such as a link added by {@link #addSubscription(String, String)}) must not hide that change from them.
      *
      * @param key The API Key to update
-     * @return Updated API Key
+     * @return Updated API Key, as stored (with its current subscriptions)
      */
     ApiKey update(ApiKey key) throws TechnicalException;
 
@@ -129,6 +139,9 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
     List<ApiKey> searchAfter(ApiKeyCriteria criteria, Sortable sortable, ApiKeyCursor after, int pageSize) throws TechnicalException;
 
     /**
+     * Atomically link a subscription to an API Key, without rewriting the rest of the key, and move its {@code updatedAt}
+     * (gateways synchronise keys by {@code updatedAt}). Idempotent: linking a subscription that is already linked keeps a
+     * single link and does not fail, nor does it abort a surrounding transaction.
      *
      * @param id apikey ID
      * @param subscriptionId subscription ID to add to this shared apikey
@@ -136,6 +149,29 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
      * @throws TechnicalException
      */
     Optional<ApiKey> addSubscription(String id, String subscriptionId) throws TechnicalException;
+
+    /**
+     * Links several subscriptions to an API Key, like {@link #addSubscription(String, String)} does for one.
+     * <p>
+     * This default calls {@link #addSubscription(String, String)} once per subscription: each link is atomic and idempotent, but
+     * the call as a whole is not. A failure partway through leaves the subscriptions linked before it, and {@code updatedAt}
+     * moves once per subscription. Repositories that can link them in one atomic operation override it.
+     *
+     * @param id apikey ID
+     * @param subscriptionIds subscription IDs to add to this apikey
+     * @return the updated apikey if found
+     * @throws TechnicalException
+     */
+    default Optional<ApiKey> addSubscriptions(String id, Collection<String> subscriptionIds) throws TechnicalException {
+        Optional<ApiKey> apiKey = findById(id);
+        for (String subscriptionId : subscriptionIds) {
+            if (apiKey.isEmpty()) {
+                break;
+            }
+            apiKey = addSubscription(id, subscriptionId);
+        }
+        return apiKey;
+    }
 
     /**
      * Delete api key by environment ID

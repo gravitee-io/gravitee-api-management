@@ -16,42 +16,95 @@
 package inmemory;
 
 import io.gravitee.apim.core.api_key.crud_service.ApiKeyCrudService;
+import io.gravitee.apim.core.api_key.exception.ApiKeyIdAlreadyExistsException;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
+import io.gravitee.common.utils.TimeProvider;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalInt;
 
 public class ApiKeyCrudServiceInMemory implements ApiKeyCrudService, InMemoryAlternative<ApiKeyEntity> {
 
+    /**
+     * Writes are atomic, like on a database, so that tests can run several requests at once: writes lock the storage, and the
+     * reads of {@link ApiKeyQueryServiceInMemory} copy it under the same lock.
+     */
     final ArrayList<ApiKeyEntity> storage = new ArrayList<>();
 
-    @Override
-    public ApiKeyEntity create(ApiKeyEntity apiKey) {
-        storage.add(apiKey);
-        return apiKey;
+    private final boolean rejectsExistingIds;
+
+    public ApiKeyCrudServiceInMemory() {
+        this(false);
+    }
+
+    /**
+     * @param rejectsExistingIds whether {@link #create(ApiKeyEntity)} rejects an existing id, like the repositories. Off by
+     * default: some tests create several keys with the same generated id.
+     */
+    public ApiKeyCrudServiceInMemory(boolean rejectsExistingIds) {
+        this.rejectsExistingIds = rejectsExistingIds;
     }
 
     @Override
-    public ApiKeyEntity update(ApiKeyEntity entity) {
-        OptionalInt index = this.findIndex(this.storage, apiKey -> apiKey.getId().equals(entity.getId()));
-        if (index.isPresent()) {
-            storage.set(index.getAsInt(), entity);
-            return entity;
+    public ApiKeyEntity create(ApiKeyEntity apiKey) {
+        synchronized (storage) {
+            if (rejectsExistingIds && this.findIndex(this.storage, stored -> stored.getId().equals(apiKey.getId())).isPresent()) {
+                throw new ApiKeyIdAlreadyExistsException(apiKey.getId(), null);
+            }
+            storage.add(apiKey);
+            return apiKey;
         }
+    }
 
-        throw new IllegalStateException("ApiKey not found");
+    /** Like the repositories: every field but the subscriptions, which are kept as stored. */
+    @Override
+    public ApiKeyEntity update(ApiKeyEntity entity) {
+        synchronized (storage) {
+            OptionalInt index = this.findIndex(this.storage, apiKey -> apiKey.getId().equals(entity.getId()));
+            if (index.isPresent()) {
+                var updated = entity.toBuilder().subscriptions(storage.get(index.getAsInt()).getSubscriptions()).build();
+                storage.set(index.getAsInt(), updated);
+                return updated;
+            }
+
+            throw new IllegalStateException("ApiKey not found");
+        }
+    }
+
+    @Override
+    public Optional<ApiKeyEntity> addSubscription(String apiKeyId, String subscriptionId) {
+        synchronized (storage) {
+            OptionalInt index = this.findIndex(this.storage, apiKey -> apiKey.getId().equals(apiKeyId));
+            if (index.isEmpty()) {
+                return Optional.empty();
+            }
+            var stored = storage.get(index.getAsInt());
+            // Like the repositories, a key stored without a list of subscriptions has none
+            var subscriptions = stored.getSubscriptions() == null ? new ArrayList<String>() : new ArrayList<>(stored.getSubscriptions());
+            if (!subscriptions.contains(subscriptionId)) {
+                subscriptions.add(subscriptionId);
+            }
+            var updated = stored.toBuilder().subscriptions(subscriptions).updatedAt(TimeProvider.now()).build();
+            storage.set(index.getAsInt(), updated);
+            return Optional.of(updated);
+        }
     }
 
     @Override
     public void initWith(List<ApiKeyEntity> items) {
-        storage.clear();
-        storage.addAll(items);
+        synchronized (storage) {
+            storage.clear();
+            storage.addAll(items);
+        }
     }
 
     @Override
     public void reset() {
-        storage.clear();
+        synchronized (storage) {
+            storage.clear();
+        }
     }
 
     @Override

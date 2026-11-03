@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
@@ -47,8 +48,8 @@ public class HTTPFieldResolver implements FieldResolver {
     }
 
     @Override
-    public String fromFilter(Filter filter) {
-        return switch (filter.name()) {
+    public String fromFilter(Filter.Name name) {
+        return switch (name) {
             case Filter.Name.API, Filter.Name.TRAFFIC_SCOPE -> "api-id";
             case Filter.Name.APPLICATION -> "application-id";
             case Filter.Name.PLAN -> "plan-id";
@@ -57,7 +58,7 @@ public class HTTPFieldResolver implements FieldResolver {
             case Filter.Name.TENANT -> "tenant";
             case Filter.Name.ZONE -> "zone";
             case Filter.Name.HTTP_METHOD -> "http-method";
-            case Filter.Name.HTTP_STATUS_CODE_GROUP, HTTP_STATUS -> "status";
+            case Filter.Name.HTTP_STATUS_CODE_GROUP, Filter.Name.HTTP_STATUS -> "status";
             // the gateway reports the path after the context path as path-info; `path` is declared but never written
             case Filter.Name.HTTP_PATH -> "path-info.keyword";
             case Filter.Name.HTTP_PATH_MAPPING -> "mapped-path";
@@ -130,5 +131,11 @@ public class HTTPFieldResolver implements FieldResolver {
             case API_PRODUCT -> "api-product-id";
             default -> throw new UnsupportedOperationException("not an HTTP facet");
         };
+    }
+
+    /** The reporter writes the map under {@code additional-metrics} as is: the field is the wire name itself. */
+    @Override
+    public String fromAdditionalMetric(AdditionalMetricField field) {
+        return field.name();
     }
 }

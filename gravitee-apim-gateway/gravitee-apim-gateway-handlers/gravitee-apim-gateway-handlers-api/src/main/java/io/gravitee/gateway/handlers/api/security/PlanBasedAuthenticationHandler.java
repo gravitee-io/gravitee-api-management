@@ -19,6 +19,7 @@ import static io.gravitee.gateway.security.core.AuthenticationContext.ATTR_INTER
 import static io.gravitee.gateway.security.core.AuthenticationContext.ATTR_INTERNAL_TOKEN_IDENTIFIED;
 
 import io.gravitee.definition.model.Plan;
+import io.gravitee.el.spel.context.SecuredEvaluationContext;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.el.EvaluableRequest;
 import io.gravitee.gateway.security.core.AuthenticationContext;
@@ -28,11 +29,11 @@ import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ParseException;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -86,7 +87,7 @@ public abstract class PlanBasedAuthenticationHandler implements AuthenticationHa
                     selectionRule.replaceAll(EXPRESSION_REGEX, EXPRESSION_REGEX_SUBSTITUTE)
                 );
 
-                StandardEvaluationContext evaluation = new StandardEvaluationContext();
+                EvaluationContext evaluation = new SecuredEvaluationContext();
                 evaluation.setVariable("request", new EvaluableRequest(authenticationContext.request()));
                 evaluation.setVariable("context", new EvaluableAuthenticationContext(authenticationContext));
 

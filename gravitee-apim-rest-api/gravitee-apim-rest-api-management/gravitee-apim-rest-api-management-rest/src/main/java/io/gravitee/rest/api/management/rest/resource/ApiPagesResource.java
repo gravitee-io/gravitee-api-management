@@ -133,6 +133,7 @@ public class ApiPagesResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.CREATE) })
+    @ApiResponse(responseCode = "404", description = "Parent page not found or does not belong to this API")
     public Response createApiPage(@Parameter(name = "page", required = true) @Valid @NotNull NewPageEntity newPageEntity) {
         if (newPageEntity.getType().equals(PageType.SYSTEM_FOLDER)) {
             throw new PageSystemFolderActionException("Create");

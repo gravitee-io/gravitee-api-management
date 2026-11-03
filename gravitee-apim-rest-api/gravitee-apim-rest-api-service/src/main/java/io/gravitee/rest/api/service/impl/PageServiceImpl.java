@@ -435,11 +435,42 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         return accessControl;
     }
 
-    private PageSituation getPageSituation(String pageId) throws TechnicalException {
+    private record PageOwner(String referenceType, String referenceId) {
+        private static PageOwner of(Page page) {
+            return new PageOwner(page.getReferenceType() == null ? null : page.getReferenceType().name(), page.getReferenceId());
+        }
+
+        private static PageOwner of(PageEntity page) {
+            return new PageOwner(page.getReferenceType(), page.getReferenceId());
+        }
+
+        private boolean isDefined() {
+            return StringUtils.isNotBlank(referenceType) && StringUtils.isNotBlank(referenceId);
+        }
+
+        private boolean contains(Page page) {
+            return (
+                isDefined() &&
+                page.getReferenceType() != null &&
+                referenceType.equals(page.getReferenceType().name()) &&
+                referenceId.equals(page.getReferenceId())
+            );
+        }
+    }
+
+    private Optional<Page> findOwnedPage(String pageId, PageOwner owner) throws TechnicalException {
+        return pageRepository.findById(pageId).filter(owner::contains);
+    }
+
+    private Page validateParentOwnership(String parentId, PageOwner owner) throws TechnicalException {
+        return StringUtils.isEmpty(parentId) ? null : findOwnedPage(parentId, owner).orElseThrow(() -> new PageNotFoundException(parentId));
+    }
+
+    private PageSituation getPageSituation(String pageId, PageOwner owner) throws TechnicalException {
         if (pageId == null) {
             return PageSituation.ROOT;
         } else {
-            Optional<Page> optionalPage = pageRepository.findById(pageId);
+            Optional<Page> optionalPage = findOwnedPage(pageId, owner);
             if (optionalPage.isPresent()) {
                 Page page = optionalPage.get();
                 if (SYSTEM_FOLDER.name().equalsIgnoreCase(page.getType())) {
@@ -455,7 +486,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     return PageSituation.IN_ROOT;
                 }
 
-                Optional<Page> optionalParent = pageRepository.findById(parentId);
+                Optional<Page> optionalParent = findOwnedPage(parentId, owner);
                 if (optionalParent.isPresent()) {
                     Page parentPage = optionalParent.get();
                     if (SYSTEM_FOLDER.name().equalsIgnoreCase(parentPage.getType())) {
@@ -468,7 +499,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                             return PageSituation.IN_FOLDER_IN_ROOT;
                         }
 
-                        Optional<Page> optionalGrandParent = pageRepository.findById(grandParentId);
+                        Optional<Page> optionalGrandParent = findOwnedPage(grandParentId, owner);
                         if (optionalGrandParent.isPresent()) {
                             Page grandParentPage = optionalGrandParent.get();
                             if (SYSTEM_FOLDER.name().equalsIgnoreCase(grandParentPage.getType())) {
@@ -553,7 +584,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                         contentPageId = translation.getId();
                     }
                 } else {
-                    List<PageEntity> translations = convert(getTranslations(foundPageEntity.getId()));
+                    List<PageEntity> translations = convert(getTranslations(foundPageEntity.getId(), PageOwner.of(foundPageEntity)));
                     if (translations != null && !translations.isEmpty()) {
                         foundPageEntity.setTranslations(translations);
                     }
@@ -710,7 +741,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             if (acceptedLocale == null || acceptedLocale.isEmpty()) {
                 pages.forEach(p -> {
                     if (!TRANSLATION.name().equals(p.getType())) {
-                        List<PageEntity> translations = convert(getTranslations(p.getId()));
+                        List<PageEntity> translations = convert(getTranslations(p.getId(), PageOwner.of(p)));
                         if (translations != null && !translations.isEmpty()) {
                             p.setTranslations(translations);
                         }
@@ -736,20 +767,22 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
             if (Boolean.TRUE.equals(query != null && query.getPublished() != null && query.getPublished()) || !isAuthenticated()) {
                 // remove child of unpublished folders
-                return pages
-                    .stream()
-                    .filter(page -> {
-                        if (page.getParentId() != null) {
-                            PageEntity parent = this.findById(page.getParentId());
-                            if (!isAuthenticated()) {
-                                return parent.isPublished() && Visibility.PUBLIC.equals(parent.getVisibility());
-                            } else {
-                                return parent.isPublished();
-                            }
+                List<PageEntity> visiblePages = new ArrayList<>();
+                for (PageEntity page : pages) {
+                    if (page.getParentId() == null) {
+                        visiblePages.add(page);
+                    } else {
+                        Optional<Page> parent = findOwnedPage(page.getParentId(), PageOwner.of(page));
+                        if (
+                            parent.isPresent() &&
+                            parent.get().isPublished() &&
+                            (isAuthenticated() || Visibility.PUBLIC.name().equals(parent.get().getVisibility()))
+                        ) {
+                            visiblePages.add(page);
                         }
-                        return true;
-                    })
-                    .collect(toList());
+                    }
+                }
+                return visiblePages;
             }
 
             return pages;
@@ -764,7 +797,15 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             pageToTranslate.getConfiguration() != null &&
             "true".equals(pageToTranslate.getConfiguration().get(PageConfigurationKeys.LINK_INHERIT))
         ) {
-            Page relatedTranslation = getTranslation(pageToTranslate.getContent(), acceptedLocale);
+            Page relatedTranslation;
+            try {
+                relatedTranslation = pageRepository
+                    .findById(pageToTranslate.getContent())
+                    .map(target -> getTranslation(target.getId(), acceptedLocale, PageOwner.of(target)))
+                    .orElse(null);
+            } catch (TechnicalException ex) {
+                throw new TechnicalManagementException("An error occurs while trying to find the linked page", ex);
+            }
             Page linkTranslation = null;
             if (relatedTranslation != null) {
                 linkTranslation = new Page();
@@ -774,24 +815,22 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             }
             return linkTranslation;
         }
-        return getTranslation(pageToTranslate.getId(), acceptedLocale);
+        return getTranslation(pageToTranslate.getId(), acceptedLocale, PageOwner.of(pageToTranslate));
     }
 
-    private Page getTranslation(String pageId, String acceptedLocale) {
-        try {
-            Optional<Page> optTranslation = this.pageRepository.search(
-                    new PageCriteria.Builder().parent(pageId).type(TRANSLATION.name()).build()
-                )
-                .stream()
-                .filter(t -> acceptedLocale.equalsIgnoreCase(t.getConfiguration().get(PageConfigurationKeys.TRANSLATION_LANG)))
-                .findFirst();
-            if (optTranslation.isPresent()) {
-                return optTranslation.get();
-            }
-            return null;
-        } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
+    private Page getTranslation(String pageId, String acceptedLocale, PageOwner owner) {
+        Optional<Page> optTranslation = findTranslations(pageId, owner)
+            .stream()
+            .filter(
+                t ->
+                    t.getConfiguration() != null &&
+                    acceptedLocale.equalsIgnoreCase(t.getConfiguration().get(PageConfigurationKeys.TRANSLATION_LANG))
+            )
+            .findFirst();
+        if (optTranslation.isPresent()) {
+            return optTranslation.get();
         }
+        return null;
     }
 
     @Override
@@ -863,6 +902,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             String id = newPageId != null && UUID.fromString(newPageId) != null ? newPageId : UuidString.generateRandom();
 
             PageType newPageType = newPageEntity.getType();
+            PageOwner owner = StringUtils.isEmpty(apiId)
+                ? new PageOwner(PageReferenceType.ENVIRONMENT.name(), executionContext.getEnvironmentId())
+                : new PageOwner(PageReferenceType.API.name(), apiId);
+            newPageEntity.setParentId(StringUtils.isEmpty(newPageEntity.getParentId()) ? null : newPageEntity.getParentId());
+            Page parent = validateParentOwnership(newPageEntity.getParentId(), owner);
 
             // handle default visibility
             if (newPageEntity.getVisibility() == null) {
@@ -896,18 +940,17 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             }
 
             if (TRANSLATION.equals(newPageType)) {
-                checkTranslationConsistency(newPageEntity.getParentId(), newPageEntity.getConfiguration(), true);
+                checkTranslationConsistency(newPageEntity.getParentId(), newPageEntity.getConfiguration(), true, owner);
 
-                Optional<Page> optTranslatedPage = this.pageRepository.findById(newPageEntity.getParentId());
-                if (optTranslatedPage.isPresent()) {
-                    newPageEntity.setPublished(optTranslatedPage.get().isPublished());
+                if (parent != null) {
+                    newPageEntity.setPublished(parent.isPublished());
                     // create revision only for Swagger & Markdown page
-                    createRevision = isSwaggerOrMarkdown(optTranslatedPage.get().getType());
+                    createRevision = isSwaggerOrMarkdown(parent.getType());
                 }
             }
 
             if (FOLDER.equals(newPageType)) {
-                checkFolderConsistency(newPageEntity);
+                checkFolderConsistency(newPageEntity, owner);
             }
 
             if (LINK.equals(newPageType)) {
@@ -934,7 +977,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             }
 
             if (SWAGGER == newPageType || MARKDOWN == newPageType) {
-                checkMarkdownOrSwaggerConsistency(newPageEntity, newPageType);
+                checkMarkdownOrSwaggerConsistency(newPageEntity, newPageType, owner);
                 createRevision = true;
 
                 if (SWAGGER == newPageType) {
@@ -1008,10 +1051,14 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 PageType.valueOf(page.getType()) == TRANSLATION &&
                 page.getConfiguration() != null &&
                 !page.getConfiguration().isEmpty() &&
-                page.getConfiguration().get(PageConfigurationKeys.TRANSLATION_INHERIT_CONTENT).equalsIgnoreCase("true")
+                "true".equalsIgnoreCase(page.getConfiguration().get(PageConfigurationKeys.TRANSLATION_INHERIT_CONTENT))
             ) {
                 String translatedPageId = page.getParentId();
-                this.pageRepository.findById(translatedPageId).ifPresent(translatedPage -> page.setContent(translatedPage.getContent()));
+                Page translatedPage = validateParentOwnership(translatedPageId, PageOwner.of(page));
+                if (translatedPage == null) {
+                    throw new PageActionException(TRANSLATION, "have no parentId");
+                }
+                page.setContent(translatedPage.getContent());
             }
 
             pageRevisionService.create(page);
@@ -1020,8 +1067,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
     }
 
-    private void checkMarkdownOrSwaggerConsistency(NewPageEntity newPageEntity, PageType newPageType) throws TechnicalException {
-        PageSituation newPageParentSituation = getPageSituation(newPageEntity.getParentId());
+    private void checkMarkdownOrSwaggerConsistency(NewPageEntity newPageEntity, PageType newPageType, PageOwner owner)
+        throws TechnicalException {
+        PageSituation newPageParentSituation = getPageSituation(newPageEntity.getParentId(), owner);
         if (newPageParentSituation == PageSituation.SYSTEM_FOLDER || newPageParentSituation == PageSituation.IN_SYSTEM_FOLDER) {
             throw new PageActionException(newPageType, "be created under a system folder");
         }
@@ -1077,7 +1125,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
     }
 
-    private void checkFolderConsistency(NewPageEntity newPageEntity) throws TechnicalException {
+    private void checkFolderConsistency(NewPageEntity newPageEntity, PageOwner owner) throws TechnicalException {
         if (newPageEntity.getContent() != null && newPageEntity.getContent().length() > 0) {
             throw new PageFolderActionException("have a content");
         }
@@ -1086,7 +1134,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             throw new PageFolderActionException("be affected to the home page");
         }
 
-        PageSituation newPageParentSituation = getPageSituation(newPageEntity.getParentId());
+        PageSituation newPageParentSituation = getPageSituation(newPageEntity.getParentId(), owner);
         if (newPageParentSituation == PageSituation.IN_SYSTEM_FOLDER) {
             throw new PageFolderActionException("be created in a folder of a system folder");
         }
@@ -1097,7 +1145,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         return search(environmentId, pageQuery).stream().findFirst();
     }
 
-    private void checkTranslationConsistency(String parentId, Map<String, String> configuration, boolean forCreation)
+    private void checkTranslationConsistency(String parentId, Map<String, String> configuration, boolean forCreation, PageOwner owner)
         throws TechnicalException {
         if (parentId == null || parentId.isEmpty()) {
             throw new PageActionException(TRANSLATION, "have no parentId");
@@ -1110,7 +1158,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             throw new PageActionException(TRANSLATION, "have no configured language");
         }
 
-        Optional<Page> optTranslatedPage = this.pageRepository.findById(parentId);
+        Optional<Page> optTranslatedPage = findOwnedPage(parentId, owner);
         if (optTranslatedPage.isPresent()) {
             Page translatedPage = optTranslatedPage.get();
             PageType translatedPageType = PageType.valueOf(translatedPage.getType());
@@ -1127,20 +1175,19 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
             if (forCreation) {
                 String newTranslationLang = configuration.get(PageConfigurationKeys.TRANSLATION_LANG);
-                Page existingTranslation = getTranslation(parentId, newTranslationLang);
+                Page existingTranslation = getTranslation(parentId, newTranslationLang, owner);
 
                 if (existingTranslation != null) {
                     throw new PageActionException(TRANSLATION, "be created. A translation for this language already exist");
                 }
             }
         } else {
-            // TODO: should be reactivated when import/export is fixed
-            //throw new PageActionException(PageType.TRANSLATION, "have an inexisting parent. Parent " + parentId + " not found");
+            throw new PageNotFoundException(parentId);
         }
     }
 
     private void checkLinkRelatedPageType(Page relatedPage) throws TechnicalException {
-        PageSituation relatedPageSituation = getPageSituation(relatedPage.getId());
+        PageSituation relatedPageSituation = getPageSituation(relatedPage.getId(), PageOwner.of(relatedPage));
 
         if (
             LINK.name().equalsIgnoreCase(relatedPage.getType()) ||
@@ -1203,6 +1250,12 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
             Page pageToUpdate = optPageToUpdate.get();
             Page page = null;
+            String effectiveParentId = partial && updatePageEntity.getParentId() == null
+                ? pageToUpdate.getParentId()
+                : updatePageEntity.getParentId();
+            effectiveParentId = StringUtils.isEmpty(effectiveParentId) ? null : effectiveParentId;
+            PageOwner owner = PageOwner.of(pageToUpdate);
+            Page parent = validateParentOwnership(effectiveParentId, owner);
 
             String pageType = pageToUpdate.getType();
 
@@ -1248,27 +1301,22 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             }
 
             if (TRANSLATION.name().equalsIgnoreCase(pageType)) {
-                String parentId = (updatePageEntity.getParentId() != null && !updatePageEntity.getParentId().isEmpty())
-                    ? updatePageEntity.getParentId()
-                    : pageToUpdate.getParentId();
                 Map<String, String> configuration = updatePageEntity.getConfiguration() != null
                     ? updatePageEntity.getConfiguration()
                     : pageToUpdate.getConfiguration();
-                checkTranslationConsistency(parentId, configuration, false);
+                checkTranslationConsistency(effectiveParentId, configuration, false, owner);
 
                 boolean hasChanged = pageHasChanged(updatePageEntity, pageToUpdate);
-                Optional<Page> optParentPage = this.pageRepository.findById(parentId);
-                if (optParentPage.isPresent()) {
-                    createRevision = isSwaggerOrMarkdown(optParentPage.get().getType()) && hasChanged;
+                if (parent != null) {
+                    createRevision = isSwaggerOrMarkdown(parent.getType()) && hasChanged;
                 }
             }
 
-            if (updatePageEntity.getParentId() != null && !updatePageEntity.getParentId().equals(pageToUpdate.getParentId())) {
-                checkUpdatedPageSituation(updatePageEntity, pageType, pageId);
+            if (!Objects.equals(effectiveParentId, pageToUpdate.getParentId())) {
+                checkUpdatedPageSituation(effectiveParentId, pageType, pageId, owner);
                 if (TRANSLATION.name().equalsIgnoreCase(pageType)) {
-                    Optional<Page> optionalTranslatedPage = pageRepository.findById(updatePageEntity.getParentId());
-                    if (optionalTranslatedPage.isPresent()) {
-                        updatePageEntity.setPublished(optionalTranslatedPage.get().isPublished());
+                    if (parent != null) {
+                        updatePageEntity.setPublished(parent.isPublished());
                     }
                 }
             }
@@ -1410,7 +1458,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     : updatePageEntity.getVisibility().name();
 
                 // update all the related links and translations publication status.
-                this.changeRelatedPagesPublicationStatusAndVisibility(pageId, updatePageEntity.isPublished(), newVisibility);
+                this.changeRelatedPagesPublicationStatusAndVisibility(page, updatePageEntity.isPublished(), newVisibility);
             }
 
             createAuditLog(
@@ -1468,8 +1516,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         return SWAGGER.name().equalsIgnoreCase(pageType) || MARKDOWN.name().equalsIgnoreCase(pageType);
     }
 
-    private void checkUpdatedPageSituation(UpdatePageEntity updatePageEntity, String pageType, String pageId) throws TechnicalException {
-        PageSituation newParentSituation = getPageSituation(updatePageEntity.getParentId());
+    private void checkUpdatedPageSituation(String parentId, String pageType, String pageId, PageOwner owner) throws TechnicalException {
+        PageSituation newParentSituation = getPageSituation(parentId, owner);
         switch (pageType) {
             case "SYSTEM_FOLDER":
                 if (newParentSituation != PageSituation.ROOT) {
@@ -1487,7 +1535,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 }
                 break;
             case "FOLDER":
-                PageSituation folderSituation = getPageSituation(pageId);
+                PageSituation folderSituation = getPageSituation(pageId, owner);
                 if (folderSituation == PageSituation.IN_SYSTEM_FOLDER && newParentSituation != PageSituation.SYSTEM_FOLDER) {
                     throw new PageActionException(FOLDER, " be moved anywhere other than in a system folder");
                 } else if (folderSituation != PageSituation.IN_SYSTEM_FOLDER && newParentSituation == PageSituation.SYSTEM_FOLDER) {
@@ -1510,9 +1558,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 ) {
                     throw new PageActionException(
                         TRANSLATION,
-                        "be updated. Parent " +
-                            updatePageEntity.getParentId() +
-                            " is not one of this type : FOLDER, LINK, MARKDOWN, SWAGGER"
+                        "be updated. Parent " + parentId + " is not one of this type : FOLDER, LINK, MARKDOWN, SWAGGER"
                     );
                 }
                 break;
@@ -1521,12 +1567,12 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
     }
 
-    private void changeRelatedPagesPublicationStatusAndVisibility(String pageId, Boolean published, String newVisibility) {
+    private void changeRelatedPagesPublicationStatusAndVisibility(Page page, Boolean published, String newVisibility) {
         try {
             // Update related page's links
             this.pageRepository.search(new PageCriteria.Builder().type(LINK.name()).build())
                 .stream()
-                .filter(p -> pageId.equals(p.getContent()))
+                .filter(p -> page.getId().equals(p.getContent()))
                 .forEach(p -> {
                     try {
                         // Update link
@@ -1535,70 +1581,62 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                         pageRepository.update(p);
 
                         // Update link's translations
-                        changeTranslationPagesPublicationStatusAndVisibility(p.getId(), published, newVisibility);
+                        changeTranslationPagesPublicationStatusAndVisibility(p, published, newVisibility);
                     } catch (TechnicalException ex) {
                         throw onUpdateFail(p.getId(), ex);
                     }
                 });
 
             // Update related page's translations
-            changeTranslationPagesPublicationStatusAndVisibility(pageId, published, newVisibility);
+            changeTranslationPagesPublicationStatusAndVisibility(page, published, newVisibility);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
         }
     }
 
-    private void changeTranslationPagesPublicationStatusAndVisibility(String translatedPageId, Boolean published, String newVisibility) {
-        try {
-            this.pageRepository.search(new PageCriteria.Builder().parent(translatedPageId).type(TRANSLATION.name()).build())
-                .stream()
-                .forEach(p -> {
-                    try {
-                        p.setPublished(published);
-                        p.setVisibility(newVisibility);
-                        pageRepository.update(p);
-                    } catch (TechnicalException ex) {
-                        throw onUpdateFail(p.getId(), ex);
-                    }
-                });
-        } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
-        }
+    private void changeTranslationPagesPublicationStatusAndVisibility(Page translatedPage, Boolean published, String newVisibility) {
+        findTranslations(translatedPage.getId(), PageOwner.of(translatedPage))
+            .stream()
+            .forEach(p -> {
+                try {
+                    p.setPublished(published);
+                    p.setVisibility(newVisibility);
+                    pageRepository.update(p);
+                } catch (TechnicalException ex) {
+                    throw onUpdateFail(p.getId(), ex);
+                }
+            });
     }
 
-    private void deleteRelatedPages(String pageId) {
+    private void deleteRelatedPages(Page page) {
         try {
             this.pageRepository.search(new PageCriteria.Builder().type("LINK").build())
                 .stream()
-                .filter(p -> pageId.equals(p.getContent()))
+                .filter(p -> page.getId().equals(p.getContent()))
                 .forEach(p -> {
                     try {
                         pageRepository.delete(p.getId());
-                        this.deleteRelatedTranslations(p.getId());
+                        this.deleteRelatedTranslations(p);
                     } catch (TechnicalException ex) {
                         throw new TechnicalManagementException("An error occurs while trying to delete Page " + p.getId(), ex);
                     }
                 });
-            this.deleteRelatedTranslations(pageId);
+            this.deleteRelatedTranslations(page);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
         }
     }
 
-    private void deleteRelatedTranslations(String pageId) {
-        try {
-            this.pageRepository.search(new PageCriteria.Builder().parent(pageId).type(TRANSLATION.name()).build())
-                .stream()
-                .forEach(p -> {
-                    try {
-                        pageRepository.delete(p.getId());
-                    } catch (TechnicalException ex) {
-                        throw new TechnicalManagementException("An error occurs while trying to delete Page " + p.getId(), ex);
-                    }
-                });
-        } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
-        }
+    private void deleteRelatedTranslations(Page page) {
+        findTranslations(page.getId(), PageOwner.of(page))
+            .stream()
+            .forEach(p -> {
+                try {
+                    pageRepository.delete(p.getId());
+                } catch (TechnicalException ex) {
+                    throw new TechnicalManagementException("An error occurs while trying to delete Page " + p.getId(), ex);
+                }
+            });
     }
 
     private void index(ExecutionContext executionContext, PageEntity pageEntity) {
@@ -2232,7 +2270,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
             // delete links and translations related to the page
             if (!LINK.name().equalsIgnoreCase(page.getType()) && !TRANSLATION.name().equalsIgnoreCase(page.getType())) {
-                this.deleteRelatedPages(page.getId());
+                this.deleteRelatedPages(page);
             }
 
             createAuditLog(
@@ -2309,6 +2347,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     private PageEntity fetch(final ExecutionContext executionContext, Page page, String contributor) throws TechnicalException {
+        validateParentOwnership(page.getParentId(), PageOwner.of(page));
         // preserve content & name before the fetch
         // to detect if there are some changes
         Page previousPage = new Page();
@@ -2441,35 +2480,52 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     private String computeParentPath(Page page, String suffix) {
-        final String path = suffix;
-        final String parentId = page.getParentId();
-        if (!StringUtils.isEmpty(parentId)) {
+        String path = suffix;
+        String parentId = page.getParentId();
+        PageOwner owner = PageOwner.of(page);
+        Set<String> visited = new HashSet<>();
+        visited.add(page.getId());
+        while (!StringUtils.isEmpty(parentId) && visited.add(parentId)) {
             try {
-                final Optional<Page> optParent = pageRepository.findById(parentId);
-                if (optParent.isPresent()) {
-                    return this.computeParentPath(optParent.get(), "/" + optParent.get().getName() + path);
+                final Optional<Page> optParent = findOwnedPage(parentId, owner);
+                if (optParent.isEmpty()) {
+                    break;
                 }
+                path = "/" + optParent.get().getName() + path;
+                parentId = optParent.get().getParentId();
             } catch (TechnicalException ex) {
                 log.error("An error occurs while trying to find a page using its ID {}", parentId, ex);
+                break;
             }
         }
         return path;
     }
 
-    private List<Page> getTranslations(String pageId) {
+    private List<Page> findTranslations(String pageId, PageOwner owner) {
+        if (!owner.isDefined()) {
+            return emptyList();
+        }
         try {
-            List<Page> searchResult = this.pageRepository.search(
-                new PageCriteria.Builder().parent(pageId).type(TRANSLATION.name()).build()
-            );
-            searchResult.sort((p1, p2) -> {
-                String lang1 = p1.getConfiguration().get(PageConfigurationKeys.TRANSLATION_LANG);
-                String lang2 = p2.getConfiguration().get(PageConfigurationKeys.TRANSLATION_LANG);
-                return lang1.compareTo(lang2);
-            });
-            return searchResult;
+            return this.pageRepository.search(
+                    new PageCriteria.Builder()
+                        .parent(pageId)
+                        .type(TRANSLATION.name())
+                        .referenceType(owner.referenceType())
+                        .referenceId(owner.referenceId())
+                        .build()
+                )
+                .stream()
+                .filter(owner::contains)
+                .collect(toList());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
         }
+    }
+
+    private List<Page> getTranslations(String pageId, PageOwner owner) {
+        List<Page> translations = findTranslations(pageId, owner);
+        translations.sort(Comparator.comparing(p -> p.getConfiguration().get(PageConfigurationKeys.TRANSLATION_LANG)));
+        return translations;
     }
 
     private UpdatePageEntity convertToUpdateEntity(Page page) {
@@ -2619,14 +2675,18 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     private String resolvePageType(PageEntity pageEntity) {
         String pageType = pageEntity.getType();
-        if (pageEntity.getParentId() != null && TRANSLATION.name().equalsIgnoreCase(pageType)) {
+        if (TRANSLATION.name().equalsIgnoreCase(pageType)) {
             try {
-                Optional<Page> parent = pageRepository.findById(pageEntity.getParentId());
-                if (parent.isPresent()) {
-                    pageType = parent.get().getType();
+                Page parent = validateParentOwnership(pageEntity.getParentId(), PageOwner.of(pageEntity));
+                if (parent == null) {
+                    throw new PageActionException(TRANSLATION, "have no parentId");
                 }
+                pageType = parent.getType();
             } catch (TechnicalException e) {
-                log.error("An error occurs while trying to fetch parent page of page '{}'", pageEntity.getId(), e);
+                throw new TechnicalManagementException(
+                    "An error occurred while resolving the parent type of page " + pageEntity.getId(),
+                    e
+                );
             }
         }
         return pageType;
@@ -2929,8 +2989,13 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 });
             }
 
+            PageEntity existingPage;
             try {
-                var existingPage = findById(pageEntityToImport.getId());
+                existingPage = findById(pageEntityToImport.getId());
+            } catch (PageNotFoundException e) {
+                existingPage = null;
+            }
+            if (existingPage != null) {
                 // Page ids in an imported definition are lookup keys: an import only writes pages of the API it imports
                 if (!PageReferenceType.API.name().equals(existingPage.getReferenceType()) || !apiId.equals(existingPage.getReferenceId())) {
                     throw new PageActionException(PageType.valueOf(existingPage.getType()), "be imported into this API");
@@ -2940,7 +3005,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     pageEntityToImport.getId(),
                     pageConverter.toUpdatePageEntity(pageEntityToImport)
                 );
-            } catch (PageNotFoundException e) {
+            } else {
                 createdOrUpdatedPage = createPage(
                     executionContext,
                     apiId,

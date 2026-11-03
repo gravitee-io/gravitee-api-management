@@ -40,28 +40,28 @@ class AnalyticsRequestDataKindTest {
         void should_read_the_aggregates_when_no_field_identifies_a_caller() {
             var request = new MeasuresRequest(TIME_RANGE, List.of(BY_METHOD), List.of(requests(List.of(BY_METHOD))));
 
-            assertThat(request.dataKind()).isEqualTo(ApiDataKind.AGGREGATES);
+            assertThat(request.dataKind(_ -> false)).isEqualTo(ApiDataKind.AGGREGATES);
         }
 
         @Test
         void should_read_the_requests_when_a_condition_identifies_a_caller() {
             var request = new MeasuresRequest(TIME_RANGE, List.of(BY_CONSUMER_IP), List.of(requests(List.of())));
 
-            assertThat(request.dataKind()).isEqualTo(ApiDataKind.PER_REQUEST);
+            assertThat(request.dataKind(_ -> false)).isEqualTo(ApiDataKind.PER_REQUEST);
         }
 
         @Test
         void should_read_the_requests_when_a_metric_condition_identifies_a_caller() {
             var request = new MeasuresRequest(TIME_RANGE, List.of(), List.of(requests(List.of(BY_CONSUMER_IP))));
 
-            assertThat(request.dataKind()).isEqualTo(ApiDataKind.PER_REQUEST);
+            assertThat(request.dataKind(_ -> false)).isEqualTo(ApiDataKind.PER_REQUEST);
         }
 
         @Test
         void should_read_the_aggregates_when_the_request_carries_no_condition_at_all() {
             var request = new MeasuresRequest(TIME_RANGE, null, null);
 
-            assertThat(request.dataKind()).isEqualTo(ApiDataKind.AGGREGATES);
+            assertThat(request.dataKind(_ -> false)).isEqualTo(ApiDataKind.AGGREGATES);
         }
     }
 
@@ -72,14 +72,14 @@ class AnalyticsRequestDataKindTest {
         void should_read_the_aggregates_when_no_facet_identifies_a_caller() {
             var request = new FacetsRequest(TIME_RANGE, List.of(), List.of(), List.of(FacetSpec.Name.HTTP_STATUS), 10, List.of());
 
-            assertThat(request.dataKind()).isEqualTo(ApiDataKind.AGGREGATES);
+            assertThat(request.dataKind(_ -> false)).isEqualTo(ApiDataKind.AGGREGATES);
         }
 
         @Test
         void should_read_the_requests_when_a_facet_identifies_a_caller() {
             var request = new FacetsRequest(TIME_RANGE, List.of(), List.of(), List.of(FacetSpec.Name.AUTHZ_SUBJECT_ID), 10, List.of());
 
-            assertThat(request.dataKind()).isEqualTo(ApiDataKind.PER_REQUEST);
+            assertThat(request.dataKind(_ -> false)).isEqualTo(ApiDataKind.PER_REQUEST);
         }
 
         @Test
@@ -100,7 +100,7 @@ class AnalyticsRequestDataKindTest {
                 List.of()
             );
 
-            assertThat(request.dataKind()).isEqualTo(ApiDataKind.PER_REQUEST);
+            assertThat(request.dataKind(_ -> false)).isEqualTo(ApiDataKind.PER_REQUEST);
         }
     }
 
@@ -111,7 +111,7 @@ class AnalyticsRequestDataKindTest {
         void should_read_the_aggregates_when_no_field_identifies_a_caller() {
             var request = new TimeSeriesRequest(TIME_RANGE, 3_600_000L, List.of(BY_METHOD));
 
-            assertThat(request.dataKind()).isEqualTo(ApiDataKind.AGGREGATES);
+            assertThat(request.dataKind(_ -> false)).isEqualTo(ApiDataKind.AGGREGATES);
         }
 
         @Test
@@ -122,7 +122,7 @@ class AnalyticsRequestDataKindTest {
                 List.of(new Filter(FilterSpec.Name.NATIVE_CLIENT_ID, FilterOperator.EQ, "c-1"))
             );
 
-            assertThat(request.dataKind()).isEqualTo(ApiDataKind.PER_REQUEST);
+            assertThat(request.dataKind(_ -> false)).isEqualTo(ApiDataKind.PER_REQUEST);
         }
 
         @Test
@@ -137,7 +137,7 @@ class AnalyticsRequestDataKindTest {
                 List.of()
             );
 
-            assertThat(request.dataKind()).isEqualTo(ApiDataKind.PER_REQUEST);
+            assertThat(request.dataKind(_ -> false)).isEqualTo(ApiDataKind.PER_REQUEST);
         }
     }
 

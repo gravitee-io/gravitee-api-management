@@ -75,7 +75,6 @@
         <dependency>
             <groupId>io.gravitee.apim.gateway</groupId>
             <artifactId>gravitee-apim-gateway-tests-sdk</artifactId>
-            <version>${apim.core.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -208,13 +207,11 @@
         <dependency>
             <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-cluster-plugin-standalone</artifactId>
-            <version>${gravitee-node.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-cache-plugin-standalone</artifactId>
-            <version>${gravitee-node.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -790,5 +787,19 @@
         </dependency>
 
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <!-- The version the assembled distributions must report at runtime: see RuntimeVersionDistributionTest -->
+                        <apim.distribution.version>${project.version}</apim.distribution.version>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

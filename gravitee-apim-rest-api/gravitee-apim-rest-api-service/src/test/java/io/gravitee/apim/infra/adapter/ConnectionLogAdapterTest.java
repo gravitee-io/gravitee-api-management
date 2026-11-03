@@ -18,13 +18,18 @@ package io.gravitee.apim.infra.adapter;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.log.v4.model.connection.Metrics;
+import io.gravitee.rest.api.model.analytics.SearchLogsFilters.AdditionalMetricCondition;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -118,5 +123,18 @@ class ConnectionLogAdapterTest {
                     .responseContentLength(0L)
                     .build()
             );
+    }
+
+    @ParameterizedTest
+    @EnumSource(AdditionalMetricCondition.Operator.class)
+    void should_map_every_additional_metric_operator_to_the_repository_one_of_its_name(AdditionalMetricCondition.Operator operator) {
+        assertThat(ConnectionLogAdapter.INSTANCE.toOperator(operator).name()).isEqualTo(operator.name());
+    }
+
+    @Test
+    void should_give_every_repository_operator_an_additional_metric_counterpart() {
+        assertThat(Arrays.stream(AdditionalMetricCondition.Operator.values()).map(Enum::name)).containsExactlyInAnyOrderElementsOf(
+            Arrays.stream(Filter.Operator.values()).map(Enum::name).toList()
+        );
     }
 }

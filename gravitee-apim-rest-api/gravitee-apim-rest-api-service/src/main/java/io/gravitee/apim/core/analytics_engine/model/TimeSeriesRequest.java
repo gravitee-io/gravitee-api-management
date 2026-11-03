@@ -16,9 +16,11 @@
 package io.gravitee.apim.core.analytics_engine.model;
 
 import io.gravitee.apim.core.analytics.model.ApiDataKind;
+import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.apim.core.observability.model.NumberRange;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
@@ -30,7 +32,7 @@ public record TimeSeriesRequest(
     Long interval,
     List<Filter> filters,
     List<FacetMetricMeasuresRequest> metrics,
-    List<FacetSpec.Name> facets,
+    List<FacetName> facets,
     Integer limit,
     List<NumberRange> ranges
 ) {
@@ -46,11 +48,12 @@ public record TimeSeriesRequest(
         return new TimeSeriesRequest(timeRange, interval, filters, metrics, facets, limit, ranges);
     }
 
-    public ApiDataKind dataKind() {
+    public ApiDataKind dataKind(Predicate<AdditionalMetricField> identifiesCaller) {
         return FilterSpec.dataKindOf(
             filters,
             Stream.ofNullable(metrics).flatMap(List::stream).map(FacetMetricMeasuresRequest::filters),
-            facets
+            facets,
+            identifiesCaller
         );
     }
 }

@@ -21,7 +21,7 @@ package io.gravitee.repository.elasticsearch.v4.log.adapter.authz;
  *
  * @author GraviteeSource Team
  */
-final class AuthzDecisionLogFields {
+public final class AuthzDecisionLogFields {
 
     static final String TIMESTAMP = "@timestamp";
     static final String API_ID = "api-id";
@@ -56,8 +56,8 @@ final class AuthzDecisionLogFields {
     static final String TARGET_PDP_ID = "decision-point-id";
     static final String POLICY_GENERATION = "decision-point-version";
     static final String MATCHED_RULES = "matched-rules";
-    static final String BATCH_INDEX = "additional-metrics.int_authz_batch-index";
-    static final String BATCH_SIZE = "additional-metrics.int_authz_batch-size";
+    public static final String BATCH_INDEX = "additional-metrics.int_authz_batch-index";
+    public static final String BATCH_SIZE = "additional-metrics.int_authz_batch-size";
 
     private AuthzDecisionLogFields() {}
 }

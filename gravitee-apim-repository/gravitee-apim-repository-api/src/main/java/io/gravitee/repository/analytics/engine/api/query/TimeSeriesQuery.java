@@ -26,7 +26,7 @@ public record TimeSeriesQuery(
     List<Filter> filters,
     Long interval,
     List<MetricMeasuresQuery> metrics,
-    List<Facet> facets,
+    List<FacetName> facets,
     Integer limit,
     List<NumberRange> ranges
 ) implements Query {
@@ -49,7 +49,7 @@ public record TimeSeriesQuery(
         List<Filter> filters,
         Long interval,
         List<MetricMeasuresQuery> metrics,
-        List<Facet> facets
+        List<FacetName> facets
     ) {
         this(timeRange, filters, interval, metrics, facets, 0, List.of());
     }

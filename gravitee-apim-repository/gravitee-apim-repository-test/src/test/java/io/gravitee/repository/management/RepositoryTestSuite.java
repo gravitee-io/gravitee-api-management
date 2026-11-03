@@ -47,6 +47,7 @@ import org.junit.platform.suite.api.Suite;
         CustomDashboardRepositoryTest.class,
         DashboardRepositoryTest.class,
         GammaDashboardRepositoryTest.class,
+        GammaMetricDefinitionRepositoryTest.class,
         DictionaryRepositoryTest.class,
         EntrypointRepositoryTest.class,
         EnvironmentRepositoryTest.class,

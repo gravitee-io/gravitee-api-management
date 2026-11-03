@@ -38,9 +38,8 @@ export class MarkdownDescriptionPipe implements PipeTransform {
   private renderDescription(description: string) {
     const baseURL = this.configService.get('baseURL');
     const markdown = this.markdown.render(description, baseURL, undefined, []);
-    const safeHtml = this.sanitizer.bypassSecurityTrustHtml(markdown);
-    const rawHtml = this.sanitizer.sanitize(SecurityContext.HTML, safeHtml);
-    return this.replaceAnchors(rawHtml);
+    const sanitizedHtml = this.sanitizer.sanitize(SecurityContext.HTML, markdown);
+    return this.replaceAnchors(sanitizedHtml);
   }
 
   /**

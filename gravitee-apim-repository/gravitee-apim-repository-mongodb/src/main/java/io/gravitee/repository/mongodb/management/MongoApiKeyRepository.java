@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import com.mongodb.client.result.UpdateResult;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
@@ -28,6 +29,7 @@ import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.mongodb.management.internal.key.ApiKeyMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -52,7 +54,12 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
     @Override
     public ApiKey create(ApiKey apiKey) throws TechnicalException {
         ApiKeyMongo apiKeyMongo = mapper.map(apiKey);
-        apiKeyMongo = internalApiKeyRepo.insert(apiKeyMongo);
+        try {
+            apiKeyMongo = internalApiKeyRepo.insert(apiKeyMongo);
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            // The only unique index of the collection is the one on _id.
+            throw new DuplicateKeyException(String.format("An API Key with id [%s] already exists", apiKey.getId()), e);
+        }
         return toApiKey(apiKeyMongo);
     }
 
@@ -62,14 +69,14 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
             throw new IllegalStateException("ApiKey to update must have an id");
         }
 
-        ApiKeyMongo apiKeyMongo = internalApiKeyRepo.findById(apiKey.getId()).orElse(null);
-
-        if (apiKeyMongo == null) {
+        UpdateResult result = internalApiKeyRepo.updateAllButSubscriptions(mapper.map(apiKey));
+        if (result.getMatchedCount() == 0) {
             throw new IllegalStateException(String.format("No apiKey found with id [%s]", apiKey.getId()));
         }
 
-        apiKeyMongo = internalApiKeyRepo.save(mapper.map(apiKey));
-        return toApiKey(apiKeyMongo);
+        return findById(apiKey.getId()).orElseThrow(() ->
+            new IllegalStateException(String.format("No apiKey found with id [%s]", apiKey.getId()))
+        );
     }
 
     @Override
@@ -118,6 +125,15 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
     @Override
     public Optional<ApiKey> addSubscription(String id, String subscriptionId) throws TechnicalException {
         UpdateResult result = internalApiKeyRepo.addSubscription(id, subscriptionId);
+        if (result.getMatchedCount() == 0) {
+            return Optional.empty();
+        }
+        return findById(id);
+    }
+
+    @Override
+    public Optional<ApiKey> addSubscriptions(String id, Collection<String> subscriptionIds) throws TechnicalException {
+        UpdateResult result = internalApiKeyRepo.addSubscriptions(id, subscriptionIds);
         if (result.getMatchedCount() == 0) {
             return Optional.empty();
         }

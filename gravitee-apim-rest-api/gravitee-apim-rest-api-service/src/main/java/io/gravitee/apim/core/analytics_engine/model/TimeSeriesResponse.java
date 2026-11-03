@@ -33,7 +33,7 @@ public record TimeSeriesResponse(List<TimeSeriesMetricResponse> metrics) {
         );
     }
 
-    public TimeSeriesResponse withIgnoredFilters(List<FilterSpec.Name> ignoredFilters) {
+    public TimeSeriesResponse withIgnoredFilters(List<FilterName> ignoredFilters) {
         return new TimeSeriesResponse(
             metrics
                 .stream()

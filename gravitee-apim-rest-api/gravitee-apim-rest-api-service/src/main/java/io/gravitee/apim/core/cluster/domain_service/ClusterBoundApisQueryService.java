@@ -50,7 +50,7 @@ import lombok.RequiredArgsConstructor;
  *
  * <p>Backing service for the cluster lifecycle guards: a started API must never be left pointing at a cluster, or a
  * connection, that gets undeployed or removed. {@link #clusterCrossIds} also feeds the API search index, which lists the
- * APIs using a cluster.
+ * APIs using a cluster, and the cluster uses of a saved API drive {@link ClusterBindingPermissionDomainService}.
  */
 @CustomLog
 @DomainService

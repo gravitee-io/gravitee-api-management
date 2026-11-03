@@ -27,9 +27,11 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.hasText;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.SubscriptionUniqueActiveKey;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
@@ -52,11 +54,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.CustomLog;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author njt
@@ -64,6 +76,27 @@ import org.springframework.stereotype.Repository;
 @CustomLog
 @Repository
 public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subscription, String> implements SubscriptionRepository {
+
+    /**
+     * Hash of the unique active key, on active subscriptions only, under a unique index.
+     */
+    private static final String HASH_COLUMN = "active_key_hash";
+
+    /**
+     * Columns the unique active key is computed from, read as they are stored from the subscription holding a hash, to
+     * tell whether that hash is stale.
+     */
+    private static final List<String> KEY_COLUMNS = List.of(
+        "status",
+        "reference_id",
+        "reference_type",
+        "api",
+        "application",
+        "plan",
+        "type",
+        "configuration",
+        "updated_at"
+    );
 
     private static final JdbcHelper.ChildAdder<Subscription> METADATA_ADDER = (Subscription parent, ResultSet rs) -> {
         Map<String, String> metadata = parent.getMetadata();
@@ -78,15 +111,45 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     private final String plansTableName;
     private final String metadataTableName;
 
-    JdbcSubscriptionRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    /**
+     * Runs the writes of a subscription in a savepoint of the caller's transaction (in a transaction of their own
+     * otherwise). On PostgreSQL a failed statement aborts the whole transaction: without the savepoint, a subscription
+     * refused by the unique index would make every later statement of the request fail, and its commit too.
+     */
+    private final TransactionTemplate savepoint;
+
+    /**
+     * Writes {@code NULL} as hash, for a duplicate created before the unique index. {@link #getOrm()} writes the hash.
+     */
+    private final JdbcObjectMapper<Subscription> ormWithoutHash;
+
+    /**
+     * Subscriptions already reported as duplicates of another active subscription, so that their every update is not.
+     */
+    private final Set<String> reportedDuplicates = ConcurrentHashMap.newKeySet();
+
+    JdbcSubscriptionRepository(
+        @Value("${management.jdbc.prefix:}") String tablePrefix,
+        @Lazy @Autowired @Qualifier("graviteeTransactionManager") PlatformTransactionManager transactionManager
+    ) {
         super(tablePrefix, "subscriptions");
         plansTableName = getTableNameFor("plans");
         metadataTableName = getTableNameFor("subscriptions_metadata");
+        savepoint = new TransactionTemplate(transactionManager);
+        savepoint.setPropagationBehavior(TransactionDefinition.PROPAGATION_NESTED);
+        ormWithoutHash = buildOrm(tableName, subscription -> null);
     }
 
     @Override
     protected JdbcObjectMapper<Subscription> buildOrm() {
-        return JdbcObjectMapper.builder(Subscription.class, this.tableName, "id")
+        return buildOrm(this.tableName, SubscriptionUniqueActiveKey::hashOf);
+    }
+
+    /**
+     * @param hash what to write in the hash column.
+     */
+    private static JdbcObjectMapper<Subscription> buildOrm(String tableName, Function<Subscription, String> hash) {
+        return JdbcObjectMapper.builder(Subscription.class, tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("plan", Types.NVARCHAR, String.class)
             .addColumn("application", Types.NVARCHAR, String.class)
@@ -118,6 +181,8 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             .addColumn("origin", Types.NVARCHAR, String.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, SubscriptionReferenceType.class)
+            // Written on every insert and update, never read back: not part of the repository model.
+            .addMirroredColumn(HASH_COLUMN, Types.NVARCHAR, hash)
             .build();
     }
 
@@ -125,10 +190,23 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     public Subscription create(Subscription subscription) throws TechnicalException {
         log.debug("JdbcSubscriptionRepository.create({})", subscription);
         try {
-            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(subscription));
-            storeMetadata(subscription, false);
+            UniqueConstraintViolation violation = insert(subscription, getOrm());
+            if (violation != null) {
+                // The insert also fails when the id is already used, a conflict callers cannot act upon.
+                if (findById(subscription.getId()).isPresent()) {
+                    throw new TechnicalException("Failed to create application", violation.getCause());
+                }
+                String hash = SubscriptionUniqueActiveKey.hashOf(subscription);
+                Optional<Holder> holder = findHolder(hash);
+                if (holder.isEmpty() || !repairStale(holder.get(), hash) || (violation = insert(subscription, getOrm())) != null) {
+                    throw activeSubscriptionConflict(subscription, violation.getCause());
+                }
+            }
             return findById(subscription.getId()).orElse(null);
+        } catch (final TechnicalException ex) {
+            throw ex;
         } catch (final Exception ex) {
+            // Including a deadlock while repairing a stale hash, which rolled back the whole transaction of the caller.
             throw new TechnicalException("Failed to create application", ex);
         }
     }
@@ -140,15 +218,232 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             throw new IllegalStateException("Failed to update null");
         }
         try {
-            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(subscription, subscription.getId()));
-            storeMetadata(subscription, true);
+            UniqueConstraintViolation violation = update(subscription, getOrm());
+            if (violation != null) {
+                // The id is not updated: only the hash can conflict.
+                updateConflicting(subscription, violation);
+            }
             return findById(subscription.getId()).orElseThrow(() ->
                 new IllegalStateException(format("No subscription found with id [%s]", subscription.getId()))
             );
-        } catch (final IllegalStateException ex) {
+        } catch (final TechnicalException | IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
+            // Including a deadlock while repairing a stale hash, which rolled back the whole transaction of the caller.
             throw new TechnicalException("Failed to update subscription", ex);
+        }
+    }
+
+    /**
+     * Another subscription holds the hash of the subscription being updated.
+     * <ul>
+     *     <li>the holder is not there anymore, closed meanwhile: the update is tried once more;</li>
+     *     <li>the holder holds it stale, closed or transferred by a node of a previous version: it is repaired and the
+     *     update tried once more;</li>
+     *     <li>the subscription was already active on the same plan (and channel): a duplicate created before the unique
+     *     index, which the update does not make worse, saved without the hash;</li>
+     *     <li>otherwise the update would make it a second active subscription (restore, transfer, channel change): it is
+     *     refused.</li>
+     * </ul>
+     */
+    private void updateConflicting(Subscription subscription, UniqueConstraintViolation firstViolation) throws TechnicalException {
+        UniqueConstraintViolation violation = firstViolation;
+        String hash = SubscriptionUniqueActiveKey.hashOf(subscription);
+        Optional<Holder> holder = findHolder(hash);
+        if (holder.isEmpty()) {
+            if ((violation = update(subscription, getOrm())) == null) {
+                return;
+            }
+            holder = findHolder(hash);
+        }
+        if (holder.isPresent() && repairStale(holder.get(), hash) && (violation = update(subscription, getOrm())) == null) {
+            return;
+        }
+        Subscription stored = findById(subscription.getId()).orElse(null);
+        if (hash.equals(SubscriptionUniqueActiveKey.hashOf(stored)) && update(subscription, ormWithoutHash) == null) {
+            String holderId = holder.map(Holder::id).orElse(null);
+            if (reportedDuplicates.add(subscription.getId())) {
+                log.warn(
+                    "Subscriptions [{}] and [{}] are both active subscriptions of application [{}] to plan [{}], created before they were refused: only [{}] is protected against duplicates",
+                    holderId,
+                    subscription.getId(),
+                    subscription.getApplication(),
+                    subscription.getPlan(),
+                    holderId
+                );
+            }
+            return;
+        }
+        throw activeSubscriptionConflict(subscription, violation.getCause());
+    }
+
+    /**
+     * @return the violation of a unique constraint by the inserted row, rolled back, or {@code null} once written.
+     */
+    private UniqueConstraintViolation insert(Subscription subscription, JdbcObjectMapper<Subscription> orm) {
+        return write(subscription, orm.buildInsertPreparedStatementCreator(subscription), false);
+    }
+
+    /**
+     * @return the violation of a unique constraint by the updated row, rolled back, or {@code null} once written.
+     */
+    private UniqueConstraintViolation update(Subscription subscription, JdbcObjectMapper<Subscription> orm) {
+        return write(subscription, orm.buildUpdatePreparedStatementCreator(subscription, subscription.getId()), true);
+    }
+
+    private UniqueConstraintViolation write(Subscription subscription, PreparedStatementCreator statement, boolean update) {
+        try {
+            savepoint.executeWithoutResult(status -> {
+                writeSubscription(statement);
+                storeMetadata(subscription, update);
+            });
+            return null;
+        } catch (UniqueConstraintViolation e) {
+            return e;
+        }
+    }
+
+    /**
+     * The subscription holding a hash, with the columns its key is computed from, as stored.
+     */
+    private record Holder(String id, Map<String, Object> keyColumns) {
+        Subscription asSubscription() {
+            var subscription = new Subscription();
+            subscription.setId(id);
+            subscription.setStatus(enumValue(Subscription.Status.class, keyColumns.get("status")));
+            subscription.setReferenceId((String) keyColumns.get("reference_id"));
+            subscription.setReferenceType(enumValue(SubscriptionReferenceType.class, keyColumns.get("reference_type")));
+            subscription.setApi((String) keyColumns.get("api"));
+            subscription.setApplication((String) keyColumns.get("application"));
+            subscription.setPlan((String) keyColumns.get("plan"));
+            subscription.setType(enumValue(Subscription.Type.class, keyColumns.get("type")));
+            subscription.setConfiguration((String) keyColumns.get("configuration"));
+            return subscription;
+        }
+
+        private static <E extends Enum<E>> E enumValue(Class<E> type, Object value) {
+            return value == null ? null : Enum.valueOf(type, (String) value);
+        }
+    }
+
+    /**
+     * Served by the unique index on the hash: at most one subscription holds it. Read in the transaction of the caller,
+     * so possibly from its snapshot (MySQL and MariaDB repeatable read): {@link #repairStale} only acts on the holder if
+     * it is still as read.
+     */
+    private Optional<Holder> findHolder(String hash) {
+        String columns = KEY_COLUMNS.stream()
+            .map(column -> escapeReservedWord(column))
+            .collect(Collectors.joining(", "));
+        List<Holder> holders = jdbcTemplate.query(
+            "select id, " + columns + " from " + this.tableName + WHERE_CLAUSE + HASH_COLUMN + " = ?",
+            (rs, rowNum) -> {
+                Map<String, Object> keyColumns = new HashMap<>();
+                for (String column : KEY_COLUMNS) {
+                    keyColumns.put(column, "updated_at".equals(column) ? rs.getObject(column) : rs.getString(column));
+                }
+                return new Holder(rs.getString("id"), keyColumns);
+            },
+            hash
+        );
+        return holders.stream().findFirst();
+    }
+
+    /**
+     * Nodes of the versions before the hash update subscriptions without touching it: a subscription they close keeps its
+     * hash, one they transfer keeps the hash of its previous plan. Such a stale hash is replaced by the hash of what the
+     * holder is now, or cleared when another active subscription holds that one already: a duplicate created before the
+     * unique index, left to the operators.
+     * <p>
+     * Only if the holder still holds the stale hash and is still as read: a request may have rewritten it meanwhile, and
+     * a read from an older snapshot must not clear the hash of a subscription active again.
+     *
+     * @return whether the hash was held stale, so that the write can be tried once more.
+     */
+    private boolean repairStale(Holder holder, String hash) {
+        String upToDate = SubscriptionUniqueActiveKey.hashOf(holder.asSubscription());
+        if (hash.equals(upToDate)) {
+            return false;
+        }
+        try {
+            if (Boolean.TRUE.equals(savepoint.execute(status -> replaceHash(holder, hash, upToDate)))) {
+                log.warn(
+                    "Subscription [{}] held a stale unique active key hash, left by a node of a previous version: repaired",
+                    holder.id()
+                );
+            }
+        } catch (UniqueConstraintViolation e) {
+            if (Boolean.TRUE.equals(savepoint.execute(status -> replaceHash(holder, hash, null)))) {
+                log.warn(
+                    "Subscription [{}] held a stale unique active key hash, left by a node of a previous version: cleared, as another active subscription of its application to plan [{}] holds the up-to-date one",
+                    holder.id(),
+                    holder.keyColumns().get("plan")
+                );
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @return whether the hash has been replaced.
+     */
+    private boolean replaceHash(Holder holder, String staleHash, String upToDateHash) {
+        StringBuilder sql = new StringBuilder("update ")
+            .append(this.tableName)
+            .append(" set ")
+            .append(HASH_COLUMN)
+            .append(" = ? where id = ? and ")
+            .append(HASH_COLUMN)
+            .append(" = ?");
+        List<Object> arguments = new ArrayList<>(List.of(holder.id(), staleHash));
+        arguments.addFirst(upToDateHash);
+        for (String column : KEY_COLUMNS) {
+            Object value = holder.keyColumns().get(column);
+            // A NULL never equals anything, the columns that are NULL are compared as such.
+            sql.append(AND_CLAUSE).append(escapeReservedWord(column)).append(value == null ? " is null" : " = ?");
+            if (value != null) {
+                arguments.add(value);
+            }
+        }
+        try {
+            return jdbcTemplate.update(sql.toString(), arguments.toArray()) > 0;
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            throw new UniqueConstraintViolation(e);
+        }
+    }
+
+    /**
+     * Spring translates a unique constraint violation into its {@link org.springframework.dao.DuplicateKeyException}
+     * from the SQL state and vendor code of each database, unlike the other integrity violations (NOT NULL, foreign
+     * key), which stay generic {@link org.springframework.dao.DataIntegrityViolationException}s. Only the statement
+     * writing the subscription row is concerned: a conflict on its metadata is not a duplicate subscription.
+     */
+    private void writeSubscription(PreparedStatementCreator statement) {
+        try {
+            jdbcTemplate.update(statement);
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            throw new UniqueConstraintViolation(e);
+        }
+    }
+
+    private static DuplicateKeyException activeSubscriptionConflict(Subscription subscription, Throwable cause) {
+        return new DuplicateKeyException(
+            format(
+                "Application [%s] already has an active subscription to plan [%s]",
+                subscription.getApplication(),
+                subscription.getPlan()
+            ),
+            cause
+        );
+    }
+
+    /**
+     * Thrown out of the savepoint, which it rolls back.
+     */
+    private static class UniqueConstraintViolation extends RuntimeException {
+
+        UniqueConstraintViolation(org.springframework.dao.DuplicateKeyException cause) {
+            super(cause);
         }
     }
 

@@ -35,6 +35,7 @@ import {
 } from '@gravitee/graphene-core';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 
+import { DictionaryEncryptionField } from './DictionaryEncryptionField';
 import {
     DictionaryHttpProviderFields,
     isHttpProviderFormValid,
@@ -57,6 +58,7 @@ interface CreateDictionaryForm {
     type: DictionaryType;
     trigger: DictionaryTriggerFormValue;
     provider: DictionaryHttpProviderFormValue;
+    encryptOnFetch: boolean;
 }
 
 const EMPTY_FORM: CreateDictionaryForm = {
@@ -72,6 +74,7 @@ const EMPTY_FORM: CreateDictionaryForm = {
         specification: DEFAULT_JOLT_SPECIFICATION,
         useSystemProxy: false,
     },
+    encryptOnFetch: false,
 };
 
 export function CreateDictionarySheet({
@@ -121,6 +124,7 @@ export function CreateDictionarySheet({
                       name: form.name.trim(),
                       description: form.description.trim() || undefined,
                       type: 'DYNAMIC',
+                      encryption: { encryptOnFetch: form.encryptOnFetch },
                       trigger: {
                           rate: Number(form.trigger.rate),
                           unit: form.trigger.unit,
@@ -232,6 +236,11 @@ export function CreateDictionarySheet({
                                 <DictionaryHttpProviderFields
                                     value={form.provider}
                                     onChange={provider => setForm(prev => ({ ...prev, provider }))}
+                                    disabled={isSaving}
+                                />
+                                <DictionaryEncryptionField
+                                    checked={form.encryptOnFetch}
+                                    onCheckedChange={encryptOnFetch => setForm(prev => ({ ...prev, encryptOnFetch }))}
                                     disabled={isSaving}
                                 />
                             </>

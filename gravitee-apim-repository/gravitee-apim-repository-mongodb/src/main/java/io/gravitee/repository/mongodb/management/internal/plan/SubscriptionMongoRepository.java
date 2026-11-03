@@ -36,4 +36,10 @@ public interface SubscriptionMongoRepository extends MongoRepository<Subscriptio
 
     @Query(value = "{ 'id': ?0, 'referenceId': ?1, 'referenceType': ?2 }")
     Optional<SubscriptionMongo> findByIdAndReferenceIdAndReferenceType(String subscriptionId, String referenceId, String referenceType);
+
+    /**
+     * Served by the unique index on the hash: at most one subscription holds it.
+     */
+    @Query(value = "{ 'activeKeyHash': ?0 }")
+    Optional<SubscriptionMongo> findByActiveKeyHash(String activeKeyHash);
 }

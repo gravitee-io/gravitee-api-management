@@ -14,69 +14,173 @@
  * limitations under the License.
  */
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ComponentProps } from 'react';
 
 import { DictionaryPropertiesTable } from './DictionaryPropertiesTable';
 
 const PROPERTIES = [
-    { key: 'MUC', value: 'Munich' },
-    { key: 'FRA', value: 'Frankfurt' },
+    { key: 'MUC', value: 'Munich', encrypted: false, encryptOnSave: false },
+    { key: 'FRA', value: 'Frankfurt', encrypted: false, encryptOnSave: false },
 ];
 
+// The value is deliberately a readable string: a leak would show as this text, which the server's mask could not reveal.
+const ENCRYPTED_ROW = { key: 'TOKEN', value: 'leaked-plaintext', encrypted: true, encryptOnSave: false };
+const MARKED_ROW = { key: 'MUC', value: 'Munich', encrypted: false, encryptOnSave: true };
+
 function manyProperties(count: number) {
-    return Array.from({ length: count }, (_, i) => ({ key: `KEY_${i}`, value: `value-${i}` }));
+    return Array.from({ length: count }, (_, i) => ({ key: `KEY_${i}`, value: `value-${i}`, encrypted: false, encryptOnSave: false }));
+}
+
+function renderTable(props: Partial<ComponentProps<typeof DictionaryPropertiesTable>> = {}) {
+    const handlers = { onEdit: jest.fn(), onRenew: jest.fn(), onEncrypt: jest.fn(), onUndoEncrypt: jest.fn(), onDelete: jest.fn() };
+    const result = render(
+        <DictionaryPropertiesTable
+            properties={PROPERTIES}
+            canEdit={false}
+            dynamic={false}
+            isMutating={false}
+            emptyMessage="No properties yet."
+            {...handlers}
+            {...props}
+        />,
+    );
+    return { ...result, ...handlers };
+}
+
+async function openActions(key: string) {
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: `Actions for ${key}` }));
+    return user;
+}
+
+function menuItemNames() {
+    return screen.getAllByRole('menuitem').map(item => item.textContent);
 }
 
 describe('DictionaryPropertiesTable', () => {
-    it('renders property rows', () => {
-        render(
-            <DictionaryPropertiesTable
-                properties={PROPERTIES}
-                canEdit={false}
-                isMutating={false}
-                onEdit={jest.fn()}
-                onDelete={jest.fn()}
-                emptyMessage="No properties yet."
-            />,
-        );
+    it('renders property rows without actions when the user cannot edit', () => {
+        renderTable();
+
         expect(screen.getByText('MUC')).not.toBeNull();
         expect(screen.getByText('Munich')).not.toBeNull();
-        expect(screen.queryByRole('button', { name: /Edit property/ })).toBeNull();
+        expect(screen.queryByRole('button', { name: /Actions for/ })).toBeNull();
     });
 
-    it('calls edit and delete handlers when permitted', () => {
-        const onEdit = jest.fn();
-        const onDelete = jest.fn();
-        render(
-            <DictionaryPropertiesTable
-                properties={PROPERTIES}
-                canEdit
-                isMutating={false}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                emptyMessage="No properties yet."
-            />,
-        );
+    describe('manual dictionary', () => {
+        it('offers edit, encrypt and delete on a plaintext row', async () => {
+            const { onEdit, onEncrypt, onDelete } = renderTable({ canEdit: true });
 
-        fireEvent.click(screen.getByRole('button', { name: 'Edit property MUC' }));
-        expect(onEdit).toHaveBeenCalledWith({ key: 'MUC', value: 'Munich' });
+            const user = await openActions('MUC');
+            expect(menuItemNames()).toEqual(['Edit value', 'Encrypt', 'Delete']);
 
-        fireEvent.click(screen.getByRole('button', { name: 'Delete property FRA' }));
-        expect(onDelete).toHaveBeenCalledWith('FRA');
+            await user.click(screen.getByRole('menuitem', { name: 'Edit value' }));
+            expect(onEdit).toHaveBeenCalledWith(PROPERTIES[0]);
+
+            await user.click(screen.getByRole('button', { name: 'Actions for MUC' }));
+            await user.click(screen.getByRole('menuitem', { name: 'Encrypt' }));
+            expect(onEncrypt).toHaveBeenCalledWith('MUC');
+
+            await user.click(screen.getByRole('button', { name: 'Actions for FRA' }));
+            await user.click(screen.getByRole('menuitem', { name: 'Delete' }));
+            expect(onDelete).toHaveBeenCalledWith('FRA');
+        });
+
+        it('offers replace and delete, but no edit, on an encrypted row', async () => {
+            const { onRenew } = renderTable({ properties: [ENCRYPTED_ROW], canEdit: true });
+
+            const user = await openActions('TOKEN');
+            expect(menuItemNames()).toEqual(['Replace value', 'Delete']);
+
+            await user.click(screen.getByRole('menuitem', { name: 'Replace value' }));
+            expect(onRenew).toHaveBeenCalledWith(ENCRYPTED_ROW);
+        });
+
+        it('offers do not encrypt, replace and delete on a row marked to be encrypted on save', async () => {
+            const { onUndoEncrypt, onRenew } = renderTable({ properties: [MARKED_ROW], canEdit: true });
+            expect(within(screen.getByRole('row', { name: /MUC/ })).getByText('Encrypted on save')).not.toBeNull();
+            expect(screen.getByText('•'.repeat(12))).not.toBeNull();
+            expect(screen.queryByText('Munich')).toBeNull();
+
+            const user = await openActions('MUC');
+            expect(menuItemNames()).toEqual(['Do not encrypt', 'Replace value', 'Delete']);
+
+            await user.click(screen.getByRole('menuitem', { name: 'Do not encrypt' }));
+            expect(onUndoEncrypt).toHaveBeenCalledWith('MUC');
+
+            await user.click(screen.getByRole('button', { name: 'Actions for MUC' }));
+            await user.click(screen.getByRole('menuitem', { name: 'Replace value' }));
+            expect(onRenew).toHaveBeenCalledWith(MARKED_ROW);
+        });
+
+        it('masks an encrypted value with twelve bullets and badges it Encrypted with a tooltip', () => {
+            renderTable({ properties: [ENCRYPTED_ROW, ...PROPERTIES] });
+
+            expect(screen.getByText('•'.repeat(12))).not.toBeNull();
+            expect(screen.queryByText(ENCRYPTED_ROW.value)).toBeNull();
+            const badge = within(screen.getByRole('row', { name: /TOKEN/ })).getByText('Encrypted');
+            expect(badge.closest('[title]')?.getAttribute('title')).toBe('This value is encrypted');
+            expect(within(screen.getByRole('row', { name: /MUC/ })).getByText('Unencrypted')).not.toBeNull();
+        });
+
+        it('keeps a masked value out of reach: it cannot be selected and clicking it opens nothing', async () => {
+            const { onEdit, onRenew } = renderTable({ properties: [ENCRYPTED_ROW], canEdit: true });
+            const mask = screen.getByText('•'.repeat(12));
+
+            await userEvent.setup().click(mask);
+
+            expect(mask.className).toContain('select-none');
+            expect(onEdit).not.toHaveBeenCalled();
+            expect(onRenew).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('dynamic dictionary', () => {
+        it("badges every row Dynamic, masks encrypted values and shows each row's encryption state", () => {
+            renderTable({ dynamic: true, canEdit: true, properties: [...PROPERTIES, ENCRYPTED_ROW] });
+
+            expect(screen.getAllByText('Dynamic')).toHaveLength(PROPERTIES.length + 1);
+            expect(within(screen.getByRole('row', { name: /TOKEN/ })).getByText('Encrypted')).not.toBeNull();
+            expect(within(screen.getByRole('row', { name: /MUC/ })).getByText('Unencrypted')).not.toBeNull();
+        });
+
+        it('offers only Encrypt on a plain row, and nothing on an encrypted one', async () => {
+            const { onEncrypt } = renderTable({ dynamic: true, canEdit: true, properties: [...PROPERTIES, ENCRYPTED_ROW] });
+
+            expect(screen.queryByRole('button', { name: 'Actions for TOKEN' })).toBeNull();
+            const user = await openActions('MUC');
+            expect(menuItemNames()).toEqual(['Encrypt']);
+
+            await user.click(screen.getByRole('menuitem', { name: 'Encrypt' }));
+            expect(onEncrypt).toHaveBeenCalledWith('MUC');
+        });
+
+        it('offers only Do not encrypt on a row marked to be encrypted on save', async () => {
+            const { onUndoEncrypt } = renderTable({ dynamic: true, canEdit: true, properties: [MARKED_ROW] });
+
+            const user = await openActions('MUC');
+            expect(menuItemNames()).toEqual(['Do not encrypt']);
+
+            await user.click(screen.getByRole('menuitem', { name: 'Do not encrypt' }));
+            expect(onUndoEncrypt).toHaveBeenCalledWith('MUC');
+        });
+
+        it('offers no action to a user who cannot edit', () => {
+            renderTable({ dynamic: true, canEdit: false, properties: PROPERTIES });
+
+            expect(screen.queryByRole('button', { name: /Actions for/ })).toBeNull();
+        });
+    });
+
+    it('disables the row actions while a save is in flight', () => {
+        renderTable({ canEdit: true, isMutating: true });
+
+        expect(screen.getByRole('button', { name: 'Actions for MUC' }).hasAttribute('disabled')).toBe(true);
     });
 
     it('paginates properties, showing only the first page by default', () => {
-        render(
-            <DictionaryPropertiesTable
-                properties={manyProperties(12)}
-                canEdit={false}
-                isMutating={false}
-                onEdit={jest.fn()}
-                onDelete={jest.fn()}
-                emptyMessage="No properties yet."
-            />,
-        );
+        renderTable({ properties: manyProperties(12) });
 
         expect(screen.getByText('KEY_0')).not.toBeNull();
         expect(screen.getByText('KEY_9')).not.toBeNull();
@@ -85,16 +189,7 @@ describe('DictionaryPropertiesTable', () => {
 
     it('shows the next page of properties after paging forward', async () => {
         const user = userEvent.setup();
-        render(
-            <DictionaryPropertiesTable
-                properties={manyProperties(12)}
-                canEdit={false}
-                isMutating={false}
-                onEdit={jest.fn()}
-                onDelete={jest.fn()}
-                emptyMessage="No properties yet."
-            />,
-        );
+        renderTable({ properties: manyProperties(12) });
 
         await user.click(screen.getByRole('button', { name: /next page/i }));
 
@@ -105,18 +200,7 @@ describe('DictionaryPropertiesTable', () => {
 
     it('clamps back to the last valid page when properties shrink out from under the current page', async () => {
         const user = userEvent.setup();
-        const onEdit = jest.fn();
-        const onDelete = jest.fn();
-        const { rerender } = render(
-            <DictionaryPropertiesTable
-                properties={manyProperties(15)}
-                canEdit={false}
-                isMutating={false}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                emptyMessage="No properties yet."
-            />,
-        );
+        const { rerender, onEdit, onRenew, onEncrypt, onUndoEncrypt, onDelete } = renderTable({ properties: manyProperties(15) });
 
         await user.click(screen.getByRole('button', { name: /next page/i }));
         expect(screen.getByText('KEY_10')).not.toBeNull();
@@ -126,8 +210,12 @@ describe('DictionaryPropertiesTable', () => {
             <DictionaryPropertiesTable
                 properties={manyProperties(5)}
                 canEdit={false}
+                dynamic={false}
                 isMutating={false}
                 onEdit={onEdit}
+                onRenew={onRenew}
+                onEncrypt={onEncrypt}
+                onUndoEncrypt={onUndoEncrypt}
                 onDelete={onDelete}
                 emptyMessage="No properties yet."
             />,
@@ -138,16 +226,8 @@ describe('DictionaryPropertiesTable', () => {
     });
 
     it('shows empty message when there are no properties', () => {
-        render(
-            <DictionaryPropertiesTable
-                properties={[]}
-                canEdit
-                isMutating={false}
-                onEdit={jest.fn()}
-                onDelete={jest.fn()}
-                emptyMessage="No properties yet."
-            />,
-        );
+        renderTable({ properties: [], canEdit: true });
+
         expect(screen.getByText('No properties yet.')).not.toBeNull();
     });
 });

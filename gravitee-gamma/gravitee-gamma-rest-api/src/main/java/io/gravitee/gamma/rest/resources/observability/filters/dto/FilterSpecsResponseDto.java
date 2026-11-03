@@ -15,10 +15,16 @@
  */
 package io.gravitee.gamma.rest.resources.observability.filters.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 
 /**
  * {@code data}-wrapped envelope for the filter-definitions response, matching the apim management v2
  * {@code FilterSpecsResponse} shape so a single lib-side adapter reads both.
  */
-public record FilterSpecsResponseDto(List<FilterSpecDto> data) {}
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record FilterSpecsResponseDto(List<FilterSpecDto> data, Boolean truncated) {
+    public FilterSpecsResponseDto(List<FilterSpecDto> data) {
+        this(data, null);
+    }
+}

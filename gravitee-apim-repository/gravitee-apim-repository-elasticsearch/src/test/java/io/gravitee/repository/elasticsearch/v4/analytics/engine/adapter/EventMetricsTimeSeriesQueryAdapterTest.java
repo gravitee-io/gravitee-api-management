@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.TimeRange;
@@ -44,7 +45,7 @@ class EventMetricsTimeSeriesQueryAdapterTest {
 
     private final EventMetricsTimeSeriesQueryAdapter adapter = new EventMetricsTimeSeriesQueryAdapter();
 
-    private TimeSeriesQuery query(List<Filter> filters, List<Facet> facets, MetricMeasuresQuery... metrics) {
+    private TimeSeriesQuery query(List<Filter> filters, List<FacetName> facets, MetricMeasuresQuery... metrics) {
         return new TimeSeriesQuery(
             new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
             filters,

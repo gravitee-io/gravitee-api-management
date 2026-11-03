@@ -43,27 +43,9 @@ class EdgeApiTest {
     class Subscribable_plans {
 
         @Test
-        void should_return_the_ids_of_the_subscribable_plans() {
+        void should_never_expose_a_subscribable_plan_so_no_subscription_certificate_reaches_the_gateway_truststore() {
             // Given
             EdgeApi api = edgeApi(List.of(plan("mtls-plan", "MTLS"), plan("keyless-plan", "KEY_LESS")));
-
-            // When / Then
-            assertThat(api.getSubscribablePlans()).containsExactly("mtls-plan");
-        }
-
-        @Test
-        void should_return_an_empty_set_when_the_definition_has_no_plan() {
-            // Given
-            EdgeApi api = edgeApi(null);
-
-            // When / Then
-            assertThat(api.getSubscribablePlans()).isEmpty();
-        }
-
-        @Test
-        void should_return_an_empty_set_when_every_plan_is_keyless() {
-            // Given
-            EdgeApi api = edgeApi(List.of(plan("keyless-plan", "KEY_LESS")));
 
             // When / Then
             assertThat(api.getSubscribablePlans()).isEmpty();

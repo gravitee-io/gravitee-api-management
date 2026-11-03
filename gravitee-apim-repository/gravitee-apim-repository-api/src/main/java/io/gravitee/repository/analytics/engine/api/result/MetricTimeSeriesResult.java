@@ -15,11 +15,11 @@
  */
 package io.gravitee.repository.analytics.engine.api.result;
 
-import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.repository.analytics.engine.api.metric.MetricName;
 import java.util.List;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record MetricTimeSeriesResult(Metric metric, List<TimeSeriesBucketResult> buckets) {}
+public record MetricTimeSeriesResult(MetricName metric, List<TimeSeriesBucketResult> buckets) {}

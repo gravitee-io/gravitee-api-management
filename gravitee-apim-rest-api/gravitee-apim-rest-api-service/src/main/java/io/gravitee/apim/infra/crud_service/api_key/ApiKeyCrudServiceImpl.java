@@ -16,11 +16,14 @@
 package io.gravitee.apim.infra.crud_service.api_key;
 
 import io.gravitee.apim.core.api_key.crud_service.ApiKeyCrudService;
+import io.gravitee.apim.core.api_key.exception.ApiKeyIdAlreadyExistsException;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.infra.adapter.ApiKeyAdapter;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Optional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +41,8 @@ public class ApiKeyCrudServiceImpl implements ApiKeyCrudService {
         try {
             var result = apiKeyRepository.create(ApiKeyAdapter.INSTANCE.fromEntity(apiKey));
             return ApiKeyAdapter.INSTANCE.toEntity(result);
+        } catch (DuplicateKeyException e) {
+            throw new ApiKeyIdAlreadyExistsException(apiKey.getId(), e);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to create the api key: " + apiKey.getId(), e);
         }
@@ -50,6 +55,18 @@ public class ApiKeyCrudServiceImpl implements ApiKeyCrudService {
             return ApiKeyAdapter.INSTANCE.toEntity(result);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to update the api key: " + apiKey.getId(), e);
+        }
+    }
+
+    @Override
+    public Optional<ApiKeyEntity> addSubscription(String apiKeyId, String subscriptionId) {
+        try {
+            return apiKeyRepository.addSubscription(apiKeyId, subscriptionId).map(ApiKeyAdapter.INSTANCE::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                "An error occurs while trying to add subscription " + subscriptionId + " to the api key: " + apiKeyId,
+                e
+            );
         }
     }
 }

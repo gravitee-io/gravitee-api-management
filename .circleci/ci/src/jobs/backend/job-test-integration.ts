@@ -42,7 +42,8 @@ export class TestIntegrationJob {
     const executor = UbuntuExecutor.create();
 
     // Same rule as job-build-backend: a distribution-only change is tested against the core it pins.
-    const coreVersion = assemblesPinnedCore(environment.changedFiles) ? '' : ` -Dapim.core.version=${computeApimVersion(environment)}`;
+    const pinnedCore = assemblesPinnedCore(environment.changedFiles);
+    const coreVersion = pinnedCore ? '' : ` -Dapim.core.version=${computeApimVersion(environment)}`;
 
     const steps: Command[] = [
       new commands.Checkout(),
@@ -53,6 +54,7 @@ export class TestIntegrationJob {
       new commands.cache.Restore({
         keys: [`${config.cache.prefix}-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}`],
       }),
+      ...(pinnedCore ? [TestIntegrationJob.alignTestsWithPinnedCore()] : []),
       new commands.Run({
         name: 'Run tests',
         command: `cd gravitee-apim-distribution/gravitee-apim-distribution-integration-tests
@@ -90,6 +92,50 @@ find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-resu
 
     return new Job(TestIntegrationJob.jobName, executor, steps, {
       parallelism: 3,
+    });
+  }
+
+  /**
+   * The integration tests live in the distribution reactor but follow the branch, while a pinned build
+   * runs them against the released core. A test merged with a core fix after that release asserts a
+   * fix the pinned core does not have, and fails on every distribution-only pull request until the
+   * next core release moves the pin.
+   *
+   * Put those tests back as they were at the pinned core's tag. Only commits that also changed the
+   * core count: a test that came with a distribution change (a plugin bump) is what this pull request
+   * ships, so it keeps running. A pin with no tag (a SNAPSHOT on master) leaves the tests untouched.
+   */
+  private static alignTestsWithPinnedCore(): commands.Run {
+    return new commands.Run({
+      name: 'Align integration tests with the pinned core',
+      command: `PIN=$(sed -n 's:.*<apim.core.version>\\(.*\\)</apim.core.version>.*:\\1:p' gravitee-apim-distribution/pom.xml)
+TAG="core_\${PIN}"
+if ! git fetch --no-tags origin "refs/tags/\${TAG}:refs/tags/\${TAG}"; then
+  echo "No tag \${TAG}: the pinned core is not a release, integration tests run as they are on the branch."
+  exit 0
+fi
+
+TESTS=gravitee-apim-distribution/gravitee-apim-distribution-integration-tests
+for commit in $(git rev-list --no-merges "\${TAG}..HEAD" -- "\${TESTS}"); do
+  if git show --name-only --format= "\${commit}" | grep -qv '^gravitee-apim-distribution/'; then
+    git show --name-only --format= "\${commit}" -- "\${TESTS}"
+  fi
+done | sort -u > /tmp/core-coupled-tests
+
+if [ ! -s /tmp/core-coupled-tests ]; then
+  echo "No integration test changed with the core since \${TAG}."
+  exit 0
+fi
+
+echo "Restored as of \${TAG}, because they came with core changes the pinned core does not have:"
+while read -r file; do
+  echo "  \${file}"
+  if git cat-file -e "\${TAG}:\${file}" 2>/dev/null; then
+    git checkout "\${TAG}" -- "\${file}"
+  else
+    rm -f "\${file}"
+  fi
+done < /tmp/core-coupled-tests`,
     });
   }
 }

@@ -25,16 +25,16 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public record TimeSeriesMetricResponse(
-    MetricSpec.Name name,
+    MetricName name,
     MetricSpec.Unit unit,
     List<TimeSeriesBucketResponse> buckets,
-    @JsonInclude(JsonInclude.Include.NON_EMPTY) List<FilterSpec.Name> ignoredFilters
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) List<FilterName> ignoredFilters
 ) {
     public TimeSeriesMetricResponse {
         ignoredFilters = ignoredFilters == null ? List.of() : List.copyOf(ignoredFilters);
     }
 
-    public TimeSeriesMetricResponse withIgnoredFilters(List<FilterSpec.Name> ignoredFilters) {
+    public TimeSeriesMetricResponse withIgnoredFilters(List<FilterName> ignoredFilters) {
         return new TimeSeriesMetricResponse(name, unit, buckets, ignoredFilters);
     }
 }

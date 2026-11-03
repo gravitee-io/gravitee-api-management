@@ -17,6 +17,8 @@ package io.gravitee.repository.jdbc.management;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.isMySqlOrMariaDb;
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.isPostgreSql;
 import static io.gravitee.repository.jdbc.utils.FieldUtils.toSnakeCase;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -34,6 +36,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +44,7 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Repository;
 
@@ -67,15 +71,23 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         }
     };
 
+    /** Writes every column but {@code updated_at}, which {@link #update(ApiKey)} only moves forward. */
+    private final JdbcObjectMapper<ApiKey> ormWithoutUpdatedAt;
+
     JdbcApiKeyRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "keys");
         keySubscriptions = getTableNameFor("key_subscriptions");
         subscription = getTableNameFor("subscriptions");
+        ormWithoutUpdatedAt = buildOrm(false);
     }
 
     @Override
     protected JdbcObjectMapper<ApiKey> buildOrm() {
-        return JdbcObjectMapper.builder(ApiKey.class, this.tableName, "id")
+        return buildOrm(true);
+    }
+
+    private JdbcObjectMapper<ApiKey> buildOrm(boolean withUpdatedAt) {
+        JdbcObjectMapper.Builder<ApiKey> builder = JdbcObjectMapper.builder(ApiKey.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("key", Types.NVARCHAR, String.class)
@@ -84,8 +96,11 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
             .addColumn("api", Types.NVARCHAR, String.class)
             .addColumn("plan", Types.NVARCHAR, String.class)
             .addColumn("expire_at", Types.TIMESTAMP, Date.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .addColumn("created_at", Types.TIMESTAMP, Date.class);
+        if (withUpdatedAt) {
+            builder.addColumn("updated_at", Types.TIMESTAMP, Date.class);
+        }
+        return builder
             .addColumn("revoked", Types.BOOLEAN, boolean.class)
             .addColumn("paused", Types.BOOLEAN, boolean.class)
             .addColumn("revoked_at", Types.TIMESTAMP, Date.class)
@@ -102,14 +117,68 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     @Override
     public ApiKey create(ApiKey apiKey) throws TechnicalException {
         try {
-            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(apiKey));
+            if (!insertUnlessIdExists(apiKey)) {
+                throw new io.gravitee.repository.exceptions.DuplicateKeyException(
+                    "An API Key with id [" + apiKey.getId() + "] already exists"
+                );
+            }
             if (!isEmpty(apiKey.getSubscriptions())) {
                 storeSubscriptions(apiKey);
             }
             return findById(apiKey.getId()).orElse(null);
+        } catch (io.gravitee.repository.exceptions.DuplicateKeyException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Failed to create API Key", e);
             throw new TechnicalException("Failed to create API Key", e);
+        }
+    }
+
+    /**
+     * Inserts the key row, unless a key with the same id exists. That conflict must neither write anything else nor abort a
+     * surrounding transaction (subscribing runs in one transaction, and the request goes on after losing the race to create the
+     * first shared key of an application):
+     * <ul>
+     *     <li>PostgreSQL aborts a transaction on any failed statement, so the statement itself skips the conflict.</li>
+     *     <li>MySQL and MariaDB leave a shared lock on the existing row after a duplicate-key error (also with
+     *     {@code insert ignore}). When several transactions lose the race at once, each holds that lock, then each waits for
+     *     the others to update the key: a deadlock. {@code on duplicate key update} locks the existing row exclusively instead,
+     *     so the transactions that lost take turns. Its update moves {@code updated_at} (the transaction that lost links its
+     *     subscription to the key and moves it again right after) so that the conflict counts as an updated row (2) whatever
+     *     the connection's {@code CLIENT_FOUND_ROWS} setting, an inserted row counting 1. Being changed by the transaction, the
+     *     existing key is also visible to its later plain reads, although REPEATABLE READ keeps them on the snapshot of its first
+     *     read: that is how the transaction that lost finds the key.</li>
+     *     <li>SQL Server only rolls back the failing statement.</li>
+     * </ul>
+     *
+     * @return {@code false} when a key with this id already exists
+     */
+    private boolean insertUnlessIdExists(ApiKey apiKey) {
+        if (isPostgreSql()) {
+            return (
+                jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(apiKey, sql -> sql + " on conflict (id) do nothing")) > 0
+            );
+        }
+        if (isMySqlOrMariaDb()) {
+            // On duplicate key update fires on a conflict with any unique index, not only the one on id. The primary key on id is
+            // the only unique constraint of the table. A unique index on the key value would make a duplicate value take this
+            // lost-race path: no key would be created, and the request would link its subscription to another key.
+            return (
+                jdbcTemplate.update(
+                    getOrm().buildInsertPreparedStatementCreator(
+                        apiKey,
+                        sql -> sql + " on duplicate key update updated_at = coalesce(updated_at, current_timestamp) + interval 1 second"
+                    )
+                ) ==
+                1
+            );
+        }
+        try {
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(apiKey));
+            return true;
+        } catch (DuplicateKeyException e) {
+            // The primary key on id is the only unique constraint of the table.
+            return false;
         }
     }
 
@@ -122,10 +191,10 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         try {
             findById(apiKey.getId()).orElseThrow(() -> new IllegalStateException("Trying to update a non existing key")); //NOSONAR It's just an existence check so we will not use the result of this call
 
-            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(apiKey, apiKey.getId()));
-            if (!isEmpty(apiKey.getSubscriptions())) {
-                storeSubscriptions(apiKey);
-            }
+            // The links in key_subscriptions are only changed by addSubscription(s): rewriting them from the given copy
+            // of the key would drop the links added since that copy was read.
+            jdbcTemplate.update(ormWithoutUpdatedAt.buildUpdatePreparedStatementCreator(apiKey, apiKey.getId()));
+            moveUpdatedAtForward(apiKey);
 
             return findById(apiKey.getId()).orElse(null);
         } catch (IllegalStateException e) {
@@ -134,6 +203,24 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
             log.error("Failed to update API Key " + apiKey.getId(), e);
             throw new TechnicalException("Failed to update API Key " + apiKey.getId(), e);
         }
+    }
+
+    /**
+     * Gateways synchronise keys by {@code updated_at}, so it never moves backwards: a copy of the key read before a concurrent
+     * {@link #addSubscription(String, String)} must not undo the move made by it. The stored value is kept when it is more recent,
+     * or when the given key has none. The row is locked by the update that precedes this statement in the same transaction, so the
+     * stored value cannot change between the comparison and the commit.
+     */
+    private void moveUpdatedAtForward(ApiKey apiKey) {
+        if (apiKey.getUpdatedAt() == null) {
+            return;
+        }
+        jdbcTemplate.update(
+            "update " + escapeReservedWord(this.tableName) + " set updated_at = ? where id = ? and (updated_at is null or updated_at < ?)",
+            apiKey.getUpdatedAt(),
+            apiKey.getId(),
+            apiKey.getUpdatedAt()
+        );
     }
 
     @Override
@@ -376,13 +463,56 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     @Override
     public Optional<ApiKey> addSubscription(String id, String subscriptionId) throws TechnicalException {
         log.debug("JdbcApiKeyRepository.addSubscription({}, {})", id, subscriptionId);
-        Optional<ApiKey> apiKey = findById(id);
-        if (apiKey.isEmpty()) {
-            return apiKey;
+        if (!touch(id)) {
+            return Optional.empty();
         }
-        jdbcTemplate.update("insert into " + keySubscriptions + " ( key_id, subscription_id ) values ( ?, ? )", id, subscriptionId);
-        jdbcTemplate.update("update " + escapeReservedWord(this.tableName) + " set updated_at=? where id=?", new Date(), id);
+        insertLinkIfAbsent(id, subscriptionId);
         return findById(id);
+    }
+
+    @Override
+    public Optional<ApiKey> addSubscriptions(String id, Collection<String> subscriptionIds) throws TechnicalException {
+        log.debug("JdbcApiKeyRepository.addSubscriptions({}, {})", id, subscriptionIds);
+        if (!touch(id)) {
+            return Optional.empty();
+        }
+        subscriptionIds
+            .stream()
+            .distinct()
+            .forEach(subscriptionId -> insertLinkIfAbsent(id, subscriptionId));
+        return findById(id);
+    }
+
+    /**
+     * Inserts the (key, subscription) link unless it already exists. An existing link must neither fail nor abort the
+     * surrounding transaction (subscribing runs in one transaction): PostgreSQL aborts a transaction on any failed
+     * statement, so the conflict is skipped by the statement itself. MySQL, MariaDB and SQL Server only roll back the
+     * failing statement, so the duplicate can be ignored there.
+     */
+    private void insertLinkIfAbsent(String id, String subscriptionId) {
+        String insert = "insert into " + keySubscriptions + " ( key_id, subscription_id ) values ( ?, ? )";
+        if (isPostgreSql()) {
+            jdbcTemplate.update(insert + " on conflict do nothing", id, subscriptionId);
+            return;
+        }
+        try {
+            jdbcTemplate.update(insert, id, subscriptionId);
+        } catch (DuplicateKeyException e) {
+            log.debug("Subscription {} is already linked to API Key {}", subscriptionId, id);
+        }
+    }
+
+    /**
+     * Moves {@code updated_at} of the key: gateways synchronise keys by {@code updated_at}, so every link change must move it.
+     * It is done before the links are written: the update locks the key row until the end of the transaction, so the key cannot
+     * be deleted before its links are written ({@code key_subscriptions} has no foreign key to {@code keys}), and, unlike a plain
+     * read, it finds the latest committed row also in REPEATABLE READ (MySQL, MariaDB). An existing key counts one row even if
+     * {@code updated_at} keeps its value: the MySQL and MariaDB drivers count the matched rows by default.
+     *
+     * @return {@code false} when no key has this id
+     */
+    private boolean touch(String id) {
+        return jdbcTemplate.update("update " + escapeReservedWord(this.tableName) + " set updated_at=? where id=?", new Date(), id) > 0;
     }
 
     @Override

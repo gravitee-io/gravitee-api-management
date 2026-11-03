@@ -65,8 +65,8 @@ public class AuthzTrafficFieldResolver implements FieldResolver {
     }
 
     @Override
-    public String fromFilter(Filter filter) {
-        return switch (filter.name()) {
+    public String fromFilter(Filter.Name name) {
+        return switch (name) {
             case Filter.Name.API, Filter.Name.TRAFFIC_SCOPE -> API_ID;
             case Filter.Name.GATEWAY -> GATEWAY_ID;
             case Filter.Name.AUTHZ_OPERATION -> OPERATION_FIELD;
@@ -74,7 +74,7 @@ public class AuthzTrafficFieldResolver implements FieldResolver {
             case Filter.Name.AUTHZ_SUBJECT_ID -> SUBJECT_ID;
             case Filter.Name.AUTHZ_ACTION -> ACTION;
             case Filter.Name.AUTHZ_RESOURCE_ID -> RESOURCE_ID;
-            default -> throw new UnsupportedOperationException("AuthzTrafficFieldResolver does not support filter '" + filter.name() + "'");
+            default -> throw new UnsupportedOperationException("AuthzTrafficFieldResolver does not support filter '" + name + "'");
         };
     }
 

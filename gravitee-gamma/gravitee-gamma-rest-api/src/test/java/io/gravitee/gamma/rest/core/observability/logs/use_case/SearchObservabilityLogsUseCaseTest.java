@@ -47,6 +47,7 @@ import io.gravitee.gamma.rest.core.observability.logs.model.TrafficScope;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
 import io.gravitee.gamma.rest.infra.adapter.EntrypointScopeProviderAdapter;
+import io.gravitee.gamma.rest.infra.adapter.SpiFilterRegistry;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -73,6 +74,10 @@ class SearchObservabilityLogsUseCaseTest {
     private static final String ENV_ID = "env-1";
     private static final Instant FROM = Instant.parse("2026-06-10T00:00:00Z");
     private static final Instant TO = Instant.parse("2026-06-11T00:00:00Z");
+
+    private static final String TIER = "additional-metrics.keyword_fraud-check_tier";
+    /** The production specs of additional metric fields, which the mocked registry answers for the names stubbed. */
+    private static final FilterRegistry DYNAMIC_SPECS = new SpiFilterRegistry(List.of());
 
     @Mock
     private ObservabilityLogsDataPort logsDataPort;
@@ -226,6 +231,34 @@ class SearchObservabilityLogsUseCaseTest {
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessageContaining("APPLICATION")
                 .hasMessageContaining("AUTHZ_DECISION")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.not_applicable_to_decisions");
+
+            verifyNoInteractions(logsDataPort);
+        }
+
+        @Test
+        void should_refuse_an_additional_metric_field_naming_it() {
+            when(filterRegistry.specFor(TIER)).thenReturn(DYNAMIC_SPECS.specFor(TIER));
+
+            assertThatThrownBy(() ->
+                useCase.execute(
+                    new SearchObservabilityLogsUseCase.Input(
+                        ORG_ID,
+                        ENV_ID,
+                        List.of(
+                            new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
+                            new FilterCondition(TIER, FilterOperator.EQ, List.of("high"))
+                        ),
+                        FROM,
+                        TO,
+                        1,
+                        20
+                    )
+                )
+            )
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageStartingWith("Filters [" + TIER + "] do not apply to RECORD_TYPE=AUTHZ_DECISION")
                 .extracting("technicalCode")
                 .isEqualTo("observability.filter.not_applicable_to_decisions");
 
@@ -599,6 +632,36 @@ class SearchObservabilityLogsUseCaseTest {
             assertThat(captor.getValue().conditions()).containsExactly(
                 new FilterCondition("URI", FilterOperator.STARTS_WITH, List.of("/api"))
             );
+        }
+
+        @Test
+        void should_hand_an_additional_metric_condition_to_the_engine_as_written() {
+            when(filterRegistry.specFor(TIER)).thenReturn(DYNAMIC_SPECS.specFor(TIER));
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
+            );
+            when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
+
+            var filters = List.of(new FilterCondition(TIER, FilterOperator.IN, List.of("high", "medium")));
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20));
+
+            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
+            verify(logsDataPort).searchLogs(any(), any(), captor.capture());
+            assertThat(captor.getValue().conditions()).containsExactly(
+                new FilterCondition(TIER, FilterOperator.IN, List.of("high", "medium"))
+            );
+        }
+
+        @Test
+        void should_reject_a_malformed_additional_metric_name_naming_it() {
+            var malformed = "additional-metrics.keyword_bad\"name";
+            var filters = List.of(new FilterCondition(malformed, FilterOperator.EQ, List.of("x")));
+
+            assertThatThrownBy(() -> useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20)))
+                .hasMessage("Filter '" + malformed + "' is not supported by this backend")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.unknown_name");
+            verifyNoInteractions(logsDataPort);
         }
 
         @Test

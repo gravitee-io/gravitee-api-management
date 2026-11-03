@@ -23,23 +23,33 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.api.search.ApiKeyCursor;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.ApiKey;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
+
+    private static final String SHARED_KEY_ID = "id-of-shared-apikey";
 
     @Override
     protected String getTestCasesPath() {
@@ -429,6 +439,33 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void create_should_reject_an_existing_id_and_keep_the_existing_key() throws Exception {
+        givenSharedKey(SHARED_KEY_ID, "sub-of-the-first-create");
+        ApiKey existing = apiKeyRepository.findById(SHARED_KEY_ID).orElseThrow();
+        ApiKey sameId = ApiKey.builder()
+            .id(SHARED_KEY_ID)
+            .key("value-of-the-second-create")
+            .environmentId("DEFAULT")
+            .application("shared-app")
+            .subscriptions(new ArrayList<>(List.of("sub-of-the-second-create")))
+            .createdAt(new Date())
+            .updatedAt(new Date())
+            .build();
+
+        Throwable thrown = Assertions.catchThrowable(() -> apiKeyRepository.create(sameId));
+
+        assertThat(thrown).isInstanceOf(DuplicateKeyException.class);
+        ApiKey stored = apiKeyRepository.findById(SHARED_KEY_ID).orElseThrow();
+        assertThat(stored.getKey()).isEqualTo("shared-key-value");
+        assertThat(stored.getSubscriptions()).containsExactly("sub-of-the-first-create");
+        assertThat(apiKeyRepository.findBySubscription("sub-of-the-second-create")).isEmpty();
+        // Nothing of the rejected key is written. On MySQL and MariaDB, the rejected insert moves the updatedAt of the existing
+        // key forward (by a second); elsewhere it is unchanged. It never moves back.
+        assertThat(stored).usingRecursiveComparison().ignoringFields("updatedAt").isEqualTo(existing);
+        assertThat(stored.getUpdatedAt()).isAfterOrEqualTo(existing.getUpdatedAt());
+    }
+
+    @Test
     public void findByKeyAndApi_should_return_fulfilled_optional() throws TechnicalException {
         Optional<ApiKey> apiKeyOpt = apiKeyRepository.findByKeyAndApi("findByCriteria2", "api2");
         assertFalse(apiKeyOpt.isEmpty());
@@ -513,6 +550,205 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     public void return_empty_if_apikey_does_not_exist() throws TechnicalException {
         Optional<ApiKey> updatedApiKey = apiKeyRepository.addSubscription("unknown_apikey_id", "newSubscription");
         assertTrue(updatedApiKey.isEmpty());
+        assertThat(apiKeyRepository.findById("unknown_apikey_id")).isEmpty();
+        assertThat(apiKeyRepository.findBySubscription("newSubscription")).isEmpty();
+    }
+
+    @Test
+    public void addSubscription_should_keep_every_subscription_added_in_parallel() throws Exception {
+        givenSharedKey(SHARED_KEY_ID, "sub-initial");
+        List<String> addedInParallel = IntStream.range(0, 16)
+            .mapToObj(i -> "sub-parallel-" + i)
+            .toList();
+
+        ExecutorService executor = Executors.newFixedThreadPool(addedInParallel.size());
+        try {
+            CountDownLatch start = new CountDownLatch(1);
+            List<Future<Optional<ApiKey>>> results = new ArrayList<>();
+            for (String subscriptionId : addedInParallel) {
+                results.add(
+                    executor.submit(() -> {
+                        start.await();
+                        return apiKeyRepository.addSubscription(SHARED_KEY_ID, subscriptionId);
+                    })
+                );
+            }
+            start.countDown();
+            for (Future<Optional<ApiKey>> result : results) {
+                assertThat(result.get(30, TimeUnit.SECONDS)).isPresent();
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+
+        List<String> expected = new ArrayList<>(addedInParallel);
+        expected.add("sub-initial");
+        assertThat(apiKeyRepository.findById(SHARED_KEY_ID).orElseThrow().getSubscriptions()).containsExactlyInAnyOrderElementsOf(expected);
+    }
+
+    @Test
+    public void addSubscription_should_keep_a_single_link_when_the_same_subscription_is_added_twice() throws Exception {
+        givenSharedKey(SHARED_KEY_ID, "sub-initial");
+
+        apiKeyRepository.addSubscription(SHARED_KEY_ID, "sub-retried");
+        Optional<ApiKey> afterRetry = apiKeyRepository.addSubscription(SHARED_KEY_ID, "sub-retried");
+        Optional<ApiKey> afterReAddingInitial = apiKeyRepository.addSubscription(SHARED_KEY_ID, "sub-initial");
+
+        assertThat(afterRetry).isPresent();
+        assertThat(afterReAddingInitial).isPresent();
+        assertThat(apiKeyRepository.findById(SHARED_KEY_ID).orElseThrow().getSubscriptions()).containsExactlyInAnyOrder(
+            "sub-initial",
+            "sub-retried"
+        );
+    }
+
+    @Test
+    public void addSubscription_should_change_updatedAt_on_every_add() throws Exception {
+        Date initial = givenSharedKey(SHARED_KEY_ID, "sub-initial").getUpdatedAt();
+
+        Date afterFirstAdd = addSubscriptionAndGetUpdatedAt(SHARED_KEY_ID, "sub-1");
+        Date afterSecondAdd = addSubscriptionAndGetUpdatedAt(SHARED_KEY_ID, "sub-2");
+        Date afterRetry = addSubscriptionAndGetUpdatedAt(SHARED_KEY_ID, "sub-2");
+
+        assertThat(afterFirstAdd).isAfter(initial);
+        assertThat(afterSecondAdd).isAfter(afterFirstAdd);
+        assertThat(afterRetry).isAfter(afterSecondAdd);
+    }
+
+    @Test
+    public void addSubscriptions_should_attach_every_subscription_once_and_change_updatedAt() throws Exception {
+        Date initial = givenSharedKey(SHARED_KEY_ID, "sub-initial").getUpdatedAt();
+
+        Optional<ApiKey> result = apiKeyRepository.addSubscriptions(SHARED_KEY_ID, List.of("sub-initial", "sub-1", "sub-2", "sub-1"));
+
+        assertThat(result).isPresent();
+        ApiKey stored = apiKeyRepository.findById(SHARED_KEY_ID).orElseThrow();
+        assertThat(stored.getSubscriptions()).containsExactlyInAnyOrder("sub-initial", "sub-1", "sub-2");
+        assertThat(stored.getUpdatedAt()).isAfter(initial);
+    }
+
+    @Test
+    public void addSubscriptions_should_return_empty_if_apikey_does_not_exist() throws Exception {
+        assertThat(apiKeyRepository.addSubscriptions("unknown_apikey_id", List.of("sub-1"))).isEmpty();
+        assertThat(apiKeyRepository.findById("unknown_apikey_id")).isEmpty();
+    }
+
+    @Test
+    public void update_should_not_drop_a_subscription_added_since_the_key_was_read() throws Exception {
+        givenSharedKey(SHARED_KEY_ID, "sub-initial");
+        ApiKey readBeforeTheAdd = apiKeyRepository.findById(SHARED_KEY_ID).orElseThrow();
+
+        apiKeyRepository.addSubscription(SHARED_KEY_ID, "sub-added-meanwhile");
+        readBeforeTheAdd.setDaysToExpirationOnLastNotification(7);
+        readBeforeTheAdd.setUpdatedAt(new Date());
+        apiKeyRepository.update(readBeforeTheAdd);
+
+        ApiKey stored = apiKeyRepository.findById(SHARED_KEY_ID).orElseThrow();
+        assertThat(stored.getSubscriptions()).containsExactlyInAnyOrder("sub-initial", "sub-added-meanwhile");
+        assertThat(stored.getDaysToExpirationOnLastNotification()).isEqualTo(7);
+    }
+
+    @Test
+    public void update_should_write_every_field_but_the_subscriptions() throws Exception {
+        ApiKey created = givenSharedKey(SHARED_KEY_ID, "sub-initial");
+        created.setRevoked(true);
+        created.setRevokedAt(new Date(1_500_000_000_000L));
+        created.setExpireAt(new Date(1_600_000_000_000L));
+        created.setDaysToExpirationOnLastNotification(10);
+        created.setPlan("plan-before");
+        created.setApi("api-before");
+        created.setSubscription("legacy-subscription");
+        apiKeyRepository.update(created);
+
+        ApiKey reactivated = apiKeyRepository.findById(SHARED_KEY_ID).orElseThrow();
+        Date updatedAt = new Date(1_700_000_000_000L);
+        reactivated.setRevoked(false);
+        reactivated.setRevokedAt(null);
+        reactivated.setExpireAt(null);
+        reactivated.setDaysToExpirationOnLastNotification(null);
+        reactivated.setPaused(true);
+        reactivated.setPlan("plan-after");
+        reactivated.setApi(null);
+        reactivated.setFederated(true);
+        reactivated.setUpdatedAt(updatedAt);
+        reactivated.setSubscriptions(new ArrayList<>());
+
+        ApiKey returned = apiKeyRepository.update(reactivated);
+
+        ApiKey stored = apiKeyRepository.findById(SHARED_KEY_ID).orElseThrow();
+        assertThat(stored.isRevoked()).isFalse();
+        assertThat(stored.getRevokedAt()).isNull();
+        assertThat(stored.getExpireAt()).isNull();
+        assertThat(stored.getDaysToExpirationOnLastNotification()).isNull();
+        assertThat(stored.isPaused()).isTrue();
+        assertThat(stored.getPlan()).isEqualTo("plan-after");
+        assertThat(stored.getApi()).isNull();
+        assertThat(stored.isFederated()).isTrue();
+        assertTrue(compareDate(updatedAt, stored.getUpdatedAt()));
+        // The fields left as read keep their stored values
+        assertThat(stored.getId()).isEqualTo(SHARED_KEY_ID);
+        assertThat(stored.getKey()).isEqualTo("shared-key-value");
+        assertThat(stored.getApplication()).isEqualTo("shared-app");
+        assertThat(stored.getEnvironmentId()).isEqualTo("DEFAULT");
+        assertThat(stored.getSubscription()).isEqualTo("legacy-subscription");
+        assertTrue(compareDate(new Date(1_000_000_000_000L), stored.getCreatedAt()));
+        // Every field but the subscriptions is the one given to the update, whether it changed or not
+        assertThat(stored).usingRecursiveComparison().ignoringFields("subscriptions").isEqualTo(reactivated);
+        assertThat(stored.getSubscriptions()).containsExactly("sub-initial");
+        assertThat(returned.getSubscriptions()).containsExactly("sub-initial");
+    }
+
+    @Test
+    public void update_should_keep_the_stored_updatedAt_when_given_an_older_one() throws Exception {
+        ApiKey readEarlier = givenSharedKey(SHARED_KEY_ID, "sub-initial");
+        readEarlier.setDaysToExpirationOnLastNotification(7);
+        readEarlier.setUpdatedAt(new Date(900_000_000_000L));
+
+        apiKeyRepository.update(readEarlier);
+
+        ApiKey stored = apiKeyRepository.findById(SHARED_KEY_ID).orElseThrow();
+        assertThat(stored.getDaysToExpirationOnLastNotification()).isEqualTo(7);
+        assertThat(stored.getUpdatedAt()).isEqualTo(new Date(1_000_000_000_000L));
+    }
+
+    @Test
+    public void update_should_keep_the_stored_updatedAt_when_given_none() throws Exception {
+        ApiKey withoutUpdatedAt = givenSharedKey(SHARED_KEY_ID, "sub-initial");
+        withoutUpdatedAt.setDaysToExpirationOnLastNotification(7);
+        withoutUpdatedAt.setUpdatedAt(null);
+
+        apiKeyRepository.update(withoutUpdatedAt);
+
+        ApiKey stored = apiKeyRepository.findById(SHARED_KEY_ID).orElseThrow();
+        assertThat(stored.getDaysToExpirationOnLastNotification()).isEqualTo(7);
+        assertThat(stored.getUpdatedAt()).isEqualTo(new Date(1_000_000_000_000L));
+    }
+
+    @Test
+    public void update_should_move_updatedAt_forward_when_given_a_newer_one() throws Exception {
+        ApiKey key = givenSharedKey(SHARED_KEY_ID, "sub-initial");
+        key.setUpdatedAt(new Date(1_700_000_000_000L));
+
+        apiKeyRepository.update(key);
+
+        assertThat(apiKeyRepository.findById(SHARED_KEY_ID).orElseThrow().getUpdatedAt()).isEqualTo(new Date(1_700_000_000_000L));
+    }
+
+    @Test
+    public void update_from_a_copy_read_before_an_addSubscription_should_keep_the_updatedAt_of_the_add() throws Exception {
+        givenSharedKey(SHARED_KEY_ID, "sub-initial");
+        ApiKey readBeforeTheAdd = apiKeyRepository.findById(SHARED_KEY_ID).orElseThrow();
+        Date updatedAtOfTheAdd = apiKeyRepository.addSubscription(SHARED_KEY_ID, "sub-added-meanwhile").orElseThrow().getUpdatedAt();
+
+        // Like a writer that changes one field of the copy it read and writes the copy back, its updatedAt included
+        readBeforeTheAdd.setDaysToExpirationOnLastNotification(7);
+        apiKeyRepository.update(readBeforeTheAdd);
+
+        // Gateways only fetch the keys whose updatedAt moved since their last sync: moving it back would hide the new link
+        ApiKey stored = apiKeyRepository.findById(SHARED_KEY_ID).orElseThrow();
+        assertThat(stored.getDaysToExpirationOnLastNotification()).isEqualTo(7);
+        assertThat(stored.getUpdatedAt()).isAfterOrEqualTo(updatedAtOfTheAdd);
+        assertThat(stored.getSubscriptions()).containsExactlyInAnyOrder("sub-initial", "sub-added-meanwhile");
     }
 
     @Test
@@ -778,5 +1014,26 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(beforeDeletion.size(), deleted.size());
         assertEquals(Set.copyOf(beforeDeletion), Set.copyOf(deleted));
         assertEquals(0, nbAfterDeletion);
+    }
+
+    private ApiKey givenSharedKey(String id, String... subscriptions) throws TechnicalException {
+        return apiKeyRepository.create(
+            ApiKey.builder()
+                .id(id)
+                .key("shared-key-value")
+                .environmentId("DEFAULT")
+                .application("shared-app")
+                .subscriptions(new ArrayList<>(List.of(subscriptions)))
+                .createdAt(new Date(1_000_000_000_000L))
+                .updatedAt(new Date(1_000_000_000_000L))
+                .build()
+        );
+    }
+
+    private Date addSubscriptionAndGetUpdatedAt(String id, String subscriptionId) throws Exception {
+        // Leave the clock time to move so that two consecutive adds cannot share the same timestamp.
+        Thread.sleep(5);
+        apiKeyRepository.addSubscription(id, subscriptionId);
+        return apiKeyRepository.findById(id).orElseThrow().getUpdatedAt();
     }
 }

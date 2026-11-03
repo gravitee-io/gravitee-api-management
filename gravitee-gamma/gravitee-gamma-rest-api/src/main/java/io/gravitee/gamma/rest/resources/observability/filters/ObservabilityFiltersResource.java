@@ -21,14 +21,15 @@ import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.use_case.GetObservabilityFilterDefinitionsUseCase;
 import io.gravitee.gamma.rest.core.observability.filter.use_case.GetObservabilityFilterValuesUseCase;
 import io.gravitee.gamma.rest.core.observability.filter.use_case.ResolveObservabilityFilterLabelsUseCase;
+import io.gravitee.gamma.rest.resources.observability.EnumQueryParam;
 import io.gravitee.gamma.rest.resources.observability.filters.dto.FilterSpecDto;
 import io.gravitee.gamma.rest.resources.observability.filters.dto.FilterSpecsResponseDto;
 import io.gravitee.gamma.rest.resources.observability.filters.dto.FilterValueDto;
 import io.gravitee.gamma.rest.resources.observability.filters.dto.ResolveFilterLabelsRequestDto;
 import io.gravitee.gamma.rest.resources.observability.filters.dto.ResolveFilterLabelsResponseDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.PaginatedResponseDto;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -36,10 +37,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
 
 /**
  * Unified observability filter discovery surface, shared across every gamma module's logs and
@@ -49,7 +47,8 @@ import java.util.function.Function;
  *
  * <h2>Endpoints</h2>
  * <ul>
- *   <li>{@code GET /definition?signal=&apiType=} — self-describing filter catalog. Both axes are
+ *   <li>{@code GET /definition?signal=&apiType=} — self-describing filter catalog: the built-in filters,
+ *       then the exposed metric definitions of the environment as {@code DECLARED} entries. Both axes are
  *       optional and multi-valued: an absent axis is unconstrained, both absent yields the full
  *       catalog; a present axis narrows by set intersection. Each returned spec carries both axes so
  *       the consumer can route a filter to the right panel (logs table vs analytics histogram).</li>
@@ -87,8 +86,9 @@ public class ObservabilityFiltersResource {
     ) {
         var output = getFilterDefinitionsUseCase.execute(
             new GetObservabilityFilterDefinitionsUseCase.Input(
-                parse(signals, Signal.class, Signal::valueOf, "signal"),
-                parse(apiTypes, ApiType.class, ApiType::valueOf, "apiType")
+                GraviteeContext.getExecutionContext().getEnvironmentId(),
+                EnumQueryParam.parse(signals, Signal.class, "signal"),
+                EnumQueryParam.parse(apiTypes, ApiType.class, "apiType")
             )
         );
         return new FilterSpecsResponseDto(output.filters().stream().map(FilterSpecDto::from).toList());
@@ -115,7 +115,7 @@ public class ObservabilityFiltersResource {
                 to,
                 page,
                 perPage,
-                parse(apiTypes, ApiType.class, ApiType::valueOf, "apiType"),
+                EnumQueryParam.parse(apiTypes, ApiType.class, "apiType"),
                 presentOrNull(apiProduct)
             )
         );
@@ -147,27 +147,5 @@ public class ObservabilityFiltersResource {
     /** A blank {@code apiProduct} scopes nothing: it reads as absent. */
     private static String presentOrNull(String apiProduct) {
         return apiProduct == null || apiProduct.isBlank() ? null : apiProduct;
-    }
-
-    /**
-     * Parses a multi-valued query param into an {@link EnumSet}, case-insensitively. {@code null} /
-     * empty means "unconstrained" (empty set). An unknown token is a client error → {@code 400}.
-     */
-    private static <E extends Enum<E>> Set<E> parse(List<String> raw, Class<E> type, Function<String, E> valueOf, String paramName) {
-        if (raw == null || raw.isEmpty()) {
-            return Set.of();
-        }
-        Set<E> result = EnumSet.noneOf(type);
-        for (String token : raw) {
-            if (token == null || token.isBlank()) {
-                continue;
-            }
-            try {
-                result.add(valueOf.apply(token.trim().toUpperCase(java.util.Locale.ROOT)));
-            } catch (IllegalArgumentException e) {
-                throw new BadRequestException("Unknown " + paramName + " value '" + token + "'");
-            }
-        }
-        return result;
     }
 }

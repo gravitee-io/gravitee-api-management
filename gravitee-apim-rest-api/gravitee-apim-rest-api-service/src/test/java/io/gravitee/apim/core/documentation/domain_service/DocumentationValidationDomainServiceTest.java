@@ -18,6 +18,10 @@ package io.gravitee.apim.core.documentation.domain_service;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import inmemory.*;
 import io.gravitee.apim.core.api.model.Api;
@@ -28,6 +32,7 @@ import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.AccessControl;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.PageSource;
+import io.gravitee.apim.core.exception.NotFoundDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
@@ -49,8 +54,11 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EmptySource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -70,7 +78,7 @@ public class DocumentationValidationDomainServiceTest {
     PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
-    PageSourceDomainServiceInMemory pageSourceDomainService = new PageSourceDomainServiceInMemory();
+    PageSourceDomainServiceInMemory pageSourceDomainService = spy(new PageSourceDomainServiceInMemory());
     private DocumentationValidationDomainService cut;
 
     @BeforeEach
@@ -292,7 +300,11 @@ public class DocumentationValidationDomainServiceTest {
         @Test
         void should_throw_error_if_parent_is_not_a_folder() {
             var parentId = "parent-id";
-            pageCrudService.initWith(List.of(Page.builder().id(parentId).type(Page.Type.MARKDOWN).build()));
+            pageCrudService.initWith(
+                List.of(
+                    Page.builder().id(parentId).type(Page.Type.MARKDOWN).referenceType(Page.ReferenceType.API).referenceId(API_ID).build()
+                )
+            );
 
             assertThatThrownBy(() ->
                 cut.validateAndSanitizeForCreation(
@@ -362,6 +374,78 @@ public class DocumentationValidationDomainServiceTest {
             html += "<div onClick=\"alert('test');\" style=\"margin: auto\">onclick alert<div>";
 
             return html;
+        }
+    }
+
+    @Nested
+    class ParentOwnership {
+
+        @ParameterizedTest
+        @MethodSource("foreignParents")
+        void should_reject_foreign_parent_before_fetching_content(Page parent, boolean creation) {
+            pageCrudService.initWith(List.of(parent));
+            var page = pageWithParent(parent.getId());
+
+            assertThatThrownBy(() -> validate(page, creation)).isInstanceOf(NotFoundDomainException.class);
+
+            verify(pageSourceDomainService, never()).setContentFromSource(any());
+        }
+
+        static Stream<Arguments> foreignParents() {
+            return Stream.of(
+                Page.builder().referenceType(Page.ReferenceType.API).referenceId("another-api").build(),
+                Page.builder().referenceType(Page.ReferenceType.ENVIRONMENT).referenceId("api-id").build(),
+                Page.builder().referenceType(Page.ReferenceType.API).build(),
+                Page.builder().referenceType(Page.ReferenceType.API).referenceId("").build(),
+                Page.builder().referenceType(Page.ReferenceType.API).referenceId(" ").build(),
+                Page.builder().referenceId("api-id").build()
+            ).flatMap(parent ->
+                Stream.of(true, false).flatMap(creation ->
+                    Stream.of(Page.Type.FOLDER, Page.Type.MARKDOWN).map(type ->
+                        Arguments.of(parent.toBuilder().id("parent-id").type(type).build(), creation)
+                    )
+                )
+            );
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = { true, false })
+        void should_reject_missing_parent_before_fetching_content(boolean creation) {
+            assertThatThrownBy(() -> validate(pageWithParent("missing-parent"), creation)).isInstanceOf(NotFoundDomainException.class);
+
+            verify(pageSourceDomainService, never()).setContentFromSource(any());
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = { true, false })
+        void should_preserve_same_owner_parent_and_fetch_content(boolean creation) {
+            pageCrudService.initWith(
+                List.of(
+                    Page.builder().id("parent-id").referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.FOLDER).build()
+                )
+            );
+
+            var result = validate(pageWithParent("parent-id"), creation);
+
+            assertThat(result.getParentId()).isEqualTo("parent-id");
+            assertThat(result.getContent()).isEqualTo(PageSourceDomainServiceInMemory.MARKDOWN);
+        }
+
+        private Page validate(Page page, boolean creation) {
+            return creation
+                ? cut.validateAndSanitizeForCreation(page, ORGANIZATION_ID)
+                : cut.validateAndSanitizeForUpdate(page, ORGANIZATION_ID, true);
+        }
+
+        private Page pageWithParent(String parentId) {
+            return Page.builder()
+                .name("page")
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .type(Page.Type.MARKDOWN)
+                .parentId(parentId)
+                .source(PageSource.builder().type("http").build())
+                .build();
         }
     }
 }

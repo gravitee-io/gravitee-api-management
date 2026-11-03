@@ -19,7 +19,7 @@ package io.gravitee.repository.analytics.engine.api.query;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum Facet {
+public enum Facet implements FacetName {
     API,
     APPLICATION,
     PLAN,

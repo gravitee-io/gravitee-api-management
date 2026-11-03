@@ -34,7 +34,8 @@ function rewriteToHrid(env: Environment, pathname: string, navigate: NavigateFun
 
 /**
  * Synchronizes URL :envHrid with the environment store, canonicalizes id to primary hrid in the URL,
- * and redirects invalid segments to the first available environment.
+ * and redirects invalid segments to the first available environment. An unknown segment first loads the list again:
+ * the environment may have been created since, from a module.
  */
 export function EnvironmentGuard() {
     const envHrid = useEnvHrid();
@@ -47,7 +48,10 @@ export function EnvironmentGuard() {
     const environmentId = useEnvironmentStore(s => s.environmentId);
     const loadFailed = useEnvironmentStore(s => s.loadFailed);
     const setCurrentEnvironment = useEnvironmentStore(s => s.setCurrentEnvironment);
+    const refresh = useEnvironmentStore(s => s.refresh);
+    const refreshing = useEnvironmentStore(s => s.refreshing);
     const lastSyncedId = useRef<string | null>(null);
+    const refreshedFor = useRef<string | null>(null);
 
     useEffect(() => {
         if (!environments.length) return;
@@ -58,9 +62,15 @@ export function EnvironmentGuard() {
 
         if (!resolved) {
             lastSyncedId.current = null;
-            redirectToFirst(first, navigate, search, hash);
+            if (refreshedFor.current !== envHrid) {
+                refreshedFor.current = envHrid;
+                void refresh();
+            } else if (!refreshing) {
+                redirectToFirst(first, navigate, search, hash);
+            }
             return;
         }
+        refreshedFor.current = null;
 
         if (shouldRewriteIdToHrid(resolved, envHrid)) {
             lastSyncedId.current = null;
@@ -72,7 +82,7 @@ export function EnvironmentGuard() {
             lastSyncedId.current = resolved.id;
             setCurrentEnvironment(resolved);
         }
-    }, [envHrid, environments, navigate, setCurrentEnvironment]);
+    }, [envHrid, environments, navigate, refresh, refreshing, setCurrentEnvironment]);
 
     if (!environments.length) {
         return loadFailed ? <EnvironmentsLoadFailed /> : null;

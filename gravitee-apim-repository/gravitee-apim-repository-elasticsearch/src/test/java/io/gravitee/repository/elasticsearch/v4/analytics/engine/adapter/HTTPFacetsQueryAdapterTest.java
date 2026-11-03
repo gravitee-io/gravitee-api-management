@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.NumberRange;
@@ -45,7 +46,7 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         var filters = buildFilters();
         var metrics = buildMetrics();
 
-        var facets = List.of(Facet.API, Facet.APPLICATION);
+        List<FacetName> facets = List.of(Facet.API, Facet.APPLICATION);
 
         var query = new FacetsQuery(timeRange, filters, metrics, facets);
         var queryString = adapter.adapt(query);
@@ -90,7 +91,7 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         var filters = buildFilters();
         var metrics = buildSortedMetric();
 
-        var facets = List.of(Facet.API);
+        List<FacetName> facets = List.of(Facet.API);
         var limit = 2;
 
         var query = new FacetsQuery(timeRange, filters, metrics, facets, limit);
@@ -137,7 +138,7 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         var filters = buildFilters();
         var metrics = buildMetrics();
 
-        var facets = List.of(Facet.HTTP_STATUS);
+        List<FacetName> facets = List.of(Facet.HTTP_STATUS);
         var ranges = List.of(
             new NumberRange(100, 199),
             new NumberRange(200, 299),
@@ -197,7 +198,7 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         var filters = buildFilters();
         var metrics = buildMetrics();
 
-        var facets = List.of(Facet.HTTP_STATUS_CODE_GROUP);
+        List<FacetName> facets = List.of(Facet.HTTP_STATUS_CODE_GROUP);
 
         var query = new FacetsQuery(timeRange, filters, metrics, facets);
         var queryString = adapter.adapt(query);
@@ -246,7 +247,7 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         var filters = buildFilters();
         var metrics = buildSortedMetric();
 
-        var facets = List.of(Facet.HTTP_STATUS_CODE_GROUP, Facet.HTTP_STATUS);
+        List<FacetName> facets = List.of(Facet.HTTP_STATUS_CODE_GROUP, Facet.HTTP_STATUS);
         var limit = 5;
 
         var query = new FacetsQuery(timeRange, filters, metrics, facets, limit);
@@ -389,7 +390,7 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         var filters = buildFilters();
         var metrics = buildSortedMetric();
 
-        var facets = List.of(Facet.API_PRODUCT);
+        List<FacetName> facets = List.of(Facet.API_PRODUCT);
         var limit = 10;
 
         var query = new FacetsQuery(timeRange, filters, metrics, facets, limit);

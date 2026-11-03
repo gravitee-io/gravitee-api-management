@@ -81,7 +81,10 @@ public class ComputeTimeSeriesUseCase {
 
     public Output execute(Input input) {
         validator.validateTimeSeriesRequest(input.request);
-        return compute(contextLoader.load(input.auditInfo, input.scope(), input.request.dataKind()), input.request);
+        return compute(
+            contextLoader.load(input.auditInfo, input.scope(), input.request.dataKind(queryContextProvider::identifiesCaller)),
+            input.request
+        );
     }
 
     /**

@@ -16,9 +16,11 @@
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
 import io.gravitee.repository.analytics.engine.api.query.AnalyticsSearchPath;
-import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
+import io.gravitee.repository.analytics.engine.api.query.FilterName;
 import io.gravitee.repository.analytics.engine.api.query.FilterOutcome;
 import io.gravitee.repository.analytics.engine.api.query.ObservabilityEntrypoints;
 import io.gravitee.repository.analytics.engine.api.query.Query;
@@ -129,12 +131,12 @@ public class FilterAdapter {
      * documents do not carry — a term filter on a missing field, which Elasticsearch answers with no
      * hits rather than an error.
      */
-    public static boolean isConnectionDimension(Filter.Name name) {
+    public static boolean isConnectionDimension(FilterName name) {
         return CONNECTION_DIMENSION_FILTER_NAMES.contains(name);
     }
 
-    /** The facet form of {@link #isConnectionDimension(Filter.Name)}; not every dimension has one. */
-    public static boolean isConnectionDimension(Facet facet) {
+    /** The facet form of {@link #isConnectionDimension(FilterName)}; not every dimension has one. */
+    public static boolean isConnectionDimension(FacetName facet) {
         return CONNECTION_DIMENSION_FILTER_NAMES.stream().anyMatch(name -> name.name().equals(facet.name()));
     }
 
@@ -212,10 +214,17 @@ public class FilterAdapter {
 
     /**
      * What the searches of {@code path} do with a top-level condition on {@code name}, read off the same
-     * lists the {@code adaptFor*} methods filter with. {@code FilterAdapterOutcomeTest} builds the query for
+     * lists the {@code adaptFor*} methods filter with for a built-in name. {@code FilterAdapterOutcomeTest} builds the query for
      * every path and every name and checks it agrees.
      */
-    public static FilterOutcome outcome(AnalyticsSearchPath path, Filter.Name name) {
+    public static FilterOutcome outcome(AnalyticsSearchPath path, FilterName name) {
+        return switch (name) {
+            case Filter.Name builtIn -> builtInOutcome(path, builtIn);
+            case AdditionalMetricField _ -> additionalMetricOutcome(path);
+        };
+    }
+
+    private static FilterOutcome builtInOutcome(AnalyticsSearchPath path, Filter.Name name) {
         return switch (path) {
             case HTTP -> appliedIf(HTTP_FILTER_NAMES.contains(name));
             case EDGE -> appliedIf(EDGE_FILTER_NAMES.contains(name));
@@ -229,6 +238,19 @@ public class FilterAdapter {
                 yield AUTHZ_TRAFFIC_FILTER_NAMES.contains(name) ? FilterOutcome.EMPTIES : FilterOutcome.IGNORED;
             }
             case AUTHZ_TRAFFIC -> AUTHZ_TRAFFIC_FILTER_NAMES.contains(name) ? FilterOutcome.APPLIED : FilterOutcome.EMPTIES;
+        };
+    }
+
+    /**
+     * The reporter writes the {@code additional-metrics} map on the request documents, which the HTTP and Edge paths
+     * read through {@link HTTPFieldResolver}: every other path skips such a condition, but the AuthZ traffic one, which
+     * counts nothing it cannot filter fully (OBS-70, §8).
+     */
+    private static FilterOutcome additionalMetricOutcome(AnalyticsSearchPath path) {
+        return switch (path) {
+            case HTTP, EDGE -> FilterOutcome.APPLIED;
+            case AUTHZ_TRAFFIC -> FilterOutcome.EMPTIES;
+            case MESSAGE, NATIVE, EVENT_METRICS, AUTHZ -> FilterOutcome.IGNORED;
         };
     }
 
@@ -384,7 +406,7 @@ public class FilterAdapter {
     }
 
     public boolean shouldAdaptForHTTP(Filter filter) {
-        return HTTP_FILTER_NAMES.contains(filter.name());
+        return outcome(AnalyticsSearchPath.HTTP, filter.name()) == FilterOutcome.APPLIED;
     }
 
     public boolean shouldAdaptForMessage(Filter filter) {
@@ -447,7 +469,7 @@ public class FilterAdapter {
     }
 
     public boolean shouldAdaptForEdge(Filter filter) {
-        return EDGE_FILTER_NAMES.contains(filter.name());
+        return outcome(AnalyticsSearchPath.EDGE, filter.name()) == FilterOutcome.APPLIED;
     }
 
     /**

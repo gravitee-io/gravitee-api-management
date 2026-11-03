@@ -23,6 +23,7 @@ import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentation
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.common.utils.TimeProvider;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,15 +36,18 @@ class ImportDefinitionPageDomainService {
     private final ApiDocumentationDomainService apiDocumentationDomainService;
     private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
     private final UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
+    private final ImportDefinitionPageParentValidationDomainService pageParentValidationDomainService;
 
     ImportDefinitionPageDomainService(
         ApiDocumentationDomainService apiDocumentationDomainService,
         CreateApiDocumentationDomainService createApiDocumentationDomainService,
-        UpdateApiDocumentationDomainService updateApiDocumentationDomainService
+        UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
+        ImportDefinitionPageParentValidationDomainService pageParentValidationDomainService
     ) {
         this.apiDocumentationDomainService = apiDocumentationDomainService;
         this.createApiDocumentationDomainService = createApiDocumentationDomainService;
         this.updateApiDocumentationDomainService = updateApiDocumentationDomainService;
+        this.pageParentValidationDomainService = pageParentValidationDomainService;
     }
 
     void upsertPages(String apiId, List<Page> pagesToImport, AuditInfo auditInfo) {
@@ -58,19 +62,44 @@ class ImportDefinitionPageDomainService {
             .collect(Collectors.toMap(Page::getCrossId, Function.identity()));
         var now = Date.from(TimeProvider.now().toInstant());
 
-        for (var importedPage : pagesToImport) {
-            var existingPage = findSavedPageForImport(pageMap, savedPages, importedPage);
-            var pageToSave = importedPage.toBuilder().referenceType(Page.ReferenceType.API).referenceId(apiId).updatedAt(now);
-            if (existingPage.isEmpty()) {
-                createApiDocumentationDomainService.createPage(pageToSave.createdAt(now).build(), auditInfo);
+        var destinationIds = new HashMap<String, String>();
+        var preparedPages = pagesToImport
+            .stream()
+            .map(importedPage -> {
+                var existingPage = findSavedPageForImport(pageMap, savedPages, importedPage);
+                var pageToSave = importedPage
+                    .toBuilder()
+                    .id(existingPage.map(Page::getId).orElse(importedPage.getId()))
+                    .referenceType(Page.ReferenceType.API)
+                    .referenceId(apiId)
+                    .createdAt(existingPage.isPresent() ? existingPage.get().getCreatedAt() : now)
+                    .updatedAt(now)
+                    .build();
+                if (importedPage.getId() != null && !importedPage.getId().isEmpty()) {
+                    destinationIds.put(importedPage.getId(), pageToSave.getId());
+                }
+                return new PreparedPage(pageToSave, existingPage);
+            })
+            .toList();
+
+        preparedPages.forEach(prepared -> {
+            var page = prepared.page();
+            if (page.getParentId() != null && !page.getParentId().isEmpty()) {
+                page.setParentId(destinationIds.getOrDefault(page.getParentId(), page.getParentId()));
+            }
+        });
+        pageParentValidationDomainService.validate(preparedPages.stream().map(PreparedPage::page).toList());
+
+        for (var prepared : preparedPages) {
+            if (prepared.existingPage().isEmpty()) {
+                createApiDocumentationDomainService.createPage(prepared.page(), auditInfo);
             } else {
-                // Match is by crossId; the imported page may carry a different id (e.g. after id generation on update).
-                // Persistence must use the existing row id.
-                var mergedForUpdate = pageToSave.id(existingPage.get().getId()).createdAt(existingPage.get().getCreatedAt()).build();
-                updateApiDocumentationDomainService.updatePage(mergedForUpdate, existingPage.get(), auditInfo);
+                updateApiDocumentationDomainService.updatePage(prepared.page(), prepared.existingPage().get(), auditInfo);
             }
         }
     }
+
+    private record PreparedPage(Page page, Optional<Page> existingPage) {}
 
     /** Match by {@code crossId} when present and found; else by matching type and name. */
     private static Optional<Page> findSavedPageForImport(Map<String, Page> savedByCrossId, List<Page> savedPages, Page importedPage) {

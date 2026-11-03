@@ -30,4 +30,8 @@ export interface PolicyPlugin extends PlatformPlugin {
    * Plugin's flow phases compatibility.
    */
   flowPhaseCompatibility?: Partial<Record<ApiProtocolType, FlowPhase[]>>;
+  /**
+   * False when the policy cannot honour a message condition (declared in its plugin properties).
+   */
+  supportsMessageCondition?: boolean;
 }

@@ -1668,6 +1668,24 @@ gateway:
 #    tcpKeepAlive: true
 #    instances: 0
 #    requestTimeout: 35_000 # default is 35_000 ms
+#
+#    # Unset, each key below keeps the gateway's own default, which depends on the gateway version: off up to 4.13,
+#    # possibly on from 4.14.0 (see the gateway configuration docs). Setting a key here overrides that default.
+#    #
+#    # Maximum number of client connections a gateway instance accepts on the Kafka port; connections past it are
+#    # refused before TLS. 0 turns it off. Loopback clients (127.0.0.1, ::1) are not counted.
+#    maxConnections: 5000
+#    # Same limit expressed per GiB of JVM max heap. When both are set, the smaller one applies. 0 turns it off,
+#    # including a default the gateway applies.
+#    maxConnectionsPerGiB: 2000
+#    readiness:
+#      # The `kafka-readiness` probe: the pod reports not ready once it holds `notReadyPercent` of its connection
+#      # limit, and ready again at `readyPercent` or below. Needs a connection limit, and the probe named in the
+#      # readiness check only (never in liveness). 1 <= readyPercent < notReadyPercent <= 100.
+#      enabled: true
+#      notReadyPercent: 90
+#      readyPercent: 80
+#
 #    # `secured` is deprecated: use `probe.secured` above. `probe.secured` wins when both are set.
 #    ssl:
 #      # Forced to `true` when routingMode is `host`

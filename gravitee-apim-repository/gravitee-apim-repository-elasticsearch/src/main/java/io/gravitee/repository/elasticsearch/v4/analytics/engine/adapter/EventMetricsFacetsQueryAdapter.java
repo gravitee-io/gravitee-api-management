@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
-import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.vertx.core.json.JsonObject;
@@ -52,7 +52,7 @@ public class EventMetricsFacetsQueryAdapter {
             .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit(), true));
     }
 
-    public JsonObject adaptFacets(List<MetricMeasuresQuery> metrics, List<Facet> facets, Integer limit, boolean docTypeHoisted) {
+    public JsonObject adaptFacets(List<MetricMeasuresQuery> metrics, List<FacetName> facets, Integer limit, boolean docTypeHoisted) {
         if (facets != null && facets.size() > 1) {
             throw new UnsupportedOperationException("Native event metrics support a single facet, got: " + facets);
         }
@@ -63,7 +63,7 @@ public class EventMetricsFacetsQueryAdapter {
         return aggs;
     }
 
-    public JsonObject adaptFacets(MetricMeasuresQuery metric, List<Facet> facets, Integer limit, boolean docTypeHoisted) {
+    public JsonObject adaptFacets(MetricMeasuresQuery metric, List<FacetName> facets, Integer limit, boolean docTypeHoisted) {
         var measures = adaptMeasures(metric, docTypeHoisted);
         if (facets == null || facets.isEmpty()) {
             return measures;
@@ -77,7 +77,7 @@ public class EventMetricsFacetsQueryAdapter {
         return measuresAdapter.adaptMetrics(List.of(metric), docTypeHoisted);
     }
 
-    private JsonObject toTermsLeaf(MetricMeasuresQuery metric, Facet facet, Integer limit) {
+    private JsonObject toTermsLeaf(MetricMeasuresQuery metric, FacetName facet, Integer limit) {
         var terms = new JsonObject().put("field", fieldResolver.fromFacet(facet));
         // A null limit leaves Elasticsearch's default terms size of 10. Acceptable for OPERATION
         // (a closed set of Kafka API keys), but a caller charting every topic or application must
@@ -101,7 +101,7 @@ public class EventMetricsFacetsQueryAdapter {
         if (metric.sorts() == null || metric.sorts().isEmpty()) {
             return;
         }
-        if (fieldResolver.isAccumulatedDuration(metric.metric())) {
+        if (fieldResolver.isAccumulatedDuration(BuiltInMetric.of(metric.metric()))) {
             // The average is a bucket_script, and Elasticsearch cannot order a terms aggregation by a
             // pipeline aggregation. Fail rather than emit a query whose ranking would silently be
             // something else — a widget claiming "slowest operations" must not be ordered by volume.
@@ -113,7 +113,7 @@ public class EventMetricsFacetsQueryAdapter {
         }
         var order = new JsonObject();
         for (var sort : metric.sorts()) {
-            order.put(AggregationAdapter.adaptName(metric.metric(), sort.measure()), sort.order().name().toLowerCase());
+            order.put(AggregationAdapter.orderPath(metric.metric(), sort.measure()), sort.order().name().toLowerCase());
         }
         terms.put("order", order);
     }

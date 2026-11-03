@@ -15,11 +15,11 @@
  */
 package io.gravitee.repository.analytics.engine.api.result;
 
-import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.repository.analytics.engine.api.metric.MetricName;
 import java.util.List;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record MetricFacetsResult(Metric metric, List<FacetBucketResult> buckets) {}
+public record MetricFacetsResult(MetricName metric, List<FacetBucketResult> buckets) {}

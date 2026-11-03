@@ -258,6 +258,9 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     protected GammaDashboardRepository gammaDashboardRepository;
 
     @Inject
+    protected GammaMetricDefinitionRepository gammaMetricDefinitionRepository;
+
+    @Inject
     protected PortalCategoryRepository portalCategoryRepository;
 
     @Inject
@@ -316,6 +319,7 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             case ScoringFunction scoringFunction -> scoringFunctionRepository.create(scoringFunction);
             case CustomDashboard customDashboard -> customDashboardRepository.create(customDashboard);
             case GammaDashboard gammaDashboard -> gammaDashboardRepository.create(gammaDashboard);
+            case GammaMetricDefinition gammaMetricDefinition -> gammaMetricDefinitionRepository.create(gammaMetricDefinition);
             case PortalCategory portalCategory -> portalCategoryRepository.create(portalCategory);
             case Dashboard apiQualityRule -> dashboardRepository.create(apiQualityRule);
             case AlertEvent alertEvent -> alertEventRepository.create(alertEvent);

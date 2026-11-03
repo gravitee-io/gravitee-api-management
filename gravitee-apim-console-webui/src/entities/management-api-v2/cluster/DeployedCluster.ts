@@ -23,6 +23,8 @@ export interface DeployedCluster {
   deployedAt?: Date;
   version?: number;
   connections: DeployedClusterConnection[];
+  /** Whether the current user may bind an API to it, as a member of the cluster. Absent means bindable. */
+  bindable?: boolean;
 }
 
 export interface DeployedClusterConnection {

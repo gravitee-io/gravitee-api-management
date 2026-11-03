@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.crud_service.log;
 
 import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -24,6 +25,8 @@ import static org.mockito.Mockito.*;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
+import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
@@ -37,6 +40,7 @@ import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetailQuery;
 import io.gravitee.repository.log.v4.model.connection.Metrics;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
+import io.gravitee.rest.api.model.analytics.SearchLogsFilters.AdditionalMetricCondition;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
@@ -843,6 +847,121 @@ class ConnectionLogsCrudServiceImplTest {
             var metricsCaptor = ArgumentCaptor.forClass(MetricsQuery.class);
             verify(metricsRepository).searchMetrics(any(QueryContext.class), metricsCaptor.capture(), eq(List.of(DefinitionVersion.V4)));
             assertThat(metricsCaptor.getValue().getFilter().getTrafficScope()).isEqualTo(new TrafficScope(Set.of("studio"), Set.of("mcp")));
+        }
+    }
+
+    @Nested
+    class AdditionalMetricConditions {
+
+        private static final List<AdditionalMetricCondition> CONDITIONS = List.of(
+            new AdditionalMetricCondition(
+                "additional-metrics.keyword_fraud-check_tier",
+                AdditionalMetricCondition.Operator.IN,
+                List.of("high", "medium")
+            ),
+            new AdditionalMetricCondition("additional-metrics.long_failover_count", AdditionalMetricCondition.Operator.GTE, List.of("1")),
+            new AdditionalMetricCondition("additional-metrics.long_failover_count", AdditionalMetricCondition.Operator.LTE, List.of("2"))
+        );
+
+        private static final List<MetricsQuery.Filter.AdditionalMetricCondition> EXPECTED = List.of(
+            new MetricsQuery.Filter.AdditionalMetricCondition(
+                new AdditionalMetricField(AdditionalMetricField.ValueType.KEYWORD, "keyword_fraud-check_tier"),
+                Filter.Operator.IN,
+                List.of("high", "medium")
+            ),
+            new MetricsQuery.Filter.AdditionalMetricCondition(
+                new AdditionalMetricField(AdditionalMetricField.ValueType.LONG, "long_failover_count"),
+                Filter.Operator.GTE,
+                List.of("1")
+            ),
+            new MetricsQuery.Filter.AdditionalMetricCondition(
+                new AdditionalMetricField(AdditionalMetricField.ValueType.LONG, "long_failover_count"),
+                Filter.Operator.LTE,
+                List.of("2")
+            )
+        );
+
+        @Test
+        void should_read_each_name_into_the_field_it_designates_on_the_request_search() throws AnalyticsException {
+            when(metricsRepository.searchMetrics(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V4)))).thenReturn(
+                new LogResponse<>(0, List.of())
+            );
+
+            logCrudService.searchApiConnectionLogs(
+                GraviteeContext.getExecutionContext(),
+                Set.of("api-1"),
+                SearchLogsFilters.builder().from(0L).to(1L).additionalMetrics(CONDITIONS).build(),
+                new PageableImpl(1, 10),
+                List.of(DefinitionVersion.V4)
+            );
+
+            var metricsCaptor = ArgumentCaptor.forClass(MetricsQuery.class);
+            verify(metricsRepository).searchMetrics(any(QueryContext.class), metricsCaptor.capture(), eq(List.of(DefinitionVersion.V4)));
+            assertThat(metricsCaptor.getValue().getFilter().getAdditionalMetrics()).containsExactlyElementsOf(EXPECTED);
+        }
+
+        @Test
+        void should_apply_them_to_the_requests_a_body_search_found() throws AnalyticsException {
+            when(logRepository.searchConnectionLogDetails(any(QueryContext.class), any())).thenReturn(
+                new LogResponse<>(1, List.of(ConnectionLogDetail.builder().requestId("r-1").build()))
+            );
+            when(metricsRepository.searchMetrics(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V4)))).thenReturn(
+                new LogResponse<>(1, List.of(Metrics.builder().requestId("r-1").build()))
+            );
+
+            logCrudService.searchApiConnectionLogs(
+                GraviteeContext.getExecutionContext(),
+                Set.of("api-1"),
+                SearchLogsFilters.builder().from(0L).to(1L).bodyText("needle").additionalMetrics(CONDITIONS).build(),
+                new PageableImpl(1, 10),
+                List.of(DefinitionVersion.V4)
+            );
+
+            var metricsCaptor = ArgumentCaptor.forClass(MetricsQuery.class);
+            verify(metricsRepository).searchMetrics(any(QueryContext.class), metricsCaptor.capture(), eq(List.of(DefinitionVersion.V4)));
+            assertThat(metricsCaptor.getValue().getFilter().getRequestIds()).containsExactly("r-1");
+            assertThat(metricsCaptor.getValue().getFilter().getAdditionalMetrics()).containsExactlyElementsOf(EXPECTED);
+        }
+
+        @Test
+        void should_leave_the_metrics_query_without_conditions_when_none_is_given() throws AnalyticsException {
+            when(metricsRepository.searchMetrics(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V4)))).thenReturn(
+                new LogResponse<>(0, List.of())
+            );
+
+            logCrudService.searchApiConnectionLogs(
+                GraviteeContext.getExecutionContext(),
+                Set.of("api-1"),
+                SearchLogsFilters.builder().from(0L).to(1L).build(),
+                new PageableImpl(1, 10),
+                List.of(DefinitionVersion.V4)
+            );
+
+            var metricsCaptor = ArgumentCaptor.forClass(MetricsQuery.class);
+            verify(metricsRepository).searchMetrics(any(QueryContext.class), metricsCaptor.capture(), eq(List.of(DefinitionVersion.V4)));
+            assertThat(metricsCaptor.getValue().getFilter().getAdditionalMetrics()).isNull();
+        }
+
+        @Test
+        void should_refuse_a_name_outside_the_grammar() {
+            var malformed = new AdditionalMetricCondition(
+                "additional-metrics.keyword_bad\"name",
+                AdditionalMetricCondition.Operator.EQ,
+                List.of("x")
+            );
+
+            assertThatThrownBy(() ->
+                logCrudService.searchApiConnectionLogs(
+                    GraviteeContext.getExecutionContext(),
+                    Set.of("api-1"),
+                    SearchLogsFilters.builder().from(0L).to(1L).additionalMetrics(List.of(malformed)).build(),
+                    new PageableImpl(1, 10),
+                    List.of(DefinitionVersion.V4)
+                )
+            )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("additional-metrics.keyword_bad\"name");
+            verifyNoInteractions(metricsRepository);
         }
     }
 }

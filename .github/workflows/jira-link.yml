@@ -1,0 +1,36 @@
+# Fails the pull request unless it cites a Jira key.
+# The key may be in the title, the head branch, or the body. One key may cover a train.
+# A missing Atlassian Team is a warning once JIRA_API_TOKEN is set.
+# With no token the Team lookup is skipped and prints nothing.
+# Jira being down does not fail the check.
+# Checks out the default branch, never the pull request head, so a pull request
+# cannot change the gate and a fork never receives the Jira credentials.
+# A commit on a support branch cannot change the script either.
+name: Jira link
+
+on:
+    pull_request_target:
+        types: [opened, edited, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+    contents: read
+
+concurrency:
+    group: jira-link-${{ github.event.pull_request.number }}
+    cancel-in-progress: true
+
+jobs:
+    check:
+        name: Jira link
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6.1.0
+              with:
+                  ref: ${{ github.event.repository.default_branch }}
+            - name: Require a Jira key
+              env:
+                  JIRA_BASE_URL: https://gravitee.atlassian.net
+                  JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+                  JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+                  TEAM_EXEMPT_PROJECTS: PEN
+              run: python3 .github/scripts/jira_link_check.py

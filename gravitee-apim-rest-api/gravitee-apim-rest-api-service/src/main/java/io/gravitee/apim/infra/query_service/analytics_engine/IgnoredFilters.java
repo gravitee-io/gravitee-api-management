@@ -16,12 +16,12 @@
 package io.gravitee.apim.infra.query_service.analytics_engine;
 
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
+import io.gravitee.apim.core.analytics_engine.model.FilterName;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.apim.infra.adapter.AnalyticsMeasuresAdapter;
 import io.gravitee.repository.analytics.engine.api.query.AnalyticsSearchPath;
-import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.FilterOutcome;
 import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
@@ -35,7 +35,7 @@ final class IgnoredFilters {
 
     private IgnoredFilters() {}
 
-    static List<FilterSpec.Name> of(AnalyticsRepository repository, AnalyticsSearchPath path, Query query) {
+    static List<FilterName> of(AnalyticsRepository repository, AnalyticsSearchPath path, Query query) {
         if (query == null || query.filters() == null) {
             return List.of();
         }
@@ -61,17 +61,17 @@ final class IgnoredFilters {
         return repository.filterOutcome(path, AnalyticsMeasuresAdapter.INSTANCE.toFilterName(filter)) == FilterOutcome.APPLIED;
     }
 
-    static MeasuresResponse mark(MeasuresResponse response, List<FilterSpec.Name> ignored) {
+    static MeasuresResponse mark(MeasuresResponse response, List<FilterName> ignored) {
         return response == null ? null : response.withIgnoredFilters(ignored);
     }
 
-    static FacetsResponse mark(FacetsResponse response, List<FilterSpec.Name> ignored) {
+    static FacetsResponse mark(FacetsResponse response, List<FilterName> ignored) {
         return response == null ? null : response.withIgnoredFilters(ignored);
     }
 
-    static TimeSeriesResponse mark(TimeSeriesResponse response, List<FilterSpec.Name> ignored) {
+    static TimeSeriesResponse mark(TimeSeriesResponse response, List<FilterName> ignored) {
         return response == null ? null : response.withIgnoredFilters(ignored);
     }
 
-    private record Outcome(Filter.Name name, FilterOutcome outcome) {}
+    private record Outcome(io.gravitee.repository.analytics.engine.api.query.FilterName name, FilterOutcome outcome) {}
 }
