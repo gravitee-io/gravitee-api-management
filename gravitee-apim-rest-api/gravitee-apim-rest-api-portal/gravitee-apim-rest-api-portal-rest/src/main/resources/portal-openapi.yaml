@@ -3214,11 +3214,14 @@ paths:
             parameters:
                 - $ref: "#/components/parameters/pageNumberParam"
                 - $ref: "#/components/parameters/pageSizeParam"
+                - $ref: "#/components/parameters/notificationReadQueryParam"
+                - $ref: "#/components/parameters/notificationApiIdQueryParam"
+                - $ref: "#/components/parameters/notificationApplicationIdQueryParam"
             summary: Retrieve user's notifications
             description: |
-                Retrieve current user's notifications.
+                Retrieve current user's notifications of the current environment, and those not tied to an environment, newest first.
             operationId: getCurrentUserNotifications
-            x-gravitee-portal: classic
+            x-gravitee-portal: both
             responses:
                 200:
                     description: List of notifications
@@ -3233,9 +3236,42 @@ paths:
                 - User
             summary: Delete all notifications of the current user
             description: |
-                Delete all notifications of the current user.
+                Delete all notifications of the current user in the current environment, and those not tied to an environment.
             operationId: deleteAllCurrentUserNotifications
             x-gravitee-portal: classic
+            responses:
+                204:
+                    description: No-Content
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /user/notifications/_filters:
+        get:
+            tags:
+                - User
+            summary: Retrieve the APIs and applications to filter the user's notifications on
+            description: |
+                Retrieve the APIs and applications referenced by the current user's notifications of the current environment.
+                An API or an application deleted since has no name.
+            operationId: getCurrentUserNotificationFilters
+            x-gravitee-portal: next
+            responses:
+                200:
+                    description: APIs and applications referenced by the notifications
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PortalNotificationFilters"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /user/notifications/_read:
+        post:
+            tags:
+                - User
+            summary: Mark all notifications of the current user as read
+            description: |
+                Mark all unread notifications of the current user in the current environment, and those not tied to an environment, as read.
+            operationId: markAllCurrentUserNotificationsAsRead
+            x-gravitee-portal: next
             responses:
                 204:
                     description: No-Content
@@ -3249,9 +3285,32 @@ paths:
                 - User
             summary: Delete a specific notification of the current user
             description: |
-                Delete a specific notification of the current user.
+                Delete a specific notification of the current user. A notification of another environment is not found.
             operationId: deleteCurrentUserNotificationByNotificationId
             x-gravitee-portal: classic
+            responses:
+                204:
+                    description: No-Content
+                404:
+                    description: Notification not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /user/notifications/{notificationId}/_read:
+        parameters:
+            - $ref: "#/components/parameters/notificationIdParam"
+        post:
+            tags:
+                - User
+            summary: Mark a notification of the current user as read
+            description: |
+                Mark a notification of the current user as read. A notification already read keeps its first read date.
+                A notification of another user or of another environment is not found.
+            operationId: markCurrentUserNotificationAsRead
+            x-gravitee-portal: next
             responses:
                 204:
                     description: No-Content
@@ -4552,6 +4611,27 @@ components:
             in: path
             required: true
             description: Id of a notification.
+            schema:
+                type: string
+        notificationReadQueryParam:
+            name: read
+            in: query
+            required: false
+            description: true to only return read notifications, false to only return unread ones.
+            schema:
+                type: boolean
+        notificationApiIdQueryParam:
+            name: apiId
+            in: query
+            required: false
+            description: Only return the notifications about this API.
+            schema:
+                type: string
+        notificationApplicationIdQueryParam:
+            name: applicationId
+            in: query
+            required: false
+            description: Only return the notifications about this application.
             schema:
                 type: string
         pageIdParam:
@@ -6365,6 +6445,36 @@ components:
                     description: Creation date and time of the notification.
                     type: string
                     format: date-time
+                read:
+                    description: true when the user has read the notification.
+                    type: boolean
+                hook:
+                    description: Event that triggered the notification. Absent for notifications created before 4.14.
+                    type: string
+                api:
+                    $ref: "#/components/schemas/PortalNotificationReference"
+                application:
+                    $ref: "#/components/schemas/PortalNotificationReference"
+        PortalNotificationReference:
+            description: An API or an application a notification is about.
+            properties:
+                id:
+                    type: string
+                name:
+                    description: Current name. Absent when the API or the application has been deleted since.
+                    type: string
+        PortalNotificationFilters:
+            properties:
+                apis:
+                    description: APIs referenced by the user's notifications, sorted by name, deleted ones last.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/PortalNotificationReference"
+                applications:
+                    description: Applications referenced by the user's notifications, sorted by name, deleted ones last.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/PortalNotificationReference"
         Alert:
             properties:
                 id:

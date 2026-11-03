@@ -15,44 +15,82 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.rest.api.model.notification.PortalNotificationEntity;
-import io.gravitee.rest.api.portal.rest.model.PortalNotification;
+import io.gravitee.apim.core.portal_notification.model.NotificationReference;
+import io.gravitee.apim.core.portal_notification.model.PortalNotification;
+import io.gravitee.apim.core.portal_notification.use_case.GetUserPortalNotificationFiltersUseCase;
+import io.gravitee.apim.core.portal_notification.use_case.SearchUserPortalNotificationsUseCase;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.portal.rest.model.PortalNotificationReference;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-/**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
- * @author GraviteeSource Team
- */
-public class PortalNotificationMapperTest {
+class PortalNotificationMapperTest {
 
-    private static final String NOTIF_ID = "my-notif-id";
-    private static final String NOTIF_TITLE = "my-notif-title";
-    private static final String NOTIF_MESSAGE = "my-notif-message";
+    private final PortalNotificationMapper mapper = new PortalNotificationMapper();
 
     @Test
-    public void testConvert() {
-        Instant now = Instant.now();
-        Date nowDate = Date.from(now);
+    void should_convert_notifications_with_read_state_and_named_references() {
+        var createdAt = Instant.parse("2026-10-30T10:00:00Z");
+        var notification = PortalNotification.builder()
+            .id("n-1")
+            .title("title")
+            .message("message")
+            .createdAt(Date.from(createdAt))
+            .readAt(Date.from(createdAt))
+            .hook("APIKEY_REVOKED")
+            .apiId("api-1")
+            .applicationId("deleted-app")
+            .build();
 
-        //init
-        PortalNotificationEntity portalNotificationEntity = new PortalNotificationEntity();
+        var result = mapper.convert(
+            new SearchUserPortalNotificationsUseCase.Output(
+                new Page<>(List.of(notification), 1, 1, 1),
+                Map.of("api-1", "Payments"),
+                Map.of()
+            )
+        );
 
-        portalNotificationEntity.setCreatedAt(nowDate);
-        portalNotificationEntity.setId(NOTIF_ID);
-        portalNotificationEntity.setMessage(NOTIF_MESSAGE);
-        portalNotificationEntity.setTitle(NOTIF_TITLE);
+        var converted = result.getFirst();
+        assertThat(converted.getId()).isEqualTo("n-1");
+        assertThat(converted.getTitle()).isEqualTo("title");
+        assertThat(converted.getMessage()).isEqualTo("message");
+        assertThat(converted.getCreatedAt()).isEqualTo(createdAt.atOffset(ZoneOffset.UTC));
+        assertThat(converted.getRead()).isTrue();
+        assertThat(converted.getHook()).isEqualTo("APIKEY_REVOKED");
+        assertThat(converted.getApi()).isEqualTo(new PortalNotificationReference().id("api-1").name("Payments"));
+        assertThat(converted.getApplication()).isEqualTo(new PortalNotificationReference().id("deleted-app").name(null));
+    }
 
-        //Test
-        PortalNotification responsePortalNotif = new PortalNotificationMapper().convert(portalNotificationEntity);
-        assertNotNull(responsePortalNotif);
-        assertEquals(NOTIF_ID, responsePortalNotif.getId());
-        assertEquals(NOTIF_MESSAGE, responsePortalNotif.getMessage());
-        assertEquals(NOTIF_TITLE, responsePortalNotif.getTitle());
-        assertEquals(now.toEpochMilli(), responsePortalNotif.getCreatedAt().toInstant().toEpochMilli());
+    @Test
+    void should_convert_legacy_notification_without_references() {
+        var notification = PortalNotification.builder().id("legacy").createdAt(new Date()).build();
+
+        var converted = mapper
+            .convert(new SearchUserPortalNotificationsUseCase.Output(new Page<>(List.of(notification), 1, 1, 1), Map.of(), Map.of()))
+            .getFirst();
+
+        assertThat(converted.getRead()).isFalse();
+        assertThat(converted.getHook()).isNull();
+        assertThat(converted.getApi()).isNull();
+        assertThat(converted.getApplication()).isNull();
+    }
+
+    @Test
+    void should_convert_filters() {
+        var result = mapper.convert(
+            new GetUserPortalNotificationFiltersUseCase.Output(
+                List.of(new NotificationReference("api-1", "Payments")),
+                List.of(new NotificationReference("app-1", null))
+            )
+        );
+
+        assertThat(result.getApis()).containsExactly(new PortalNotificationReference().id("api-1").name("Payments"));
+        assertThat(result.getApplications()).containsExactly(new PortalNotificationReference().id("app-1").name(null));
     }
 }
