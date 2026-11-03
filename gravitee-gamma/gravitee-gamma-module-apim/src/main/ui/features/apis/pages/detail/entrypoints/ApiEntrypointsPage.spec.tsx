@@ -302,6 +302,36 @@ describe('ApiEntrypointsPage', () => {
         expect(deleteBtns[0]).not.toBeDisabled();
     });
 
+    it('saves the root context path "/" when it is the only context path', async () => {
+        renderPage();
+
+        const input = screen.getAllByRole('textbox', { name: /context path/i })[0];
+        fireEvent.change(input, { target: { value: '/' } });
+
+        expect(screen.queryByText(/root context path "\/" is only allowed/i)).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+        await waitFor(() => expect(mockUpdateApiListeners).toHaveBeenCalledTimes(1));
+        const listeners = mockUpdateApiListeners.mock.calls[0][3];
+        expect(listeners).toEqual(expect.arrayContaining([expect.objectContaining({ type: 'HTTP', paths: [{ path: '/' }] })]));
+    });
+
+    it('rejects the root context path "/" when another context path is defined', () => {
+        renderPage();
+
+        const addBtns = screen.getAllByRole('button', { name: /add context path/i });
+        fireEvent.click(addBtns[addBtns.length - 1]);
+
+        const inputs = screen.getAllByRole('textbox', { name: /context path/i });
+        expect((inputs[1] as HTMLInputElement).value).toBe('/');
+        expect(screen.getByText(/root context path "\/" is only allowed when it is the only entrypoint/i)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /save changes/i })).toBeDisabled();
+
+        fireEvent.change(inputs[1], { target: { value: '/v2' } });
+        expect(screen.queryByText(/root context path "\/" is only allowed/i)).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /save changes/i })).not.toBeDisabled();
+    });
+
     it('calls updateApiListeners with correct listeners payload on Save', async () => {
         renderPage();
 

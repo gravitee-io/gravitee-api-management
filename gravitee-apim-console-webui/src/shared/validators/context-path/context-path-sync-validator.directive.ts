@@ -19,16 +19,7 @@ import { isEmpty } from 'lodash';
 const PATH_PATTERN_REGEX = new RegExp(/^\/[/.a-zA-Z0-9-_]*$/);
 
 export const contextPathModePathSyncValidator: ValidatorFn = (formControl: FormControl): ValidationErrors | null => {
-  const errors = virtualHostModePathPathSyncValidator(formControl);
-
-  if (errors == null) {
-    const contextPath: string = formControl.value;
-    if (contextPath.length <= 3) {
-      return { contextPath: 'Context path has to be more than 3 characters long.' };
-    }
-  }
-
-  return errors;
+  return virtualHostModePathPathSyncValidator(formControl);
 };
 
 export const virtualHostModePathPathSyncValidator: ValidatorFn = (formControl: FormControl): ValidationErrors | null => {

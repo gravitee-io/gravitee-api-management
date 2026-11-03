@@ -78,7 +78,12 @@ export function ContextPathsCard({
                     {rows.map(row => {
                         const pathError = validatePath(row.path);
                         const isDuplicate = hasDuplicatePaths && rows.filter(r => r.path === row.path).length > 1;
-                        const error = isDuplicate ? 'Duplicate context path is not allowed.' : pathError;
+                        const isRootWithSiblings = row.path === '/' && rows.length > 1;
+                        const error = isDuplicate
+                            ? 'Duplicate context path is not allowed.'
+                            : isRootWithSiblings
+                              ? 'Root context path "/" is only allowed when it is the only entrypoint.'
+                              : pathError;
 
                         return (
                             <div key={row.id} className="flex items-start gap-2">
