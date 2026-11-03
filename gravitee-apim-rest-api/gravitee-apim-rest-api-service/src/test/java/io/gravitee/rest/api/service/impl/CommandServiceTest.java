@@ -15,15 +15,19 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.node.api.Node;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CommandRepository;
+import io.gravitee.repository.management.api.search.CommandCursor;
 import io.gravitee.repository.management.model.Command;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Organization;
+import io.gravitee.rest.api.model.command.CommandEntity;
 import io.gravitee.rest.api.model.command.CommandQuery;
 import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.model.command.NewCommandEntity;
@@ -31,6 +35,8 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.CommandConverter;
 import io.gravitee.rest.api.service.exceptions.Message2RecipientNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -137,6 +143,93 @@ public class CommandServiceTest {
         when(commandRepository.findById(eq(commandId))).thenReturn(Optional.of(new Command()));
         commandService.ack(commandId);
         verify(commandRepository, times(1)).update(argThat(command -> command.getAcknowledgments().contains("test")));
+    }
+
+    @Test
+    void should_tell_whether_the_command_is_acknowledged() throws TechnicalException {
+        when(node.id()).thenReturn("test");
+        when(commandRepository.findById("known-command")).thenReturn(Optional.of(new Command()));
+        when(commandRepository.findById("unknown-command")).thenReturn(Optional.empty());
+
+        assertTrue(commandService.ackIfExists("known-command"));
+        assertFalse(commandService.ackIfExists("unknown-command"));
+    }
+
+    @Test
+    void should_not_acknowledge_a_command_when_the_database_fails() throws TechnicalException {
+        when(node.id()).thenReturn("test");
+        when(commandRepository.findById("command")).thenReturn(Optional.of(new Command()));
+        when(commandRepository.update(any())).thenThrow(new TechnicalException("database unavailable"));
+
+        assertFalse(commandService.ackIfExists("command"));
+    }
+
+    @Test
+    void should_not_acknowledge_a_command_deleted_while_it_is_acknowledged() throws TechnicalException {
+        when(node.id()).thenReturn("test");
+        when(commandRepository.findById("command")).thenReturn(Optional.of(new Command()));
+        when(commandRepository.update(any())).thenThrow(new IllegalStateException("No command found with id [command]"));
+
+        assertFalse(commandService.ackIfExists("command"));
+    }
+
+    @Test
+    void should_search_the_first_page_with_the_query_tags() {
+        CommandQuery query = new CommandQuery();
+        query.setTo("MANAGEMENT_APIS");
+        query.setNotAckBy("node-1");
+        query.setTags(List.of(CommandTags.SUBSCRIPTION_FAILURE, CommandTags.EMAIL_TEMPLATE_UPDATE));
+
+        commandService.search(query, null, 50);
+
+        verify(commandRepository, times(1)).searchAfter(
+            argThat(
+                criteria ->
+                    "MANAGEMENT_APIS".equals(criteria.getTo()) &&
+                    "node-1".equals(criteria.getNotAckBy()) &&
+                    List.of("SUBSCRIPTION_FAILURE", "EMAIL_TEMPLATE_UPDATE").equals(List.of(criteria.getTags())) &&
+                    criteria.getOrganizationId() == null &&
+                    criteria.getEnvironmentId() == null
+            ),
+            isNull(),
+            eq(50)
+        );
+    }
+
+    @Test
+    void should_search_the_page_after_the_given_command() {
+        CommandEntity after = new CommandEntity();
+        after.setId("last-of-previous-page");
+        after.setCreatedAt(new Date(1_000L));
+
+        commandService.search(new CommandQuery(), after, 50);
+
+        verify(commandRepository, times(1)).searchAfter(any(), eq(new CommandCursor(1_000L, "last-of-previous-page")), eq(50));
+    }
+
+    @Test
+    void should_refuse_to_start_a_page_after_a_command_without_creation_date() {
+        CommandEntity after = new CommandEntity();
+        after.setId("undated");
+
+        assertThrows(IllegalArgumentException.class, () -> commandService.search(new CommandQuery(), after, 50));
+        verify(commandRepository, never()).searchAfter(any(), any(), anyInt());
+    }
+
+    @Test
+    void should_report_whether_the_delete_removed_the_command() throws TechnicalException {
+        when(commandRepository.deleteIfExists("claimed")).thenReturn(true);
+        when(commandRepository.deleteIfExists("already-gone")).thenReturn(false);
+
+        assertTrue(commandService.deleteIfExists("claimed"));
+        assertFalse(commandService.deleteIfExists("already-gone"));
+    }
+
+    @Test
+    void should_fail_when_the_delete_fails() throws TechnicalException {
+        when(commandRepository.deleteIfExists("command")).thenThrow(new TechnicalException("database unavailable"));
+
+        assertThrows(TechnicalManagementException.class, () -> commandService.deleteIfExists("command"));
     }
 
     @Test
