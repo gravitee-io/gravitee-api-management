@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.rest.resource;
 import static io.gravitee.common.component.Lifecycle.State.STARTED;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -33,6 +34,7 @@ import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.api.ApiCRDStatusEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiListItem;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.api.ApiValidationResult;
 import io.gravitee.rest.api.model.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -55,6 +57,31 @@ public class ApisResourceTest extends AbstractResourceTest {
     @Override
     protected String contextPath() {
         return "apis";
+    }
+
+    @Test
+    public void should_reject_unsupported_sort_field() {
+        final Response response = envTarget().queryParam("order", "name) , (select 1 from users").request().get();
+
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        assertFalse("Error must not echo the order parameter", response.readEntity(String.class).contains("select"));
+        verify(apiService, never()).search(any(), any(ApiQuery.class), any(), any());
+    }
+
+    @Test
+    public void should_pass_a_supported_sort_field_to_the_search() {
+        reset(apiService);
+        when(apiService.search(any(), any(ApiQuery.class), any(), any())).thenReturn(new Page<>(List.of(), 1, 0, 0));
+
+        final Response response = envTarget().queryParam("order", "-created_at").request().get();
+
+        assertEquals(OK_200, response.getStatus());
+        verify(apiService).search(
+            any(),
+            any(ApiQuery.class),
+            argThat(sortable -> sortable.getField().equals("created_at") && !sortable.isAscOrder()),
+            any()
+        );
     }
 
     @Test
