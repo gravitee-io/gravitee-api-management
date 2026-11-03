@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model.command;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -32,6 +33,7 @@ public class CommandEntity {
     private long ttlInSeconds;
     private boolean expired;
     private boolean processedInCurrentNode;
+    private Date createdAt;
 
     public String getId() {
         return id;
@@ -103,5 +105,13 @@ public class CommandEntity {
 
     public void setEnvironmentId(String environmentId) {
         this.environmentId = environmentId;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 }
