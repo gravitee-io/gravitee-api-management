@@ -15,7 +15,10 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param;
 
+import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.rest.param.SortableFields;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.ws.rs.QueryParam;
 
 /**
@@ -23,6 +26,8 @@ import jakarta.ws.rs.QueryParam;
  * @author GraviteeSource Team
  */
 public class TicketsParam {
+
+    private static final SortableFields SORTABLE_FIELDS = new SortableFields("created_at", "api", "application", "subject");
 
     @QueryParam("apiId")
     @Parameter(description = "The api identifier used to filter tickets")
@@ -32,7 +37,15 @@ public class TicketsParam {
     @Parameter(description = "The application identifier used to filter tickets")
     private String application;
 
-    private Order orderParam;
+    @QueryParam("order")
+    @Parameter(
+        description = "The field used to sort results. Can be asc or desc (prefix with minus '-') ",
+        example = "-subject",
+        schema = @Schema(
+            allowableValues = { "created_at", "-created_at", "api", "-api", "application", "-application", "subject", "-subject" }
+        )
+    )
+    private String order;
 
     public String getApi() {
         return api;
@@ -50,15 +63,7 @@ public class TicketsParam {
         this.application = application;
     }
 
-    @QueryParam("order")
-    @Parameter(description = "The field used to sort results. Can be asc or desc (prefix with minus '-') ", example = "-subject")
-    public void setOrder(String param) {
-        if (param != null) {
-            orderParam = Order.parse(param);
-        }
-    }
-
-    public Order getOrder() {
-        return orderParam;
+    public Sortable getOrder() {
+        return SORTABLE_FIELDS.toSortable(order);
     }
 }
