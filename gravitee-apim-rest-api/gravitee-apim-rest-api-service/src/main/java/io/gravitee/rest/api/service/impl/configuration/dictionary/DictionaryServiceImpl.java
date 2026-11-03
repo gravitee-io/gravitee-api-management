@@ -258,30 +258,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     public DictionaryEntity create(ExecutionContext executionContext, NewDictionaryEntity newDictionaryEntity) {
         try {
             log.debug("Create dictionary name={} key={}", newDictionaryEntity.getName(), newDictionaryEntity.getKey());
-            final Dictionary dictionary;
-            if (newDictionaryEntity.getKey() == null) {
-                String key = IdGenerator.generate(newDictionaryEntity.getName());
-                Optional<Dictionary> idDictionary = dictionaryRepository.findById(key);
-                ensureRuntimeKeyIsAvailable(executionContext, key, newDictionaryEntity.getName(), idDictionary, false);
-                dictionary = convert(newDictionaryEntity, key, idDictionary.isEmpty());
-            } else {
-                String key = newDictionaryEntity.getKey();
-                Optional<Dictionary> idDictionary = dictionaryRepository.findById(key);
-                ensureRuntimeKeyIsAvailable(executionContext, key, newDictionaryEntity.getName(), idDictionary, true);
-                dictionary = convert(newDictionaryEntity, key, false);
-                // if ID is already set, let's use it
-                if (newDictionaryEntity.getId() != null) {
-                    dictionary.setId(newDictionaryEntity.getId());
-                }
-            }
-            // Convert by setting a UUID as ID and key if not an id in the DB
-
-            dictionary.setEnvironmentId(executionContext.getEnvironmentId());
-
-            // Set date fields
-            dictionary.setCreatedAt(new Date());
-            dictionary.setState(LifecycleState.STOPPED);
-            dictionary.setUpdatedAt(dictionary.getCreatedAt());
+            Dictionary dictionary = resolveForCreate(executionContext, newDictionaryEntity, false);
 
             Dictionary createdDictionary = dictionaryRepository.create(dictionary);
 
@@ -300,13 +277,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         try {
             log.debug("Update dictionary id={} name={}", id, updateDictionaryEntity.getName());
 
-            Dictionary dictionaryToUpdate = dictionaryRepository
-                .findById(id)
-                .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
-                .orElseThrow(() -> new DictionaryNotFoundException(updateDictionaryEntity.getName()));
+            Dictionary dictionaryToUpdate = findInEnvironment(executionContext, id).orElseThrow(() ->
+                new DictionaryNotFoundException(updateDictionaryEntity.getName())
+            );
 
             Dictionary updatedDictionary = dictionaryRepository.update(
-                withUnmanagedFieldsOf(convert(updateDictionaryEntity, dictionaryToUpdate), id, dictionaryToUpdate)
+                resolveForUpdate(id, updateDictionaryEntity, dictionaryToUpdate, false)
             );
 
             restartIfAlreadyStarted(executionContext, id, updatedDictionary);
@@ -325,6 +301,63 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 ex
             );
         }
+    }
+
+    @Override
+    public void validateCreate(ExecutionContext executionContext, NewDictionaryEntity newDictionaryEntity) {
+        try {
+            resolveForCreate(executionContext, newDictionaryEntity, true);
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(
+                "An error occurs while trying to validate dictionary '" + newDictionaryEntity.getName() + "'",
+                ex
+            );
+        }
+    }
+
+    @Override
+    public void validateUpdate(ExecutionContext executionContext, String id, UpdateDictionaryEntity updateDictionaryEntity) {
+        try {
+            Dictionary stored = findInEnvironment(executionContext, id).orElseThrow(() ->
+                new DictionaryNotFoundException(updateDictionaryEntity.getName())
+            );
+
+            resolveForUpdate(id, updateDictionaryEntity, stored, true);
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(
+                "An error occurs while trying to validate dictionary '" + updateDictionaryEntity.getName() + "'",
+                ex
+            );
+        }
+    }
+
+    private Dictionary resolveForCreate(ExecutionContext executionContext, NewDictionaryEntity newDictionaryEntity, boolean dryRun)
+        throws TechnicalException {
+        boolean explicitKey = newDictionaryEntity.getKey() != null;
+        String key = explicitKey ? newDictionaryEntity.getKey() : IdGenerator.generate(newDictionaryEntity.getName());
+        Optional<Dictionary> idDictionary = dictionaryRepository.findById(key);
+        ensureRuntimeKeyIsAvailable(executionContext, key, newDictionaryEntity.getName(), idDictionary, explicitKey);
+
+        Dictionary dictionary = convert(newDictionaryEntity, key, !explicitKey && idDictionary.isEmpty(), dryRun);
+        if (explicitKey && newDictionaryEntity.getId() != null) {
+            dictionary.setId(newDictionaryEntity.getId());
+        }
+
+        dictionary.setEnvironmentId(executionContext.getEnvironmentId());
+        dictionary.setCreatedAt(new Date());
+        dictionary.setState(LifecycleState.STOPPED);
+        dictionary.setUpdatedAt(dictionary.getCreatedAt());
+        return dictionary;
+    }
+
+    private Dictionary resolveForUpdate(String id, UpdateDictionaryEntity updateDictionaryEntity, Dictionary stored, boolean dryRun) {
+        return withUnmanagedFieldsOf(convert(updateDictionaryEntity, stored, dryRun), id, stored);
+    }
+
+    private Optional<Dictionary> findInEnvironment(ExecutionContext executionContext, String id) throws TechnicalException {
+        return dictionaryRepository
+            .findById(id)
+            .filter(dictionary -> dictionary.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()));
     }
 
     private static Dictionary withUnmanagedFieldsOf(Dictionary dictionary, String id, Dictionary stored) {
@@ -653,7 +686,8 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         String dictionaryId,
         Map<String, String> properties,
         Map<String, DictionaryPropertyOptions> options,
-        Map<String, DictionaryProperty> existing
+        Map<String, DictionaryProperty> existing,
+        boolean dryRun
     ) {
         if (properties == null) {
             rejectOptionsWithoutProperty(Map.of(), options);
@@ -666,7 +700,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             .stream()
             .collect(
                 Collectors.toMap(Map.Entry::getKey, entry ->
-                    toTypedProperty(dictionaryId, entry, optionsFor(options, entry.getKey()), existing)
+                    toTypedProperty(dictionaryId, entry, optionsFor(options, entry.getKey()), existing, dryRun)
                 )
             );
     }
@@ -704,7 +738,8 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         String dictionaryId,
         Map.Entry<String, String> property,
         DictionaryPropertyOptions options,
-        Map<String, DictionaryProperty> existing
+        Map<String, DictionaryProperty> existing,
+        boolean dryRun
     ) {
         DictionaryProperty stored = existing == null ? null : existing.get(property.getKey());
         boolean storedEncrypted = stored != null && stored.encrypted();
@@ -728,6 +763,10 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         if (storedEncrypted && Objects.equals(stored.value(), property.getValue())) {
             // must precede the decrypt-and-compare below, or a raw ciphertext resend is encrypted twice
             return stored;
+        }
+        if (dryRun) {
+            // Skips the encrypt step: it is write work, and its decrypt failure warns about re-encrypting.
+            return new DictionaryProperty(property.getValue(), true);
         }
         return encryptUnlessStoredDecryptsTo(dictionaryId, property.getKey(), property.getValue(), stored);
     }
@@ -917,7 +956,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             );
     }
 
-    private Dictionary convert(UpdateDictionaryEntity updateDictionaryEntity, Dictionary existing) {
+    private Dictionary convert(UpdateDictionaryEntity updateDictionaryEntity, Dictionary existing, boolean dryRun) {
         Dictionary dictionary = new Dictionary();
 
         dictionary.setName(updateDictionaryEntity.getName());
@@ -927,7 +966,8 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 existing.getId(),
                 updateDictionaryEntity.getProperties(),
                 updateDictionaryEntity.getPropertyOptions(),
-                existing.getProperties()
+                existing.getProperties(),
+                dryRun
             )
         );
 
@@ -948,7 +988,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         return dictionary;
     }
 
-    private Dictionary convert(NewDictionaryEntity newDictionaryEntity, String key, boolean keyIsUniqueAcrossAllEnvs) {
+    private Dictionary convert(NewDictionaryEntity newDictionaryEntity, String key, boolean keyIsUniqueAcrossAllEnvs, boolean dryRun) {
         Dictionary dictionary = new Dictionary();
         // This is for legacy dictionaries to be backward compatible
         dictionary.setId(keyIsUniqueAcrossAllEnvs ? key : UuidString.generateRandom());
@@ -964,7 +1004,13 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
         if (type == io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL) {
             dictionary.setProperties(
-                toTypedProperties(dictionary.getId(), newDictionaryEntity.getProperties(), newDictionaryEntity.getPropertyOptions(), null)
+                toTypedProperties(
+                    dictionary.getId(),
+                    newDictionaryEntity.getProperties(),
+                    newDictionaryEntity.getPropertyOptions(),
+                    null,
+                    dryRun
+                )
             );
         } else {
             dictionary.setProvider(convert(newDictionaryEntity.getProvider()));
