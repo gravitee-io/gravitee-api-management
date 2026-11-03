@@ -3495,6 +3495,7 @@ paths:
                 - Portal
             summary: Get the portal theme logo.
             operationId: getPortalThemeLogo
+            x-gravitee-portal: both
             security:
                 - {}
                 - BasicAuth: []
@@ -3516,6 +3517,7 @@ paths:
                 - Portal
             summary: Get the optional portal theme logo, falling back to the logo when absent.
             operationId: getPortalThemeOptionalLogo
+            x-gravitee-portal: classic
             security:
                 - {}
                 - BasicAuth: []
@@ -3537,6 +3539,7 @@ paths:
                 - Portal
             summary: Get the portal theme background image.
             operationId: getPortalThemeBackgroundImage
+            x-gravitee-portal: classic
             security:
                 - {}
                 - BasicAuth: []
@@ -3558,6 +3561,7 @@ paths:
                 - Portal
             summary: Get the portal theme favicon.
             operationId: getPortalThemeFavicon
+            x-gravitee-portal: both
             security:
                 - {}
                 - BasicAuth: []
