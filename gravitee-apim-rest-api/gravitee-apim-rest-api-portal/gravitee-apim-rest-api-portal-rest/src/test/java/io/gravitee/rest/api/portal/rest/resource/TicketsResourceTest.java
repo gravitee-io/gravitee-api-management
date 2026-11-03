@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
@@ -255,5 +256,16 @@ public class TicketsResourceTest extends AbstractResourceTest {
                 RolePermissionAction.READ
             )
         ).thenReturn(allowed);
+    }
+
+    @Test
+    public void should_reject_unsupported_sort_field() {
+        resetAllMocks();
+
+        Response response = target().queryParam("order", "subject) , (select 1 from users").request().get();
+
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        assertFalse("Error must not echo the order parameter", response.readEntity(String.class).contains("select"));
+        verifyNoInteractions(ticketService);
     }
 }

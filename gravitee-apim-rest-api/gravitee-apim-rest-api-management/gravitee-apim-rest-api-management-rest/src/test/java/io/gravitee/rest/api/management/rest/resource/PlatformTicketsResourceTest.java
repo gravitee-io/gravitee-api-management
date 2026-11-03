@@ -15,12 +15,14 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -177,6 +179,17 @@ public class PlatformTicketsResourceTest extends AbstractResourceTest {
             argThat(o -> o.getField().equals("subject") && !o.isAscOrder()),
             argThat(o -> o.getPageNumber() == 1 && o.getPageSize() == 10)
         );
+    }
+
+    @Test
+    public void should_reject_unsupported_sort_field() {
+        reset(ticketService);
+
+        Response response = envTarget().queryParam("order", "subject) , (select 1 from users").request().get();
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+        assertFalse("Error must not echo the order parameter", response.readEntity(String.class).contains("select"));
+        verifyNoInteractions(ticketService);
     }
 
     @Test
