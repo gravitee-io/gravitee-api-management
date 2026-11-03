@@ -1785,10 +1785,8 @@ components:
         encryptedProperties:
           type: object
           description: >-
-            Secret properties, keyed by the property key. Their values are write-only: they are never
-            returned, so a client can compare a `GET` against its manifest without seeing a difference
-            on a value it cannot read back. A key must not appear in both `properties` and
-            `encryptedProperties`.
+            Secret properties, keyed by the property key. A key must not appear in both
+            `properties` and `encryptedProperties`.
           additionalProperties:
             $ref: "#/components/schemas/EncryptableValue"
     EncryptableValue:
@@ -1796,9 +1794,10 @@ components:
       type: object
       properties:
         value:
-          description: The plaintext value to encrypt on save.
+          description: >-
+            `••••••••••••` on a read. On a write, the plaintext to encrypt, or the mask to keep
+            the stored value.
           type: string
-          writeOnly: true
       required:
         - value
     DynamicDictionarySpec:
