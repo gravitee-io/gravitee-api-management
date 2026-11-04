@@ -9,3 +9,7 @@ databaseChangeLog:
               - column: { name: processed, type: int, constraints: { nullable: true } }
               - column: { name: details, type: nclob, constraints: { nullable: true } }
               - column: { name: errors, type: nclob, constraints: { nullable: true } }
+        - dropNotNullConstraint:
+            tableName: ${gravitee_prefix}asyncjobs
+            columnName: upper_limit
+            columnDataType: int

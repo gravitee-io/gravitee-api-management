@@ -31,6 +31,9 @@ import lombok.With;
 @AllArgsConstructor
 public class AsyncJob {
 
+    /** The most per-item errors a job stores; further ones are dropped. */
+    public static final int MAX_ERRORS = 1000;
+
     String id;
 
     /**
@@ -73,7 +76,7 @@ public class AsyncJob {
     @Nullable
     String details;
 
-    /** Per-item failures; the failure of the job itself goes to {@link #errorMessage}. */
+    /** Per-item failures, at most {@link #MAX_ERRORS}; the failure of the job itself goes to {@link #errorMessage}. */
     @Builder.Default
     List<AsyncJobError> errors = List.of();
 

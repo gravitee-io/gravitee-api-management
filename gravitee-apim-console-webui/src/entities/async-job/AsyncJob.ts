@@ -23,10 +23,20 @@ export interface AsyncJob {
   type: AsyncJobType;
   status: AsyncJobStatus;
   errorMessage?: string;
+  upperLimit?: number;
+  processed?: number;
+  details?: Record<string, unknown>;
+  errors?: AsyncJobError[];
 
   createdAt: string;
   updatedAt: string;
 }
 
-export type AsyncJobType = 'FEDERATED_APIS_INGESTION' | 'SCORING_REQUEST';
-export type AsyncJobStatus = 'ERROR' | 'PENDING' | 'SUCCESS' | 'TIMEOUT';
+export interface AsyncJobError {
+  code: string;
+  message: string;
+  itemId?: string;
+}
+
+export type AsyncJobType = 'FEDERATED_APIS_INGESTION' | 'SCORING_REQUEST' | 'AM_USER_SYNC' | 'AIM_AGENT_DISCOVERY' | 'AIM_AGENT_IMPORT';
+export type AsyncJobStatus = 'ERROR' | 'PENDING' | 'SUCCESS' | 'TIMEOUT' | 'PARTIAL';

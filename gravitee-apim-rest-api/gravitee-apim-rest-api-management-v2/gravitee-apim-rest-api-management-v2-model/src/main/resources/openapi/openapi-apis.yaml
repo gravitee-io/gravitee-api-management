@@ -4068,13 +4068,7 @@ paths:
                   required: false
                   description: Type to filter
                   schema:
-                      type: string
-                      enum:
-                          - FEDERATED_APIS_INGESTION
-                          - SCORING_REQUEST
-                          - AM_USER_SYNC
-                          - AIM_AGENT_DISCOVERY
-                          - AIM_AGENT_IMPORT
+                      $ref: "#/components/schemas/AsyncJobType"
                 - name: status
                   in: query
                   required: false
@@ -9638,15 +9632,7 @@ components:
                     description: User id who triggered this job.
                     example: 660bf428-4f06-451f-8144-10bbb581db65
                 type:
-                    type: string
-                    description: Resource id related to this job.
-                    example: FEDERATED_APIS_INGESTION
-                    enum:
-                        - FEDERATED_APIS_INGESTION
-                        - SCORING_REQUEST
-                        - AM_USER_SYNC
-                        - AIM_AGENT_DISCOVERY
-                        - AIM_AGENT_IMPORT
+                    $ref: "#/components/schemas/AsyncJobType"
                 status:
                     $ref: "#/components/schemas/AsyncJobStatus"
                 errorMessage:
@@ -9681,6 +9667,16 @@ components:
                     format: date-time
                     description: The date when the job has been updated.
                     example: 2023-05-18T12:40:46.184Z
+        AsyncJobType:
+            type: string
+            description: Type of the job.
+            example: FEDERATED_APIS_INGESTION
+            enum:
+                - FEDERATED_APIS_INGESTION
+                - SCORING_REQUEST
+                - AM_USER_SYNC
+                - AIM_AGENT_DISCOVERY
+                - AIM_AGENT_IMPORT
         AsyncJobStatus:
             type: string
             description: Status of the job.

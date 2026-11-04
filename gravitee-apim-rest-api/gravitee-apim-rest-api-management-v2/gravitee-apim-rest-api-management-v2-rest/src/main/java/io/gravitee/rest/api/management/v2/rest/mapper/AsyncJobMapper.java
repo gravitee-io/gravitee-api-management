@@ -21,12 +21,13 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.management.v2.rest.model.AsyncJob;
 import io.gravitee.rest.api.management.v2.rest.model.AsyncJobStatus;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.management.v2.rest.model.AsyncJobType;
 import java.util.List;
 import java.util.Map;
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 
@@ -36,23 +37,29 @@ public interface AsyncJobMapper {
     AsyncJobMapper INSTANCE = Mappers.getMapper(AsyncJobMapper.class);
     GraviteeMapper DETAILS_JSON = new GraviteeMapper();
 
-    @Mapping(target = "details", source = "details", qualifiedByName = "deserializeDetails")
+    @Mapping(target = "details", ignore = true)
     AsyncJob map(io.gravitee.apim.core.async_job.model.AsyncJob source);
 
     List<AsyncJob> map(List<io.gravitee.apim.core.async_job.model.AsyncJob> source);
 
-    io.gravitee.apim.core.async_job.model.AsyncJob.Type map(AsyncJob.TypeEnum source);
+    io.gravitee.apim.core.async_job.model.AsyncJob.Type map(AsyncJobType source);
     io.gravitee.apim.core.async_job.model.AsyncJob.Status map(AsyncJobStatus source);
 
-    @Named("deserializeDetails")
-    default Map<String, Object> deserializeDetails(String details) {
-        if (details == null) {
-            return null;
+    /**
+     * Details are written by the job's owner, possibly another module: blank or unreadable details are logged and left
+     * out, so that one job never fails the listing of the others.
+     */
+    @AfterMapping
+    default void readDetails(io.gravitee.apim.core.async_job.model.AsyncJob source, @MappingTarget AsyncJob target) {
+        var details = source.getDetails();
+        if (details == null || details.isBlank()) {
+            return;
         }
         try {
-            return DETAILS_JSON.readValue(details, new TypeReference<>() {});
+            Map<String, Object> parsed = DETAILS_JSON.readValue(details, new TypeReference<>() {});
+            target.setDetails(parsed);
         } catch (JsonProcessingException e) {
-            throw new TechnicalManagementException("Failed to parse async job details", e);
+            log.warn("Ignoring unreadable details of async job {}", source.getId(), e);
         }
     }
 }
