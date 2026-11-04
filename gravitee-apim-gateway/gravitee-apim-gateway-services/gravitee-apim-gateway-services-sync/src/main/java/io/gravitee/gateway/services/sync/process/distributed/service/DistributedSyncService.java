@@ -20,6 +20,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.Api
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.approvalrule.ApprovalRuleDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.approvalstate.ApprovalStateDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzPolicyReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.credential.CredentialDeployable;
@@ -77,4 +78,6 @@ public interface DistributedSyncService {
     Completable distributeIfNeeded(final CredentialDeployable deployable);
 
     Completable distributeIfNeeded(final ApprovalRuleDeployable deployable);
+
+    Completable distributeIfNeeded(final ApprovalStateDeployable deployable);
 }

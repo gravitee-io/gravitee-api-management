@@ -24,6 +24,7 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.ApprovalRuleManager;
+import io.gravitee.gateway.handlers.api.manager.ApprovalStateManager;
 import io.gravitee.gateway.handlers.api.manager.CredentialManager;
 import io.gravitee.gateway.handlers.cluster.manager.ClusterManager;
 import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
@@ -83,6 +84,8 @@ public class DeployerFactory {
     private final CredentialManager credentialManager;
 
     private final ApprovalRuleManager approvalRuleManager;
+
+    private final ApprovalStateManager approvalStateManager;
 
     public SubscriptionDeployer createSubscriptionDeployer() {
         return new SubscriptionDeployer(
@@ -162,5 +165,9 @@ public class DeployerFactory {
 
     public ApprovalRuleDeployer createApprovalRuleDeployer() {
         return new ApprovalRuleDeployer(approvalRuleManager, distributedSyncService);
+    }
+
+    public ApprovalStateDeployer createApprovalStateDeployer() {
+        return new ApprovalStateDeployer(approvalStateManager, distributedSyncService);
     }
 }

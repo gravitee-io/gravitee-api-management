@@ -77,6 +77,13 @@ class OrderTest {
     }
 
     @Test
+    void approval_state_order_runs_after_approval_rules_and_the_apis_it_is_filtered_by() {
+        assertThat(Order.APPROVAL_STATE.index()).isGreaterThan(Order.APPROVAL_RULE.index());
+        assertThat(Order.APPROVAL_STATE.index()).isGreaterThan(Order.API.index());
+        assertThat(Order.APPROVAL_STATE.index()).isGreaterThan(Order.DEBUG.index());
+    }
+
+    @Test
     void enum_contains_all_expected_orders_with_no_silent_removal() {
         Set<String> names = Arrays.stream(Order.values()).map(Order::name).collect(Collectors.toUnmodifiableSet());
         assertThat(names).contains(
@@ -96,7 +103,8 @@ class OrderTest {
             "AUTHZ_ENTITY",
             "AUTHZ_POLICY",
             "CREDENTIAL",
-            "APPROVAL_RULE"
+            "APPROVAL_RULE",
+            "APPROVAL_STATE"
         );
     }
 }

@@ -28,6 +28,7 @@ import io.gravitee.definition.model.Organization;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
+import io.gravitee.gateway.handlers.api.manager.impl.ApprovalStateJson;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
@@ -37,6 +38,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiProductMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApprovalRuleMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.ApprovalStateMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.NodeMetadataMapper;
@@ -49,6 +51,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.Api
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.approvalrule.ApprovalRuleDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.approvalstate.ApprovalStateDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.credential.CredentialDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
@@ -66,6 +69,7 @@ import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import java.time.Clock;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -135,7 +139,8 @@ class DefaultDistributedSyncServiceTest {
             new io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzPolicyMapper(objectMapper),
             new ApiProductMapper(objectMapper),
             new io.gravitee.gateway.services.sync.process.distributed.mapper.CredentialMapper(objectMapper),
-            new ApprovalRuleMapper(objectMapper)
+            new ApprovalRuleMapper(objectMapper),
+            new ApprovalStateMapper(new ApprovalStateJson(objectMapper), Clock.systemUTC())
         );
     }
 
@@ -162,6 +167,7 @@ class DefaultDistributedSyncServiceTest {
                 null,
                 distributedEventRepository,
                 distributedSyncStateRepository,
+                null,
                 null,
                 null,
                 null,
@@ -266,6 +272,17 @@ class DefaultDistributedSyncServiceTest {
             cut
                 .distributeIfNeeded(
                     ApprovalRuleDeployable.builder().approvalRuleId("approval-rule-id").syncAction(SyncAction.UNDEPLOY).build()
+                )
+                .test()
+                .assertComplete();
+            verify(distributedEventRepository).createOrUpdate(any());
+        }
+
+        @Test
+        void should_distribute_approval_state() {
+            cut
+                .distributeIfNeeded(
+                    ApprovalStateDeployable.builder().approvalRequestId("approval-request-id").syncAction(SyncAction.UNDEPLOY).build()
                 )
                 .test()
                 .assertComplete();
@@ -395,6 +412,17 @@ class DefaultDistributedSyncServiceTest {
             cut
                 .distributeIfNeeded(
                     ApprovalRuleDeployable.builder().approvalRuleId("approval-rule-id").syncAction(SyncAction.UNDEPLOY).build()
+                )
+                .test()
+                .assertComplete();
+            verifyNoInteractions(distributedEventRepository);
+        }
+
+        @Test
+        void should_not_call_repository_when_distributing_approval_state() {
+            cut
+                .distributeIfNeeded(
+                    ApprovalStateDeployable.builder().approvalRequestId("approval-request-id").syncAction(SyncAction.UNDEPLOY).build()
                 )
                 .test()
                 .assertComplete();
