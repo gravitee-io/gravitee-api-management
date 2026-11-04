@@ -9,12 +9,13 @@
     "customManagers": [
         {
             "customType": "regex",
-            "description": "Reads the gbuddy pin (hub: x.y.z) in .ai/manifest.yaml as a version of the @gravitee-io/gbuddy package.",
+            "description": "Reads the gbuddy pin (hub: x.y.z) in .ai/manifest.yaml as a version of gbuddy, and looks new versions up on the hub's release pages.",
             "managerFilePatterns": ["/(^|/)\\.ai/manifest\\.yaml$/"],
             "matchStrings": ["(?:^|\\n)hub:\\s*[\"']?(?<currentValue>\\d+\\.\\d+\\.\\d+)[\"']?"],
             "depNameTemplate": "@gravitee-io/gbuddy",
-            "datasourceTemplate": "npm",
-            "registryUrlTemplate": "https://npm.pkg.github.com"
+            "packageNameTemplate": "gravitee-io/gravitee-ai-foundation",
+            "datasourceTemplate": "github-releases",
+            "extractVersionTemplate": "^v(?<version>.+)$"
         }
     ],
     "gitIgnoredAuthors": ["gbuddy-update@users.noreply.github.com"],
@@ -119,6 +120,8 @@
         {
             "description": "The gbuddy pin pull request opens at once, so the update workflow can report on it.",
             "matchDepNames": ["@gravitee-io/gbuddy"],
+            "fetchChangeLogs": "off",
+            "prBodyDefinitions": { "Package": "`{{{depName}}}`" },
             "prCreation": "immediate",
             "prBodyNotes": [
                 "This pull request raises the gbuddy pin. A workflow adds the regenerated AI context files and removes the ones this release no longer generates. Review the rule and skill text that changed. Questions: the Builder Experience team."
