@@ -19,13 +19,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.distributed.DistributedSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.distributed.service.NoopDistributedSyncService;
+import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.handler.SyncHandler;
+import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.approvalrule.ApprovalRuleMapper;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.approvalrule.ApprovalRuleSynchronizer;
 import io.gravitee.node.api.Node;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
@@ -35,6 +43,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
@@ -328,6 +338,52 @@ class DefaultSyncManagerTest {
             inOrder.verify(synchronizer2).synchronize(argThat(from -> from != -1L), any(), anySet());
         } finally {
             RxJavaPlugins.reset();
+        }
+    }
+
+    @Test
+    void should_not_deploy_any_api_while_the_initial_approval_rules_cannot_be_fetched() throws Exception {
+        try {
+            final TestScheduler testScheduler = new TestScheduler();
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+            LatestEventFetcher fetcher = mock(LatestEventFetcher.class);
+            lenient().when(fetcher.bulkItems()).thenReturn(1);
+            when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(
+                Flowable.error(new RuntimeException("repository down"))
+            );
+            RepositorySynchronizer approvalRules = new ApprovalRuleSynchronizer(
+                fetcher,
+                new ApprovalRuleMapper(new ObjectMapper()),
+                mock(EnvironmentService.class),
+                mock(DeployerFactory.class),
+                new CallerRunsExecutor(),
+                new CallerRunsExecutor()
+            );
+            RepositorySynchronizer apis = spy(new FakeSynchronizer(Completable.complete(), Order.API.index()));
+            synchronizers.add(apis);
+            synchronizers.add(approvalRules);
+
+            cut.start();
+            testScheduler.advanceTimeBy(1, TimeUnit.MINUTES);
+
+            verify(fetcher, atLeast(2)).fetchLatest(eq(-1L), any(), any(), any(), any());
+            verify(apis, never()).synchronize(any(), any(), anySet());
+            assertThat(cut.syncDone()).isFalse();
+        } finally {
+            RxJavaPlugins.reset();
+        }
+    }
+
+    /** Runs the synchronizer's work on the calling thread, so the sync cycle is driven by the test scheduler alone. */
+    private static final class CallerRunsExecutor extends ThreadPoolExecutor {
+
+        CallerRunsExecutor() {
+            super(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        }
+
+        @Override
+        public void execute(Runnable command) {
+            command.run();
         }
     }
 }

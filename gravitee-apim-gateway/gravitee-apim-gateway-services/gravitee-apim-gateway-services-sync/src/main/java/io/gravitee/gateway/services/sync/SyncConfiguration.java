@@ -24,6 +24,7 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
+import io.gravitee.gateway.handlers.api.manager.ApprovalRuleManager;
 import io.gravitee.gateway.handlers.api.manager.CredentialManager;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.handlers.cluster.manager.ClusterManager;
@@ -267,7 +268,8 @@ public class SyncConfiguration {
         ApiProductManager apiProductManager,
         @Autowired(required = false) ApiProductSubscriptionRefresher apiProductSubscriptionRefresher,
         AuthzEnginePort authzEnginePort,
-        CredentialManager credentialManager
+        CredentialManager credentialManager,
+        ApprovalRuleManager approvalRuleManager
     ) {
         Supplier<SubscriptionDispatcher> subscriptionDispatcherSupplier = provideSubscriptionDispatcher(subscriptionDispatcher);
         return new DeployerFactory(
@@ -292,7 +294,8 @@ public class SyncConfiguration {
             apiProductManager,
             apiProductSubscriptionRefresher,
             authzEnginePort,
-            credentialManager
+            credentialManager,
+            approvalRuleManager
         );
     }
 
