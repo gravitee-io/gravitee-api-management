@@ -37,5 +37,5 @@ jobs:
         runs-on: ubuntu-slim
         timeout-minutes: 5
         steps:
-            - uses: actions/checkout@v6.1.0
+            - uses: actions/checkout@v7.0.1
             - run: node .github/scripts/verify-ai-context.mjs
