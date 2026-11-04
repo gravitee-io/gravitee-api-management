@@ -40,6 +40,13 @@ class DistributedSyncConfigurationTest {
         assertThat(bean.getReturnType()).isEqualTo(io.gravitee.gateway.services.sync.process.distributed.mapper.ApprovalRuleMapper.class);
     }
 
+    @Test
+    void declares_distributed_approval_state_synchronizer_bean_under_gamma_condition() {
+        Method bean = beanMethod("distributedApprovalStateSynchronizer");
+        assertThat(bean).isNotNull();
+        assertThat(isGammaConditional(bean)).isTrue();
+    }
+
     private static Method beanMethod(String name) {
         return Arrays.stream(DistributedSyncConfiguration.class.getDeclaredMethods())
             .filter(m -> m.getName().equals(name) && m.isAnnotationPresent(Bean.class))
