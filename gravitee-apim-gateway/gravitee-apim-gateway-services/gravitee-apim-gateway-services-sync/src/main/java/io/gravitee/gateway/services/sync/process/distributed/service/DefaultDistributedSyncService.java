@@ -23,6 +23,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiProductMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApprovalRuleMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.ApprovalStateMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzEntityMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzPolicyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.CredentialMapper;
@@ -38,6 +39,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.Api
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.approvalrule.ApprovalRuleDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.approvalstate.ApprovalStateDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzPolicyReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.credential.CredentialDeployable;
@@ -100,6 +102,8 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     private final ApiProductMapper apiProductMapper;
     private final CredentialMapper credentialMapper;
     private final ApprovalRuleMapper approvalRuleMapper;
+
+    private final ApprovalStateMapper approvalStateMapper;
 
     @Override
     public void validate() {
@@ -319,6 +323,18 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
                 return trackFailure(distribute(approvalRuleMapper.to(deployable)), "approval rule", deployable.id());
             }
             log.debug("Not a primary node, skipping approval rule event distribution");
+            return Completable.complete();
+        });
+    }
+
+    @Override
+    public Completable distributeIfNeeded(final ApprovalStateDeployable deployable) {
+        return Completable.defer(() -> {
+            if (isPrimaryNode()) {
+                log.debug("Node is primary, distributing approval state event for {}", deployable.id());
+                return trackFailure(distribute(approvalStateMapper.to(deployable)), "approval state", deployable.id());
+            }
+            log.debug("Not a primary node, skipping approval state event distribution");
             return Completable.complete();
         });
     }

@@ -62,6 +62,8 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.approvalrule.ApprovalRuleMapper;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.approvalrule.ApprovalRuleSynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.approvalstate.ApprovalStateMapper;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.approvalstate.ApprovalStateSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzAppliedRevisions;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityMapper;
@@ -343,6 +345,32 @@ public class RepositorySyncConfiguration {
         return new ApprovalRuleSynchronizer(
             eventsFetcher,
             approvalRuleMapper,
+            environmentService,
+            deployerFactory,
+            syncFetcherExecutor,
+            syncDeployerExecutor
+        );
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public ApprovalStateMapper approvalStateMapper(ObjectMapper objectMapper) {
+        return new ApprovalStateMapper(objectMapper);
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public ApprovalStateSynchronizer approvalStateSynchronizer(
+        LatestEventFetcher eventsFetcher,
+        ApprovalStateMapper approvalStateMapper,
+        EnvironmentService environmentService,
+        DeployerFactory deployerFactory,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
+    ) {
+        return new ApprovalStateSynchronizer(
+            eventsFetcher,
+            approvalStateMapper,
             environmentService,
             deployerFactory,
             syncFetcherExecutor,
