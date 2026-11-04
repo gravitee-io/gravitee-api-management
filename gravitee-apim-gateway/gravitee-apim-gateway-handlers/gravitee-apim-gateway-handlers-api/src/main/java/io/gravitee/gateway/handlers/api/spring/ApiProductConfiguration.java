@@ -16,12 +16,16 @@
 package io.gravitee.gateway.handlers.api.spring;
 
 import io.gravitee.common.event.EventManager;
+import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
+import io.gravitee.gateway.handlers.api.manager.ApiProductResourceManagerFactory;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiProductManagerImpl;
+import io.gravitee.gateway.handlers.api.manager.impl.DefaultApiProductResourceManagerFactory;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.handlers.api.registry.impl.ApiProductRegistryImpl;
 import io.gravitee.node.api.license.LicenseManager;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -38,12 +42,27 @@ public class ApiProductConfiguration {
     }
 
     @Bean
+    public ApiProductResourceManagerFactory apiProductResourceManagerFactory(
+        ApplicationContext applicationContext,
+        ComponentProvider componentProvider
+    ) {
+        return new DefaultApiProductResourceManagerFactory(applicationContext, componentProvider);
+    }
+
+    @Bean
     public ApiProductManager apiProductManager(
         ApiProductRegistry apiProductRegistry,
         EventManager eventManager,
         LicenseManager licenseManager,
-        GatewayConfiguration gatewayConfiguration
+        GatewayConfiguration gatewayConfiguration,
+        ApiProductResourceManagerFactory apiProductResourceManagerFactory
     ) {
-        return new ApiProductManagerImpl(apiProductRegistry, eventManager, licenseManager, gatewayConfiguration);
+        return new ApiProductManagerImpl(
+            apiProductRegistry,
+            eventManager,
+            licenseManager,
+            gatewayConfiguration,
+            apiProductResourceManagerFactory
+        );
     }
 }

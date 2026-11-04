@@ -268,6 +268,60 @@ class ApiProductMapperTest {
 
         @SneakyThrows
         @Test
+        void should_map_resources_from_payload() {
+            Organization organization = new Organization();
+            organization.setId("org-id");
+            organization.setHrids(List.of("org-hrid"));
+            when(organizationRepository.findById(organization.getId())).thenReturn(Optional.of(organization));
+
+            Environment environment = new Environment();
+            environment.setId("env-id");
+            environment.setHrids(List.of("env-hrid"));
+            environment.setOrganizationId(organization.getId());
+            when(environmentRepository.findById("env-id")).thenReturn(Optional.of(environment));
+
+            Event event = new Event();
+            event.setCreatedAt(new Date());
+            event.setPayload(
+                objectMapper.writeValueAsString(
+                    Map.of(
+                        "id",
+                        "api-product-resources",
+                        "name",
+                        "Resources Product",
+                        "version",
+                        "1.0",
+                        "apiIds",
+                        Set.of("api-1"),
+                        "environmentId",
+                        "env-id",
+                        "resources",
+                        List.of(
+                            Map.of("name", "cache", "type", "cache", "configuration", Map.of("ttl", 10), "enabled", true),
+                            Map.of("name", "oauth", "type", "oauth2", "configuration", Map.of(), "enabled", false)
+                        )
+                    )
+                )
+            );
+
+            cut
+                .to(event)
+                .test()
+                .assertValue(reactableApiProduct -> {
+                    assertThat(reactableApiProduct.getResources()).hasSize(2);
+                    assertThat(reactableApiProduct.getResources().get(0).getName()).isEqualTo("cache");
+                    assertThat(reactableApiProduct.getResources().get(0).getType()).isEqualTo("cache");
+                    assertThat(reactableApiProduct.getResources().get(0).isEnabled()).isTrue();
+                    assertThat(reactableApiProduct.getResources().get(1).getName()).isEqualTo("oauth");
+                    assertThat(reactableApiProduct.getResources().get(1).isEnabled()).isFalse();
+                    assertThat(reactableApiProduct.dependencies(io.gravitee.definition.model.v4.resource.Resource.class)).hasSize(2);
+                    return true;
+                })
+                .assertComplete();
+        }
+
+        @SneakyThrows
+        @Test
         void should_return_empty_when_payload_is_invalid_json() {
             Event event = new Event();
             event.setId("event-id");

@@ -20,17 +20,21 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.event.EventManager;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
 import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
+import io.gravitee.gateway.handlers.api.manager.ApiProductResourceManagerFactory;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
+import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
 import io.reactivex.rxjava3.core.Completable;
@@ -73,15 +77,22 @@ class ApiProductManagerImplTest {
     @Mock
     private GatewayConfiguration gatewayConfiguration;
 
+    @Mock
+    private ApiProductResourceManagerFactory resourceManagerFactory;
+
+    @Mock
+    private ResourceLifecycleManager resourceLifecycleManager;
+
     private ApiProductManagerImpl manager;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         lenient().when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(license);
         lenient().when(license.isFeatureEnabled("apim-api-products")).thenReturn(true);
         lenient().when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(List.of("internal")));
         lenient().when(gatewayConfiguration.hasMatchingTags(any())).thenReturn(true);
-        manager = new ApiProductManagerImpl(apiProductRegistry, eventManager, licenseManager, gatewayConfiguration);
+        lenient().when(resourceManagerFactory.create(any(ReactableApiProduct.class))).thenReturn(resourceLifecycleManager);
+        manager = new ApiProductManagerImpl(apiProductRegistry, eventManager, licenseManager, gatewayConfiguration, resourceManagerFactory);
     }
 
     @Nested
@@ -425,7 +436,7 @@ class ApiProductManagerImplTest {
         }
 
         @Test
-        void should_not_register_when_license_does_not_allow_api_product() {
+        void should_not_register_when_license_does_not_allow_api_product() throws Exception {
             when(license.isFeatureEnabled("apim-api-products")).thenReturn(false);
             ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
 
@@ -433,6 +444,23 @@ class ApiProductManagerImplTest {
 
             assertThat(manager.get("product-1")).isNull();
             verify(apiProductRegistry, never()).register(any());
+            verify(resourceManagerFactory, never()).create(any());
+            verify(resourceLifecycleManager, never()).start();
+        }
+
+        @Test
+        void should_undeploy_and_stop_resources_when_license_no_longer_allows_api_product() throws Exception {
+            ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date(System.currentTimeMillis() - 10000));
+            manager.register(apiProduct);
+            assertThat(manager.get("product-1")).isNotNull();
+
+            when(license.isFeatureEnabled("apim-api-products")).thenReturn(false);
+            ReactableApiProduct updatedProduct = createApiProduct("product-1", "env-1", new Date());
+            manager.register(updatedProduct);
+
+            assertThat(manager.get("product-1")).isNull();
+            verify(apiProductRegistry).remove("product-1", "env-1");
+            verify(resourceLifecycleManager).stop();
         }
 
         @Test
@@ -462,7 +490,7 @@ class ApiProductManagerImplTest {
     class ShardingTagFilterTest {
 
         @Test
-        void should_not_deploy_when_product_tags_do_not_match_gateway() {
+        void should_not_deploy_when_product_tags_do_not_match_gateway() throws Exception {
             when(gatewayConfiguration.hasMatchingTags(Set.of("external"))).thenReturn(false);
 
             ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
@@ -472,6 +500,8 @@ class ApiProductManagerImplTest {
 
             assertThat(manager.get("product-1")).isNull();
             verify(apiProductRegistry, never()).register(any());
+            verify(resourceManagerFactory, never()).create(any());
+            verify(resourceLifecycleManager, never()).start();
         }
 
         @Test
@@ -488,7 +518,7 @@ class ApiProductManagerImplTest {
         }
 
         @Test
-        void should_undeploy_previously_deployed_product_when_tags_change_to_non_matching() {
+        void should_undeploy_previously_deployed_product_when_tags_change_to_non_matching() throws Exception {
             when(gatewayConfiguration.hasMatchingTags(Set.of("internal"))).thenReturn(true);
             when(gatewayConfiguration.hasMatchingTags(Set.of("external"))).thenReturn(false);
 
@@ -503,6 +533,7 @@ class ApiProductManagerImplTest {
 
             assertThat(manager.get("product-1")).isNull();
             verify(apiProductRegistry).remove("product-1", "env-1");
+            verify(resourceLifecycleManager).stop();
         }
 
         @Test
@@ -514,6 +545,72 @@ class ApiProductManagerImplTest {
 
             assertThat(manager.get("product-1")).isNotNull();
             verify(apiProductRegistry).register(apiProduct);
+        }
+    }
+
+    @Nested
+    class ResourceLifecycleTest {
+
+        @Test
+        void should_start_one_resource_manager_on_deploy_even_with_two_member_apis() throws Exception {
+            ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
+            apiProduct.setApiIds(Set.of("api-1", "api-2"));
+            apiProduct.setResources(
+                List.of(Resource.builder().name("cache").type("cache").configuration("{\"ttl\":10}").enabled(true).build())
+            );
+
+            manager.register(apiProduct);
+
+            verify(resourceManagerFactory, times(1)).create(apiProduct);
+            verify(resourceLifecycleManager, times(1)).start();
+            verify(resourceLifecycleManager, never()).stop();
+        }
+
+        @Test
+        void should_start_resource_manager_when_product_has_no_resources() throws Exception {
+            ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
+            apiProduct.setResources(null);
+
+            manager.register(apiProduct);
+
+            assertThat(manager.get("product-1")).isNotNull();
+            verify(resourceManagerFactory).create(apiProduct);
+            verify(resourceLifecycleManager).start();
+        }
+
+        @Test
+        void should_stop_resource_manager_on_undeploy() throws Exception {
+            ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
+            manager.register(apiProduct);
+
+            manager.unregister("product-1");
+
+            verify(apiProductRegistry).remove("product-1", "env-1");
+            verify(resourceLifecycleManager).stop();
+        }
+
+        @Test
+        void should_start_new_resource_manager_before_stopping_old_one_on_update() throws Exception {
+            ResourceLifecycleManager firstManager = mock(ResourceLifecycleManager.class);
+            ResourceLifecycleManager secondManager = mock(ResourceLifecycleManager.class);
+            when(resourceManagerFactory.create(any(ReactableApiProduct.class))).thenReturn(firstManager, secondManager);
+
+            Date oldDate = new Date(System.currentTimeMillis() - 10000);
+            Date newDate = new Date();
+            ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
+            ReactableApiProduct newProduct = createApiProduct("product-1", "env-1", newDate);
+            newProduct.setResources(
+                List.of(Resource.builder().name("cache").type("cache").configuration("{\"ttl\":20}").enabled(true).build())
+            );
+
+            manager.register(oldProduct);
+            manager.register(newProduct);
+
+            InOrder inOrder = inOrder(firstManager, secondManager);
+            inOrder.verify(firstManager).start();
+            inOrder.verify(secondManager).start();
+            inOrder.verify(firstManager).stop();
+            verify(secondManager, never()).stop();
         }
     }
 
