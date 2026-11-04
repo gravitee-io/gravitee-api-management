@@ -131,7 +131,7 @@ describe('DashboardComponent', () => {
   it('should omit Analytics from menu items when portal next analytics is not enabled', async () => {
     await init();
 
-    expect(fixture.componentInstance.menuItems().map(item => item.path)).toEqual(['applications', 'subscriptions']);
+    expect(fixture.componentInstance.menuItems().map(item => item.path)).toEqual(['applications', 'notifications', 'subscriptions']);
   });
 
   it('should not show Analytics in the sidenav when portal next analytics is not enabled', async () => {
@@ -145,13 +145,23 @@ describe('DashboardComponent', () => {
   it('should include Analytics in menu items when portal next analytics is enabled', async () => {
     await init({ enablePortalNextAnalytics: true });
 
-    expect(fixture.componentInstance.menuItems().map(item => item.path)).toEqual(['analytics', 'applications', 'subscriptions']);
+    expect(fixture.componentInstance.menuItems().map(item => item.path)).toEqual([
+      'analytics',
+      'applications',
+      'notifications',
+      'subscriptions',
+    ]);
   });
 
   it('should include My Workspace when the capability is on', async () => {
     await init({ enableAiWorkspaces: true });
 
-    expect(fixture.componentInstance.menuItems().map(item => item.path)).toEqual(['applications', 'subscriptions', 'workspaces']);
+    expect(fixture.componentInstance.menuItems().map(item => item.path)).toEqual([
+      'applications',
+      'notifications',
+      'subscriptions',
+      'workspaces',
+    ]);
   });
 
   it('should show Analytics in the sidenav when portal next analytics is enabled', async () => {

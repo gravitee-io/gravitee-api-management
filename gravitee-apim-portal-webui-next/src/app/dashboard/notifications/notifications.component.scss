@@ -1,0 +1,97 @@
+/*
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../../scss/theme/index' as app-theme;
+@use '../../../scss/m3-adapter';
+
+:host {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.notifications {
+  padding-top: 20px;
+  max-width: app-theme.$inner-content-width;
+
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+
+    h1 {
+      margin: 0;
+    }
+  }
+
+  &__description {
+    margin: 8px 0 0;
+    color: app-theme.$paragraph-color;
+  }
+
+  &__filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 24px;
+    gap: 16px;
+  }
+
+  &__filter {
+    flex: 1 1 200px;
+  }
+
+  &__error {
+    margin: 0 0 16px;
+    color: app-theme.$error-main-color;
+  }
+
+  &__resources {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__resource {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__message {
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    h2 {
+      margin-bottom: 8px;
+    }
+
+    p {
+      margin-bottom: 16px;
+      color: app-theme.$paragraph-color;
+    }
+  }
+}
