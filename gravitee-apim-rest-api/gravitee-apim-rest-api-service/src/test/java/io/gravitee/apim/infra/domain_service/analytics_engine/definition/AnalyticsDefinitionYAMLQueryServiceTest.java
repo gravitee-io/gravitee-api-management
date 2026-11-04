@@ -34,6 +34,8 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 /**
  * @author GraviteeSource Team
@@ -103,6 +105,60 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
                 .toList();
 
             assertThat(withoutOperator).isEmpty();
+        }
+    }
+
+    /** The lib renders a unit suffix from the served unit: the LLM token and cost metrics must say which they carry. */
+    @Nested
+    class Units {
+
+        private final AnalyticsDefinitionYAMLQueryService service = new AnalyticsDefinitionYAMLQueryService();
+
+        @ParameterizedTest
+        @EnumSource(
+            value = MetricSpec.Name.class,
+            names = { "LLM_PROMPT_TOKEN_SENT", "LLM_PROMPT_TOKEN_RECEIVED", "LLM_PROMPT_TOTAL_TOKEN", "EDGE_TOKENS_IN", "EDGE_TOKENS_OUT" }
+        )
+        void should_count_the_token_metrics_in_tokens(MetricSpec.Name metric) {
+            assertThat(service.findMetric(metric)).map(MetricSpec::unit).contains(MetricSpec.Unit.TOKENS);
+        }
+
+        @ParameterizedTest
+        @EnumSource(
+            value = MetricSpec.Name.class,
+            names = { "LLM_PROMPT_TOKEN_SENT_COST", "LLM_PROMPT_TOKEN_RECEIVED_COST", "LLM_PROMPT_TOKEN_TOTAL_COST" }
+        )
+        void should_count_the_llm_cost_metrics_in_a_currency(MetricSpec.Name metric) {
+            assertThat(service.findMetric(metric)).map(MetricSpec::unit).contains(MetricSpec.Unit.CURRENCY);
+        }
+
+        @Test
+        void should_count_every_token_metric_that_is_not_a_cost_in_tokens() {
+            assertThat(everyMetric())
+                .filteredOn(metric -> metric.name().name().contains("TOKEN") && !metric.name().name().endsWith("_COST"))
+                .isNotEmpty()
+                .allSatisfy(metric -> assertThat(metric.unit()).as(metric.name().name()).isEqualTo(MetricSpec.Unit.TOKENS));
+        }
+
+        @Test
+        void should_count_every_cost_metric_in_a_currency() {
+            assertThat(everyMetric())
+                .filteredOn(metric -> metric.name().name().endsWith("_COST"))
+                .isNotEmpty()
+                .allSatisfy(metric -> assertThat(metric.unit()).as(metric.name().name()).isEqualTo(MetricSpec.Unit.CURRENCY));
+        }
+
+        private List<MetricSpec> everyMetric() {
+            return Arrays.stream(ApiSpec.Name.values())
+                .flatMap(kind -> service.getMetrics(kind).stream())
+                .toList();
+        }
+
+        @Test
+        void should_give_every_metric_a_unit() {
+            for (var kind : ApiSpec.Name.values()) {
+                assertThat(service.getMetrics(kind)).allSatisfy(metric -> assertThat(metric.unit()).as(metric.name().name()).isNotNull());
+            }
         }
     }
 

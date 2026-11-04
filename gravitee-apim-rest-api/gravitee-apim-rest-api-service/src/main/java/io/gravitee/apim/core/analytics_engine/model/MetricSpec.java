@@ -81,11 +81,16 @@ public record MetricSpec(
         AUTHZ_EVAL_DURATION,
     }
 
+    /** The unit of a built-in's values, as the definition and the responses report it; a client renders the suffix. */
     public enum Unit {
         NUMBER,
         MILLISECONDS,
         BYTES,
         PERCENT,
+        /** LLM tokens, prompt and completion alike. */
+        TOKENS,
+        /** A cost in the currency of the model's price list, which the documents do not carry. */
+        CURRENCY,
     }
 
     public enum Measure {
