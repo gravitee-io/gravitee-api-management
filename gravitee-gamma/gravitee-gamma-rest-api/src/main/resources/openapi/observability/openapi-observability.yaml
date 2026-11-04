@@ -2379,7 +2379,9 @@ components:
                   are read-only;
                 - `observability.metric_definition.duplicate`: on `POST`, the environment already declares the key;
                 - `observability.metric_definition.label_too_long` (64), `description_too_long` (512),
-                  `invalid_unit` (a named unit, or a suffix of at most 16 printable characters), `invalid_body`.
+                  `invalid_unit` (a named unit, or a suffix of at most 16 printable characters);
+                - `observability.metric_definition.invalid_body`: no body, or a property the schema does not
+                  list, named in the message.
             content:
                 application/json:
                     schema:
@@ -4342,7 +4344,8 @@ components:
             type: object
             description: |
                 What to say about the key. Blank text reads as absent; an absent `exposed` means `true`. Unknown
-                properties are refused, server-owned ones (`name`, `rawKey`, dates) included.
+                properties are refused with `observability.metric_definition.invalid_body`, server-owned ones
+                (`name`, `rawKey`, dates) included.
             additionalProperties: false
             properties:
                 label:

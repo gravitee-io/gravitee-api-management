@@ -176,10 +176,13 @@ class MetricDefinitionsResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_refuse_an_unknown_property() {
+        void should_refuse_an_unknown_property_with_the_invalid_body_code_naming_it() {
             Response response = declare(Map.of("name", BASKET, "origin", "BUILT_IN"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("technicalCode").asText()).isEqualTo("observability.metric_definition.invalid_body");
+            assertThat(body.get("message").asText()).isEqualTo("Property [origin] is not recognized as a valid property");
             assertThat(repository.all()).isEmpty();
         }
 
@@ -300,6 +303,17 @@ class MetricDefinitionsResourceTest extends AbstractResourceTest {
             assertThat(response.readEntity(JsonNode.class).get("technicalCode").asText()).isEqualTo(
                 "observability.metric_definition.invalid_body"
             );
+            assertThat(repository.all()).isEmpty();
+        }
+
+        @Test
+        void should_refuse_an_unknown_property_on_a_put_with_the_invalid_body_code_naming_it() {
+            Response response = record(BASKET).request().put(Entity.json(Map.of("label", "x", "rawKey", "double_checkout_basket-value")));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("technicalCode").asText()).isEqualTo("observability.metric_definition.invalid_body");
+            assertThat(body.get("message").asText()).isEqualTo("Property [rawKey] is not recognized as a valid property");
             assertThat(repository.all()).isEmpty();
         }
 

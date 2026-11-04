@@ -32,4 +32,10 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface RejectUnknownProperties {}
+public @interface RejectUnknownProperties {
+    /**
+     * The technical code the refusal carries, when the endpoint documents one for a body it cannot read; none by
+     * default, like the other 400s of a malformed body.
+     */
+    String technicalCode() default "";
+}

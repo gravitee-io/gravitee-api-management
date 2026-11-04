@@ -15,8 +15,9 @@
  */
 package io.gravitee.gamma.rest.resources.observability.metricdefinitions.dto;
 
+import io.gravitee.gamma.rest.core.observability.catalog.exception.InvalidMetricDefinitionException;
 import io.gravitee.gamma.rest.resources.RejectUnknownProperties;
 
 /** Body of a declaration: the wire name of the field, then what to say about it. */
-@RejectUnknownProperties
+@RejectUnknownProperties(technicalCode = InvalidMetricDefinitionException.INVALID_BODY)
 public record DeclareMetricDefinitionRequestDto(String name, String label, String description, String unit, Boolean exposed) {}
