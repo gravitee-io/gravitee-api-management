@@ -74,20 +74,15 @@ public class Portal {
 
     /** New portal with a random id and no navigation. */
     public static Portal create(String environmentId, String organizationId, String name) {
-        return new Portal(
-            PortalId.random(),
-            environmentId,
-            organizationId,
-            name,
-            PortalNavigationStructure.empty(),
-            null,
-            false,
-            URL_PLACEHOLDER
-        );
+        return newPortal(environmentId, organizationId, name, false);
     }
 
     /** New default portal of the environment, with a random id and no navigation. */
     public static Portal createDefault(String environmentId, String organizationId, String name) {
+        return newPortal(environmentId, organizationId, name, true);
+    }
+
+    private static Portal newPortal(String environmentId, String organizationId, String name, boolean defaultPortal) {
         return new Portal(
             PortalId.random(),
             environmentId,
@@ -95,7 +90,7 @@ public class Portal {
             name,
             PortalNavigationStructure.empty(),
             null,
-            true,
+            defaultPortal,
             URL_PLACEHOLDER
         );
     }
