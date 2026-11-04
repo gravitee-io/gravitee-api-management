@@ -55,7 +55,7 @@ public class ApiGetDocumentationPagesUseCase {
 
         List<Breadcrumb> breadcrumbList = new ArrayList<>();
 
-        if (!"ROOT".equals(input.parentId) && this.isNotEmpty(input.parentId)) {
+        if (!ApiDocumentationDomainService.ROOT_PARENT_ID.equals(input.parentId) && this.isNotEmpty(input.parentId)) {
             var page = this.pageCrudService.get(input.parentId);
             this.apiDocumentationDomainService.validatePageAssociatedToApi(page, input.apiId);
 
