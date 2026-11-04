@@ -67,13 +67,14 @@ class ApiProductMapperTest {
     void map_should_map_update_payload_resources_to_definition_model() {
         var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
         updatePayload.setName("Updated");
+        updatePayload.setVersion("1.0.0");
         updatePayload.setResources(
             List.of(
                 new io.gravitee.rest.api.management.v2.rest.model.Resource()
                     .name("cache")
                     .type("cache")
                     .enabled(true)
-                    .configuration(java.util.Map.of("ttl", 10))
+                    .configuration(new java.util.LinkedHashMap<>(java.util.Map.of("ttl", 10)))
             )
         );
 

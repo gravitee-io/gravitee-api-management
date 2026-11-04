@@ -55,6 +55,7 @@ import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
@@ -257,6 +258,7 @@ class ApiProductResourceTest extends AbstractResourceTest {
         void should_not_update_a_product_this_surface_does_not_manage() {
             var rename = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
             rename.setName("Renamed");
+            rename.setVersion("1.0.0");
             final Response response = rootTarget().request().put(Entity.json(rename));
 
             assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
@@ -405,6 +407,7 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
             var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
             updatePayload.setName("Existing Product");
+            updatePayload.setVersion("1.0.0");
             updatePayload.setAnalytics(new io.gravitee.rest.api.management.v2.rest.model.Analytics().enabled(false));
 
             try (Response response = rootTarget().request().put(json(updatePayload))) {
@@ -426,6 +429,7 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
             var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
             updatePayload.setName("Existing Product");
+            updatePayload.setVersion("1.0.0");
             updatePayload.setAnalytics(null);
 
             try (Response response = rootTarget().request().put(json(updatePayload))) {
@@ -451,6 +455,7 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
             var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
             updatePayload.setName("Existing Product");
+            updatePayload.setVersion("1.0.0");
             updatePayload.setResources(
                 List.of(
                     new io.gravitee.rest.api.management.v2.rest.model.Resource()
@@ -494,11 +499,18 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
             when(updateApiProductUseCase.execute(any())).thenReturn(new UpdateApiProductUseCase.Output(updatedApiProduct));
 
-            var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
-            updatePayload.setName("Existing Product");
-            updatePayload.setResources(null);
-
-            try (Response response = rootTarget().request().put(json(updatePayload))) {
+            // Generated UpdateApiProduct initializes resources to []. Jersey's ObjectMapper uses NON_NULL, so
+            // setResources(null) is dropped on serialize and comes back as []. Send an explicit null in JSON.
+            try (
+                Response response = rootTarget()
+                    .request()
+                    .put(
+                        Entity.entity(
+                            "{\"name\":\"Existing Product\",\"version\":\"1.0.0\",\"resources\":null}",
+                            MediaType.APPLICATION_JSON_TYPE
+                        )
+                    )
+            ) {
                 assertThat(response.getStatus()).isEqualTo(OK_200);
             }
 
@@ -531,6 +543,7 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
             var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
             updatePayload.setName("Updated Product");
+            updatePayload.setVersion("1.0.0");
 
             try (Response response = rootTarget().request().put(json(updatePayload))) {
                 assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
@@ -545,6 +558,7 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
             var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
             updatePayload.setName("Updated Product");
+            updatePayload.setVersion("1.0.0");
 
             final Response response = rootTarget().request().put(json(updatePayload));
 
@@ -564,6 +578,7 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
             var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
             updatePayload.setName("Updated Product");
+            updatePayload.setVersion("1.0.0");
             updatePayload.setTags(List.of("restricted-tag"));
 
             try (Response response = rootTarget().request().put(json(updatePayload))) {
