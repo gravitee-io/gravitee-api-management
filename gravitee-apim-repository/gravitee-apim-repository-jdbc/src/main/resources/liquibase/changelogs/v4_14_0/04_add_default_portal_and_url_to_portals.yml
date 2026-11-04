@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.14.0_04_add_default_portal_and_url_to_portals
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}portals
+            columns:
+              - column: {name: default_portal, type: boolean, defaultValueBoolean: false, constraints: { nullable: false } }
+              - column:
+                  name: url
+                  type: nvarchar(256)
+                  defaultValue: https://example.com/to-be-implemented
+                  constraints:
+                    nullable: false

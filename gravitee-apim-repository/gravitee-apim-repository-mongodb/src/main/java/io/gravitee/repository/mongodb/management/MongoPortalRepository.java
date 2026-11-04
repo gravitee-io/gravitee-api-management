@@ -55,6 +55,12 @@ public class MongoPortalRepository implements PortalRepository {
     }
 
     @Override
+    public Optional<Portal> findDefaultByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("Find default portal of environment [{}]", environmentId);
+        return internalPortalRepo.findDefaultByEnvironmentId(environmentId).map(mapper::map);
+    }
+
+    @Override
     public List<Portal> findByActiveThemeIdAndEnvironmentId(String activeThemeId, String environmentId) throws TechnicalException {
         return mapper.mapPortals(internalPortalRepo.findByActiveThemeIdAndEnvironmentId(activeThemeId, environmentId));
     }

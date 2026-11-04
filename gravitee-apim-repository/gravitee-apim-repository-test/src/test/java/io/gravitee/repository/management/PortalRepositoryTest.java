@@ -88,6 +88,75 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void should_read_not_default_and_placeholder_url_for_existing_rows() throws Exception {
+        Optional<Portal> portal = portalRepository.findById("portal1");
+
+        assertThat(portal).hasValueSatisfying(found -> {
+            assertThat(found.isDefaultPortal()).isFalse();
+            assertThat(found.getUrl()).isEqualTo("https://example.com/to-be-implemented");
+        });
+    }
+
+    @Test
+    public void should_round_trip_default_portal_and_url_on_create() throws Exception {
+        Portal toCreate = Portal.builder()
+            .id("default-portal")
+            .environmentId("environment3")
+            .organizationId("organization2")
+            .name("Default Portal")
+            .defaultPortal(true)
+            .url("https://portal.env3.example")
+            .build();
+
+        portalRepository.create(toCreate);
+
+        assertThat(portalRepository.findById("default-portal")).hasValueSatisfying(found -> {
+            assertThat(found.isDefaultPortal()).isTrue();
+            assertThat(found.getUrl()).isEqualTo("https://portal.env3.example");
+        });
+    }
+
+    @Test
+    public void should_round_trip_default_portal_and_url_on_update() throws Exception {
+        Portal toUpdate = Portal.builder()
+            .id("portal1")
+            .environmentId("environment1")
+            .organizationId("organization1")
+            .name("Default Portal")
+            .defaultPortal(true)
+            .url("https://portal.env1.example")
+            .build();
+
+        portalRepository.update(toUpdate);
+
+        assertThat(portalRepository.findById("portal1")).hasValueSatisfying(found -> {
+            assertThat(found.isDefaultPortal()).isTrue();
+            assertThat(found.getUrl()).isEqualTo("https://portal.env1.example");
+        });
+    }
+
+    @Test
+    public void should_find_default_by_environment() throws Exception {
+        Optional<Portal> portal = portalRepository.findDefaultByEnvironmentId("environment2");
+
+        assertThat(portal).hasValueSatisfying(found -> {
+            assertThat(found.getId()).isEqualTo("portal3");
+            assertThat(found.isDefaultPortal()).isTrue();
+            assertThat(found.getUrl()).isEqualTo("https://portal.env2.example");
+        });
+    }
+
+    @Test
+    public void should_find_no_default_when_environment_has_none() throws Exception {
+        assertThat(portalRepository.findDefaultByEnvironmentId("environment1")).isEmpty();
+    }
+
+    @Test
+    public void should_not_find_default_of_another_environment() throws Exception {
+        assertThat(portalRepository.findDefaultByEnvironmentId("environment3")).isEmpty();
+    }
+
+    @Test
     public void should_not_find_by_id_when_environment_differs() throws Exception {
         Optional<Portal> portal = portalRepository.findByIdAndEnvironmentId("portal1", "environment2");
 

@@ -46,6 +46,8 @@ public class JdbcPortalRepository extends JdbcAbstractCrudRepository<Portal, Str
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("portal_navigation", Types.NVARCHAR, String.class)
             .addColumn("active_theme_id", Types.NVARCHAR, String.class)
+            .addColumn("default_portal", Types.BOOLEAN, boolean.class)
+            .addColumn("url", Types.NVARCHAR, String.class)
             .build();
     }
 
@@ -81,6 +83,26 @@ public class JdbcPortalRepository extends JdbcAbstractCrudRepository<Portal, Str
             return jdbcTemplate.query(getOrm().getSelectAllSql() + " WHERE environment_id = ?", getOrm().getRowMapper(), environmentId);
         } catch (final Exception ex) {
             final String error = "Failed to find portals by environment id: " + environmentId;
+            log.error(error, ex);
+            throw new TechnicalException(error, ex);
+        }
+    }
+
+    @Override
+    public Optional<Portal> findDefaultByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("JdbcPortalRepository.findDefaultByEnvironmentId({})", environmentId);
+        try {
+            return jdbcTemplate
+                .query(
+                    getOrm().getSelectAllSql() + " WHERE environment_id = ? AND default_portal = ?",
+                    getOrm().getRowMapper(),
+                    environmentId,
+                    true
+                )
+                .stream()
+                .findFirst();
+        } catch (final Exception ex) {
+            final String error = "Failed to find default portal by environment id: " + environmentId;
             log.error(error, ex);
             throw new TechnicalException(error, ex);
         }

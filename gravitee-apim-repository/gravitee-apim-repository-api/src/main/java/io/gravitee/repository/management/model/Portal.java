@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import jakarta.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -37,4 +38,9 @@ public class Portal {
     private String name;
     private String portalNavigation;
     private String activeThemeId;
+    private boolean defaultPortal;
+
+    @Nonnull
+    @Builder.Default
+    private String url = "https://example.com/to-be-implemented";
 }
