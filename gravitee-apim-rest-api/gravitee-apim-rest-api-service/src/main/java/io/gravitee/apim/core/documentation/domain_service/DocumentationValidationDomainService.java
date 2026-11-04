@@ -171,7 +171,7 @@ public class DocumentationValidationDomainService {
     public void validateParentId(Page page) {
         var parentId = page.getParentId();
 
-        if (Objects.nonNull(parentId) && !parentId.isEmpty()) {
+        if (Objects.nonNull(parentId) && !parentId.isEmpty() && !ApiDocumentationDomainService.ROOT_PARENT_ID.equals(parentId)) {
             var parent = pageCrudService.findById(parentId).orElseThrow(() -> new PageParentNotFoundException(parentId));
             validateParentOwnership(page, parent);
             if (!parent.isFolder()) {
