@@ -15,12 +15,15 @@
  */
 package io.gravitee.gateway.handlers.guardian.spring;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.gateway.api.genericevent.GenericEventRegistry;
 import io.gravitee.gateway.handlers.guardian.manager.GuardianManager;
 import io.gravitee.gateway.handlers.guardian.manager.impl.GuardianManagerImpl;
 import io.gravitee.gateway.handlers.guardian.policy.GuardianPolicyFactory;
 import io.gravitee.gateway.handlers.guardian.policy.plugin.GuardianPolicyPlugin;
 import io.gravitee.gateway.handlers.guardian.registry.GuardianRegistry;
+import io.gravitee.gateway.handlers.guardian.sync.GuardianGenericEventSubscriber;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
@@ -64,6 +67,18 @@ public class GuardianConfiguration {
     @Bean
     public GuardianManager guardianManager(EventManager eventManager, LicenseManager licenseManager, GuardianRegistry guardianRegistry) {
         return new GuardianManagerImpl(eventManager, licenseManager, guardianRegistry);
+    }
+
+    @Bean(destroyMethod = "cancel")
+    public GenericEventRegistry.Subscription guardianGenericEventSubscription(
+        GenericEventRegistry genericEventRegistry,
+        GuardianManager guardianManager,
+        ObjectMapper objectMapper
+    ) {
+        return genericEventRegistry.subscribe(
+            GuardianGenericEventSubscriber.GUARDIAN_KIND,
+            new GuardianGenericEventSubscriber(guardianManager, objectMapper)
+        );
     }
 
     @Bean
