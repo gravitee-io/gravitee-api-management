@@ -431,6 +431,15 @@ public class DocumentationValidationDomainServiceTest {
             assertThat(result.getContent()).isEqualTo(PageSourceDomainServiceInMemory.MARKDOWN);
         }
 
+        @ParameterizedTest
+        @ValueSource(booleans = { true, false })
+        void should_treat_root_sentinel_as_no_parent(boolean creation) {
+            var result = validate(pageWithParent("ROOT"), creation);
+
+            assertThat(result.getParentId()).isNull();
+            assertThat(result.getContent()).isEqualTo(PageSourceDomainServiceInMemory.MARKDOWN);
+        }
+
         private Page validate(Page page, boolean creation) {
             return creation
                 ? cut.validateAndSanitizeForCreation(page, ORGANIZATION_ID)
