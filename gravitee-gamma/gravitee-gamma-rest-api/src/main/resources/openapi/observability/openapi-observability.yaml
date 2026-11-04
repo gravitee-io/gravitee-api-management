@@ -3900,8 +3900,10 @@ components:
             type: object
             description: |
                 A group of metrics as a widget editor lists them. A metric belongs to the family of the
-                one API kind it exists for (`NATIVE` is labelled *Kafka Service*); a metric that exists
-                for several kinds, or for `HTTP_PROXY`, `MCP` or `A2A` alone, belongs to `GATEWAY`.
+                one API kind it exists for, labelled as that kind is in the `API_TYPE` filter's
+                `enumValues` of `GET /filters/definition` (`NATIVE` is *Kafka (native)*): one label per
+                kind on this surface. A metric that exists for several kinds, or for `HTTP_PROXY`, `MCP`
+                or `A2A` alone, belongs to `GATEWAY`.
             required: [name, label, metrics]
             properties:
                 name:
