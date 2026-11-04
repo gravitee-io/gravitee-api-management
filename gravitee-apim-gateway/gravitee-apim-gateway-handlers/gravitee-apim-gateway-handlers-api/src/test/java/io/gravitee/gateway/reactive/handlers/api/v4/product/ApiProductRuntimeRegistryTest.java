@@ -17,6 +17,10 @@ package io.gravitee.gateway.reactive.handlers.api.v4.product;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import appender.MemoryAppender;
 import ch.qos.logback.classic.Level;
@@ -39,8 +43,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 
+@ExtendWith(MockitoExtension.class)
 class ApiProductRuntimeRegistryTest {
 
     private static final String PRODUCT_ID = "product-1";
@@ -51,21 +58,24 @@ class ApiProductRuntimeRegistryTest {
     private final List<RecordingComponent> built = new ArrayList<>();
     private final MemoryAppender memoryAppender = new MemoryAppender();
     private RuntimeException failNextBuild;
+    private final ApiProductRuntimeFactory runtimeFactory = mock(ApiProductRuntimeFactory.class);
+    private ApiProductRuntimeRegistry cut;
 
-    private final ApiProductRuntimeRegistry cut = new ApiProductRuntimeRegistry(
-        product -> {
+    @BeforeEach
+    void setUpRegistry() {
+        when(runtimeFactory.create(any(), any())).thenAnswer(invocation -> {
             if (failNextBuild != null) {
                 RuntimeException failure = failNextBuild;
                 failNextBuild = null;
                 throw failure;
             }
+            ReactableApiProduct product = invocation.getArgument(0);
             RecordingComponent component = new RecordingComponent();
             built.add(component);
             return new ApiProductRuntime(product, null, null, null, List.of(component));
-        },
-        DRAIN_TIMEOUT_MS,
-        scheduler
-    );
+        });
+        cut = new ApiProductRuntimeRegistry(runtimeFactory, DRAIN_TIMEOUT_MS, scheduler);
+    }
 
     @BeforeEach
     void captureLogs() {
@@ -215,11 +225,18 @@ class ApiProductRuntimeRegistryTest {
         }
 
         private final List<List<LifecycleComponent<?>>> nextComponents = new ArrayList<>();
+        private final ApiProductRuntimeFactory componentsFactory = mock(ApiProductRuntimeFactory.class);
         private final ApiProductRuntimeRegistry registryWithComponents = new ApiProductRuntimeRegistry(
-            product -> new ApiProductRuntime(product, null, null, null, nextComponents.remove(0)),
+            componentsFactory,
             DRAIN_TIMEOUT_MS,
             scheduler
         );
+
+        {
+            when(componentsFactory.create(any(), any())).thenAnswer(invocation ->
+                new ApiProductRuntime(invocation.getArgument(0), null, null, null, nextComponents.remove(0))
+            );
+        }
 
         private ApiProductRuntime deployWithComponents(String version, LifecycleComponent<?>... components) {
             nextComponents.add(List.of(components));

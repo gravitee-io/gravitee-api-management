@@ -25,6 +25,7 @@ import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -37,14 +38,17 @@ import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
+import io.gravitee.gateway.handlers.api.manager.ApiProductResourceManagerFactory;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactive.v4.flow.FlowResolver;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -66,6 +70,10 @@ class ApiProductRuntimeFactoryTest {
     @SuppressWarnings("unchecked")
     private final ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager = mock(ConfigurablePluginManager.class);
 
+    private final ApiProductResourceManagerFactory resourceManagerFactory = mock(ApiProductResourceManagerFactory.class);
+
+    private final LicenseManager licenseManager = mock(LicenseManager.class);
+
     private final ApiProductRuntimeFactory cut = new ApiProductRuntimeFactory(
         mock(DefaultClassLoader.class),
         mock(PolicyFactoryManager.class),
@@ -73,7 +81,9 @@ class ApiProductRuntimeFactoryTest {
         mock(PolicyClassLoaderFactory.class),
         mock(ComponentProvider.class),
         flowResolverFactory,
-        gatewayConfiguration
+        gatewayConfiguration,
+        resourceManagerFactory,
+        licenseManager
     );
 
     @BeforeEach
@@ -96,7 +106,7 @@ class ApiProductRuntimeFactoryTest {
             Plan staging = Plan.builder().id("plan-staging").status(PlanStatus.STAGING).flows(List.of(Flow.builder().build())).build();
             ArgumentCaptor<Map<String, List<Flow>>> flowsByPlanId = ArgumentCaptor.forClass(Map.class);
 
-            cut.apply(product(null, List.of(served, otherShard, staging)));
+            cut.create(product(null, List.of(served, otherShard, staging)), null);
 
             verify(flowResolverFactory, atLeastOnce()).forApiProductPlan(isNull(), flowsByPlanId.capture());
             assertThat(flowsByPlanId.getValue()).containsOnlyKeys("plan-served");
@@ -109,7 +119,7 @@ class ApiProductRuntimeFactoryTest {
                 .flows(List.of(flowUsing("not-installed-here")))
                 .build();
 
-            ApiProductRuntime runtime = cut.apply(product(null, List.of(otherShard)));
+            ApiProductRuntime runtime = cut.create(product(null, List.of(otherShard)), null);
 
             assertThatCode(runtime::start).doesNotThrowAnyException();
         }
@@ -118,7 +128,7 @@ class ApiProductRuntimeFactoryTest {
         void should_refuse_to_start_without_a_policy_of_a_plan_this_gateway_serves() {
             Plan served = publishedPlan("plan-served").flows(List.of(flowUsing("not-installed-here"))).build();
 
-            ApiProductRuntime runtime = cut.apply(product(null, List.of(served)));
+            ApiProductRuntime runtime = cut.create(product(null, List.of(served)), null);
 
             assertThatThrownBy(runtime::start).hasMessageContaining("not-installed-here");
         }
@@ -130,7 +140,7 @@ class ApiProductRuntimeFactoryTest {
 
     @Test
     void should_build_the_plan_flow_chains_in_default_mode_when_the_product_saved_no_mode() {
-        cut.apply(product(null, List.of()));
+        cut.create(product(null, List.of()), null);
 
         verify(flowResolverFactory, times(2)).forApiProductPlan(isNull(), anyMap());
         verify(flowResolverFactory, times(2)).deferredConditionFilter((FlowExecution) isNull());
@@ -141,7 +151,7 @@ class ApiProductRuntimeFactoryTest {
         FlowExecution bestMatch = new FlowExecution();
         bestMatch.setMode(FlowMode.BEST_MATCH);
 
-        cut.apply(product(bestMatch, List.of()));
+        cut.create(product(bestMatch, List.of()), null);
 
         verify(flowResolverFactory, times(2)).forApiProductPlan(same(bestMatch), anyMap());
         verify(flowResolverFactory, never()).forApiProductPlan(isNull(), anyMap());
@@ -155,7 +165,7 @@ class ApiProductRuntimeFactoryTest {
         Plan planWithoutFlows = publishedPlan("plan-b").build();
         ArgumentCaptor<Map<String, List<Flow>>> flowsByPlanId = ArgumentCaptor.forClass(Map.class);
 
-        cut.apply(product(null, List.of(planA, planWithoutFlows)));
+        cut.create(product(null, List.of(planA, planWithoutFlows)), null);
 
         verify(flowResolverFactory, atLeastOnce()).forApiProductPlan(isNull(), flowsByPlanId.capture());
         assertThat(flowsByPlanId.getValue()).containsOnlyKeys("plan-a");
@@ -163,8 +173,29 @@ class ApiProductRuntimeFactoryTest {
     }
 
     @Test
+    void should_reuse_the_shared_resources_component_when_the_resource_list_is_unchanged() {
+        when(resourceManagerFactory.create(any())).thenReturn(mock(io.gravitee.gateway.resource.ResourceLifecycleManager.class));
+        Resource resource = Resource.builder().name("cache").type("cache").configuration("{}").enabled(true).build();
+        ReactableApiProduct first = product(null, List.of());
+        first.setResources(List.of(resource));
+        ApiProductRuntime previous = cut.create(first, null);
+
+        ReactableApiProduct updated = product(null, List.of());
+        updated.setResources(List.of(resource));
+        updated.setVersion("2.0");
+
+        ApiProductRuntime next = cut.create(updated, previous);
+
+        ProductResourcesComponent previousComponent = ProductResourcesComponent.findOn(previous);
+        ProductResourcesComponent nextComponent = ProductResourcesComponent.findOn(next);
+        assertThat(previousComponent).isNotNull();
+        assertThat(nextComponent).isNotNull();
+        assertThat(nextComponent.sharedResources()).isSameAs(previousComponent.sharedResources());
+    }
+
+    @Test
     void should_build_one_chain_with_and_one_without_tracing() {
-        ApiProductRuntime runtime = cut.apply(product(null, List.of()));
+        ApiProductRuntime runtime = cut.create(product(null, List.of()), null);
 
         assertThat(runtime.productPlanFlowChain(true)).isNotNull().isNotSameAs(runtime.productPlanFlowChain(false));
         assertThat(runtime.productPlanFlowChain(false)).isNotNull();
@@ -175,7 +206,7 @@ class ApiProductRuntimeFactoryTest {
         HttpExecutionContext ctx = mock(HttpExecutionContext.class);
         Plan plan = publishedPlan("plan-a").flows(List.of(flowOn("/orders"))).build();
 
-        cut.apply(product(null, List.of(plan))).extractPathParameters(ctx);
+        cut.create(product(null, List.of(plan)), null).extractPathParameters(ctx);
 
         verify(ctx, never()).request();
     }

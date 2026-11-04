@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import lombok.CustomLog;
 
 /**
@@ -37,16 +36,12 @@ public class ApiProductRuntimeRegistry {
 
     static final long DRAIN_POLL_INTERVAL_MS = 100;
 
-    private final Function<ReactableApiProduct, ApiProductRuntime> runtimeFactory;
+    private final ApiProductRuntimeFactory runtimeFactory;
     private final long drainTimeoutMs;
     private final Scheduler scheduler;
     private volatile Map<Key, ApiProductRuntime> runtimes = Map.of();
 
-    public ApiProductRuntimeRegistry(
-        Function<ReactableApiProduct, ApiProductRuntime> runtimeFactory,
-        long drainTimeoutMs,
-        Scheduler scheduler
-    ) {
+    public ApiProductRuntimeRegistry(ApiProductRuntimeFactory runtimeFactory, long drainTimeoutMs, Scheduler scheduler) {
         this.runtimeFactory = runtimeFactory;
         this.drainTimeoutMs = drainTimeoutMs;
         this.scheduler = scheduler;
@@ -76,8 +71,9 @@ public class ApiProductRuntimeRegistry {
      */
     public synchronized void deploy(ReactableApiProduct product) {
         ApiProductRuntime runtime = null;
+        ApiProductRuntime publishedBefore = runtimes.get(new Key(product.getId(), product.getEnvironmentId()));
         try {
-            runtime = runtimeFactory.apply(product);
+            runtime = runtimeFactory.create(product, publishedBefore);
             runtime.start();
         } catch (Exception e) {
             if (runtime != null) {

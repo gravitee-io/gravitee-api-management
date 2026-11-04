@@ -36,6 +36,7 @@ import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
@@ -652,6 +653,19 @@ class ApiProductManagerImplTest {
             manager.register(bestMatch);
 
             verify(apiProductRuntimeRegistry).deploy(bestMatch);
+        }
+
+        @Test
+        void should_swap_the_runtime_when_only_resources_change() {
+            Resource resource = Resource.builder().name("cache").type("cache").configuration("{}").enabled(true).build();
+            ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
+            ReactableApiProduct withResources = createApiProduct("product-1", "env-1", newDate);
+            withResources.setResources(List.of(resource));
+            manager.register(oldProduct);
+
+            manager.register(withResources);
+
+            verify(apiProductRuntimeRegistry).deploy(withResources);
         }
 
         @Test

@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4.product;
 
+import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
@@ -23,6 +24,7 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
+import io.gravitee.gateway.handlers.api.manager.ApiProductResourceManagerFactory;
 import io.gravitee.gateway.handlers.api.sharding.ApiProductShardingFilter;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
@@ -32,14 +34,15 @@ import io.gravitee.gateway.reactive.handlers.api.v4.processor.pathparameters.Pat
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.ResolvableType;
@@ -49,7 +52,7 @@ import org.springframework.core.ResolvableType;
  * in {@code DEFAULT} mode, whatever the mode of its member APIs.
  */
 @RequiredArgsConstructor
-public class ApiProductRuntimeFactory implements Function<ReactableApiProduct, ApiProductRuntime> {
+public class ApiProductRuntimeFactory {
 
     private static final String PRODUCT_PLAN_FLOW_CHAIN_ID = "product-plan";
 
@@ -60,6 +63,8 @@ public class ApiProductRuntimeFactory implements Function<ReactableApiProduct, A
     private final ComponentProvider componentProvider;
     private final FlowResolverFactory flowResolverFactory;
     private final GatewayConfiguration gatewayConfiguration;
+    private final ApiProductResourceManagerFactory resourceManagerFactory;
+    private final LicenseManager licenseManager;
 
     /**
      * The policy plugin manager the runtimes load their policies from.
@@ -77,8 +82,7 @@ public class ApiProductRuntimeFactory implements Function<ReactableApiProduct, A
         return (ConfigurablePluginManager<PolicyPlugin<?>>) applicationContext.getBean(names[0]);
     }
 
-    @Override
-    public ApiProductRuntime apply(ReactableApiProduct product) {
+    public ApiProductRuntime create(ReactableApiProduct product, ApiProductRuntime previousRuntime) {
         List<Plan> plans = plansServedHere(product);
         PolicyManager policyManager = new ApiProductPolicyManager(
             classLoader,
@@ -93,13 +97,27 @@ public class ApiProductRuntimeFactory implements Function<ReactableApiProduct, A
         FlowExecution flowExecution = product.getFlowExecution();
         String chainFactoryId = "api-product-" + product.getId();
 
+        List<LifecycleComponent<?>> components = new ArrayList<>();
+        if (ProductResourcesComponent.hasConfiguredResources(product)) {
+            components.add(resourcesComponent(product, previousRuntime));
+        }
+        components.add(policyManager);
+
         return new ApiProductRuntime(
             product,
             productPlanFlowChain(flowExecution, flowsByPlanId, new HttpPolicyChainFactory(chainFactoryId, policyManager, false), false),
             productPlanFlowChain(flowExecution, flowsByPlanId, new HttpPolicyChainFactory(chainFactoryId, policyManager, true), true),
             pathParametersExtractor(plans),
-            List.of(policyManager)
+            List.copyOf(components)
         );
+    }
+
+    private ProductResourcesComponent resourcesComponent(ReactableApiProduct product, ApiProductRuntime previousRuntime) {
+        ProductResourcesComponent previousComponent = ProductResourcesComponent.findOn(previousRuntime);
+        if (previousComponent != null && ProductResourcesComponent.sameResources(previousRuntime.product(), product)) {
+            return new ProductResourcesComponent(previousComponent.sharedResources());
+        }
+        return new ProductResourcesComponent(product, resourceManagerFactory, licenseManager);
     }
 
     private FlowChain productPlanFlowChain(
