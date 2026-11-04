@@ -52,8 +52,17 @@ class MetricFamilyTest {
         assertThat(MetricFamily.of(List.of(ApiType.LLM, ApiType.LLM))).isEqualTo(MetricFamily.LLM);
     }
 
+    /** One vocabulary for a kind: the family of a kind is labelled as the kind's `API_TYPE` filter value. */
+    @ParameterizedTest
+    @CsvSource({ "LLM, LLM", "MESSAGE, MESSAGE", "EDGE, EDGE", "NATIVE, NATIVE", "AUTHZ, AUTHZ" })
+    void should_label_the_family_of_a_kind_as_the_kind(MetricFamily family, ApiType kind) {
+        assertThat(family.ownKind()).contains(kind);
+        assertThat(family.label()).isEqualTo(kind.label());
+    }
+
     @Test
-    void should_label_native_kafka_metrics_like_the_editor() {
-        assertThat(MetricFamily.NATIVE.label()).isEqualTo("Kafka Service");
+    void should_label_the_family_of_no_kind_on_its_own() {
+        assertThat(MetricFamily.GATEWAY.ownKind()).isEmpty();
+        assertThat(MetricFamily.GATEWAY.label()).isEqualTo("Gateway");
     }
 }
