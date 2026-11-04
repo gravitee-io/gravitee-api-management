@@ -35,8 +35,12 @@ import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.node.api.Node;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.Reporter;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -55,7 +59,16 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
     private final Client client;
 
     private final Set<Class<? extends Reportable>> acceptableReportables = new HashSet<>();
+    private final AtomicLong droppedDocuments = new AtomicLong();
     private BulkProcessor bulkProcessor;
+    private volatile SetupState setupState = SetupState.PREPARING;
+    private volatile Disposable droppedDocumentsLogger;
+
+    private enum SetupState {
+        PREPARING,
+        READY,
+        FAILED,
+    }
 
     @Override
     protected void doStart() throws Exception {
@@ -82,15 +95,21 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
             );
             preparer
                 .prepare()
-                .doOnComplete(() -> {
-                    log.debug("Index mapping template successfully defined");
-                    log.info("Starting Elastic reporter engine... DONE");
-                })
-                .doOnError(throwable -> {
-                    log.warn("An error occurs while creating index mapping template", throwable);
-                    log.error("Starting Elastic reporter engine... ERROR");
-                })
-                .subscribe();
+                .subscribe(
+                    () -> {
+                        setupState = SetupState.READY;
+                        log.debug("Index mapping template successfully defined");
+                        log.info("Starting Elastic reporter engine... DONE");
+                    },
+                    throwable -> {
+                        setupState = SetupState.FAILED;
+                        droppedDocumentsLogger = Flowable.interval(1, 1, TimeUnit.MINUTES).subscribe(tick -> logDroppedDocuments());
+                        log.error(
+                            "{}. The Elasticsearch reporter is disabled: no analytics will be written to Elasticsearch until the gateway restarts.",
+                            throwable.getMessage()
+                        );
+                    }
+                );
 
             FormatterFactoryConfiguration formatterFactoryConfiguration = beanFactory.createFormatterFactoryConfiguration();
             bulkProcessor = new BulkProcessor(
@@ -108,10 +127,28 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
         }
     }
 
+    /**
+     * Documents are indexed only once the index templates are in place: indexing before, or after they failed, would create
+     * indices with a dynamic mapping.
+     */
     @Override
     public void report(Reportable reportable) {
         if (reporterConfiguration.isEnabled()) {
-            bulkProcessor.process(reportable);
+            switch (setupState) {
+                case READY -> bulkProcessor.process(reportable);
+                case FAILED -> droppedDocuments.incrementAndGet();
+                case PREPARING -> log.debug("Elastic reporter engine is still starting, dropping reportable {}", reportable.getClass());
+            }
+        }
+    }
+
+    private void logDroppedDocuments() {
+        final long dropped = droppedDocuments.getAndSet(0);
+        if (dropped > 0) {
+            log.warn(
+                "The Elasticsearch reporter is disabled since its setup failed at startup: {} documents dropped in the last minute.",
+                dropped
+            );
         }
     }
 
@@ -124,6 +161,9 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
     protected void doStop() throws Exception {
         if (reporterConfiguration.isEnabled()) {
             super.doStop();
+            if (droppedDocumentsLogger != null) {
+                droppedDocumentsLogger.dispose();
+            }
             log.info("Stopping Elastic reporter engine... DONE");
         }
     }
