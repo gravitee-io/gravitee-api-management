@@ -21,14 +21,15 @@ import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
 import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
+import io.gravitee.gateway.handlers.api.manager.ApiProductResourceManagerFactory;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.handlers.api.sharding.ApiProductShardingFilter;
+import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.license.LicenseManager;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.CustomLog;
@@ -44,18 +45,22 @@ public class ApiProductManagerImpl implements ApiProductManager {
     private final EventManager eventManager;
     private final LicenseManager licenseManager;
     private final GatewayConfiguration gatewayConfiguration;
+    private final ApiProductResourceManagerFactory resourceManagerFactory;
     private final Map<String, ReactableApiProduct> apiProducts = new ConcurrentHashMap<>();
+    private final Map<String, ResourceLifecycleManager> resourceManagers = new ConcurrentHashMap<>();
 
     public ApiProductManagerImpl(
         ApiProductRegistry apiProductRegistry,
         EventManager eventManager,
         LicenseManager licenseManager,
-        GatewayConfiguration gatewayConfiguration
+        GatewayConfiguration gatewayConfiguration,
+        ApiProductResourceManagerFactory resourceManagerFactory
     ) {
         this.apiProductRegistry = apiProductRegistry;
         this.eventManager = eventManager;
         this.licenseManager = licenseManager;
         this.gatewayConfiguration = gatewayConfiguration;
+        this.resourceManagerFactory = resourceManagerFactory;
     }
 
     @Override
@@ -91,6 +96,9 @@ public class ApiProductManagerImpl implements ApiProductManager {
                 "The API Product [{}] can not be deployed because it is not allowed by the current license (apim-api-products feature required)",
                 apiProduct.getName()
             );
+            if (get(apiProduct.getId()) != null) {
+                undeploy(apiProduct.getId());
+            }
             return Completable.complete();
         }
 
@@ -132,6 +140,8 @@ public class ApiProductManagerImpl implements ApiProductManager {
     private Completable deploy(ReactableApiProduct apiProduct, Completable doBeforeEmit) {
         log.debug("Deploying API Product [{}]", apiProduct.getId());
 
+        startResourceManager(apiProduct);
+
         apiProducts.put(apiProduct.getId(), apiProduct);
         apiProductRegistry.register(apiProduct);
 
@@ -151,6 +161,9 @@ public class ApiProductManagerImpl implements ApiProductManager {
         Set<String> previousApiIds = previousProduct != null && previousProduct.getApiIds() != null
             ? previousProduct.getApiIds()
             : Set.of();
+
+        // Start the new manager before stopping the old one so in-flight lookups still see a live manager.
+        replaceResourceManager(apiProduct);
 
         apiProducts.put(apiProduct.getId(), apiProduct);
         apiProductRegistry.register(apiProduct);
@@ -178,11 +191,57 @@ public class ApiProductManagerImpl implements ApiProductManager {
 
             apiProductRegistry.remove(apiProductId, currentApiProduct.getEnvironmentId());
 
+            stopResourceManager(apiProductId);
+
             emitApiProductChangedEvent(ApiProductEventType.UNDEPLOY, currentApiProduct);
 
             log.info("API Product [{}] has been undeployed", apiProductId);
         } else {
             log.debug("API Product [{}] was not found for undeployment", apiProductId);
+        }
+    }
+
+    private void startResourceManager(ReactableApiProduct apiProduct) {
+        ResourceLifecycleManager manager = createAndStart(apiProduct);
+        if (manager != null) {
+            resourceManagers.put(apiProduct.getId(), manager);
+        }
+    }
+
+    private void replaceResourceManager(ReactableApiProduct apiProduct) {
+        ResourceLifecycleManager previous = resourceManagers.get(apiProduct.getId());
+        ResourceLifecycleManager next = createAndStart(apiProduct);
+        if (next != null) {
+            resourceManagers.put(apiProduct.getId(), next);
+        } else {
+            resourceManagers.remove(apiProduct.getId());
+        }
+        stopQuietly(previous);
+    }
+
+    private void stopResourceManager(String apiProductId) {
+        stopQuietly(resourceManagers.remove(apiProductId));
+    }
+
+    private ResourceLifecycleManager createAndStart(ReactableApiProduct apiProduct) {
+        try {
+            ResourceLifecycleManager manager = resourceManagerFactory.create(apiProduct);
+            manager.start();
+            return manager;
+        } catch (Exception e) {
+            log.error("Unable to start resources for API Product [{}]", apiProduct.getId(), e);
+            return null;
+        }
+    }
+
+    private void stopQuietly(ResourceLifecycleManager manager) {
+        if (manager == null) {
+            return;
+        }
+        try {
+            manager.stop();
+        } catch (Exception e) {
+            log.error("Unable to stop API Product resources", e);
         }
     }
 
