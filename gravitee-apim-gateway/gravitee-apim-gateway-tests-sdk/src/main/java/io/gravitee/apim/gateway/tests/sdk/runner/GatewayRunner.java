@@ -55,6 +55,7 @@ import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.edge.EdgeApi;
+import io.gravitee.definition.model.v4.guardian.Guardian;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
 import io.gravitee.gateway.dictionary.DictionaryManager;
@@ -62,6 +63,7 @@ import io.gravitee.gateway.dictionary.model.Dictionary;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
+import io.gravitee.gateway.handlers.guardian.manager.GuardianManager;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
@@ -190,6 +192,7 @@ public class GatewayRunner {
     private final Map<String, ReactableOrganization> deployedOrganizationsForTest;
     private final Map<SharedPolicyGroupKey, ReactableSharedPolicyGroup> deployedSharedPolicyGroupsForTestClass;
     private final Map<SharedPolicyGroupKey, ReactableSharedPolicyGroup> deployedSharedPolicyGroupsForTest;
+    private final GuardianDeployments guardianDeployments;
     private final Map<String, ReactableApiProduct> deployedApiProductsForTestClass;
     private final Map<String, ReactableApiProduct> deployedApiProductsForTest;
     private GatewayTestContainer gatewayContainer;
@@ -212,6 +215,9 @@ public class GatewayRunner {
         this.deployedOrganizationsForTest = new HashMap<>();
         this.deployedSharedPolicyGroupsForTestClass = new HashMap<>();
         this.deployedSharedPolicyGroupsForTest = new HashMap<>();
+        this.guardianDeployments = new GuardianDeployments(testInstance, () ->
+            gatewayContainer.applicationContext().getBean(GuardianManager.class)
+        );
         this.deployedApiProductsForTestClass = new HashMap<>();
         this.deployedApiProductsForTest = new HashMap<>();
 
@@ -266,6 +272,8 @@ public class GatewayRunner {
             testInstance.setUndeployCallback(this::undeployFromTest);
             testInstance.setDeploySharedPolicyGroupCallback(this::deploySharedPolicyGroupFromTest);
             testInstance.setUndeploySharedPolicyGroupCallback(this::undeploySharedPolicyGroupFromTest);
+            testInstance.setDeployGuardianCallback(guardianDeployments::deployFromTest);
+            testInstance.setUndeployGuardianCallback(guardianDeployments::undeployFromTest);
             testInstance.setDeployApiProductCallback(this::deployOrRedeployApiProductFromTest);
             testInstance.setUndeployApiProductCallback(this::undeployApiProductFromTest);
 
@@ -510,6 +518,14 @@ public class GatewayRunner {
             new SharedPolicyGroupKey(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId()),
             reactableSharedPolicyGroup
         );
+    }
+
+    public void deployGuardianForClass(String guardianDefinitionPath) throws IOException {
+        guardianDeployments.deployForClass(loadResource(guardianDefinitionPath, Guardian.class));
+    }
+
+    public void deployGuardianForTest(String guardianDefinitionPath) throws IOException {
+        guardianDeployments.deployForTest(loadResource(guardianDefinitionPath, Guardian.class));
     }
 
     public void deployApiProductForClass(String apiProductDefinitionPath) throws IOException {
@@ -786,6 +802,14 @@ public class GatewayRunner {
     public void undeploySharedPolicyGroup(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
         SharedPolicyGroupManager sharedPolicyGroupManager = gatewayContainer.applicationContext().getBean(SharedPolicyGroupManager.class);
         sharedPolicyGroupManager.unregister(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId());
+    }
+
+    public void undeployGuardianForClass() {
+        guardianDeployments.undeployForClass();
+    }
+
+    public void undeployGuardianForTest() {
+        guardianDeployments.undeployForTest();
     }
 
     public void undeployApiProductForClass() {

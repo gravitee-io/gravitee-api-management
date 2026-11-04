@@ -148,6 +148,15 @@ class GatewayTestingExtensionTest {
     }
 
     @Test
+    void should_fail_if_trying_to_deploy_an_already_deployed_guardian_without_environment_at_class_level() {
+        EngineTestKit.engine("junit-jupiter")
+            .selectors(selectClass(RegisterTwiceSameGuardianClassLevelTestCase.class))
+            .execute()
+            .testEvents()
+            .assertStatistics(stats -> stats.started(0));
+    }
+
+    @Test
     void should_fail_if_trying_to_deploy_an_already_deployed_api() {
         EngineTestKit.engine("junit-jupiter")
             .selectors(selectClass(RegisterTwiceSameApiMethodLevelTestCase.class))

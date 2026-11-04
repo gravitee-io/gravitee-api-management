@@ -17,6 +17,7 @@ package io.gravitee.apim.gateway.tests.sdk;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApiProducts;
+import io.gravitee.apim.gateway.tests.sdk.annotations.DeployGuardians;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganization;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganizations;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeploySharedPolicyGroups;
@@ -82,6 +83,7 @@ public class GatewayTestingExtension
             startGateway(context);
             deployOrganizationForClass(context);
             deploySharedPolicyGroupsForClass(context);
+            deployGuardiansForClass(context);
             deployApiProductsForClass(context);
             deployApisForClass(context);
         } catch (Exception e) {
@@ -104,6 +106,7 @@ public class GatewayTestingExtension
     public void beforeEach(ExtensionContext context) throws Exception {
         deployOrganizationForMethod(context);
         deploySharedPolicyGroupsForMethod(context);
+        deployGuardiansForMethod(context);
         deployApiProductsForMethod(context);
         if (context.getRequiredTestMethod().isAnnotationPresent(DeployApi.class)) {
             LOGGER.debug("Deploying apis for test {}", context.getRequiredTestMethod().getName());
@@ -189,6 +192,10 @@ public class GatewayTestingExtension
             LOGGER.debug("Clear test method's shared policy groups");
             gatewayRunner.undeploySharedPolicyGroupForTest();
         }
+        if (context.getRequiredTestMethod().isAnnotationPresent(DeployGuardians.class)) {
+            LOGGER.debug("Clear test method's guardians");
+            gatewayRunner.undeployGuardianForTest();
+        }
         if (context.getRequiredTestMethod().isAnnotationPresent(DeployApiProducts.class)) {
             LOGGER.debug("Clear test method's API Products");
             gatewayRunner.undeployApiProductForTest();
@@ -213,6 +220,9 @@ public class GatewayTestingExtension
         }
         if (requiredTestClass.isAnnotationPresent(DeploySharedPolicyGroups.class)) {
             gatewayRunner.undeploySharedPolicyGroupForClass();
+        }
+        if (requiredTestClass.isAnnotationPresent(DeployGuardians.class)) {
+            gatewayRunner.undeployGuardianForClass();
         }
         if (requiredTestClass.isAnnotationPresent(DeployApiProducts.class)) {
             gatewayRunner.undeployApiProductForClass();
@@ -263,6 +273,33 @@ public class GatewayTestingExtension
         if (requiredTestClass.isAnnotationPresent(DeploySharedPolicyGroups.class)) {
             for (String sharedPolicyGroupDefinition : requiredTestClass.getAnnotation(DeploySharedPolicyGroups.class).value()) {
                 gatewayRunner.deploySharedPolicyGroupForClass(sharedPolicyGroupDefinition);
+            }
+        }
+    }
+
+    private void deployGuardiansForClass(final ExtensionContext context) throws IOException {
+        final Class<?> requiredTestClass = context.getRequiredTestClass();
+        if (requiredTestClass.isAnnotationPresent(DeployGuardians.class)) {
+            for (String guardianDefinition : requiredTestClass.getAnnotation(DeployGuardians.class).value()) {
+                gatewayRunner.deployGuardianForClass(guardianDefinition);
+            }
+        }
+    }
+
+    /**
+     * A Guardian can only be deployed once. If {@link DeployGuardians} annotation is used both at method level and class level, method level one will take precedence over the class level one.
+     */
+    private void deployGuardiansForMethod(ExtensionContext context) throws Exception {
+        if (!context.getRequiredTestMethod().isAnnotationPresent(DeployGuardians.class)) {
+            return;
+        }
+        LOGGER.debug("Deploying guardians for test {}", context.getRequiredTestMethod().getName());
+        for (String guardianDefinition : context.getRequiredTestMethod().getAnnotation(DeployGuardians.class).value()) {
+            try {
+                gatewayRunner.deployGuardianForTest(guardianDefinition);
+            } catch (Exception e) {
+                exception = e;
+                throw e;
             }
         }
     }
