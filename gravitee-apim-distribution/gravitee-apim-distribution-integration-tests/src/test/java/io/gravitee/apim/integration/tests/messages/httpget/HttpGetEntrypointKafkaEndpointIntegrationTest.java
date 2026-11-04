@@ -564,7 +564,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
                 assertThat(items).isEmpty();
 
                 final JsonObject pagination = jsonResponse.getJsonObject("pagination");
-                assertThat(pagination.getString("nextCursor")).isEqualTo("dGVzdC10b3BpY0AwIzA="); // test-topic@0#2
+                assertThat(pagination.getString("nextCursor")).isEqualTo("dGVzdC10b3BpY0AwIy0x"); // test-topic@0#-1
 
                 return true;
             });
