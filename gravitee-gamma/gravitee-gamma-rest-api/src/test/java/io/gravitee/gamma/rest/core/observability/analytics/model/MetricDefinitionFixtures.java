@@ -43,4 +43,20 @@ public final class MetricDefinitionFixtures {
             CatalogOrigin.BUILT_IN
         );
     }
+
+    /** A built-in cost as the definition serves it: unit and currency given as values. */
+    public static MetricDefinition aCost(String name, List<ApiType> apiTypes, String... facets) {
+        var metric = aMetric(name, "CURRENCY", apiTypes, facets);
+        return new MetricDefinition(
+            metric.name(),
+            metric.label(),
+            "CURRENCY",
+            metric.apiTypes(),
+            metric.measures(),
+            metric.facets(),
+            metric.filters(),
+            CatalogOrigin.BUILT_IN,
+            "USD"
+        );
+    }
 }

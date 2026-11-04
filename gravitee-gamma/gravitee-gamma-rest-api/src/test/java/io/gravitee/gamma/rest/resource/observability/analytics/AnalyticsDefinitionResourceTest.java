@@ -160,6 +160,33 @@ class AnalyticsDefinitionResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    void should_serve_the_currency_code_of_a_cost_next_to_its_unit_and_none_elsewhere() {
+        givenDefinition(
+            new MetricDefinition(
+                "LLM_PROMPT_TOKEN_TOTAL_COST",
+                "Total token cost",
+                "CURRENCY",
+                List.of(ApiType.LLM),
+                List.of("COUNT", "AVG"),
+                List.of(),
+                List.of("API"),
+                CatalogOrigin.BUILT_IN,
+                "USD"
+            ),
+            anAdditionalMetric("additional-metrics.double_basket", "Basket", "CURRENCY", CatalogOrigin.DECLARED)
+        );
+
+        JsonNode body = rootTarget("definition").queryParam("apiType", "LLM").request().get().readEntity(JsonNode.class);
+
+        var metrics = body.findParents("unit");
+        assertThat(metrics)
+            .extracting(metric -> metric.get("name").asText())
+            .containsExactly("LLM_PROMPT_TOKEN_TOTAL_COST", "additional-metrics.double_basket");
+        assertThat(metrics.get(0).get("currency").asText()).isEqualTo("USD");
+        assertThat(metrics.get(1).has("currency")).isFalse();
+    }
+
+    @Test
     void should_return_400_with_the_technical_code_for_an_unknown_api_type() {
         Response response = rootTarget("definition").queryParam("apiType", "NOPE").request().get();
 

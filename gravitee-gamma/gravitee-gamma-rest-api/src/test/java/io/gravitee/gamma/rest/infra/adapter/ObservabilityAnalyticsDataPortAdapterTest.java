@@ -1058,6 +1058,12 @@ class ObservabilityAnalyticsDataPortAdapterTest {
             assertThat(response.get("metrics"))
                 .extracting(metric -> metric.get("unit").asText())
                 .containsExactly("COUNT", "TOKENS", "CURRENCY");
+            assertThat(response.findParents("unit")).allSatisfy(entry ->
+                assertThat(entry.path("currency").isMissingNode())
+                    .as(entry.get("name").asText())
+                    .isEqualTo(!"CURRENCY".equals(entry.get("unit").asText()))
+            );
+            assertThat(response.at("/metrics/2/currency").asText()).isEqualTo("USD");
         }
 
         @Test
@@ -1100,7 +1106,15 @@ class ObservabilityAnalyticsDataPortAdapterTest {
             when(computeFacetsUseCase.executeForApis(any(), any(), any())).thenReturn(
                 new ComputeFacetsUseCase.Output(
                     new FacetsResponse(
-                        List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(), List.of()))
+                        List.of(
+                            new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(), List.of()),
+                            new MetricFacetsResponse(
+                                MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST,
+                                MetricSpec.Unit.CURRENCY,
+                                List.of(),
+                                List.of()
+                            )
+                        )
                     )
                 )
             );
@@ -1112,7 +1126,10 @@ class ObservabilityAnalyticsDataPortAdapterTest {
                     SCOPE,
                     List.of("HTTP_STATUS"),
                     null,
-                    List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())),
+                    List.of(
+                        new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of()),
+                        new AnalyticsFacetMetricQuery("LLM_PROMPT_TOKEN_TOTAL_COST", List.of("COUNT"), List.of(), List.of())
+                    ),
                     List.of(),
                     Map.of()
                 )
@@ -1121,6 +1138,8 @@ class ObservabilityAnalyticsDataPortAdapterTest {
             assertServedInGammaVocabulary(response);
 
             assertThat(response.at("/metrics/0/unit").asText()).isEqualTo("COUNT");
+            assertThat(response.at("/metrics/1/unit").asText()).isEqualTo("CURRENCY");
+            assertThat(response.at("/metrics/1/currency").asText()).isEqualTo("USD");
         }
 
         @ParameterizedTest
@@ -1130,7 +1149,15 @@ class ObservabilityAnalyticsDataPortAdapterTest {
             when(computeTimeSeriesUseCase.executeForApis(any(), any(), any())).thenReturn(
                 new ComputeTimeSeriesUseCase.Output(
                     new TimeSeriesResponse(
-                        List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(), List.of()))
+                        List.of(
+                            new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(), List.of()),
+                            new TimeSeriesMetricResponse(
+                                MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST,
+                                MetricSpec.Unit.CURRENCY,
+                                List.of(),
+                                List.of()
+                            )
+                        )
                     )
                 )
             );
@@ -1142,7 +1169,10 @@ class ObservabilityAnalyticsDataPortAdapterTest {
                     SCOPE,
                     60_000L,
                     List.of("LLM_PROXY_MODEL"),
-                    List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())),
+                    List.of(
+                        new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of()),
+                        new AnalyticsFacetMetricQuery("LLM_PROMPT_TOKEN_TOTAL_COST", List.of("COUNT"), List.of(), List.of())
+                    ),
                     List.of(),
                     Map.of(),
                     ranking
@@ -1151,6 +1181,8 @@ class ObservabilityAnalyticsDataPortAdapterTest {
 
             assertServedInGammaVocabulary(response);
             assertThat(response.at("/metrics/0/unit").asText()).isEqualTo("COUNT");
+            assertThat(response.at("/metrics/1/unit").asText()).isEqualTo("CURRENCY");
+            assertThat(response.at("/metrics/1/currency").asText()).isEqualTo("USD");
         }
 
         @Test
@@ -1191,6 +1223,13 @@ class ObservabilityAnalyticsDataPortAdapterTest {
                 .extracting(JsonNode::asText)
                 .doesNotContain("NUMBER")
                 .allSatisfy(unit -> assertThat(AdditionalMetricUnit.NAMED_UNITS).contains(unit));
+            assertThat(response.findParents("unit")).allSatisfy(entry -> {
+                if ("CURRENCY".equals(entry.path("unit").asText())) {
+                    assertThat(entry.path("currency").asText()).as("currency of a cost").isEqualTo("USD");
+                } else {
+                    assertThat(entry.has("currency")).as("currency next to " + entry.path("unit")).isFalse();
+                }
+            });
         }
 
         static Stream<SeriesRanking> rankings() {

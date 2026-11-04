@@ -142,6 +142,26 @@ class AnalyticsDefinitionPortAdapterTest extends AnalyticsDefinitionPortContract
     }
 
     @Test
+    void should_serve_the_platform_currency_with_each_llm_cost_and_with_no_token_count() {
+        var currencies = new HashMap<String, String>();
+        adapter.metricsOf(ApiType.LLM).forEach(metric -> currencies.put(metric.name(), metric.currency()));
+
+        assertThat(currencies)
+            .containsEntry("LLM_PROMPT_TOKEN_SENT_COST", "USD")
+            .containsEntry("LLM_PROMPT_TOKEN_RECEIVED_COST", "USD")
+            .containsEntry("LLM_PROMPT_TOKEN_TOTAL_COST", "USD")
+            .containsEntry("LLM_PROMPT_TOTAL_TOKEN", null);
+    }
+
+    @Test
+    void should_serve_the_edge_token_counts_in_tokens() {
+        assertThat(adapter.metricsOf(ApiType.EDGE))
+            .filteredOn(metric -> metric.name().startsWith("EDGE_TOKENS_"))
+            .extracting(MetricDefinition::unit)
+            .containsExactly("TOKENS", "TOKENS");
+    }
+
+    @Test
     void should_serve_the_authz_family_with_its_facets_for_authz() {
         var definition = definitionOf(ApiType.AUTHZ);
 

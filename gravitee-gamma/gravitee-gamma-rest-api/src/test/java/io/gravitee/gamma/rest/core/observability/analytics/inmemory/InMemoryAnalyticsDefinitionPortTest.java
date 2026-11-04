@@ -15,6 +15,8 @@
  */
 package io.gravitee.gamma.rest.core.observability.analytics.inmemory;
 
+import static io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinitionFixtures.aCost;
+
 import io.gravitee.gamma.rest.core.observability.analytics.port.AnalyticsDefinitionPortContractTest;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.AnalyticsDefinitionPort;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
@@ -29,6 +31,7 @@ class InMemoryAnalyticsDefinitionPortTest extends AnalyticsDefinitionPortContrac
         port.givenMetric("LLM_PROMPT_TOTAL_TOKEN", List.of(ApiType.LLM), "API", "LLM_PROXY_MODEL");
         port.givenMetric("NATIVE_CONNECTIONS", List.of(ApiType.NATIVE), "NATIVE_TOPIC");
         port.givenMetric("AUTHZ_DECISIONS", List.of(ApiType.AUTHZ), "AUTHZ_DECISION");
+        port.givenMetric(aCost("LLM_PROMPT_TOKEN_TOTAL_COST", List.of(ApiType.LLM), "API", "LLM_PROXY_MODEL"));
     }
 
     @Override

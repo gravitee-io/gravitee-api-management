@@ -119,7 +119,8 @@ public class AnalyticsDefinitionPortAdapter implements AnalyticsDefinitionPort {
             spec.measures().stream().map(Enum::name).toList(),
             facetsOf(spec.name()),
             filtersOf(spec.name(), analyticsFilters),
-            CatalogOrigin.BUILT_IN
+            CatalogOrigin.BUILT_IN,
+            spec.unit() == null ? null : ServedMetricUnit.currencyOf(spec.unit()).orElse(null)
         );
     }
 

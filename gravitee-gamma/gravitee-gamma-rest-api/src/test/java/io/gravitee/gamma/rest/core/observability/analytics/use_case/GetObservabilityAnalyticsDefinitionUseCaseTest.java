@@ -226,6 +226,20 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
         }
 
         @Test
+        void should_serve_no_currency_code_for_a_declared_field_in_currency_its_currency_being_unknown() {
+            fixture.givenDeclared(ENVIRONMENT, BASKET, "Basket value", "CURRENCY", true);
+
+            var additional = additionalMetrics(execute(Set.of(ApiType.HTTP_PROXY)));
+
+            assertThat(additional)
+                .singleElement()
+                .satisfies(metric -> {
+                    assertThat(metric.unit()).isEqualTo("CURRENCY");
+                    assertThat(metric.currency()).isNull();
+                });
+        }
+
+        @Test
         void should_list_the_facets_of_the_additional_metrics_among_the_dimensions() {
             fixture.givenDeclared(BASKET);
 
