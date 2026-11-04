@@ -219,6 +219,20 @@
                 ></mat-slide-toggle>
               </gio-form-slide-toggle>
 
+              @if (importFormat() === 'openapi') {
+                <gio-form-slide-toggle>
+                  <gio-form-label>Create the path mapping for analytics</gio-form-label>
+                  Replaces existing path mappings when updating an API.
+                  <mat-slide-toggle
+                    gioFormSlideToggle
+                    formControlName="withPathMapping"
+                    data-testid="with-path-mapping"
+                    name="withPathMapping"
+                    aria-label="Toggle to create the path mapping for analytics"
+                  ></mat-slide-toggle>
+                </gio-form-slide-toggle>
+              }
+
               @if (hasOasValidationPolicy()) {
                 <gio-form-slide-toggle>
                   <gio-form-label>Add OpenAPI Specification Validation</gio-form-label>
@@ -295,6 +309,16 @@
                     <span class="gio-badge-neutral">Disabled</span>
                   }
                 </div>
+                @if (importFormat() === 'openapi') {
+                  <div class="review-import-step__row" data-testid="review-with-path-mapping">
+                    <span>Path mappings:</span>
+                    @if (optionsForm.controls.withPathMapping.value) {
+                      <span class="gio-badge-success">Enabled</span>
+                    } @else {
+                      <span class="gio-badge-neutral">Disabled</span>
+                    }
+                  </div>
+                }
                 @if (hasOasValidationPolicy()) {
                   <div class="review-import-step__row">
                     <span>OpenAPI validation:</span>

@@ -134,6 +134,7 @@ export class ApiImportV4FormComponent {
     withRestToSoap: [{ value: false, disabled: false }],
     withDocumentation: [{ value: false, disabled: false }],
     withOASValidationPolicy: [{ value: false, disabled: false }],
+    withPathMapping: [{ value: false, disabled: true }],
   });
 
   protected readonly hasOasValidationPolicy = signal(false);
@@ -368,6 +369,10 @@ export class ApiImportV4FormComponent {
         { emitEvent: false },
       );
       this.optionsForm.controls.withDocumentation.enable();
+      if (this.optionsForm.controls.withPathMapping.disabled) {
+        this.optionsForm.controls.withPathMapping.setValue(false, { emitEvent: false });
+        this.optionsForm.controls.withPathMapping.enable({ emitEvent: false });
+      }
       if (hasOasValidationPolicyInstalled) {
         this.optionsForm.controls.withOASValidationPolicy.enable();
       } else {
@@ -389,13 +394,16 @@ export class ApiImportV4FormComponent {
         this.optionsForm.controls.withOASValidationPolicy.setValue(false, { emitEvent: false });
         this.optionsForm.controls.withOASValidationPolicy.disable({ emitEvent: false });
       }
+      this.optionsForm.controls.withPathMapping.setValue(false, { emitEvent: false });
+      this.optionsForm.controls.withPathMapping.disable({ emitEvent: false });
       return;
     }
     this.optionsForm.controls.withRestToSoap.setValue(false, { emitEvent: false });
     this.optionsForm.controls.withRestToSoap.disable({ emitEvent: false });
-    this.optionsForm.patchValue({ withDocumentation: false, withOASValidationPolicy: false });
+    this.optionsForm.patchValue({ withDocumentation: false, withOASValidationPolicy: false, withPathMapping: false });
     this.optionsForm.controls.withDocumentation.enable();
     this.optionsForm.controls.withOASValidationPolicy.enable();
+    this.optionsForm.controls.withPathMapping.disable({ emitEvent: false });
   }
 
   private static remoteHttpUrlValidator(control: AbstractControl): ValidationErrors | null {
@@ -530,6 +538,7 @@ export class ApiImportV4FormComponent {
       type,
       withDocumentation: rawOptions.withDocumentation,
       withOASValidationPolicy: rawOptions.withOASValidationPolicy,
+      withPathMapping: rawOptions.withPathMapping,
     };
   }
 

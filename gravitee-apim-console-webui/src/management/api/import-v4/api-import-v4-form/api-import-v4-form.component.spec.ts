@@ -164,6 +164,7 @@ describe('ApiImportV4FormComponent', () => {
         type: 'INLINE',
         withDocumentation: true,
         withOASValidationPolicy: false,
+        withPathMapping: false,
       }),
     );
     req.flush(fakeApiV4({ id: 'imported-oas' }));
@@ -268,6 +269,7 @@ describe('ApiImportV4FormComponent', () => {
         type: 'URL',
         withDocumentation: true,
         withOASValidationPolicy: false,
+        withPathMapping: false,
       }),
     );
   });
@@ -296,6 +298,7 @@ describe('ApiImportV4FormComponent', () => {
         type: 'URL',
         withDocumentation: true,
         withOASValidationPolicy: false,
+        withPathMapping: false,
       }),
     );
     expect(apiV2.importSwaggerApi).not.toHaveBeenCalled();
@@ -448,6 +451,7 @@ describe('ApiImportV4FormComponent', () => {
         expect.objectContaining({
           payload: 'https://example.com/openapi.yaml',
           type: 'URL',
+          withPathMapping: false,
         }),
       );
       req.flush(fakeApiV4({ id: 'existing-api' }));
@@ -575,6 +579,67 @@ describe('ApiImportV4FormComponent (oas-validation policy installed)', () => {
     expect(await harness.isOasValidationPolicyImportPresent()).toBe(true);
     expect(await harness.isOasValidationPolicyImportSelected()).toBe(false);
     expect(await harness.isOasValidationPolicyImportDisabled()).toBe(true);
+    expect(await harness.isPathMappingTogglePresent()).toBe(false);
+  });
+
+  it('should show the path mapping option on the OpenAPI import options step', async () => {
+    const yaml = 'openapi: 3.1.0';
+
+    await harness.selectFormat('openapi');
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.pickFiles([new File([yaml], 'openapi.yml', { type: 'application/x-yaml' })]);
+    fixture.detectChanges();
+    await harness.clickNext();
+
+    expect(await harness.isPathMappingTogglePresent()).toBe(true);
+  });
+
+  it('should send withPathMapping when the OpenAPI toggle is enabled', async () => {
+    const httpMock = TestBed.inject(HttpTestingController);
+    const yaml = 'openapi: 3.1.0';
+
+    await harness.selectFormat('openapi');
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.pickFiles([new File([yaml], 'openapi.yml', { type: 'application/x-yaml' })]);
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.togglePathMapping();
+    await harness.clickNext();
+    await harness.clickImport();
+
+    const req = httpMock.expectOne(r => r.method === 'POST' && r.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_import/swagger`);
+    expect(req.request.body).toEqual(expect.objectContaining({ withPathMapping: true }));
+    req.flush(fakeApiV4({ id: 'imported-oas' }));
+    httpMock.verify();
+  });
+
+  it('should send withPathMapping when updating an API from OpenAPI', async () => {
+    const apiV2 = TestBed.inject(ApiV2Service);
+    jest.spyOn(apiV2, 'updateApiFromSwagger').mockReturnValue(of({ id: 'same-api' } as ApiV4));
+    fixture.componentRef.setInput('updateTargetApiId', 'same-api');
+    fixture.detectChanges();
+
+    await harness.selectFormat('openapi');
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.selectSource('remote');
+    await harness.setRemoteUrl('https://example.com/openapi.yaml');
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.togglePathMapping();
+    await harness.clickNext();
+    await harness.clickImport();
+
+    expect(apiV2.updateApiFromSwagger).toHaveBeenCalledWith(
+      'same-api',
+      expect.objectContaining({
+        payload: 'https://example.com/openapi.yaml',
+        type: 'URL',
+        withPathMapping: true,
+      }),
+    );
   });
 
   it('should still skip the options step for Gravitee definition when policy is installed', async () => {
