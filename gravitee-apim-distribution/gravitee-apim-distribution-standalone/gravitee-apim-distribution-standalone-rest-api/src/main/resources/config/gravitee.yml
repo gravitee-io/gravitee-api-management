@@ -458,6 +458,16 @@ services:
     #  Pre-expiration notification, number of days before the expiration an email should be send to subscriber and primary owner
     pre-expiration-notification-schedule: 90,45,30
 
+  # Commands service
+  # Processes the commands sent to the Management API by its own nodes and by gateways (cache invalidations,
+  # subscription failures, cache refreshes...).
+  # Each run reads the pending commands oldest first, by bulks of bulk_items, and reads at most max_bulks bulks:
+  # the commands left are processed on the next run.
+  #commands:
+  #  cron: "0/5 * * * * *"
+  #  bulk_items: 100
+  #  max_bulks: 10
+
 
 
 node:

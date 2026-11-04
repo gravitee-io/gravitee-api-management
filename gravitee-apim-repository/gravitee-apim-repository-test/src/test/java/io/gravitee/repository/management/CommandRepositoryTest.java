@@ -20,9 +20,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.CommandCriteria;
+import io.gravitee.repository.management.api.search.CommandCursor;
 import io.gravitee.repository.management.model.Command;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
@@ -235,6 +241,127 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(2, nbBeforeDeletion);
         assertEquals(2, deleted.size());
         assertEquals(0, nbAfterDeletion);
+    }
+
+    @Test
+    public void should_search_the_oldest_matching_commands_up_to_the_page_size() throws TechnicalException {
+        createCommand("batch-3", 3_000L, "SUBSCRIPTION_FAILURE");
+        createCommand("batch-1-b", 1_000L, "SUBSCRIPTION_FAILURE");
+        createCommand("batch-2", 2_000L, "EMAIL_TEMPLATE_UPDATE");
+        createCommand("batch-1-a", 1_000L, "SUBSCRIPTION_FAILURE");
+
+        CommandCriteria criteria = new CommandCriteria.Builder().to("BATCH").tags("SUBSCRIPTION_FAILURE", "EMAIL_TEMPLATE_UPDATE").build();
+
+        assertEquals(List.of("batch-1-a", "batch-1-b", "batch-2"), ids(commandRepository.searchAfter(criteria, null, 3)));
+        assertEquals(List.of("batch-1-a", "batch-1-b", "batch-2", "batch-3"), ids(commandRepository.searchAfter(criteria, null, 10)));
+    }
+
+    @Test
+    public void should_search_the_commands_strictly_after_the_cursor() throws TechnicalException {
+        createCommand("batch-3", 3_000L, "SUBSCRIPTION_FAILURE");
+        createCommand("batch-1-b", 1_000L, "SUBSCRIPTION_FAILURE");
+        createCommand("batch-2", 2_000L, "SUBSCRIPTION_FAILURE");
+        createCommand("batch-1-a", 1_000L, "SUBSCRIPTION_FAILURE");
+
+        CommandCriteria criteria = new CommandCriteria.Builder().to("BATCH").tags("SUBSCRIPTION_FAILURE").build();
+
+        assertEquals(
+            List.of("batch-1-b", "batch-2"),
+            ids(commandRepository.searchAfter(criteria, new CommandCursor(1_000L, "batch-1-a"), 2))
+        );
+        assertEquals(List.of("batch-3"), ids(commandRepository.searchAfter(criteria, new CommandCursor(2_000L, "batch-2"), 2)));
+    }
+
+    @Test
+    public void should_filter_before_applying_the_page_size() throws TechnicalException {
+        createCommand("batch-other-tag", 1_000L, "DATA_TO_INDEX");
+        createCommand("batch-no-tag", 1_500L);
+        Command acknowledged = createCommand("batch-acknowledged", 2_000L, "SUBSCRIPTION_FAILURE");
+        acknowledged.setAcknowledgments(List.of("node-1"));
+        commandRepository.update(acknowledged);
+        createCommand("batch-pending", 3_000L, "SUBSCRIPTION_FAILURE");
+
+        List<Command> commands = commandRepository.searchAfter(
+            new CommandCriteria.Builder().to("BATCH").tags("SUBSCRIPTION_FAILURE").notAckBy("node-1").build(),
+            null,
+            1
+        );
+
+        assertEquals(List.of("batch-pending"), ids(commands));
+    }
+
+    @Test
+    public void should_return_a_command_matching_one_of_its_tags_with_all_its_tags() throws TechnicalException {
+        createCommand("batch-several-tags", 1_000L, "SUBSCRIPTION_FAILURE", "DATA_TO_INDEX");
+
+        List<Command> commands = commandRepository.searchAfter(
+            new CommandCriteria.Builder().to("BATCH").tags("SUBSCRIPTION_FAILURE").build(),
+            null,
+            10
+        );
+
+        assertEquals(List.of("batch-several-tags"), ids(commands));
+        assertEquals(Set.of("SUBSCRIPTION_FAILURE", "DATA_TO_INDEX"), Set.copyOf(commands.get(0).getTags()));
+    }
+
+    @Test
+    public void should_reject_a_page_size_below_one() {
+        CommandCriteria criteria = new CommandCriteria.Builder().to("BATCH").build();
+
+        assertThrows(IllegalArgumentException.class, () -> commandRepository.searchAfter(criteria, null, 0));
+    }
+
+    @Test
+    public void should_report_that_only_the_first_delete_removed_the_command() throws TechnicalException {
+        assertTrue(commandRepository.deleteIfExists("msg-to-delete"), "first delete removes the command");
+        assertFalse(commandRepository.deleteIfExists("msg-to-delete"), "second delete finds nothing to remove");
+        assertFalse(commandRepository.findById("msg-to-delete").isPresent(), "command is gone");
+    }
+
+    @Test
+    public void should_let_only_one_of_two_concurrent_deletes_remove_the_command() throws Exception {
+        Command claimed = createCommand("batch-claimed", 1_000L, "SUBSCRIPTION_FAILURE");
+        claimed.setAcknowledgments(List.of("node-1"));
+        commandRepository.update(claimed);
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            CountDownLatch start = new CountDownLatch(1);
+            List<Future<Boolean>> claims = new ArrayList<>();
+            for (int i = 0; i < 2; i++) {
+                claims.add(
+                    executor.submit(() -> {
+                        start.await();
+                        return commandRepository.deleteIfExists("batch-claimed");
+                    })
+                );
+            }
+            start.countDown();
+
+            List<Boolean> results = new ArrayList<>();
+            for (Future<Boolean> claim : claims) {
+                results.add(claim.get(30, TimeUnit.SECONDS));
+            }
+            assertEquals(1, results.stream().filter(Boolean::booleanValue).count(), "exactly one delete removes the command: " + results);
+        } finally {
+            executor.shutdownNow();
+        }
+        assertFalse(commandRepository.findById("batch-claimed").isPresent(), "command is gone");
+    }
+
+    private Command createCommand(String id, long createdAt, String... tags) throws TechnicalException {
+        Command command = new Command();
+        command.setId(id);
+        command.setFrom("node-0");
+        command.setTo("BATCH");
+        command.setTags(List.of(tags));
+        command.setCreatedAt(new Date(createdAt));
+        command.setUpdatedAt(new Date(createdAt));
+        return commandRepository.create(command);
+    }
+
+    private static List<String> ids(List<Command> commands) {
+        return commands.stream().map(Command::getId).toList();
     }
 
     @Test

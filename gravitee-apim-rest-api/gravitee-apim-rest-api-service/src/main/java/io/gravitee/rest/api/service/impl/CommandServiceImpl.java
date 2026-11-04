@@ -19,6 +19,7 @@ import io.gravitee.node.api.Node;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.search.CommandCriteria;
+import io.gravitee.repository.management.api.search.CommandCursor;
 import io.gravitee.repository.management.model.Command;
 import io.gravitee.rest.api.model.command.CommandEntity;
 import io.gravitee.rest.api.model.command.CommandQuery;
@@ -78,6 +79,27 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
 
     @Override
     public List<CommandEntity> search(ExecutionContext executionContext, CommandQuery query) {
+        return commandRepository
+            .search(toCriteria(executionContext, query))
+            .stream()
+            .map(commandConverter::toCommandEntity)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CommandEntity> search(CommandQuery query, CommandEntity after, int limit) {
+        if (after != null && after.getCreatedAt() == null) {
+            throw new IllegalArgumentException("A command without creation date cannot start a page: " + after.getId());
+        }
+        CommandCursor cursor = after == null ? null : new CommandCursor(after.getCreatedAt().getTime(), after.getId());
+        return commandRepository
+            .searchAfter(toCriteria(null, query), cursor, limit)
+            .stream()
+            .map(commandConverter::toCommandEntity)
+            .toList();
+    }
+
+    private static CommandCriteria toCriteria(ExecutionContext executionContext, CommandQuery query) {
         //convert tags
         String[] tags = null;
         if (query.getTags() != null) {
@@ -90,27 +112,38 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
                 .organizationId(executionContext.getOrganizationId())
                 .environmentId(executionContext.hasEnvironmentId() ? executionContext.getEnvironmentId() : null);
         }
-        CommandCriteria criteria = criteriaBuilder.notAckBy(query.getNotAckBy()).build();
-
-        return commandRepository.search(criteria).stream().map(commandConverter::toCommandEntity).collect(Collectors.toList());
+        return criteriaBuilder.notAckBy(query.getNotAckBy()).build();
     }
 
     @Override
     public void ack(String messageId) {
+        ackIfExists(messageId);
+    }
+
+    @Override
+    public boolean ackIfExists(String messageId) {
         try {
             Optional<Command> optMsg = commandRepository.findById(messageId);
             //if not found, this is probably because it has been deleted
-            if (optMsg.isPresent()) {
-                Command msg = optMsg.get();
-                if (msg.getAcknowledgments() == null) {
-                    msg.setAcknowledgments(Collections.singletonList(node.id()));
-                } else if (!msg.getAcknowledgments().contains(node.id())) {
-                    msg.getAcknowledgments().add(node.id());
-                }
-                commandRepository.update(msg);
+            if (optMsg.isEmpty()) {
+                return false;
             }
+            Command msg = optMsg.get();
+            if (msg.getAcknowledgments() == null) {
+                msg.setAcknowledgments(Collections.singletonList(node.id()));
+            } else if (!msg.getAcknowledgments().contains(node.id())) {
+                msg.getAcknowledgments().add(node.id());
+            }
+            commandRepository.update(msg);
+            return true;
+        } catch (IllegalStateException ex) {
+            // The repositories throw it when the command was deleted between the read and the update, typically by
+            // the expired commands cleanup: there is nothing left to acknowledge.
+            log.debug("Command [{}] was deleted before being acknowledged", messageId, ex);
+            return false;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to acknowledge a message", ex);
+            log.error("An error occurs while trying to acknowledge command [{}]", messageId, ex);
+            return false;
         }
     }
 
@@ -118,6 +151,15 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
     public void delete(String commandId) {
         try {
             commandRepository.delete(commandId);
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurs while trying to delete command " + commandId, ex);
+        }
+    }
+
+    @Override
+    public boolean deleteIfExists(String commandId) {
+        try {
+            return commandRepository.deleteIfExists(commandId);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to delete command " + commandId, ex);
         }
