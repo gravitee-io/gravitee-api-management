@@ -10,6 +10,7 @@
             "@gravitee/gamma-ui-shared/chip-input": ["../gamma-ui-shared/src/chip-input/index.ts"],
             "@gravitee/gamma-ui-shared/cors": ["../gamma-ui-shared/src/cors/index.ts"],
             "@gravitee/gamma-ui-shared/federation": ["../gamma-ui-shared/src/federation/index.ts"],
+            "@gravitee/gamma-ui-shared/observability": ["../gamma-ui-shared/src/observability/index.ts"],
             "@gravitee/gravitee-markdown-element": ["../../dist/@gravitee/gravitee-markdown-element/main.js"]
         }
     },

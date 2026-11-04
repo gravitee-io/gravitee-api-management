@@ -18,6 +18,7 @@ import '@gravitee/graphene-charts/lineage/styles.css';
 import { CapabilityProvider } from '@gravitee/gamma-lib-observability';
 import { useEnvironment, useHasFeature } from '@gravitee/gamma-modules-sdk';
 import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
+import { useEnvironmentId, useObservabilityBaseUrl } from '@gravitee/gamma-ui-shared/observability';
 import { SidebarNavigation, useLayoutConfig, type NavGroup } from '@gravitee/graphene-core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useMemo } from 'react';
@@ -87,8 +88,6 @@ import { QuickStartPage } from '../features/dashboard/pages/QuickStartPage';
 import { ApimLicenseFeature, RequireFeatureLicense } from '../features/license';
 import { SettingsPage } from '../features/settings/pages/SettingsPage';
 import { createTracingApiPaginatedLoader } from '../lib/api/tracing-api-loader';
-import { useEnvironmentId } from '../lib/hooks/useEnvironmentId';
-import { useObservabilityBaseUrl } from '../lib/hooks/useObservabilityBaseUrl';
 import { gammaConsoleHttpOptions } from '../shared/api/apimClient';
 
 const queryClient = new QueryClient();
