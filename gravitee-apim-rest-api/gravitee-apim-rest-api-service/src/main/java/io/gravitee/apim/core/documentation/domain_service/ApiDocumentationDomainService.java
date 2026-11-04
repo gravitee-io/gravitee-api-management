@@ -30,13 +30,14 @@ import lombok.RequiredArgsConstructor;
 @DomainService
 public class ApiDocumentationDomainService {
 
-    private static final String ROOT = "ROOT";
+    /** Parent id the Console sends for a page at the root of the documentation. */
+    public static final String ROOT_PARENT_ID = "ROOT";
     private final PageQueryService pageQueryService;
     private final PlanQueryService planQueryService;
 
     public List<Page> getApiPages(String apiId, String parentId) {
         if (Objects.nonNull(parentId) && !parentId.isEmpty()) {
-            var parentIdParam = ROOT.equals(parentId) ? null : parentId;
+            var parentIdParam = ROOT_PARENT_ID.equals(parentId) ? null : parentId;
             return pageQueryService.searchByApiIdAndParentId(apiId, parentIdParam);
         } else {
             return pageQueryService.searchByApiId(apiId);
