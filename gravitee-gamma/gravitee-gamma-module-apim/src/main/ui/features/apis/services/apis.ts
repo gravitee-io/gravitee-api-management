@@ -40,6 +40,7 @@ import type {
     ResponseTemplatesMap,
 } from '../types';
 import { PathMappingsConflictError } from '../utils/pathMappings';
+import { swaggerDocumentPaths } from '../utils/swaggerDocumentPaths';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
@@ -374,16 +375,30 @@ export async function updateApiPathMappings(
     });
 }
 
+interface ApiDocumentationPagePayload {
+    id?: string;
+    name?: string;
+    type?: string;
+}
+
 interface ApiDocumentationPagesResponse {
-    pages?: Array<{ id?: string; name?: string; type?: string }>;
+    pages?: ApiDocumentationPagePayload[];
 }
 
 /** Lists classic SWAGGER documentation pages for path-mapping import (Management API v2 pages). */
 export async function listApiSwaggerPages(environmentId: string, apiId: string): Promise<ApiSwaggerDocumentationPage[]> {
     const result = await apimFetchJsonV2<ApiDocumentationPagesResponse>(environmentId, `/apis/${encodeURIComponent(apiId)}/pages`);
     return (result.pages ?? [])
-        .filter((page): page is { id: string; name: string; type: string } => page.type === 'SWAGGER' && !!page.id)
+        .filter((page): page is ApiDocumentationPagePayload & { id: string } => page.type === 'SWAGGER' && !!page.id)
         .map(page => ({ id: page.id, name: page.name || page.id }));
+}
+
+export async function getApiSwaggerPagePaths(environmentId: string, apiId: string, pageId: string): Promise<string[]> {
+    const detail = await apimFetchJsonV2<{ content?: string }>(
+        environmentId,
+        `/apis/${encodeURIComponent(apiId)}/pages/${encodeURIComponent(pageId)}`,
+    );
+    return swaggerDocumentPaths(detail.content);
 }
 
 /** Imports path templates from a SWAGGER documentation page onto the first HTTP listener. */

@@ -24,9 +24,13 @@ import { ApimApiError } from '../../../../../shared/api/apimClient';
 import { notify } from '../../../../../shared/notify';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { useApiDetail } from '../../../hooks/useApiDetail';
-import { importApiPathMappings, listApiSwaggerPages, updateApiPathMappings } from '../../../services/apis';
+import { getApiSwaggerPagePaths, importApiPathMappings, listApiSwaggerPages, updateApiPathMappings } from '../../../services/apis';
 
-// jsdom ships no ResizeObserver; RadioGroup / Checkbox mount one.
+Element.prototype.hasPointerCapture ??= () => false;
+Element.prototype.setPointerCapture ??= () => {};
+Element.prototype.releasePointerCapture ??= () => {};
+
+// jsdom ships no ResizeObserver; RadioGroup mounts one.
 globalThis.ResizeObserver ??= class {
     observe() {}
     unobserve() {}
@@ -71,6 +75,7 @@ jest.mock('../../../services/apis', () => ({
     updateApiPathMappings: jest.fn(() => Promise.resolve({ id: 'api-1', listeners: [] })),
     importApiPathMappings: jest.fn(() => Promise.resolve({ pathMappings: ['/pets/:petId'] })),
     listApiSwaggerPages: jest.fn(() => Promise.resolve([{ id: 'sw-1', name: 'Petstore' }])),
+    getApiSwaggerPagePaths: jest.fn(() => Promise.resolve(['/pets', '/pets/:petId'])),
 }));
 
 const mockUseHasPermission = useHasPermission as jest.Mock;
@@ -79,6 +84,7 @@ const mockUseApiDetailContext = useApiDetailContext as jest.Mock;
 const mockUpdate = updateApiPathMappings as jest.Mock;
 const mockImport = importApiPathMappings as jest.Mock;
 const mockListSwagger = listApiSwaggerPages as jest.Mock;
+const mockPagePaths = getApiSwaggerPagePaths as jest.Mock;
 
 function renderPage(
     pathMappings: string[] = ['/orders', '/pets/:petId'],
@@ -118,12 +124,24 @@ beforeEach(() => {
     mockUpdate.mockResolvedValue({ id: 'api-1', listeners: [{ type: 'HTTP', pathMappings: [] }] });
     mockImport.mockResolvedValue({ pathMappings: ['/pets/:petId'] });
     mockListSwagger.mockResolvedValue([{ id: 'sw-1', name: 'Petstore' }]);
+    mockPagePaths.mockResolvedValue(['/pets', '/pets/:petId']);
 });
 
 it('lists stored path mappings', () => {
     renderPage();
     expect(screen.getByText('/orders')).toBeInTheDocument();
     expect(screen.getByText('/pets/:petId')).toBeInTheDocument();
+    expect(screen.queryByText('Why add a path mapping?')).not.toBeInTheDocument();
+});
+
+it('explains path mappings when the API has none', () => {
+    renderPage([]);
+    expect(screen.getByText('Why add a path mapping?')).toBeInTheDocument();
+    expect(screen.getByText('Client request')).toBeInTheDocument();
+    expect(screen.getByText('Grouped analytics')).toBeInTheDocument();
+    expect(screen.getByText('Pattern lookup')).toBeInTheDocument();
+    expect(screen.getByText('Applies on deploy')).toBeInTheDocument();
+    expect(screen.getByTestId('add-path-mapping')).toBeInTheDocument();
 });
 
 it('hides add when the user lacks api-definition-u', () => {
@@ -162,20 +180,22 @@ it('imports path mappings from a Swagger page', async () => {
     const user = userEvent.setup();
     renderPage([]);
     await user.click(screen.getByTestId('add-path-mapping'));
-    await user.click(screen.getByRole('tab', { name: 'Swagger Document' }));
+    await user.click(screen.getByRole('radio', { name: 'Import from Swagger' }));
     await screen.findByText('Petstore');
+    expect(screen.queryByText('/pets')).not.toBeInTheDocument();
     await user.click(screen.getByText('Petstore'));
+    expect(await screen.findByText('/pets')).toBeInTheDocument();
     await user.click(screen.getByTestId('path-mapping-submit'));
     expect(mockImport).toHaveBeenCalledWith('DEFAULT', 'api-1', { pageId: 'sw-1', overwrite: false });
     expect(notify.success).toHaveBeenCalledWith('The path mappings have been successfully imported!');
 });
 
-it('does not load Swagger pages until that tab is opened', async () => {
+it('does not load Swagger pages until Import from Swagger is selected', async () => {
     const user = userEvent.setup();
     renderPage([]);
     await user.click(screen.getByTestId('add-path-mapping'));
     expect(mockListSwagger).not.toHaveBeenCalled();
-    await user.click(screen.getByRole('tab', { name: 'Swagger Document' }));
+    await user.click(screen.getByRole('radio', { name: 'Import from Swagger' }));
     await screen.findByText('Petstore');
     expect(mockListSwagger).toHaveBeenCalledTimes(1);
 });

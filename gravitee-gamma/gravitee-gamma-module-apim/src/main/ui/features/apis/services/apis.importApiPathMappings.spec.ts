@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { importApiPathMappings, listApiSwaggerPages } from './apis';
+import { getApiSwaggerPagePaths, importApiPathMappings, listApiSwaggerPages } from './apis';
 import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
 
-jest.mock('../../../shared/api/apimClient', () => ({
-    apimFetchJsonV2: jest.fn(),
-    apimFetchJsonV2WithMeta: jest.fn(),
-    apimFetchBlobV2: jest.fn(),
-    apimFetchJsonOrg: jest.fn(),
-    apimFetchJsonV1Env: jest.fn(),
-}));
+jest.mock('../../../shared/api/apimClient', () => {
+    const actual = jest.requireActual('../../../shared/api/apimClient');
+    return {
+        ...actual,
+        apimFetchJsonV2: jest.fn(),
+        apimFetchJsonV2WithMeta: jest.fn(),
+        apimFetchBlobV2: jest.fn(),
+        apimFetchJsonOrg: jest.fn(),
+        apimFetchJsonV1Env: jest.fn(),
+    };
+});
 
 const mockFetch = jest.mocked(apimFetchJsonV2);
 
@@ -31,10 +35,15 @@ describe('listApiSwaggerPages', () => {
         jest.clearAllMocks();
     });
 
-    it('returns only SWAGGER pages with id and name', async () => {
+    it('returns SWAGGER page names and does not read their content', async () => {
         mockFetch.mockResolvedValueOnce({
             pages: [
-                { id: 'sw-1', name: 'Petstore', type: 'SWAGGER' },
+                {
+                    id: 'sw-1',
+                    name: 'Petstore',
+                    type: 'SWAGGER',
+                    content: JSON.stringify({ openapi: '3.0.0', paths: { '/pets/{petId}': {} } }),
+                },
                 { id: 'md-1', name: 'Readme', type: 'MARKDOWN' },
                 { id: 'sw-2', name: '', type: 'SWAGGER' },
                 { type: 'SWAGGER' },
@@ -45,7 +54,21 @@ describe('listApiSwaggerPages', () => {
             { id: 'sw-1', name: 'Petstore' },
             { id: 'sw-2', name: 'sw-2' },
         ]);
+        expect(mockFetch).toHaveBeenCalledTimes(1);
         expect(mockFetch).toHaveBeenCalledWith('env-1', '/apis/api-1/pages');
+    });
+});
+
+describe('getApiSwaggerPagePaths', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('reads one Swagger page and converts its paths', async () => {
+        mockFetch.mockResolvedValueOnce({ content: "swagger: '2.0'\npaths:\n  /store/order/{orderId}:\n    get: {}\n  /:\n    get: {}\n" });
+
+        await expect(getApiSwaggerPagePaths('env-1', 'api-1', 'sw-1')).resolves.toEqual(['/store/order/:orderId']);
+        expect(mockFetch).toHaveBeenCalledWith('env-1', '/apis/api-1/pages/sw-1');
     });
 });
 

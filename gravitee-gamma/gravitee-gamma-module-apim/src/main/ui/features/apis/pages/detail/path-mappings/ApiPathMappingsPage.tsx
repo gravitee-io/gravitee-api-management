@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { Alert, AlertDescription, Button, DataTableEmptyState } from '@gravitee/graphene-core';
-import { PlusIcon, WaypointsIcon } from '@gravitee/graphene-core/icons';
+import { Alert, AlertDescription, Button } from '@gravitee/graphene-core';
+import { PlusIcon } from '@gravitee/graphene-core/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { PathMappingFormDialog } from './PathMappingFormDialog';
+import { PathMappingsEmptyState } from './PathMappingsEmptyState';
+import { PathMappingSheet } from './PathMappingSheet';
 import { PathMappingsTable } from './PathMappingsTable';
 import { ApimApiError } from '../../../../../shared/api/apimClient';
 import { ConfirmDialog } from '../../../../../shared/components/ConfirmDialog';
@@ -47,10 +48,6 @@ function firstHttpListener(api: ApiDetailDto | undefined): HttpListener | undefi
     return api?.listeners?.find((listener): listener is HttpListener => listener.type === 'HTTP');
 }
 
-function matchesPathSearch(path: string, query: string): boolean {
-    return path.toLowerCase().includes(query);
-}
-
 export function ApiPathMappingsPage() {
     const { apiId } = useParams<{ apiId: string }>();
     const env = useEnvironment();
@@ -66,17 +63,14 @@ export function ApiPathMappingsPage() {
     const httpListener = useMemo(() => firstHttpListener(api), [api]);
 
     const allPaths = useMemo(() => sortedPathMappings(httpListener?.pathMappings), [httpListener]);
-    const { search, page, pageSize, totalCount, pageData, handleSearchChange, setPage, handlePageSizeChange } = useClientFilteredPagination(
-        allPaths,
-        matchesPathSearch,
-    );
+    const { page, pageSize, totalCount, pageData, setPage, handlePageSizeChange } = useClientFilteredPagination(allPaths);
 
     const [addOpen, setAddOpen] = useState(false);
     const [editingPath, setEditingPath] = useState<string | null>(null);
     const [deletingPath, setDeletingPath] = useState<string | null>(null);
 
-    const isFirstUse = !isLoading && !isError && allPaths.length === 0 && search.trim() === '';
-    const showAddButton = canEdit && !readOnly && !isFirstUse;
+    const isFirstUse = !isLoading && !isError && !!httpListener && allPaths.length === 0;
+    const showAddButton = canEdit && !readOnly && !isLoading && !isError && !!httpListener && allPaths.length > 0;
 
     const mutation = useMutation({
         mutationFn: (updater: (current: string[]) => string[]) => updateApiPathMappings(env!.id, apiId!, updater),
@@ -192,16 +186,16 @@ export function ApiPathMappingsPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold tracking-tight">Path Mappings</h1>
+                    <h1 className="text-lg font-semibold">Path mappings</h1>
                     <p className="text-sm text-muted-foreground">
-                        Path mappings group analytics by path template. Changes apply to the gateway on the next deployment.
+                        Declare the paths analytics should group. The list applies the next time you deploy this API.
                     </p>
                 </div>
                 {showAddButton ? (
-                    <Button className="shrink-0" onClick={() => setAddOpen(true)} data-testid="add-path-mapping">
+                    <Button size="sm" className="shrink-0" onClick={() => setAddOpen(true)} data-testid="add-path-mapping">
                         <PlusIcon className="size-4" aria-hidden />
                         Add path mapping
                     </Button>
@@ -219,42 +213,33 @@ export function ApiPathMappingsPage() {
                     <AlertDescription>This API has no HTTP listener to store path mappings.</AlertDescription>
                 </Alert>
             ) : isFirstUse ? (
-                <div className="rounded-lg border">
-                    <DataTableEmptyState
-                        variant="first-use"
-                        icon={<WaypointsIcon className="size-8" aria-hidden />}
-                        title="No path mappings"
-                        description="Add path templates such as /orders/:orderId so analytics can group requests by path."
-                        primaryAction={
-                            canEdit && !readOnly ? (
-                                <Button type="button" onClick={() => setAddOpen(true)} data-testid="add-path-mapping">
-                                    <PlusIcon className="size-4" aria-hidden />
-                                    Add path mapping
-                                </Button>
-                            ) : undefined
-                        }
-                    />
-                </div>
+                <PathMappingsEmptyState
+                    action={
+                        canEdit && !readOnly ? (
+                            <Button type="button" onClick={() => setAddOpen(true)} data-testid="add-path-mapping">
+                                <PlusIcon className="size-4" aria-hidden />
+                                Add path mapping
+                            </Button>
+                        ) : undefined
+                    }
+                />
             ) : (
                 <PathMappingsTable
                     paths={pageData}
                     page={page}
                     pageSize={pageSize}
                     totalCount={totalCount}
-                    search={search}
                     readOnly={readOnly}
                     isMutating={isMutating}
                     isLoading={isLoading}
-                    onSearchChange={handleSearchChange}
                     onPageChange={setPage}
                     onPageSizeChange={handlePageSizeChange}
                     onEdit={setEditingPath}
                     onDelete={setDeletingPath}
-                    onClearSearch={() => handleSearchChange('')}
                 />
             )}
 
-            <PathMappingFormDialog
+            <PathMappingSheet
                 open={addOpen}
                 mode="add"
                 existing={storedPathMappings(httpListener?.pathMappings)}
@@ -266,7 +251,7 @@ export function ApiPathMappingsPage() {
                 onImport={handleImport}
             />
 
-            <PathMappingFormDialog
+            <PathMappingSheet
                 open={editingPath !== null}
                 mode="edit"
                 existing={storedPathMappings(httpListener?.pathMappings)}
