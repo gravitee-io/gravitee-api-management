@@ -20,4 +20,5 @@ export interface ImportSwaggerDescriptor {
   type?: 'INLINE' | 'URL';
   withDocumentation?: boolean;
   withOASValidationPolicy?: boolean;
+  withPathMapping?: boolean;
 }

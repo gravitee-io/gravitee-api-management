@@ -32,6 +32,7 @@ import { ApiResourcesComponent } from './resources/api-resources.component';
 import { ApiPortalDocumentationMetadataComponent } from './documentation/metadata/api-portal-documentation-metadata.component';
 import { ApiEntrypointsComponent } from './entrypoints/api-entrypoints.component';
 import { ApiCorsComponent } from './cors/api-cors.component';
+import { ApiV4PathMappingsComponent } from './path-mappings-v4/api-v4-path-mappings.component';
 import { ApiResponseTemplatesListComponent } from './response-templates/list/api-response-templates-list.component';
 import { ApiResponseTemplatesEditComponent } from './response-templates/edit/api-response-templates-edit.component';
 import { ApiEndpointGroupsComponent } from './endpoints-v4/endpoint-groups/api-endpoint-groups.component';
@@ -1089,6 +1090,16 @@ const apisRoutes: Routes = [
       {
         path: 'v4/cors',
         component: ApiCorsComponent,
+        data: {
+          docs: null,
+          permissions: {
+            anyOf: ['api-definition-r'],
+          },
+        },
+      },
+      {
+        path: 'v4/path-mappings',
+        component: ApiV4PathMappingsComponent,
         data: {
           docs: null,
           permissions: {

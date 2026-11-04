@@ -41,6 +41,9 @@ export class ApiImportV4FormHarness extends ComponentHarness {
   private readonly getRestToSoapToggleOptional = this.locatorForOptional(
     MatSlideToggleHarness.with({ selector: '[formControlName="withRestToSoap"]' }),
   );
+  private readonly getPathMappingToggleOptional = this.locatorForOptional(
+    MatSlideToggleHarness.with({ selector: '[data-testid="with-path-mapping"]' }),
+  );
 
   public async hasRoot(): Promise<boolean> {
     return (await this.getRoot()) !== null;
@@ -192,6 +195,18 @@ export class ApiImportV4FormHarness extends ComponentHarness {
       throw new Error('REST to SOAP toggle is not in the DOM');
     }
     return toggle.isDisabled();
+  }
+
+  public async isPathMappingTogglePresent(): Promise<boolean> {
+    return (await this.getPathMappingToggleOptional()) !== null;
+  }
+
+  public async togglePathMapping(): Promise<void> {
+    const toggle = await this.getPathMappingToggleOptional();
+    if (!toggle) {
+      throw new Error('Path mapping toggle is not in the DOM');
+    }
+    return toggle.toggle();
   }
 
   public async toggleRestToSoap(): Promise<void> {
