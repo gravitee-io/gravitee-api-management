@@ -19,9 +19,12 @@ import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gateway.reactor.Reactable;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -60,12 +63,17 @@ public class ReactableApiProduct implements Reactable, Serializable {
 
     private Date deployedAt;
 
+    @ToString.Exclude
     private List<Plan> plans;
+
     private Analytics analytics;
     private Set<String> tags;
 
     private List<Flow> flows;
     private FlowExecution flowExecution;
+
+    @ToString.Exclude
+    private List<Resource> resources;
 
     @Override
     public boolean enabled() {
@@ -74,8 +82,12 @@ public class ReactableApiProduct implements Reactable, Serializable {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <D> Set<D> dependencies(Class<D> type) {
+        if (Resource.class.equals(type) && resources != null) {
+            return (Set<D>) new HashSet<>(resources);
+        }
         // The product runtime loads the product policies itself.
-        return Set.of();
+        return Collections.emptySet();
     }
 }

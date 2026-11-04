@@ -64,6 +64,10 @@ public class ApiProductRuntime {
         return product;
     }
 
+    List<LifecycleComponent<?>> lifecycleComponents() {
+        return components;
+    }
+
     public boolean servesApi(String apiId) {
         return product.getApiIds() != null && product.getApiIds().contains(apiId);
     }

@@ -20,7 +20,9 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
+import io.gravitee.gateway.handlers.api.manager.ApiProductResourceManagerFactory;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiProductManagerImpl;
+import io.gravitee.gateway.handlers.api.manager.impl.DefaultApiProductResourceManagerFactory;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.handlers.api.registry.impl.ApiProductRegistryImpl;
 import io.gravitee.gateway.reactive.core.condition.CompositeConditionFilter;
@@ -51,6 +53,11 @@ public class ApiProductConfiguration {
         return new ApiProductRegistryImpl(gatewayConfiguration);
     }
 
+    @Bean
+    public ApiProductResourceManagerFactory apiProductResourceManagerFactory(ApplicationContext applicationContext) {
+        return new DefaultApiProductResourceManagerFactory(applicationContext);
+    }
+
     @Bean(destroyMethod = "clear")
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public ApiProductRuntimeRegistry apiProductRuntimeRegistry(
@@ -60,7 +67,9 @@ public class ApiProductConfiguration {
         PolicyFactoryManager policyFactoryManager,
         PolicyClassLoaderFactory policyClassLoaderFactory,
         ComponentProvider componentProvider,
-        GatewayConfiguration gatewayConfiguration
+        GatewayConfiguration gatewayConfiguration,
+        ApiProductResourceManagerFactory apiProductResourceManagerFactory,
+        LicenseManager licenseManager
     ) {
         FlowResolverFactory flowResolverFactory = new FlowResolverFactory(
             new CompositeConditionFilter(new HttpSelectorConditionFilter()),
@@ -74,7 +83,9 @@ public class ApiProductConfiguration {
             policyClassLoaderFactory,
             componentProvider,
             flowResolverFactory,
-            gatewayConfiguration
+            gatewayConfiguration,
+            apiProductResourceManagerFactory,
+            licenseManager
         );
         return new ApiProductRuntimeRegistry(runtimeFactory, drainTimeoutMs, Schedulers.io());
     }
