@@ -22,7 +22,6 @@ inputs:
   - { path: ".ai/rules/console-webui.md", hash: "sha256:f5df442c57cde991ba1da02536893fd59659522f2af65a145c1c91bc13aad13c" }
   - { path: ".ai/rules/gamma-clean-architecture.md", hash: "sha256:44b5a27cd1ff3f11333e94ca9ddf6ed3a040c3f291fd6403ff138092d9a22db0" }
   - { path: ".ai/rules/gamma-host.md", hash: "sha256:5179639bea40e70ed1d9c082736ca1a65d261d909af49eda94fe0aab979c31da" }
-  - { path: ".ai/rules/gamma-ui-shared.md", hash: "sha256:121f215529e5f1714bc72f21cd9157d9845da023d273b50ea8d8602e756f2c9e" }
   - { path: ".ai/rules/gravitee-dashboard.md", hash: "sha256:3d416de9c07b05e834fd79402679d27cdf0892f015a79936205c980af47320ff" }
   - { path: ".ai/rules/gravitee-kafka-explorer.md", hash: "sha256:d170ed705912f5ea0989dc4a0abb78b1816eb78f729afb92091bba14aae1e397" }
   - { path: ".ai/rules/gravitee-markdown.md", hash: "sha256:e951338ee4033d3ddff3e95b3f658edb2a4cf3dafecbea43bdcb938d4b966906" }
@@ -84,7 +83,7 @@ entries:
     status: generated
     scope: committed
   - path: "AGENTS.md"
-    hash: sha256:4ceb1f83b5ccbfdc24799a08755cef1c76e3187e3c6423fb87553ba8762f36d2
+    hash: sha256:937db296fe8e8645960542ae22671d9867bb8ddea92878e64f2cc8a25538db53
     status: generated
     scope: committed
   - path: "CLAUDE.md"
@@ -219,14 +218,6 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-  - path: "gravitee-gamma/gamma-ui-shared/AGENTS.md"
-    hash: sha256:dbaedbffe8ae4bf5be6b992cb4dc9b53bdc8c4a122f84a146a75eb3f23e9d8ab
-    status: generated
-    scope: committed
-  - path: "gravitee-gamma/gamma-ui-shared/CLAUDE.md"
-    hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
-    status: generated
-    scope: committed
   - path: "gravitee-gamma/gravitee-gamma-control-plane-webui/AGENTS.md"
     hash: sha256:53335edeed91cb8b07dfb3bde065000b96de7e3d0ca3c66a1433517461080038
     status: generated
@@ -283,4 +274,4 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-record: sha256:92b7f21e5f3a606d6402094160ccb005b650340b82ef39075657f6e7a25e8d01
+record: sha256:1c6302d5dd8a037d7f43ccc115b85606a0cc156df114eaf5250d1b5dfcc34387
