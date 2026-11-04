@@ -15,11 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-<<<<<<< HEAD
-=======
-import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.theme.exception.ThemeImageInvalidException;
->>>>>>> de5b401 (fix: validate theme images to prevent stored XSS)
 import io.gravitee.apim.core.theme.use_case.GetCurrentThemeUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.InlinePictureEntity;

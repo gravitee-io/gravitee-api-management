@@ -17,14 +17,9 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.*;
 import static jakarta.ws.rs.client.Entity.json;
-<<<<<<< HEAD
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-=======
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
->>>>>>> de5b401 (fix: validate theme images to prevent stored XSS)
 import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.theme.exception.ThemeImageInvalidException;
