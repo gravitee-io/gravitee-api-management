@@ -29,6 +29,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentA
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentLogsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentNewtAIResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentScoringResource;
+import io.gravitee.rest.api.management.v2.rest.resource.environment.GuardiansResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.PortalCategoriesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.PortalNavigationItemsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.PortalPageContentsResource;
@@ -89,6 +90,11 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/categories")
     public CategoriesResource getCategoriesResource() {
         return resourceContext.getResource(CategoriesResource.class);
+    }
+
+    @Path("/guardians")
+    public GuardiansResource getGuardiansResource() {
+        return resourceContext.getResource(GuardiansResource.class);
     }
 
     @Path("/shared-policy-groups")

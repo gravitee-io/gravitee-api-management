@@ -188,6 +188,94 @@ paths:
           $ref: "#/components/responses/EnvironmentAnalyticsTopFailedApisResponse"
         default:
           $ref: "#/components/responses/Error"
+  # Guardians
+  /guardians:
+    post:
+      tags:
+        - Guardians
+      summary: Create a guardian
+      operationId: createGuardian
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGuardian"
+        required: true
+      responses:
+        "201":
+          description: Guardian created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Guardian"
+        default:
+          $ref: "#/components/responses/Error"
+    get:
+      tags:
+        - Guardians
+      summary: Search guardians
+      operationId: searchGuardians
+      parameters:
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/perPageParam"
+        - $ref: "#/components/parameters/guardianSortByParam"
+        - $ref: "#/components/parameters/guardianSearchParam"
+      responses:
+        "200":
+          $ref: "#/components/responses/GuardiansResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /guardians/{guardianId}:
+    get:
+      tags:
+        - Guardians
+      summary: Get a guardian
+      operationId: getGuardian
+      parameters:
+        - $ref: "#/components/parameters/guardianId"
+      responses:
+        "200":
+          description: Guardian found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Guardian"
+        default:
+          $ref: "#/components/responses/Error"
+    put:
+      tags:
+        - Guardians
+      summary: Update the general settings of a guardian
+      operationId: updateGuardian
+      parameters:
+        - $ref: "#/components/parameters/guardianId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateGuardian"
+        required: true
+      responses:
+        "200":
+          description: Guardian updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Guardian"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      tags:
+        - Guardians
+      summary: Delete a guardian
+      operationId: deleteGuardian
+      parameters:
+        - $ref: "#/components/parameters/guardianId"
+      responses:
+        "204":
+          description: Guardian deleted
+        default:
+          $ref: "#/components/responses/Error"
   # Shared policy group
   /shared-policy-groups:
     post:
@@ -1987,6 +2075,113 @@ components:
           example: 0.8
 
     # Shared policy group
+    # Guardians
+    GuardianPhase:
+      type: string
+      description: The gateway phase a guardian runs on
+      example: REQUEST
+      enum:
+        - REQUEST
+        - RESPONSE
+    GuardianLifecycleState:
+      type: string
+      description: The lifecycle state of a guardian
+      example: DEPLOYED
+      enum:
+        - DEPLOYED
+        - UNDEPLOYED
+        - PENDING
+    CreateGuardian:
+      type: object
+      description: Create payload for a guardian
+      properties:
+        name:
+          type: string
+          description: The name of the guardian
+          example: Credential leakage
+          maxLength: 512
+        description:
+          type: string
+          description: The description of the guardian
+          example: Blocks a prompt that carries a credential
+          maxLength: 1024
+        version:
+          type: string
+          description: The version of the guardian
+          example: 1.0.0
+          maxLength: 64
+        apiType:
+          $ref: "#/components/schemas/ApiType"
+        phase:
+          $ref: "#/components/schemas/GuardianPhase"
+      required: [ "name", "apiType", "phase" ]
+    UpdateGuardian:
+      type: object
+      description: |-
+        Update payload for the general settings of a guardian.
+        The API type and the phase are chosen at creation and cannot be changed; the guardrail
+        sequence and the resources are edited from the Design tab.
+      properties:
+        name:
+          type: string
+          description: The name of the guardian
+          example: Credential leakage
+          maxLength: 512
+        description:
+          type: string
+          description: The description of the guardian
+          example: Blocks a prompt that carries a credential
+          maxLength: 1024
+        version:
+          type: string
+          description: The version of the guardian
+          example: 1.0.0
+          maxLength: 64
+      required: [ "name" ]
+    Guardian:
+      type: object
+      description: A reusable sequence of guardrails, deployed on its own and attached to APIs
+      properties:
+        id:
+          type: string
+          description: The unique ID of the guardian, which is also its entity ID
+          example: 5e2b3b3b-3b3b-3b3b-3b3b-3b3b3b3b3b3b
+        name:
+          type: string
+          description: The name of the guardian
+          example: Credential leakage
+          maxLength: 512
+        description:
+          type: string
+          description: The description of the guardian
+          example: Blocks a prompt that carries a credential
+          maxLength: 1024
+        version:
+          type: string
+          description: The version of the guardian
+          example: 1.0.0
+          maxLength: 64
+        apiType:
+          $ref: "#/components/schemas/ApiType"
+        phase:
+          $ref: "#/components/schemas/GuardianPhase"
+        lifecycleState:
+          $ref: "#/components/schemas/GuardianLifecycleState"
+        deployedAt:
+          type: string
+          format: date-time
+          description: The date at which the guardian was deployed
+          example: 2020-01-01T00:00:00Z
+        createdAt:
+          type: string
+          format: date-time
+          description: The date at which the guardian was created
+          example: 2020-01-01T00:00:00Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date at which the guardian was last updated
+          example: 2020-01-01T00:00:00Z
     CreateSharedPolicyGroup:
       type: object
       description: Create payload for a shared policy group
@@ -3889,6 +4084,43 @@ components:
         type: string
 
     # Shared policy group
+    guardianId:
+      name: guardianId
+      in: path
+      description: The unique ID of the guardian
+      required: true
+      schema:
+        type: string
+    guardianSortByParam:
+      name: sortBy
+      in: query
+      required: false
+      description: |-
+        Possibility to sort Guardian results by field.
+        Can be ascending or descending with minus '-' prefix.
+        By default, no sort is applied.
+      schema:
+        type: string
+        example: name
+        enum:
+          - name
+          - -name
+          - apiType
+          - -apiType
+          - phase
+          - -phase
+          - updatedAt
+          - -updatedAt
+          - deployedAt
+          - -deployedAt
+    guardianSearchParam:
+      name: q
+      in: query
+      description: |-
+        A search query to filter guardians by name.
+      schema:
+        type: string
+        example: credential
     sharedPolicyGroupId:
       name: sharedPolicyGroupId
       in: path
@@ -4121,6 +4353,22 @@ components:
                 $ref: "#/components/schemas/Pagination"
 
     # Shared policy group
+    GuardiansResponse:
+      description: Page of guardians
+      content:
+        application/json:
+          schema:
+            title: "GuardiansResponse"
+            properties:
+              data:
+                description: List of Guardian.
+                type: array
+                items:
+                  $ref: "#/components/schemas/Guardian"
+              pagination:
+                $ref: "#/components/schemas/Pagination"
+              links:
+                $ref: "#/components/schemas/Links"
     SharedPolicyGroupsResponse:
       description: Page of shared policy groups
       content:

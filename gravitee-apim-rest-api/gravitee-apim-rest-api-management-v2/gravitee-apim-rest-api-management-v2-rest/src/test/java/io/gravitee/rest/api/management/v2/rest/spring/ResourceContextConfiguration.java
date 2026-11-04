@@ -161,6 +161,11 @@ import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
+import io.gravitee.apim.core.guardian.use_case.CreateGuardianUseCase;
+import io.gravitee.apim.core.guardian.use_case.DeleteGuardianUseCase;
+import io.gravitee.apim.core.guardian.use_case.GetGuardianUseCase;
+import io.gravitee.apim.core.guardian.use_case.SearchGuardianUseCase;
+import io.gravitee.apim.core.guardian.use_case.UpdateGuardianUseCase;
 import io.gravitee.apim.core.invitation.crud_service.InvitationCrudService;
 import io.gravitee.apim.core.invitation.domain_service.AcceptInvitationDomainService;
 import io.gravitee.apim.core.invitation.domain_service.ApplicationInvitationNotificationDomainService;
@@ -982,6 +987,31 @@ public class ResourceContextConfiguration {
     @Bean
     public ApplicationTypeService applicationTypeService() {
         return new ApplicationTypeServiceImpl();
+    }
+
+    @Bean
+    public CreateGuardianUseCase createGuardianUseCase() {
+        return mock(CreateGuardianUseCase.class);
+    }
+
+    @Bean
+    public GetGuardianUseCase getGuardianUseCase() {
+        return mock(GetGuardianUseCase.class);
+    }
+
+    @Bean
+    public SearchGuardianUseCase searchGuardianUseCase() {
+        return mock(SearchGuardianUseCase.class);
+    }
+
+    @Bean
+    public UpdateGuardianUseCase updateGuardianUseCase() {
+        return mock(UpdateGuardianUseCase.class);
+    }
+
+    @Bean
+    public DeleteGuardianUseCase deleteGuardianUseCase() {
+        return mock(DeleteGuardianUseCase.class);
     }
 
     @Bean
