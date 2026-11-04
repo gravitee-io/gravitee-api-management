@@ -69,9 +69,11 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
             log.debug("Trying to put template mapping for type[{}] name[{}]", typeName, templateName);
             final String template = generateIndexTemplate(type);
 
-            final Completable templateCreationCompletable = useOldClient(dataStream)
-                ? client.putTemplate(templateName, template)
-                : client.putIndexTemplate(templateName, template);
+            final Completable templateCreationCompletable = (useOldClient(dataStream)
+                    ? client.putTemplate(templateName, template)
+                    : client.putIndexTemplate(templateName, template)).onErrorResumeNext(throwable ->
+                Completable.error(new IndexPreparationException("the index template [" + templateName + "]", throwable))
+            );
 
             if (configuration.isIlmManagedIndex() && !dataStream) {
                 return templateCreationCompletable.andThen(ensureAlias(aliasName));
@@ -80,13 +82,31 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
         };
     }
 
+    /**
+     * The pipeline only enriches documents (geoip, user agent): when it cannot be created, documents are indexed without it.
+     */
     protected Completable pipeline() {
+        final String pipelineName = pipelineConfiguration.getPipelineName();
         String pipelineTemplate = pipelineConfiguration.createPipeline();
 
-        if (pipelineTemplate != null && pipelineConfiguration.getPipelineName() != null) {
-            return client.putPipeline(pipelineConfiguration.getPipelineName(), pipelineTemplate).doOnComplete(pipelineConfiguration::valid);
+        if (pipelineTemplate != null && pipelineName != null) {
+            return client
+                .putPipeline(pipelineName, pipelineTemplate)
+                .doOnComplete(pipelineConfiguration::valid)
+                .onErrorComplete(throwable -> {
+                    log.warn(
+                        "Unable to create the ingest pipeline [{}]: documents are indexed without the ingest pipeline, so they carry no geoip or user agent fields. Cause: {}",
+                        pipelineName,
+                        throwable.getMessage()
+                    );
+                    return true;
+                });
         }
 
+        log.warn(
+            "No ingest plugin is configured in 'reporters.elasticsearch.pipeline.plugins.ingest': documents are indexed without the ingest pipeline [{}]",
+            pipelineName
+        );
         return Completable.complete();
     }
 
@@ -123,10 +143,19 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
             Collections.singletonMap("aliasName", aliasName)
         );
 
+        final String initialIndexName = aliasName + "-000001";
         return client
             .getAlias(aliasName)
-            .switchIfEmpty(client.createIndexWithAlias(aliasName + "-000001", aliasTemplate).toMaybe())
-            .ignoreElement();
+            .switchIfEmpty(client.createIndexWithAlias(initialIndexName, aliasTemplate).toMaybe())
+            .ignoreElement()
+            .onErrorResumeNext(throwable ->
+                Completable.error(
+                    new IndexPreparationException(
+                        "the alias [" + aliasName + "] and its initial index [" + initialIndexName + "]",
+                        throwable
+                    )
+                )
+            );
     }
 
     protected boolean useOldClient(boolean dataStream) {
