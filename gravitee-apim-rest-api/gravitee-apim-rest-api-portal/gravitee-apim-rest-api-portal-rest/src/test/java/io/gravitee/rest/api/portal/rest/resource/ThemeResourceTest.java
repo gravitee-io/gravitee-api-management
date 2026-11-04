@@ -15,14 +15,9 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-<<<<<<< HEAD
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-=======
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
->>>>>>> de5b401 (fix: validate theme images to prevent stored XSS)
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.reset;
@@ -37,12 +32,9 @@ import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.portal.rest.model.ThemeResponse;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
-<<<<<<< HEAD
-import org.junit.Before;
-=======
 import java.util.Base64;
 import org.glassfish.jersey.client.ClientProperties;
->>>>>>> de5b401 (fix: validate theme images to prevent stored XSS)
+import org.junit.Before;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

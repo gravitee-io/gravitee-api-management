@@ -52,7 +52,7 @@ public class UpdateThemeUseCaseTest {
     void setUp() {
         themeCrudService.initWith(List.of(aPortalTheme(false), aPortalNextTheme(false)));
         cut = new UpdateThemeUseCase(
-            new ValidateThemeDomainService(themeCrudService, new ThemeImageWriteValidatorInMemory()),
+            new ValidateThemeDomainService(themeCrudService),
             new ThemeDomainService(themeCrudService, new ThemeImageWriteValidatorInMemory()),
             new CurrentThemeDomainService(themeQueryServiceInMemory, themeCrudService),
             themeCrudService
