@@ -25,10 +25,14 @@ public final class MetricDefinitionFixtures {
     private MetricDefinitionFixtures() {}
 
     public static MetricDefinition aMetric(String name, List<ApiType> apiTypes, String... facets) {
+        return aMetric(name, "COUNT", apiTypes, facets);
+    }
+
+    public static MetricDefinition aMetric(String name, String unit, List<ApiType> apiTypes, String... facets) {
         return new MetricDefinition(
             name,
             name + " label",
-            "NUMBER",
+            unit,
             apiTypes,
             List.of("COUNT", "AVG"),
             List.of(facets)

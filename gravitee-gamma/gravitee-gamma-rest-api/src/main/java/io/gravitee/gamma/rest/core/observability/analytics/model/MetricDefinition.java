@@ -24,8 +24,9 @@ import java.util.List;
  * by and the filters that narrow it. Names are the ones the analytics endpoints accept: a built-in name, or the wire
  * name of an additional metric field holding a number.
  *
- * @param unit the unit of a built-in as the engine reports it, the record's unit on a {@code DECLARED} field, or
- *             {@code null} when none is known
+ * @param unit the unit of a built-in in Gamma's vocabulary ({@code AdditionalMetricUnit.NAMED_UNITS}, mapped from the
+ *             engine's by {@code ServedMetricUnit}), the record's unit on a {@code DECLARED} field, or {@code null}
+ *             when none is known
  * @author GraviteeSource Team
  */
 public record MetricDefinition(

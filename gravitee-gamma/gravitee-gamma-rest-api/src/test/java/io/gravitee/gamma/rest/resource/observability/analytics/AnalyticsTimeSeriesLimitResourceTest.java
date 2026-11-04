@@ -152,6 +152,7 @@ class AnalyticsTimeSeriesLimitResourceTest extends AbstractResourceTest {
         var response = postTimeSeries(limitField);
 
         assertThat(response.at("/metrics/0/buckets")).hasSize(3);
+        assertThat(response.at("/metrics/0/unit").asText()).isEqualTo("COUNT");
         var drawn = new LinkedHashSet<String>();
         response.at("/metrics/0/buckets").forEach(bucket -> drawn.addAll(bucket.path("buckets").findValuesAsText("key")));
         assertThat(drawn).containsExactlyInAnyOrder("m3", "m4", "m5", "m6", "m7");
@@ -207,11 +208,10 @@ class AnalyticsTimeSeriesLimitResourceTest extends AbstractResourceTest {
         assertThat(timeSeriesRequest().filters()).contains(
             new Filter(tier, io.gravitee.apim.core.observability.model.FilterOperator.IN, List.of("high", "medium"))
         );
+        var served = response.readEntity(JsonNode.class);
+        assertThat(served.at("/metrics/0/unit").asText()).isEqualTo("COUNT");
         var drawn = new LinkedHashSet<String>();
-        response
-            .readEntity(JsonNode.class)
-            .at("/metrics/0/buckets")
-            .forEach(bucket -> drawn.addAll(bucket.path("buckets").findValuesAsText("key")));
+        served.at("/metrics/0/buckets").forEach(bucket -> drawn.addAll(bucket.path("buckets").findValuesAsText("key")));
         assertThat(drawn).containsExactlyInAnyOrder("high", "medium");
     }
 

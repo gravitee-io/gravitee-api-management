@@ -20,10 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.apim.core.analytics_engine.model.AdditionalMetricName;
 import io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinition;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.AnalyticsDefinitionPort;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricUnit;
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -99,6 +101,16 @@ public abstract class AnalyticsDefinitionPortContractTest {
                 assertThat(facet.origin()).isEqualTo(CatalogOrigin.BUILT_IN);
             });
         assertThat(support.filters()).isNotEmpty().doesNotHaveDuplicates();
+    }
+
+    @Test
+    void should_serve_every_unit_in_the_named_units_of_the_gamma_vocabulary() {
+        for (var kind : ApiType.API_KINDS) {
+            assertThat(port().metricsOf(kind))
+                .extracting(MetricDefinition::unit)
+                .filteredOn(Objects::nonNull)
+                .allSatisfy(unit -> assertThat(AdditionalMetricUnit.NAMED_UNITS).contains(unit));
+        }
     }
 
     @Test

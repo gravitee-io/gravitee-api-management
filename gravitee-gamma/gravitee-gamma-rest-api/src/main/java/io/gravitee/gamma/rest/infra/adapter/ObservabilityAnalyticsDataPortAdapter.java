@@ -68,7 +68,6 @@ import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.Obse
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -170,6 +169,7 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
         }
         var node = objectMapper.createObjectNode();
         node.set("metrics", query.identified() ? entriesById(query, responses) : entriesByName(query, responses));
+        ServedMetricUnit.serveIn(node);
         return node;
     }
 
@@ -259,6 +259,7 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
         var node = (ObjectNode) objectMapper.valueToTree(response);
         AnalyticsBucketTypeEnricher.enrichFacetsResponse(node);
         ConditionsNotAppliedEnricher.enrichFacets(node, query.conditionsNotApplied());
+        ServedMetricUnit.serveIn(node);
         return node;
     }
 
@@ -275,6 +276,7 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
         var node = (ObjectNode) objectMapper.valueToTree(response);
         AnalyticsBucketTypeEnricher.enrichTimeSeriesResponse(node);
         ConditionsNotAppliedEnricher.enrichTimeSeries(node, query.conditionsNotApplied());
+        ServedMetricUnit.serveIn(node);
         return node;
     }
 
@@ -465,7 +467,7 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     }
 
     private static MetricSpec.Measure toApimMeasure(String metric, String measure) {
-        return toEnum(MetricSpec.Measure.class, measure).orElseThrow(() ->
+        return EnumNames.find(MetricSpec.Measure.class, measure).orElseThrow(() ->
             InvalidObservabilityQueryException.unknownMeasure(metric, measure)
         );
     }
@@ -476,15 +478,10 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
 
     // Case-insensitive like the filter operators: "desc" is unambiguous, only an unknown order is refused.
     private static FacetMetricMeasuresRequest.Sort.Order toApimSortOrder(String order) {
-        return toEnum(FacetMetricMeasuresRequest.Sort.Order.class, order == null ? null : order.toUpperCase(Locale.ROOT)).orElseThrow(() ->
-            InvalidObservabilityQueryException.unknownSortOrder(order)
-        );
-    }
-
-    private static <E extends Enum<E>> Optional<E> toEnum(Class<E> type, String name) {
-        return Arrays.stream(type.getEnumConstants())
-            .filter(constant -> constant.name().equals(name))
-            .findFirst();
+        return EnumNames.find(
+            FacetMetricMeasuresRequest.Sort.Order.class,
+            order == null ? null : order.toUpperCase(Locale.ROOT)
+        ).orElseThrow(() -> InvalidObservabilityQueryException.unknownSortOrder(order));
     }
 
     private static List<NumberRange> toApimRanges(List<AnalyticsNumberRange> ranges) {

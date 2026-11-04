@@ -26,6 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.apim.core.analytics.domain_service.AiWorkspaceAnalyticsApisDomainService;
 import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
@@ -71,6 +72,7 @@ import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort.MeasuresQuery;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort.TimeSeriesQuery;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.AnalyticsRequestPipeline.PreparedScope;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricUnit;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
@@ -81,12 +83,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -594,6 +600,7 @@ class ObservabilityAnalyticsDataPortAdapterTest {
             assertThat(response.at("/metrics/0/id").asText()).isEqualTo("total");
             assertThat(response.at("/metrics/0/name").asText()).isEqualTo("HTTP_REQUESTS");
             assertThat(response.at("/metrics/0/measures").toString()).isEqualTo("[{\"name\":\"COUNT\",\"value\":0}]");
+            assertThat(response.at("/metrics/0/unit").asText()).isEqualTo("COUNT");
             assertThat(response.at("/metrics/1/unit").asText()).isEqualTo("MILLISECONDS");
         }
 
@@ -1007,6 +1014,187 @@ class ObservabilityAnalyticsDataPortAdapterTest {
 
         private static FacetBucketResponse facetBucket(String key, long count) {
             return new FacetBucketResponse(key, null, null, List.of(new Measure(MetricSpec.Measure.COUNT, count)));
+        }
+    }
+
+    /** The engine's units reach the wire in Gamma's vocabulary, whichever response carries them. */
+    @Nested
+    class ServedUnits {
+
+        @Test
+        void should_serve_the_unit_of_each_identified_metric_in_the_gamma_vocabulary() {
+            when(computeMeasuresUseCase.executeForApis(any(), any(), any())).thenReturn(
+                new ComputeMeasuresUseCase.Output(
+                    new MeasuresResponse(
+                        List.of(
+                            new MetricMeasuresResponse(MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(), List.of()),
+                            new MetricMeasuresResponse(
+                                MetricSpec.Name.LLM_PROMPT_TOTAL_TOKEN,
+                                MetricSpec.Unit.TOKENS,
+                                List.of(),
+                                List.of()
+                            ),
+                            new MetricMeasuresResponse(
+                                MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST,
+                                MetricSpec.Unit.CURRENCY,
+                                List.of(),
+                                List.of()
+                            )
+                        )
+                    )
+                )
+            );
+
+            var response = adapter.computeMeasures(
+                measuresQuery(
+                    SCOPE,
+                    new AnalyticsMetricQuery("requests", "HTTP_REQUESTS", List.of("COUNT"), List.of()),
+                    new AnalyticsMetricQuery("tokens", "LLM_PROMPT_TOTAL_TOKEN", List.of("AVG"), List.of()),
+                    new AnalyticsMetricQuery("cost", "LLM_PROMPT_TOKEN_TOTAL_COST", List.of("AVG"), List.of())
+                )
+            );
+
+            assertServedInGammaVocabulary(response);
+            assertThat(response.get("metrics"))
+                .extracting(metric -> metric.get("unit").asText())
+                .containsExactly("COUNT", "TOKENS", "CURRENCY");
+        }
+
+        @Test
+        void should_serve_the_unit_of_a_zero_valued_metric_in_the_gamma_vocabulary() {
+            var response = adapter.computeMeasures(
+                measuresQuery(
+                    PreparedScope.empty(SCOPE.from(), SCOPE.to()),
+                    new AnalyticsMetricQuery("requests", "HTTP_REQUESTS", List.of("COUNT"), List.of()),
+                    new AnalyticsMetricQuery("tokens", "LLM_PROMPT_TOTAL_TOKEN", List.of("AVG"), List.of())
+                )
+            );
+
+            assertServedInGammaVocabulary(response);
+            assertThat(response.get("metrics"))
+                .extracting(metric -> metric.get("unit").asText())
+                .containsExactly("COUNT", "TOKENS");
+        }
+
+        @Test
+        void should_serve_the_unit_of_each_metric_named_without_id_in_the_gamma_vocabulary() {
+            when(computeMeasuresUseCase.executeForApis(any(), any(), any())).thenReturn(
+                new ComputeMeasuresUseCase.Output(
+                    new MeasuresResponse(
+                        List.of(new MetricMeasuresResponse(MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(), List.of()))
+                    )
+                )
+            );
+
+            var response = adapter.computeMeasures(
+                measuresQuery(SCOPE, new AnalyticsMetricQuery(null, "HTTP_REQUESTS", List.of("COUNT"), List.of()))
+            );
+
+            assertServedInGammaVocabulary(response);
+
+            assertThat(response.at("/metrics/0/unit").asText()).isEqualTo("COUNT");
+        }
+
+        @Test
+        void should_serve_the_unit_of_a_facets_metric_in_the_gamma_vocabulary() {
+            when(computeFacetsUseCase.executeForApis(any(), any(), any())).thenReturn(
+                new ComputeFacetsUseCase.Output(
+                    new FacetsResponse(
+                        List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(), List.of()))
+                    )
+                )
+            );
+
+            var response = adapter.computeFacets(
+                new FacetsQuery(
+                    ORG,
+                    ENV,
+                    SCOPE,
+                    List.of("HTTP_STATUS"),
+                    null,
+                    List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())),
+                    List.of(),
+                    Map.of()
+                )
+            );
+
+            assertServedInGammaVocabulary(response);
+
+            assertThat(response.at("/metrics/0/unit").asText()).isEqualTo("COUNT");
+        }
+
+        @ParameterizedTest
+        @NullSource
+        @MethodSource("rankings")
+        void should_serve_the_unit_of_a_time_series_metric_in_the_gamma_vocabulary_ranked_or_not(SeriesRanking ranking) {
+            when(computeTimeSeriesUseCase.executeForApis(any(), any(), any())).thenReturn(
+                new ComputeTimeSeriesUseCase.Output(
+                    new TimeSeriesResponse(
+                        List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(), List.of()))
+                    )
+                )
+            );
+
+            var response = adapter.computeTimeSeries(
+                new TimeSeriesQuery(
+                    ORG,
+                    ENV,
+                    SCOPE,
+                    60_000L,
+                    List.of("LLM_PROXY_MODEL"),
+                    List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())),
+                    List.of(),
+                    Map.of(),
+                    ranking
+                )
+            );
+
+            assertServedInGammaVocabulary(response);
+            assertThat(response.at("/metrics/0/unit").asText()).isEqualTo("COUNT");
+        }
+
+        @Test
+        void should_leave_the_injected_mapper_writing_the_engine_unit_unchanged() {
+            var injected = new GraviteeMapper(false);
+            var ownAdapter = new ObservabilityAnalyticsDataPortAdapter(
+                computeMeasuresUseCase,
+                computeFacetsUseCase,
+                computeTimeSeriesUseCase,
+                new AnalyticsQueryValidator(new AnalyticsDefinitionYAMLQueryService()),
+                new UnitEnrichmentPostProcessorImpl(new AnalyticsDefinitionYAMLQueryService()),
+                userContextLoader,
+                workspaceApis,
+                queryContextProvider,
+                injected
+            );
+
+            var served = ownAdapter.computeMeasures(
+                measuresQuery(
+                    PreparedScope.empty(SCOPE.from(), SCOPE.to()),
+                    new AnalyticsMetricQuery(null, "HTTP_REQUESTS", List.of("COUNT"), List.of())
+                )
+            );
+
+            assertServedInGammaVocabulary(served);
+            assertThat(served.at("/metrics/0/unit").asText()).isEqualTo("COUNT");
+            assertThat(injected.valueToTree(MetricSpec.Unit.NUMBER).asText())
+                .as("what the Management API v2 and the Portal API write")
+                .isEqualTo("NUMBER");
+        }
+
+        /** Catches a path the mapping never visits: no unit anywhere in the response is left in the engine's vocabulary. */
+        private static void assertServedInGammaVocabulary(JsonNode response) {
+            var units = response.findValues("unit");
+            assertThat(units).isNotEmpty();
+            assertThat(units)
+                .filteredOn(unit -> !unit.isNull())
+                .extracting(JsonNode::asText)
+                .doesNotContain("NUMBER")
+                .allSatisfy(unit -> assertThat(AdditionalMetricUnit.NAMED_UNITS).contains(unit));
+        }
+
+        static Stream<SeriesRanking> rankings() {
+            return Stream.of(new SeriesRanking(Map.of("HTTP_REQUESTS", Set.of(List.of("gpt-4o")))));
         }
     }
 

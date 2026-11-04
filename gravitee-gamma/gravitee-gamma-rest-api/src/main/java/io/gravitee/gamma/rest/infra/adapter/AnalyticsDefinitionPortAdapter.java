@@ -114,7 +114,7 @@ public class AnalyticsDefinitionPortAdapter implements AnalyticsDefinitionPort {
         return new MetricDefinition(
             spec.name().name(),
             spec.label(),
-            spec.unit() == null ? null : spec.unit().name(),
+            spec.unit() == null ? null : ServedMetricUnit.of(spec.unit()),
             apiTypesOf(spec),
             spec.measures().stream().map(Enum::name).toList(),
             facetsOf(spec.name()),
