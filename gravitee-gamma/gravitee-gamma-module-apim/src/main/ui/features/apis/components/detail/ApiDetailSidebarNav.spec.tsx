@@ -26,6 +26,7 @@ import {
     withFederatedRestrictions,
     withMetadataPermission,
     withObservabilityLinks,
+    withPathMappingsForHttpApi,
     withResponseTemplatesPermission,
     withTcpRestrictions,
 } from './ApiDetailSidebarNav';
@@ -210,6 +211,7 @@ describe('withTcpRestrictions', () => {
         const paths = withTcpRestrictions(GROUPS, true).flatMap(g => g.items.map(i => i.path));
         expect(paths).not.toContain('policy-studio');
         expect(paths).not.toContain('cors');
+        expect(paths).not.toContain('path-mappings');
         expect(paths).not.toContain('response-templates');
         expect(paths).not.toContain('endpoints/failover');
         expect(paths).not.toContain('endpoints/health-check-dashboard');
@@ -228,6 +230,27 @@ describe('withTcpRestrictions', () => {
     });
 });
 
+describe('withPathMappingsForHttpApi', () => {
+    const paths = (api: { listeners?: { type?: string }[] } | null | undefined) =>
+        withPathMappingsForHttpApi(GROUPS, api).flatMap(group => group.items.map(item => item.path));
+
+    it('keeps Path Mappings while the API listeners are not loaded', () => {
+        expect(paths(null)).toContain('path-mappings');
+        expect(paths(undefined)).toContain('path-mappings');
+        expect(paths({})).toContain('path-mappings');
+    });
+
+    it('keeps Path Mappings for an HTTP proxy and an HTTP message API', () => {
+        expect(paths({ listeners: [{ type: 'HTTP' }] })).toContain('path-mappings');
+        expect(paths({ listeners: [{ type: 'SUBSCRIPTION' }, { type: 'HTTP' }] })).toContain('path-mappings');
+    });
+
+    it('omits Path Mappings for Native Kafka and TCP-only APIs', () => {
+        expect(paths({ listeners: [{ type: 'KAFKA' }] })).not.toContain('path-mappings');
+        expect(paths({ listeners: [{ type: 'TCP' }] })).not.toContain('path-mappings');
+    });
+});
+
 // ─── Federated restrictions ───────────────────────────────────────────────────
 
 // Spelled out here rather than imported from the production set: a test that reads the implementation's own
@@ -237,6 +260,7 @@ const FEDERATED_HIDDEN_PATHS = [
     'properties',
     'resources',
     'cors',
+    'path-mappings',
     'entrypoints',
     'endpoints/list',
     'endpoints/failover',

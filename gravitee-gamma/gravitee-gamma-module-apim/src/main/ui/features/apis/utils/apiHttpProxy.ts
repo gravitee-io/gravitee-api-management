@@ -36,6 +36,10 @@ function hasTcpEndpointGroup(api: ApiWithListeners): boolean {
     return Boolean(api.endpointGroups?.some(group => group.type === 'tcp-proxy'));
 }
 
+export function hasHttpListener(api: ApiWithListeners | null | undefined): boolean {
+    return Boolean(api?.listeners?.some(listener => listener.type?.toUpperCase() === 'HTTP'));
+}
+
 export function hasTcpListener(api: ApiWithListeners | null | undefined): boolean {
     return Boolean(api?.listeners?.some(listener => isTcpListenerType(listener.type)));
 }

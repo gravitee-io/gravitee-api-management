@@ -24,11 +24,14 @@ import type {
     Analytics,
     ApiDetailDto,
     ApiEventsPage,
+    ApiPathMappings,
+    ApiSwaggerDocumentationPage,
     DuplicateApiOptions,
     Cors,
     DynamicPropertyConfig,
     EndpointGroupDto,
     Failover,
+    ImportApiPathMappings,
     ImportSwaggerDescriptor,
     ImportWsdlDescriptor,
     Promotion,
@@ -36,6 +39,7 @@ import type {
     Property,
     ResponseTemplatesMap,
 } from '../types';
+import { PathMappingsConflictError } from '../utils/pathMappings';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
@@ -330,6 +334,64 @@ export async function updateApiCors(
         method: 'PUT',
         headers: JSON_HEADERS,
         body: JSON.stringify({ ...current, listeners: updatedListeners.length > 0 ? updatedListeners : current.listeners }),
+    });
+}
+
+/**
+ * Replaces pathMappings on the first HTTP listener. The updater receives the stored list and returns the next list.
+ * Throws when the API has no HTTP listener (caller should treat that as a hard failure and reload).
+ */
+export async function updateApiPathMappings(
+    environmentId: string,
+    apiId: string,
+    updater: (current: string[]) => string[],
+): Promise<ApiDetailDto> {
+    const { data: current, etag } = await apimFetchJsonV2WithMeta<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}`, {
+        cache: 'no-store',
+    });
+    const listeners = current.listeners ?? [];
+    const httpListenerIndex = listeners.findIndex(listener => listener.type === 'HTTP');
+    const httpListener = listeners[httpListenerIndex];
+    if (httpListener?.type !== 'HTTP') {
+        throw new PathMappingsConflictError('no-http-listener', 'This API has no HTTP listener to store path mappings.');
+    }
+    const previousMappings = [...(httpListener.pathMappings ?? [])];
+    const nextPathMappings = updater(previousMappings);
+    if (
+        previousMappings.length === nextPathMappings.length &&
+        previousMappings.every((value, index) => value === nextPathMappings[index])
+    ) {
+        return current;
+    }
+    const updatedListeners = listeners.map((listener, index) =>
+        index === httpListenerIndex ? { ...httpListener, pathMappings: nextPathMappings } : listener,
+    );
+    const ifMatch = etag ?? ifMatchFromUpdatedAt(current.updatedAt);
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}`, {
+        method: 'PUT',
+        headers: ifMatch ? { ...JSON_HEADERS, 'If-Match': ifMatch } : JSON_HEADERS,
+        body: JSON.stringify({ ...current, listeners: updatedListeners }),
+    });
+}
+
+interface ApiDocumentationPagesResponse {
+    pages?: Array<{ id?: string; name?: string; type?: string }>;
+}
+
+/** Lists classic SWAGGER documentation pages for path-mapping import (Management API v2 pages). */
+export async function listApiSwaggerPages(environmentId: string, apiId: string): Promise<ApiSwaggerDocumentationPage[]> {
+    const result = await apimFetchJsonV2<ApiDocumentationPagesResponse>(environmentId, `/apis/${encodeURIComponent(apiId)}/pages`);
+    return (result.pages ?? [])
+        .filter((page): page is { id: string; name: string; type: string } => page.type === 'SWAGGER' && !!page.id)
+        .map(page => ({ id: page.id, name: page.name || page.id }));
+}
+
+/** Imports path templates from a SWAGGER documentation page onto the first HTTP listener. */
+export async function importApiPathMappings(environmentId: string, apiId: string, body: ImportApiPathMappings): Promise<ApiPathMappings> {
+    return apimFetchJsonV2<ApiPathMappings>(environmentId, `/apis/${encodeURIComponent(apiId)}/path-mappings/_import`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify(body),
     });
 }
 

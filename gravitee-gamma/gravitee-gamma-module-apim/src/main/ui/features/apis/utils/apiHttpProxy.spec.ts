@@ -17,6 +17,7 @@ import {
     areAllListenersTcp,
     formatEndpointTarget,
     getApiProxyTypeLabel,
+    hasHttpListener,
     hasTcpListener,
     hasTcpListeners,
     isHttpProxyApi,
@@ -25,6 +26,14 @@ import {
     supportsResponseTemplates,
 } from './apiHttpProxy';
 import type { ApiDetailDto } from '../types';
+
+describe('hasHttpListener', () => {
+    it('is true only when a listener type is HTTP', () => {
+        expect(hasHttpListener(null)).toBe(false);
+        expect(hasHttpListener({ listeners: [{ type: 'KAFKA' }] })).toBe(false);
+        expect(hasHttpListener({ listeners: [{ type: 'TCP' }, { type: 'http' }] })).toBe(true);
+    });
+});
 
 describe('hasTcpListeners', () => {
     it('returns false when api is null, undefined, or has no listeners', () => {

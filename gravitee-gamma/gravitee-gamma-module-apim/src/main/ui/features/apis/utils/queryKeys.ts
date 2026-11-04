@@ -36,6 +36,11 @@ export const apiDetailKeys = {
     detail: (envId: string, apiId: string) => [...apiDetailKeys.all, envId, apiId] as const,
 };
 
+export const apiSwaggerPagesKeys = {
+    all: ['api-swagger-pages'] as const,
+    list: (envId: string, apiId: string) => [...apiSwaggerPagesKeys.all, envId, apiId] as const,
+};
+
 export const apiDeployVerifyKeys = {
     all: ['api-deploy-verify'] as const,
     detail: (envId: string, apiId: string) => [...apiDeployVerifyKeys.all, envId, apiId] as const,
