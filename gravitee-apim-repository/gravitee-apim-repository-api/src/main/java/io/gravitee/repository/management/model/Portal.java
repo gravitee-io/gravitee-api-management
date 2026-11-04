@@ -32,6 +32,9 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Portal {
 
+    /** Stored until portals get a real URL; the column is mandatory, so it cannot stay empty. */
+    public static final String URL_PLACEHOLDER = "https://example.com/to-be-implemented";
+
     private String id;
     private String environmentId;
     private String organizationId;
@@ -42,5 +45,5 @@ public class Portal {
 
     @Nonnull
     @Builder.Default
-    private String url = "https://example.com/to-be-implemented";
+    private String url = URL_PLACEHOLDER;
 }

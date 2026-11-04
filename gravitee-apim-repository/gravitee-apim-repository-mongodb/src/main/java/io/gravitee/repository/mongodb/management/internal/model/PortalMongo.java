@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import io.gravitee.repository.management.model.Portal;
 import jakarta.annotation.Nonnull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -40,5 +41,5 @@ public class PortalMongo {
     private boolean defaultPortal;
 
     @Nonnull
-    private String url = "https://example.com/to-be-implemented";
+    private String url = Portal.URL_PLACEHOLDER;
 }

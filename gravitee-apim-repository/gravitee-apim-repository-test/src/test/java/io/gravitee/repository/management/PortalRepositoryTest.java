@@ -88,12 +88,12 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_read_not_default_and_placeholder_url_for_existing_rows() throws Exception {
+    public void should_read_not_default_and_placeholder_url_when_not_set() throws Exception {
         Optional<Portal> portal = portalRepository.findById("portal1");
 
         assertThat(portal).hasValueSatisfying(found -> {
             assertThat(found.isDefaultPortal()).isFalse();
-            assertThat(found.getUrl()).isEqualTo("https://example.com/to-be-implemented");
+            assertThat(found.getUrl()).isEqualTo(Portal.URL_PLACEHOLDER);
         });
     }
 
@@ -154,6 +154,16 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void should_not_find_default_of_another_environment() throws Exception {
         assertThat(portalRepository.findDefaultByEnvironmentId("environment3")).isEmpty();
+    }
+
+    @Test
+    public void should_find_one_default_when_environment_has_several() throws Exception {
+        portalRepository.create(aDefaultPortal("default-a", "environment3"));
+        portalRepository.create(aDefaultPortal("default-b", "environment3"));
+
+        assertThat(portalRepository.findDefaultByEnvironmentId("environment3")).hasValueSatisfying(found ->
+            assertThat(found.getId()).isIn("default-a", "default-b")
+        );
     }
 
     @Test
@@ -242,5 +252,16 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
 
         Set<Portal> remaining = portalRepository.findAll();
         assertThat(remaining).extracting(Portal::getId).containsExactly("portal4");
+    }
+
+    private static Portal aDefaultPortal(String id, String environmentId) {
+        return Portal.builder()
+            .id(id)
+            .environmentId(environmentId)
+            .organizationId("organization2")
+            .name(id)
+            .defaultPortal(true)
+            .url("https://" + id + ".example")
+            .build();
     }
 }

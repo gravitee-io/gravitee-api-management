@@ -33,8 +33,8 @@ public interface PortalMongoRepository extends MongoRepository<PortalMongo, Stri
     @Query("{ 'environmentId': ?0 }")
     List<PortalMongo> findByEnvironmentId(String environmentId);
 
-    @Query("{ 'environmentId': ?0, 'defaultPortal': true }")
-    Optional<PortalMongo> findDefaultByEnvironmentId(String environmentId);
+    // findFirst, not a unique match: an environment holding several defaults must not make the lookup throw.
+    Optional<PortalMongo> findFirstByEnvironmentIdAndDefaultPortalTrue(String environmentId);
 
     @Query("{ 'activeThemeId': ?0, 'environmentId': ?1 }")
     List<PortalMongo> findByActiveThemeIdAndEnvironmentId(String activeThemeId, String environmentId);
