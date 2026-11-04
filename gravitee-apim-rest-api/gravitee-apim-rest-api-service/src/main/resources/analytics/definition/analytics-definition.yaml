@@ -51,6 +51,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -82,6 +84,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -121,6 +125,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -152,6 +158,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -196,6 +204,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -226,6 +236,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -270,6 +282,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -300,6 +314,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -344,6 +360,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -374,6 +392,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -418,6 +438,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
           filters:
               - API
               - API_TYPE
@@ -443,6 +465,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -487,6 +511,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -517,6 +543,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -553,6 +581,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
           filters:
               - API
               - APPLICATION
@@ -576,6 +606,8 @@ spec:
               - GEO_IP_CONTINENT
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
 
         - name: LLM_PROMPT_TOKEN_RECEIVED
           label: Received token count
@@ -607,6 +639,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
           filters:
               - API
               - APPLICATION
@@ -631,6 +665,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
 
         - name: LLM_PROMPT_TOKEN_SENT_COST
           label: Sent token cost
@@ -661,6 +697,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
           filters:
               - API
               - APPLICATION
@@ -685,6 +723,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
 
         - name: LLM_PROMPT_TOKEN_RECEIVED_COST
           label: Received token cost
@@ -715,6 +755,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
           filters:
               - API
               - APPLICATION
@@ -739,6 +781,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
 
         - name: LLM_PROMPT_TOTAL_TOKEN
           label: Total token count
@@ -770,6 +814,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
           filters:
               - API
               - APPLICATION
@@ -794,6 +840,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
 
         - name: LLM_PROMPT_TOKEN_TOTAL_COST
           label: Total token cost
@@ -825,6 +873,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
           filters:
               - API
               - APPLICATION
@@ -849,6 +899,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
 
         # The message index keys documents by request id and carries only the dimensions the gateway
         # stamps on a message: operation, connector, api, gateway. It has no plan-id, app-id, tenant
@@ -995,6 +1047,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -1026,6 +1080,8 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - AI_HUB_BUDGET
+              - AI_HUB_USER_NAME
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -2071,6 +2127,24 @@ spec:
           apis:
               - LLM
 
+        - name: AI_HUB_BUDGET
+          label: AI Hub budget
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+          apis:
+              - LLM
+
+        - name: AI_HUB_USER_NAME
+          label: AI Hub user
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+          apis:
+              - LLM
+
         - name: MCP_PROXY_METHOD
           label: MCP Method
           signals:
@@ -2457,6 +2531,14 @@ spec:
 
         - name: LLM_PROXY_PROVIDER
           label: LLM Provider
+          type: KEYWORD
+
+        - name: AI_HUB_BUDGET
+          label: AI Hub budget
+          type: KEYWORD
+
+        - name: AI_HUB_USER_NAME
+          label: AI Hub user
           type: KEYWORD
 
         - name: MCP_PROXY_METHOD

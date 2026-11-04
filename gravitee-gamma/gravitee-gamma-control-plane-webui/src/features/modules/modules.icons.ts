@@ -26,6 +26,7 @@ import {
 } from '@gravitee/graphene-core/icons';
 import type { LucideIcon } from '@gravitee/graphene-core/icons';
 
+import { GioAiHubIcon } from './GioAiHubIcon';
 import type { ModuleId } from './modules.catalog';
 
 /**
@@ -44,4 +45,5 @@ export const MODULE_ICONS: Record<ModuleId, LucideIcon> & Partial<Record<string,
     esm: GioEventApiManagementIcon,
     edge: GioEdgeManagementIcon,
     account: GioProductizeIcon,
+    aihub: GioAiHubIcon,
 };
