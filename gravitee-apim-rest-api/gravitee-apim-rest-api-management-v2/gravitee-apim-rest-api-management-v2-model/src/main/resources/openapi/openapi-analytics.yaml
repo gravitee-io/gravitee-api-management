@@ -1676,8 +1676,12 @@ components:
                 - MILLISECONDS
                 - NUMBER
                 - PERCENT
+                - TOKENS
+                - CURRENCY
             description: |
-                Unit of measurement for metrics. Specifies the unit in which the metric values are expressed.
+                Unit of measurement for metrics. Specifies the unit in which the metric values are expressed:
+                `TOKENS` on the token metrics, `CURRENCY` on the LLM cost metrics (a cost in the currency of the
+                model's price list, which the documents do not carry).
             example: "BYTES"
 
         ApiSpec:

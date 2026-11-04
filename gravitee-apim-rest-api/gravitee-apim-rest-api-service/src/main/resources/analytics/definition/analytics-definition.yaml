@@ -527,7 +527,7 @@ spec:
           label: Sent token count
           apis:
               - LLM
-          unit: NUMBER
+          unit: TOKENS
           measures:
               - COUNT
               - AVG
@@ -581,7 +581,7 @@ spec:
           label: Received token count
           apis:
               - LLM
-          unit: NUMBER
+          unit: TOKENS
           measures:
               - COUNT
               - AVG
@@ -636,7 +636,7 @@ spec:
           label: Sent token cost
           apis:
               - LLM
-          unit: NUMBER
+          unit: CURRENCY
           measures:
               - COUNT
           facets:
@@ -690,7 +690,7 @@ spec:
           label: Received token cost
           apis:
               - LLM
-          unit: NUMBER
+          unit: CURRENCY
           measures:
               - COUNT
           facets:
@@ -744,7 +744,7 @@ spec:
           label: Total token count
           apis:
               - LLM
-          unit: NUMBER
+          unit: TOKENS
           measures:
               - COUNT
               - AVG
@@ -799,7 +799,7 @@ spec:
           label: Total token cost
           apis:
               - LLM
-          unit: NUMBER
+          unit: CURRENCY
           measures:
               - COUNT
               - AVG
@@ -1084,7 +1084,7 @@ spec:
           label: Edge Tokens In
           apis:
               - EDGE
-          unit: NUMBER
+          unit: TOKENS
           measures:
               - SUM
           facets:
@@ -1106,7 +1106,7 @@ spec:
           label: Edge Tokens Out
           apis:
               - EDGE
-          unit: NUMBER
+          unit: TOKENS
           measures:
               - SUM
           facets:
