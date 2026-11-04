@@ -89,6 +89,11 @@ public class NoOpManagementRepositoryConfiguration {
     }
 
     @Bean
+    public GuardianRepository guardianRepository() {
+        return new NoOpGuardianRepository();
+    }
+
+    @Bean
     public SharedPolicyGroupRepository sharedPolicyGroupRepository() {
         return new NoOpSharedPolicyGroupRepository();
     }

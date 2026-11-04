@@ -1,0 +1,62 @@
+[
+  {
+    "id": "id_update_test",
+    "environmentId": "environmentId",
+    "name": "name",
+    "phase": "REQUEST",
+    "definition": "definition",
+    "deployedAt": 1507032062000,
+    "createdAt": 1439022010883,
+    "updatedAt": 1507032062000,
+    "lifecycleState": "UNDEPLOYED",
+    "description": "a description"
+  },
+  {
+    "id": "id_find-by-id_test",
+    "environmentId": "environmentId",
+    "name": "name",
+    "phase": "RESPONSE",
+    "definition": "definition",
+    "deployedAt": 1507032062000,
+    "createdAt": 1439022010883,
+    "updatedAt": 1507032062000,
+    "lifecycleState": "DEPLOYED",
+    "description": "a description"
+  },
+  {
+    "id": "id_delete_test",
+    "environmentId": "environmentId",
+    "name": "name",
+    "phase": "RESPONSE",
+    "definition": "definition",
+    "deployedAt": 1507032062000,
+    "createdAt": 1439022010883,
+    "updatedAt": 1507032062000,
+    "lifecycleState": "UNDEPLOYED",
+    "description": "a description"
+  },
+  {
+    "id": "id_to_be_deleted_1",
+    "environmentId": "ToBeDeleted",
+    "name": "name",
+    "phase": "REQUEST",
+    "definition": "definition",
+    "deployedAt": 1507032062000,
+    "createdAt": 1439022010883,
+    "updatedAt": 1507032062000,
+    "lifecycleState": "UNDEPLOYED",
+    "description": "a description"
+  },
+  {
+    "id": "id_to_be_deleted_2",
+    "environmentId": "ToBeDeleted",
+    "name": "name",
+    "phase": "REQUEST",
+    "definition": "definition",
+    "deployedAt": 1507032062000,
+    "createdAt": 1439022010883,
+    "updatedAt": 1507032062000,
+    "lifecycleState": "UNDEPLOYED",
+    "description": "a description"
+  }
+]
