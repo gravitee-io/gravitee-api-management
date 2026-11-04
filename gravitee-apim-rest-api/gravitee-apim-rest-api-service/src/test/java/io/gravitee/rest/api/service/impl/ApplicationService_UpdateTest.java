@@ -917,6 +917,47 @@ public class ApplicationService_UpdateTest {
     }
 
     @Test
+    public void should_keep_subscription_metadata_when_renaming_application() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(NEW_APPLICATION_NAME);
+        when(applicationRepository.update(any())).thenReturn(existingApplication);
+
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+
+        MembershipEntity po = getPrimaryOwner();
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+
+        SubscriptionEntity subscriptionWithMetadata = new SubscriptionEntity();
+        subscriptionWithMetadata.setId("sub-1");
+        subscriptionWithMetadata.setClientId(CLIENT_ID);
+        subscriptionWithMetadata.setApplicationName(APPLICATION_NAME);
+        subscriptionWithMetadata.setMetadata(Map.of("tier", "gold", "region", "eu"));
+
+        when(subscriptionService.search(any(), argThat(criteria -> criteria.getApplications().contains(APPLICATION_ID)))).thenReturn(
+            List.of(subscriptionWithMetadata)
+        );
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(getConsoleConfigEntity(false));
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        ArgumentCaptor<UpdateSubscriptionEntity> updateSubscriptionCaptor = ArgumentCaptor.forClass(UpdateSubscriptionEntity.class);
+        verify(subscriptionService).update(any(), updateSubscriptionCaptor.capture(), any());
+        Assertions.assertThat(updateSubscriptionCaptor.getValue().getId()).isEqualTo("sub-1");
+        Assertions.assertThat(updateSubscriptionCaptor.getValue().getMetadata()).containsExactlyInAnyOrderEntriesOf(
+            Map.of("tier", "gold", "region", "eu")
+        );
+    }
+
+    @Test
     public void should_allow_certificate_rename_when_fingerprint_already_belongs_to_same_application() throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
         settings.setApp(new SimpleApplicationSettings());
