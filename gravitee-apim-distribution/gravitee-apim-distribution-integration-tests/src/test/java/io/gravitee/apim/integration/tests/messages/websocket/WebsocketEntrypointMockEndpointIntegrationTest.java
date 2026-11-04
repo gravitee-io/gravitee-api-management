@@ -17,6 +17,7 @@ package io.gravitee.apim.integration.tests.messages.websocket;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.graviteesource.entrypoint.websocket.WebSocketCloseStatus;
 import com.graviteesource.entrypoint.websocket.WebSocketEntrypointConnectorFactory;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
@@ -24,13 +25,16 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.gateway.tests.sdk.reactor.ReactorBuilder;
+import io.gravitee.apim.integration.tests.fake.InvalidUtf8MessagePolicy;
 import io.gravitee.apim.plugin.reactor.ReactorPlugin;
 import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.mock.MockEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
+import io.gravitee.plugin.policy.PolicyPlugin;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
 import io.reactivex.rxjava3.core.Flowable;
 import io.vertx.core.http.WebSocketFrame;
@@ -40,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -67,6 +72,11 @@ class WebsocketEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
         entrypoints.putIfAbsent("websocket", EntrypointBuilder.build("websocket", WebSocketEntrypointConnectorFactory.class));
+    }
+
+    @Override
+    public void configurePolicies(Map<String, PolicyPlugin> policies) {
+        policies.put(InvalidUtf8MessagePolicy.ID, PolicyBuilder.build(InvalidUtf8MessagePolicy.ID, InvalidUtf8MessagePolicy.class));
     }
 
     @EnumSource(value = Qos.class, names = { "NONE", "AUTO" })
@@ -109,6 +119,31 @@ class WebsocketEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest
     @DeployApi("/apis/v4/messages/websocket/websocket-entrypoint-mock-endpoint-text-multibyte.json")
     void should_keep_multibyte_characters_intact_in_text_frames(WebSocketClient client) {
         assertTextFrames(receive(client, "/text-multibyte", MESSAGE_COUNT), MULTIBYTE_MESSAGE);
+    }
+
+    @EnumSource(value = Qos.class, names = { "NONE", "AUTO" })
+    @ParameterizedTest(name = "should close with invalid payload data with {0} qos")
+    @DeployApi(
+        {
+            "/apis/v4/messages/websocket/websocket-entrypoint-mock-endpoint-text-invalid-utf8-none.json",
+            "/apis/v4/messages/websocket/websocket-entrypoint-mock-endpoint-text-invalid-utf8-auto.json",
+        }
+    )
+    void should_close_with_invalid_payload_data_when_text_message_is_not_utf8(Qos qos, WebSocketClient client) {
+        AtomicReference<WebSocket> webSocket = new AtomicReference<>();
+
+        List<WebSocketFrame> frames = client
+            .rxConnect("/text-invalid-utf8-" + qos.getLabel())
+            .doOnSuccess(webSocket::set)
+            .flatMapPublisher(WebsocketEntrypointMockEndpointIntegrationTest::dataFrames)
+            .test()
+            .awaitDone(30, TimeUnit.SECONDS)
+            .assertComplete()
+            .values();
+
+        assertThat(frames).hasSize(2);
+        assertTextFrames(frames, MESSAGE);
+        assertThat(webSocket.get().closeStatusCode()).isEqualTo((short) WebSocketCloseStatus.INVALID_PAYLOAD_DATA.code());
     }
 
     private static List<WebSocketFrame> receive(WebSocketClient client, String path, int frameCount) {
