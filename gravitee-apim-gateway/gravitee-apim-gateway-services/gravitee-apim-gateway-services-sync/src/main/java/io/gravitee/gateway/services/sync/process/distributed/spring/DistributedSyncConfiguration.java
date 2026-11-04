@@ -42,6 +42,7 @@ import io.gravitee.gateway.services.sync.process.distributed.synchronizer.api.Di
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.apikey.DistributedApiKeySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.apiproduct.DistributedApiProductSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.approvalrule.DistributedApprovalRuleSynchronizer;
+import io.gravitee.gateway.services.sync.process.distributed.synchronizer.approvalstate.DistributedApprovalStateSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.authz.DistributedAuthzEntitySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.authz.DistributedAuthzPolicySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.credential.DistributedCredentialSynchronizer;
@@ -393,6 +394,24 @@ public class DistributedSyncConfiguration {
             syncDeployerExecutor,
             deployerFactory,
             approvalRuleMapper
+        );
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public DistributedApprovalStateSynchronizer distributedApprovalStateSynchronizer(
+        DistributedEventFetcher distributedEventFetcher,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+        DeployerFactory deployerFactory,
+        ApprovalStateMapper approvalStateMapper
+    ) {
+        return new DistributedApprovalStateSynchronizer(
+            distributedEventFetcher,
+            syncFetcherExecutor,
+            syncDeployerExecutor,
+            deployerFactory,
+            approvalStateMapper
         );
     }
 
