@@ -61,8 +61,24 @@ class MetricFamilyTest {
     }
 
     @Test
-    void should_label_the_family_of_no_kind_on_its_own() {
+    void should_label_the_families_of_no_kind_on_their_own() {
         assertThat(MetricFamily.GATEWAY.ownKind()).isEmpty();
         assertThat(MetricFamily.GATEWAY.label()).isEqualTo("Gateway");
+        assertThat(MetricFamily.ADDITIONAL.ownKind()).isEmpty();
+    }
+
+    /** The editor lists the families in enum order: the environment's own metrics close the list. */
+    @Test
+    void should_list_the_additional_metrics_last_under_their_own_label() {
+        assertThat(MetricFamily.values()[MetricFamily.values().length - 1]).isEqualTo(MetricFamily.ADDITIONAL);
+        assertThat(MetricFamily.ADDITIONAL.label()).isEqualTo("Additional metrics");
+    }
+
+    @Test
+    void should_never_derive_the_additional_family_from_api_kinds() {
+        for (var kind : ApiType.values()) {
+            assertThat(MetricFamily.of(List.of(kind))).as(kind.name()).isNotEqualTo(MetricFamily.ADDITIONAL);
+        }
+        assertThat(MetricFamily.of(List.of())).isNotEqualTo(MetricFamily.ADDITIONAL);
     }
 }

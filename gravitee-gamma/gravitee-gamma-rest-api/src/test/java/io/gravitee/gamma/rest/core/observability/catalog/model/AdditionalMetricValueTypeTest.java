@@ -39,4 +39,16 @@ class AdditionalMetricValueTypeTest {
         assertThat(valueType.filterType()).isEmpty();
         assertThat(valueType.isDetailOnly()).isTrue();
     }
+
+    @ParameterizedTest(name = "{0}")
+    @EnumSource(value = AdditionalMetricValueType.class, names = { "LONG", "INT", "DOUBLE" })
+    void should_hold_a_number_for_the_types_the_engine_measures(AdditionalMetricValueType valueType) {
+        assertThat(valueType.isNumber()).isTrue();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @EnumSource(value = AdditionalMetricValueType.class, names = { "BOOL", "KEYWORD", "STRING", "JSON" })
+    void should_hold_no_number_for_the_other_types(AdditionalMetricValueType valueType) {
+        assertThat(valueType.isNumber()).isFalse();
+    }
 }

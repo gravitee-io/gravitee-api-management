@@ -20,9 +20,12 @@ import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import java.util.List;
 
 /**
- * One metric of the analytics catalog and what a query may ask of it: its measures, the facets it is grouped
- * by and the filters that narrow it. Names are the ones the analytics endpoints accept.
+ * One metric of the analytics definition and what a query may ask of it: its measures, the facets it is grouped
+ * by and the filters that narrow it. Names are the ones the analytics endpoints accept: a built-in name, or the wire
+ * name of an additional metric field holding a number.
  *
+ * @param unit the unit of a built-in as the engine reports it, the record's unit on a {@code DECLARED} field, or
+ *             {@code null} when none is known
  * @author GraviteeSource Team
  */
 public record MetricDefinition(
@@ -35,7 +38,8 @@ public record MetricDefinition(
     List<String> filters,
     CatalogOrigin origin
 ) {
+    /** A built-in is grouped by its API kinds; an additional metric field by its origin, under one family. */
     public MetricFamily family() {
-        return MetricFamily.of(apiTypes);
+        return origin == CatalogOrigin.BUILT_IN ? MetricFamily.of(apiTypes) : MetricFamily.ADDITIONAL;
     }
 }

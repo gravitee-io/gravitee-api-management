@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.core.observability.analytics.port;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.core.analytics_engine.model.AdditionalMetricName;
 import io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinition;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.AnalyticsDefinitionPort;
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
@@ -30,6 +31,9 @@ import org.junit.jupiter.api.Test;
 /**
  * The behaviour every {@link AnalyticsDefinitionPort} implementation must honour, whatever the catalog behind it.
  * {@link #port()} holds a catalog where at least one metric exists for several API kinds.
+ *
+ * <p>The additional metric support is the engine's: the measures are {@link AdditionalMetricName#MEASURES} and the
+ * kinds, facets and filters those of a built-in, so the definition never offers what a query is refused.
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public abstract class AnalyticsDefinitionPortContractTest {
@@ -74,6 +78,27 @@ public abstract class AnalyticsDefinitionPortContractTest {
                 assertThat(metric.facets()).allSatisfy(facet -> assertThat(facet.label()).isNotBlank());
             });
         }
+    }
+
+    @Test
+    void should_serve_additional_metrics_with_exactly_the_measures_the_engine_honours_the_default_first() {
+        assertThat(port().additionalMetricSupport().measures()).containsExactlyElementsOf(
+            AdditionalMetricName.MEASURES.stream().map(Enum::name).toList()
+        );
+    }
+
+    @Test
+    void should_serve_additional_metrics_for_api_kinds_grouped_by_labelled_built_in_facets_and_narrowed_by_filters() {
+        var support = port().additionalMetricSupport();
+
+        assertThat(support.apiTypes()).isNotEmpty().doesNotHaveDuplicates().isSubsetOf(ApiType.API_KINDS);
+        assertThat(support.facets())
+            .isNotEmpty()
+            .allSatisfy(facet -> {
+                assertThat(facet.label()).isNotBlank();
+                assertThat(facet.origin()).isEqualTo(CatalogOrigin.BUILT_IN);
+            });
+        assertThat(support.filters()).isNotEmpty().doesNotHaveDuplicates();
     }
 
     @Test

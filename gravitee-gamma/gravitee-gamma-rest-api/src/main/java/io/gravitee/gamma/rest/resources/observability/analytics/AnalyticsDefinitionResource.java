@@ -22,6 +22,7 @@ import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQ
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.resources.observability.EnumQueryParam;
 import io.gravitee.gamma.rest.resources.observability.analytics.dto.AnalyticsDefinitionResponseDto;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
@@ -43,18 +44,21 @@ import java.util.List;
  * {@code /gamma/organizations/{orgId}/environments/{envId}/observability/analytics/definition}.
  *
  * <h2>Authorization</h2>
- * No permission guard, like the filter catalog: the definition holds no traffic data.
+ * A login only, like the filter catalog: the built-in metrics and the environment's records hold no traffic data.
+ * The {@code DISCOVERED} metrics are traffic data, served by the use case to a caller who reads the environment's
+ * traffic only (see {@code TrafficReadPermissionPort}).
  *
  * <h2>Caching</h2>
- * The definition only changes with the server build. Its {@code ETag} hashes the response as the application's
- * mapper writes it, so every node of a cluster running the same build hands out the same one, and a client
- * revalidating it gets a {@code 304}.
+ * The body depends on the environment, on its records and on the caller's traffic right, and the discovery behind
+ * its {@code DISCOVERED} entries refreshes every few minutes: the response is {@code private} and the client
+ * revalidates it on every use. Its {@code ETag} hashes the response as the application's mapper writes it, so every
+ * node of a cluster hands out the same one for the same body, and a client revalidating it gets a {@code 304}.
  *
  * @author GraviteeSource Team
  */
 public class AnalyticsDefinitionResource {
 
-    private static final CacheControl REVALIDATE = CacheControl.valueOf("no-cache");
+    private static final CacheControl REVALIDATE = CacheControl.valueOf("private, no-cache");
 
     @Inject
     private GetObservabilityAnalyticsDefinitionUseCase getAnalyticsDefinitionUseCase;
@@ -66,12 +70,15 @@ public class AnalyticsDefinitionResource {
         @Context Request request,
         @Context Providers providers
     ) {
+        var ctx = GraviteeContext.getExecutionContext();
         var output = getAnalyticsDefinitionUseCase.execute(
             new GetObservabilityAnalyticsDefinitionUseCase.Input(
+                ctx.getOrganizationId(),
+                ctx.getEnvironmentId(),
                 EnumQueryParam.parse(apiTypes, ApiType.class, InvalidObservabilityQueryException::notAnApiKind)
             )
         );
-        var body = AnalyticsDefinitionResponseDto.from(output.definition());
+        var body = AnalyticsDefinitionResponseDto.from(output.definition(), output.truncated());
         var tag = entityTagOf(body, providers);
         var notModified = request.evaluatePreconditions(tag);
         if (notModified != null) {
