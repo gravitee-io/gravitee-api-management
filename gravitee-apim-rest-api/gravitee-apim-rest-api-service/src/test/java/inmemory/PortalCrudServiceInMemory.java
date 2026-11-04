@@ -32,7 +32,7 @@ public class PortalCrudServiceInMemory implements PortalCrudService, InMemoryAlt
 
     @Override
     public Portal create(Portal portal) {
-        storage.add(portal);
+        storage.add(copyOf(portal));
         return portal;
     }
 
@@ -40,7 +40,7 @@ public class PortalCrudServiceInMemory implements PortalCrudService, InMemoryAlt
     public Portal update(Portal portal) {
         OptionalInt index = this.findIndex(this.storage, p -> p.getId().equals(portal.getId()));
         if (index.isPresent()) {
-            storage.set(index.getAsInt(), portal);
+            storage.set(index.getAsInt(), copyOf(portal));
             return portal;
         }
         throw new PortalNotFoundException(portal.getId().toString());
@@ -51,7 +51,8 @@ public class PortalCrudServiceInMemory implements PortalCrudService, InMemoryAlt
         return storage
             .stream()
             .filter(p -> portalId.equals(p.getId()) && environmentId.equals(p.getEnvironmentId()))
-            .findFirst();
+            .findFirst()
+            .map(PortalCrudServiceInMemory::copyOf);
     }
 
     @Override
@@ -59,7 +60,13 @@ public class PortalCrudServiceInMemory implements PortalCrudService, InMemoryAlt
         return storage
             .stream()
             .filter(p -> environmentId.equals(p.getEnvironmentId()))
+            .map(PortalCrudServiceInMemory::copyOf)
             .toList();
+    }
+
+    @Override
+    public Optional<Portal> findDefaultByEnvironmentId(String environmentId) {
+        return findByEnvironmentId(environmentId).stream().filter(Portal::isDefault).findFirst();
     }
 
     @Override
@@ -78,7 +85,7 @@ public class PortalCrudServiceInMemory implements PortalCrudService, InMemoryAlt
     @Override
     public void initWith(List<Portal> items) {
         storage.clear();
-        storage.addAll(items);
+        items.stream().map(PortalCrudServiceInMemory::copyOf).forEach(storage::add);
     }
 
     @Override
@@ -89,5 +96,19 @@ public class PortalCrudServiceInMemory implements PortalCrudService, InMemoryAlt
     @Override
     public List<Portal> storage() {
         return Collections.unmodifiableList(storage);
+    }
+
+    // Portal is a mutable entity: like a real store, hand out and keep copies so an in-place change is never saved implicitly.
+    private static Portal copyOf(Portal portal) {
+        return Portal.of(
+            portal.getId(),
+            portal.getEnvironmentId(),
+            portal.getOrganizationId(),
+            portal.getName(),
+            portal.getNavigationStructure(),
+            portal.getActiveThemeId(),
+            portal.isDefault(),
+            portal.getUrl()
+        );
     }
 }

@@ -91,7 +91,8 @@ public class CreateOrUpdatePortalUseCase {
             sanitized.structure()
         );
         var resolvedActiveThemeId = resolveActiveThemeId(input, existing.map(Portal::getActiveThemeId).orElse(null));
-        var portalToSave = sanitized.portal().withNavigationStructure(sanitized.structure()).withActiveThemeId(resolvedActiveThemeId);
+        var portalToSave = existing.orElse(sanitized.portal());
+        portalToSave.update(sanitized.portal().getName(), sanitized.structure(), resolvedActiveThemeId);
         var saved = existing.isPresent() ? portalCrudService.update(portalToSave) : portalCrudService.create(portalToSave);
         var portalExists = portalAutomationScopeEnforcer.portalExistsInEnvironment(input.auditInfo(), saved.getId());
         if (portalExists) {

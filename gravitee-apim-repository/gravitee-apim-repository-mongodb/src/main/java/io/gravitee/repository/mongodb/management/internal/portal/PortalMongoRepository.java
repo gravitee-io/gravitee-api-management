@@ -33,6 +33,10 @@ public interface PortalMongoRepository extends MongoRepository<PortalMongo, Stri
     @Query("{ 'environmentId': ?0 }")
     List<PortalMongo> findByEnvironmentId(String environmentId);
 
+    // findFirst ordered by id, not a unique match: an environment holding several defaults must not make the lookup
+    // throw, and it must return the same one on every call and on both backends.
+    Optional<PortalMongo> findFirstByEnvironmentIdAndDefaultPortalTrueOrderByIdAsc(String environmentId);
+
     @Query("{ 'activeThemeId': ?0, 'environmentId': ?1 }")
     List<PortalMongo> findByActiveThemeIdAndEnvironmentId(String activeThemeId, String environmentId);
 

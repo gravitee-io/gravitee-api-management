@@ -199,4 +199,51 @@ class PortalCrudServiceImplTest {
             verify(repository).delete(portalId.toString());
         }
     }
+
+    @Nested
+    class FindDefaultByEnvironmentId {
+
+        @Test
+        @SneakyThrows
+        void should_return_the_default_portal_and_adapt_it() {
+            when(repository.findDefaultByEnvironmentId("environment-id")).thenReturn(
+                Optional.of(
+                    io.gravitee.repository.management.model.Portal.builder()
+                        .id(PortalFixtures.PORTAL_ID.toString())
+                        .environmentId("environment-id")
+                        .organizationId("organization-id")
+                        .name("Default Portal")
+                        .defaultPortal(true)
+                        .build()
+                )
+            );
+
+            var result = service.findDefaultByEnvironmentId("environment-id");
+
+            assertThat(result).hasValueSatisfying(portal -> {
+                assertThat(portal.getId()).isEqualTo(PortalFixtures.PORTAL_ID);
+                assertThat(portal.isDefault()).isTrue();
+            });
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_empty_when_environment_has_no_default_portal() {
+            when(repository.findDefaultByEnvironmentId(any())).thenReturn(Optional.empty());
+
+            assertThat(service.findDefaultByEnvironmentId("environment-id")).isEmpty();
+        }
+
+        @Test
+        @SneakyThrows
+        void should_throw_when_technical_exception_occurs() {
+            when(repository.findDefaultByEnvironmentId(any())).thenThrow(TechnicalException.class);
+
+            var throwable = catchThrowable(() -> service.findDefaultByEnvironmentId("environment-id"));
+
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while trying to find the default Portal in environment (environment-id)");
+        }
+    }
 }

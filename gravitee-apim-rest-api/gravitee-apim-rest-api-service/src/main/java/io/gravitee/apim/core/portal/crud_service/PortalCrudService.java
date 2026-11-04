@@ -29,6 +29,8 @@ public interface PortalCrudService {
 
     List<Portal> findByEnvironmentId(String environmentId);
 
+    Optional<Portal> findDefaultByEnvironmentId(String environmentId);
+
     List<Portal> findByActiveThemeIdAndEnvironmentId(String activeThemeId, String environmentId);
 
     void delete(PortalId portalId);

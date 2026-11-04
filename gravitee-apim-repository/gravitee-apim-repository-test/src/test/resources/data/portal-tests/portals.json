@@ -16,7 +16,9 @@
     "id": "portal3",
     "environmentId": "environment2",
     "organizationId": "organization1",
-    "name": "Env2 Portal"
+    "name": "Env2 Portal",
+    "defaultPortal": true,
+    "url": "https://portal.env2.example"
   },
   {
     "id": "portal4",
