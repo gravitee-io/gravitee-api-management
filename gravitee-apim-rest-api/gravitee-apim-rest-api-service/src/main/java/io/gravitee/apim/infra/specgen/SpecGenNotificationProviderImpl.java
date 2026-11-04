@@ -45,6 +45,7 @@ public class SpecGenNotificationProviderImpl implements SpecGenNotificationProvi
     @Override
     public void notify(ApiSpecGen apiSpecGen, String userId) {
         var apiModel = new ApiModel();
+        apiModel.setId(apiSpecGen.id());
         apiModel.setName(apiSpecGen.name());
         portalNotificationService.create(
             getExecutionContext(),

@@ -253,7 +253,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
                 .distinct()
                 .collect(Collectors.toList());
             if (!userIds.isEmpty()) {
-                portalNotificationService.create(executionContext, data.hook, userIds, data.params);
+                portalNotificationService.create(executionContext, data.hook, userIds, data.params, data.referenceType, data.referenceId);
             }
         } catch (TechnicalException e) {
             log.error("Error looking for PortalNotificationConfig with {}", data, e);

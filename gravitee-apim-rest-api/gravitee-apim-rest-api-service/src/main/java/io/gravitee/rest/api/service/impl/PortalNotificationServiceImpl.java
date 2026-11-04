@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNotificationRepository;
+import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotification;
 import io.gravitee.rest.api.model.notification.NewPortalNotificationEntity;
 import io.gravitee.rest.api.model.notification.PortalNotificationEntity;
@@ -26,11 +27,13 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.PortalNotificationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.Hook;
+import io.gravitee.rest.api.service.notification.NotificationReferenceExtractor;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,6 +79,18 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
 
     @Override
     public void create(ExecutionContext executionContext, Hook hook, List<String> users, Object params) {
+        create(executionContext, hook, users, params, null, null);
+    }
+
+    @Override
+    public void create(
+        ExecutionContext executionContext,
+        Hook hook,
+        List<String> users,
+        Object params,
+        NotificationReferenceType referenceType,
+        String referenceId
+    ) {
         try {
             final String title = notificationTemplateService.resolveTemplateWithParam(
                 executionContext.getOrganizationId(),
@@ -97,7 +112,14 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
                 notifications.add(notification);
             });
 
-            create(notifications);
+            var references = NotificationReferenceExtractor.extract(params, referenceType, referenceId);
+            var environmentId = executionContext.hasEnvironmentId() ? executionContext.getEnvironmentId() : null;
+            create(notifications, notification -> {
+                notification.setHook(hook.name());
+                notification.setApiId(references.apiId());
+                notification.setApplicationId(references.applicationId());
+                notification.setEnvironmentId(environmentId);
+            });
         } catch (final Exception ex) {
             throw new TechnicalManagementException("Error while sending notification", ex);
         }
@@ -121,12 +143,13 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
         }
     }
 
-    private void create(List<NewPortalNotificationEntity> notificationEntities) {
+    private void create(List<NewPortalNotificationEntity> notificationEntities, Consumer<PortalNotification> context) {
         final Date now = new Date();
         List<PortalNotification> notifications = notificationEntities.stream().map(this::convert).collect(Collectors.toList());
         notifications.forEach(n -> {
             n.setId(UuidString.generateRandom());
             n.setCreatedAt(now);
+            context.accept(n);
         });
         try {
             portalNotificationRepository.create(notifications);

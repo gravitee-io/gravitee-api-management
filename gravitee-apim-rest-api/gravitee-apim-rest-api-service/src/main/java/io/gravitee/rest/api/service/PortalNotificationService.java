@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.model.notification.PortalNotificationEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.notification.Hook;
@@ -30,6 +31,19 @@ public interface PortalNotificationService {
     PortalNotificationEntity findById(String notificationId);
 
     void create(ExecutionContext executionContext, Hook hook, List<String> users, Object param);
+
+    /**
+     * Also stores the API and the application the notification is about, read from {@code param} or, when absent
+     * there, from the reference the hook was triggered on.
+     */
+    void create(
+        ExecutionContext executionContext,
+        Hook hook,
+        List<String> users,
+        Object param,
+        NotificationReferenceType referenceType,
+        String referenceId
+    );
 
     void delete(String notificationId);
 

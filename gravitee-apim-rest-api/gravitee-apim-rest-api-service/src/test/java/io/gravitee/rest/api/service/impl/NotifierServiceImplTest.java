@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.notification.model.Recipient;
@@ -378,7 +379,9 @@ class NotifierServiceImplTest {
                 eq(executionContext),
                 eq(PortalHook.GROUP_INVITATION),
                 argThat(users -> users.equals(List.of("user-direct"))),
-                eq(params)
+                eq(params),
+                eq(NotificationReferenceType.ENVIRONMENT),
+                eq("env-1")
             );
         }
 
@@ -404,7 +407,9 @@ class NotifierServiceImplTest {
                 eq(executionContext),
                 eq(PortalHook.USER_REGISTERED),
                 argThat(users -> users.equals(List.of("org-user"))),
-                eq(params)
+                eq(params),
+                isNull(),
+                isNull()
             );
         }
 
@@ -449,7 +454,9 @@ class NotifierServiceImplTest {
                 eq(executionContext),
                 eq(PortalHook.GROUP_INVITATION),
                 argThat(users -> new HashSet<>(users).equals(Set.of("user-direct", "user-from-group"))),
-                eq(params)
+                eq(params),
+                eq(NotificationReferenceType.ENVIRONMENT),
+                eq("env-1")
             );
         }
     }
