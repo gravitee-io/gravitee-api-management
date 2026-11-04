@@ -197,6 +197,8 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
             case HTTP_USER_AGENT_DEVICE -> "user_agent.device.name";
             case LLM_PROXY_MODEL -> "additional-metrics.keyword_llm-proxy_model";
             case LLM_PROXY_PROVIDER -> "additional-metrics.keyword_llm-proxy_provider";
+            case AI_HUB_BUDGET -> "additional-metrics.keyword_aihub_budgets";
+            case AI_HUB_USER_NAME -> "additional-metrics.keyword_aihub_user_name";
             case MCP_PROXY_METHOD -> "additional-metrics.keyword_mcp-proxy_method";
             case MCP_PROXY_TOOL -> "additional-metrics.keyword_mcp-proxy_tools/call";
             case MCP_PROXY_RESOURCE -> "additional-metrics.keyword_mcp-proxy_resources/read";
