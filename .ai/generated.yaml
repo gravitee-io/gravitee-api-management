@@ -2,11 +2,11 @@
 # Every generated file with its content fingerprint; setup and check use
 # this for ownership, incremental runs, and tamper evidence.
 version: 1
-generatedBy: "0.5.0"
+generatedBy: "0.6.0"
 buildFileProbes: ["angular.json","build.gradle","build.gradle.kts","ng-package.json","package.json","pom.xml","project.json","rsbuild.config.cjs","rsbuild.config.cts","rsbuild.config.js","rsbuild.config.mjs","rsbuild.config.mts","rsbuild.config.ts","rspack.config.cjs","rspack.config.cts","rspack.config.js","rspack.config.mjs","rspack.config.mts","rspack.config.ts","vite.config.cjs","vite.config.cts","vite.config.js","vite.config.mjs","vite.config.mts","vite.config.ts"]
 inputs:
   - { dir: ".", buildFiles: ["package.json","pom.xml"] }
-  - { path: ".ai/manifest.yaml", hash: "sha256:9116ea22a441b91f3b733a61d451a4a2a48d4a6553c857048b5bf1512cbad162" }
+  - { path: ".ai/manifest.yaml", hash: "sha256:a3fc626307814c38ea8bcf0ab11572a44fadb105da322881a3af46b0f5d842c2" }
   - { path: ".ai/rules/ai-context-authoring.md", hash: "sha256:53f31c71d869cfa939b7344834333c0f352aa795f81c147a19ce0e80d5bb5476" }
   - { path: ".ai/rules/apim-angular.md", hash: "sha256:9e7472cc16201f62230b0de128c0c47c370fffe517cf1b0482dd43a584f17850" }
   - { path: ".ai/rules/apim-automation-api.md", hash: "sha256:c24ccb1f03041b276a0e5ee06836cc78fbb1118f415ca67d306a95850261ff65" }
@@ -75,8 +75,12 @@ entries:
     hash: sha256:d3cafa9551f1f1be59bb035ae0cd043667434dcea4380c2ddd4d491e6ac2693c
     status: generated
     scope: committed
+  - path: ".github/scripts/report-ai-context-update.mjs"
+    hash: sha256:ff3d68addb7881e0929ab343ef861818f0d2cb6adefffbc1bacc3dedaba135fd
+    status: generated
+    scope: committed
   - path: ".github/scripts/verify-ai-context.mjs"
-    hash: sha256:f7e5affa26ff0750024e251e8af2168c0ddbc51301ca5f21a9c353c9922e8a82
+    hash: sha256:57fc0104772f2e7c46b6e8c4d2ac5a6078bd2dffed182969b7eb7e45e35c1e77
     status: generated
     scope: committed
   - path: "AGENTS.md"
@@ -224,7 +228,7 @@ entries:
     status: generated
     scope: committed
   - path: "gravitee-gamma/gravitee-gamma-control-plane-webui/AGENTS.md"
-    hash: sha256:9e21bbf9950dade2a2757eb7ad2a643179d5905e8bc2febeb8c0fc01c36e39d1
+    hash: sha256:53335edeed91cb8b07dfb3bde065000b96de7e3d0ca3c66a1433517461080038
     status: generated
     scope: committed
   - path: "gravitee-gamma/gravitee-gamma-control-plane-webui/CLAUDE.md"
@@ -240,7 +244,7 @@ entries:
     status: generated
     scope: committed
   - path: "gravitee-gamma/gravitee-gamma-module-apim/AGENTS.md"
-    hash: sha256:cc6d1fc74846f2f0aa593bba5bf56a6bbb496781aededb311cd89ff7661625ab
+    hash: sha256:d18028e7c28dfbe092256fe1ec1688f08919810bea04c5ebf36bdeeb28467d39
     status: generated
     scope: committed
   - path: "gravitee-gamma/gravitee-gamma-module-apim/CLAUDE.md"
@@ -248,7 +252,7 @@ entries:
     status: generated
     scope: committed
   - path: "gravitee-gamma/gravitee-gamma-module-platform/AGENTS.md"
-    hash: sha256:cc6d1fc74846f2f0aa593bba5bf56a6bbb496781aededb311cd89ff7661625ab
+    hash: sha256:d18028e7c28dfbe092256fe1ec1688f08919810bea04c5ebf36bdeeb28467d39
     status: generated
     scope: committed
   - path: "gravitee-gamma/gravitee-gamma-module-platform/CLAUDE.md"
@@ -256,7 +260,7 @@ entries:
     status: generated
     scope: committed
   - path: "gravitee-gamma/gravitee-gamma-module-portals/AGENTS.md"
-    hash: sha256:cc6d1fc74846f2f0aa593bba5bf56a6bbb496781aededb311cd89ff7661625ab
+    hash: sha256:d18028e7c28dfbe092256fe1ec1688f08919810bea04c5ebf36bdeeb28467d39
     status: generated
     scope: committed
   - path: "gravitee-gamma/gravitee-gamma-module-portals/CLAUDE.md"
@@ -279,4 +283,4 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-record: sha256:93dfc07f8ee1784a725bdb6379faac87df965692966bc0cf36b998bd820139c0
+record: sha256:92b7f21e5f3a606d6402094160ccb005b650340b82ef39075657f6e7a25e8d01

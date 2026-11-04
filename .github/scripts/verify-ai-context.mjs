@@ -140,7 +140,7 @@ function verifyIgnoreRules(repoRoot, record) {
     committedEntries.map((entry) => entry.path),
   )) {
     errors.push(
-      `${path}: committed output is matched by an ignore rule; add a negation (!${path}) to .gitignore so it cannot silently drop`,
+      `${path}: committed output is matched by an ignore rule; add a negation (!/${path}) to .gitignore so it cannot silently drop`,
     );
   }
 }
