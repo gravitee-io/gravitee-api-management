@@ -43,4 +43,9 @@ public class PortalNotificationMongo {
     private String message;
     private String user;
     private Date createdAt;
+    private Date readAt;
+    private String hook;
+    private String apiId;
+    private String applicationId;
+    private String environmentId;
 }

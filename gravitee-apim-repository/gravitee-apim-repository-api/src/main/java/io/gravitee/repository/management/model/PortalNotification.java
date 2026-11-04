@@ -29,6 +29,11 @@ public class PortalNotification {
     private String message;
     private String user;
     private Date createdAt;
+    private Date readAt;
+    private String hook;
+    private String apiId;
+    private String applicationId;
+    private String environmentId;
 
     public String getId() {
         return id;
@@ -70,6 +75,46 @@ public class PortalNotification {
         this.createdAt = createdAt;
     }
 
+    public Date getReadAt() {
+        return readAt;
+    }
+
+    public void setReadAt(Date readAt) {
+        this.readAt = readAt;
+    }
+
+    public String getHook() {
+        return hook;
+    }
+
+    public void setHook(String hook) {
+        this.hook = hook;
+    }
+
+    public String getApiId() {
+        return apiId;
+    }
+
+    public void setApiId(String apiId) {
+        this.apiId = apiId;
+    }
+
+    public String getApplicationId() {
+        return applicationId;
+    }
+
+    public void setApplicationId(String applicationId) {
+        this.applicationId = applicationId;
+    }
+
+    public String getEnvironmentId() {
+        return environmentId;
+    }
+
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -101,6 +146,21 @@ public class PortalNotification {
             '\'' +
             ", createdAt='" +
             createdAt +
+            '\'' +
+            ", readAt='" +
+            readAt +
+            '\'' +
+            ", hook='" +
+            hook +
+            '\'' +
+            ", apiId='" +
+            apiId +
+            '\'' +
+            ", applicationId='" +
+            applicationId +
+            '\'' +
+            ", environmentId='" +
+            environmentId +
             '\'' +
             '}'
         );

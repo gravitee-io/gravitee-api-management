@@ -26,5 +26,68 @@
     "message": "notif-message-findById",
     "user": "notif-userId-findById",
     "createdAt": 1439022010883
+  },
+  {
+    "id": "inbox-1",
+    "title": "inbox-title-1",
+    "message": "inbox-message-1",
+    "user": "inbox-user",
+    "createdAt": 1700000005000,
+    "hook": "SUBSCRIPTION_ACCEPTED",
+    "apiId": "api-1",
+    "applicationId": "app-1",
+    "environmentId": "env-1"
+  },
+  {
+    "id": "inbox-2",
+    "title": "inbox-title-2",
+    "message": "inbox-message-2",
+    "user": "inbox-user",
+    "createdAt": 1700000004000,
+    "readAt": 1700000004500,
+    "hook": "APIKEY_REVOKED",
+    "apiId": "api-2",
+    "applicationId": "app-1",
+    "environmentId": "env-1"
+  },
+  {
+    "id": "inbox-3",
+    "title": "inbox-title-3",
+    "message": "inbox-message-3",
+    "user": "inbox-user",
+    "createdAt": 1700000003000,
+    "hook": "SUBSCRIPTION_CLOSED",
+    "apiId": "api-1",
+    "applicationId": "app-2",
+    "environmentId": "env-1"
+  },
+  {
+    "id": "inbox-other-env",
+    "title": "inbox-title-other-env",
+    "message": "inbox-message-other-env",
+    "user": "inbox-user",
+    "createdAt": 1700000002000,
+    "hook": "SUBSCRIPTION_ACCEPTED",
+    "apiId": "api-3",
+    "applicationId": "app-3",
+    "environmentId": "env-2"
+  },
+  {
+    "id": "inbox-legacy",
+    "title": "inbox-title-legacy",
+    "message": "inbox-message-legacy",
+    "user": "inbox-user",
+    "createdAt": 1700000001000
+  },
+  {
+    "id": "inbox-other-user",
+    "title": "inbox-title-other-user",
+    "message": "inbox-message-other-user",
+    "user": "inbox-other-user",
+    "createdAt": 1700000006000,
+    "hook": "SUBSCRIPTION_ACCEPTED",
+    "apiId": "api-1",
+    "applicationId": "app-1",
+    "environmentId": "env-1"
   }
 ]
