@@ -16,15 +16,19 @@
 package io.gravitee.apim.core.api.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.exception.InvalidApiDefinitionException;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
+import io.gravitee.apim.core.api.model.HttpListenerPathMappings;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
+import io.gravitee.rest.api.model.context.OriginContext;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Builder;
@@ -51,6 +55,7 @@ public class OAIToUpdateApiUseCase {
     private final OAIDomainService oaiDomainService;
     private final FlowCrudService flowCrudService;
     private final UpdateApiDefinitionFromImportUseCase updateApiDefinitionUseCase;
+    private final ApiCrudService apiCrudService;
 
     public Output execute(Input input) {
         var audit = input.auditInfo();
@@ -73,11 +78,45 @@ public class OAIToUpdateApiUseCase {
             );
         }
 
+        if (importDefinition.getApiExport() != null) {
+            if (isKubernetesOrigin(input.apiId())) {
+                keepStoredPathMappings(input.apiId(), importDefinition.getApiExport());
+            } else if (!input.importSwaggerDescriptor().isWithPathMapping()) {
+                preserveExistingPathMappings(input.apiId(), importDefinition.getApiExport());
+            }
+        }
+
         var output = updateApiDefinitionUseCase.execute(
             new UpdateApiDefinitionFromImportUseCase.Input(input.apiId(), importDefinition, audit)
         );
 
         return new Output(output.apiWithFlows());
+    }
+
+    private boolean isKubernetesOrigin(String apiId) {
+        return apiCrudService
+            .findById(apiId)
+            .map(api -> api.getOriginContext() instanceof OriginContext.Kubernetes)
+            .orElse(false);
+    }
+
+    private void keepStoredPathMappings(String apiId, io.gravitee.apim.core.api.model.import_definition.ApiExport apiExport) {
+        var existing = apiCrudService.findById(apiId).map(io.gravitee.apim.core.api.model.Api::getApiDefinitionHttpV4).orElse(null);
+        if (existing == null) {
+            return;
+        }
+        var stored = HttpListenerPathMappings.firstHttpListenerMappings(existing.getListeners()).orElseGet(LinkedHashSet::new);
+        apiExport.replaceFirstHttpListenerPathMappings(stored);
+    }
+
+    private void preserveExistingPathMappings(String apiId, io.gravitee.apim.core.api.model.import_definition.ApiExport apiExport) {
+        var existing = apiCrudService.findById(apiId).map(io.gravitee.apim.core.api.model.Api::getApiDefinitionHttpV4).orElse(null);
+        if (existing == null) {
+            return;
+        }
+        HttpListenerPathMappings.firstHttpListenerMappings(existing.getListeners()).ifPresent(
+            apiExport::replaceFirstHttpListenerPathMappings
+        );
     }
 
     private void restoreApiFlowIdsByKey(List<? extends AbstractFlow> flows, String apiId) {

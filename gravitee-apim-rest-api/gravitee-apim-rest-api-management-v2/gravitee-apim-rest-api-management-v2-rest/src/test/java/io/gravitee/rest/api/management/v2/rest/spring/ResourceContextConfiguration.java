@@ -55,6 +55,7 @@ import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransfor
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.query_service.FilterValuesQueryService;
+import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.analytics_engine.use_case.GetAnalyticsFilterDefinitionsUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
@@ -88,6 +89,7 @@ import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiDefinitionFromUrlUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiDefinitionUseCase;
+import io.gravitee.apim.core.api.use_case.ImportApiPathMappingsUseCase;
 import io.gravitee.apim.core.api.use_case.OAIToUpdateApiUseCase;
 import io.gravitee.apim.core.api.use_case.PatchApiUseCase.ApiV4Deserializer;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
@@ -125,6 +127,7 @@ import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
 import io.gravitee.apim.core.cluster.use_case.CountClustersByLifecycleStateUseCase;
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
@@ -807,6 +810,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public ImportApiPathMappingsUseCase importApiPathMappingsUseCase() {
+        return mock(ImportApiPathMappingsUseCase.class);
+    }
+
+    @Bean
     @Primary
     public GetApiDefinitionUseCase getApiDefinitionUseCase() {
         return mock(GetApiDefinitionUseCase.class);
@@ -897,7 +905,8 @@ public class ResourceContextConfiguration {
         PageCrudService pageCrudService,
         KafkaPortRangeCrudServiceInMemory kafkaPortRangeCrudService,
         DataEncryptor dataEncryptor,
-        CRDMembersDomainServiceInMemory crdMembersDomainService
+        CRDMembersDomainServiceInMemory crdMembersDomainService,
+        ClusterBindingPermissionDomainService clusterBindingPermissionDomainService
     ) {
         ValidateGroupsDomainService groupsValidator = new ValidateGroupsDomainService(groupQueryService);
         return new ValidateApiCRDUseCase(
@@ -922,7 +931,8 @@ public class ResourceContextConfiguration {
                 new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
                 apiQueryService,
                 new PropertyDomainService(dataEncryptor),
-                crdMembersDomainService
+                crdMembersDomainService,
+                clusterBindingPermissionDomainService
             )
         );
     }
@@ -1181,6 +1191,11 @@ public class ResourceContextConfiguration {
     @Bean
     public CreateClusterUseCase createClusterUseCase() {
         return mock(CreateClusterUseCase.class);
+    }
+
+    @Bean
+    public ClusterBindingPermissionDomainService clusterBindingPermissionDomainService() {
+        return mock(ClusterBindingPermissionDomainService.class);
     }
 
     @Bean
@@ -1809,7 +1824,8 @@ public class ResourceContextConfiguration {
             applicationQueryService,
             planQueryService,
             apiProductQueryService,
-            mock(AiWorkspaceAnalyticsApisDomainService.class)
+            mock(AiWorkspaceAnalyticsApisDomainService.class),
+            new AnalyticsQueryContextProvider(List.of())
         );
     }
 

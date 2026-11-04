@@ -30,6 +30,7 @@ import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.cluster.exception.ClusterBindingNotAllowedException;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.rest.api.automation.helpers.SharedPolicyGroupIdHelper;
 import io.gravitee.apim.rest.api.automation.model.ApiV4State;
@@ -347,6 +348,26 @@ class ApisResourceTest extends AbstractResourceTest {
                     soft.assertThat(response.getStatus()).isEqualTo(400);
                     soft.assertThat(body.getMessage()).doesNotContain("io.gravitee.apim.core");
                     soft.assertThat(body.getMessage()).contains("bad payload");
+                });
+            }
+        }
+
+        @Test
+        void should_return_403_when_use_case_throws_not_allowed_domain_exception() {
+            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class))).thenThrow(
+                new ClusterBindingNotAllowedException("Production")
+            );
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", false)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-with-hrid.json")))
+            ) {
+                var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Error.class);
+                SoftAssertions.assertSoftly(soft -> {
+                    soft.assertThat(response.getStatus()).isEqualTo(403);
+                    soft.assertThat(body.getMessage()).contains("[Production]");
                 });
             }
         }

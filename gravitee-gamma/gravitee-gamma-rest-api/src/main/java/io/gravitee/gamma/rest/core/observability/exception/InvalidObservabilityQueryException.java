@@ -75,6 +75,13 @@ public class InvalidObservabilityQueryException extends ValidationDomainExceptio
         return new InvalidObservabilityQueryException("Metric '" + metric + "' is not supported", "observability.query.unknown_metric");
     }
 
+    public static InvalidObservabilityQueryException notAMetric(String metric, String valueType) {
+        return new InvalidObservabilityQueryException(
+            "'" + metric + "' is not a metric: it holds " + valueType + " values, not numbers",
+            "observability.query.not_a_metric"
+        );
+    }
+
     public static InvalidObservabilityQueryException unknownMeasure(String metric, String measure) {
         return new InvalidObservabilityQueryException(
             "Measure '" + measure + "' is not supported for metric '" + metric + "'",

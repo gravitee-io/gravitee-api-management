@@ -19,6 +19,7 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.theme.crud_service.ThemeCrudService;
 import io.gravitee.apim.core.theme.exception.ThemeDefinitionInvalidException;
+import io.gravitee.apim.core.theme.exception.ThemeImageInvalidException;
 import io.gravitee.apim.core.theme.exception.ThemeNotFoundException;
 import io.gravitee.apim.core.theme.exception.ThemeTypeInvalidException;
 import io.gravitee.apim.core.theme.model.Theme;
@@ -27,8 +28,11 @@ import io.gravitee.apim.core.theme.model.UpdateTheme;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -36,6 +40,7 @@ import lombok.RequiredArgsConstructor;
 public class ValidateThemeDomainService implements Validator<ValidateThemeDomainService.Input> {
 
     private final ThemeCrudService themeCrudService;
+    private final ThemeImageWriteValidator themeImageWriteValidator;
 
     public record Input(
         AuditInfo auditInfo,
@@ -61,6 +66,11 @@ public class ValidateThemeDomainService implements Validator<ValidateThemeDomain
         if (input.definitionPortalNext() == null) {
             errors.add(Error.severe("spec.definitionPortalNext must not be null"));
         }
+        var existingTheme = findExistingTheme(input);
+        validateImage("spec.logo", existingTheme.map(Theme::getLogo).orElse(null), input.logo(), errors);
+        validateImage("spec.optionalLogo", existingTheme.map(Theme::getOptionalLogo).orElse(null), input.optionalLogo(), errors);
+        validateImage("spec.favicon", existingTheme.map(Theme::getFavicon).orElse(null), input.favicon(), errors);
+        validateImage("spec.backgroundImage", existingTheme.map(Theme::getBackgroundImage).orElse(null), input.backgroundImage(), errors);
         var sanitized = new Input(
             input.auditInfo(),
             input.themeHrid(),
@@ -72,6 +82,22 @@ public class ValidateThemeDomainService implements Validator<ValidateThemeDomain
             input.backgroundImage()
         );
         return Result.ofBoth(sanitized, errors);
+    }
+
+    private Optional<Theme> findExistingTheme(Input input) {
+        if (input.themeHrid() == null || input.themeHrid().isBlank()) {
+            return Optional.empty();
+        }
+        var themeId = HRIDToUUID.portalTheme().context(input.auditInfo()).hrid(input.themeHrid()).id();
+        return themeCrudService.findByIdAndEnvironmentId(themeId, input.auditInfo().environmentId());
+    }
+
+    private void validateImage(String field, String previousValue, String value, List<Error> errors) {
+        try {
+            themeImageWriteValidator.validateIfChanged(field, previousValue, value);
+        } catch (ThemeImageInvalidException e) {
+            errors.add(Error.severe("%s", e.getMessage()));
+        }
     }
 
     public void validateUpdateTheme(UpdateTheme updateTheme, ExecutionContext executionContext) {

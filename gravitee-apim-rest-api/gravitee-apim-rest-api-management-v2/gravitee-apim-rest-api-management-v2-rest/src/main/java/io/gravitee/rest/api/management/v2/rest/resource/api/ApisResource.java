@@ -264,6 +264,7 @@ public class ApisResource extends AbstractResource {
             var importSwaggerDescriptor = ImportSwaggerDescriptorEntity.builder()
                 .payload(descriptor.getPayload())
                 .withDocumentation(Boolean.TRUE.equals(descriptor.getWithDocumentation()))
+                .withPathMapping(Boolean.TRUE.equals(descriptor.getWithPathMapping()))
                 .build();
 
             OAIToImportApiUseCase.Output importOutput = oaiToImportApiUseCase.execute(

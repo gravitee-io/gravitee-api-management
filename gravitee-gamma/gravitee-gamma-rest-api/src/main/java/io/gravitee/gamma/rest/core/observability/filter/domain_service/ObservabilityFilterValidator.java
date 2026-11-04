@@ -186,10 +186,15 @@ public class ObservabilityFilterValidator {
     }
 
     // A NUMBER filter counts or measures in whole units, and the logs translator parses them as such; only a
-    // double_ additional metric field takes decimals.
+    // double_ additional metric field takes decimals. BigDecimal also reads non-ASCII digits, which the translators'
+    // Double.parseDouble refuses: a decimal is a number only when both read it.
     private static BigDecimal parseNumber(String filterName, String value, FilterSpec spec) {
         try {
-            return spec.takesDecimals() ? new BigDecimal(value.trim()) : BigDecimal.valueOf(Long.parseLong(value.trim()));
+            if (spec.takesDecimals()) {
+                Double.parseDouble(value.trim());
+                return new BigDecimal(value.trim());
+            }
+            return BigDecimal.valueOf(Long.parseLong(value.trim()));
         } catch (NumberFormatException e) {
             throw UnsupportedObservabilityFilterException.invalidNumber(
                 filterName,

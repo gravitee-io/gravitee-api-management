@@ -17,6 +17,8 @@ package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.MessageFacetExtractor.REQUEST_ID_AGG_NAME;
 
+import io.gravitee.repository.analytics.engine.api.metric.AdditionalMetric;
+import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.FacetName;
@@ -24,6 +26,9 @@ import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.NumberRange;
 import io.gravitee.repository.analytics.engine.api.query.Query;
+import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl;
+import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys;
+import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -66,7 +71,31 @@ public class HTTPFacetsQueryAdapter {
         return aggs;
     }
 
+    /**
+     * The facets of an additional metric only hold the documents carrying its field, unwrapped by
+     * {@link AuthzScopedFacetAggregation#unwrap}: a bucket without one would read no value, which Elasticsearch orders as
+     * +Infinity for a minimum and -Infinity for a maximum, so it would rank first and fill the limit. A facets search
+     * builds one aggregation tree per metric, so the scope reaches no other metric's buckets.
+     */
     public JsonObject adaptFacets(MetricMeasuresQuery metric, List<FacetName> queryFacets, Integer limit, List<NumberRange> ranges) {
+        var facets = facetTree(metric, queryFacets, limit, ranges);
+        return switch (metric.metric()) {
+            case Metric _ -> facets;
+            case AdditionalMetric additionalMetric -> facets.isEmpty()
+                ? facets
+                : json().put(
+                    AuthzMeasuresQueryAdapter.scopeAggName(additionalMetric),
+                    json()
+                        .put(
+                            Keys.FILTER,
+                            json().put(ElasticsearchDsl.Query.EXISTS, json().put(Tokens.FIELD, fieldResolver.fromMetric(additionalMetric)))
+                        )
+                        .put(Keys.AGGS, facets)
+                );
+        };
+    }
+
+    private JsonObject facetTree(MetricMeasuresQuery metric, List<FacetName> queryFacets, Integer limit, List<NumberRange> ranges) {
         var aggs = new JsonObject();
 
         if (queryFacets.isEmpty()) {
@@ -83,7 +112,7 @@ public class HTTPFacetsQueryAdapter {
             aggs.getJsonObject(aggName).put("aggs", measuresAdapter.adaptMetrics(List.of(metric)));
         } else {
             var remainingFacets = queryFacets.subList(1, queryFacets.size());
-            aggs.getJsonObject(aggName).put("aggs", adaptFacets(metric, remainingFacets, limit, ranges));
+            aggs.getJsonObject(aggName).put("aggs", facetTree(metric, remainingFacets, limit, ranges));
         }
 
         return aggs;
@@ -174,7 +203,7 @@ public class HTTPFacetsQueryAdapter {
             var order = json();
             terms.put("order", order);
             for (var sort : metric.sorts()) {
-                order.put(AggregationAdapter.adaptName(metric.metric(), sort.measure()), sort.order().name().toLowerCase());
+                order.put(AggregationAdapter.orderPath(metric.metric(), sort.measure()), sort.order().name().toLowerCase());
             }
         }
 

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 export * from './analytics';
+export * from './apiPathMappings';
 export * from './apiServices';
 export * from './apiType';
 export * from './apiV4';

@@ -18,8 +18,10 @@ package io.gravitee.apim.infra.domain_service.api;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,6 +35,7 @@ import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.exception.InvalidApiLifecycleStateException;
 import io.gravitee.apim.core.api.exception.NativeApiWithMultipleFlowsException;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -43,6 +46,7 @@ import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
@@ -52,6 +56,7 @@ import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.exception.ListenerMissingException;
@@ -71,6 +76,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 
 @ExtendWith(MockitoExtension.class)
 class ValidateApiDomainServiceLegacyWrapperTest {
@@ -111,6 +119,9 @@ class ValidateApiDomainServiceLegacyWrapperTest {
     @Mock
     ApiLifecycleStateDomainService apiLifecycleStateDomainService;
 
+    @Mock
+    ClusterBindingPermissionDomainService clusterBindingPermissionDomainService;
+
     @InjectMocks
     ValidateApiDomainServiceLegacyWrapper service;
 
@@ -124,6 +135,12 @@ class ValidateApiDomainServiceLegacyWrapperTest {
         return base.toBuilder().apiDefinitionNativeV4(base.getApiDefinitionNativeV4().toBuilder().listeners(List.of()).build()).build();
     }
 
+    private static void authenticateAs(String userId) {
+        var authentication = mock(Authentication.class);
+        when(authentication.getPrincipal()).thenReturn(new UserDetails(userId, "", List.of()));
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
+    }
+
     private ValidateApiDomainServiceLegacyWrapper wrapperWithRealListenerValidation() {
         var realListenerValidationService = new ListenerValidationServiceImpl(null, null, null, null, null);
         return new ValidateApiDomainServiceLegacyWrapper(
@@ -135,7 +152,8 @@ class ValidateApiDomainServiceLegacyWrapperTest {
             realListenerValidationService,
             endpointGroupsValidationService,
             resourcesValidationService,
-            apiLifecycleStateDomainService
+            apiLifecycleStateDomainService,
+            clusterBindingPermissionDomainService
         );
     }
 
@@ -252,6 +270,26 @@ class ValidateApiDomainServiceLegacyWrapperTest {
 
     @Nested
     class ValidateAndSanitizeForCreationApiNativeV4 {
+
+        @Test
+        void should_check_the_cluster_bindings_of_the_new_api_against_the_authenticated_user() {
+            var api = ApiFixtures.aNativeApiBoundToCluster("api-id", ENVIRONMENT_ID, Api.LifecycleState.STOPPED, "prod", "plain");
+            when(endpointGroupsValidationService.validateAndSanitizeNativeV4(any())).thenAnswer(invocation -> invocation.getArgument(0));
+            authenticateAs("user-id");
+            try {
+                service.validateAndSanitizeForCreation(api, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
+            } finally {
+                SecurityContextHolder.clearContext();
+            }
+
+            verify(clusterBindingPermissionDomainService).validate(
+                eq(ORGANIZATION_ID),
+                eq(ENVIRONMENT_ID),
+                eq("user-id"),
+                isNull(NativeApi.class),
+                any(NativeApi.class)
+            );
+        }
 
         @Test
         void should_call_legacy_service() {
@@ -426,6 +464,44 @@ class ValidateApiDomainServiceLegacyWrapperTest {
 
     @Nested
     class ValidateAndSanitizeForUpdateApiNativeV4 {
+
+        @Test
+        void should_check_the_cluster_bindings_the_update_changes_against_the_authenticated_user() {
+            var existingApi = ApiFixtures.aNativeApiBoundToCluster("api-id", ENVIRONMENT_ID, Api.LifecycleState.STOPPED, "prod", "plain");
+            var newApi = ApiFixtures.aNativeApiBoundToCluster("api-id", ENVIRONMENT_ID, Api.LifecycleState.STOPPED, "prod", "sasl");
+            when(endpointGroupsValidationService.validateAndSanitizeNativeV4(any())).thenAnswer(invocation -> invocation.getArgument(0));
+            authenticateAs("user-id");
+            try {
+                service.validateAndSanitizeForUpdate(existingApi, newApi, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
+            } finally {
+                SecurityContextHolder.clearContext();
+            }
+
+            verify(clusterBindingPermissionDomainService).validate(
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                "user-id",
+                existingApi.getApiDefinitionNativeV4(),
+                newApi.getApiDefinitionNativeV4()
+            );
+        }
+
+        @Test
+        void should_not_name_a_user_for_a_call_without_one() {
+            var existingApi = ApiFixtures.aNativeApiBoundToCluster("api-id", ENVIRONMENT_ID, Api.LifecycleState.STOPPED, "prod", "plain");
+            var newApi = ApiFixtures.aNativeApiBoundToCluster("api-id", ENVIRONMENT_ID, Api.LifecycleState.STOPPED, "prod", "sasl");
+            when(endpointGroupsValidationService.validateAndSanitizeNativeV4(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            service.validateAndSanitizeForUpdate(existingApi, newApi, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
+
+            verify(clusterBindingPermissionDomainService).validate(
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                null,
+                existingApi.getApiDefinitionNativeV4(),
+                newApi.getApiDefinitionNativeV4()
+            );
+        }
 
         @Test
         void should_call_legacy_service() {

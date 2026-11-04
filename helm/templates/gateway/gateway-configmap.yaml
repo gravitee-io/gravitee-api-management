@@ -309,6 +309,14 @@ data:
         readyPercent: {{ $kafkaReadiness.readyPercent }}
         {{- end}}
       {{- end}}
+      {{- if hasKey .Values.gateway.kafka "backendMetadataMaxAge" }}
+      backendMetadataMaxAge: {{ .Values.gateway.kafka.backendMetadataMaxAge }}
+      {{- end}}
+      {{- $kafkaMesh := .Values.gateway.kafka.mesh | default dict }}
+      {{- if hasKey $kafkaMesh "refreshConnectionReuse" }}
+      mesh:
+        refreshConnectionReuse: {{ $kafkaMesh.refreshConnectionReuse }}
+      {{- end}}
       {{- /* `secured` only drives the kafka-server health probe; `gateway.kafka.secured` is its deprecated name */}}
       {{- $kafkaProbe := .Values.gateway.kafka.probe | default dict }}
       {{- if hasKey $kafkaProbe "secured" }}

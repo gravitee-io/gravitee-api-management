@@ -23,7 +23,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.analytics_engine.model.FilterName;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
+import io.gravitee.apim.core.analytics_engine.model.FilterValue;
 import io.gravitee.apim.core.analytics_engine.model.TrafficScope;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.FilterValuesQuery;
@@ -83,6 +85,18 @@ class FilterValuesQueryServiceImplTest {
             .containsExactly("gw-1", "gw-2");
         assertThat(result.afterKey()).containsEntry("value", "gw-2");
         assertThat(result.totalFilteredCount()).isEqualTo(42L);
+    }
+
+    @Test
+    void should_read_an_additional_metric_field_under_its_own_name() {
+        when(analyticsRepository.searchFilterValues(any(), any())).thenReturn(new FilterValuesResult(List.of("search"), null, 1));
+        var tool = FilterName.parse("additional-metrics.keyword_mcp-proxy_tools/call").orElseThrow();
+
+        var result = service.searchFilterValues(ORG_ID, ENV_ID, tool, null, null, 1, 10, null, null, null);
+
+        verify(analyticsRepository).searchFilterValues(any(), queryCaptor.capture());
+        assertThat(queryCaptor.getValue().esFieldName()).isEqualTo("additional-metrics.keyword_mcp-proxy_tools/call");
+        assertThat(result.data()).extracting(FilterValue::value).containsExactly("search");
     }
 
     @Test

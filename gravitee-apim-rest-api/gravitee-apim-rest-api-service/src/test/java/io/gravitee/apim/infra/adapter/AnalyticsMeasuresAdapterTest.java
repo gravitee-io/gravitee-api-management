@@ -24,6 +24,7 @@ import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.model.TimeRange;
 import io.gravitee.apim.core.analytics_engine.model.TrafficScope;
@@ -134,5 +135,35 @@ class AnalyticsMeasuresAdapterTest {
 
         assertThat(engine.name()).isEqualTo(valueType.name());
         assertThat(AnalyticsMeasuresAdapter.INSTANCE.fromValueType(engine)).isEqualTo(valueType);
+    }
+
+    @Test
+    void should_hand_the_engine_a_measured_additional_metric_and_read_it_back_under_its_wire_name() {
+        var failovers = new AdditionalMetricName(new AdditionalMetricField(AdditionalMetricField.ValueType.LONG, "long_failover_count"));
+        var engineFailovers = new io.gravitee.repository.analytics.engine.api.metric.AdditionalMetric(
+            new io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField(
+                io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField.ValueType.LONG,
+                "long_failover_count"
+            )
+        );
+        var request = new MeasuresRequest(
+            new TimeRange(Instant.EPOCH, Instant.EPOCH.plusSeconds(60)),
+            List.of(),
+            List.of(new MetricMeasuresRequest(failovers, List.of(MetricSpec.Measure.AVG)))
+        );
+
+        var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
+
+        assertThat(query.metrics().getFirst().metric()).isEqualTo(engineFailovers);
+        assertThat(AnalyticsMeasuresAdapter.INSTANCE.fromResult(engineFailovers)).isEqualTo(failovers);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = MetricSpec.Name.class)
+    void should_carry_every_built_in_metric_to_the_engine_and_back(MetricSpec.Name metric) {
+        var engine = AnalyticsMeasuresAdapter.INSTANCE.toMetricName(metric);
+
+        assertThat(engine.name()).isEqualTo(metric.name());
+        assertThat(AnalyticsMeasuresAdapter.INSTANCE.fromResult(engine)).isEqualTo(metric);
     }
 }

@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.model.mapper;
 
+import static io.gravitee.apim.core.api.model.utils.MigrationResult.State.IMPOSSIBLE;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static io.gravitee.definition.model.v4.flow.execution.FlowMode.BEST_MATCH;
 import static io.gravitee.definition.model.v4.flow.execution.FlowMode.DEFAULT;
@@ -26,6 +27,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.PathMappingTemplates;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.core.api.model.utils.MigrationWarnings;
 import io.gravitee.apim.core.utils.StringUtils;
@@ -55,8 +57,13 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
@@ -94,51 +101,55 @@ class ApiMigration {
         if (apiDefinitionV2 == null) {
             return MigrationResult.issue(MigrationWarnings.V2_API_NOT_NULL, MigrationResult.State.IMPOSSIBLE);
         }
-        List<Listener> listeners = List.of(
-            HttpListener.builder()
-                .cors(apiDefinitionV2.getProxy().getCors())
-                .servers(apiDefinitionV2.getProxy().getServers())
-                .type(ListenerType.HTTP)
-                .paths(
-                    stream(apiDefinitionV2.getProxy().getVirtualHosts())
-                        .map(e -> new Path(e.getHost(), addSlashIfNeeded(e.getPath()), e.isOverrideEntrypoint()))
-                        .toList()
-                )
-                .pathMappingsPattern(apiDefinitionV2.getPathMappings())
-                .entrypoints(List.of(Entrypoint.builder().type(HTTP_PROXY).build()))
-                .build()
-        );
-        Analytics analytics = mapAnalytics(apiDefinitionV2.getProxy().getLogging());
-        var endpointGroups = stream(apiDefinitionV2.getProxy().getGroups())
-            .map(source -> mapEndpointGroup(source, apiDefinitionV2.getServices()))
-            .collect(MigrationResult.collectList());
-        Failover failover = mapFailOver(apiDefinitionV2.getProxy());
-        MigrationResult<ApiServices> apiServicesMigrationResult = mapApiServices(apiDefinitionV2.getServices());
-        return endpointGroups.flatMap(endpointGroupsList ->
-            apiServicesMigrationResult.map(apiServices -> {
-                var api = new io.gravitee.definition.model.v4.Api(
-                    listeners,
-                    endpointGroupsList,
-                    analytics,
-                    failover,
-                    null /* plans are managed in another place because is in a different collection */,
-                    null,
-                    null /* flows are managed in another place because is in a different collection */,
-                    apiDefinitionV2.getResponseTemplates(),
-                    apiServices,
-                    false /* allowedInApiProducts - defaults to false for migrated APIs */
-                );
-                api.setId(apiDefinitionV2.getId());
-                api.setName(apiDefinitionV2.getName());
-                api.setApiVersion(apiDefinitionV2.getVersion());
-                api.setTags(apiDefinitionV2.getTags());
-                api.setType(ApiType.PROXY);
-                api.setProperties(mapProperties(apiDefinitionV2.getProperties()));
-                api.setResources(mapResources(apiDefinitionV2.getResources()));
-                api.setFlowExecution(mapFlowExecution(apiDefinitionV2.getFlowMode()));
-                return api;
-            })
-        );
+        return migratePathMappings(apiDefinitionV2.getPathMappings()).flatMap(pathMappings -> {
+            List<Listener> listeners = List.of(
+                HttpListener.builder()
+                    .cors(apiDefinitionV2.getProxy().getCors())
+                    .servers(apiDefinitionV2.getProxy().getServers())
+                    .type(ListenerType.HTTP)
+                    .paths(
+                        stream(apiDefinitionV2.getProxy().getVirtualHosts())
+                            .map(e -> new Path(e.getHost(), addSlashIfNeeded(e.getPath()), e.isOverrideEntrypoint()))
+                            .toList()
+                    )
+                    .pathMappings(pathMappings != null ? new LinkedHashSet<>(pathMappings.keySet()) : null)
+                    .pathMappingsPattern(pathMappings)
+                    .entrypoints(List.of(Entrypoint.builder().type(HTTP_PROXY).build()))
+                    .build()
+            );
+            Analytics analytics = mapAnalytics(apiDefinitionV2.getProxy().getLogging());
+            var endpointGroups = stream(apiDefinitionV2.getProxy().getGroups())
+                .map(source -> mapEndpointGroup(source, apiDefinitionV2.getServices()))
+                .collect(MigrationResult.collectList());
+            Failover failover = mapFailOver(apiDefinitionV2.getProxy());
+            MigrationResult<ApiServices> apiServicesMigrationResult = mapApiServices(apiDefinitionV2.getServices());
+            return endpointGroups.flatMap(endpointGroupsList ->
+                apiServicesMigrationResult.map(apiServices -> {
+                    var api = new io.gravitee.definition.model.v4.Api(
+                        listeners,
+                        endpointGroupsList,
+                        analytics,
+                        failover,
+                        null /* plans are managed in another place because is in a different collection */,
+                        null,
+                        null /* flows are managed in another place because is in a different collection */,
+                        null,
+                        apiDefinitionV2.getResponseTemplates(),
+                        apiServices,
+                        false /* allowedInApiProducts - defaults to false for migrated APIs */
+                    );
+                    api.setId(apiDefinitionV2.getId());
+                    api.setName(apiDefinitionV2.getName());
+                    api.setApiVersion(apiDefinitionV2.getVersion());
+                    api.setTags(apiDefinitionV2.getTags());
+                    api.setType(ApiType.PROXY);
+                    api.setProperties(mapProperties(apiDefinitionV2.getProperties()));
+                    api.setResources(mapResources(apiDefinitionV2.getResources()));
+                    api.setFlowExecution(mapFlowExecution(apiDefinitionV2.getFlowMode()));
+                    return api;
+                })
+            );
+        });
     }
 
     private MigrationResult<ApiServices> mapApiServices(Services services) {
@@ -455,5 +466,28 @@ class ApiMigration {
     @Nullable
     private String addSlashIfNeeded(@Nullable String path) {
         return path == null || path.isEmpty() || path.endsWith("/") ? path : path + '/';
+    }
+
+    @Nullable
+    private static MigrationResult<Map<String, Pattern>> migratePathMappings(@Nullable Map<String, Pattern> pathMappings) {
+        if (pathMappings == null || pathMappings.isEmpty()) {
+            return MigrationResult.value(new LinkedHashMap<>());
+        }
+        var accepted = new LinkedHashMap<String, Pattern>();
+        var rejected = new ArrayList<String>();
+        pathMappings.forEach((template, pattern) -> {
+            if (PathMappingTemplates.isCompilable(template)) {
+                accepted.put(template, pattern);
+            } else {
+                rejected.add(String.valueOf(template));
+            }
+        });
+        if (accepted.isEmpty()) {
+            if (rejected.size() == 1 && "/".equals(rejected.getFirst())) {
+                return MigrationResult.value(new LinkedHashMap<>());
+            }
+            return MigrationResult.issue(MigrationWarnings.PATH_MAPPINGS_INVALID.formatted(rejected), IMPOSSIBLE);
+        }
+        return MigrationResult.value(accepted);
     }
 }

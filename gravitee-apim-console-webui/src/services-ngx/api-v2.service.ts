@@ -27,8 +27,10 @@ import {
   ApisResponse,
   ApiSubscribersResponse,
   ApiTransferOwnership,
+  ApiPathMappings,
   ApiV4,
   CreateApi,
+  ImportApiPathMappings,
   DuplicateApiOptions,
   ListenerType,
   Member,
@@ -228,6 +230,12 @@ export class ApiV2Service {
         'Content-Type': 'application/json',
       },
     });
+  }
+
+  importPathMappings(apiId: string, body: ImportApiPathMappings): Observable<ApiPathMappings> {
+    return this.http
+      .post<ApiPathMappings>(`${this.constants.env.v2BaseURL}/apis/${apiId}/path-mappings/_import`, body)
+      .pipe(switchMap(response => this.refreshLastApiFetch().pipe(map(() => response))));
   }
 
   exportCRD(apiId: string): Observable<Blob> {

@@ -15,7 +15,9 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api;
 
+import io.gravitee.repository.analytics.engine.api.metric.AdditionalMetric;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.repository.analytics.engine.api.metric.MetricName;
 import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.FacetName;
@@ -37,6 +39,13 @@ public interface FieldResolver {
      */
     default String fromAdditionalMetric(AdditionalMetricField field) {
         throw new UnsupportedOperationException(getClass().getSimpleName() + " does not support additional metric '" + field.name() + "'");
+    }
+
+    default String fromMetric(MetricName metric) {
+        return switch (metric) {
+            case Metric builtIn -> fromMetric(builtIn);
+            case AdditionalMetric additionalMetric -> fromAdditionalMetric(additionalMetric.field());
+        };
     }
 
     default String fromFilter(Filter filter) {

@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation;
 
+import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.vertx.core.json.JsonObject;
 import java.util.Map;
 
@@ -25,6 +26,6 @@ import java.util.Map;
 public class SimpleP50Builder {
 
     public Map<String, JsonObject> build(String aggName, String field) {
-        return Map.of(aggName, SimplePercentileBuilder.build(field, 50));
+        return SimplePercentileBuilder.build(aggName, field, Measure.P50);
     }
 }

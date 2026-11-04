@@ -29,6 +29,8 @@ import io.gravitee.apim.core.analytics_engine.model.FilterName;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.MetricName;
+import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.model.TimeRange;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
@@ -102,18 +104,19 @@ public class AnalyticsQueryValidator {
     }
 
     /**
-     * A built-in facet must be one the metric declares. An additional metric field is not in any declaration: its
-     * value type alone says whether it groups, and the engine the metric is routed to whether it reads the field
-     * (see {@code AnalyticsQueryContextProvider}).
+     * A built-in facet must be one the metric declares; an additional metric declares those of the request documents
+     * it is read from. An additional metric field is not in any declaration: its value type alone says whether it
+     * groups, and the engine the metric is routed to whether it reads the field (see
+     * {@code AnalyticsQueryContextProvider}).
      */
     private void validateFacets(List<FacetName> facets, List<FacetMetricMeasuresRequest> metrics) {
         for (var metric : metrics) {
-            var metricSpec = definition.findMetric(metric.name()).orElseThrow(() -> forUnknownMetric(metric.name().name()));
+            var builtInFacets = builtInFacetsOf(metric.name());
             for (var level = 0; level < facets.size(); level++) {
                 var facet = facets.get(level);
                 switch (facet) {
                     case FacetSpec.Name builtIn -> {
-                        if (!metricSpec.facets().contains(builtIn)) {
+                        if (!builtInFacets.contains(builtIn)) {
                             throw InvalidQueryException.forIncompatibleFacet(builtIn.name(), metric.name().name());
                         }
                     }
@@ -121,6 +124,17 @@ public class AnalyticsQueryValidator {
                 }
             }
         }
+    }
+
+    private List<FacetSpec.Name> builtInFacetsOf(MetricName metric) {
+        var declaring = switch (metric) {
+            case MetricSpec.Name builtIn -> builtIn;
+            case AdditionalMetricName _ -> AdditionalMetricName.DIMENSIONS_OF;
+        };
+        return definition
+            .findMetric(declaring)
+            .orElseThrow(() -> forUnknownMetric(declaring.name()))
+            .facets();
     }
 
     /** A keyword or a boolean groups by its values at any level; a number by the request's ranges, as the last facet. */
@@ -271,13 +285,33 @@ public class AnalyticsQueryValidator {
             // (which projects to MetricMeasuresRequest with empty filters).
             validateFilters(query.filters());
             var metric = query.name();
-            var metricSpec = definition.findMetric(metric).orElseThrow(() -> forUnknownMetric(metric.name()));
+            var measures = measuresOf(metric);
 
             for (var measure : query.measures()) {
-                if (!metricSpec.measures().contains(measure)) {
+                if (!measures.contains(measure)) {
                     throw InvalidQueryException.forInvalidMeasure(metric.name(), measure.name());
                 }
             }
         }
+    }
+
+    /**
+     * A built-in's declared measures. An additional metric is in no declaration: a well-formed field holding a number
+     * takes {@link AdditionalMetricName#MEASURES} without a lookup, so one no request carries reads as an empty result.
+     */
+    private List<MetricSpec.Measure> measuresOf(MetricName metric) {
+        return switch (metric) {
+            case MetricSpec.Name builtIn -> definition
+                .findMetric(builtIn)
+                .orElseThrow(() -> forUnknownMetric(builtIn.name()))
+                .measures();
+            case AdditionalMetricName additionalMetric -> {
+                var valueType = additionalMetric.field().valueType();
+                if (!valueType.isNumber()) {
+                    throw InvalidQueryException.forNotAMetric(additionalMetric.name(), valueType.name());
+                }
+                yield AdditionalMetricName.MEASURES;
+            }
+        };
     }
 }

@@ -1087,6 +1087,32 @@ describe('ApiV2Service', () => {
     });
   });
 
+  describe('importPathMappings', () => {
+    it('should POST the page import and refresh the API', done => {
+      const apiId = 'apiId';
+      apiV2Service.get(apiId).subscribe();
+      httpTestingController
+        .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}`, method: 'GET' })
+        .flush(fakeApiV4({ id: apiId }));
+
+      apiV2Service.importPathMappings(apiId, { pageId: 'page-1', overwrite: true }).subscribe(response => {
+        expect(response).toEqual({ pathMappings: ['/pets/:petId'] });
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/path-mappings/_import`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual({ pageId: 'page-1', overwrite: true });
+      req.flush({ pathMappings: ['/pets/:petId'] });
+
+      httpTestingController
+        .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}`, method: 'GET' })
+        .flush(fakeApiV4({ id: apiId }));
+    });
+  });
+
   describe('migrateToV4', () => {
     it('should POST to migrate endpoint without mode', done => {
       const apiId = 'my-api-id';

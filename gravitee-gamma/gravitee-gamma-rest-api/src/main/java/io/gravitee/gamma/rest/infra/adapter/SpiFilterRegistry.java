@@ -56,7 +56,8 @@ import org.slf4j.Logger;
  * contributions; an extensible filter that ends up with no values is omitted.
  *
  * <p>Query-time filtering applies two independent axes ({@link FilterSpec#signals()} and
- * {@link FilterSpec#apiTypes()}) by set intersection; an absent/empty axis is unconstrained.
+ * {@link FilterSpec#apiTypes()}) by set intersection; an absent/empty requested axis is unconstrained. A spec tied to
+ * no API kind answers a narrowing on API kinds as {@link ApiType#admitsUnscoped} says.
  *
  * <p>Contributors are sourced via {@link ServiceLoader} (host classpath only) unless a test passes its own.
  * Cross-plugin module contributions require the separate plugin-handler registration mechanism.
@@ -66,6 +67,9 @@ import org.slf4j.Logger;
 public class SpiFilterRegistry implements FilterRegistry {
 
     private static final Logger LOGGER = NodeLoggerFactory.getLogger(SpiFilterRegistry.class);
+
+    private static final FilterSpec.Range INT_RANGE = new FilterSpec.Range(Integer.MIN_VALUE, Integer.MAX_VALUE);
+    private static final FilterSpec.Range DOUBLE_RANGE = new FilterSpec.Range(-Double.MAX_VALUE, Double.MAX_VALUE);
 
     private final Map<String, FilterSpec> specsByName;
     private final Predicate<AdditionalMetricField> identifyingField;
@@ -178,7 +182,9 @@ public class SpiFilterRegistry implements FilterRegistry {
             .values()
             .stream()
             .filter(spec -> matches(spec.signals(), signals))
-            .filter(spec -> matches(spec.apiTypes(), apiTypes))
+            .filter(spec ->
+                spec.apiTypes() == null || spec.apiTypes().isEmpty() ? ApiType.admitsUnscoped(apiTypes) : matches(spec.apiTypes(), apiTypes)
+            )
             .toList();
     }
 
@@ -194,7 +200,7 @@ public class SpiFilterRegistry implements FilterRegistry {
 
     /**
      * The validation spec of an additional metric field, typed by its prefix (OBS-70, §2). No label: deriving one here
-     * would be a second label rule. Analytics only: OBS-76 adds LOGS to its {@code signals} here.
+     * would be a second label rule.
      */
     private static FilterSpec specOf(AdditionalMetricField field) {
         var type = switch (field.valueType()) {
@@ -210,14 +216,20 @@ public class SpiFilterRegistry implements FilterRegistry {
             .map(operator -> FilterOperator.valueOf(operator.name()))
             .sorted()
             .toList();
+        // A value beyond what an int_ or a double_ field is indexed with fails the search instead of matching nothing.
+        var range = switch (field.valueType()) {
+            case INT -> INT_RANGE;
+            case DOUBLE -> DOUBLE_RANGE;
+            case KEYWORD, LONG, BOOL, STRING, JSON -> null;
+        };
         return new FilterSpec(
             field.name(),
             null,
             type,
             operators,
             null,
-            null,
-            Set.of(Signal.ANALYTICS),
+            range,
+            Set.of(Signal.ANALYTICS, Signal.LOGS),
             Set.of(),
             new CatalogFlags(null, field.rawKey(), AdditionalMetricValueType.valueOf(field.valueType().name()), null, true)
         );

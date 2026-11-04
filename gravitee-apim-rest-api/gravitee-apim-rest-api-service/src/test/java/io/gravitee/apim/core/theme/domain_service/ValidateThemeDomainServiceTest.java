@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.ThemeCrudServiceInMemory;
+import inmemory.ThemeImageWriteValidatorInMemory;
 import io.gravitee.apim.core.theme.exception.ThemeDefinitionInvalidException;
 import io.gravitee.apim.core.theme.exception.ThemeNotFoundException;
 import io.gravitee.apim.core.theme.exception.ThemeTypeInvalidException;
@@ -64,7 +65,7 @@ public class ValidateThemeDomainServiceTest {
             )
         );
 
-        cut = new ValidateThemeDomainService(themeCrudService);
+        cut = new ValidateThemeDomainService(themeCrudService, new ThemeImageWriteValidatorInMemory());
     }
 
     @AfterEach

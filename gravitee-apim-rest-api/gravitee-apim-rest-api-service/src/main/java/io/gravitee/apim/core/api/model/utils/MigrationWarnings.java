@@ -85,4 +85,7 @@ public final class MigrationWarnings {
 
     public static final String GROOVY_PARSE_ERROR =
         "Unable to migrate the API as an error occurred while parsing the groovy policy configuration. Please contact support and attach your API definition with the support ticket for debugging";
+
+    public static final String PATH_MAPPINGS_INVALID =
+        "Unable to migrate the API as these path mappings are invalid for V4: %s. Please update them to match ^/[a-zA-Z0-9:/._-]+$ before migrating";
 }

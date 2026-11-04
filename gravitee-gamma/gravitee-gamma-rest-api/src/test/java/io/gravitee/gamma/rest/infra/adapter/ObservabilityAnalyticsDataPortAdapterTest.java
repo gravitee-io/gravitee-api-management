@@ -26,7 +26,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.analytics.domain_service.AiWorkspaceAnalyticsApisDomainService;
 import io.gravitee.apim.core.analytics.model.ApiDataKind;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
@@ -43,7 +42,9 @@ import io.gravitee.apim.core.analytics_engine.model.Measure;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricFacetsResponse;
+import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresResponse;
+import io.gravitee.apim.core.analytics_engine.model.MetricName;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesBucketResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesMetricResponse;
@@ -59,6 +60,7 @@ import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.UnitEnrichmentPostProcessorImpl;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsFacetMetricQuery;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsMetricQuery;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsNumberRange;
@@ -133,7 +135,8 @@ class ObservabilityAnalyticsDataPortAdapterTest {
             userContextLoader,
             workspaceApis,
             queryContextProvider,
-            new ObjectMapper()
+            // The mapper the Management API injects: it leaves out null fields
+            new GraviteeMapper(false)
         );
     }
 
@@ -677,6 +680,83 @@ class ObservabilityAnalyticsDataPortAdapterTest {
             assertThatThrownBy(() -> adapter.validate(facetsQuery(SCOPE, List.of(FAILOVERS), List.of())))
                 .isInstanceOf(InvalidQueryException.class)
                 .hasMessageContaining(FAILOVERS);
+        }
+
+        @Test
+        void should_measure_a_number_field_through_the_engine() {
+            when(computeMeasuresUseCase.executeForApis(any(), any(), any())).thenReturn(
+                new ComputeMeasuresUseCase.Output(new MeasuresResponse(List.of()))
+            );
+
+            adapter.computeMeasures(measuresQuery(SCOPE, new AnalyticsMetricQuery(null, FAILOVERS, List.of("AVG", "P95"), List.of())));
+
+            var captor = ArgumentCaptor.forClass(MeasuresRequest.class);
+            verify(computeMeasuresUseCase).executeForApis(any(), captor.capture(), any());
+            assertThat(captor.getValue().metrics())
+                .extracting(MetricMeasuresRequest::name)
+                .containsExactly(MetricName.parse(FAILOVERS).orElseThrow());
+        }
+
+        @Test
+        void should_validate_a_number_field_grouped_by_a_keyword_and_ordered_by_a_percentile() {
+            var query = new FacetsQuery(
+                ORG,
+                ENV,
+                SCOPE,
+                List.of(TIER),
+                null,
+                List.of(new AnalyticsFacetMetricQuery(FAILOVERS, List.of("P90"), List.of(new AnalyticsSortSpec("P90", "DESC")), List.of())),
+                List.of(),
+                Map.of()
+            );
+
+            assertThatCode(() -> adapter.validate(query)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_refuse_a_field_holding_no_number_as_a_metric_without_querying_the_engine() {
+            var query = measuresQuery(SCOPE, new AnalyticsMetricQuery(null, TIER, List.of("COUNT"), List.of()));
+
+            assertThatThrownBy(() -> adapter.computeMeasures(query))
+                .isInstanceOf(InvalidObservabilityQueryException.class)
+                .hasMessage("'" + TIER + "' is not a metric: it holds KEYWORD values, not numbers")
+                .extracting("technicalCode")
+                .isEqualTo("observability.query.not_a_metric");
+            verifyNoInteractions(computeMeasuresUseCase);
+        }
+
+        @Test
+        void should_refuse_a_malformed_metric_as_unknown() {
+            var query = measuresQuery(SCOPE, new AnalyticsMetricQuery(null, "additional-metrics.float_ratio", List.of("AVG"), List.of()));
+
+            assertThatThrownBy(() -> adapter.computeMeasures(query))
+                .isInstanceOf(InvalidObservabilityQueryException.class)
+                .extracting("technicalCode")
+                .isEqualTo("observability.query.unknown_metric");
+        }
+
+        @Test
+        void should_answer_what_the_engine_answers_over_no_request_for_a_number_field_of_an_empty_group() {
+            var response = adapter.computeMeasures(
+                measuresQuery(
+                    PreparedScope.empty(SCOPE.from(), SCOPE.to()),
+                    new AnalyticsMetricQuery(null, FAILOVERS, List.of("AVG", "P95", "SUM", "COUNT"), List.of())
+                )
+            );
+
+            verifyNoInteractions(computeMeasuresUseCase);
+            assertThat(response.at("/metrics/0/name").asText()).isEqualTo(FAILOVERS);
+            assertThat(response.at("/metrics/0").has("unit")).isFalse();
+            assertThat(response.at("/metrics/0/measures").toString()).isEqualTo(
+                "[{\"name\":\"AVG\"},{\"name\":\"P95\"},{\"name\":\"SUM\",\"value\":0},{\"name\":\"COUNT\",\"value\":0}]"
+            );
+        }
+
+        @Test
+        void should_ask_the_engine_whether_a_number_field_narrows_by_the_api_product() {
+            when(queryContextProvider.narrowsBy(MetricName.parse(FAILOVERS).orElseThrow(), FilterSpec.Name.API_PRODUCT)).thenReturn(true);
+
+            assertThat(adapter.narrowsByApiProduct(List.of(FAILOVERS))).isTrue();
         }
 
         @Test

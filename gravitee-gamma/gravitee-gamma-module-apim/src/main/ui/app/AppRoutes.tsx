@@ -68,6 +68,7 @@ import { ApiGeneralPage } from '../features/apis/pages/detail/general/ApiGeneral
 import { ApiMetadataPage } from '../features/apis/pages/detail/metadata/ApiMetadataPage';
 import { ApiNotificationFormPage } from '../features/apis/pages/detail/notifications/ApiNotificationFormPage';
 import { ApiNotificationsPage } from '../features/apis/pages/detail/notifications/ApiNotificationsPage';
+import { ApiPathMappingsPage } from '../features/apis/pages/detail/path-mappings/ApiPathMappingsPage';
 import { ApiPlanFormPage } from '../features/apis/pages/detail/plans/ApiPlanFormPage';
 import { ApiPlansPage } from '../features/apis/pages/detail/plans/ApiPlansPage';
 import { ApiPropertiesPage } from '../features/apis/pages/detail/properties/ApiPropertiesPage';
@@ -208,6 +209,7 @@ export function AppRoutes() {
                                 <Route path="api-score" element={<ApiScoringPage />} />
                                 <Route path="entrypoints" element={<ApiEntrypointsPage />} />
                                 <Route path="cors" element={<ApiCorsPage />} />
+                                <Route path="path-mappings" element={<ApiPathMappingsPage />} />
                                 <Route path="metadata" element={<ApiMetadataPage />} />
                                 <Route path="response-templates">
                                     <Route index element={<ApiResponseTemplatesPage />} />

@@ -70,6 +70,10 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
     @Getter
     private Map<BasePolicy, Function<HttpExecutionContext, Completable>> onResponseActions = null;
 
+    private Map<BasePolicy, Function<HttpExecutionContext, Completable>> onEndpointRequestActions = null;
+
+    private Map<BasePolicy, Function<HttpExecutionContext, Completable>> onEntrypointResponseActions = null;
+
     private Map<BasePolicy, Function<HttpExecutionContext, Completable>> onTerminateActions = null;
 
     public AbstractExecutionContext(final RQ request, final RS response) {
@@ -311,6 +315,43 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
     }
 
     @Override
+    public void addActionOnEndpointRequest(BasePolicy source, Function<HttpExecutionContext, Completable> onEndpointRequestCallback) {
+        if (onEndpointRequestActions == null) {
+            onEndpointRequestActions = new LinkedHashMap<>();
+        }
+
+        onEndpointRequestActions.put(source, onEndpointRequestCallback);
+    }
+
+    /**
+     * Hands over the actions registered for the endpoint request and forgets them, in order of registration.
+     */
+    public Map<BasePolicy, Function<HttpExecutionContext, Completable>> drainOnEndpointRequestActions() {
+        var actions = onEndpointRequestActions;
+        onEndpointRequestActions = null;
+        return actions == null ? Map.of() : actions;
+    }
+
+    @Override
+    public void addActionOnEntrypointResponse(BasePolicy source, Function<HttpExecutionContext, Completable> onEntrypointResponseCallback) {
+        if (onEntrypointResponseActions == null) {
+            onEntrypointResponseActions = new LinkedHashMap<>();
+        }
+
+        onEntrypointResponseActions.put(source, onEntrypointResponseCallback);
+    }
+
+    /**
+     * Hands over the actions registered for the entrypoint response and forgets them, in reverse order of
+     * registration.
+     */
+    public Map<BasePolicy, Function<HttpExecutionContext, Completable>> drainOnEntrypointResponseActions() {
+        var actions = onEntrypointResponseActions;
+        onEntrypointResponseActions = null;
+        return reversed(actions);
+    }
+
+    @Override
     public void addActionOnTerminate(BasePolicy source, Function<HttpExecutionContext, Completable> function) {
         if (onTerminateActions == null) {
             onTerminateActions = new LinkedHashMap<>();
@@ -325,11 +366,18 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
      * however many times they are drained.
      */
     public Map<BasePolicy, Function<HttpExecutionContext, Completable>> drainOnTerminateActions() {
-        if (onTerminateActions == null || onTerminateActions.isEmpty()) {
+        var actions = onTerminateActions;
+        onTerminateActions = null;
+        return reversed(actions);
+    }
+
+    private static Map<BasePolicy, Function<HttpExecutionContext, Completable>> reversed(
+        Map<BasePolicy, Function<HttpExecutionContext, Completable>> actions
+    ) {
+        if (actions == null || actions.isEmpty()) {
             return Map.of();
         }
-        var entries = new ArrayList<>(onTerminateActions.entrySet());
-        onTerminateActions = null;
+        var entries = new ArrayList<>(actions.entrySet());
         var reversed = new LinkedHashMap<BasePolicy, Function<HttpExecutionContext, Completable>>();
         for (int i = entries.size() - 1; i >= 0; i--) {
             reversed.put(entries.get(i).getKey(), entries.get(i).getValue());

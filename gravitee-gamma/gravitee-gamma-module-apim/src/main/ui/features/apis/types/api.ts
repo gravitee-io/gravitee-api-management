@@ -67,8 +67,24 @@ export interface HttpListener {
     paths?: HttpPath[];
     hosts?: VirtualHost[];
     entrypoints?: { type: string }[];
+    pathMappings?: string[];
     cors?: Cors;
     requestValidation?: RequestValidation;
+}
+
+/** Classic SWAGGER documentation page usable with path-mappings/_import. */
+export interface ApiSwaggerDocumentationPage {
+    id: string;
+    name: string;
+}
+
+export interface ImportApiPathMappings {
+    pageId: string;
+    overwrite?: boolean;
+}
+
+export interface ApiPathMappings {
+    pathMappings: string[];
 }
 
 export interface HttpEndpoint {
@@ -539,6 +555,7 @@ export interface DynamicPropertyHttpConfiguration {
     body?: string;
     specification?: string;
     useSystemProxy?: boolean;
+    encryption?: { encryptOnFetch?: boolean };
     httpClientOptions?: DynamicPropertyHttpClientOptions;
     httpProxyOptions?: DynamicPropertyHttpProxyOptions;
     sslOptions?: DynamicPropertySslOptions;

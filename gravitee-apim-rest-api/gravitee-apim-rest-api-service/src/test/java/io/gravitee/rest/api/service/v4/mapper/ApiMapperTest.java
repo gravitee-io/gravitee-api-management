@@ -360,14 +360,14 @@ public class ApiMapperTest {
         update.setType(ApiType.PROXY);
         // no allowedInApiProducts on purpose
 
-        Api repoUpdate = apiMapper.toRepository(GraviteeContext.getExecutionContext(), update);
+        Api repoUpdate = apiMapper.toRepository(GraviteeContext.getExecutionContext(), update, anExistingApi());
         // When not explicitly set on update, allowedInApiProducts is serialized as null in the definition
         assertThat(repoUpdate.getDefinition()).contains("\"allowedInApiProducts\":null");
 
         // Native type -> mapper does not actively set the flag; it remains null
         update.setType(ApiType.NATIVE);
         update.setAllowedInApiProducts(true);
-        Api repoNative = apiMapper.toRepository(GraviteeContext.getExecutionContext(), update);
+        Api repoNative = apiMapper.toRepository(GraviteeContext.getExecutionContext(), update, anExistingApi());
         // With current serialization, null-valued allowedInApiProducts is still present as a JSON field
         assertThat(repoNative.getDefinition()).contains("\"allowedInApiProducts\":null");
     }
@@ -384,7 +384,7 @@ public class ApiMapperTest {
             update.setType(type);
             update.setAllowedInApiProducts(true);
 
-            var definition = apiMapper.toRepository(GraviteeContext.getExecutionContext(), update).getDefinition();
+            var definition = apiMapper.toRepository(GraviteeContext.getExecutionContext(), update, anExistingApi()).getDefinition();
 
             if (composableTypes.contains(type)) {
                 assertThat(definition).as("%s must survive an update with the flag intact", type).contains("\"allowedInApiProducts\":true");
@@ -666,7 +666,7 @@ public class ApiMapperTest {
 
         when(categoryMapper.toCategoryId(any(), eq(updateApiEntity.getCategories()))).thenReturn(updateApiEntity.getCategories());
 
-        Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), updateApiEntity);
+        Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), updateApiEntity, anExistingApi());
 
         assertThat(api.getId()).isEqualTo("id");
         assertThat(api.getEnvironmentId()).isEqualTo("DEFAULT");
@@ -720,7 +720,7 @@ public class ApiMapperTest {
         updateApiEntity.setType(ApiType.PROXY);
         updateApiEntity.setLabels(List.of("tc-1601-b", "tc-1601-a"));
 
-        Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), updateApiEntity);
+        Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), updateApiEntity, anExistingApi());
 
         assertThat(api.getLabels()).containsExactly("tc-1601-b", "tc-1601-a");
     }
@@ -735,7 +735,7 @@ public class ApiMapperTest {
         updateApiEntity.setType(ApiType.PROXY);
         updateApiEntity.setLabels(List.of("a", "b", "a"));
 
-        Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), updateApiEntity);
+        Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), updateApiEntity, anExistingApi());
 
         assertThat(api.getLabels()).containsExactly("a", "b");
     }
@@ -1027,5 +1027,11 @@ public class ApiMapperTest {
         assertThat(result.getPrimaryOwner().getDisplayName()).isEqualTo("a PO");
         assertThat(result.getOriginContext().integrationId()).isEqualTo(FEDERATED_AGENT_INTEGRATION_ID);
         assertThat(result.getOriginContext().provider()).isEqualTo("A2A");
+    }
+
+    private static Api anExistingApi() {
+        Api existingApi = new Api();
+        existingApi.setDefinition("{}");
+        return existingApi;
     }
 }

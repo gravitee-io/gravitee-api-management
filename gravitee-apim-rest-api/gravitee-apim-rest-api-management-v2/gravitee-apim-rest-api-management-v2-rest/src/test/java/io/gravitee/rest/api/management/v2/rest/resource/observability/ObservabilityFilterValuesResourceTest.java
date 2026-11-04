@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.observability;
 import static assertions.MAPIAssertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -216,6 +217,32 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
         var response = rootTarget("API/values").queryParam("from", 1704067200000L).queryParam("to", 1735689599000L).request().get();
 
         assertThat(response).hasStatus(200);
+    }
+
+    @Test
+    void should_return_the_values_of_a_keyword_additional_metric_field() {
+        when(
+            filterValuesQueryService.searchFilterValues(
+                any(),
+                any(),
+                argThat(name -> name != null && name.name().equals("additional-metrics.keyword_fraud-check_tier")),
+                any(),
+                any(),
+                anyInt(),
+                eq(10),
+                any(),
+                any(),
+                any()
+            )
+        ).thenReturn(new FilterValuesPage(List.of(new FilterValue("high"), new FilterValue("low")), null));
+
+        var response = rootTarget("additional-metrics.keyword_fraud-check_tier/values").request().get();
+
+        assertThat(response)
+            .hasStatus(200)
+            .asEntity(FilterValuesResponse.class)
+            .extracting(FilterValuesResponse::getData)
+            .satisfies(data -> assertThat(data).extracting(FilterValueItem::getValue).containsExactly("high", "low"));
     }
 
     @Test

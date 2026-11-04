@@ -1,0 +1,32 @@
+@use '../../../scss/gio-layout' as gio-layout;
+@use '@angular/material' as mat;
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+}
+
+.path-mappings {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__table {
+    @include mat.elevation(3);
+    width: 100%;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+h2 {
+  margin: 0;
+}

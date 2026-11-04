@@ -29,11 +29,18 @@ import io.gravitee.gamma.rest.core.observability.catalog.domain_service.MetricDe
 import io.gravitee.gamma.rest.core.observability.catalog.inmemory.InMemoryAdditionalMetricDefinitionRepository;
 import io.gravitee.gamma.rest.core.observability.catalog.inmemory.InMemoryCatalogPorts;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricCatalogEntry;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricDiscovery;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
+import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogFlags;
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
+import io.gravitee.gamma.rest.core.observability.catalog.model.DiscoveredAdditionalMetric;
 import io.gravitee.gamma.rest.core.observability.catalog.use_case.ListMetricDefinitionsUseCase;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.BuiltInAdditionalMetricKeys;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
+import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -88,13 +95,66 @@ class BuiltInAdditionalMetricCatalogTest {
         assertThat(byName.get("LLM_PROMPT_TOKEN_SENT").apiTypes()).isNotEmpty();
     }
 
-    private static List<AdditionalMetricCatalogEntry> builtInEntries() {
+    /**
+     * The filter catalog on the same real set: a discovered key a built-in reads, the logs-only one and an AuthZ
+     * companion included, is never a {@code DISCOVERED} entry, and every built-in reading a key is flagged with it.
+     */
+    @Test
+    void should_flag_the_built_ins_and_list_no_key_they_read_as_discovered_in_the_filter_catalog() {
+        var builtInPort = platformBuiltIns();
+        var builtInNamesByRawKey = builtInPort.builtInNamesByRawKey();
+        var keys = new MetricDefinitionKeyDomainService(new AdditionalMetricGrammarPortAdapter(), builtInPort);
+        var seen = Instant.parse("2026-10-30T08:00:00Z");
+        var discovery = new AdditionalMetricDiscovery(
+            List.of(
+                new DiscoveredAdditionalMetric("keyword_mcp-proxy_tools/call", AdditionalMetricValueType.KEYWORD, seen),
+                new DiscoveredAdditionalMetric("keyword_native-kafka_client-software-version", AdditionalMetricValueType.KEYWORD, seen),
+                new DiscoveredAdditionalMetric("keyword_llm-proxy_model", AdditionalMetricValueType.KEYWORD, seen),
+                new DiscoveredAdditionalMetric("keyword_authz_subject-type", AdditionalMetricValueType.KEYWORD, seen),
+                new DiscoveredAdditionalMetric("long_failover_count", AdditionalMetricValueType.LONG, seen)
+            ),
+            seen,
+            false
+        );
+
+        var catalog = new AdditionalMetricCatalogDomainService(keys).filterCatalog(
+            new SpiFilterRegistry().getFilters(Set.of(), Set.of()),
+            builtInNamesByRawKey,
+            List.of(),
+            Optional.of(discovery),
+            Set.of(),
+            Set.of()
+        );
+
+        var byName = catalog.stream().collect(Collectors.toMap(FilterSpec::name, Function.identity()));
+        assertThat(catalog)
+            .filteredOn(spec -> spec.catalog() != null && spec.catalog().origin() == CatalogOrigin.DISCOVERED)
+            .extracting(spec -> spec.catalog().rawKey())
+            .containsExactly("long_failover_count");
+        assertThat(byName.get("MCP_PROXY_TOOL").catalog()).isEqualTo(
+            new CatalogFlags(CatalogOrigin.BUILT_IN, "keyword_mcp-proxy_tools/call", AdditionalMetricValueType.KEYWORD, seen, true)
+        );
+        assertThat(byName.get("NATIVE_CLIENT_SOFTWARE_VERSION").catalog().rawKey()).isEqualTo(
+            "keyword_native-kafka_client-software-version"
+        );
+        assertThat(byName.get("LLM_PROXY_MODEL").catalog().rawKey()).isEqualTo("keyword_llm-proxy_model");
+        assertThat(catalog)
+            .filteredOn(spec -> spec.catalog() != null && spec.catalog().origin() == CatalogOrigin.BUILT_IN)
+            .allSatisfy(spec -> assertThat(builtInNamesByRawKey.get(spec.catalog().rawKey())).as(spec.name()).contains(spec.name()));
+    }
+
+    /** The key set the platform builds: the ES field resolvers and the logs-path adapters. */
+    private static BuiltInAdditionalMetricsPortAdapter platformBuiltIns() {
         var analyticsRepository = mock(AnalyticsRepository.class);
         when(analyticsRepository.builtInAdditionalMetricKeys()).thenReturn(BuiltInAdditionalMetricKeys.all());
+        return new BuiltInAdditionalMetricsPortAdapter(new BuiltInAdditionalMetricsQueryServiceImpl(analyticsRepository));
+    }
+
+    private static List<AdditionalMetricCatalogEntry> builtInEntries() {
         var definition = new AnalyticsDefinitionYAMLQueryService();
         var filterRegistry = new SpiFilterRegistry();
         var platform = new InMemoryCatalogPorts();
-        var builtInPort = new BuiltInAdditionalMetricsPortAdapter(new BuiltInAdditionalMetricsQueryServiceImpl(analyticsRepository));
+        var builtInPort = platformBuiltIns();
         var list = new ListMetricDefinitionsUseCase(
             new InMemoryAdditionalMetricDefinitionRepository(),
             builtInPort,

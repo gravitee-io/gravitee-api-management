@@ -36,6 +36,12 @@ public class DeployedCluster {
     private Instant deployedAt;
     private Integer version;
     private List<DeployedClusterConnection> connections;
+    /**
+     * Whether the caller may bind an API to this cluster: a member of it with {@code CLUSTER_DEFINITION[READ]}, or an org
+     * admin. The cluster pickers of the Console and of Gamma ESM only offer bindable clusters; an API keeps its binding to
+     * another one, limited to the connections it already uses.
+     */
+    private boolean bindable;
 
     @Data
     @Builder

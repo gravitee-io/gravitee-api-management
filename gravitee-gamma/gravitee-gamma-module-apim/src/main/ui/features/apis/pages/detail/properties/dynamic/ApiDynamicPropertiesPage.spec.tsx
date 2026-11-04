@@ -225,6 +225,39 @@ it('calls updateDynamicProperties with the correct payload on successful save', 
     expect(sentDto.configuration.method).toBe('GET');
 });
 
+it('saves encryptOnFetch when the Encrypt on fetch switch is turned on', async () => {
+    const user = userEvent.setup();
+    renderPage(makeApi({ services: { dynamicProperty: DYNAMIC_CONFIG } }));
+
+    await user.click(screen.getByRole('switch', { name: /encrypt on fetch/i }));
+    await user.click(screen.getByRole('button', { name: /save changes/i }));
+
+    await waitFor(() => expect(mockUpdateDynamicProperties).toHaveBeenCalledTimes(1));
+    expect(mockUpdateDynamicProperties.mock.calls[0][2].configuration.encryption).toEqual({ encryptOnFetch: true });
+});
+
+it('shows Encrypt on fetch as on when the API has it enabled', () => {
+    renderPage(
+        makeApi({
+            services: {
+                dynamicProperty: {
+                    ...DYNAMIC_CONFIG,
+                    configuration: { ...DYNAMIC_CONFIG.configuration, encryption: { encryptOnFetch: true } },
+                },
+            },
+        }),
+    );
+
+    expect(screen.getByRole('switch', { name: /encrypt on fetch/i })).toBeChecked();
+});
+
+it('disables Encrypt on fetch for a user without api-definition-u', () => {
+    mockUseHasPermission.mockReturnValue(false);
+    renderPage(makeApi({ services: { dynamicProperty: DYNAMIC_CONFIG } }));
+
+    expect(screen.getByRole('switch', { name: /encrypt on fetch/i })).toBeDisabled();
+});
+
 // ─── 8. Enable toggle: config fields disabled when feature is off ─────────────
 
 it('disables the URL input while enabled=false', () => {
@@ -274,4 +307,10 @@ it('offers CONNECT and TRACE and hides the max concurrent connections field', ()
     expect(screen.getByRole('option', { name: 'TRACE' })).not.toBeNull();
 
     expect(screen.queryByLabelText(/max concurrent connections/i)).toBeNull();
+});
+
+it('disables Encrypt on fetch while dynamic properties are disabled', () => {
+    renderPage(makeApi({ services: { dynamicProperty: { ...DYNAMIC_CONFIG, enabled: false } } }));
+
+    expect(screen.getByRole('switch', { name: /encrypt on fetch/i })).toBeDisabled();
 });

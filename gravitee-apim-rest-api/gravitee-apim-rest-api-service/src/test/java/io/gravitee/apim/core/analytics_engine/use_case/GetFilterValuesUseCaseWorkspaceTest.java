@@ -36,6 +36,7 @@ import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameReso
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
+import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.ApiProductKind;
@@ -145,7 +146,8 @@ class GetFilterValuesUseCaseWorkspaceTest {
             applications,
             plans,
             apiProducts,
-            new AiWorkspaceAnalyticsApisDomainService(apiProducts, apis, permissions)
+            new AiWorkspaceAnalyticsApisDomainService(apiProducts, apis, permissions),
+            new AnalyticsQueryContextProvider(List.of())
         );
     }
 

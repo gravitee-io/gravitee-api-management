@@ -49,12 +49,11 @@ import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import jakarta.ws.rs.core.Response;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.Date;
 import java.util.Map;
@@ -113,6 +112,17 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
     @BeforeEach
     public void init() {
         System.setProperty(getPropertyPrefix() + ".enabled", "true");
+        configureKeystore();
+        reset(userService, cookieGenerator);
+    }
+
+    @AfterEach
+    public void teardown() {
+        System.clearProperty(getPropertyPrefix() + ".enabled");
+        clearKeystore();
+    }
+
+    protected void configureKeystore() {
         System.setProperty(
             getKeystorePropertyPrefix() + ".keystore.path",
             new File(getClass().getClassLoader().getResource("auth/keystore.p12").getFile()).getAbsolutePath()
@@ -121,12 +131,9 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         System.setProperty(getKeystorePropertyPrefix() + ".keystore.type", "PKCS12");
         System.setProperty(getKeystorePropertyPrefix() + ".keystore.key.alias", "cockpit-ca");
         System.setProperty(getPropertyPrefix() + ".connector.ws.ssl.keystore.type", "PKCS12");
-        reset(userService, cookieGenerator);
     }
 
-    @AfterEach
-    public void teardown() {
-        System.clearProperty(getPropertyPrefix() + ".enabled");
+    protected void clearKeystore() {
         System.clearProperty(getKeystorePropertyPrefix() + ".keystore.path");
         System.clearProperty(getKeystorePropertyPrefix() + ".keystore.password");
         System.clearProperty(getKeystorePropertyPrefix() + ".keystore.type");
@@ -300,6 +307,18 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         assertEquals(ORGANIZATION_ID, decodedJwt.getClaim(JWTHelper.Claims.ORG).asString());
     }
 
+    protected PrivateKey signingKey() throws GeneralSecurityException, IOException {
+        KeyStore keystore = this.loadKeyStore(
+            System.getProperty(getKeystorePropertyPrefix() + ".keystore.type"),
+            System.getProperty(getKeystorePropertyPrefix() + ".keystore.path"),
+            System.getProperty(getKeystorePropertyPrefix() + ".keystore.password")
+        );
+        return (PrivateKey) keystore.getKey(
+            System.getProperty(getKeystorePropertyPrefix() + ".keystore.key.alias"),
+            System.getProperty(getKeystorePropertyPrefix() + ".keystore.password").toCharArray()
+        );
+    }
+
     private KeyStore loadKeyStore(String type, String path, String password) throws CertificateException {
         if (password == null) {
             throw new CertificateException("keystore password can't be null");
@@ -338,15 +357,7 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         var issueTime = TimeProvider.now();
         var expirationTime = issueTime.plusSeconds(TTL_SECONDS);
         try {
-            KeyStore keystore = this.loadKeyStore(
-                System.getProperty(getKeystorePropertyPrefix() + ".keystore.type"),
-                System.getProperty(getKeystorePropertyPrefix() + ".keystore.path"),
-                System.getProperty(getKeystorePropertyPrefix() + ".keystore.password")
-            );
-            PrivateKey privateKey = (PrivateKey) keystore.getKey(
-                System.getProperty(getKeystorePropertyPrefix() + ".keystore.key.alias"),
-                System.getProperty(getKeystorePropertyPrefix() + ".keystore.password").toCharArray()
-            );
+            PrivateKey privateKey = signingKey();
 
             JWTClaimsSet.Builder claimsBuilder = new JWTClaimsSet.Builder()
                 .jwtID(UUID.random().toString())
@@ -370,7 +381,7 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
             signedJWT.sign(signer);
 
             return signedJWT.serialize();
-        } catch (CertificateException | UnrecoverableKeyException | KeyStoreException | NoSuchAlgorithmException | JOSEException e) {
+        } catch (GeneralSecurityException | IOException | JOSEException e) {
             throw new RuntimeException(e);
         }
     }

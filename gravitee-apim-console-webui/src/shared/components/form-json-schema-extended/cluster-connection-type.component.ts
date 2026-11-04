@@ -19,7 +19,7 @@ import { combineLatest, Observable, of } from 'rxjs';
 import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
 
 import { ClusterService } from '../../../services-ngx/cluster.service';
-import { DeployedClusterConnection } from '../../../entities/management-api-v2';
+import { DeployedCluster, DeployedClusterConnection } from '../../../entities/management-api-v2';
 
 @Component({
   selector: 'cluster-connection-type',
@@ -50,24 +50,35 @@ export class ClusterConnectionTypeComponent extends FieldType<FieldTypeConfig> i
       shareReplay(1),
     );
 
-    this.filteredConnections$ = clusterCrossIdControl.valueChanges.pipe(
+    const boundClusterCrossId = clusterCrossIdControl.value;
+    const boundConnectionCrossId = this.formControl.value;
+    const clusterConnections$ = clusterCrossIdControl.valueChanges.pipe(
       startWith(clusterCrossIdControl.value),
       switchMap(crossId => {
-        if (!crossId) return of([]);
+        if (!crossId) return of({ cluster: undefined as DeployedCluster | undefined, connections: [] as DeployedClusterConnection[] });
         return allClusters$.pipe(
           map(clusters => {
             const cluster = clusters.find(c => c.crossId === crossId);
-            return cluster?.connections ?? [];
+            return { cluster, connections: cluster?.connections ?? [] };
           }),
         );
       }),
       shareReplay(1),
     );
+    // On a cluster the user is not a member of, the management API only accepts the connection the API already uses.
+    this.filteredConnections$ = clusterConnections$.pipe(
+      map(({ cluster, connections }) =>
+        cluster?.bindable === false
+          ? connections.filter(c => cluster.crossId === boundClusterCrossId && c.crossId === boundConnectionCrossId)
+          : connections,
+      ),
+      shareReplay(1),
+    );
 
     const currentValue$ = this.formControl.valueChanges.pipe(startWith(this.formControl.value ?? ''));
 
-    this.connectionNotFound$ = combineLatest([currentValue$, this.filteredConnections$]).pipe(
-      map(([term, connections]) => {
+    this.connectionNotFound$ = combineLatest([currentValue$, clusterConnections$]).pipe(
+      map(([term, { connections }]) => {
         if (!term) return false;
         return !connections.some(c => c.crossId === term);
       }),
@@ -76,18 +87,29 @@ export class ClusterConnectionTypeComponent extends FieldType<FieldTypeConfig> i
   }
 
   private initWithoutClusterField() {
-    const allConnections$: Observable<DeployedClusterConnection[]> = this.clusterService.listDeployed('KAFKA_CLUSTER').pipe(
-      catchError(() => of([])),
-      map(clusters =>
-        clusters.flatMap(cluster =>
-          (cluster.connections ?? []).map(connection => ({ ...connection, name: `${cluster.name} / ${connection.name}` })),
+    const boundConnectionCrossId = this.formControl.value;
+    const allConnections$: Observable<(DeployedClusterConnection & { bindable: boolean })[]> = this.clusterService
+      .listDeployed('KAFKA_CLUSTER')
+      .pipe(
+        catchError(() => of([])),
+        map(clusters =>
+          clusters.flatMap(cluster =>
+            (cluster.connections ?? []).map(connection => ({
+              ...connection,
+              name: `${cluster.name} / ${connection.name}`,
+              bindable: cluster.bindable !== false,
+            })),
+          ),
         ),
-      ),
-      shareReplay(1),
+        shareReplay(1),
+      );
+    // The management API refuses a connection of a cluster the user is not a member of, except the one the endpoint uses.
+    const offeredConnections$ = allConnections$.pipe(
+      map(connections => connections.filter(c => c.bindable || c.crossId === boundConnectionCrossId)),
     );
     const currentValue$ = this.formControl.valueChanges.pipe(startWith(this.formControl.value ?? ''));
 
-    this.filteredConnections$ = combineLatest([currentValue$, allConnections$]).pipe(
+    this.filteredConnections$ = combineLatest([currentValue$, offeredConnections$]).pipe(
       map(([term, connections]) => {
         if (!term) return connections;
         const lowerTerm = `${term}`.toLowerCase();

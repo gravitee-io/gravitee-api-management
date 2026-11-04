@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.api.exception.InvalidPathMappingsException;
+import io.gravitee.apim.core.api.model.PathMappingTemplates;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -23,6 +25,7 @@ import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -37,7 +40,9 @@ import org.mapstruct.factory.Mappers;
 public interface ListenerMapper {
     ListenerMapper INSTANCE = Mappers.getMapper(ListenerMapper.class);
 
+    @Mapping(target = "pathMappings", source = "pathMappings", defaultExpression = "java(new java.util.ArrayList<>())")
     io.gravitee.rest.api.management.v2.rest.model.HttpListener map(HttpListener httpListener);
+
     io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener map(SubscriptionListener subscriptionListener);
     io.gravitee.rest.api.management.v2.rest.model.TcpListener map(TcpListener tcpListener);
     io.gravitee.rest.api.management.v2.rest.model.KafkaListener map(KafkaListener kafkaListener);
@@ -56,7 +61,20 @@ public interface ListenerMapper {
         if (Objects.isNull(pathMappings)) {
             return null;
         }
-        return pathMappings.stream().collect(Collectors.toMap(pathMapping -> pathMapping, pathMapping -> Pattern.compile(pathMapping)));
+        var seen = new LinkedHashMap<String, Pattern>();
+        for (var pathMapping : pathMappings) {
+            if (seen.containsKey(pathMapping)) {
+                throw new InvalidPathMappingsException("Path mappings contain duplicate entries: [" + pathMapping + "]", pathMapping);
+            }
+            if (!PathMappingTemplates.isCompilable(pathMapping)) {
+                throw new InvalidPathMappingsException(
+                    "Path mappings contain invalid templates: [" + pathMapping + "]",
+                    String.valueOf(pathMapping)
+                );
+            }
+            seen.put(pathMapping, PathMappingTemplates.patternFor(pathMapping));
+        }
+        return seen;
     }
 
     @Named("toHttpListeners")

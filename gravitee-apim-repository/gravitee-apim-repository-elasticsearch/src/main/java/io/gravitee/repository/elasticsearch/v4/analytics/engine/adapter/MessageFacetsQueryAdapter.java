@@ -119,7 +119,7 @@ public class MessageFacetsQueryAdapter {
         if (metric.sorts() != null && !metric.sorts().isEmpty()) {
             var order = new JsonObject();
             for (var sort : metric.sorts()) {
-                order.put(AggregationAdapter.adaptName(metric.metric(), sort.measure()), sort.order().name().toLowerCase());
+                order.put(AggregationAdapter.orderPath(metric.metric(), sort.measure()), sort.order().name().toLowerCase());
             }
             terms.put("order", order);
         }

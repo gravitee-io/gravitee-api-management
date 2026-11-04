@@ -22,6 +22,7 @@ import inmemory.InMemoryAlternative;
 import inmemory.ParametersDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.ThemeCrudServiceInMemory;
+import inmemory.ThemeImageWriteValidatorInMemory;
 import inmemory.ThemePortalNextAssetsDomainServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
 import inmemory.ThemeServiceLegacyWrapperInMemory;
@@ -132,7 +133,7 @@ public class GetCurrentThemeUseCaseTest {
 
         defaultThemeDomainService = new DefaultThemeDomainService(
             parametersDomainService,
-            new ThemeDomainService(themeCrudService),
+            new ThemeDomainService(themeCrudService, new ThemeImageWriteValidatorInMemory()),
             themeServiceLegacyWrapper,
             themePortalNextAssetsDomainService
         );

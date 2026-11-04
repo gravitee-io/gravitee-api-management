@@ -16,10 +16,10 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
+import { retryUnlessClientError } from './retryUnlessClientError';
 import type { ApiListFilterSelection } from '../components/list/apiListFilters';
 import { definedSearchList, resolveSearchApiTypes, searchApis } from '../services/apiList';
 import type { ApiListResponse, ApiSearchQuery } from '../types';
-import { retryUnlessClientError } from './retryUnlessClientError';
 import { apiListKeys } from '../utils/queryKeys';
 
 const EMPTY_LIST_RESPONSE: ApiListResponse = {

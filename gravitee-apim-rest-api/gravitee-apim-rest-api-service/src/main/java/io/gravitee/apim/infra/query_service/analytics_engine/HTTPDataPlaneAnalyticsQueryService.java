@@ -24,6 +24,7 @@ import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
+import io.gravitee.apim.core.analytics_engine.model.MetricName;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec.Name;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
@@ -65,7 +66,13 @@ public class HTTPDataPlaneAnalyticsQueryService implements AnalyticsEngineQueryS
 
     /** The HTTP and Edge paths both read the request documents, which carry the additional metric fields. */
     @Override
-    public boolean groupsByAdditionalMetrics(Name metric) {
+    public boolean groupsByAdditionalMetrics(MetricName metric) {
+        return true;
+    }
+
+    /** They are fields of the request documents, measured on the HTTP path like {@code HTTP_REQUESTS}. */
+    @Override
+    public boolean measuresAdditionalMetrics() {
         return true;
     }
 
@@ -126,7 +133,7 @@ public class HTTPDataPlaneAnalyticsQueryService implements AnalyticsEngineQueryS
     }
 
     private boolean isEdgeRequest(FacetsRequest request) {
-        List<Name> metricNames = request
+        List<MetricName> metricNames = request
             .metrics()
             .stream()
             .map(m -> m.name())

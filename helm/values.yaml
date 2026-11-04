@@ -510,6 +510,9 @@ cloud:
         - https://cloud-controller.gravitee.io
       ssl:
         verifyHost: true
+        # On the FIPS images (BC-FIPS in approved-only mode), PKCS12 is not available and JKS cannot hold the client key:
+        # convert the keystore to BCFKS and set `keystore.type: bcfks`. The truststore can be BCFKS too (`truststore.type: bcfks`) or PEM (`truststore.type: pem`).
+        # `path`, `password` and `value` keep their meaning; the file names under `/opt/graviteeio-management-api/cloud` do not matter.
         keystore:
           type: pkcs12
           path: /opt/graviteeio-management-api/cloud/keystore.p12
@@ -1685,6 +1688,18 @@ gateway:
 #      enabled: true
 #      notReadyPercent: 90
 #      readyPercent: 80
+#
+#    # How long, in seconds (0 to 3600), a gateway instance trusts the topics and brokers it last read from a backend
+#    # before its next connection to that backend sends the gateway's own all-topics METADATA request again.
+#    # Default is 0: every upstream connection sends it, which costs the backend one authorization check per topic
+#    # per connection. Applies to endpoints, Kafka clusters and Virtual Clusters that set no `backendMetadataMaxAge`
+#    # of their own.
+#    backendMetadataMaxAge: 0
+#    mesh:
+#      # Whether the metadata refreshes of a Virtual Cluster reuse one connection per backend instead of opening one
+#      # per refresh. Only applies when the backend metadata max age is above 0. Rendered only when set: unset, the
+#      # gateway already reuses them, so set it only to turn the reuse off.
+#      refreshConnectionReuse: false
 #
 #    # `secured` is deprecated: use `probe.secured` above. `probe.secured` wins when both are set.
 #    ssl:

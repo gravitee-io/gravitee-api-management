@@ -172,6 +172,79 @@ describe('ApiV4MenuService', () => {
       expect(entrypoints.tabs?.map(t => t.displayName)).toEqual(['Entrypoints', 'CORS']);
       expect(entrypoints.tabs?.map(t => t.routerLink)).toEqual(['v4/entrypoints', 'v4/cors']);
     });
+
+    it('should show Path Mappings for a PROXY API with an HTTP listener when the user can read the definition', () => {
+      TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api-definition-r', 'api-response_templates-r'] });
+      service = TestBed.inject(ApiV4MenuService);
+
+      const api = fakeApiV4({ type: 'PROXY', listeners: [httpListener] });
+      const entrypoints = service.getMenu(api).subMenuItems.find(item => item.displayName === 'Entrypoints');
+
+      expect(entrypoints.tabs?.map(t => t.displayName)).toEqual([
+        'Entrypoints',
+        'MCP Entrypoint',
+        'Response Templates',
+        'CORS',
+        'Path Mappings',
+      ]);
+      expect(entrypoints.tabs?.at(-1)?.routerLink).toBe('v4/path-mappings');
+    });
+
+    it('should show Path Mappings for a MESSAGE API with an HTTP listener', () => {
+      TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api-definition-r'] });
+      service = TestBed.inject(ApiV4MenuService);
+
+      const api = fakeApiV4({ type: 'MESSAGE', listeners: [httpListener] });
+      const entrypoints = service.getMenu(api).subMenuItems.find(item => item.displayName === 'Entrypoints');
+
+      expect(entrypoints.tabs?.some(tab => tab.displayName === 'Path Mappings')).toBe(true);
+    });
+
+    it('should hide Path Mappings for a TCP-only PROXY API', () => {
+      TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api-definition-r'] });
+      service = TestBed.inject(ApiV4MenuService);
+
+      const api = fakeApiV4({
+        type: 'PROXY',
+        listeners: [{ type: 'TCP', entrypoints: [{ type: 'tcp-proxy' }] }],
+      });
+      const entrypoints = service.getMenu(api).subMenuItems.find(item => item.displayName === 'Entrypoints');
+
+      expect(entrypoints.tabs?.some(tab => tab.displayName === 'Path Mappings')).toBe(false);
+    });
+
+    it('should hide Path Mappings for a NATIVE API', () => {
+      TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api-definition-r'] });
+      service = TestBed.inject(ApiV4MenuService);
+
+      const api = fakeApiV4({ type: 'NATIVE' });
+      const entrypoints = service.getMenu(api).subMenuItems.find(item => item.displayName === 'Entrypoints');
+
+      expect(entrypoints.tabs).toBeUndefined();
+    });
+
+    it('should hide Path Mappings for a MESSAGE API whose only listener is SUBSCRIPTION', () => {
+      TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api-definition-r'] });
+      service = TestBed.inject(ApiV4MenuService);
+
+      const api = fakeApiV4({
+        type: 'MESSAGE',
+        listeners: [{ type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] }],
+      });
+      const entrypoints = service.getMenu(api).subMenuItems.find(item => item.displayName === 'Entrypoints');
+
+      expect(entrypoints.tabs?.some(tab => tab.displayName === 'Path Mappings')).toBe(false);
+    });
+
+    it('should hide Path Mappings without api-definition-r', () => {
+      TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api-response_templates-r'] });
+      service = TestBed.inject(ApiV4MenuService);
+
+      const api = fakeApiV4({ type: 'PROXY', listeners: [httpListener] });
+      const entrypoints = service.getMenu(api).subMenuItems.find(item => item.displayName === 'Entrypoints');
+
+      expect(entrypoints.tabs?.some(tab => tab.displayName === 'Path Mappings')).toBe(false);
+    });
   });
 
   describe('API Traffic menu header', () => {

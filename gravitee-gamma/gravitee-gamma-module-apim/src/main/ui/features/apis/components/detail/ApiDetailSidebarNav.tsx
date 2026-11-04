@@ -40,10 +40,13 @@ import {
     TriangleAlertIcon,
     UsersIcon,
     UsersRoundIcon,
+    WaypointsIcon,
     WorkflowIcon,
 } from '@gravitee/graphene-core/icons';
 import type { ComponentType } from 'react';
 import { NavLink } from 'react-router-dom';
+
+import { hasHttpListener } from '../../utils/apiHttpProxy';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -107,6 +110,7 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
             { path: 'resources', label: 'Resources', icon: ServerIcon },
             { path: 'properties', label: 'API Properties', icon: SettingsIcon },
             { path: 'cors', label: 'CORS', icon: ShieldCheckIcon },
+            { path: 'path-mappings', label: 'Path Mappings', icon: WaypointsIcon },
         ],
     },
     {
@@ -147,9 +151,26 @@ const TCP_OMITTED_PATHS = new Set([
     'endpoints/health-check-dashboard',
     'observe-dashboard',
     'observe-logs',
+    'path-mappings',
     'policy-studio',
     'response-templates',
 ]);
+
+/** Path mappings apply to the first HTTP listener. Hide the page when the loaded API has none. */
+export function withPathMappingsForHttpApi(
+    groups: DetailNavGroup[],
+    api: { listeners?: { type?: string }[] } | null | undefined,
+): DetailNavGroup[] {
+    if (!api?.listeners || hasHttpListener(api)) {
+        return groups;
+    }
+    return dropEmptyGroups(
+        groups.map(group => ({
+            ...group,
+            items: group.items.filter(item => item.path !== 'path-mappings'),
+        })),
+    );
+}
 
 export function withTcpRestrictions(groups: DetailNavGroup[], apiHasTcpListeners: boolean): DetailNavGroup[] {
     if (!apiHasTcpListeners) return groups;

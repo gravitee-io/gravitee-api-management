@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.resource.observability.analytics;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -27,12 +28,20 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import io.gravitee.apim.core.analytics_engine.model.Measure;
+import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
+import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresResponse;
+import io.gravitee.apim.core.analytics_engine.model.MetricName;
+import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
+import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort.MeasuresQuery;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.AnalyticsRequestPipeline;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.ComputeObservabilityFacetsUseCase;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.ComputeObservabilityMeasuresUseCase;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.ComputeObservabilityTimeSeriesUseCase;
+import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
@@ -154,6 +163,62 @@ class AnalyticsResourceTest extends AbstractResourceTest {
             var response = post("time-series", Map.of("timeRange", TIME_RANGE, "metrics", REQUEST_COUNT));
 
             assertBadRequest(response, "observability.query.invalid_interval");
+        }
+    }
+
+    @Nested
+    class AdditionalMetrics {
+
+        private static final String TIER = "additional-metrics.keyword_fraud-check_tier";
+
+        /** What the data port answers for a window no request carries the field in, as the Management API's mapper writes it. */
+        @Test
+        void should_hand_a_number_field_over_by_its_wire_name_and_answer_with_no_value_key() {
+            var failovers = "additional-metrics.long_failover_count";
+            var noValue = new MeasuresResponse(
+                List.of(
+                    new MetricMeasuresResponse(
+                        MetricName.parse(failovers).orElseThrow(),
+                        null,
+                        List.of(new Measure(MetricSpec.Measure.AVG, null), new Measure(MetricSpec.Measure.COUNT, 0)),
+                        List.of()
+                    )
+                )
+            );
+            when(analyticsDataPort.computeMeasures(any())).thenReturn(new GraviteeMapper(false).valueToTree(noValue));
+
+            var response = post(
+                "measures",
+                Map.of("timeRange", TIME_RANGE, "metrics", List.of(Map.of("name", failovers, "measures", List.of("AVG", "COUNT"))))
+            );
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            var metric = response.readEntity(JsonNode.class).at("/metrics/0");
+            assertThat(metric.get("name").asText()).isEqualTo(failovers);
+            assertThat(metric.has("unit")).isFalse();
+            assertThat(metric.at("/measures").toString()).isEqualTo("[{\"name\":\"AVG\"},{\"name\":\"COUNT\",\"value\":0}]");
+            var query = ArgumentCaptor.forClass(MeasuresQuery.class);
+            verify(analyticsDataPort).computeMeasures(query.capture());
+            assertThat(query.getValue().metrics())
+                .extracting(metricQuery -> metricQuery.query().metricName())
+                .containsExactly(failovers);
+        }
+
+        @Test
+        void should_answer_400_naming_a_field_holding_no_number_measured_as_a_metric() {
+            var notAMetric = InvalidObservabilityQueryException.notAMetric(TIER, "KEYWORD");
+            doThrow(notAMetric).when(analyticsDataPort).validate(any(MeasuresQuery.class));
+            when(analyticsDataPort.computeMeasures(any())).thenThrow(notAMetric);
+
+            var response = post(
+                "measures",
+                Map.of("timeRange", TIME_RANGE, "metrics", List.of(Map.of("name", TIER, "measures", List.of("AVG"))))
+            );
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            var body = response.readEntity(JsonNode.class);
+            assertThat(body.get("technicalCode").asText()).isEqualTo("observability.query.not_a_metric");
+            assertThat(body.get("message").asText()).isEqualTo("'" + TIER + "' is not a metric: it holds KEYWORD values, not numbers");
         }
     }
 

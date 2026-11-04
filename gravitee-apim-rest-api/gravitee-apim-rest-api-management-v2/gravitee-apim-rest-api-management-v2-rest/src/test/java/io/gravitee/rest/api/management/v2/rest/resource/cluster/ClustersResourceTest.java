@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -43,6 +44,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
 import java.util.List;
@@ -252,6 +254,38 @@ class ClustersResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_pass_a_supported_sort_to_the_use_case() {
+            when(searchClusterUseCase.execute(any())).thenReturn(new SearchClusterUseCase.Output(new Page<>(List.of(), 1, 10, 0)));
+
+            final Response response = rootTarget().queryParam("sortBy", "-updatedAt").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var captor = ArgumentCaptor.forClass(SearchClusterUseCase.Input.class);
+            verify(searchClusterUseCase).execute(captor.capture());
+            assertThat(captor.getValue().sortBy()).isEqualTo("-updatedAt");
+        }
+
+        @Test
+        void should_not_sort_when_the_sort_is_empty() {
+            when(searchClusterUseCase.execute(any())).thenReturn(new SearchClusterUseCase.Output(new Page<>(List.of(), 1, 10, 0)));
+
+            final Response response = rootTarget().queryParam("sortBy", "").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var captor = ArgumentCaptor.forClass(SearchClusterUseCase.Input.class);
+            verify(searchClusterUseCase).execute(captor.capture());
+            assertThat(captor.getValue().sortBy()).isNull();
+        }
+
+        @Test
+        void should_return_400_for_an_unsupported_sort() {
+            final Response response = rootTarget().queryParam("sortBy", "name) , (select 1 from users").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+            verifyNoInteractions(searchClusterUseCase);
+        }
+
+        @Test
         public void should_return_403_if_incorrect_permissions() {
             shouldReturn403(RolePermission.ENVIRONMENT_CLUSTER, ENV_ID, RolePermissionAction.READ, () -> rootTarget().request().get());
         }
@@ -306,6 +340,35 @@ class ClustersResourceTest extends AbstractResourceTest {
             assertThat(response.getStatus()).isEqualTo(OK_200);
             var result = response.readEntity(List.class);
             assertThat(result).hasSize(1);
+        }
+
+        @Test
+        void should_tell_the_caller_which_clusters_it_may_bind() {
+            when(getDeployedClustersUseCase.execute(any())).thenReturn(
+                new GetDeployedClustersUseCase.Output(
+                    List.of(
+                        DeployedCluster.builder().crossId("my-cluster").name("My Cluster").connections(List.of()).bindable(true).build()
+                    )
+                )
+            );
+
+            final Response response = rootTarget().path("deployed").queryParam("type", "KAFKA_CLUSTER").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            List<Map<String, Object>> result = response.readEntity(new GenericType<>() {});
+            assertThat(result)
+                .singleElement()
+                .satisfies(cluster -> assertThat(cluster).containsEntry("bindable", true));
+            var captor = ArgumentCaptor.forClass(GetDeployedClustersUseCase.Input.class);
+            verify(getDeployedClustersUseCase).execute(captor.capture());
+            assertThat(captor.getValue()).isEqualTo(
+                new GetDeployedClustersUseCase.Input(
+                    ORGANIZATION,
+                    ENV_ID,
+                    USER_NAME,
+                    io.gravitee.definition.model.cluster.ClusterType.KAFKA_CLUSTER
+                )
+            );
         }
 
         @Test

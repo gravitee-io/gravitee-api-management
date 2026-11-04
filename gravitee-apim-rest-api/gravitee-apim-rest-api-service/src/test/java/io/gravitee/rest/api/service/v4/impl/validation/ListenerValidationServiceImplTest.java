@@ -28,6 +28,7 @@ import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.exception.InvalidHostException;
+import io.gravitee.apim.core.api.exception.InvalidPathMappingsException;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
@@ -684,6 +685,40 @@ class ListenerValidationServiceImplTest {
                     null,
                     List.of(TcpListener.builder().hosts(List.of("")).build()),
                     emptyList()
+                )
+            );
+        }
+
+        @Test
+        void should_throw_invalid_path_mappings_exception_when_mapping_cannot_be_compiled() {
+            HttpListener httpListener = HttpListener.builder()
+                .paths(List.of(new Path("path")))
+                .pathMappings(new java.util.LinkedHashSet<>(Set.of("/a/**")))
+                .build();
+
+            assertThatExceptionOfType(InvalidPathMappingsException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    List.of(buildEndpointGroup())
+                )
+            );
+        }
+
+        @Test
+        void should_reject_mapping_outside_form_rule() {
+            HttpListener httpListener = HttpListener.builder()
+                .paths(List.of(new Path("path")))
+                .pathMappings(new java.util.LinkedHashSet<>(Set.of("/", "/a b", "/users/@me", "/a/.*")))
+                .build();
+
+            assertThatExceptionOfType(InvalidPathMappingsException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    List.of(buildEndpointGroup())
                 )
             );
         }

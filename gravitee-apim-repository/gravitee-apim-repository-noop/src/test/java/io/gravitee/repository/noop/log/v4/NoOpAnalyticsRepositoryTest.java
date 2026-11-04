@@ -16,11 +16,15 @@
 package io.gravitee.repository.noop.log.v4;
 
 import static io.gravitee.definition.model.DefinitionVersion.V4;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
+import io.gravitee.repository.log.v4.model.analytics.AdditionalMetricDiscoveryQuery;
+import io.gravitee.repository.log.v4.model.analytics.AdditionalMetricDiscoveryResult;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
@@ -52,6 +56,16 @@ public class NoOpAnalyticsRepositoryTest extends AbstractNoOpRepositoryTest {
 
     private final QueryContext queryContext = new QueryContext("org#1", "env#1");
     private static final String API_ID = "f1608475-dd77-4603-a084-75dd775603e9";
+
+    @Test
+    public void testDiscoverAdditionalMetrics() {
+        var query = new AdditionalMetricDiscoveryQuery(Instant.now().minus(Duration.ofDays(30)), Instant.now(), Duration.ofSeconds(5));
+
+        assertEquals(AdditionalMetricDiscoveryResult.NONE, analyticsRepository.discoverAdditionalMetrics(queryContext, query));
+        assertThrows(IllegalArgumentException.class, () ->
+            analyticsRepository.discoverAdditionalMetrics(new QueryContext("org#1", " "), query)
+        );
+    }
 
     @Test
     public void testSearchRequestsCount() throws Exception {

@@ -74,6 +74,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.Failover;
+import io.gravitee.definition.model.PathMapping;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
 import io.gravitee.definition.model.flow.Step;
@@ -91,6 +92,7 @@ import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServic
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
@@ -100,6 +102,7 @@ import io.gravitee.rest.api.service.v4.ApiStateService;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1420,6 +1423,42 @@ class MigrateApiUseCaseTest {
             assertApiV4(api);
             var migratedDefinition = api.getApiDefinitionHttpV4().getFlowExecution().getMode();
             assertThat(migratedDefinition).isEqualTo(FlowMode.BEST_MATCH);
+        });
+    }
+
+    @Test
+    void should_store_v2_path_mappings_on_v4_http_listener() {
+        // Given
+        var pathMappings = new LinkedHashMap<String, java.util.regex.Pattern>();
+        pathMappings.put("/pets", PathMapping.buildPattern("/pets"));
+        pathMappings.put("/pets/:petId", PathMapping.buildPattern("/pets/:petId"));
+
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2Api.getApiDefinition().setPathMappings(pathMappings);
+        v2Api
+            .getApiDefinition()
+            .getProxy()
+            .getGroups()
+            .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+        apiCrudService.initWith(java.util.List.of(v2Api));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+
+        var upgradedApiOpt = apiCrudService.findById(API_ID);
+        assertThat(upgradedApiOpt).hasValueSatisfying(api -> {
+            assertApiV4(api);
+
+            var listeners = api.getApiDefinitionHttpV4().getListeners();
+            assertThat(listeners)
+                .singleElement()
+                .isInstanceOfSatisfying(HttpListener.class, httpListener -> {
+                    assertThat(httpListener.getPathMappings()).containsExactly("/pets", "/pets/:petId");
+                });
         });
     }
 

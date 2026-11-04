@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.cluster.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -284,6 +285,56 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
         var config = objectMapper.convertValue(output.cluster().getConfiguration(), Map.class);
         var connections = (List<Map<String, Object>>) config.get("connections");
         assertThat(connections.get(0).get("crossId")).isEqualTo("primary-connection");
+    }
+
+    @Test
+    void should_keep_the_backend_metadata_max_age_of_a_kafka_cluster() {
+        Object configuration = Map.of(
+            "connections",
+            List.of(Map.of("name", "conn-1", "bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT"))),
+            "backendMetadataMaxAge",
+            30
+        );
+        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER).name("Kafka Cluster").configuration(configuration).build();
+
+        var output = createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO));
+
+        var config = objectMapper.convertValue(output.cluster().getConfiguration(), Map.class);
+        assertThat(config.get("backendMetadataMaxAge")).isEqualTo(30);
+    }
+
+    @Test
+    void should_reject_a_backend_metadata_max_age_that_is_not_a_whole_number_of_seconds() {
+        for (Object maxAge : List.of(1.5, "abc", "30")) {
+            Object configuration = Map.of(
+                "connections",
+                List.of(Map.of("name", "conn-1", "bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT"))),
+                "backendMetadataMaxAge",
+                maxAge
+            );
+            var toCreate = CreateCluster.builder()
+                .type(ClusterType.KAFKA_CLUSTER)
+                .name("Kafka Cluster")
+                .configuration(configuration)
+                .build();
+
+            assertThatThrownBy(() -> createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO)))
+                .as("max age %s", maxAge)
+                .isInstanceOf(InvalidDataException.class);
+        }
+    }
+
+    @Test
+    void should_not_add_a_backend_metadata_max_age_to_a_kafka_cluster_that_sets_none() {
+        Object configuration = Map.of(
+            "connections",
+            List.of(Map.of("name", "conn-1", "bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT")))
+        );
+        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER).name("Kafka Cluster").configuration(configuration).build();
+
+        var output = createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO));
+
+        assertThat(objectMapper.convertValue(output.cluster().getConfiguration(), Map.class)).doesNotContainKey("backendMetadataMaxAge");
     }
 
     @Test

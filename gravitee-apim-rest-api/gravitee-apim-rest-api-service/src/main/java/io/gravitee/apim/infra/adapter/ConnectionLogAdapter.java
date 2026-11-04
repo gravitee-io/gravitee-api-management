@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import io.gravitee.apim.core.observability.model.AdditionalMetricField;
+import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
 import io.gravitee.repository.log.v4.model.connection.ConnectionDiagnostic;
 import io.gravitee.repository.log.v4.model.connection.Metrics;
@@ -55,6 +57,28 @@ public interface ConnectionLogAdapter {
     MetricsQuery.Filter.EntrypointScope convertEntrypointScope(SearchLogsFilters.EntrypointScope entrypointScope);
 
     TrafficScope convertTrafficScope(SearchLogsFilters.TrafficScope trafficScope);
+
+    default List<MetricsQuery.Filter.AdditionalMetricCondition> convertAdditionalMetrics(
+        List<SearchLogsFilters.AdditionalMetricCondition> conditions
+    ) {
+        return conditions == null ? null : conditions.stream().map(this::toAdditionalMetricCondition).toList();
+    }
+
+    /** A name the grammar does not read is refused: dropping it would widen the search under an active filter. */
+    default MetricsQuery.Filter.AdditionalMetricCondition toAdditionalMetricCondition(
+        SearchLogsFilters.AdditionalMetricCondition condition
+    ) {
+        var field = AdditionalMetricField.parse(condition.name()).orElseThrow(() ->
+            new IllegalArgumentException("Not an additional metric field name: " + condition.name())
+        );
+        return new MetricsQuery.Filter.AdditionalMetricCondition(
+            AnalyticsMeasuresAdapter.INSTANCE.toAdditionalMetricField(field),
+            toOperator(condition.operator()),
+            condition.values()
+        );
+    }
+
+    Filter.Operator toOperator(SearchLogsFilters.AdditionalMetricCondition.Operator operator);
 
     ConnectionDiagnosticModel convert(ConnectionDiagnostic connectionDiagnostic);
 

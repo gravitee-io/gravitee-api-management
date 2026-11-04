@@ -397,6 +397,7 @@ class ApisResourceTest extends AbstractResourceTest {
                         soft.assertThat(api.getFlowExecution()).isEqualTo(newApi.getFlowExecution());
                         soft.assertThat(api.getFlows()).isEqualTo(newApi.getFlows());
                         soft.assertThat(api.getGroups()).isEqualTo(newApi.getGroups());
+                        newApi.getListeners().get(0).getHttpListener().setPathMappings(List.of());
                         soft.assertThat(api.getListeners()).isEqualTo(newApi.getListeners());
                         soft.assertThat(api.getName()).isEqualTo(newApi.getName());
                         soft.assertThat(api.getTags()).containsExactlyElementsOf(newApi.getTags());

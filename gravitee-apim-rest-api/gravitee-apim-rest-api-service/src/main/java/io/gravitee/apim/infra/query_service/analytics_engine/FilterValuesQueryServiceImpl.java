@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.infra.query_service.analytics_engine;
 
+import io.gravitee.apim.core.analytics_engine.model.AdditionalMetricName;
+import io.gravitee.apim.core.analytics_engine.model.FilterName;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterValue;
 import io.gravitee.apim.core.analytics_engine.model.FilterValuesPage;
@@ -52,7 +54,7 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
     public FilterValuesPage searchFilterValues(
         String organizationId,
         String environmentId,
-        FilterSpec.Name filterName,
+        FilterName filterName,
         Instant from,
         Instant to,
         int page,
@@ -159,6 +161,14 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
             }
         }
         return namesByKey;
+    }
+
+    /** An additional metric field is stored under its own name, the OBS-70 identity rule the analytics engine applies. */
+    private static String resolveEsFieldName(FilterName filterName) {
+        return switch (filterName) {
+            case FilterSpec.Name builtIn -> resolveEsFieldName(builtIn);
+            case AdditionalMetricName additionalMetric -> additionalMetric.name();
+        };
     }
 
     /**

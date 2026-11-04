@@ -22,6 +22,7 @@ import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.documentation.model.factory.PageModelFactory;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -36,12 +37,14 @@ import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificat
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -82,6 +85,8 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
     private final PropertyDomainService propertyDomainService;
 
     private final CRDMembersDomainService membersDomainService;
+
+    private final ClusterBindingPermissionDomainService clusterBindingPermissionDomainService;
 
     @Override
     public Validator.Result<ValidateApiCRDDomainService.Input> validateAndSanitize(ValidateApiCRDDomainService.Input input) {
@@ -164,12 +169,29 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
             .peek(sanitized -> sanitizedBuilder.plans(sanitized.plans()), errors::addAll);
 
         var sanitizedSpec = sanitizedBuilder.build();
-        // Checked here, after the members are sanitized, so a dry run refuses what the import would refuse
+        // Checked here, after the members are sanitized, so a dry run refuses what the import would refuse: a member change, a cluster binding
         existingApi.ifPresent(api ->
             membersDomainService.checkApiMembersUpdate(input.auditInfo(), api.getId(), sanitizedSpec.getMembers())
         );
+        clusterBindingPermissionDomainService.validate(
+            input.auditInfo().organizationId(),
+            input.auditInfo().environmentId(),
+            // No actor, as for a system call: not checked
+            input.auditInfo().actor() == null ? null : input.auditInfo().actor().userId(),
+            existingApi.orElse(null),
+            apiType(sanitizedSpec),
+            sanitizedSpec.getEndpointGroups()
+        );
 
         return Validator.Result.ofBoth(new ValidateApiCRDDomainService.Input(input.auditInfo(), sanitizedSpec), errors);
+    }
+
+    // The type the import reads, null for a type it refuses
+    private static ApiType apiType(ApiCRDSpec spec) {
+        return Arrays.stream(ApiType.values())
+            .filter(type -> type.name().equalsIgnoreCase(spec.getType()))
+            .findFirst()
+            .orElse(null);
     }
 
     private void validateAgainstExistingApi(Api existingApi, ApiCRDSpec spec) {

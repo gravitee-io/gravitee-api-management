@@ -33,12 +33,14 @@ import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryConte
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
+import io.gravitee.apim.core.analytics_engine.model.FilterName;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterValue;
 import io.gravitee.apim.core.analytics_engine.model.FilterValuesPage;
 import io.gravitee.apim.core.analytics_engine.model.TrafficScope;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.query_service.FilterValuesQueryService;
+import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.application.query_service.ApplicationQueryService;
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -101,6 +103,9 @@ class GetFilterValuesUseCaseTest {
     private FilterValuesQueryService filterValuesQueryService;
 
     @Mock
+    private AnalyticsQueryContextProvider analyticsQueryContextProvider;
+
+    @Mock
     private FilterValueNameResolver filterValueNameResolver;
 
     @Mock
@@ -131,7 +136,8 @@ class GetFilterValuesUseCaseTest {
             applicationQueryService,
             planQueryService,
             apiProductQueryService,
-            workspaceApis
+            workspaceApis,
+            analyticsQueryContextProvider
         );
     }
 
@@ -1799,5 +1805,69 @@ class GetFilterValuesUseCaseTest {
         application.setId(id);
         application.setName(name);
         return application;
+    }
+
+    @Nested
+    class AdditionalMetricFields {
+
+        private static final String TIER = "additional-metrics.keyword_fraud-check_tier";
+
+        @Test
+        void should_list_the_values_stored_under_a_keyword_field_read_as_an_aggregate() {
+            when(
+                filterValuesQueryService.searchFilterValues(any(), any(), any(), any(), any(), anyInt(), eq(10), any(), any(), any())
+            ).thenReturn(new FilterValuesPage(List.of(new FilterValue("high")), null));
+
+            var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, TIER, null, null, 1, 10, null));
+
+            assertThat(output.valuesPage().data()).extracting(FilterValue::value).containsExactly("high");
+            verify(filterValuesQueryService).searchFilterValues(
+                eq("org-id"),
+                eq("env-id"),
+                eq(FilterName.parse(TIER).orElseThrow()),
+                eq(null),
+                eq(null),
+                eq(1),
+                eq(10),
+                eq(null),
+                eq(null),
+                eq(Set.of())
+            );
+            verify(contextLoader).load(any(), any(), eq(ApiDataKind.AGGREGATES));
+        }
+
+        @Test
+        void should_read_a_field_holding_the_values_of_a_built_in_identifying_a_caller_from_the_requests() {
+            when(analyticsQueryContextProvider.identifiesCaller(any())).thenReturn(true);
+            when(
+                filterValuesQueryService.searchFilterValues(any(), any(), any(), any(), any(), anyInt(), eq(10), any(), any(), any())
+            ).thenReturn(new FilterValuesPage(List.of(), null));
+
+            useCase.execute(
+                new GetFilterValuesUseCase.Input(AUDIT_INFO, "additional-metrics.keyword_native-kafka_client-id", null, null, 1, 10, null)
+            );
+
+            verify(contextLoader).load(any(), any(), eq(ApiDataKind.PER_REQUEST));
+        }
+
+        @Test
+        void should_refuse_to_list_the_values_of_a_field_that_is_not_a_keyword() {
+            assertThatThrownBy(() ->
+                useCase.execute(
+                    new GetFilterValuesUseCase.Input(AUDIT_INFO, "additional-metrics.long_failover_count", null, null, 1, 10, null)
+                )
+            )
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Filter type LONG does not support value listing");
+        }
+
+        @Test
+        void should_refuse_a_malformed_additional_metric_name() {
+            assertThatThrownBy(() ->
+                useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "additional-metrics.unknown_count", null, null, 1, 10, null))
+            )
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Invalid filter name");
+        }
     }
 }

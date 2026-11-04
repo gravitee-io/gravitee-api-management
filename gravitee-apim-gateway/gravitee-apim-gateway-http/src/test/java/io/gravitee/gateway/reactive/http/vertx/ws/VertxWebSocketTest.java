@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.gateway.reactive.api.exception.InvalidTextPayloadException;
 import io.gravitee.gateway.reactive.api.ws.WebSocket;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
@@ -33,13 +34,18 @@ import io.vertx.core.http.WebSocketFrame;
 import io.vertx.core.http.WebSocketFrameType;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.http.ServerWebSocket;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -292,6 +298,108 @@ class VertxWebSocketTest {
             final TestObserver<Void> obs = cut.writeFrame(new VertxWebSocketFrame(webSocketFrame)).test();
             obs.assertComplete();
             verifyNoInteractions(webSocket);
+        }
+    }
+
+    @Test
+    void should_support_text_frames() {
+        assertTrue(cut.supportsTextFrames());
+    }
+
+    @Nested
+    class WriteText {
+
+        static Stream<String> validTextPayloads() {
+            return Stream.of(
+                Utf8Samples.ASCII,
+                Utf8Samples.TWO_BYTE_CHARACTER,
+                Utf8Samples.THREE_BYTE_CHARACTER,
+                Utf8Samples.FOUR_BYTE_CHARACTER,
+                ""
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("validTextPayloads")
+        void should_write_decoded_text_message(String text) {
+            ReflectionTestUtils.setField(cut, "upgraded", true);
+            ReflectionTestUtils.setField(cut, "webSocket", webSocket);
+            when(webSocket.rxWriteTextMessage(text)).thenReturn(Completable.complete());
+
+            final TestObserver<Void> obs = cut.writeText(io.gravitee.gateway.api.buffer.Buffer.buffer(text)).test();
+
+            obs.assertComplete();
+            verify(webSocket).rxWriteTextMessage(text);
+        }
+
+        static Stream<Arguments> invalidTextPayloads() {
+            return Stream.of(
+                Arguments.of("invalid byte sequence", Utf8Samples.INVALID_BYTE_SEQUENCE),
+                Arguments.of("truncated four-byte sequence", Utf8Samples.TRUNCATED_FOUR_BYTE_SEQUENCE),
+                Arguments.of("overlong encoding", Utf8Samples.OVERLONG_ENCODING),
+                Arguments.of("encoded surrogate", Utf8Samples.ENCODED_SURROGATE),
+                Arguments.of("above max code point", Utf8Samples.ABOVE_MAX_CODE_POINT)
+            );
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("invalidTextPayloads")
+        void should_fail_without_writing_when_payload_is_not_valid_utf8(String name, byte[] payload) {
+            ReflectionTestUtils.setField(cut, "upgraded", true);
+            ReflectionTestUtils.setField(cut, "webSocket", webSocket);
+
+            final TestObserver<Void> obs = cut.writeText(io.gravitee.gateway.api.buffer.Buffer.buffer(payload)).test();
+
+            obs.assertError(InvalidTextPayloadException.class);
+            verify(webSocket).isClosed();
+            verifyNoMoreInteractions(webSocket);
+        }
+
+        @Test
+        void should_write_decoded_text_message_when_payload_is_built_from_several_chunks() {
+            ReflectionTestUtils.setField(cut, "upgraded", true);
+            ReflectionTestUtils.setField(cut, "webSocket", webSocket);
+            final String text = Utf8Samples.ASCII + Utf8Samples.FOUR_BYTE_CHARACTER;
+            final byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
+            // The last character takes 4 bytes, so cutting 2 bytes before the end splits it across the two chunks.
+            final byte[] firstChunk = Arrays.copyOfRange(bytes, 0, bytes.length - 2);
+            final byte[] secondChunk = Arrays.copyOfRange(bytes, bytes.length - 2, bytes.length);
+            when(webSocket.rxWriteTextMessage(text)).thenReturn(Completable.complete());
+
+            final TestObserver<Void> obs = cut.writeText(bufferOf(firstChunk, secondChunk)).test();
+
+            obs.assertComplete();
+            verify(webSocket).rxWriteTextMessage(text);
+        }
+
+        private static io.gravitee.gateway.api.buffer.Buffer bufferOf(byte[]... chunks) {
+            final io.gravitee.gateway.api.buffer.Buffer buffer = io.gravitee.gateway.api.buffer.Buffer.buffer();
+            for (byte[] chunk : chunks) {
+                buffer.appendBuffer(io.gravitee.gateway.api.buffer.Buffer.buffer(chunk));
+            }
+            return buffer;
+        }
+
+        @Test
+        void should_not_write_text_if_not_upgraded() {
+            ReflectionTestUtils.setField(cut, "upgraded", false);
+
+            final TestObserver<Void> obs = cut.writeText(io.gravitee.gateway.api.buffer.Buffer.buffer(FRAME_DATA)).test();
+
+            obs.assertComplete();
+            verifyNoInteractions(webSocket);
+        }
+
+        @Test
+        void should_fail_to_write_text_if_closed() {
+            ReflectionTestUtils.setField(cut, "upgraded", true);
+            ReflectionTestUtils.setField(cut, "webSocket", webSocket);
+            when(webSocket.isClosed()).thenReturn(true);
+
+            final TestObserver<Void> obs = cut.writeText(io.gravitee.gateway.api.buffer.Buffer.buffer(FRAME_DATA)).test();
+
+            obs.assertError(HttpClosedException.class);
+            verify(webSocket, never()).rxWriteTextMessage(any());
         }
     }
 

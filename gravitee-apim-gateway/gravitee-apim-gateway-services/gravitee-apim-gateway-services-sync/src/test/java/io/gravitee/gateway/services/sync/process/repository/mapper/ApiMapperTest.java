@@ -29,6 +29,8 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.edge.EdgeApi;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
@@ -151,6 +153,29 @@ class ApiMapperTest {
             .assertValue(reactableApi -> {
                 assertThat(reactableApi.getId()).isEqualTo(apiV4.getId());
                 assertThat(reactableApi.getDefinition()).isEqualTo(apiV4);
+                return true;
+            })
+            .assertComplete();
+    }
+
+    @Test
+    void should_map_api_v4_with_its_internal_flow() throws JsonProcessingException {
+        apiV4.setInternalFlow(
+            Flow.builder()
+                .name("internal")
+                .request(List.of(Step.builder().policy("guardian-policy").configuration("{\"guardianId\":\"guardian-id\"}").build()))
+                .build()
+        );
+        repoApiV4.setDefinition(objectMapper.writeValueAsString(apiV4));
+
+        Event event = new Event();
+        event.setPayload(objectMapper.writeValueAsString(repoApiV4));
+        cut
+            .to(event)
+            .test()
+            .assertValue(reactableApi -> {
+                var definition = (io.gravitee.definition.model.v4.Api) reactableApi.getDefinition();
+                assertThat(definition.getInternalFlow()).isEqualTo(apiV4.getInternalFlow());
                 return true;
             })
             .assertComplete();

@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.analytics_engine.query_service;
 
+import io.gravitee.apim.core.analytics_engine.model.FilterName;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterValuesPage;
 import io.gravitee.apim.core.analytics_engine.model.TrafficScope;
@@ -27,7 +28,7 @@ public interface FilterValuesQueryService {
     default FilterValuesPage searchFilterValues(
         String organizationId,
         String environmentId,
-        FilterSpec.Name filterName,
+        FilterName filterName,
         Instant from,
         Instant to,
         int page,
@@ -58,7 +59,7 @@ public interface FilterValuesQueryService {
     default FilterValuesPage searchFilterValues(
         String organizationId,
         String environmentId,
-        FilterSpec.Name filterName,
+        FilterName filterName,
         Instant from,
         Instant to,
         int page,
@@ -92,7 +93,7 @@ public interface FilterValuesQueryService {
     FilterValuesPage searchFilterValues(
         String organizationId,
         String environmentId,
-        FilterSpec.Name filterName,
+        FilterName filterName,
         Instant from,
         Instant to,
         int page,

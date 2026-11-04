@@ -33,6 +33,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
+import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
 import io.gravitee.apim.core.event.query_service.EventQueryService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
@@ -86,6 +87,7 @@ public class RollbackApiUseCase {
     private final ApiStateDomainService apiStateService;
     private final UpdateNativeApiDomainService updateNativeApiDomainService;
     private final PropertyDomainService propertyDomainService;
+    private final ClusterBindingPermissionDomainService clusterBindingPermissionDomainService;
 
     public void execute(Input input) {
         Api api = eventQueryService
@@ -168,8 +170,18 @@ public class RollbackApiUseCase {
                         return rollbackedApi;
                     },
                     // no sanitizing: a rollback restores a definition that was already validated when it was deployed,
-                    // which is what the HTTP branch gets too
-                    (existing, updated) -> updated,
+                    // which is what the HTTP branch gets too. Moving back to a cluster binding still needs its membership,
+                    // as the update of a Message API checks.
+                    (existing, updated) -> {
+                        clusterBindingPermissionDomainService.validate(
+                            input.auditInfo().organizationId(),
+                            input.auditInfo().environmentId(),
+                            input.auditInfo().actor().userId(),
+                            existing.getApiDefinitionNativeV4(),
+                            updated.getApiDefinitionNativeV4()
+                        );
+                        return updated;
+                    },
                     input.auditInfo,
                     primaryOwner,
                     new ApiIndexerDomainService.Context(input.auditInfo(), false)

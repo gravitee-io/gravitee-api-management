@@ -80,6 +80,8 @@ import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.security.HttpSecurityChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
+import io.gravitee.gateway.reactive.policy.action.PolicyActionExecutor;
+import io.gravitee.gateway.reactive.policy.action.PolicyActionType;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
@@ -155,6 +157,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected final io.gravitee.gateway.reactive.handlers.api.flow.FlowChain organizationFlowChain;
     protected final FlowChain apiPlanFlowChain;
     protected final FlowChain apiFlowChain;
+    protected final FlowChain internalFlowChain;
     protected volatile FlowChain apiProductPlanFlowChain;
     private final Node node;
     protected final String loggingExcludedResponseType;
@@ -171,6 +174,9 @@ public class DefaultApiReactor extends AbstractApiReactor {
     private final ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory;
     private final FlowChainFactory v4FlowChainFactory;
     private PolicyManager apiProductPlanPolicyManager;
+    private final PolicyActionExecutor endpointRequestActionExecutor;
+    private final PolicyActionExecutor entrypointResponseActionExecutor;
+    private final PolicyActionExecutor terminateActionExecutor;
     private EventListener<ApiProductEventType, ApiProductChangedEvent> apiProductEventListener;
 
     /**
@@ -288,6 +294,10 @@ public class DefaultApiReactor extends AbstractApiReactor {
         this.organizationFlowChain = flowChainFactory.createOrganizationFlow(api, tracingContext);
         this.apiPlanFlowChain = v4FlowChainFactory.createPlanFlow(api, tracingContext);
         this.apiFlowChain = v4FlowChainFactory.createApiFlow(api, tracingContext);
+        this.internalFlowChain = v4FlowChainFactory.createInternalFlow(api, tracingContext);
+        this.endpointRequestActionExecutor = new PolicyActionExecutor(PolicyActionType.ENDPOINT_REQUEST, tracingContext.isEnabled());
+        this.entrypointResponseActionExecutor = new PolicyActionExecutor(PolicyActionType.ENTRYPOINT_RESPONSE, tracingContext.isEnabled());
+        this.terminateActionExecutor = new PolicyActionExecutor(PolicyActionType.TERMINATE, tracingContext.isEnabled());
 
         this.node = node;
         this.lifecycleState = Lifecycle.State.INITIALIZED;
@@ -376,10 +386,14 @@ public class DefaultApiReactor extends AbstractApiReactor {
             .chainWith(executeProcessorChain(ctx, beforeApiExecutionProcessors, REQUEST))
             // Resolve entrypoint and prepare request to be handled.
             .chainWith(handleEntrypointRequest(ctx))
+            // Execute the internal flow before the publisher's flows, so they see what it did to the request.
+            .chainWith(internalFlowChain.execute(ctx, REQUEST))
             // Execute all flows for request phases (product plan flows first, then API plan and API flows).
             .chainWith(executeProductPlanFlowChain(ctx, REQUEST))
             .chainWith(apiPlanFlowChain.execute(ctx, REQUEST))
             .chainWith(apiFlowChain.execute(ctx, REQUEST))
+            // Run the actions policies registered to be executed right before the endpoint is invoked.
+            .chainWith(Completable.defer(() -> endpointRequestActionExecutor.executeAll(ctx, ctx.drainOnEndpointRequestActions())))
             .chainWith(upstream -> endRequestPhaseTracing(upstream, ctx))
             // Invoke the backend.
             .chainWith(invokeBackend(ctx))
@@ -389,6 +403,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
             .chainWith(executeProductPlanFlowChain(ctx, RESPONSE))
             .chainWith(apiPlanFlowChain.execute(ctx, RESPONSE))
             .chainWith(apiFlowChain.execute(ctx, RESPONSE))
+            // Execute the internal flow after the publisher's flows, so it sees the response they produced.
+            .chainWith(internalFlowChain.execute(ctx, RESPONSE))
             // After flows processors.
             .chainWith(executeProcessorChain(ctx, afterApiExecutionProcessors, RESPONSE))
             .chainWithOnError(error -> processThrowable(ctx, error))
@@ -398,7 +414,14 @@ public class DefaultApiReactor extends AbstractApiReactor {
                 new CompletableReactorChain(organizationFlowChain.execute(ctx, RESPONSE)).chainWith(upstream -> timeout(upstream, ctx))
             )
             .chainWithOnError(error -> processOrganizationFlowError(ctx, error))
-            // Before entrypoint response
+            // Run the actions policies registered to be executed right before the entrypoint sends the response, whichever
+            // way the request went. One failing or interrupting turns into the response the client is given; an
+            // unexpected error raised before them is left to handleUnexpectedError.
+            .chainWith(
+                Completable.defer(() ->
+                    entrypointResponseActionExecutor.executeAll(ctx, ctx.drainOnEntrypointResponseActions())
+                ).onErrorResumeNext(error -> processThrowable(ctx, error))
+            )
             // Handle entrypoint response.
             .chainWith(handleEntrypointResponse(ctx))
             // Catch possible unexpected errors before executing after Handle Processors
@@ -810,9 +833,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
                 return Completable.complete();
             }
             return Flowable.fromIterable(actions.entrySet()).concatMapCompletable(entry ->
-                entry
-                    .getValue()
-                    .apply(ctx)
+                terminateActionExecutor
+                    .execute(ctx, entry.getKey(), entry.getValue())
                     .doOnError(throwable ->
                         ctx.withLogger(log).warn("Action on terminate of policy {} failed", entry.getKey().id(), throwable)
                     )

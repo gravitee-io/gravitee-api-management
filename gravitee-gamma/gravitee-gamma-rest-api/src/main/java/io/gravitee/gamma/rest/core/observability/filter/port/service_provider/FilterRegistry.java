@@ -35,7 +35,8 @@ public interface FilterRegistry {
      * Returns the deduplicated union of all contributor filter specs, narrowed on two independent
      * axes: kept specs are those whose {@link FilterSpec#signals()} intersects {@code signals}
      * <strong>and</strong> whose {@link FilterSpec#apiTypes()} intersects {@code apiTypes}. An axis
-     * passed as {@code null} or empty is unconstrained.
+     * passed as {@code null} or empty is unconstrained. A spec with no {@code apiTypes} applies to every API kind:
+     * it is dropped only when {@code apiTypes} asks for {@code AUTHZ_DECISION} alone.
      *
      * @param signals  The signal set to filter by; {@code null}/empty → any signal.
      * @param apiTypes The API-kind set to filter by; {@code null}/empty → any API kind.

@@ -21,6 +21,7 @@ import io.gravitee.apim.core.api.domain_service.GroupValidationService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.ApiResourceNames;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
@@ -31,6 +32,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
@@ -40,6 +42,7 @@ import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @AllArgsConstructor
@@ -55,6 +58,7 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
     private final EndpointGroupsValidationService endpointGroupsValidationService;
     private final ResourcesValidationService resourcesValidationService;
     private final ApiLifecycleStateDomainService apiLifecycleStateDomainService;
+    private final ClusterBindingPermissionDomainService clusterBindingPermissionDomainService;
 
     @Override
     public Api validateAndSanitizeForCreation(Api api, PrimaryOwnerEntity primaryOwner, String environmentId, String organizationId) {
@@ -162,6 +166,8 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
 
             // Validate and clean definition
             newApi.setApiDefinitionValue(validateAndSanitizeNativeV4Definition(nativeApi, executionContext));
+
+            validateClusterBindingPermission(executionContext, null, nativeApi);
         } else {
             throw new ValidationDomainException("Api type not supported, should be NATIVE");
         }
@@ -203,9 +209,29 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         // Validate and clean definition
         NativeApi newDefinition = validateAndSanitizeNativeV4Definition(nativeApiToBeUpdated, executionContext);
 
+        validateClusterBindingPermission(executionContext, existingApi.getApiDefinitionNativeV4(), newDefinition);
+
         toBeUpdatedApi.setApiDefinitionValue(newDefinition);
 
         return toBeUpdatedApi;
+    }
+
+    // The caller is the authenticated user, as for the permission filter: an org admin passes, a system call is not checked.
+    private void validateClusterBindingPermission(ExecutionContext executionContext, NativeApi previousDefinition, NativeApi definition) {
+        clusterBindingPermissionDomainService.validate(
+            executionContext.getOrganizationId(),
+            executionContext.getEnvironmentId(),
+            authenticatedUsername(),
+            previousDefinition,
+            definition
+        );
+    }
+
+    private static String authenticatedUsername() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails
+            ? userDetails.getUsername()
+            : null;
     }
 
     private NativeApi validateAndSanitizeNativeV4Definition(NativeApi apiDefinition, ExecutionContext executionContext) {

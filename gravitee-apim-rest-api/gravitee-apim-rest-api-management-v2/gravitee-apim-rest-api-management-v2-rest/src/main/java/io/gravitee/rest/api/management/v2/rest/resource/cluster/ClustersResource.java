@@ -32,6 +32,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ClustersResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateCluster;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.param.ClusterSortByParam;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -111,7 +112,7 @@ public class ClustersResource extends AbstractResource {
         @QueryParam("type") ClusterType type,
         @QueryParam("lifecycleState") List<ClusterLifecycleState> lifecycleStates,
         @BeanParam @Valid PaginationParam paginationParam,
-        @QueryParam("sortBy") String sortBy
+        @BeanParam ClusterSortByParam sortByParam
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
 
@@ -122,7 +123,7 @@ public class ClustersResource extends AbstractResource {
                 .lifecycleStates(lifecycleStates == null ? null : lifecycleStates.stream().map(Enum::name).toList())
                 .query(q)
                 .pageable(paginationParam.toPageable())
-                .sortBy(sortBy)
+                .sortBy(sortByParam.getSortBy())
                 .isAdmin(isAdmin())
                 .userId(getAuthenticatedUser())
                 .build()
@@ -162,7 +163,14 @@ public class ClustersResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
     public Response getDeployedClusters(@QueryParam("type") ClusterType type) {
         var executionContext = GraviteeContext.getExecutionContext();
-        var output = getDeployedClustersUseCase.execute(new GetDeployedClustersUseCase.Input(executionContext.getEnvironmentId(), type));
+        var output = getDeployedClustersUseCase.execute(
+            new GetDeployedClustersUseCase.Input(
+                executionContext.getOrganizationId(),
+                executionContext.getEnvironmentId(),
+                getAuthenticatedUser(),
+                type
+            )
+        );
         return Response.ok(output.deployedClusters()).build();
     }
 

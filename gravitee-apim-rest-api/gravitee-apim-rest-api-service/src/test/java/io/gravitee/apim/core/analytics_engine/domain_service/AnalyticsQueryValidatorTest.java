@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.analytics_engine.exception.InvalidQueryException;
@@ -40,6 +42,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author GraviteeSource Team
@@ -64,12 +67,14 @@ class AnalyticsQueryValidatorTest {
 
     private AnalyticsQueryValidator validator;
 
+    private AnalyticsDefinitionQueryService definitionQueryService;
+
     /** The real catalog: which filters analytics supports is now read from it rather than from a copy. */
     private static final AnalyticsDefinitionYAMLQueryService CATALOG = new AnalyticsDefinitionYAMLQueryService();
 
     @BeforeEach
     void setUp() {
-        var definitionQueryService = mock(AnalyticsDefinitionQueryService.class);
+        definitionQueryService = mock(AnalyticsDefinitionQueryService.class);
         when(definitionQueryService.findMetric(any())).thenAnswer(invocation -> CATALOG.findMetric(invocation.getArgument(0)));
         when(definitionQueryService.findMetric(MetricSpec.Name.HTTP_REQUESTS)).thenReturn(Optional.of(HTTP_REQUESTS_SPEC));
         when(definitionQueryService.getAllFilters()).thenReturn(CATALOG.getAllFilters());
@@ -238,6 +243,104 @@ class AnalyticsQueryValidatorTest {
             assertThatThrownBy(() -> validator.validateTimeSeriesRequest(request))
                 .isInstanceOf(InvalidQueryException.class)
                 .hasMessageContaining("more than 2 facets");
+        }
+    }
+
+    @Nested
+    class AdditionalMetricMeasures {
+
+        private static final AdditionalMetricName FAILOVERS = additionalMetric("additional-metrics.long_failover_count");
+        private static final AdditionalMetricName RETRIES = additionalMetric("additional-metrics.int_retries");
+        private static final AdditionalMetricName SCORE = additionalMetric("additional-metrics.double_fraud-check_score");
+        private static final AdditionalMetricName TIER = additionalMetric("additional-metrics.keyword_fraud-check_tier");
+
+        private static AdditionalMetricName additionalMetric(String name) {
+            return (AdditionalMetricName) MetricName.parse(name).orElseThrow();
+        }
+
+        private static FacetsRequest facetsOf(MetricName metric, List<FacetName> facets) {
+            return new FacetsRequest(
+                VALID_TIME_RANGE,
+                List.of(),
+                List.of(new FacetMetricMeasuresRequest(metric, List.of(MetricSpec.Measure.AVG), List.of())),
+                facets,
+                null,
+                List.of()
+            );
+        }
+
+        @Test
+        void should_accept_every_measure_of_a_number_field_without_looking_it_up() {
+            var request = new MeasuresRequest(
+                VALID_TIME_RANGE,
+                List.of(),
+                List.of(
+                    new MetricMeasuresRequest(FAILOVERS, AdditionalMetricName.MEASURES),
+                    new MetricMeasuresRequest(RETRIES, AdditionalMetricName.MEASURES),
+                    new MetricMeasuresRequest(SCORE, AdditionalMetricName.MEASURES)
+                )
+            );
+
+            assertThatCode(() -> validator.validateMeasuresRequest(request)).doesNotThrowAnyException();
+            verify(definitionQueryService, never()).findMetric(any());
+        }
+
+        @Test
+        void should_refuse_a_percentage_of_a_number_field() {
+            var request = new MeasuresRequest(
+                VALID_TIME_RANGE,
+                List.of(),
+                List.of(new MetricMeasuresRequest(FAILOVERS, List.of(MetricSpec.Measure.PERCENTAGE)))
+            );
+
+            assertThatThrownBy(() -> validator.validateMeasuresRequest(request))
+                .isInstanceOf(InvalidQueryException.class)
+                .hasMessage("Measure PERCENTAGE is not supported for metric additional-metrics.long_failover_count");
+        }
+
+        @ParameterizedTest
+        @ValueSource(
+            strings = {
+                "additional-metrics.keyword_fraud-check_tier",
+                "additional-metrics.bool_cache_hit",
+                "additional-metrics.string_body-excerpt",
+                "additional-metrics.json_fraud-signals",
+            }
+        )
+        void should_refuse_a_field_holding_no_number_as_a_metric(String name) {
+            var field = additionalMetric(name);
+            var request = new MeasuresRequest(
+                VALID_TIME_RANGE,
+                List.of(),
+                List.of(new MetricMeasuresRequest(field, List.of(MetricSpec.Measure.COUNT)))
+            );
+
+            assertThatThrownBy(() -> validator.validateMeasuresRequest(request))
+                .isInstanceOf(InvalidQueryException.class)
+                .hasMessage("'" + name + "' is not a metric: it holds " + field.field().valueType() + " values, not numbers")
+                .extracting(error -> ((InvalidQueryException) error).getTechnicalCode())
+                .isEqualTo("analytics.metric.not_a_metric");
+        }
+
+        @Test
+        void should_group_a_number_field_by_the_built_in_facets_of_the_requests_and_by_any_grouping_field() {
+            assertThatCode(() ->
+                validator.validateFacetsRequest(facetsOf(FAILOVERS, List.of(FacetSpec.Name.HTTP_STATUS, TIER)))
+            ).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_refuse_a_built_in_facet_the_requests_do_not_declare() {
+            assertThatThrownBy(() -> validator.validateFacetsRequest(facetsOf(FAILOVERS, List.of(FacetSpec.Name.API))))
+                .isInstanceOf(InvalidQueryException.class)
+                .hasMessage("Facet API is not supported for metric additional-metrics.long_failover_count");
+        }
+
+        @Test
+        void should_refuse_a_field_holding_no_number_before_its_facets() {
+            assertThatThrownBy(() -> validator.validateFacetsRequest(facetsOf(TIER, List.of(FacetSpec.Name.HTTP_STATUS))))
+                .isInstanceOf(InvalidQueryException.class)
+                .hasMessageContaining("is not a metric");
         }
     }
 

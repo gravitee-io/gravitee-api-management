@@ -53,6 +53,7 @@ public final class ElasticsearchDsl {
         public static final String GTE = "gte";
         public static final String LTE = "lte";
         public static final String LT = "lt";
+        public static final String EXISTS = "exists";
 
         private Query() {}
     }
@@ -68,6 +69,11 @@ public final class ElasticsearchDsl {
         public static final String MIN = "min";
         public static final String MAX = "max";
         public static final String SUM = "sum";
+        public static final String AVG = "avg";
+        public static final String VALUE_COUNT = "value_count";
+        public static final String PERCENTILES = "percentiles";
+        public static final String PERCENTS = "percents";
+        public static final String MISSING = "missing";
         public static final String TOP_HITS = "top_hits";
         public static final String ORDER = "order";
 

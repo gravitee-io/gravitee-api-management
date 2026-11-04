@@ -31,10 +31,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterBoundApisQueryService.ClusterUse;
 import io.gravitee.apim.core.cluster.domain_service.ValidateKafkaClusterBindingDomainService;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
@@ -42,6 +45,8 @@ import io.gravitee.apim.core.plugin.query_service.EntrypointPluginQueryService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
@@ -50,6 +55,7 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -87,6 +93,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -137,6 +146,9 @@ public class ApiValidationServiceImplTest {
     @Mock
     private ValidateKafkaClusterBindingDomainService validateKafkaClusterBindingDomainService;
 
+    @Mock
+    private ClusterBindingPermissionDomainService clusterBindingPermissionDomainService;
+
     @BeforeEach
     public void setUp() throws Exception {
         apiValidationService = new ApiValidationServiceImpl(
@@ -152,7 +164,9 @@ public class ApiValidationServiceImplTest {
             apiServicePluginService,
             flowValidationDomainService,
             apiProductQueryService,
-            validateKafkaClusterBindingDomainService
+            validateKafkaClusterBindingDomainService,
+            clusterBindingPermissionDomainService,
+            new ObjectMapper()
         );
     }
 
@@ -501,6 +515,122 @@ public class ApiValidationServiceImplTest {
     }
 
     @Test
+    public void shouldCheckTheClusterBindingsAnUpdateChangesAgainstTheAuthenticatedUser() {
+        authenticateAs("user-id");
+        try {
+            UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+            updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+            updateApiEntity.setType(ApiType.MESSAGE);
+            updateApiEntity.setEndpointGroups(List.of(kafkaClusterGroup("sasl")));
+            when(
+                endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.MESSAGE, updateApiEntity.getEndpointGroups())
+            ).thenReturn(updateApiEntity.getEndpointGroups());
+            ApiEntity existingApiEntity = new ApiEntity();
+            existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+            existingApiEntity.setType(ApiType.MESSAGE);
+            existingApiEntity.setLifecycleState(CREATED);
+            existingApiEntity.setEndpointGroups(List.of(kafkaClusterGroup("plain")));
+
+            apiValidationService.validateAndSanitizeUpdateApi(
+                GraviteeContext.getExecutionContext(),
+                updateApiEntity,
+                new PrimaryOwnerEntity(),
+                existingApiEntity
+            );
+
+            verify(clusterBindingPermissionDomainService).validate(
+                GraviteeContext.getExecutionContext().getOrganizationId(),
+                GraviteeContext.getExecutionContext().getEnvironmentId(),
+                "user-id",
+                List.of(new ClusterUse("prod", "plain")),
+                List.of(new ClusterUse("prod", "sasl"))
+            );
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
+    }
+
+    @Test
+    public void shouldCheckTheClusterBindingsOfANewApiAgainstTheAuthenticatedUser() {
+        authenticateAs("user-id");
+        try {
+            NewApiEntity newApiEntity = new NewApiEntity();
+            newApiEntity.setType(ApiType.MESSAGE);
+            newApiEntity.setEndpointGroups(List.of(kafkaClusterGroup("plain")));
+            when(endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.MESSAGE, newApiEntity.getEndpointGroups())).thenReturn(
+                newApiEntity.getEndpointGroups()
+            );
+
+            apiValidationService.validateAndSanitizeNewApi(GraviteeContext.getExecutionContext(), newApiEntity, new PrimaryOwnerEntity());
+
+            verify(clusterBindingPermissionDomainService).validate(
+                GraviteeContext.getExecutionContext().getOrganizationId(),
+                GraviteeContext.getExecutionContext().getEnvironmentId(),
+                "user-id",
+                List.of(),
+                List.of(new ClusterUse("prod", "plain"))
+            );
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
+    }
+
+    @Test
+    public void shouldCheckTheClusterBindingsOfAnImportedApiAgainstTheAuthenticatedUser() {
+        authenticateAs("user-id");
+        try {
+            ApiEntity apiEntity = new ApiEntity();
+            apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+            apiEntity.setType(ApiType.MESSAGE);
+            apiEntity.setListeners(List.of(new HttpListener()));
+            apiEntity.setEndpointGroups(List.of(kafkaClusterGroup("plain")));
+            when(endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.MESSAGE, apiEntity.getEndpointGroups())).thenReturn(
+                apiEntity.getEndpointGroups()
+            );
+
+            apiValidationService.validateAndSanitizeImportApiForCreation(
+                GraviteeContext.getExecutionContext(),
+                apiEntity,
+                new PrimaryOwnerEntity()
+            );
+
+            verify(clusterBindingPermissionDomainService).validate(
+                GraviteeContext.getExecutionContext().getOrganizationId(),
+                GraviteeContext.getExecutionContext().getEnvironmentId(),
+                "user-id",
+                List.of(),
+                List.of(new ClusterUse("prod", "plain"))
+            );
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
+    }
+
+    private static void authenticateAs(String userId) {
+        var authentication = mock(Authentication.class);
+        when(authentication.getPrincipal()).thenReturn(new UserDetails(userId, "", List.of()));
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
+    }
+
+    private static EndpointGroup kafkaClusterGroup(String connectionCrossId) {
+        return EndpointGroup.builder()
+            .name("default-group")
+            .type("kafka")
+            .sharedConfiguration("{\"mode\":\"CLUSTER\",\"clusterCrossId\":\"prod\"}")
+            .endpoints(
+                List.of(
+                    Endpoint.builder()
+                        .name("default")
+                        .type("kafka")
+                        .inheritConfiguration(true)
+                        .configuration("{\"connectionCrossId\":\"" + connectionCrossId + "\"}")
+                        .build()
+                )
+            )
+            .build();
+    }
+
+    @Test
     public void shouldSanitizeApiDefinitionOnCreateFromImport() {
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
         ApiEntity apiEntity = new ApiEntity();
@@ -553,7 +683,9 @@ public class ApiValidationServiceImplTest {
             apiServicePluginService,
             flowValidationDomainService,
             apiProductQueryService,
-            validateKafkaClusterBindingDomainService
+            validateKafkaClusterBindingDomainService,
+            clusterBindingPermissionDomainService,
+            new ObjectMapper()
         );
 
         var primaryOwnerEntity = new PrimaryOwnerEntity();
@@ -594,7 +726,9 @@ public class ApiValidationServiceImplTest {
             apiServicePluginService,
             new FlowValidationDomainService(mock(PolicyValidationDomainService.class), mock(EntrypointPluginQueryService.class)),
             apiProductQueryService,
-            validateKafkaClusterBindingDomainService
+            validateKafkaClusterBindingDomainService,
+            clusterBindingPermissionDomainService,
+            new ObjectMapper()
         );
 
         HttpSelector httpSelector = new HttpSelector();

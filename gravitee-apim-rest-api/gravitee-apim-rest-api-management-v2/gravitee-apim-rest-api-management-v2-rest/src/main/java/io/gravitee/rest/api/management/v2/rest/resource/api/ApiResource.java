@@ -23,6 +23,7 @@ import static java.util.Collections.singletonList;
 
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
+import io.gravitee.apim.core.api.model.HttpListenerPathMappings;
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
@@ -35,6 +36,7 @@ import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiDefinitionFromUrlUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiDefinitionUseCase;
+import io.gravitee.apim.core.api.use_case.ImportApiPathMappingsUseCase;
 import io.gravitee.apim.core.api.use_case.MigrateApiUseCase;
 import io.gravitee.apim.core.api.use_case.OAIToUpdateApiUseCase;
 import io.gravitee.apim.core.api.use_case.PatchApiUseCase;
@@ -47,6 +49,7 @@ import io.gravitee.apim.core.api.use_case.WsdlToUpdateApiUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.Excludable;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.promotion.use_case.CreatePromotionUseCase;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.common.component.Lifecycle;
@@ -67,6 +70,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.DuplicateApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.PromotionMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiCRD;
+import io.gravitee.rest.api.management.v2.rest.model.ApiPathMappings;
 import io.gravitee.rest.api.management.v2.rest.model.ApiReview;
 import io.gravitee.rest.api.management.v2.rest.model.ApiRollback;
 import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
@@ -74,6 +78,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiWorkflowState;
 import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.ImportApiPathMappings;
 import io.gravitee.rest.api.management.v2.rest.model.ImportSwaggerDescriptor;
 import io.gravitee.rest.api.management.v2.rest.model.ImportWsdlDescriptor;
 import io.gravitee.rest.api.management.v2.rest.model.MigrationReportResponses;
@@ -114,6 +119,7 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -315,6 +321,9 @@ public class ApiResource extends AbstractResource {
     @Inject
     private UpdateApiGroupsUseCase updateApiGroupsUseCase;
 
+    @Inject
+    private ImportApiPathMappingsUseCase importApiPathMappingsUseCase;
+
     @Context
     protected UriInfo uriInfo;
 
@@ -448,6 +457,7 @@ public class ApiResource extends AbstractResource {
             .payload(descriptor.getPayload())
             .withPolicies(descriptor.getWithPolicies() != null ? new ArrayList<>(descriptor.getWithPolicies()) : null)
             .withPolicyPaths(Boolean.TRUE.equals(descriptor.getWithPolicyPaths()))
+            .withPathMapping(Boolean.TRUE.equals(descriptor.getWithPathMapping()))
             .build();
 
         var output = oaiToUpdateApiUseCase.execute(
@@ -466,6 +476,18 @@ public class ApiResource extends AbstractResource {
             getGenericApiEntityById(apiId, false)
         );
         return Response.ok().entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized)).build();
+    }
+
+    @POST
+    @Path("/path-mappings/_import")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response importApiPathMappings(@PathParam("apiId") String apiId, @Valid @NotNull ImportApiPathMappings body) {
+        var output = importApiPathMappingsUseCase.execute(
+            new ImportApiPathMappingsUseCase.Input(apiId, body.getPageId(), Boolean.TRUE.equals(body.getOverwrite()), getAuditInfo())
+        );
+        return Response.ok().entity(new ApiPathMappings().pathMappings(new ArrayList<>(output.pathMappings()))).build();
     }
 
     @PUT
@@ -641,7 +663,7 @@ public class ApiResource extends AbstractResource {
             !Objects.equals(currentEntity.getPrimaryOwner().getId(), getAuthenticatedUser()) &&
             !isAdmin()
         ) {
-            apiToUpdate.setListeners(((ApiEntity) currentEntity).getListeners());
+            keepStoredListenersExceptPathMappings(apiToUpdate, (ApiEntity) currentEntity);
         }
 
         final ApiEntity updatedApi = apiServiceV4.update(
@@ -653,6 +675,24 @@ public class ApiResource extends AbstractResource {
         );
         setPicturesUrl(updatedApi);
         return updatedApi;
+    }
+
+    private void keepStoredListenersExceptPathMappings(UpdateApiEntity apiToUpdate, ApiEntity currentEntity) {
+        var storedListeners = currentEntity.getListeners();
+        var requestedMappings = HttpListenerPathMappings.firstHttpListenerMappings(apiToUpdate.getListeners());
+        if (currentEntity.getOriginContext() instanceof OriginContext.Kubernetes) {
+            var storedMappings = HttpListenerPathMappings.firstHttpListenerMappings(storedListeners).orElseGet(Set::of);
+            if (requestedMappings.isPresent() && !requestedMappings.get().equals(storedMappings)) {
+                throw new ValidationDomainException("Cannot update path mappings of a Kubernetes-managed API");
+            }
+            apiToUpdate.setListeners(storedListeners);
+            return;
+        }
+        if (requestedMappings.isPresent()) {
+            apiToUpdate.setListeners(HttpListenerPathMappings.withFirstHttpListenerMappings(storedListeners, requestedMappings.get()));
+        } else {
+            apiToUpdate.setListeners(storedListeners);
+        }
     }
 
     private GenericApiEntity updateApiV2(GenericApiEntity currentEntity, UpdateApiV2 updateApiV2) {

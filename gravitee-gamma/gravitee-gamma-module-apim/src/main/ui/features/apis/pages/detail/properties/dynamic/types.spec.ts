@@ -46,3 +46,23 @@ describe('dynamic properties type', () => {
         expect(fromFormStateToDto(fromDtoToFormState({ enabled: false })).type).toBe('http-dynamic-properties');
     });
 });
+
+describe('encrypt on fetch', () => {
+    const dto = (encryptOnFetch?: boolean): DynamicPropertyConfig => ({
+        enabled: true,
+        provider: 'HTTP',
+        configuration: {
+            method: 'GET',
+            url: 'https://api.example.com/properties',
+            ...(encryptOnFetch === undefined ? {} : { encryption: { encryptOnFetch } }),
+        },
+    });
+
+    it('keeps a stored encryptOnFetch through a load and save', () => {
+        expect(fromFormStateToDto(fromDtoToFormState(dto(true))).configuration?.encryption?.encryptOnFetch).toBe(true);
+    });
+
+    it('is off when the stored configuration has no encryption', () => {
+        expect(fromFormStateToDto(fromDtoToFormState(dto())).configuration?.encryption?.encryptOnFetch).toBe(false);
+    });
+});

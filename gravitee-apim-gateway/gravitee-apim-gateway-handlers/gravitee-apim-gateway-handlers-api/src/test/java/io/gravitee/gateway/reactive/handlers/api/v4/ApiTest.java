@@ -26,6 +26,7 @@ import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -109,6 +110,36 @@ class ApiTest {
         }
 
         assertThat(dependencies.stream().map(Policy::getName)).containsExactlyInAnyOrderElementsOf(expectedPolicies);
+    }
+
+    @Test
+    void should_return_dependencies_from_internal_flow_policies() {
+        final io.gravitee.definition.model.v4.Api definition = new io.gravitee.definition.model.v4.Api();
+        definition.setFlows(List.of(aFlowList("api-flow").get(0)));
+        definition.setInternalFlow(aFlowList("internal-flow").get(0));
+
+        final Api api = new Api(definition);
+
+        assertThat(api.dependencies(Policy.class).stream().map(Policy::getName)).containsExactlyInAnyOrder(
+            "api-flow-request",
+            "api-flow-response",
+            "api-flow-publish",
+            "api-flow-subscribe",
+            "internal-flow-request",
+            "internal-flow-response",
+            "internal-flow-publish",
+            "internal-flow-subscribe"
+        );
+    }
+
+    @Test
+    void should_ignore_disabled_internal_flow_policies() {
+        final io.gravitee.definition.model.v4.Api definition = new io.gravitee.definition.model.v4.Api();
+        definition.setInternalFlow(aFlowList("internal-flow").get(1));
+
+        final Api api = new Api(definition);
+
+        assertThat(api.dependencies(Policy.class)).isEmpty();
     }
 
     private Plan aPlan(String name, String securityType, String mode) {

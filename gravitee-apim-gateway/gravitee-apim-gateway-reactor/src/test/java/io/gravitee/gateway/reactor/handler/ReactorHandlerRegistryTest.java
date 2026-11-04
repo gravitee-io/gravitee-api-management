@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.junit.jupiter.api.Assertions;
@@ -809,6 +810,9 @@ public class ReactorHandlerRegistryTest {
                         for (DummyAcceptor d : dummySnapshot) {
                             d.apiId();
                         }
+                        // Busy-spinning readers would take most of a small CI executor's CPU and starve the
+                        // writer past its timeout; parking briefly still interleaves reads with every write.
+                        LockSupport.parkNanos(1_000);
                     } catch (Throwable t) {
                         errors.compareAndSet(null, t);
                     }

@@ -194,6 +194,14 @@ export class ApiV4MenuService implements ApiMenuService {
       });
     }
 
+    const hasHttpListener = api.listeners.some(listener => listener.type === 'HTTP');
+    if (hasHttpListener && this.permissionService.hasAnyMatching(['api-definition-r'])) {
+      tabs.push({
+        displayName: 'Path Mappings',
+        routerLink: 'v4/path-mappings',
+      });
+    }
+
     return {
       ...menuItem,
       routerLink: '',

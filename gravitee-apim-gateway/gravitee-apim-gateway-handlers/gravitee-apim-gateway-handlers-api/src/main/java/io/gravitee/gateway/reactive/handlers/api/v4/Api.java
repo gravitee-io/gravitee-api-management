@@ -125,6 +125,11 @@ public class Api extends AbstractReactableApi<io.gravitee.definition.model.v4.Ap
             addFlowsPolicies(policies, flows);
         }
 
+        // Load policies from the internal flow
+        if (definition.getInternalFlow() != null) {
+            addFlowsPolicies(policies, List.of(definition.getInternalFlow()));
+        }
+
         return policies;
     }
 

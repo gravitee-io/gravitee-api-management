@@ -21,9 +21,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.AuditInfoFixtures;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.exception.InvalidQueryException;
+import io.gravitee.apim.core.analytics_engine.exception.UnsupportedMetricException;
 import io.gravitee.apim.core.analytics_engine.model.AdditionalMetricName;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetName;
@@ -31,17 +36,31 @@ import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
+import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.model.TimeRange;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
+import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
+import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
 import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.apim.core.observability.model.FilterOperator;
 import io.gravitee.apim.infra.adapter.AnalyticsMeasuresAdapter;
+import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
+import io.gravitee.apim.infra.domain_service.analytics_engine.processors.UnitEnrichmentPostProcessorImpl;
+import io.gravitee.repository.analytics.engine.api.metric.AdditionalMetric;
+import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.query.AnalyticsSearchPath;
 import io.gravitee.repository.analytics.engine.api.query.FilterOutcome;
+import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
+import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
+import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
+import io.gravitee.repository.analytics.engine.api.result.MetricMeasuresResult;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,10 +68,12 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 /**
  * An additional metric field reaches the engine through the request documents only: the HTTP and Edge metrics group by it,
- * every other service refuses to, and a condition on it is reported as skipped where the path skips it.
+ * every other service refuses to, a condition on it is reported as skipped where the path skips it, and a field holding
+ * a number is measured by the HTTP data plane alone.
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class AdditionalMetricQueryServiceTest {
@@ -118,6 +139,158 @@ class AdditionalMetricQueryServiceTest {
 
         private static FacetMetricMeasuresRequest count(MetricSpec.Name metric) {
             return new FacetMetricMeasuresRequest(metric, List.of(MetricSpec.Measure.COUNT), List.of());
+        }
+    }
+
+    @Nested
+    class Measuring {
+
+        private static final AdditionalMetricName FAILOVERS = new AdditionalMetricName(
+            new AdditionalMetricField(AdditionalMetricField.ValueType.LONG, "long_failover_count")
+        );
+
+        private final HTTPDataPlaneAnalyticsQueryService http = new HTTPDataPlaneAnalyticsQueryService(repository);
+
+        private final List<AnalyticsEngineQueryService> services = List.of(
+            http,
+            new NativeApiAnalyticsQueryService(repository),
+            new MessageDataPlaneQueryService(repository),
+            new EventMetricsAnalyticsQueryService(repository),
+            new AuthzAnalyticsQueryService(repository),
+            new AuthzTrafficAnalyticsQueryService(repository)
+        );
+
+        @Test
+        void should_measure_a_number_field_on_the_http_data_plane_only() {
+            var provider = new AnalyticsQueryContextProvider(services);
+
+            assertThat(provider.resolve(FAILOVERS)).isSameAs(http);
+            assertThat(services).filteredOn(AnalyticsEngineQueryService::measuresAdditionalMetrics).containsExactly(http);
+        }
+
+        @Test
+        void should_group_a_number_field_by_another_field() {
+            var provider = new AnalyticsQueryContextProvider(services);
+            var request = new FacetsRequest(
+                TIME_RANGE,
+                List.of(),
+                List.of(new FacetMetricMeasuresRequest(FAILOVERS, List.of(MetricSpec.Measure.AVG), List.of())),
+                List.of(TIER),
+                null,
+                List.of()
+            );
+
+            assertThat(provider.resolve(request)).containsOnlyKeys(http);
+        }
+
+        @Test
+        void should_narrow_a_number_field_by_a_condition_as_the_http_path_does() {
+            var provider = new AnalyticsQueryContextProvider(services);
+
+            when(repository.filterOutcome(eq(AnalyticsSearchPath.HTTP), any())).thenReturn(FilterOutcome.APPLIED);
+            assertThat(provider.narrowsBy(FAILOVERS, FilterSpec.Name.API_PRODUCT)).isTrue();
+
+            when(repository.filterOutcome(eq(AnalyticsSearchPath.HTTP), any())).thenReturn(FilterOutcome.IGNORED);
+            assertThat(provider.narrowsBy(FAILOVERS, FilterSpec.Name.API_PRODUCT)).isFalse();
+        }
+
+        @Test
+        void should_refuse_a_number_field_when_no_service_reads_the_request_documents() {
+            var provider = new AnalyticsQueryContextProvider(services.subList(1, services.size()));
+
+            assertThatThrownBy(() -> provider.resolve(FAILOVERS))
+                .isInstanceOf(UnsupportedMetricException.class)
+                .hasMessage("Metric additional-metrics.long_failover_count is not supported at the moment");
+        }
+
+        @Test
+        void should_refuse_two_services_measuring_the_fields() {
+            var duplicate = new HTTPDataPlaneAnalyticsQueryService(repository);
+
+            assertThatThrownBy(() -> new AnalyticsQueryContextProvider(List.of(http, duplicate)))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("More than one analytics service measures additional metrics");
+        }
+
+        @Test
+        void should_send_the_field_to_the_repository_and_read_its_measures_back_under_its_name() {
+            var engineFailovers = AnalyticsMeasuresAdapter.INSTANCE.toMetricName(FAILOVERS);
+            var measures = new HashMap<Measure, Number>();
+            measures.put(Measure.AVG, null);
+            measures.put(Measure.COUNT, 0);
+            when(repository.searchHTTPMeasures(any(), any())).thenReturn(
+                new MeasuresResult(List.of(new MetricMeasuresResult(engineFailovers, measures)))
+            );
+            var request = new MeasuresRequest(
+                TIME_RANGE,
+                List.of(),
+                List.of(new MetricMeasuresRequest(FAILOVERS, List.of(MetricSpec.Measure.AVG, MetricSpec.Measure.COUNT)))
+            );
+
+            var response = http.searchMeasures(new ExecutionContext("DEFAULT", "DEFAULT"), request);
+
+            var query = ArgumentCaptor.forClass(MeasuresQuery.class);
+            verify(repository).searchHTTPMeasures(any(), query.capture());
+            assertThat(query.getValue().metrics()).extracting(MetricMeasuresQuery::metric).containsExactly(engineFailovers);
+            assertThat(engineFailovers).isEqualTo(
+                new AdditionalMetric(
+                    new io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField(
+                        io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField.ValueType.LONG,
+                        "long_failover_count"
+                    )
+                )
+            );
+            var metric = response.metrics().getFirst();
+            assertThat(metric.name()).isEqualTo(FAILOVERS);
+            assertThat(metric.measures()).containsExactlyInAnyOrder(
+                new io.gravitee.apim.core.analytics_engine.model.Measure(MetricSpec.Measure.AVG, null),
+                new io.gravitee.apim.core.analytics_engine.model.Measure(MetricSpec.Measure.COUNT, 0)
+            );
+        }
+    }
+
+    /** The whole measures path with the real catalog: not its 500 for a name it does not hold, and no unit. */
+    @Nested
+    class MeasuresUseCase {
+
+        private static final AdditionalMetricName FAILOVERS = new AdditionalMetricName(
+            new AdditionalMetricField(AdditionalMetricField.ValueType.LONG, "long_failover_count")
+        );
+
+        @Test
+        void should_answer_a_well_formed_number_field_no_request_carries_with_no_value_and_no_unit() {
+            var noValue = new HashMap<Measure, Number>();
+            noValue.put(Measure.AVG, null);
+            noValue.put(Measure.COUNT, 0);
+            when(repository.searchHTTPMeasures(any(), any())).thenReturn(
+                new MeasuresResult(List.of(new MetricMeasuresResult(AnalyticsMeasuresAdapter.INSTANCE.toMetricName(FAILOVERS), noValue)))
+            );
+            var catalog = new AnalyticsDefinitionYAMLQueryService();
+            var useCase = new ComputeMeasuresUseCase(
+                new AnalyticsQueryContextProvider(List.of(new HTTPDataPlaneAnalyticsQueryService(repository))),
+                new AnalyticsQueryValidator(catalog),
+                List.of(),
+                new UnitEnrichmentPostProcessorImpl(catalog),
+                mock(AnalyticsQueryContextLoaderResolver.class)
+            );
+            var request = new MeasuresRequest(
+                TIME_RANGE,
+                List.of(),
+                List.of(new MetricMeasuresRequest(FAILOVERS, List.of(MetricSpec.Measure.AVG, MetricSpec.Measure.COUNT)))
+            );
+
+            var response = useCase.executeForApis(AuditInfoFixtures.anAuditInfo("org", "env", "user"), request, Set.of("api")).response();
+
+            assertThat(response.metrics())
+                .singleElement()
+                .satisfies(metric -> {
+                    assertThat(metric.name()).isEqualTo(FAILOVERS);
+                    assertThat(metric.unit()).isNull();
+                    assertThat(metric.measures()).containsExactlyInAnyOrder(
+                        new io.gravitee.apim.core.analytics_engine.model.Measure(MetricSpec.Measure.AVG, null),
+                        new io.gravitee.apim.core.analytics_engine.model.Measure(MetricSpec.Measure.COUNT, 0)
+                    );
+                });
         }
     }
 

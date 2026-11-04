@@ -156,14 +156,25 @@ paths:
             description: |
                 Returns the filter catalog, optionally narrowed by signal and/or API type. Both axes
                 are optional and multi-valued; omitting an axis means no constraint on it. A filter is
-                included when its declared signals/apiTypes intersect the requested values. No
-                permission is required: the catalog holds no traffic data.
+                included when its declared signals/apiTypes intersect the requested values. A filter
+                with no `apiTypes` applies to every API kind: it is dropped for `AUTHZ_DECISION` alone.
 
-                The built-in filters are followed by the environment's metric definitions (see
-                Metric definitions) as `DECLARED` entries: those with `exposed: true` and a `keyword`,
+                A built-in filter reading an additional metric carries `origin: BUILT_IN`, its `rawKey`
+                and `valueType`. The built-in filters are followed by the environment's metric definitions
+                (see Metric definitions) as `DECLARED` entries: those with `exposed: true` and a `keyword`,
                 `number` or `boolean` type, labelled by their record or else by the label derived from
                 their key, for the `LOGS` and `ANALYTICS` signals. They carry no `apiTypes`: a narrowing
                 `apiType` keeps them for any API kind and drops them for `AUTHZ_DECISION` alone.
+
+                For a caller who reads the environment's traffic (`API_ANALYTICS[READ]` or `API_LOG[READ]`
+                on one of its APIs, or `ENVIRONMENT_PLATFORM[READ]`), the additional metric fields found
+                in the environment's requests over the last 30 days follow as `DISCOVERED` entries, labelled
+                from their key, the most recently seen first and 200 at most (`truncated` says when others
+                were left out), and every entry backed by an additional metric carries its `lastSeen`. The
+                discovery pass is reused for a few minutes: a field a newly deployed plugin starts writing
+                appears after the next refresh. When the pass fails, the catalog is served without them and
+                `truncated` is `true`.
+                Any other caller gets no `DISCOVERED` entry and no `lastSeen`: a login is enough for the rest.
             operationId: getObservabilityFilterDefinitions
             parameters:
                 - name: signal
@@ -269,7 +280,8 @@ paths:
                 `NATIVE_OPERATION` are the exception: their values live in a stream the store does not
                 aggregate over, and they return 400.
                 NUMBER and STRING filters have no enumerable values and return 400. `page` is capped at
-                10000; a larger page returns 400.
+                10000; a larger page returns 400. An additional metric field name holding a `/` cannot travel
+                in this path: use `GET /filters/values?name=`.
             operationId: getObservabilityFilterValues
             parameters:
                 - name: filterName
@@ -411,7 +423,146 @@ paths:
                                 $ref: "#/components/schemas/Error"
                             example:
                                 http_status: 404
-                                message: "Filter 'UNKNOWN_FILTER' not found in the catalog."
+                                message: "Observability filter 'UNKNOWN_FILTER' not found"
+
+    /organizations/{orgId}/environments/{envId}/observability/filters/values:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            tags:
+                - Filters
+            summary: List selectable values for a filter named in the query
+            description: |
+                The values of `GET /filters/{filterName}/values`, the filter named by the `name` query
+                parameter: an additional metric field name may hold a `/` (`additional-metrics.keyword_mcp-proxy_tools/call`),
+                which cannot travel in a path segment. Serves the built-in filters and any well-formed
+                additional metric field name, listed in the catalog or not: a `keyword_` field returns the
+                distinct values found in the calls of the APIs whose aggregates the caller reads (whose logs
+                they read when the field holds the values of a built-in identifying callers); a `bool_` field
+                returns `true` and `false`; `long_`, `int_`, `double_`, `string_` and `json_` fields return 400.
+            operationId: getObservabilityFilterValuesByName
+            parameters:
+                - name: name
+                  in: query
+                  required: true
+                  description: The filter name, built-in or `additional-metrics.<rawKey>`.
+                  example: additional-metrics.keyword_mcp-proxy_tools/call
+                  schema:
+                      type: string
+                - name: query
+                  in: query
+                  required: false
+                  description: As on `GET /filters/{filterName}/values`.
+                  schema:
+                      type: string
+                - name: from
+                  in: query
+                  required: false
+                  description: Start of time range (epoch milliseconds). Only applies to KEYWORD filters.
+                  schema:
+                      type: integer
+                      format: int64
+                - name: to
+                  in: query
+                  required: false
+                  description: End of time range (epoch milliseconds). Only applies to KEYWORD filters.
+                  schema:
+                      type: integer
+                      format: int64
+                - name: page
+                  in: query
+                  required: false
+                  description: 1-based page number.
+                  schema:
+                      type: integer
+                      default: 1
+                      minimum: 1
+                - name: perPage
+                  in: query
+                  required: false
+                  description: Page size (capped server-side at 100).
+                  schema:
+                      type: integer
+                      default: 10
+                      minimum: 1
+                      maximum: 100
+                - name: apiType
+                  in: query
+                  required: false
+                  description: As on `GET /filters/{filterName}/values`.
+                  schema:
+                      type: array
+                      items:
+                          $ref: "#/components/schemas/ApiType"
+                - name: apiProduct
+                  in: query
+                  required: false
+                  description: As on `GET /filters/{filterName}/values`.
+                  schema:
+                      type: string
+            responses:
+                "200":
+                    description: A page of selectable values.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/FilterValuesResponse"
+                            examples:
+                                keyword-additional-metric:
+                                    summary: Values of a keyword additional metric field
+                                    value:
+                                        data:
+                                            - value: "search"
+                                            - value: "fetch"
+                                        pagination:
+                                            totalCount: 2
+                                            page: 1
+                                            perPage: 10
+                                            pageCount: 1
+                                            pageItemsCount: 2
+                                bool-additional-metric:
+                                    summary: Values of a bool additional metric field
+                                    value:
+                                        data:
+                                            - value: "true"
+                                            - value: "false"
+                                        pagination:
+                                            totalCount: 2
+                                            page: 1
+                                            perPage: 10
+                                            pageCount: 1
+                                            pageItemsCount: 2
+                "400":
+                    description: |
+                        No `name` (`observability.filter.name_required`), or a filter whose type does not support
+                        value listing (`observability.filter.value_listing_not_supported`).
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            examples:
+                                name-required:
+                                    summary: No name
+                                    value:
+                                        http_status: 400
+                                        message: "The name of the filter is required"
+                                        technicalCode: "observability.filter.name_required"
+                                value-listing-not-supported:
+                                    summary: A number field
+                                    value:
+                                        http_status: 400
+                                        message: "Filter 'additional-metrics.long_failover_count' of type NUMBER does not support value listing"
+                                        technicalCode: "observability.filter.value_listing_not_supported"
+                "404":
+                    description: The name is neither a filter of the catalog nor a well-formed additional metric field.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                http_status: 404
+                                message: "Observability filter 'additional-metrics.unknown_count' not found"
 
     /organizations/{orgId}/environments/{envId}/observability/filters/resolve:
         parameters:
@@ -793,6 +944,21 @@ paths:
                 signal. Unknown filter names or filters that do not apply to the `LOGS` signal
                 are rejected with 400. Use `GET /observability/filters/definition?signal=LOGS` to
                 discover valid filters.
+
+                **Additional metric fields**: a condition may also name an additional metric field,
+                `additional-metrics.<type>_<key>`, with the operators its type prefix takes: `EQ`/`IN` on
+                `keyword_`, `EQ`/`GTE`/`LTE` on `long_`, `int_` and `double_` (decimals on `double_` only),
+                `EQ` on `bool_`, none on `string_` and `json_`. One `GTE` and one `LTE` on the same field
+                select the values between them. A row matches only when it carries the field; a
+                well-formed name no row carries answers an empty page, whether or not the field is listed
+                by `GET /observability/filters/definition`. Native connection rows are matched like any
+                request row. Every refusal names the field in `message`: a malformed name is
+                `observability.filter.unknown_name`, an operator its type does not take
+                `observability.filter.unsupported_operator`, a value it does not take
+                `observability.filter.invalid_number`, `observability.filter.value_out_of_range` (an `int_`
+                value beyond the integer range, a `double_` one beyond the finite doubles) or `observability.filter.unknown_enum_value`, and any
+                additional metric field alongside `RECORD_TYPE=AUTHZ_DECISION`
+                `observability.filter.not_applicable_to_decisions`.
 
                 **Record kind**: the `RECORD_TYPE` filter selects which document contract the rows
                 are read from — `REQUEST` (the default when the filter is absent) or
@@ -2165,6 +2331,7 @@ components:
                 - `interval` is missing or not positive, on time-series (`observability.query.invalid_interval`)
                 - `limit` is above 100, on time-series (`observability.query.invalid_limit`)
                 - A metric, measure, facet or sort order the engine does not know (`observability.query.unknown_metric`, `unknown_measure`, `unknown_facet`, `unknown_sort_order`)
+                - A metric naming an additional metric field that holds no number, a `keyword_`, `bool_`, `string_` or `json_` one (`observability.query.not_a_metric`)
                 - An array of the body holds a null entry (`observability.query.null_entry`)
                 - A combination the engine refuses, such as a facet a metric does not support (no technical code)
                 - A key the schema does not declare, at any depth: the message names it (no technical code)
@@ -2191,6 +2358,12 @@ components:
                                 http_status: 400
                                 message: "Metric 'HTTP_REQUEST' is not supported"
                                 technicalCode: "observability.query.unknown_metric"
+                        not-a-metric:
+                            summary: An additional metric field holding no number, named as a metric
+                            value:
+                                http_status: 400
+                                message: "'additional-metrics.keyword_fraud-check_tier' is not a metric: it holds KEYWORD values, not numbers"
+                                technicalCode: "observability.query.not_a_metric"
         MetricDefinitionRefused:
             description: |
                 The name or a field breaks a rule, named by `technicalCode`:
@@ -2526,9 +2699,12 @@ components:
                     type: boolean
                     default: false
                     description: |
-                        `true` when the environment's documents carry more additional metric fields than the
-                        catalog lists as `DISCOVERED`: the most recently seen are listed, the others left out.
-                        `BUILT_IN` and `DECLARED` entries are never left out.
+                        `true` when the discovery behind the `DISCOVERED` entries was cut: the environment's documents
+                        carry more additional metric fields than the catalog lists (the most recently seen are listed,
+                        the others left out), or the discovery pass ran out of time or failed (the catalog is then served
+                        with what it found, possibly no `DISCOVERED` entry). `BUILT_IN` and `DECLARED` entries are never
+                        left out. Absent or `false` for a caller who may not read the environment's traffic, and when the
+                        request admits no `DISCOVERED` entry (`apiType=AUTHZ_DECISION` alone, `signal=TRACES`).
 
         ObservabilityCapabilities:
             type: object
@@ -2660,7 +2836,10 @@ components:
                     $ref: "#/components/schemas/TimeRange"
                 filters:
                     type: array
-                    description: Filter conditions to apply. Validated against the LOGS signal catalog.
+                    description: |
+                        Filter conditions to apply, all ANDed. Validated against the LOGS signal catalog; an
+                        additional metric field `additional-metrics.<type>_<key>` is accepted off the catalog
+                        (see the operation).
                     items:
                         $ref: "#/components/schemas/FilterCondition"
 
@@ -2692,8 +2871,9 @@ components:
                 A condition breaking one of these rules is refused with a 400:
 
                 - `name` is in the catalog and applies to the signal (`unknown_name`, `signal_mismatch`). On
-                  analytics, a well-formed additional metric field `additional-metrics.<type>_<key>` is
-                  accepted off the catalog, typed by its prefix, whether or not any request carries it yet;
+                  analytics and the logs search, a well-formed additional metric field
+                  `additional-metrics.<type>_<key>` is accepted off the catalog, typed by its prefix, whether
+                  or not any request carries it yet;
                 - `operator` is one the filter advertises, or the value type of an additional metric field
                   takes (`unsupported_operator`): `EQ`/`IN` on `keyword_`, `EQ`/`GTE`/`LTE` on `long_`,
                   `int_` and `double_`, `EQ` on `bool_`, none on `string_` and `json_`;
@@ -2701,8 +2881,8 @@ components:
                 - `IN` and `NOT_IN` take one or more values, every other operator exactly one
                   (`invalid_arity`, `blank_value`);
                 - an ENUM value is one the filter advertises; a NUMBER value is a whole number within the
-                  filter's range, or any number on a `double_` field; a `bool_` value is `true` or `false`
-                  (`unknown_enum_value`, `invalid_number`, `value_out_of_range`);
+                  filter's range, or a number within ±`Double.MAX_VALUE` on a `double_` field; a `bool_` value
+                  is `true` or `false` (`unknown_enum_value`, `invalid_number`, `value_out_of_range`);
                 - on logs, a filter appears once per request; the only repetition is one `GTE` and one
                   `LTE` on the same NUMBER filter, a closed range whose lower bound is not above its upper
                   bound (`repeated`, `inverted_range`). Analytics ANDs a repeated filter instead.
@@ -2712,7 +2892,7 @@ components:
             properties:
                 name:
                     type: string
-                    description: Canonical filter name from the catalog, or an additional metric field name on analytics.
+                    description: Canonical filter name from the catalog, or an additional metric field name on analytics and the logs search.
                     example: HTTP_STATUS
                 operator:
                     $ref: "#/components/schemas/FilterOperator"
@@ -3277,13 +3457,19 @@ components:
                     type: string
                     description: |
                         Metric name from the analytics engine catalog (e.g. `HTTP_REQUESTS`,
-                        `HTTP_GATEWAY_RESPONSE_TIME`, `HTTP_ERRORS`, `LLM_PROMPT_TOTAL_TOKEN`).
+                        `HTTP_GATEWAY_RESPONSE_TIME`, `HTTP_ERRORS`, `LLM_PROMPT_TOTAL_TOKEN`), or an
+                        additional metric field holding a number, `additional-metrics.<rawKey>` with a
+                        `long_`, `int_` or `double_` key (`additional-metrics.long_failover_count`). Such a
+                        field is measured over the requests carrying it, on the HTTP request documents,
+                        and a well-formed one no request carries answers like an empty window. A field of
+                        another type is refused (`observability.query.not_a_metric`).
                     example: "HTTP_REQUESTS"
                 measures:
                     type: array
                     description: |
                         Aggregation functions to apply. Valid values: `COUNT`, `AVG`, `MIN`, `MAX`,
-                        `SUM`, `P50`, `P90`, `P95`, `P99`, `PERCENTAGE`.
+                        `SUM`, `P50`, `P90`, `P95`, `P99`, `PERCENTAGE`. An additional metric field takes
+                        all but `PERCENTAGE`; its `COUNT` counts the requests carrying it.
                     items:
                         type: string
                     example: ["COUNT"]
@@ -3323,10 +3509,14 @@ components:
             properties:
                 name:
                     type: string
-                    description: Metric name from the analytics engine catalog.
+                    description: |
+                        Metric name from the analytics engine catalog, or an additional metric field
+                        holding a number, as on the measures endpoint. Such a field is grouped by the
+                        built-in facets of `HTTP_REQUESTS` and by any additional metric field that groups.
                     example: "HTTP_REQUESTS"
                 measures:
                     type: array
+                    description: Aggregation functions to apply, as on the measures endpoint.
                     items:
                         type: string
                     example: ["COUNT"]
@@ -3485,7 +3675,12 @@ components:
                     example: "COUNT"
                 value:
                     type: number
-                    description: Computed value.
+                    description: |
+                        Computed value. A built-in metric counts a request without its field as 0. An
+                        additional metric field counts only the requests carrying it: `value` is absent
+                        for `AVG`, `MIN`, `MAX` and the percentiles when the window has no document carrying
+                        the field, while `SUM` and `COUNT` are 0. Values are numbers of double precision, so
+                        a whole number above 2^53 is rounded.
                     example: 42
 
         MetricResult:
@@ -3500,11 +3695,13 @@ components:
                     example: "server-errors"
                 name:
                     type: string
-                    description: Metric name.
+                    description: Metric name, as the request named it.
                     example: "HTTP_REQUESTS"
                 unit:
                     type: string
-                    description: Unit of the metric values.
+                    description: |
+                        Unit of the metric values. Absent for an additional metric field: its declared unit
+                        is served by the metric definitions.
                     example: "NUMBER"
                 measures:
                     type: array
@@ -3577,10 +3774,11 @@ components:
             properties:
                 metric:
                     type: string
-                    description: Metric name.
+                    description: Metric name, as the request named it.
                     example: "HTTP_REQUESTS"
                 unit:
                     type: string
+                    description: Unit of the metric values, absent for an additional metric field.
                     example: "NUMBER"
                 buckets:
                     type: array
@@ -3649,9 +3847,11 @@ components:
             properties:
                 name:
                     type: string
+                    description: Metric name, as the request named it.
                     example: "HTTP_REQUESTS"
                 unit:
                     type: string
+                    description: Unit of the metric values, absent for an additional metric field.
                     example: "NUMBER"
                 buckets:
                     type: array
