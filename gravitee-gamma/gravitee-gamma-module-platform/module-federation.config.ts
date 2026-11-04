@@ -31,6 +31,13 @@ const config: ModuleFederationConfig = {
             },
         ],
     ],
+    // @gravitee/gamma-lib-observability and @gravitee/graphene-charts are deliberately not shared: the
+    // library reads its QueryClient through @tanstack/react-query, which no module shares, so a copy of
+    // the library served by another module (APIM's, when its Observability pages were opened first) would
+    // run on that module's react-query and never see this module's QueryClientProvider ("No QueryClient
+    // set"). Bundling the library keeps it on this module's react-query whatever the load order. Share
+    // them again once @tanstack/react-query is a shared singleton in the shell and in every module that
+    // mounts the library (AIM included): OBS-191.
     shared: (libraryName, sharedConfig) => {
         if (['react', 'react-dom', 'react-router-dom', '@gravitee/graphene-core', '@monaco-editor/react'].includes(libraryName)) {
             return {

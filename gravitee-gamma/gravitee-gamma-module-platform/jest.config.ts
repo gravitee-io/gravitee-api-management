@@ -17,7 +17,9 @@ export default {
     displayName: 'gravitee-gamma-module-platform',
     testEnvironment: 'jest-fixed-jsdom',
     setupFilesAfterEnv: ['<rootDir>/src/main/ui/test-setup.ts'],
-    transformIgnorePatterns: ['/node_modules/(?!(until-async|@gravitee/graphene-core|@gravitee/graphene-policy-studio)/)'],
+    transformIgnorePatterns: [
+        '/node_modules/(?!(until-async|@gravitee/(graphene-core|graphene-charts|graphene-policy-studio|gamma-lib-observability|gamma-modules-sdk)|d3-[a-z-]+|internmap)/)',
+    ],
     moduleNameMapper: {
         '^react$': '<rootDir>/../../node_modules/react/index.js',
         '^react/jsx-runtime$': '<rootDir>/../../node_modules/react/jsx-runtime.js',
@@ -30,12 +32,17 @@ export default {
         '^@gravitee/graphene-core$': '<rootDir>/../../node_modules/@gravitee/graphene-core/dist/index.js',
         '^@gravitee/graphene-core/(.*)$': '<rootDir>/../../node_modules/@gravitee/graphene-core/dist/$1',
         '^@gravitee/graphene-policy-studio$': '<rootDir>/../../node_modules/@gravitee/graphene-policy-studio/dist/index.js',
+        '^@gravitee/graphene-charts$': '<rootDir>/../../node_modules/@gravitee/graphene-charts/dist/index.js',
+        '^@gravitee/graphene-charts/(.*)$': '<rootDir>/../../node_modules/@gravitee/graphene-charts/dist/$1',
+        '^@gravitee/gamma-lib-observability$': '<rootDir>/../../node_modules/@gravitee/gamma-lib-observability/dist/index.js',
+        '^@gravitee/gamma-lib-observability/styles$': '<rootDir>/src/main/ui/shared/testing/stylesheet.stub.ts',
         '^@gravitee/gamma-modules-sdk$': '<rootDir>/src/main/ui/shared/gamma-modules-sdk.ts',
         '^@gravitee/gamma-modules-sdk/routing$': '<rootDir>/../../node_modules/@gravitee/gamma-modules-sdk/dist/routing.js',
         '^@gravitee/gamma-ui-shared/api$': '<rootDir>/../gamma-ui-shared/src/api/index.ts',
         '^@gravitee/gamma-ui-shared/chip-input$': '<rootDir>/../gamma-ui-shared/src/chip-input/index.ts',
         '^@gravitee/gamma-ui-shared/cors$': '<rootDir>/../gamma-ui-shared/src/cors/index.ts',
         '^@gravitee/gamma-ui-shared/federation$': '<rootDir>/../gamma-ui-shared/src/federation/index.ts',
+        '^@gravitee/gamma-ui-shared/observability$': '<rootDir>/../gamma-ui-shared/src/observability/index.ts',
     },
     transform: {
         '^(?!.*\\.(js|jsx|ts|tsx|css|json)$)': '@nx/react/plugins/jest',

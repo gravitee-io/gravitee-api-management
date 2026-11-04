@@ -15,6 +15,7 @@
  */
 import {
     ActivityIcon,
+    BarChart3Icon,
     CloudIcon,
     EyeIcon,
     FileTextIcon,
@@ -103,7 +104,7 @@ describe('platform navigation config', () => {
         expect(findNavSectionKey(NAV_SECTIONS, 'user-fields')).toBe('environment');
     });
 
-    it('places Primary Owner Mode, Access Management, API Review, Gateways, Alerts, Notifications, API Health Check, SMTP, CORS, API Logging, Security Plan Types, Client Registration, and Audit under Environment / System & Security', () => {
+    it('places Primary Owner Mode, Access Management, API Review, Gateways, Alerts, Notifications, API Health Check, SMTP, CORS, API Logging, Metrics configuration, Security Plan Types, Client Registration, and Audit under Environment / System & Security', () => {
         expect(sectionKeys('Environment', 'System & Security')).toEqual([
             'primary-owner-mode',
             'access-management',
@@ -115,6 +116,7 @@ describe('platform navigation config', () => {
             'environment-smtp',
             'environment-cors',
             'api-logging',
+            'environment-metrics-configuration',
             'security-plan-types',
             'client-registration',
             'environment-audit',
@@ -127,6 +129,8 @@ describe('platform navigation config', () => {
         expect(systemItems.find(item => item.key === 'notification-settings')?.title).toBe('Notifications');
         expect(systemItems.find(item => item.key === 'api-review')?.icon).toBe(EyeIcon);
         expect(systemItems.find(item => item.key === 'api-review')?.title).toBe('API Review');
+        expect(systemItems.find(item => item.key === 'environment-metrics-configuration')?.title).toBe('Metrics configuration');
+        expect(systemItems.find(item => item.key === 'environment-metrics-configuration')?.icon).toBe(BarChart3Icon);
         expect(systemItems.find(item => item.key === 'api-health-check')?.icon).toBe(ActivityIcon);
         expect(systemItems.find(item => item.key === 'api-health-check')?.title).toBe('API Health Check');
         expect(systemItems.find(item => item.key === 'environment-smtp')?.icon).toBe(SettingsIcon);
