@@ -942,6 +942,20 @@ jobs:
           command: mvn clean deploy --activate-profiles gio-release --batch-mode -T 4 -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true --settings .gravitee.settings.xml --update-snapshots -DaltDeploymentRepository=azure-artifacts-gravitee::https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee/maven/v1
       - cmd-save-maven-job-cache:
           jobName: job-publish-release
+      - cmd-azure-artifacts-token
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: GITHUB_TOKEN
+      - run:
+          name: Promote the release to the @public view of the Azure feed
+          environment:
+            MAVEN_SETTINGS: .gravitee.settings.xml
+            MAVEN_PROFILES: gio-release
+            PROMOTE_DRY_RUN: "true"
+          command: bash .circleci/scripts/promote-to-view.sh
+      - store_artifacts:
+          path: /tmp/promote-to-view
+          destination: promote-to-view
   job-trigger-saas-docker-images:
     docker:
       - image: cimg/base:stable
