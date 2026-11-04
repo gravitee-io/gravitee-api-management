@@ -2,6 +2,106 @@ suite: Test NOTES
 templates:
   - "NOTES.txt"
 tests:
+  - it: Warn when the deprecated Kafka probe secured key is still set
+    set:
+      gateway:
+        kafka:
+          probe:
+            secured: true
+    asserts:
+      - matchRegexRaw:
+          pattern: "WARNING: gateway.kafka.probe.secured is deprecated"
+  - it: Stay silent about the Kafka probe when the secured key is not set
+    set:
+      gateway:
+        kafka:
+          probe:
+            protocol: tcp
+    asserts:
+      - notMatchRegexRaw:
+          pattern: "gateway.kafka.probe.secured"
+  - it: Warn when the Kafka routing port mode secured key is set without the key every image reads
+    set:
+      gateway:
+        kafka:
+          routingPortMode:
+            secured: true
+    asserts:
+      - matchRegexRaw:
+          pattern: "WARNING: gateway.kafka.routingPortMode.secured is only read by APIM 4.14 or later"
+  - it: Stay silent about the routing port mode when gateway.kafka.secured is set too
+    set:
+      gateway:
+        kafka:
+          secured: true
+          routingPortMode:
+            secured: true
+    asserts:
+      - notMatchRegexRaw:
+          pattern: "gateway.kafka.routingPortMode.secured"
+  - it: Warn when the routing port mode is secured and gateway.kafka.secured is false
+    set:
+      gateway:
+        kafka:
+          secured: false
+          routingPortMode:
+            secured: true
+    asserts:
+      - matchRegexRaw:
+          pattern: "WARNING: gateway.kafka.routingPortMode.secured is only read"
+  - it: Warn when the routing port mode is secured and the deprecated probe secured key is false
+    set:
+      gateway:
+        kafka:
+          probe:
+            secured: false
+          routingPortMode:
+            secured: true
+    asserts:
+      - matchRegexRaw:
+          pattern: "WARNING: gateway.kafka.routingPortMode.secured is only read"
+  - it: Stay silent about the routing port mode when it is false
+    set:
+      gateway:
+        kafka:
+          routingPortMode:
+            secured: false
+    asserts:
+      - notMatchRegexRaw:
+          pattern: "gateway.kafka.routingPortMode.secured"
+  - it: Stay silent about the routing port mode when the deprecated probe secured key renders kafka.secured
+    set:
+      gateway:
+        kafka:
+          probe:
+            secured: true
+          routingPortMode:
+            secured: true
+    asserts:
+      - notMatchRegexRaw:
+          pattern: "gateway.kafka.routingPortMode.secured is only read"
+  - it: Warn when the routing port mode is secured and the deprecated probe secured key is false while gateway.kafka.secured is true
+    set:
+      gateway:
+        kafka:
+          secured: true
+          probe:
+            secured: false
+          routingPortMode:
+            secured: true
+    asserts:
+      - matchRegexRaw:
+          pattern: "WARNING: gateway.kafka.routingPortMode.secured is only read"
+  - it: Render without a warning when the Kafka probe and routing port mode are null
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          probe: null
+          routingPortMode: null
+    asserts:
+      - notMatchRegexRaw:
+          pattern: "gateway.kafka"
   - it: Warn when the MongoDB subchart is enabled
     set:
       mongodb:
