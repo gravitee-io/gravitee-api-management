@@ -17,12 +17,15 @@ package io.gravitee.apim.reporter.elasticsearch.mapping;
 
 import io.gravitee.apim.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.templating.FreeMarkerComponent;
 import io.gravitee.elasticsearch.client.Client;
+import io.gravitee.elasticsearch.exception.ElasticsearchException;
 import io.gravitee.elasticsearch.utils.Type;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableSource;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.functions.Function;
 import java.util.Collections;
 import java.util.HashMap;
@@ -147,7 +150,14 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
         final String initialIndexName = aliasName + "-000001";
         return client
             .getAlias(aliasName)
-            .switchIfEmpty(client.createIndexWithAlias(initialIndexName, aliasTemplate).toMaybe())
+            .switchIfEmpty(
+                client
+                    .createIndexWithAlias(initialIndexName, aliasTemplate)
+                    .onErrorResumeNext(throwable ->
+                        isBadRequest(throwable) ? aliasCreatedMeanwhile(aliasName, throwable) : Completable.error(throwable)
+                    )
+                    .toMaybe()
+            )
             .ignoreElement()
             .onErrorResumeNext(throwable ->
                 Completable.error(
@@ -157,6 +167,25 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
                     )
                 )
             );
+    }
+
+    /**
+     * Gateways starting together all find the alias missing: the slower ones get a 400 resource_already_exists_exception
+     * while the alias they need is in place.
+     */
+    private Completable aliasCreatedMeanwhile(String aliasName, Throwable creationError) {
+        return client
+            .getAlias(aliasName)
+            .doOnSuccess(alias -> log.info("Alias [{}] was created meanwhile, probably by another gateway", aliasName))
+            .switchIfEmpty(Maybe.error(creationError))
+            .ignoreElement();
+    }
+
+    private static boolean isBadRequest(Throwable throwable) {
+        return (
+            throwable instanceof ElasticsearchException elasticsearchException &&
+            Integer.valueOf(HttpStatusCode.BAD_REQUEST_400).equals(elasticsearchException.getStatusCode())
+        );
     }
 
     protected boolean useOldClient(boolean dataStream) {
