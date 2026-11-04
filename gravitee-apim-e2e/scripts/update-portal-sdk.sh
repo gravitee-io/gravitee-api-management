@@ -37,5 +37,10 @@ sed -i.bak "1,50 s|CountAnalytics, DateHistoAnalytics, GroupByAnalyticsToJSON,|G
 sed -i.bak "s|DateHistoAnalytics \| GroupByAnalytics \| CountAnalyticsFromJSON(|CountAnalyticsFromJSON(|" lib/portal-webclient-sdk/src/lib/apis/ApplicationApi.ts
 #sed -i.bak "/export...from....AnalyticsApi.service';/d" lib/portal-webclient-sdk/src/lib/apis/ApiApi.ts
 find lib/portal-webclient-sdk/src -name "*.ts" -exec sed -i.bak "/* The version of the OpenAPI document/d" {} \;
+# The generator gives a sort value and its descending '-' variant the same enum key
+sed -i.bak "s|CreatedAt = '-created_at'|_CreatedAt = '-created_at'|" lib/portal-webclient-sdk/src/lib/apis/PortalApi.ts
+sed -i.bak "s|Api = '-api'|_Api = '-api'|" lib/portal-webclient-sdk/src/lib/apis/PortalApi.ts
+sed -i.bak "s|Application = '-application'|_Application = '-application'|" lib/portal-webclient-sdk/src/lib/apis/PortalApi.ts
+sed -i.bak "s|Subject = '-subject'|_Subject = '-subject'|" lib/portal-webclient-sdk/src/lib/apis/PortalApi.ts
 # must delete .bak files
 find lib/portal-webclient-sdk/src -name "*.ts.bak" -exec rm -f {} \;
