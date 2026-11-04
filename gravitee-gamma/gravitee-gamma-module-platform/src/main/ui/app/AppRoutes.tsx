@@ -104,6 +104,7 @@ import { IntegrationOverviewPage } from '../pages/IntegrationOverviewPage';
 import { IntegrationsPage } from '../pages/IntegrationsPage';
 import { ManagementAndSchedulersPage } from '../pages/ManagementAndSchedulersPage';
 import { MetadataPage } from '../pages/MetadataPage';
+import { MetricsConfigurationPage } from '../pages/MetricsConfigurationPage';
 import { NotificationTemplateDetailPage } from '../pages/NotificationTemplateDetailPage';
 import { NotificationTemplatesPage } from '../pages/NotificationTemplatesPage';
 import { OrganizationPolicyStudioPage } from '../pages/OrganizationPolicyStudioPage';
@@ -579,6 +580,14 @@ export function AppRoutes() {
                                 element={
                                     <NavPermissionGuard itemKey="environment-cors">
                                         <EnvironmentCorsSettingsPage />
+                                    </NavPermissionGuard>
+                                }
+                            />
+                            <Route
+                                path="environment/metrics-configuration"
+                                element={
+                                    <NavPermissionGuard itemKey="environment-metrics-configuration">
+                                        <MetricsConfigurationPage />
                                     </NavPermissionGuard>
                                 }
                             />
