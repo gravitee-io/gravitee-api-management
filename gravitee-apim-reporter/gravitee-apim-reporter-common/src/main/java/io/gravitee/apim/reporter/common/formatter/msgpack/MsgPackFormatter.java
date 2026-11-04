@@ -15,13 +15,19 @@
  */
 package io.gravitee.apim.reporter.common.formatter.msgpack;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import io.gravitee.apim.reporter.common.formatter.AbstractFormatter;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.configuration.Rules;
+import io.gravitee.reporter.api.jackson.AdditionalMetricDeserialization;
+import io.gravitee.reporter.api.jackson.HttpHeadersSerializer;
 import io.gravitee.reporter.api.jackson.JacksonUtils;
+import io.gravitee.reporter.api.v4.metric.AdditionalMetric;
 import io.vertx.core.buffer.Buffer;
 import lombok.CustomLog;
 import org.msgpack.jackson.dataformat.MessagePackMapper;
@@ -33,19 +39,30 @@ import org.msgpack.jackson.dataformat.MessagePackMapper;
 @CustomLog
 public class MsgPackFormatter<T extends Reportable> extends AbstractFormatter<T> {
 
-    // The rules resolve nested paths from the generator's write context, which MessagePackGenerator never updates:
-    // the data is filtered into a tree by the JSON mapper first, then the tree is encoded.
+    // Null without rules. The rules resolve nested paths from the generator's write context, which MessagePackGenerator
+    // never updates: with rules, the data is filtered into a tree by the JSON mapper first, then the tree is encoded.
     private final ObjectMapper filteringMapper;
 
     private final ObjectMapper mapper = new MessagePackMapper();
 
     public MsgPackFormatter(final Rules rules) {
-        filteringMapper = JacksonUtils.mapper(rules);
+        filteringMapper = rules != null && rules.containsRules() ? JacksonUtils.mapper(rules) : null;
+
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(HttpHeaders.class, new HttpHeadersSerializer(rules));
+        module.addDeserializer(AdditionalMetric.class, new AdditionalMetricDeserialization());
+        mapper.registerModule(module);
+
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     @Override
     public Buffer format0(T data) {
         try {
+            if (filteringMapper == null) {
+                return Buffer.buffer(mapper.writeValueAsBytes(data));
+            }
+
             JsonNode tree = filteringMapper.valueToTree(data);
             if (tree.isEmpty()) {
                 log.trace("Excluding data format in reporter: {}", tree);
