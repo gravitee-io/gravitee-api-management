@@ -15,6 +15,8 @@
  */
 package io.gravitee.gamma.rest.core.observability.catalog.inmemory;
 
+import io.gravitee.gamma.rest.core.observability.analytics.inmemory.InMemoryAnalyticsDefinitionPort;
+import io.gravitee.gamma.rest.core.observability.analytics.model.AdditionalMetricSupport;
 import io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinition;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.AnalyticsDefinitionPort;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricDiscovery;
@@ -27,7 +29,6 @@ import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.T
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.infra.adapter.AdditionalMetricGrammarPortAdapter;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,7 @@ public class InMemoryCatalogPorts
     public static final Instant REFRESHED_AT = Instant.parse("2026-10-29T09:45:00Z");
 
     private final Map<String, Set<String>> builtIns = new HashMap<>();
-    private final List<MetricDefinition> builtInMetrics = new ArrayList<>();
+    private InMemoryAnalyticsDefinitionPort analyticsDefinition = new InMemoryAnalyticsDefinitionPort();
     private AdditionalMetricDiscovery discovery = AdditionalMetricDiscovery.empty(REFRESHED_AT);
     private boolean readsTraffic = true;
     private Set<String> lastUncountedKeys = Set.of();
@@ -56,7 +57,13 @@ public class InMemoryCatalogPorts
     }
 
     public InMemoryCatalogPorts givenBuiltInMetric(MetricDefinition metric) {
-        builtInMetrics.add(metric);
+        analyticsDefinition.givenMetric(metric);
+        return this;
+    }
+
+    /** The kinds the engine serves additional metrics for; see {@link InMemoryAnalyticsDefinitionPort#HTTP_KINDS}. */
+    public InMemoryCatalogPorts givenAdditionalMetricsServedFor(List<ApiType> kinds) {
+        analyticsDefinition.givenAdditionalMetricsServedFor(kinds);
         return this;
     }
 
@@ -72,7 +79,7 @@ public class InMemoryCatalogPorts
 
     public void reset() {
         builtIns.clear();
-        builtInMetrics.clear();
+        analyticsDefinition = new InMemoryAnalyticsDefinitionPort();
         discovery = AdditionalMetricDiscovery.empty(REFRESHED_AT);
         readsTraffic = true;
     }
@@ -84,10 +91,12 @@ public class InMemoryCatalogPorts
 
     @Override
     public List<MetricDefinition> metricsOf(ApiType apiKind) {
-        return builtInMetrics
-            .stream()
-            .filter(metric -> metric.apiTypes().contains(apiKind))
-            .toList();
+        return analyticsDefinition.metricsOf(apiKind);
+    }
+
+    @Override
+    public AdditionalMetricSupport additionalMetricSupport() {
+        return analyticsDefinition.additionalMetricSupport();
     }
 
     /** The grammar's filter, then the platform's cap, applied to the configured pass, as the adapter applies them. */

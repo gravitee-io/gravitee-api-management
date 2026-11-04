@@ -116,6 +116,13 @@ class AdditionalMetricFilterTest {
             assertThat(Arrays.stream(AdditionalMetricValueType.values()).map(Enum::name)).contains(valueType.name());
         }
 
+        /** The definition lists a key as a metric when the engine measures its type: the two predicates must agree. */
+        @ParameterizedTest
+        @EnumSource(AdditionalMetricField.ValueType.class)
+        void should_count_a_value_type_as_a_number_when_the_engine_does(AdditionalMetricField.ValueType valueType) {
+            assertThat(AdditionalMetricValueType.valueOf(valueType.name()).isNumber()).isEqualTo(valueType.isNumber());
+        }
+
         @Test
         void should_keep_the_catalog_free_of_additional_metric_fields() {
             assertThat(registry.getFilters(Set.of(), Set.of())).extracting(FilterSpec::valueType).containsOnlyNulls();

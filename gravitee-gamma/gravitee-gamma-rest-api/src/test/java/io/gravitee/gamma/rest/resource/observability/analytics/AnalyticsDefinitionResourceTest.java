@@ -27,11 +27,13 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsDefinition;
+import io.gravitee.gamma.rest.core.observability.analytics.model.DimensionDefinition;
 import io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinition;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.ComputeObservabilityFacetsUseCase;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.ComputeObservabilityMeasuresUseCase;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.ComputeObservabilityTimeSeriesUseCase;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.GetObservabilityAnalyticsDefinitionUseCase;
+import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
@@ -39,9 +41,13 @@ import io.gravitee.gamma.rest.resource.observability.analytics.AnalyticsDefiniti
 import io.gravitee.gamma.rest.spring.ResourceContextConfiguration;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,9 +60,12 @@ import org.springframework.test.context.ContextConfiguration;
 class AnalyticsDefinitionResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "fake-env";
+    private static final String OTHER_ENVIRONMENT = "other-env";
 
     @Inject
     private GetObservabilityAnalyticsDefinitionUseCase getAnalyticsDefinitionUseCase;
+
+    private final Client otherEnvironmentClient = ClientBuilder.newClient();
 
     @Override
     protected String contextPath() {
@@ -90,6 +99,7 @@ class AnalyticsDefinitionResourceTest extends AbstractResourceTest {
         assertThat(body.get("families"))
             .extracting(family -> family.get("name").asText())
             .containsExactly("GATEWAY", "LLM");
+        assertThat(body.get("truncated").asBoolean()).isFalse();
         assertThat(body.get("families").get(0).get("label").asText()).isEqualTo("Gateway");
         JsonNode llmMetric = body.get("families").get(1).get("metrics").get(0);
         assertThat(llmMetric.get("name").asText()).isEqualTo("LLM_PROMPT_TOTAL_TOKEN");
@@ -107,7 +117,7 @@ class AnalyticsDefinitionResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void should_forward_multi_valued_case_insensitive_api_types_to_the_use_case() {
+    void should_forward_the_environment_and_the_multi_valued_case_insensitive_api_types_to_the_use_case() {
         givenDefinition();
 
         Response response = rootTarget("definition").queryParam("apiType", "HTTP_PROXY").queryParam("apiType", "authz").request().get();
@@ -115,7 +125,38 @@ class AnalyticsDefinitionResourceTest extends AbstractResourceTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         var captor = ArgumentCaptor.forClass(GetObservabilityAnalyticsDefinitionUseCase.Input.class);
         verify(getAnalyticsDefinitionUseCase).execute(captor.capture());
+        assertThat(captor.getValue().organizationId()).isEqualTo(ORGANIZATION);
+        assertThat(captor.getValue().environmentId()).isEqualTo(ENVIRONMENT);
         assertThat(captor.getValue().apiTypes()).containsExactlyInAnyOrder(ApiType.HTTP_PROXY, ApiType.AUTHZ);
+    }
+
+    @Test
+    void should_serve_the_additional_metrics_with_their_unit_when_known_and_say_when_the_discovery_was_truncated() {
+        when(getAnalyticsDefinitionUseCase.execute(any())).thenReturn(
+            new GetObservabilityAnalyticsDefinitionUseCase.Output(
+                AnalyticsDefinition.of(
+                    List.of(
+                        anAdditionalMetric("additional-metrics.double_checkout_basket-value", "Basket value", "€", CatalogOrigin.DECLARED),
+                        anAdditionalMetric("additional-metrics.long_failover_count", "Failover count", null, CatalogOrigin.DISCOVERED)
+                    )
+                ),
+                true
+            )
+        );
+
+        JsonNode body = rootTarget("definition").queryParam("apiType", "HTTP_PROXY").request().get().readEntity(JsonNode.class);
+
+        assertThat(body.get("truncated").asBoolean()).isTrue();
+        JsonNode family = body.get("families").get(0);
+        assertThat(family.get("name").asText()).isEqualTo("ADDITIONAL");
+        assertThat(family.get("label").asText()).isEqualTo("Additional metrics");
+        JsonNode declared = family.get("metrics").get(0);
+        assertThat(declared.get("unit").asText()).isEqualTo("€");
+        assertThat(declared.get("origin").asText()).isEqualTo("DECLARED");
+        assertThat(declared.get("measures")).extracting(JsonNode::asText).containsExactly("AVG", "COUNT");
+        JsonNode discovered = family.get("metrics").get(1);
+        assertThat(discovered.has("unit")).isFalse();
+        assertThat(discovered.get("origin").asText()).isEqualTo("DISCOVERED");
     }
 
     @Test
@@ -139,14 +180,15 @@ class AnalyticsDefinitionResourceTest extends AbstractResourceTest {
         assertThat(response.readEntity(JsonNode.class).get("technicalCode").asText()).isEqualTo("observability.query.api_types_required");
     }
 
+    /** The body depends on the caller's traffic right: a shared cache must never serve it to another caller. */
     @Test
-    void should_tag_the_response_and_ask_the_client_to_revalidate_it() {
+    void should_tag_the_response_and_ask_the_client_to_revalidate_it_without_sharing_it() {
         givenDefinition(aMetric("HTTP_REQUESTS", List.of(ApiType.HTTP_PROXY), "API"));
 
         Response response = rootTarget("definition").queryParam("apiType", "HTTP_PROXY").request().get();
 
         assertThat(response.getEntityTag()).isNotNull();
-        assertThat(response.getHeaderString(HttpHeaders.CACHE_CONTROL)).isEqualTo("no-cache");
+        assertThat(response.getHeaderString(HttpHeaders.CACHE_CONTROL)).isEqualTo("private, no-cache");
     }
 
     @Test
@@ -159,6 +201,50 @@ class AnalyticsDefinitionResourceTest extends AbstractResourceTest {
 
         assertThat(again).isEqualTo(first);
         assertThat(other).isNotEqualTo(first);
+    }
+
+    /** The same built-ins, with and without the discovered entries a traffic reader gets, are two bodies: two tags. */
+    @Test
+    void should_tag_the_definition_of_a_traffic_reader_differently_from_the_one_of_a_login_only_caller() {
+        var builtIn = aMetric("HTTP_REQUESTS", List.of(ApiType.HTTP_PROXY), "API");
+        var discovered = anAdditionalMetric("additional-metrics.long_failover_count", "Failover count", null, CatalogOrigin.DISCOVERED);
+        givenDefinition(builtIn);
+        var loginOnly = rootTarget("definition").queryParam("apiType", "HTTP_PROXY").request().get().getEntityTag();
+        givenDefinition(builtIn, discovered);
+        var reader = rootTarget("definition").queryParam("apiType", "HTTP_PROXY").request().get().getEntityTag();
+
+        assertThat(reader).isNotEqualTo(loginOnly);
+        Response revalidated = rootTarget("definition")
+            .queryParam("apiType", "HTTP_PROXY")
+            .request()
+            .header(HttpHeaders.IF_NONE_MATCH, loginOnly.toString())
+            .get();
+        assertThat(revalidated.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        assertThat(revalidated.getEntityTag()).isEqualTo(reader);
+    }
+
+    @Test
+    void should_tag_the_definition_of_each_environment_with_its_own_tag() {
+        EnvironmentEntity other = new EnvironmentEntity();
+        other.setId(OTHER_ENVIRONMENT);
+        other.setOrganizationId(ORGANIZATION);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, OTHER_ENVIRONMENT)).thenReturn(other);
+        when(getAnalyticsDefinitionUseCase.execute(any())).thenAnswer(invocation -> {
+            var input = invocation.getArgument(0, GetObservabilityAnalyticsDefinitionUseCase.Input.class);
+            var metric = anAdditionalMetric(
+                "additional-metrics.double_" + input.environmentId(),
+                input.environmentId(),
+                null,
+                CatalogOrigin.DECLARED
+            );
+            return new GetObservabilityAnalyticsDefinitionUseCase.Output(AnalyticsDefinition.of(List.of(metric)), false);
+        });
+
+        var ours = rootTarget("definition").queryParam("apiType", "HTTP_PROXY").request().get().getEntityTag();
+        var theirs = environmentTarget(OTHER_ENVIRONMENT).queryParam("apiType", "HTTP_PROXY").request().get().getEntityTag();
+
+        assertThat(ours).isNotNull();
+        assertThat(theirs).isNotNull().isNotEqualTo(ours);
     }
 
     @Test
@@ -177,7 +263,7 @@ class AnalyticsDefinitionResourceTest extends AbstractResourceTest {
         assertThat(response.getEntityTag()).isEqualTo(tag);
     }
 
-    /** The definition holds no traffic data. */
+    /** A login is enough: the built-ins need no permission; the discovered entries are gated in the use case. */
     @Test
     void should_return_the_definition_to_a_caller_without_any_permission() {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
@@ -190,8 +276,32 @@ class AnalyticsDefinitionResourceTest extends AbstractResourceTest {
 
     private void givenDefinition(MetricDefinition... metrics) {
         when(getAnalyticsDefinitionUseCase.execute(any())).thenReturn(
-            new GetObservabilityAnalyticsDefinitionUseCase.Output(AnalyticsDefinition.of(List.of(metrics)))
+            new GetObservabilityAnalyticsDefinitionUseCase.Output(AnalyticsDefinition.of(List.of(metrics)), false)
         );
+    }
+
+    private static MetricDefinition anAdditionalMetric(String name, String label, String unit, CatalogOrigin origin) {
+        return new MetricDefinition(
+            name,
+            label,
+            unit,
+            List.of(ApiType.HTTP_PROXY, ApiType.LLM),
+            List.of("AVG", "COUNT"),
+            List.of(new DimensionDefinition("API", "API label", CatalogOrigin.BUILT_IN)),
+            List.of("API"),
+            origin
+        );
+    }
+
+    /** The harness targets one environment: another one is reached through the same server under its own path. */
+    private WebTarget environmentTarget(String environment) {
+        var ours = rootTarget("definition").getUri().toString();
+        return otherEnvironmentClient.target(ours.replace("/environments/" + ENVIRONMENT + "/", "/environments/" + environment + "/"));
+    }
+
+    @AfterAll
+    void closeOtherEnvironmentClient() {
+        otherEnvironmentClient.close();
     }
 
     @Configuration

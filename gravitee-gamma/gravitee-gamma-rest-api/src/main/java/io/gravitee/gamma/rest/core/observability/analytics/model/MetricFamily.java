@@ -22,7 +22,9 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * A group of metrics as the widget editor lists them, in display order, grouped by the API kind they exist for.
+ * A group of metrics as the widget editor lists them, in display order. The built-in metrics are grouped by the API
+ * kind they exist for; the additional metric fields of the environment, whatever their kinds, come last under
+ * {@link #ADDITIONAL}, so the editor shows them as one group.
  *
  * <p>A family of one kind is labelled as that kind, {@link ApiType#label()}, the label the {@code API_TYPE} filter
  * serves for its values: the Gamma surface names a kind one way, in a filter chip as in the editor's groups
@@ -36,7 +38,8 @@ public enum MetricFamily {
     MESSAGE(ApiType.MESSAGE),
     EDGE(ApiType.EDGE),
     NATIVE(ApiType.NATIVE),
-    AUTHZ(ApiType.AUTHZ);
+    AUTHZ(ApiType.AUTHZ),
+    ADDITIONAL("Additional metrics");
 
     private final String ownLabel;
     private final ApiType ownKind;
@@ -55,14 +58,15 @@ public enum MetricFamily {
         return ownKind != null ? ownKind.label() : ownLabel;
     }
 
-    /** The one API kind a family groups the metrics of; empty for {@link #GATEWAY}. */
+    /** The one API kind a family groups the metrics of; empty for {@link #GATEWAY} and {@link #ADDITIONAL}. */
     public Optional<ApiType> ownKind() {
         return Optional.ofNullable(ownKind);
     }
 
     /**
-     * The family of the one API kind a metric exists for. A metric shared by several kinds is a gateway metric: the
-     * HTTP ones exist for every kind served over HTTP, LLM included.
+     * The family of a built-in metric: that of the one API kind it exists for. A metric shared by several kinds is a
+     * gateway metric: the HTTP ones exist for every kind served over HTTP, LLM included. Never {@link #ADDITIONAL},
+     * which an entry takes from its origin, not from its kinds.
      */
     public static MetricFamily of(Collection<ApiType> apiTypes) {
         var kinds = Set.copyOf(apiTypes);

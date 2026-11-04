@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.exception.InvalidQueryException;
+import io.gravitee.apim.core.analytics_engine.model.AdditionalMetricName;
 import io.gravitee.apim.core.analytics_engine.model.ApiSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
@@ -36,6 +37,10 @@ import io.gravitee.gamma.rest.core.observability.analytics.model.MetricFamily;
 import io.gravitee.gamma.rest.core.observability.analytics.port.AnalyticsDefinitionPortContractTest;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.AnalyticsDefinitionPort;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.GetObservabilityAnalyticsDefinitionUseCase;
+import io.gravitee.gamma.rest.core.observability.catalog.domain_service.AdditionalMetricCatalogDomainService;
+import io.gravitee.gamma.rest.core.observability.catalog.domain_service.MetricDefinitionKeyDomainService;
+import io.gravitee.gamma.rest.core.observability.catalog.inmemory.InMemoryAdditionalMetricDefinitionRepository;
+import io.gravitee.gamma.rest.core.observability.catalog.inmemory.InMemoryCatalogPorts;
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
@@ -66,9 +71,18 @@ class AnalyticsDefinitionPortAdapterTest extends AnalyticsDefinitionPortContract
         new GetApiMetricSpecUseCase(catalog),
         new GetMetricFacetSpecUseCase(catalog),
         new GetMetricFilterSpecUseCase(catalog),
-        filterRegistry
+        filterRegistry,
+        AnalyticsEngineRouting.provider()
     );
-    private final GetObservabilityAnalyticsDefinitionUseCase useCase = new GetObservabilityAnalyticsDefinitionUseCase(adapter);
+    private final InMemoryCatalogPorts platform = new InMemoryCatalogPorts();
+    private final GetObservabilityAnalyticsDefinitionUseCase useCase = new GetObservabilityAnalyticsDefinitionUseCase(
+        adapter,
+        new InMemoryAdditionalMetricDefinitionRepository(),
+        platform,
+        platform,
+        platform,
+        new AdditionalMetricCatalogDomainService(new MetricDefinitionKeyDomainService(new AdditionalMetricGrammarPortAdapter(), platform))
+    );
 
     @Override
     protected AnalyticsDefinitionPort port() {
@@ -168,6 +182,42 @@ class AnalyticsDefinitionPortAdapterTest extends AnalyticsDefinitionPortContract
             );
             assertThat(metric.origin()).isEqualTo(CatalogOrigin.BUILT_IN);
         }
+    }
+
+    /**
+     * An additional metric is measured in the request documents: grouped and filtered like the built-in read there, and
+     * served for every kind whose built-ins the engine searches in those documents, Edge included (OBS-70 §8).
+     */
+    @Test
+    void should_serve_additional_metrics_as_the_engine_measures_them_like_the_built_in_whose_dimensions_they_take() {
+        var dimensionsOf = adapter
+            .metricsOf(ApiType.HTTP_PROXY)
+            .stream()
+            .filter(metric -> metric.name().equals(AdditionalMetricName.DIMENSIONS_OF.name()))
+            .findFirst()
+            .orElseThrow();
+        var routing = AnalyticsEngineRouting.provider();
+
+        var support = adapter.additionalMetricSupport();
+
+        assertThat(support.apiTypes()).containsExactly(
+            ApiType.HTTP_PROXY,
+            ApiType.MESSAGE,
+            ApiType.LLM,
+            ApiType.MCP,
+            ApiType.A2A,
+            ApiType.EDGE
+        );
+        for (var kind : ApiSpec.Name.values()) {
+            var measuredThere = catalog
+                .getMetrics(kind)
+                .stream()
+                .anyMatch(spec -> routing.measuresAdditionalMetricsLike(spec.name()));
+            assertThat(support.apiTypes().contains(ApiType.valueOf(kind.name()))).as(kind.name()).isEqualTo(measuredThere);
+        }
+        assertThat(support.facets()).containsExactlyElementsOf(dimensionsOf.facets());
+        assertThat(support.filters()).containsExactlyElementsOf(dimensionsOf.filters());
+        assertThat(support.measures()).containsExactly("AVG", "SUM", "MIN", "MAX", "P50", "P90", "P95", "P99", "COUNT");
     }
 
     /** A kind added to {@link ApiType} before the catalog knows it would be refused by the engine without a technical code. */
@@ -286,7 +336,7 @@ class AnalyticsDefinitionPortAdapterTest extends AnalyticsDefinitionPortContract
     }
 
     private AnalyticsDefinition definitionOf(ApiType... kinds) {
-        return useCase.execute(new GetObservabilityAnalyticsDefinitionUseCase.Input(Set.of(kinds))).definition();
+        return useCase.execute(new GetObservabilityAnalyticsDefinitionUseCase.Input("DEFAULT", "DEFAULT", Set.of(kinds))).definition();
     }
 
     private static List<String> metricNames(AnalyticsDefinition definition) {

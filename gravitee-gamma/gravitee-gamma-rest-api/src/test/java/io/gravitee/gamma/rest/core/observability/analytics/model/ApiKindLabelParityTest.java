@@ -41,7 +41,7 @@ class ApiKindLabelParityTest {
         .orElseThrow();
 
     @ParameterizedTest
-    @EnumSource(value = MetricFamily.class, names = { "GATEWAY" }, mode = EnumSource.Mode.EXCLUDE)
+    @EnumSource(value = MetricFamily.class, names = { "GATEWAY", "ADDITIONAL" }, mode = EnumSource.Mode.EXCLUDE)
     void should_label_the_family_of_a_kind_as_the_api_type_filter_labels_its_value(MetricFamily family) {
         var kind = family.ownKind().orElseThrow();
 

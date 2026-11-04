@@ -24,6 +24,7 @@ import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFilterSpecUseCase;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
 import io.gravitee.apim.infra.query_service.analytics_engine.BuiltInAdditionalMetricsQueryServiceImpl;
+import io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinition;
 import io.gravitee.gamma.rest.core.observability.catalog.domain_service.AdditionalMetricCatalogDomainService;
 import io.gravitee.gamma.rest.core.observability.catalog.domain_service.MetricDefinitionKeyDomainService;
 import io.gravitee.gamma.rest.core.observability.catalog.inmemory.InMemoryAdditionalMetricDefinitionRepository;
@@ -143,6 +144,37 @@ class BuiltInAdditionalMetricCatalogTest {
             .allSatisfy(spec -> assertThat(builtInNamesByRawKey.get(spec.catalog().rawKey())).as(spec.name()).contains(spec.name()));
     }
 
+    /**
+     * The analytics definition on the same real set: a discovered numeric key a built-in metric reads is never an
+     * {@code ADDITIONAL} metric, the built-in is; a numeric key no built-in reads is.
+     */
+    @Test
+    void should_list_no_key_a_built_in_metric_reads_as_an_additional_metric_of_the_definition() {
+        var builtInPort = platformBuiltIns();
+        var builtInNamesByRawKey = builtInPort.builtInNamesByRawKey();
+        var keys = new MetricDefinitionKeyDomainService(new AdditionalMetricGrammarPortAdapter(), builtInPort);
+        var seen = Instant.parse("2026-11-03T08:00:00Z");
+        var discovery = new AdditionalMetricDiscovery(
+            List.of(
+                new DiscoveredAdditionalMetric("long_llm-proxy_tokens-sent", AdditionalMetricValueType.LONG, seen),
+                new DiscoveredAdditionalMetric("double_llm-proxy_sent-cost", AdditionalMetricValueType.DOUBLE, seen),
+                new DiscoveredAdditionalMetric("long_failover_count", AdditionalMetricValueType.LONG, seen)
+            ),
+            seen,
+            false
+        );
+        assertThat(builtInNamesByRawKey).containsKeys("long_llm-proxy_tokens-sent", "double_llm-proxy_sent-cost");
+
+        var metrics = new AdditionalMetricCatalogDomainService(keys).metricCatalog(
+            builtInNamesByRawKey,
+            List.of(),
+            Optional.of(discovery),
+            new InMemoryCatalogPorts().additionalMetricSupport()
+        );
+
+        assertThat(metrics).extracting(MetricDefinition::name).containsExactly("additional-metrics.long_failover_count");
+    }
+
     /** The key set the platform builds: the ES field resolvers and the logs-path adapters. */
     private static BuiltInAdditionalMetricsPortAdapter platformBuiltIns() {
         var analyticsRepository = mock(AnalyticsRepository.class);
@@ -165,7 +197,8 @@ class BuiltInAdditionalMetricCatalogTest {
                 new GetApiMetricSpecUseCase(definition),
                 new GetMetricFacetSpecUseCase(definition),
                 new GetMetricFilterSpecUseCase(definition),
-                filterRegistry
+                filterRegistry,
+                AnalyticsEngineRouting.provider()
             ),
             new AdditionalMetricCatalogDomainService(
                 new MetricDefinitionKeyDomainService(new AdditionalMetricGrammarPortAdapter(), builtInPort)

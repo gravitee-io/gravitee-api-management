@@ -87,13 +87,15 @@ public class GammaAnalyticsConfiguration {
         GetApiMetricSpecUseCase getApiMetricSpecUseCase,
         GetMetricFacetSpecUseCase getMetricFacetSpecUseCase,
         GetMetricFilterSpecUseCase getMetricFilterSpecUseCase,
-        FilterRegistry filterRegistry
+        FilterRegistry filterRegistry,
+        AnalyticsQueryContextProvider queryContextProvider
     ) {
         return new AnalyticsDefinitionPortAdapter(
             getApiMetricSpecUseCase,
             getMetricFacetSpecUseCase,
             getMetricFilterSpecUseCase,
-            filterRegistry
+            filterRegistry,
+            queryContextProvider
         );
     }
 }

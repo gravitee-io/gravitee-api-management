@@ -18,6 +18,8 @@ package io.gravitee.gamma.rest.resources.observability.analytics.dto;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.gravitee.gamma.rest.core.observability.analytics.model.MetricFamily;
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
@@ -36,6 +38,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class AnalyticsDefinitionResponseDtoTest {
 
+    private static final ObjectMapper JSON = new ObjectMapper();
     private static JsonNode schemas;
 
     @BeforeAll
@@ -45,23 +48,43 @@ class AnalyticsDefinitionResponseDtoTest {
         }
     }
 
+    /** Every property is documented and required, but the ones the mapper leaves out when null, named in the third column. */
     @ParameterizedTest
     @CsvSource(
-        {
-            "AnalyticsDefinitionResponse, io.gravitee.gamma.rest.resources.observability.analytics.dto.AnalyticsDefinitionResponseDto",
-            "MetricFamily, io.gravitee.gamma.rest.resources.observability.analytics.dto.AnalyticsDefinitionResponseDto$MetricFamilyDto",
-            "MetricDefinition, io.gravitee.gamma.rest.resources.observability.analytics.dto.AnalyticsDefinitionResponseDto$MetricDefinitionDto",
-            "DimensionDefinition, io.gravitee.gamma.rest.resources.observability.analytics.dto.AnalyticsDefinitionResponseDto$DimensionDefinitionDto",
-        }
+        value = {
+            "AnalyticsDefinitionResponse | io.gravitee.gamma.rest.resources.observability.analytics.dto.AnalyticsDefinitionResponseDto |",
+            "MetricFamily | io.gravitee.gamma.rest.resources.observability.analytics.dto.AnalyticsDefinitionResponseDto$MetricFamilyDto |",
+            "MetricDefinition | io.gravitee.gamma.rest.resources.observability.analytics.dto.AnalyticsDefinitionResponseDto$MetricDefinitionDto | unit",
+            "DimensionDefinition | io.gravitee.gamma.rest.resources.observability.analytics.dto.AnalyticsDefinitionResponseDto$DimensionDefinitionDto |",
+        },
+        delimiter = '|'
     )
-    void should_carry_exactly_the_documented_properties_all_of_them_required(String schemaName, Class<? extends Record> dto) {
+    void should_carry_exactly_the_documented_properties_required_unless_left_out_when_unknown(
+        String schemaName,
+        Class<? extends Record> dto,
+        String optional
+    ) {
         var schema = schemas.get(schemaName);
-        var components = Arrays.stream(dto.getRecordComponents())
-            .map(component -> component.getName())
-            .toList();
+        var serialized = serializedNames(dto);
+        var optionals = optional == null ? List.<String>of() : List.of(optional.split(","));
 
-        assertThat(fieldNames(schema.get("properties"))).containsExactlyElementsOf(components);
-        assertThat(texts(schema.get("required"))).containsExactlyInAnyOrderElementsOf(components);
+        assertThat(fieldNames(schema.get("properties"))).containsExactlyElementsOf(serialized);
+        assertThat(texts(schema.get("required"))).containsExactlyInAnyOrderElementsOf(
+            serialized
+                .stream()
+                .filter(property -> !optionals.contains(property))
+                .toList()
+        );
+    }
+
+    /** The names Jackson writes, in declaration order: what the wire carries, not the record's component names. */
+    private static List<String> serializedNames(Class<?> dto) {
+        return JSON.getSerializationConfig()
+            .introspect(JSON.constructType(dto))
+            .findProperties()
+            .stream()
+            .map(BeanPropertyDefinition::getName)
+            .toList();
     }
 
     @Test
@@ -71,10 +94,14 @@ class AnalyticsDefinitionResponseDtoTest {
         );
     }
 
+    /** The origins are the shared catalog ones: the entry schemas point at that schema rather than copying its values. */
     @ParameterizedTest
     @CsvSource({ "MetricDefinition", "DimensionDefinition" })
     void should_document_every_origin_an_entry_is_served_with(String schemaName) {
-        assertThat(texts(schemas.at("/" + schemaName + "/properties/origin/enum"))).containsAll(
+        assertThat(schemas.at("/" + schemaName + "/properties/origin/allOf/0/$ref").asText()).isEqualTo(
+            "#/components/schemas/CatalogOrigin"
+        );
+        assertThat(texts(schemas.at("/CatalogOrigin/enum"))).containsExactlyInAnyOrderElementsOf(
             Arrays.stream(CatalogOrigin.values()).map(Enum::name).toList()
         );
     }

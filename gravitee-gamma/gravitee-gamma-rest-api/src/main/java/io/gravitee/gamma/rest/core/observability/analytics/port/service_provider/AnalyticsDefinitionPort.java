@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.core.observability.analytics.port.service_provider;
 
+import io.gravitee.gamma.rest.core.observability.analytics.model.AdditionalMetricSupport;
 import io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinition;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import java.util.List;
@@ -26,6 +27,9 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface AnalyticsDefinitionPort {
-    /** The metrics existing for this API kind, in catalog order. */
+    /** The built-in metrics existing for this API kind, in catalog order. */
     List<MetricDefinition> metricsOf(ApiType apiKind);
+
+    /** What the engine accepts on every additional metric field holding a number. */
+    AdditionalMetricSupport additionalMetricSupport();
 }

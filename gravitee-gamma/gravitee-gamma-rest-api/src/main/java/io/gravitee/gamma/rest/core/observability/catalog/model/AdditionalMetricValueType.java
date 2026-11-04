@@ -42,6 +42,11 @@ public enum AdditionalMetricValueType {
         return prefix;
     }
 
+    /** Holds a number: the one kind of key the analytics engine measures. */
+    public boolean isNumber() {
+        return this == LONG || this == INT || this == DOUBLE;
+    }
+
     /** Stored as text: shown in the log detail, never filtered, faceted or measured. */
     public boolean isDetailOnly() {
         return this == STRING || this == JSON;

@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.core.observability.catalog.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.gamma.rest.core.observability.analytics.model.AdditionalMetricSupport;
 import io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinition;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricCatalog;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricCatalogEntry;
@@ -164,6 +165,39 @@ public class AdditionalMetricCatalogDomainService {
     }
 
     /**
+     * The numeric keys of the environment as metrics of the analytics definition, in the order {@link #resolve} lists
+     * them: the exposed records holding a number as {@code DECLARED} entries, then, when a discovery is given, the other
+     * discovered numeric keys as {@code DISCOVERED} entries. A key a built-in reads is never listed: the built-in metric
+     * is. Labels follow declared › derived; the unit is the record's, none otherwise. Every entry takes the same
+     * kinds, measures, facets and filters: the engine's, in {@code support}.
+     *
+     * @param discovery the environment's discovery, empty when the caller may not read its traffic
+     */
+    public List<MetricDefinition> metricCatalog(
+        Map<String, Set<String>> builtInNamesByRawKey,
+        List<AdditionalMetricDefinition> records,
+        Optional<AdditionalMetricDiscovery> discovery,
+        AdditionalMetricSupport support
+    ) {
+        List<MetricDefinition> metrics = new ArrayList<>();
+        for (Resolved key : resolve(builtInNamesByRawKey, records, discovery)) {
+            if (!key.field().valueType().isNumber()) {
+                continue;
+            }
+            switch (key.origin()) {
+                case BUILT_IN -> {}
+                case DECLARED -> {
+                    if (key.record().exposed()) {
+                        metrics.add(metric(key, key.record().effectiveLabel(), key.record().unit(), support));
+                    }
+                }
+                case DISCOVERED -> metrics.add(metric(key, key.field().derivedLabel(), null, support));
+            }
+        }
+        return metrics;
+    }
+
+    /**
      * One key of the environment, its origin resolved {@code BUILT_IN} › {@code DECLARED} › {@code DISCOVERED}.
      *
      * @param builtInNames the built-in names reading the key, on a {@code BUILT_IN} key
@@ -238,6 +272,19 @@ public class AdditionalMetricCatalogDomainService {
             DYNAMIC_SIGNALS,
             Set.of(),
             flags(key)
+        );
+    }
+
+    private static MetricDefinition metric(Resolved key, String label, String unit, AdditionalMetricSupport support) {
+        return new MetricDefinition(
+            key.field().name(),
+            label,
+            unit,
+            support.apiTypes(),
+            support.measures(),
+            support.facets(),
+            support.filters(),
+            key.origin()
         );
     }
 

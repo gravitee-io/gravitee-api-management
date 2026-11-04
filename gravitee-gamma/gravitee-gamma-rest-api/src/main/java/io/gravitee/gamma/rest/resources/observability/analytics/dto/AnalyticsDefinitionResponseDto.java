@@ -24,9 +24,10 @@ import java.util.List;
  * Wire shape of the analytics definition: families of metrics whose facets are named only, their labels being
  * in {@code dimensions} once for all.
  *
+ * @param truncated whether keys may be missing from the {@code ADDITIONAL} family; see the use case
  * @author GraviteeSource Team
  */
-public record AnalyticsDefinitionResponseDto(List<MetricFamilyDto> families, List<DimensionDefinitionDto> dimensions) {
+public record AnalyticsDefinitionResponseDto(List<MetricFamilyDto> families, List<DimensionDefinitionDto> dimensions, boolean truncated) {
     public record MetricFamilyDto(String name, String label, List<MetricDefinitionDto> metrics) {}
 
     public record MetricDefinitionDto(
@@ -55,7 +56,7 @@ public record AnalyticsDefinitionResponseDto(List<MetricFamilyDto> families, Lis
 
     public record DimensionDefinitionDto(String name, String label, String origin) {}
 
-    public static AnalyticsDefinitionResponseDto from(AnalyticsDefinition definition) {
+    public static AnalyticsDefinitionResponseDto from(AnalyticsDefinition definition, boolean truncated) {
         return new AnalyticsDefinitionResponseDto(
             definition
                 .families()
@@ -72,7 +73,8 @@ public record AnalyticsDefinitionResponseDto(List<MetricFamilyDto> families, Lis
                 .dimensions()
                 .stream()
                 .map(dimension -> new DimensionDefinitionDto(dimension.name(), dimension.label(), dimension.origin().name()))
-                .toList()
+                .toList(),
+            truncated
         );
     }
 }
