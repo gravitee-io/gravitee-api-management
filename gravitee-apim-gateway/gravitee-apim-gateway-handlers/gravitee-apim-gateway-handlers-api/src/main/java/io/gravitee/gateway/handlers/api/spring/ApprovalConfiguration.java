@@ -16,9 +16,12 @@
 package io.gravitee.gateway.handlers.api.spring;
 
 import io.gravitee.gateway.handlers.api.manager.ApprovalRuleManager;
+import io.gravitee.gateway.handlers.api.manager.ApprovalStateManager;
 import io.gravitee.gateway.handlers.api.manager.impl.ApprovalFeature;
 import io.gravitee.gateway.handlers.api.manager.impl.ApprovalRuleManagerImpl;
+import io.gravitee.gateway.handlers.api.manager.impl.ApprovalStateManagerImpl;
 import io.gravitee.node.api.license.LicenseManager;
+import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -39,5 +42,10 @@ public class ApprovalConfiguration {
     @Bean
     public ApprovalRuleManager approvalRuleManager(ApprovalFeature approvalFeature) {
         return new ApprovalRuleManagerImpl(approvalFeature);
+    }
+
+    @Bean
+    public ApprovalStateManager approvalStateManager(ApprovalFeature approvalFeature) {
+        return new ApprovalStateManagerImpl(approvalFeature, Clock.systemUTC());
     }
 }
