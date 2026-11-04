@@ -41,10 +41,12 @@ import io.gravitee.policy.assignattributes.configuration.AssignAttributesPolicyC
 import io.gravitee.secrets.api.plugin.SecretManagerConfiguration;
 import io.gravitee.secrets.api.plugin.SecretProviderFactory;
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
+import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.io.IOException;
 import java.util.Map;
@@ -500,7 +502,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
             "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-most-once.json",
         }
     )
-    void should_receive_empty_items_while_requesting_recent_cursor_with_specific_qos(Qos qos, HttpClient client, Vertx vertx) {
+    void should_receive_empty_items_while_requesting_recent_cursor_with_specific_qos(Qos qos, HttpClient client) {
         // In order to simplify the test, Kafka endpoint's consumer is configured with "autoOffsetReset": "earliest"
         // It allows us to publish the messages in the topic before opening the api connection through SSE entrypoint.
         Single.fromCallable(() -> getKafkaProducer(vertx))
@@ -538,6 +540,47 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
     }
 
     @EnumSource(value = Qos.class, names = { "AT_MOST_ONCE", "AT_LEAST_ONCE" })
+    @ParameterizedTest(name = "should resume from percent-encoded cursor and {0} qos")
+    @DeployApi(
+        {
+            "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-least-once.json",
+            "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-most-once.json",
+        }
+    )
+    void should_resume_from_percent_encoded_cursor_with_specific_qos(Qos qos, HttpClient client, Vertx vertx) {
+        Single.fromCallable(() -> getKafkaProducer(vertx))
+            .flatMapCompletable(producer ->
+                publishToKafka(producer, "message1").andThen(publishToKafka(producer, "message2")).doFinally(producer::close)
+            )
+            .blockingAwait();
+
+        // cursor=test-topic@0#0 with its base64 padding percent-encoded: only the record at offset 1 is left to read.
+        getJson(client, "/test-" + qos.getLabel() + "?cursor=dGVzdC10b3BpY0AwIzA%3D").assertValue(body -> {
+            final JsonArray items = new JsonObject(body.toString()).getJsonArray("items");
+            assertThat(items).hasSize(1);
+            assertThat(items.getJsonObject(0).getString("content")).isEqualTo("message2");
+            assertThat(items.getJsonObject(0).getString("id")).isEqualTo("dGVzdC10b3BpY0AwIzE="); // test-topic@0#1
+
+            return true;
+        });
+    }
+
+    private static TestObserver<Buffer> getJson(HttpClient client, String path) {
+        return client
+            .rxRequest(HttpMethod.GET, path)
+            .flatMap(request -> {
+                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+                return request.send();
+            })
+            .flatMap(response -> {
+                assertThat(response.statusCode()).isEqualTo(200);
+                return response.body();
+            })
+            .test()
+            .awaitDone(30, TimeUnit.SECONDS);
+    }
+
+    @EnumSource(value = Qos.class, names = { "AT_MOST_ONCE", "AT_LEAST_ONCE" })
     @ParameterizedTest(name = "should receive empty items with_initial_cursor with_no_messages and {0} qos")
     @DeployApi(
         {
@@ -564,7 +607,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
                 assertThat(items).isEmpty();
 
                 final JsonObject pagination = jsonResponse.getJsonObject("pagination");
-                assertThat(pagination.getString("nextCursor")).isEqualTo("dGVzdC10b3BpY0AwIzA="); // test-topic@0#2
+                assertThat(pagination.getString("nextCursor")).isEqualTo("dGVzdC10b3BpY0AwIy0x"); // test-topic@0#-1
 
                 return true;
             });
