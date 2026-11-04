@@ -131,6 +131,14 @@ public class AnalyticsQueryContextProvider {
         return service;
     }
 
+    /**
+     * Whether the search of this built-in reads the request documents an additional metric field is measured in: the
+     * kinds of such built-ins are the kinds the definition serves a number field for.
+     */
+    public boolean measuresAdditionalMetricsLike(MetricSpec.Name builtIn) {
+        return resolve(builtIn).measuresAdditionalMetrics();
+    }
+
     /** An additional metric field is measured by the one service reading the request documents (OBS-70). */
     public AnalyticsEngineQueryService resolve(MetricName metric) {
         var service = switch (metric) {

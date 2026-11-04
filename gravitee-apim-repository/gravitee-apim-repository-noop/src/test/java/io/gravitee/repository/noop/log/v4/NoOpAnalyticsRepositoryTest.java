@@ -21,6 +21,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.gravitee.repository.analytics.engine.api.metric.Measure;
+import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
+import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.AdditionalMetricDiscoveryQuery;
@@ -56,6 +60,25 @@ public class NoOpAnalyticsRepositoryTest extends AbstractNoOpRepositoryTest {
 
     private final QueryContext queryContext = new QueryContext("org#1", "env#1");
     private static final String API_ID = "f1608475-dd77-4603-a084-75dd775603e9";
+
+    @Test
+    public void should_answer_no_native_api_measure() {
+        var query = new MeasuresQuery(
+            engineWindow(),
+            List.of(),
+            List.of(new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, EnumSet.of(Measure.COUNT)))
+        );
+
+        var result = analyticsRepository.searchNativeApiMeasures(queryContext, query);
+
+        assertNotNull(result);
+        assertTrue(result.measures().isEmpty());
+    }
+
+    /** The engine's time range, not the log model's one this test already imports. */
+    private static io.gravitee.repository.analytics.engine.api.query.TimeRange engineWindow() {
+        return new io.gravitee.repository.analytics.engine.api.query.TimeRange(Instant.now().minus(Duration.ofDays(1)), Instant.now());
+    }
 
     @Test
     public void testDiscoverAdditionalMetrics() {

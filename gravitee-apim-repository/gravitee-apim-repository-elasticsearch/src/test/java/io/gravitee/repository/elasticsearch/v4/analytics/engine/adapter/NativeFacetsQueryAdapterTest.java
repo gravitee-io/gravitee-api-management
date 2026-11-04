@@ -56,6 +56,7 @@ class NativeFacetsQueryAdapterTest {
         assertThat(filters.at("/0/range/@timestamp/gte").asLong()).isEqualTo(FROM);
         assertThat(filters.at("/0/range/@timestamp/lte").asLong()).isEqualTo(TO);
         assertThat(filters.at("/1/terms/api-id/0").asText()).isEqualTo(API_ID);
+        NativeMeasuresQueryAdapterTest.assertNativeConnectionScope(filters.get(2));
 
         var terms = json.at("/aggs/NATIVE_CONNECTIONS_SUMMARY#NATIVE_CONNECTION_STATUS/terms");
         assertThat(terms.get("field").asText()).isEqualTo("additional-metrics." + NativeApiMetricKeys.CONNECTION_STATUS);

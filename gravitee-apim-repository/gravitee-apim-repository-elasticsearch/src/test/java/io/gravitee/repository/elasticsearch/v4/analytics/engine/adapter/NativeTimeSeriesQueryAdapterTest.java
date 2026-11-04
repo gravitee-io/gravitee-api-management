@@ -58,6 +58,7 @@ class NativeTimeSeriesQueryAdapterTest {
         assertThat(filters.at("/0/range/@timestamp/gte").asLong()).isEqualTo(FROM);
         assertThat(filters.at("/0/range/@timestamp/lte").asLong()).isEqualTo(TO);
         assertThat(filters.at("/1/terms/api-id/0").asText()).isEqualTo(API_ID);
+        NativeMeasuresQueryAdapterTest.assertNativeConnectionScope(filters.get(2));
 
         // Time-series wrapper is a date_histogram
         var dateHistogram = json.at("/aggs/NATIVE_CONNECTIONS_SUMMARY#TIME_SERIES/date_histogram");
