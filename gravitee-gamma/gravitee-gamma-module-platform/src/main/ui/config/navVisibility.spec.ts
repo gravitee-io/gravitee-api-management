@@ -202,6 +202,7 @@ describe('platform nav visibility', () => {
                 'notification-settings',
                 'environment-smtp',
                 'environment-cors',
+                'environment-metrics-configuration',
                 'security-plan-types',
                 'primary-owner-mode',
                 'api-review',
@@ -400,6 +401,15 @@ describe('platform nav visibility', () => {
         expect(isNavItemVisible('api-review', visibility(['environment-settings-r']))).toBe(true);
         expect(isNavItemVisible('api-review', visibility(['environment-quality_rule-r']))).toBe(false);
         expect(isNavItemVisible('api-review', visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER]))).toBe(false);
+    });
+
+    it('gates Metrics configuration on environment-settings-r without the org settings gate', () => {
+        expect(requiresOrganizationSettingsGate('environment-metrics-configuration')).toBe(false);
+        expect(pageGuardForNavItem('environment-metrics-configuration')).toEqual({ anyOf: ['environment-settings-r'] });
+        expect(isNavItemVisible('environment-metrics-configuration', visibility(['environment-settings-r']))).toBe(true);
+        expect(isNavItemVisible('environment-metrics-configuration', visibility(['environment-settings-u']))).toBe(false);
+        expect(isNavItemVisible('environment-metrics-configuration', visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER]))).toBe(false);
+        expect(isNavItemVisible('environment-metrics-configuration', visibility([...ORGANIZATION_ADMIN, ...ENVIRONMENT_ADMIN]))).toBe(true);
     });
 
     it('gates Broadcasts on environment-message-c without the org settings gate', () => {

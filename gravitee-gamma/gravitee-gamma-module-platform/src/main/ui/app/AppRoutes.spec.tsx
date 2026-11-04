@@ -286,6 +286,10 @@ jest.mock('../pages/EnvironmentCorsSettingsPage', () => ({
     EnvironmentCorsSettingsPage: () => <div data-testid="environment-cors-settings-page" />,
 }));
 
+jest.mock('../pages/MetricsConfigurationPage', () => ({
+    MetricsConfigurationPage: () => <div data-testid="metrics-configuration-page" />,
+}));
+
 jest.mock('../pages/PrimaryOwnerModePage', () => ({
     PrimaryOwnerModePage: () => <div data-testid="primary-owner-mode-page" />,
 }));
@@ -2300,6 +2304,31 @@ describe('AppRoutes', () => {
     it('routes to environment-scoped CORS settings', () => {
         renderPlatform('/environment/cors');
         expect(screen.getByTestId('environment-cors-settings-page')).not.toBeNull();
+    });
+
+    it('routes to the environment Metrics configuration', () => {
+        renderPlatform('/environment/metrics-configuration');
+        expect(screen.getByTestId('metrics-configuration-page')).not.toBeNull();
+    });
+
+    it('blocks Metrics configuration without environment-settings-r', () => {
+        denyPermissions('environment-settings-r');
+        renderPlatform('/environment/metrics-configuration');
+        expect(screen.queryByTestId('metrics-configuration-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('shows Metrics configuration in the Environment nav section, after API Logging', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'environment-metrics-configuration',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        renderPlatform('/environment/metrics-configuration');
+
+        const keys = navGroupItemKeys('System & Security');
+        expect(keys).toContain('environment-metrics-configuration');
+        expect(keys.indexOf('environment-metrics-configuration')).toBe(keys.indexOf('api-logging') + 1);
     });
 
     it('routes to the environment API Review settings', () => {
