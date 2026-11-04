@@ -36,6 +36,7 @@ import io.vertx.redis.client.RedisAPI;
 import io.vertx.redis.client.Response;
 import io.vertx.redis.client.ResponseType;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -80,6 +81,48 @@ class RedisRateLimitRepositoryTest {
         CountDownLatch closed = new CountDownLatch(1);
         vertx.close().onComplete(ar -> closed.countDown());
         assertThat(closed.await(5, TimeUnit.SECONDS)).isTrue();
+    }
+
+    @Test
+    void script_arguments_never_contain_null_when_the_subscription_is_not_set() {
+        var rate = new RateLimit("api-1");
+        rate.setCounter(0);
+        rate.setLimit(100);
+        rate.setResetTime(123L);
+        rate.setSubscription(null);
+
+        List<String> command = RedisRateLimitRepository.convertToList("sha1", "ratelimit:api-1", 1, rate);
+
+        assertThat(command).doesNotContainNull();
+        assertThat(command.get(command.size() - 1)).isEmpty();
+    }
+
+    @Test
+    void subscription_less_rate_is_sent_as_empty_string_and_read_back_as_null() {
+        AtomicReference<List<String>> sent = new AtomicReference<>();
+        evalshaHandler = args -> {
+            sent.set(args);
+            return Future.succeededFuture(rateResponse(1L, 100L, 123L, ""));
+        };
+        var repository = new RedisRateLimitRepository(stubRedisClient(Future.succeededFuture(redisApiProxy())), OPERATION_TIMEOUT_MS);
+
+        RateLimit result = repository.incrementAndGet("my-key", 1, () -> new RateLimit("my-key")).blockingGet();
+
+        assertThat(sent.get()).doesNotContainNull();
+        assertThat(sent.get().get(sent.get().size() - 1)).isEmpty();
+        assertThat(result.getCounter()).isEqualTo(1L);
+        assertThat(result.getSubscription()).isNull();
+    }
+
+    @Test
+    void rate_stored_without_a_subscription_field_is_read_back_with_a_null_subscription() {
+        evalshaHandler = args -> Future.succeededFuture(rateResponse(1L, 100L, 123L, null));
+        var repository = new RedisRateLimitRepository(stubRedisClient(Future.succeededFuture(redisApiProxy())), OPERATION_TIMEOUT_MS);
+
+        RateLimit result = repository.incrementAndGet("my-key", 1, () -> new RateLimit("my-key")).blockingGet();
+
+        assertThat(result.getCounter()).isEqualTo(1L);
+        assertThat(result.getSubscription()).isNull();
     }
 
     @Test
@@ -342,7 +385,13 @@ class RedisRateLimitRepositoryTest {
     }
 
     private static Response rateResponse(long counter, long limit, long reset, String subscription) {
-        List<Response> fields = List.of(longResponse(counter), longResponse(limit), longResponse(reset), stringResponse(subscription));
+        // A hash without a subscription field answers HMGET with a nil entry: the element is a null Response.
+        List<Response> fields = Arrays.asList(
+            longResponse(counter),
+            longResponse(limit),
+            longResponse(reset),
+            subscription == null ? null : stringResponse(subscription)
+        );
         return new Response() {
             @Override
             public ResponseType type() {
