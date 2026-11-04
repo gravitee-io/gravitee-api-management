@@ -222,15 +222,13 @@ public class ListenerMapperTest {
     }
 
     @Test
-    void should_map_value_outside_form_rule() {
+    void should_throw_invalid_path_mappings_exception_when_mapping_is_outside_the_form_rule() {
         var httpListener = ListenerFixtures.aHttpListener();
         httpListener.setPathMappings(List.of("/users/@me"));
 
-        var result = listenerMapper.mapToListenerEntityV4List(List.of(new Listener(httpListener)));
-        var entity = (HttpListener) result.get(0);
-
-        assertThat(entity.getPathMappings()).isEqualTo(new HashSet<>(List.of("/users/@me")));
-        assertThat(entity.getPathMappingsPattern().get("/users/@me").pattern()).isEqualTo(PathMapping.buildPattern("/users/@me").pattern());
+        assertThatExceptionOfType(InvalidPathMappingsException.class)
+            .isThrownBy(() -> listenerMapper.mapToListenerEntityV4List(List.of(new Listener(httpListener))))
+            .withMessageContaining("invalid");
     }
 
     @Test
@@ -246,5 +244,21 @@ public class ListenerMapperTest {
         assertThat(patternMap).isNotNull();
         assertThat(patternMap.get("/a/:id")).isNotNull();
         assertThat(patternMap.get("/a/:id").pattern()).isEqualTo(expectedPattern.pattern());
+    }
+
+    @Test
+    void should_map_null_path_mappings_to_an_empty_list() {
+        var httpListener = ListenerFixtures.aModelHttpListener();
+        httpListener.setPathMappings(null);
+
+        assertThat(listenerMapper.map(httpListener).getPathMappings()).isEqualTo(List.of());
+    }
+
+    @Test
+    void should_keep_null_path_mappings_when_mapping_a_request_listener() {
+        var httpListener = ListenerFixtures.aHttpListener();
+        httpListener.setPathMappings(null);
+
+        assertThat(listenerMapper.map(httpListener).getPathMappings()).isNull();
     }
 }

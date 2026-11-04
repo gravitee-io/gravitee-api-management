@@ -59,6 +59,7 @@ import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.OAIDomainService;
+import io.gravitee.apim.core.api.domain_service.OpenApiPathMappingsExtractor;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
@@ -736,6 +737,11 @@ public class ResourceContextConfiguration {
     @Bean
     public OAIDomainService oaiDomainService() {
         return mock(OAIDomainService.class);
+    }
+
+    @Bean
+    public OpenApiPathMappingsExtractor openApiPathMappingsExtractor() {
+        return mock(OpenApiPathMappingsExtractor.class);
     }
 
     @Bean
