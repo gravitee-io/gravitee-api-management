@@ -109,6 +109,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.category.model.Category;
 import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ValidateKafkaClusterBindingDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
@@ -413,6 +414,7 @@ class ImportApiCRDUseCaseTest {
             apiQueryService,
             propertyDomainService,
             crdMembersDomainService,
+            mock(ValidateKafkaClusterBindingDomainService.class),
             mock(ClusterBindingPermissionDomainService.class)
         );
 
