@@ -58,6 +58,7 @@ class WebsocketEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest
     private static final int MESSAGE_COUNT = 5;
     private static final String MESSAGE = "message";
     private static final String MULTIBYTE_MESSAGE = "zażółć € 😀";
+    private static final int FRAMES_PER_CONNECTION = 3;
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
@@ -144,6 +145,21 @@ class WebsocketEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest
         assertThat(frames).hasSize(2);
         assertTextFrames(frames, MESSAGE);
         assertThat(webSocket.get().closeStatusCode()).isEqualTo((short) WebSocketCloseStatus.INVALID_PAYLOAD_DATA.code());
+    }
+
+    @Test
+    @DeployApi("/apis/v4/messages/websocket/websocket-entrypoint-mock-endpoint-text-endless.json")
+    void should_serve_a_new_text_connection_after_a_client_disconnect(WebSocketClient client) {
+        client
+            .rxConnect("/text-endless")
+            .flatMapCompletable(webSocket ->
+                dataFrames(webSocket).take(FRAMES_PER_CONNECTION).ignoreElements().andThen(webSocket.rxClose())
+            )
+            .test()
+            .awaitDone(30, TimeUnit.SECONDS)
+            .assertComplete();
+
+        assertTextFrames(receive(client, "/text-endless", FRAMES_PER_CONNECTION), MESSAGE);
     }
 
     private static List<WebSocketFrame> receive(WebSocketClient client, String path, int frameCount) {
