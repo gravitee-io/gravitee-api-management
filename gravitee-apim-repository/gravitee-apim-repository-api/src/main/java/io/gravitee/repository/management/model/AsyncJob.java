@@ -44,7 +44,10 @@ public class AsyncJob {
     String status;
     String errorMessage;
 
+    @Nullable
     Long upperLimit;
+
+    @Nullable
     Long processed;
 
     @Nullable

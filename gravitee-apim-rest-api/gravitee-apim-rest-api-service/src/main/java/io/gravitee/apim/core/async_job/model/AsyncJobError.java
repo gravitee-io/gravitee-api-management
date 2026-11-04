@@ -20,6 +20,16 @@ import jakarta.annotation.Nullable;
 /**
  * A failure on one item processed by a job.
  *
+ * <p>The message is cut to {@link #MAX_MESSAGE_LENGTH} characters, the size the job-level error message is stored with.
+ *
  * @param itemId the id of the failed item, when the failure is tied to one
  */
-public record AsyncJobError(String code, String message, @Nullable String itemId) {}
+public record AsyncJobError(String code, String message, @Nullable String itemId) {
+    public static final int MAX_MESSAGE_LENGTH = 256;
+
+    public AsyncJobError {
+        if (message != null && message.length() > MAX_MESSAGE_LENGTH) {
+            message = message.substring(0, MAX_MESSAGE_LENGTH);
+        }
+    }
+}

@@ -18,8 +18,8 @@ package io.gravitee.rest.api.management.v2.rest.resource.asyncjob;
 import io.gravitee.apim.core.async_job.use_case.ListUserAsyncJobsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.AsyncJobMapper;
-import io.gravitee.rest.api.management.v2.rest.model.AsyncJob;
 import io.gravitee.rest.api.management.v2.rest.model.AsyncJobStatus;
+import io.gravitee.rest.api.management.v2.rest.model.AsyncJobType;
 import io.gravitee.rest.api.management.v2.rest.model.AsyncJobsResponse;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
@@ -53,7 +53,7 @@ public class AsyncJobsResource extends AbstractResource {
     public AsyncJobsResponse listAsyncJobs(
         @PathParam("envId") String environmentId,
         @BeanParam @Valid PaginationParam paginationParam,
-        @QueryParam("type") AsyncJob.TypeEnum type,
+        @QueryParam("type") AsyncJobType type,
         @QueryParam("status") AsyncJobStatus status,
         @QueryParam("sourceId") String sourceId
     ) {

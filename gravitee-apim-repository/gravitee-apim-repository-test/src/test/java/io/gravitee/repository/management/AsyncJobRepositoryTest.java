@@ -62,6 +62,15 @@ public class AsyncJobRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(asyncJobRepository.findById(job.getId())).hasValue(job);
     }
 
+    @Test
+    public void should_create_a_job_without_upper_limit() throws TechnicalException {
+        var job = aJob(UUID.random().toString(), new Date()).toBuilder().upperLimit(null).build();
+
+        asyncJobRepository.create(job);
+
+        assertThat(asyncJobRepository.findById(job.getId())).hasValue(job);
+    }
+
     // Find by id
     @Test
     public void should_get_job_by_id() throws TechnicalException {

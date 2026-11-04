@@ -25,6 +25,7 @@ import inmemory.AsyncJobCrudServiceInMemory;
 import io.gravitee.apim.core.async_job.model.AsyncJobError;
 import io.gravitee.rest.api.management.v2.rest.model.AsyncJob;
 import io.gravitee.rest.api.management.v2.rest.model.AsyncJobStatus;
+import io.gravitee.rest.api.management.v2.rest.model.AsyncJobType;
 import io.gravitee.rest.api.management.v2.rest.model.AsyncJobsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -36,6 +37,8 @@ import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class AsyncJobsResourceTest extends AbstractResourceTest {
@@ -104,6 +107,24 @@ class AsyncJobsResourceTest extends AbstractResourceTest {
         );
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = { "", " ", "[]", "\"text\"", "42", "{\"imported\":" })
+    void should_leave_out_unreadable_details_without_failing_the_listing(String details) {
+        asyncJobCrudServiceInMemory.initWith(
+            List.of(
+                aJobOfCurrentUser("job-1").toBuilder().sourceId("details-source").details(details).build(),
+                aJobOfCurrentUser("job-2").toBuilder().sourceId("details-source").build()
+            )
+        );
+
+        var response = rootTarget().queryParam("sourceId", "details-source").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        var jobs = response.readEntity(AsyncJobsResponse.class).getData();
+        assertThat(jobs).extracting(AsyncJob::getId).containsExactlyInAnyOrder("job-1", "job-2");
+        assertThat(jobs).allSatisfy(job -> assertThat(job.getDetails()).isNullOrEmpty());
+    }
+
     @Test
     void should_only_return_jobs_of_the_source() {
         asyncJobCrudServiceInMemory.initWith(
@@ -157,7 +178,7 @@ class AsyncJobsResourceTest extends AbstractResourceTest {
         assertThat(response.getStatus()).isEqualTo(OK_200);
         assertThat(response.readEntity(AsyncJobsResponse.class).getData())
             .extracting(AsyncJob::getId, AsyncJob::getType)
-            .containsExactly(tuple("discovery", AsyncJob.TypeEnum.AIM_AGENT_DISCOVERY));
+            .containsExactly(tuple("discovery", AsyncJobType.AIM_AGENT_DISCOVERY));
     }
 
     @Test

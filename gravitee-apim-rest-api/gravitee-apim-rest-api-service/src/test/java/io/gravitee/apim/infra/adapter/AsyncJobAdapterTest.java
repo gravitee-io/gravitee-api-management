@@ -16,14 +16,16 @@
 package io.gravitee.apim.infra.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.AsyncJobFixture;
 import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.async_job.model.AsyncJobError;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class AsyncJobAdapterTest {
 
@@ -77,11 +79,26 @@ class AsyncJobAdapterTest {
             assertThat(result.getErrors()).isEmpty();
         }
 
-        @Test
-        void should_fail_when_errors_are_not_valid_json() {
-            var source = fixtures.repository.AsyncJobFixture.BASE.get().errors("not-json").build();
+        @ParameterizedTest
+        @ValueSource(strings = { "not-json", "{}", "[{\"code\":" })
+        void should_map_unreadable_errors_to_an_empty_list(String errors) {
+            var source = fixtures.repository.AsyncJobFixture.BASE.get().errors(errors).build();
 
-            assertThatThrownBy(() -> AsyncJobAdapter.INSTANCE.toEntity(source)).isInstanceOf(IllegalArgumentException.class);
+            var result = AsyncJobAdapter.INSTANCE.toEntity(source);
+
+            assertThat(result.getErrors()).isEmpty();
+            assertThat(result.getId()).isEqualTo(source.getId());
+        }
+
+        @Test
+        void should_ignore_unknown_error_properties() {
+            var source = fixtures.repository.AsyncJobFixture.BASE.get()
+                .errors("[{\"code\":\"provider_error\",\"message\":\"Timeout\",\"itemId\":\"agent-1\",\"retryable\":true}]")
+                .build();
+
+            var result = AsyncJobAdapter.INSTANCE.toEntity(source);
+
+            assertThat(result.getErrors()).containsExactly(new AsyncJobError("provider_error", "Timeout", "agent-1"));
         }
     }
 
@@ -103,6 +120,27 @@ class AsyncJobAdapterTest {
             assertThat(result.getErrors()).isEqualTo(
                 "[{\"code\":\"slug_conflict\",\"message\":\"Slug already used\",\"itemId\":\"agent-1\"}]"
             );
+        }
+
+        @Test
+        void should_keep_a_null_item_id_through_a_round_trip() {
+            var source = AsyncJobFixture.BASE.get().errors(List.of(new AsyncJobError("provider_error", "Timeout", null))).build();
+
+            var result = AsyncJobAdapter.INSTANCE.toEntity(AsyncJobAdapter.INSTANCE.toRepository(source));
+
+            assertThat(result.getErrors()).containsExactly(new AsyncJobError("provider_error", "Timeout", null));
+        }
+
+        @Test
+        void should_store_at_most_the_maximum_number_of_errors() {
+            var errors = IntStream.range(0, AsyncJob.MAX_ERRORS + 5)
+                .mapToObj(i -> new AsyncJobError("provider_error", "Timeout", "agent-" + i))
+                .toList();
+            var source = AsyncJobFixture.BASE.get().errors(errors).build();
+
+            var result = AsyncJobAdapter.INSTANCE.toEntity(AsyncJobAdapter.INSTANCE.toRepository(source));
+
+            assertThat(result.getErrors()).hasSize(AsyncJob.MAX_ERRORS).first().isEqualTo(errors.getFirst());
         }
 
         @Test
