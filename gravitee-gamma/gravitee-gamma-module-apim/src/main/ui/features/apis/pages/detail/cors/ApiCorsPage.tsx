@@ -324,11 +324,6 @@ export function ApiCorsPage() {
                             id="cors-allow-credentials"
                             label="Access-Control-Allow-Credentials"
                             description="Allow browsers to include cookies and HTTP authentication."
-                            hint={
-                                <>
-                                    Not compatible with <span className="font-mono text-xs">*</span> as the allowed origin.
-                                </>
-                            }
                             checked={allowCredentials}
                             disabled={fieldsDisabled || !canEdit}
                             onCheckedChange={v => {

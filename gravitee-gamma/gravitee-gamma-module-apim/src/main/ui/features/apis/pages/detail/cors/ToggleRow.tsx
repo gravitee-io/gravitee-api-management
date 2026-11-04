@@ -22,7 +22,7 @@ export interface ToggleRowProps {
     id: string;
     label: string;
     description: string;
-    hint: ReactNode;
+    hint?: ReactNode;
     checked: boolean;
     disabled?: boolean;
     onCheckedChange: (v: boolean) => void;
@@ -38,7 +38,7 @@ export function ToggleRow({ id, label, description, hint, checked, disabled, onC
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1 max-w-xl">{description}</p>
                 </div>
-                <InfoTooltip content={hint} />
+                {hint != null && <InfoTooltip content={hint} />}
             </div>
             <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} disabled={disabled} aria-label={label} />
         </div>

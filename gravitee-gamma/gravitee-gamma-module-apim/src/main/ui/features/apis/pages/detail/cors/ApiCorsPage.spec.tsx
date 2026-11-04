@@ -175,6 +175,25 @@ it('does not show wildcard warning when allowOrigin contains no *', () => {
     expect(screen.queryByText(/allowing all origins/i)).toBeNull();
 });
 
+it('does not claim credentials are incompatible with a wildcard origin', async () => {
+    global.ResizeObserver = class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+    };
+    const user = userEvent.setup();
+    renderPage({ ...ENABLED_CORS, allowOrigin: ['*'], allowCredentials: true });
+
+    const toggle = screen.getByRole('switch', { name: /access-control-allow-credentials/i });
+    const info = toggle.parentElement?.querySelector('button');
+    if (info) {
+        await user.hover(info);
+    }
+
+    expect(screen.queryAllByText(/not compatible with/i)).toHaveLength(0);
+    expect(toggle).toBeEnabled();
+});
+
 // ─── 5. Chip input: adding a new origin via Enter ────────────────────────────
 
 it('adds a new origin chip when the user types a value and presses Enter', async () => {
