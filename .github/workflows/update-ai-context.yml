@@ -1,0 +1,122 @@
+name: Update AI context
+
+on:
+  push:
+    branches: ["renovate/**"]
+
+permissions:
+  contents: read
+  pull-requests: write
+  packages: read
+
+concurrency:
+  group: update-ai-context-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  BOT_NAME: gbuddy update
+  BOT_EMAIL: gbuddy-update@users.noreply.github.com
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check whether the pin moved
+        id: pin
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if git diff --quiet "origin/$DEFAULT_BRANCH...HEAD" -- .ai/manifest.yaml; then
+            echo "moved=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "moved=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check who made the last commit
+        id: author
+        run: |
+          if [ "$(git log -1 --format=%ae)" = "$BOT_EMAIL" ]; then
+            echo "bot=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "bot=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v7.1.0
+        if: steps.pin.outputs.moved == 'true' && steps.author.outputs.bot != 'true'
+        with:
+          node-version: 22.12.0
+          registry-url: https://npm.pkg.github.com
+          scope: "@gravitee-io"
+
+      - name: Install gbuddy
+        if: steps.pin.outputs.moved == 'true' && steps.author.outputs.bot != 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm install -g @gravitee-io/gbuddy --@gravitee-io:registry=https://npm.pkg.github.com
+
+      - name: Regenerate the AI context
+        id: setup
+        if: steps.pin.outputs.moved == 'true' && steps.author.outputs.bot != 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gbuddy setup --json > "$RUNNER_TEMP/setup.json"
+
+      - name: Get a push token
+        id: app-token
+        if: steps.setup.outcome == 'success' && steps.pin.outputs.moved == 'true' && steps.author.outputs.bot != 'true'
+        uses: actions/create-github-app-token@v3.3.0
+        with:
+          client-id: ${{ vars.GBUDDY_APP_CLIENT_ID }}
+          private-key: ${{ secrets.GBUDDY_APP_PRIVATE_KEY }}
+          permission-contents: write
+
+      - name: Commit the result
+        id: commit
+        if: steps.setup.outcome == 'success' && steps.pin.outputs.moved == 'true' && steps.author.outputs.bot != 'true'
+        env:
+          PUSH_URL: https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }}.git
+        run: |
+          git add -A -- . ':!.claude/' ':!.agents/'
+          if git diff --cached --quiet; then
+            echo "committed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name "$BOT_NAME"
+          git config user.email "$BOT_EMAIL"
+          git -c core.hooksPath=/dev/null commit --no-verify -m "chore: regenerate AI context for the new gbuddy release"
+          git -c core.hooksPath=/dev/null push "$PUSH_URL" "HEAD:$GITHUB_REF_NAME"
+          echo "committed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Report on the pull request
+        if: ${{ !cancelled() && steps.pin.outputs.moved == 'true' && steps.author.outputs.bot != 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SETUP_OUTCOME: ${{ steps.setup.outcome }}
+          COMMIT_OUTCOME: ${{ steps.commit.outcome }}
+          COMMITTED: ${{ steps.commit.outputs.committed }}
+        run: |
+          marker='<!-- gbuddy-update-report -->'
+          failed='<!-- gbuddy-update-failed -->'
+          body="$RUNNER_TEMP/comment.md"
+          pr=$(gh pr list --head "$GITHUB_REF_NAME" --json number --jq '.[0].number // empty')
+          id=
+          earlier_failed=
+          if [ -n "$pr" ]; then
+            found=$(gh api "repos/$GITHUB_REPOSITORY/issues/$pr/comments" --paginate --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\"))) | [.id, (.body | contains(\"$failed\"))] | map(tostring) | join(\" \")" | tail -n 1)
+            read -r id earlier_failed <<< "$found"
+          fi
+          GH_TOKEN= EARLIER_FAILED="$earlier_failed" node .github/scripts/report-ai-context-update.mjs "$RUNNER_TEMP/setup.json" > "$body"
+          [ -s "$body" ] || exit 0
+          cat "$body" >> "$GITHUB_STEP_SUMMARY"
+          [ -n "$pr" ] || exit 0
+          if [ -n "$id" ]; then
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -F body=@"$body" > /dev/null
+          else
+            gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$pr/comments" -F body=@"$body" > /dev/null
+          fi

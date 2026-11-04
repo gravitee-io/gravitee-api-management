@@ -22,4 +22,12 @@ modules:
   - gravitee-gamma/gravitee-gamma-module-portals
   - gravitee-gamma/gravitee-gamma-plugin
   - gravitee-gamma/gravitee-gamma-rest-api
-hub: 0.3.2
+hub: 0.6.0
+exclude:
+  - rule: context/rules/tech/ui-test-ids.md
+    dirs:
+      - gravitee-gamma/gravitee-gamma-control-plane-webui
+      - gravitee-gamma/gravitee-gamma-module-apim
+      - gravitee-gamma/gravitee-gamma-module-platform
+      - gravitee-gamma/gravitee-gamma-module-portals
+    reason: Graphene components do not pass data-testid through yet; the rule returns when Graphene's test-id support ships (FOUND-388, FOUND-395)

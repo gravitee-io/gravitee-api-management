@@ -4,8 +4,8 @@ Edit the source rules and re-run: gbuddy setup
 Source rules:
 - context/rules/tech/angular.md
 - context/rules/tech/typescript.md
+- context/rules/tech/ui-test-ids.md
 - .ai/rules/apim-angular.md
-- .ai/rules/apim-ui-test-ids.md
 - .ai/rules/gravitee-dashboard.md
 -->
 
@@ -78,6 +78,17 @@ TypeScript-specific conventions; the general engineering rules (clean code, fail
 - No `any` — use `unknown` and narrow with type guards.
 - Type the boundaries (function signatures, exported types); let inference handle the rest.
 
+# UI Test Ids
+
+Automated tests, including end-to-end suites in other repositories, select elements by `data-testid`. A changed or removed id breaks them without failing any test here. This holds whether or not a suite covers the screen today.
+
+- Every element your change adds, or whose markup it rewrites, that reads or writes data carries a `data-testid`: form controls, toggles, selects, displayed application data (status, names, counts), and the buttons that create, save, delete or change state. A styling, formatting or mechanical change does not require ids on elements it does not otherwise touch.
+- Keep each id on the control or value it identifies; an id on a wrapper does not count. Replacing a component that keeps the same job is not a removal: its id stays. Do not strip ids from production builds.
+- Write an id as a string literal. Where it must vary per item, keep a literal prefix and vary only the suffix, taken from a stable key, not the position or display text.
+- While its element stays in the product, never rename or remove an existing `data-testid` value, built at run time or not, even when its name is poor, its case is inconsistent, or it no longer fits its context. Cleaning up the code around it does not extend to the id.
+- When you move markup into a shared component, the original screen keeps rendering its original ids. A reusable component takes the id or prefix from its caller (an input or prop) and hard-codes none; when the caller passes none, the inner control renders without one. The original caller passes the old value, new callers may use new ones.
+- Remove an id only when its element leaves the product. Name each removed id, or the prefix of a removed family, with the reason, in the pull request description (the commit message when there is no pull request yet) and in your final summary, as a compatibility-sensitive change.
+
 # APIM Angular Conventions
 
 ## Absolutes
@@ -110,15 +121,6 @@ The shared Angular rule's "where the repo has adopted them" conditions are settl
 
 - Use lodash for common transforms (`kebabCase`, `isEmpty`, `isEqual`, `merge`, ...) before writing a new utility.
 - Use `fixture.destroy()` instead of `discardPeriodicTasks`.
-
-# UI Test Ids
-
-The platform E2E framework, outside this repository, selects elements by `data-testid`, so a changed id breaks it without failing any test here.
-
-- Every element your change adds or modifies that reads or writes data carries a `data-testid`: form controls, toggles, selects, displayed values, and the buttons that create, save, delete, or change state.
-- Never rename or remove an existing `data-testid` value, even when its name is poor or no longer fits its context. Cleaning up the code around it does not extend to the id.
-- When extracting markup into a shared component, the original screen keeps rendering its original ids: take the id, or its prefix, as an input and have the original caller pass the old value. New callers may use new ids.
-- Remove an id only when its element leaves the product, and call the removal out in the PR description as a compatibility-sensitive change.
 
 # Gravitee Dashboard Library Conventions
 
