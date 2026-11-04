@@ -19,8 +19,9 @@ import io.gravitee.gamma.rest.core.observability.catalog.exception.InvalidMetric
 import java.util.Set;
 
 /**
- * The unit of an additional metric: one of the units the observability library formats, or a free suffix shown as
- * written ({@code €}). {@link #NAMED_UNITS} mirrors the {@code MetricUnit} union of gamma-lib-observability 6.5.0.
+ * The unit of an additional metric: a named unit, or a free suffix shown as written ({@code €}). {@link #NAMED_UNITS}
+ * is the one vocabulary Gamma serves, built-in metrics included. The observability library's {@code MetricUnit}
+ * ({@code src/types/responses.ts}) mirrors it; at 6.9.0 it lacks {@code TOKENS} and {@code CURRENCY}, OBS-81 adds them.
  *
  * @author GraviteeSource Team
  */
@@ -35,7 +36,9 @@ public final class AdditionalMetricUnit {
         "MEGABYTES",
         "GIGABYTES",
         "COUNT",
-        "COUNT_PER_SECOND"
+        "COUNT_PER_SECOND",
+        "TOKENS",
+        "CURRENCY"
     );
     public static final int MAX_SUFFIX_LENGTH = 16;
 

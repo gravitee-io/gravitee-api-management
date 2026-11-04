@@ -52,6 +52,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -127,6 +128,20 @@ class AnalyticsDefinitionPortAdapterTest extends AnalyticsDefinitionPortContract
     }
 
     @Test
+    void should_serve_the_engine_units_in_the_gamma_vocabulary() {
+        var units = new HashMap<String, String>();
+        definitionOf(ApiType.LLM)
+            .families()
+            .forEach(family -> family.metrics().forEach(metric -> units.put(metric.name(), metric.unit())));
+
+        assertThat(units)
+            .containsEntry("HTTP_REQUESTS", "COUNT")
+            .containsEntry("HTTP_GATEWAY_RESPONSE_TIME", "MILLISECONDS")
+            .containsEntry("LLM_PROMPT_TOTAL_TOKEN", "TOKENS")
+            .containsEntry("LLM_PROMPT_TOKEN_TOTAL_COST", "CURRENCY");
+    }
+
+    @Test
     void should_serve_the_authz_family_with_its_facets_for_authz() {
         var definition = definitionOf(ApiType.AUTHZ);
 
@@ -162,7 +177,7 @@ class AnalyticsDefinitionPortAdapterTest extends AnalyticsDefinitionPortContract
         for (var metric : metrics) {
             var spec = catalog.findMetric(MetricSpec.Name.valueOf(metric.name())).orElseThrow();
             assertThat(metric.label()).isEqualTo(spec.label());
-            assertThat(metric.unit()).isEqualTo(spec.unit().name());
+            assertThat(metric.unit()).isEqualTo(ServedMetricUnit.of(spec.unit()));
             assertThat(metric.apiTypes()).extracting(Enum::name).containsExactlyElementsOf(names(spec.apis()));
             assertThat(metric.measures()).containsExactlyElementsOf(names(spec.measures()));
             assertThat(metric.filters()).containsExactlyElementsOf(

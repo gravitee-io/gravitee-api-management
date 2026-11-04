@@ -1336,7 +1336,7 @@ paths:
                                     value:
                                         metrics:
                                             - name: "HTTP_REQUESTS"
-                                              unit: "NUMBER"
+                                              unit: "COUNT"
                                               measures:
                                                   - name: "COUNT"
                                                     value: 42
@@ -1346,13 +1346,13 @@ paths:
                                         metrics:
                                             - id: "total"
                                               name: "HTTP_REQUESTS"
-                                              unit: "NUMBER"
+                                              unit: "COUNT"
                                               measures:
                                                   - name: "COUNT"
                                                     value: 216162
                                             - id: "server-errors"
                                               name: "HTTP_REQUESTS"
-                                              unit: "NUMBER"
+                                              unit: "COUNT"
                                               measures:
                                                   - name: "COUNT"
                                                     value: 3756
@@ -1435,7 +1435,7 @@ paths:
                                     value:
                                         metrics:
                                             - metric: "HTTP_REQUESTS"
-                                              unit: "NUMBER"
+                                              unit: "COUNT"
                                               buckets:
                                                   - key: "67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
                                                     name: null
@@ -1524,7 +1524,7 @@ paths:
                                     value:
                                         metrics:
                                             - name: "HTTP_REQUESTS"
-                                              unit: "NUMBER"
+                                              unit: "COUNT"
                                               buckets:
                                                   - key: "2026-06-10T00:00:00Z"
                                                     timestamp: 1749513600000
@@ -1620,7 +1620,7 @@ paths:
                                       metrics:
                                           - name: "HTTP_REQUESTS"
                                             label: "HTTP Requests"
-                                            unit: "NUMBER"
+                                            unit: "COUNT"
                                             apiTypes: ["HTTP_PROXY", "LLM", "MESSAGE", "MCP", "A2A"]
                                             measures: ["COUNT"]
                                             facets: ["API", "HTTP_STATUS"]
@@ -3743,9 +3743,9 @@ components:
                 unit:
                     type: string
                     description: |
-                        Unit of the metric values. Absent for an additional metric field: its declared unit
-                        is served by the metric definitions.
-                    example: "NUMBER"
+                        Unit of the metric values, one of the named units of `MetricDefinition.unit`. Absent
+                        for an additional metric field: its declared unit is served by the metric definitions.
+                    example: "COUNT"
                 measures:
                     type: array
                     items:
@@ -3821,8 +3821,10 @@ components:
                     example: "HTTP_REQUESTS"
                 unit:
                     type: string
-                    description: Unit of the metric values, absent for an additional metric field.
-                    example: "NUMBER"
+                    description: |
+                        Unit of the metric values, one of the named units of `MetricDefinition.unit`. Absent
+                        for an additional metric field.
+                    example: "COUNT"
                 buckets:
                     type: array
                     items:
@@ -3894,8 +3896,10 @@ components:
                     example: "HTTP_REQUESTS"
                 unit:
                     type: string
-                    description: Unit of the metric values, absent for an additional metric field.
-                    example: "NUMBER"
+                    description: |
+                        Unit of the metric values, one of the named units of `MetricDefinition.unit`. Absent
+                        for an additional metric field.
+                    example: "COUNT"
                 buckets:
                     type: array
                     items:
@@ -3986,11 +3990,11 @@ components:
                 unit:
                     type: string
                     description: |
-                        Unit of the metric values. On a built-in, the one the analytics endpoints report:
-                        `NUMBER`, `MILLISECONDS`, `BYTES`, `PERCENT`, `TOKENS` or `CURRENCY`. On a `DECLARED`
-                        entry, the record's unit: a named unit or a free suffix, as `GET /metric-definitions`
-                        serves it. Absent when none is known, so on every `DISCOVERED` entry and on a record
-                        without a unit.
+                        Unit of the metric values, in the vocabulary of `MetricDefinitionEntry.unit`. On a built-in,
+                        a named unit: the same value the measures, facets and time-series responses carry for it
+                        (`CURRENCY` carries no currency code). On a `DECLARED` entry, the record's unit, as
+                        `GET /metric-definitions` serves it. Absent when none is known, so on every `DISCOVERED`
+                        entry and on a record without a unit.
                     example: "MILLISECONDS"
                 apiTypes:
                     type: array
@@ -4330,7 +4334,7 @@ components:
                     type: string
                     description: |
                         The record's unit: a named unit (`PERCENT`, `MILLISECONDS`, `SECONDS`, `BYTES`, `KILOBYTES`,
-                        `MEGABYTES`, `GIGABYTES`, `COUNT`, `COUNT_PER_SECOND`) or a free suffix shown as written.
+                        `MEGABYTES`, `GIGABYTES`, `COUNT`, `COUNT_PER_SECOND`, `TOKENS`, `CURRENCY`) or a free suffix of at most 16 printable characters, shown as written.
                         Absent when none is set.
                     example: "€"
                 type:
@@ -4388,7 +4392,7 @@ components:
                     maxLength: 512
                 unit:
                     type: string
-                    description: A named unit or a free suffix of at most 16 characters (see `MetricDefinitionEntry.unit`).
+                    description: A named unit or a free suffix of at most 16 printable characters, shown as written (see `MetricDefinitionEntry.unit`).
                 exposed:
                     type: boolean
                 createdAt:
@@ -4414,7 +4418,7 @@ components:
                     maxLength: 512
                 unit:
                     type: string
-                    description: A named unit or a free suffix of at most 16 printable characters.
+                    description: A named unit or a free suffix of at most 16 printable characters, shown as written (see `MetricDefinitionEntry.unit`).
                 exposed:
                     type: boolean
                     default: true
@@ -4438,7 +4442,7 @@ components:
                     maxLength: 512
                 unit:
                     type: string
-                    description: A named unit or a free suffix of at most 16 printable characters.
+                    description: A named unit or a free suffix of at most 16 printable characters, shown as written (see `MetricDefinitionEntry.unit`).
                 exposed:
                     type: boolean
                     default: true

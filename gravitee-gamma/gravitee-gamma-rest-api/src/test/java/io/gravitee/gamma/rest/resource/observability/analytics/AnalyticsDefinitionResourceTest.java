@@ -89,7 +89,7 @@ class AnalyticsDefinitionResourceTest extends AbstractResourceTest {
     void should_return_the_families_with_facets_named_and_their_labels_in_dimensions() {
         givenDefinition(
             aMetric("HTTP_REQUESTS", List.of(ApiType.HTTP_PROXY, ApiType.LLM), "API"),
-            aMetric("LLM_PROMPT_TOTAL_TOKEN", List.of(ApiType.LLM), "API", "LLM_PROXY_MODEL")
+            aMetric("LLM_PROMPT_TOTAL_TOKEN", "TOKENS", List.of(ApiType.LLM), "API", "LLM_PROXY_MODEL")
         );
 
         Response response = rootTarget("definition").queryParam("apiType", "LLM").request().get();
@@ -104,7 +104,7 @@ class AnalyticsDefinitionResourceTest extends AbstractResourceTest {
         JsonNode llmMetric = body.get("families").get(1).get("metrics").get(0);
         assertThat(llmMetric.get("name").asText()).isEqualTo("LLM_PROMPT_TOTAL_TOKEN");
         assertThat(llmMetric.get("label").asText()).isEqualTo("LLM_PROMPT_TOTAL_TOKEN label");
-        assertThat(llmMetric.get("unit").asText()).isEqualTo("NUMBER");
+        assertThat(llmMetric.get("unit").asText()).isEqualTo("TOKENS");
         assertThat(llmMetric.get("apiTypes")).extracting(JsonNode::asText).containsExactly("LLM");
         assertThat(llmMetric.get("measures")).extracting(JsonNode::asText).containsExactly("COUNT", "AVG");
         assertThat(llmMetric.get("facets")).extracting(JsonNode::asText).containsExactly("API", "LLM_PROXY_MODEL");
