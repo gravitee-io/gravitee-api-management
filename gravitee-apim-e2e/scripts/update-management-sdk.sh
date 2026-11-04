@@ -42,6 +42,16 @@ export var1="overridedInit.body instanceof URLSearchParams ||"
 export var2="overridedInit.body instanceof URLSearchParams || typeof overridedInit.body === 'string' ||"
 find lib/management-webclient-sdk/src/lib/ -name "*.ts" -exec sed -i.bak "s/$var1/$var2/g" {} \+
 
+# The generator gives a sort value and its descending '-' variant the same enum key
+sed -i.bak "s|CREATED_AT: '-created_at'|_CREATED_AT: '-created_at'|" lib/management-webclient-sdk/src/lib/apis/PlatformApi.ts
+sed -i.bak "s|API: '-api'|_API: '-api'|" lib/management-webclient-sdk/src/lib/apis/PlatformApi.ts
+sed -i.bak "s|APPLICATION: '-application'|_APPLICATION: '-application'|" lib/management-webclient-sdk/src/lib/apis/PlatformApi.ts
+sed -i.bak "s|SUBJECT: '-subject'|_SUBJECT: '-subject'|" lib/management-webclient-sdk/src/lib/apis/PlatformApi.ts
+sed -i.bak "s|CREATED_AT: '-created_at'|_CREATED_AT: '-created_at'|" lib/management-webclient-sdk/src/lib/apis/PlatformTicketsApi.ts
+sed -i.bak "s|API: '-api'|_API: '-api'|" lib/management-webclient-sdk/src/lib/apis/PlatformTicketsApi.ts
+sed -i.bak "s|APPLICATION: '-application'|_APPLICATION: '-application'|" lib/management-webclient-sdk/src/lib/apis/PlatformTicketsApi.ts
+sed -i.bak "s|SUBJECT: '-subject'|_SUBJECT: '-subject'|" lib/management-webclient-sdk/src/lib/apis/PlatformTicketsApi.ts
+
 # must delete .bak files
 find lib/management-webclient-sdk/src/lib/ -name "*.ts.bak" -exec rm -f {} \+
 rm -f lib/management-webclient-sdk/src/lib/index.ts
