@@ -1,56 +1,56 @@
 {
-    "id": "websocket-mock-binary-auto",
-    "name": "websocket-mock-binary-auto",
-    "apiVersion": "1.0",
-    "definitionVersion": "4.0.0",
-    "type": "message",
-    "description": "api v4 using Websocket entrypoint and Mock endpoint",
-    "listeners": [
+  "id": "websocket-mock-binary-auto",
+  "name": "websocket-mock-binary-auto",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "api v4 using Websocket entrypoint and Mock endpoint",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
         {
-            "type": "http",
-            "paths": [
-                {
-                    "path": "/binary-auto"
-                }
-            ],
-            "entrypoints": [
-                {
-                    "type": "websocket",
-                    "qos": "auto",
-                    "configuration": {
-                        "subscriber": {
-                            "enabled": true,
-                            "frameType": "BINARY"
-                        },
-                        "publisher": {
-                            "enabled": false
-                        }
-                    }
-                }
-            ]
+          "path": "/binary-auto"
         }
-    ],
-    "endpointGroups": [
+      ],
+      "entrypoints": [
         {
-            "name": "default-group",
-            "type": "mock",
-            "endpoints": [
-                {
-                    "name": "default",
-                    "type": "mock",
-                    "weight": 1,
-                    "inheritConfiguration": false,
-                    "configuration": {
-                        "messageInterval": 10,
-                        "messageContent": "message",
-                        "messageCount": 5
-                    }
-                }
-            ]
+          "type": "websocket",
+          "qos": "auto",
+          "configuration": {
+            "subscriber": {
+              "enabled": true,
+              "frameType": "BINARY"
+            },
+            "publisher": {
+              "enabled": false
+            }
+          }
         }
-    ],
-    "flows": [],
-    "analytics": {
-        "enabled": false
+      ]
     }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "mock",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "mock",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "messageInterval": 10,
+            "messageContent": "message",
+            "messageCount": 5
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [],
+  "analytics": {
+    "enabled": false
+  }
 }

@@ -1,55 +1,55 @@
 {
-    "id": "websocket-mock-unset-none",
-    "name": "websocket-mock-unset-none",
-    "apiVersion": "1.0",
-    "definitionVersion": "4.0.0",
-    "type": "message",
-    "description": "api v4 using Websocket entrypoint and Mock endpoint",
-    "listeners": [
+  "id": "websocket-mock-unset-none",
+  "name": "websocket-mock-unset-none",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "api v4 using Websocket entrypoint and Mock endpoint",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
         {
-            "type": "http",
-            "paths": [
-                {
-                    "path": "/unset-none"
-                }
-            ],
-            "entrypoints": [
-                {
-                    "type": "websocket",
-                    "qos": "none",
-                    "configuration": {
-                        "subscriber": {
-                            "enabled": true
-                        },
-                        "publisher": {
-                            "enabled": false
-                        }
-                    }
-                }
-            ]
+          "path": "/unset-none"
         }
-    ],
-    "endpointGroups": [
+      ],
+      "entrypoints": [
         {
-            "name": "default-group",
-            "type": "mock",
-            "endpoints": [
-                {
-                    "name": "default",
-                    "type": "mock",
-                    "weight": 1,
-                    "inheritConfiguration": false,
-                    "configuration": {
-                        "messageInterval": 10,
-                        "messageContent": "message",
-                        "messageCount": 5
-                    }
-                }
-            ]
+          "type": "websocket",
+          "qos": "none",
+          "configuration": {
+            "subscriber": {
+              "enabled": true
+            },
+            "publisher": {
+              "enabled": false
+            }
+          }
         }
-    ],
-    "flows": [],
-    "analytics": {
-        "enabled": false
+      ]
     }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "mock",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "mock",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "messageInterval": 10,
+            "messageContent": "message",
+            "messageCount": 5
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [],
+  "analytics": {
+    "enabled": false
+  }
 }
