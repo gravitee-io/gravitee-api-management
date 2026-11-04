@@ -34,7 +34,9 @@ import io.gravitee.plugin.endpoint.http.proxy.client.WebSocketClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakeException;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.UpgradeRejectedException;
 import io.vertx.core.http.WebSocketConnectOptions;
@@ -43,16 +45,20 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class WebSocketConnector extends HttpConnector {
 
     static final Set<CharSequence> HOP_HEADERS = Set.of(KEEP_ALIVE, PROXY_AUTHORIZATION, PROXY_AUTHENTICATE, PROXY_CONNECTION, TE, TRAILER);
     private static final String HTTP_PROXY_WEBSOCKET_UPGRADE_FAILURE = "HTTP_PROXY_WEBSOCKET_UPGRADE_FAILURE";
     private static final String HTTP_PROXY_WEBSOCKET_FAILURE = "HTTP_PROXY_WEBSOCKET_FAILURE";
+    // Fragment of the Netty client handshake error raised when the backend selects no sub protocol.
+    private static final String NO_SUB_PROTOCOL_SELECTED_MESSAGE = "Actual: null";
 
     protected final HttpProxyEndpointConnectorConfiguration configuration;
     protected final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration;
@@ -87,14 +93,16 @@ public class WebSocketConnector extends HttpConnector {
             // never offered itself and rejects. The caller's own headers are left untouched for the caller-side handshake.
             webSocketConnectOptions.removeHeader(HttpHeaderNames.SEC_WEBSOCKET_EXTENSIONS);
 
-            // Add subprotocols: handle comma-separated values, trim whitespace, filter empty strings
-            if (request.headers().contains(HttpHeaderNames.SEC_WEBSOCKET_PROTOCOL)) {
-                webSocketConnectOptions.setSubProtocols(parseSubProtocols(request));
+            // Sub protocols requested by the caller are declared on the client so that a backend selecting one is accepted.
+            // The client rejects a backend that selects none (allowed by RFC 6455): connectToBackend() retries without.
+            final List<String> subProtocols = request.headers().contains(HttpHeaderNames.SEC_WEBSOCKET_PROTOCOL)
+                ? parseSubProtocols(request)
+                : List.of();
+            if (!subProtocols.isEmpty()) {
+                webSocketConnectOptions.setSubProtocols(subProtocols);
             }
 
-            return webSocketClientFactory
-                .getOrBuildWebSocketClient(ctx, configuration, sharedConfiguration)
-                .rxConnect(webSocketConnectOptions)
+            return connectToBackend(ctx, webSocketConnectOptions)
                 .flatMap(endpointWebSocket -> {
                     endpointWebSocket.pause();
 
@@ -164,6 +172,39 @@ public class WebSocketConnector extends HttpConnector {
         } catch (Exception e) {
             return Completable.error(e);
         }
+    }
+
+    private Single<io.vertx.rxjava3.core.http.WebSocket> connectToBackend(
+        final HttpExecutionContext ctx,
+        final WebSocketConnectOptions webSocketConnectOptions
+    ) {
+        final var client = webSocketClientFactory.getOrBuildWebSocketClient(ctx, configuration, sharedConfiguration);
+        return client
+            .rxConnect(webSocketConnectOptions)
+            .onErrorResumeNext(throwable -> {
+                final boolean subProtocolsDeclared =
+                    webSocketConnectOptions.getSubProtocols() != null && !webSocketConnectOptions.getSubProtocols().isEmpty();
+                if (subProtocolsDeclared && isNoSubProtocolSelected(throwable)) {
+                    // Same options minus the declared sub protocols: the caller's header is still relayed as a plain header
+                    // and the extension offer stays stripped.
+                    ctx.withLogger(log).debug("Backend selected no sub protocol, retrying the WebSocket handshake without declaring them");
+                    final WebSocketConnectOptions withoutSubProtocols = new WebSocketConnectOptions(webSocketConnectOptions);
+                    withoutSubProtocols.setSubProtocols(null);
+                    return client.rxConnect(withoutSubProtocols);
+                }
+                return Single.error(throwable);
+            });
+    }
+
+    private static boolean isNoSubProtocolSelected(Throwable throwable) {
+        for (Throwable t = throwable; t != null; t = t.getCause()) {
+            if (
+                t instanceof WebSocketClientHandshakeException && String.valueOf(t.getMessage()).contains(NO_SUB_PROTOCOL_SELECTED_MESSAGE)
+            ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected Set<CharSequence> hopHeaders() {
