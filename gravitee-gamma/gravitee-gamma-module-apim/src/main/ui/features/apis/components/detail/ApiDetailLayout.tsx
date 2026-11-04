@@ -52,6 +52,7 @@ import {
     withObservabilityLinks,
     withResponseTemplatesPermission,
     withDeploymentPermissions,
+    withPathMappingsForHttpApi,
     withTcpRestrictions,
 } from './ApiDetailSidebarNav';
 import { ApiReviewBanner } from './ApiReviewBanner';
@@ -385,20 +386,23 @@ export function ApiDetailLayout() {
             withApiAlertPermission(
                 withDocumentationPermission(
                     withMetadataPermission(
-                        withTcpRestrictions(
-                            withObservabilityLinks(
-                                withResponseTemplatesPermission(
-                                    withApiScoreEnabled(API_PROXY_NAV_GROUPS, apiScoreEnabled),
-                                    showResponseTemplates,
+                        withPathMappingsForHttpApi(
+                            withTcpRestrictions(
+                                withObservabilityLinks(
+                                    withResponseTemplatesPermission(
+                                        withApiScoreEnabled(API_PROXY_NAV_GROUPS, apiScoreEnabled),
+                                        showResponseTemplates,
+                                    ),
+                                    apiId
+                                        ? {
+                                              dashboardHref: buildApiDashboardHref(moduleRoot, apiId),
+                                              logsHref: buildApiLogsHref(moduleRoot, apiId),
+                                          }
+                                        : {},
                                 ),
-                                apiId
-                                    ? {
-                                          dashboardHref: buildApiDashboardHref(moduleRoot, apiId),
-                                          logsHref: buildApiLogsHref(moduleRoot, apiId),
-                                      }
-                                    : {},
+                                hasTcpListeners(api),
                             ),
-                            hasTcpListeners(api),
+                            api,
                         ),
                         canReadMetadata,
                     ),
