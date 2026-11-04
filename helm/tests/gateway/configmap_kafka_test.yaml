@@ -284,6 +284,82 @@ tests:
       - notMatchRegex:
           path: data["gravitee.yml"]
           pattern: "\n  probe:"
+  - it: Enable Kafka and render probe secured only in port routing mode
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          routingMode: port
+          probe:
+            secured: true
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: true
+              routingMode: port
+              secured: true
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "routingPortMode"
+  - it: Enable Kafka and set routing port mode secured
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          routingMode: port
+          routingPortMode:
+            secured: true
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: true
+              routingMode: port
+              routingPortMode:
+                secured: true
+  - it: Enable Kafka and render routing port mode secured false
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          routingPortMode:
+            secured: false
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "routingPortMode:\\n\\s+secured: false"
+  - it: Enable Kafka and leave routing port mode unset by default
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "routingPortMode"
+  - it: Enable Kafka and render both routing port mode secured and deprecated secured
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          secured: true
+          routingPortMode:
+            secured: false
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "routingPortMode:\\n\\s+secured: false"
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "kafka:\\n  enabled: true\\n(  .*\\n)*?  secured: true"
   - it: Enable Kafka and prefer probe secured over deprecated secured
     template: gateway/gateway-configmap.yaml
     set:
@@ -457,3 +533,14 @@ tests:
       - notMatchRegex:
           path: data["gravitee.yml"]
           pattern: "backendMetadataMaxAge|refreshConnectionReuse"
+  - it: Render no routing port mode block when it is empty
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          routingPortMode: {}
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "routingPortMode"

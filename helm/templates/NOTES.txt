@@ -18,6 +18,23 @@ unique Hazelcast cluster-name (default: "<release>-<sharding_tags>"). All releas
 distributed_event keys are scoped by clusterId. If sharding_tags or cluster-name change, delete
 stale distributed_event:* and distributed_sync_state:* keys for the old clusterId in Redis manually.
 {{- end }}
+{{- $kafka := .Values.gateway.kafka | default dict }}
+{{- $kafkaProbe := $kafka.probe | default dict }}
+{{- $kafkaRoutingPortMode := $kafka.routingPortMode | default dict }}
+{{- /* same precedence as the gateway configmap: probe.secured, when present, is what renders as kafka.secured */}}
+{{- $kafkaSecured := ternary $kafkaProbe.secured $kafka.secured (hasKey $kafkaProbe "secured") }}
+{{- if hasKey $kafkaProbe "secured" }}
+
+WARNING: gateway.kafka.probe.secured is deprecated. It is rendered as kafka.secured, which in port routing
+mode is also the TLS setting of the Kafka listener itself. Set gateway.kafka.secured instead (any gateway
+image) or, with APIM 4.14 or later, gateway.kafka.routingPortMode.secured.
+{{- end }}
+{{- if and $kafkaRoutingPortMode.secured (not $kafkaSecured) }}
+
+WARNING: gateway.kafka.routingPortMode.secured is only read by APIM 4.14 or later.
+An earlier image ignores it and serves the Kafka listener in plaintext. Also set gateway.kafka.secured to
+true: it is read by every image, and ignored by APIM 4.14 and later when routingPortMode.secured is set.
+{{- end }}
 {{- if or .Values.mongodb.enabled .Values.elasticsearch.enabled }}
 
 WARNING: The MongoDB and Elasticsearch subcharts (mongodb.enabled, elasticsearch.enabled) are deprecated

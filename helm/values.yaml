@@ -1564,7 +1564,7 @@ gateway:
 #  kafka:
 #    enabled: false
 #
-#    routingMode: host # default is host. Only host is supported for now.
+#    routingMode: host # host or port. Default is host.
 #    # Routing Host Mode
 #    routingHostMode:
 #      brokerPrefix: broker-          # default is broker-
@@ -1646,9 +1646,10 @@ gateway:
 #      # When protocol is tcp, the probe only checks the kafka port is listening by attempting a basic TCP connection (default).
 #      # When protocol is kafka, the probe uses a kafka client library to connect to one of the kafka API deployed on this gateway instance.
 #      protocol: tcp
-#      # Whether the tcp probe connects to the kafka port over TLS (default is true). It only affects the
-#      # health probe, not the Kafka server: in `host` routing mode the server always requires TLS and SNI.
-#      # Replaces the deprecated `gateway.kafka.secured`, which is still honoured when this one is unset.
+#      # Deprecated alias of `gateway.kafka.secured`, rendered as `kafka.secured` and winning over it
+#      # when both are set. `kafka.secured` is not probe-only: in `port` routing mode it is also the TLS setting of the
+#      # Kafka listener, so use `gateway.kafka.secured` (any gateway image) or `routingPortMode.secured` below (APIM 4.14
+#      # and later).
 #      secured: true
 #      # When using kafka protocol, you must provide the kafka properties with the connection info.
 #      properties:
@@ -1704,7 +1705,18 @@ gateway:
 #      # gateway already reuses them, so set it only to turn the reuse off.
 #      refreshConnectionReuse: false
 #
-#    # `secured` is deprecated: use `probe.secured` above. `probe.secured` wins when both are set.
+#    # Routing Port Mode: applies only when routingMode is `port`. In `host` routing mode the listener always
+#    # serves TLS and SNI.
+#    routingPortMode:
+#      # Whether the Kafka listener serves TLS (default is false). From APIM 4.14 on, the tcp probe follows the
+#      # listener setting. Needs APIM 4.14 or later: earlier gateway images ignore it.
+#      secured: false
+#
+#    # Rendered as `kafka.secured`, read by every gateway image: the TLS setting of the Kafka listener in `port` routing
+#    # mode, which the tcp probe follows from APIM 4.14 on (earlier images keep a probe default of true). From APIM
+#    # 4.14 on it is deprecated for `routingPortMode.secured`: still honoured when `routingPortMode.secured` is unset,
+#    # ignored when it is set, and ignored in `host` routing mode, where the listener always serves TLS.
+#    secured: false
 #    ssl:
 #      # Forced to `true` when routingMode is `host`
 #      sni: true

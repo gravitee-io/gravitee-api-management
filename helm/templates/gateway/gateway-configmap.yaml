@@ -265,6 +265,10 @@ data:
         virtualClusterBrokerDomainPattern: {{ .Values.gateway.kafka.routingHostMode.virtualClusterBrokerDomainPattern | quote }}
         {{- end}}
       {{- end}}
+      {{- if hasKey (.Values.gateway.kafka.routingPortMode | default dict) "secured" }}
+      routingPortMode:
+        secured: {{ .Values.gateway.kafka.routingPortMode.secured }}
+      {{- end}}
       {{- if hasKey .Values.gateway.kafka "apiKey" }}
       api-key:
         {{- if hasKey .Values.gateway.kafka.apiKey "securityMechanisms" }}
@@ -318,7 +322,7 @@ data:
       mesh:
         refreshConnectionReuse: {{ $kafkaMesh.refreshConnectionReuse }}
       {{- end}}
-      {{- /* `secured` only drives the kafka-server health probe; `gateway.kafka.secured` is its deprecated name */}}
+      {{- /* `probe.secured` is a deprecated alias of `secured`, which the Kafka listener also reads in `port` routing mode */}}
       {{- $kafkaProbe := .Values.gateway.kafka.probe | default dict }}
       {{- if hasKey $kafkaProbe "secured" }}
       secured: {{ .Values.gateway.kafka.probe.secured }}

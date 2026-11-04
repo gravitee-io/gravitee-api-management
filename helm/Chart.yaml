@@ -36,6 +36,11 @@ annotations:
         - name: Github PR
           url: https://github.com/gravitee-io/gravitee-api-management/pull/22223
     - kind: added
+      description: "`gateway.kafka.routingPortMode.secured` serves TLS on the Kafka listener in `port` routing mode (APIM 4.14 and later); `gateway.kafka.secured` is deprecated for it, and `gateway.kafka.probe.secured` is deprecated too (still rendered as `kafka.secured`, with a warning in the release notes)"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/22250
+    - kind: added
       description: "`ldap.lookup.activations` restricts where the LDAP user search of the Management API is allowed: a list of organization ids or `organization id:environment id` pairs, empty by default"
       links:
         - name: Github PR
