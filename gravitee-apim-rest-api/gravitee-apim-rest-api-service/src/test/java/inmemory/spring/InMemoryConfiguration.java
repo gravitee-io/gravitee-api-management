@@ -651,6 +651,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public PortalNotificationServicesInMemory portalNotificationServices() {
+        return new PortalNotificationServicesInMemory();
+    }
+
+    @Bean
     public PortalCategoryDomainService portalCategoryDomainService(
         PortalCategoryCrudServiceInMemory portalCategoryCrudServiceInMemory,
         PortalCategoryQueryServiceInMemory portalCategoryQueryServiceInMemory

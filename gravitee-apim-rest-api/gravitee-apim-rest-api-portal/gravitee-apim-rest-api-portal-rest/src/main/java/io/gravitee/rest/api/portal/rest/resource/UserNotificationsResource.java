@@ -15,65 +15,133 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import io.gravitee.apim.core.portal_notification.use_case.DeleteUserPortalNotificationsUseCase;
+import io.gravitee.apim.core.portal_notification.use_case.GetUserPortalNotificationFiltersUseCase;
+import io.gravitee.apim.core.portal_notification.use_case.MarkUserPortalNotificationsAsReadUseCase;
+import io.gravitee.apim.core.portal_notification.use_case.SearchUserPortalNotificationsUseCase;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.notification.PortalNotificationEntity;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.portal.rest.mapper.PortalNotificationMapper;
-import io.gravitee.rest.api.portal.rest.model.PortalNotification;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
-import io.gravitee.rest.api.service.PortalNotificationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.PortalNotificationNotFoundException;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
- * @author GraviteeSource Team
+ * Every operation is limited to the caller's notifications of the current environment and to those not tied to an
+ * environment; a notification outside that scope is not found.
  */
 public class UserNotificationsResource extends AbstractResource {
 
     @Autowired
-    private PortalNotificationService portalNotificationService;
+    private SearchUserPortalNotificationsUseCase searchUserPortalNotificationsUseCase;
+
+    @Autowired
+    private GetUserPortalNotificationFiltersUseCase getUserPortalNotificationFiltersUseCase;
+
+    @Autowired
+    private MarkUserPortalNotificationsAsReadUseCase markUserPortalNotificationsAsReadUseCase;
+
+    @Autowired
+    private DeleteUserPortalNotificationsUseCase deleteUserPortalNotificationsUseCase;
 
     @Autowired
     private PortalNotificationMapper portalNotificationMapper;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getCurrentUserNotifications(@BeanParam PaginationParam paginationParam) {
-        List<PortalNotification> notifications = portalNotificationService
-            .findByUser(getAuthenticatedUser())
-            .stream()
-            .sorted(Comparator.comparing(PortalNotificationEntity::getCreatedAt, Comparator.reverseOrder()))
-            .map(portalNotificationMapper::convert)
-            .collect(Collectors.toList());
+    public Response getCurrentUserNotifications(
+        @BeanParam PaginationParam paginationParam,
+        @QueryParam("read") Boolean read,
+        @QueryParam("apiId") String apiId,
+        @QueryParam("applicationId") String applicationId
+    ) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var output = searchUserPortalNotificationsUseCase.execute(
+            new SearchUserPortalNotificationsUseCase.Input(
+                executionContext,
+                getAuthenticatedUser(),
+                read,
+                apiId,
+                applicationId,
+                toPageable(paginationParam)
+            )
+        );
 
-        return createListResponse(GraviteeContext.getExecutionContext(), notifications, paginationParam);
+        Map<String, Map<String, Object>> metadata = new HashMap<>(
+            Map.of("paginateMetaData", new HashMap<>(Map.of("totalElements", output.notifications().getTotalElements())))
+        );
+        return createListResponse(executionContext, portalNotificationMapper.convert(output), paginationParam, metadata);
+    }
+
+    @GET
+    @Path("_filters")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getCurrentUserNotificationFilters() {
+        var output = getUserPortalNotificationFiltersUseCase.execute(
+            new GetUserPortalNotificationFiltersUseCase.Input(GraviteeContext.getExecutionContext(), getAuthenticatedUser())
+        );
+        return Response.ok(portalNotificationMapper.convert(output)).build();
+    }
+
+    @POST
+    @Path("_read")
+    public Response markAllAsRead() {
+        markUserPortalNotificationsAsReadUseCase.execute(
+            new MarkUserPortalNotificationsAsReadUseCase.Input(GraviteeContext.getExecutionContext(), getAuthenticatedUser(), null)
+        );
+        return Response.noContent().build();
+    }
+
+    @POST
+    @Path("{notificationId}/_read")
+    public Response markAsRead(@PathParam("notificationId") String notificationId) {
+        markUserPortalNotificationsAsReadUseCase.execute(
+            new MarkUserPortalNotificationsAsReadUseCase.Input(
+                GraviteeContext.getExecutionContext(),
+                getAuthenticatedUser(),
+                notificationId
+            )
+        );
+        return Response.noContent().build();
     }
 
     @DELETE
     public Response deleteAll() {
-        portalNotificationService.deleteAll(getAuthenticatedUser());
-        return Response.status(Response.Status.NO_CONTENT).build();
+        deleteUserPortalNotificationsUseCase.execute(
+            new DeleteUserPortalNotificationsUseCase.Input(GraviteeContext.getExecutionContext(), getAuthenticatedUser(), null)
+        );
+        return Response.noContent().build();
     }
 
     @Path("{notificationId}")
     @DELETE
     public Response delete(@PathParam("notificationId") String notificationId) {
-        // Check that notification exists and belongs to user
-        List<PortalNotificationEntity> userNotifications = portalNotificationService.findByUser(getAuthenticatedUser());
-        userNotifications
-            .stream()
-            .map(PortalNotificationEntity::getId)
-            .filter(id -> id.equalsIgnoreCase(notificationId))
-            .findAny()
-            .orElseThrow(() -> new PortalNotificationNotFoundException(notificationId));
+        deleteUserPortalNotificationsUseCase.execute(
+            new DeleteUserPortalNotificationsUseCase.Input(GraviteeContext.getExecutionContext(), getAuthenticatedUser(), notificationId)
+        );
+        return Response.noContent().build();
+    }
 
-        portalNotificationService.delete(notificationId);
-        return Response.status(Response.Status.NO_CONTENT).build();
+    /**
+     * {@code size=-1} asks for every notification. {@code size=0} is served as a page of one, since the repositories
+     * reject an empty page; the response then has no data and no pagination block, so a count is read with
+     * {@code size=1}.
+     */
+    private static PageableImpl toPageable(PaginationParam paginationParam) {
+        if (!paginationParam.hasPagination()) {
+            return new PageableImpl(1, Integer.MAX_VALUE);
+        }
+        return new PageableImpl(paginationParam.getPage(), Math.max(paginationParam.getSize(), 1));
     }
 }

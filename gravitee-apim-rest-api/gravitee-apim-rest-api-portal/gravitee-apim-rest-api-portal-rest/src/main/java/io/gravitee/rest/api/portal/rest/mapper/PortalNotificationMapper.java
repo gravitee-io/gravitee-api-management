@@ -15,26 +15,57 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import io.gravitee.rest.api.model.notification.PortalNotificationEntity;
+import io.gravitee.apim.core.portal_notification.use_case.GetUserPortalNotificationFiltersUseCase;
+import io.gravitee.apim.core.portal_notification.use_case.SearchUserPortalNotificationsUseCase;
 import io.gravitee.rest.api.portal.rest.model.PortalNotification;
+import io.gravitee.rest.api.portal.rest.model.PortalNotificationFilters;
+import io.gravitee.rest.api.portal.rest.model.PortalNotificationReference;
 import java.time.ZoneOffset;
+import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Component;
 
-/**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
- * @author GraviteeSource Team
- */
 @Component
 public class PortalNotificationMapper {
 
-    public PortalNotification convert(PortalNotificationEntity portalNotificationEntity) {
-        final PortalNotification portalNotification = new PortalNotification();
+    public List<PortalNotification> convert(SearchUserPortalNotificationsUseCase.Output output) {
+        return output
+            .notifications()
+            .getContent()
+            .stream()
+            .map(notification ->
+                new PortalNotification()
+                    .id(notification.getId())
+                    .title(notification.getTitle())
+                    .message(notification.getMessage())
+                    .createdAt(notification.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC))
+                    .read(notification.isRead())
+                    .hook(notification.getHook())
+                    .api(reference(notification.getApiId(), output.apiNames()))
+                    .application(reference(notification.getApplicationId(), output.applicationNames()))
+            )
+            .toList();
+    }
 
-        portalNotification.setCreatedAt(portalNotificationEntity.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
-        portalNotification.setId(portalNotificationEntity.getId());
-        portalNotification.setMessage(portalNotificationEntity.getMessage());
-        portalNotification.setTitle(portalNotificationEntity.getTitle());
+    public PortalNotificationFilters convert(GetUserPortalNotificationFiltersUseCase.Output output) {
+        return new PortalNotificationFilters()
+            .apis(
+                output
+                    .apis()
+                    .stream()
+                    .map(api -> new PortalNotificationReference().id(api.id()).name(api.name()))
+                    .toList()
+            )
+            .applications(
+                output
+                    .applications()
+                    .stream()
+                    .map(application -> new PortalNotificationReference().id(application.id()).name(application.name()))
+                    .toList()
+            );
+    }
 
-        return portalNotification;
+    private static PortalNotificationReference reference(String id, Map<String, String> names) {
+        return id == null ? null : new PortalNotificationReference().id(id).name(names.get(id));
     }
 }
