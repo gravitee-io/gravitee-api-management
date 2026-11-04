@@ -1,0 +1,178 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="notifications">
+  <div class="notifications__header">
+    <div>
+      <h1 class="next-gen-h3" i18n="@@notificationsTitle">Notifications</h1>
+      <p class="notifications__description next-gen-body" data-testid="notifications-description" i18n="@@notificationsDescription">
+        API and application notifications for your account
+      </p>
+    </div>
+    @if (rows().length > 0) {
+      <button
+        mat-stroked-button
+        type="button"
+        data-testid="notifications-mark-all-as-read"
+        [disabled]="isMarkingAllAsRead()"
+        (click)="markAllAsRead()"
+        i18n="@@notificationsMarkAllAsRead"
+      >
+        Mark all as read
+      </button>
+    }
+  </div>
+
+  @if (actionError(); as actionErrorMessage) {
+    <p class="notifications__error next-gen-body" role="alert" data-testid="notifications-action-error">{{ actionErrorMessage }}</p>
+  }
+
+  @if (hasNoNotification()) {
+    <div class="notifications__empty" data-testid="notifications-empty-state">
+      <span class="material-icons icon-with-background m3-headline-large" aria-hidden="true">notifications_none</span>
+      <h2 class="next-gen-h5" i18n="@@notificationsEmptyTitle">No notification received</h2>
+      <p class="next-gen-body" i18n="@@notificationsEmptyDescription">
+        Notifications about your APIs, applications and subscriptions will appear here.
+      </p>
+    </div>
+  } @else {
+    <div class="notifications__filters">
+      <app-dropdown-search
+        class="notifications__filter"
+        data-testid="notifications-api-filter"
+        id="notifications-api-filter"
+        i18n-label="@@notificationsFilterApi"
+        label="API"
+        i18n-placeholder="@@notificationsFilterApiPlaceholder"
+        placeholder="Search APIs..."
+        [multiple]="false"
+        [options]="apiOptions()"
+        [ngModel]="apiFilterValue()"
+        (ngModelChange)="onApiFilterChange($event)"
+      />
+
+      <app-dropdown-search
+        class="notifications__filter"
+        data-testid="notifications-application-filter"
+        id="notifications-application-filter"
+        i18n-label="@@notificationsFilterApplication"
+        label="App"
+        i18n-placeholder="@@notificationsFilterApplicationPlaceholder"
+        placeholder="Search apps..."
+        [multiple]="false"
+        [options]="applicationOptions()"
+        [ngModel]="applicationFilterValue()"
+        (ngModelChange)="onApplicationFilterChange($event)"
+      />
+
+      <app-dropdown-search
+        class="notifications__filter"
+        data-testid="notifications-status-filter"
+        id="notifications-status-filter"
+        i18n-label="@@notificationsFilterStatus"
+        label="Status"
+        i18n-placeholder="@@notificationsFilterStatusPlaceholder"
+        placeholder="Search statuses..."
+        [multiple]="false"
+        [options]="statusOptions"
+        [ngModel]="statusFilterValue()"
+        (ngModelChange)="onStatusFilterChange($event)"
+      />
+
+      <button mat-button type="button" data-testid="notifications-clear-filters" (click)="clearFilters()" i18n="@@clearFilters">
+        Clear filters
+      </button>
+    </div>
+
+    @if (filtersResource.error()) {
+      <p
+        class="notifications__error next-gen-body"
+        role="alert"
+        data-testid="notifications-filters-error"
+        i18n="@@notificationsFiltersLoadError"
+      >
+        The filter options could not be loaded. Try again later.
+      </p>
+    }
+
+    @if (notificationsResource.isLoading()) {
+      <app-loader />
+    } @else if (notificationsResource.error()) {
+      <p class="notifications__error next-gen-body" role="alert" data-testid="notifications-load-error" i18n="@@notificationsLoadError">
+        An error occurred while loading notifications. Try again later or contact your Portal administrator.
+      </p>
+    } @else if (hasNoUnreadNotification()) {
+      <div class="notifications__empty" data-testid="notifications-no-unread">
+        <span class="material-icons icon-with-background m3-headline-large" aria-hidden="true">done_all</span>
+        <h2 class="next-gen-h5" i18n="@@notificationsNoUnreadTitle">No unread notifications</h2>
+        <p class="next-gen-body" i18n="@@notificationsNoUnreadDescription">Change the status filter to see read notifications.</p>
+      </div>
+    } @else if (rows().length === 0) {
+      <div class="notifications__empty" data-testid="notifications-no-match">
+        <span class="material-icons icon-with-background m3-headline-large" aria-hidden="true">filter_list_off</span>
+        <h2 class="next-gen-h5" i18n="@@notificationsNoMatchTitle">No notifications match the selected filters</h2>
+        <p class="next-gen-body" i18n="@@notificationsNoMatchDescription">Try adjusting or clearing the filters.</p>
+      </div>
+    } @else {
+      <app-paginated-table
+        [columns]="tableColumns"
+        [rows]="rows()"
+        [totalElements]="totalElements()"
+        [currentPage]="filters().page"
+        [pageSize]="filters().size"
+        [navigable]="false"
+        [actions]="tableActions"
+        (pageChange)="onPageChange($event)"
+        (pageSizeChange)="onPageSizeChange($event)"
+        (actionClick)="onActionClick($event)"
+      >
+        <ng-template appTableCell="createdAt" let-row>
+          <span data-testid="notification-date" [class.next-gen-small-bold]="!row.isRead">{{
+            row.createdAt | date: 'MMM d, y, h:mm:ss a'
+          }}</span>
+        </ng-template>
+        <ng-template appTableCell="resource" let-row>
+          <div class="notifications__resources" [class.next-gen-small-bold]="!row.isRead">
+            @if (row.apiName) {
+              <span class="notifications__resource" data-testid="notification-api">
+                <span>{{ row.apiName }}</span>
+                <app-badge [label]="apiBadgeLabel" />
+              </span>
+            }
+            @if (row.applicationName) {
+              <span class="notifications__resource" data-testid="notification-application">
+                <span>{{ row.applicationName }}</span>
+                <app-badge [label]="applicationBadgeLabel" />
+              </span>
+            }
+          </div>
+        </ng-template>
+        <ng-template appTableCell="type" let-row>
+          <span data-testid="notification-type" [class.next-gen-small-bold]="!row.isRead">{{ row.type }}</span>
+        </ng-template>
+        <ng-template appTableCell="message" let-row>
+          <span class="notifications__message" data-testid="notification-message" [class.next-gen-small-bold]="!row.isRead">
+            @if (!row.isRead) {
+              <span class="cdk-visually-hidden" i18n="@@notificationsUnreadPrefix">Unread:</span>
+            }
+            {{ row.message }}
+          </span>
+        </ng-template>
+      </app-paginated-table>
+    }
+  }
+</div>

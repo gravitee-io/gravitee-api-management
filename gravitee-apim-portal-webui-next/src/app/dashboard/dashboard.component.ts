@@ -29,6 +29,7 @@ interface MenuItem {
 const MENU_ITEMS: MenuItem[] = [
   { path: 'analytics', title: $localize`:@@analyticsTitle:Analytics` },
   { path: 'applications', title: $localize`:@@applicationsTitle:Applications` },
+  { path: 'notifications', title: $localize`:@@notificationsTitle:Notifications` },
   { path: 'subscriptions', title: $localize`:@@subscriptionsTitle:Subscriptions` },
   { path: 'workspaces', title: $localize`:@@myWorkspaceTitle:My Workspace` },
 ];

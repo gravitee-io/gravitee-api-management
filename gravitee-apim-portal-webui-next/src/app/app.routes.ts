@@ -171,6 +171,10 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'subscriptions', pathMatch: 'full' },
       {
+        path: 'notifications',
+        loadComponent: () => import('./dashboard/notifications/notifications.component'),
+      },
+      {
         path: 'subscriptions',
         loadComponent: () => import('./dashboard/subscriptions/subscriptions.component'),
       },
