@@ -23,6 +23,7 @@ import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
+import java.net.URI;
 import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -167,6 +168,57 @@ class PortalAdapterTest {
             var entity = adapter.toEntity(repo);
 
             assertThat(entity.getActiveThemeId()).isEqualTo("theme-1");
+        }
+
+        @Test
+        void to_repository_forwards_default_marker_and_url() throws Exception {
+            var portal = Portal.of(
+                PortalId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+                "env",
+                "org",
+                "Portal",
+                PortalNavigationStructure.empty(),
+                null,
+                true,
+                URI.create("https://portal.example").toURL()
+            );
+
+            var repo = adapter.toRepository(portal);
+
+            assertThat(repo.isDefaultPortal()).isTrue();
+            assertThat(repo.getUrl()).isEqualTo("https://portal.example");
+        }
+
+        @Test
+        void to_entity_forwards_default_marker_and_url() throws Exception {
+            var repo = io.gravitee.repository.management.model.Portal.builder()
+                .id("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+                .environmentId("env")
+                .organizationId("org")
+                .name("Portal")
+                .defaultPortal(true)
+                .url("https://portal.example")
+                .build();
+
+            var entity = adapter.toEntity(repo);
+
+            assertThat(entity.isDefault()).isTrue();
+            assertThat(entity.getUrl()).isEqualTo(URI.create("https://portal.example").toURL());
+        }
+
+        @Test
+        void to_entity_throws_when_stored_url_is_malformed() {
+            var repo = io.gravitee.repository.management.model.Portal.builder()
+                .id("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+                .environmentId("env")
+                .organizationId("org")
+                .name("Portal")
+                .url("not a url")
+                .build();
+
+            assertThatThrownBy(() -> adapter.toEntity(repo))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
         }
 
         @Test

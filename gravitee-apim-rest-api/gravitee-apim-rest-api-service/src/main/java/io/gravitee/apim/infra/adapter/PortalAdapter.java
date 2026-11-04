@@ -23,6 +23,10 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -42,8 +46,19 @@ public interface PortalAdapter {
             portal.getEnvironmentId(),
             portal.getOrganizationId(),
             portal.getName(),
-            deserializePortalNavigation(portal.getPortalNavigation())
-        ).withActiveThemeId(portal.getActiveThemeId());
+            deserializePortalNavigation(portal.getPortalNavigation()),
+            portal.getActiveThemeId(),
+            portal.isDefaultPortal(),
+            parseUrl(portal.getId(), portal.getUrl())
+        );
+    }
+
+    default URL parseUrl(String portalId, String url) {
+        try {
+            return new URI(url).toURL();
+        } catch (URISyntaxException | MalformedURLException | IllegalArgumentException e) {
+            throw new IllegalArgumentException(String.format("Invalid URL stored for portal %s: %s", portalId, url), e);
+        }
     }
 
     default io.gravitee.repository.management.model.Portal toRepository(Portal portal) {
@@ -57,6 +72,8 @@ public interface PortalAdapter {
             .name(portal.getName())
             .portalNavigation(serializePortalNavigation(portal.getNavigationStructure()))
             .activeThemeId(portal.getActiveThemeId())
+            .defaultPortal(portal.isDefault())
+            .url(portal.getUrl().toString())
             .build();
     }
 

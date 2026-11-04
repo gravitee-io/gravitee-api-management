@@ -63,6 +63,11 @@ public class PortalCrudServiceInMemory implements PortalCrudService, InMemoryAlt
     }
 
     @Override
+    public Optional<Portal> findDefaultByEnvironmentId(String environmentId) {
+        return findByEnvironmentId(environmentId).stream().filter(Portal::isDefault).findFirst();
+    }
+
+    @Override
     public List<Portal> findByActiveThemeIdAndEnvironmentId(String activeThemeId, String environmentId) {
         return findByEnvironmentId(environmentId)
             .stream()

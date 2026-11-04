@@ -48,6 +48,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.theme.domain_service.CurrentThemeDomainService;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeType;
+import java.net.URI;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -130,6 +131,44 @@ class CreateOrUpdatePortalUseCaseTest {
 
         assertThat(output.portal().getName()).isEqualTo("Renamed Portal");
         assertThat(portalCrudService.storage()).hasSize(1).containsExactly(renamed);
+    }
+
+    @Test
+    void should_keep_stored_default_marker_and_url_on_update() throws Exception {
+        var storedUrl = URI.create("https://portal.example").toURL();
+        var stored = Portal.of(
+            PortalFixtures.PORTAL_ID,
+            "environment-id",
+            "organization-id",
+            "Default Portal",
+            PortalNavigationStructure.empty(),
+            null,
+            true,
+            storedUrl
+        );
+        portalCrudService.initWith(List.of(stored));
+        var upsert = Portal.of(stored.getId(), stored.getEnvironmentId(), stored.getOrganizationId(), "Renamed Portal");
+
+        var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, upsert));
+
+        assertThat(output.portal().getName()).isEqualTo("Renamed Portal");
+        assertThat(output.portal().isDefault()).isTrue();
+        assertThat(output.portal().getUrl()).isEqualTo(storedUrl);
+        assertThat(portalCrudService.storage())
+            .singleElement()
+            .satisfies(saved -> {
+                assertThat(saved.getName()).isEqualTo("Renamed Portal");
+                assertThat(saved.isDefault()).isTrue();
+                assertThat(saved.getUrl()).isEqualTo(storedUrl);
+            });
+    }
+
+    @Test
+    void should_create_a_non_default_portal_with_placeholder_url() {
+        var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, PortalFixtures.aPortal()));
+
+        assertThat(output.portal().isDefault()).isFalse();
+        assertThat(output.portal().getUrl()).isEqualTo(Portal.URL_PLACEHOLDER);
     }
 
     @Test

@@ -88,6 +88,18 @@ public class PortalCrudServiceImpl implements PortalCrudService {
     }
 
     @Override
+    public Optional<Portal> findDefaultByEnvironmentId(String environmentId) {
+        try {
+            return portalRepository.findDefaultByEnvironmentId(environmentId).map(portalAdapter::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format("An error occurred while trying to find the default Portal in environment (%s)", environmentId),
+                e
+            );
+        }
+    }
+
+    @Override
     public List<Portal> findByActiveThemeIdAndEnvironmentId(String activeThemeId, String environmentId) {
         try {
             return portalRepository
