@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProductKindFilter;
-import io.gravitee.apim.core.api_product.model.UpdateApiProduct;
 import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeployApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
@@ -25,6 +24,8 @@ import io.gravitee.apim.core.api_product.use_case.UpdateApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductDeployUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductExistsUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.rest.api.management.v2.rest.mapper.ApiProductMapper;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiProductDeploymentResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -90,7 +91,7 @@ public class ApiProductResource extends AbstractResource {
             return Response.status(Response.Status.NOT_FOUND).entity("API Product not found").build();
         }
         log.debug("API Product found: {} - {}", apiProductId, apiProductOpt.get().getName());
-        return Response.ok(apiProductOpt.get()).build();
+        return Response.ok(ApiProductMapper.INSTANCE.mapWithResources(apiProductOpt.get())).build();
     }
 
     @DELETE
@@ -126,7 +127,7 @@ public class ApiProductResource extends AbstractResource {
         log.debug("Deploy API Product [{}]", apiProductId);
         var output = deployApiProductUseCase.execute(input);
         log.debug("API Product [{}] deployment triggered", apiProductId);
-        return Response.accepted().entity(output.apiProduct()).build();
+        return Response.accepted().entity(ApiProductMapper.INSTANCE.mapWithResources(output.apiProduct())).build();
     }
 
     @PUT
@@ -136,11 +137,11 @@ public class ApiProductResource extends AbstractResource {
     public Response updateApiProductById(@Valid @NotNull UpdateApiProduct updateApiProduct) {
         requireClassicApiProductInCurrentEnvironment();
         AuditInfo audit = getAuditInfo();
-        var input = new UpdateApiProductUseCase.Input(apiProductId, updateApiProduct, audit);
+        var input = new UpdateApiProductUseCase.Input(apiProductId, ApiProductMapper.INSTANCE.map(updateApiProduct), audit);
         log.debug("Update API Product by id: {}", apiProductId);
         var output = updateApiProductUseCase.execute(input);
         log.debug("API Product updated: {} - {}", apiProductId, output.apiProduct().getName());
-        return Response.ok(output.apiProduct()).build();
+        return Response.ok(ApiProductMapper.INSTANCE.mapWithResources(output.apiProduct())).build();
     }
 
     @Path("/apis")

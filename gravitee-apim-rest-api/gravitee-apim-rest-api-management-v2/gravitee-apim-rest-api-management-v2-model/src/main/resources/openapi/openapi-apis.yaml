@@ -9987,6 +9987,15 @@ components:
               example:
                 - "internal"
                 - "external"
+            analytics:
+              allOf:
+                - $ref: "#/components/schemas/Analytics"
+              description: Reporter settings governing every API this product exposes.
+            resources:
+              type: array
+              description: Resources available to policies that run on this API Product's plan flows.
+              items:
+                $ref: "#/components/schemas/Resource"
 
         ApiProductInfo:
           type: object
