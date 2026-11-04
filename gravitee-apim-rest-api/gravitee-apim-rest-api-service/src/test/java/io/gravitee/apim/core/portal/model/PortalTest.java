@@ -39,6 +39,10 @@ class PortalTest {
         return URI.create(value).toURL();
     }
 
+    private static Portal aDefaultPortalWithUrl() {
+        return Portal.of(PORTAL_ID, "env", "org", "Portal", PortalNavigationStructure.empty(), null, true, url("https://portal.example"));
+    }
+
     @Nested
     class Factories {
 
@@ -93,16 +97,7 @@ class PortalTest {
 
         @Test
         void update_changes_name_navigation_and_active_theme_and_keeps_default_marker_and_url() {
-            var portal = Portal.of(
-                PORTAL_ID,
-                "env",
-                "org",
-                "Portal",
-                PortalNavigationStructure.empty(),
-                null,
-                true,
-                url("https://portal.example")
-            );
+            var portal = aDefaultPortalWithUrl();
 
             portal.update("Renamed", STRUCTURE, "theme-2");
 
@@ -129,16 +124,7 @@ class PortalTest {
 
         @Test
         void with_navigation_structure_keeps_default_marker_and_url() {
-            var portal = Portal.of(
-                PORTAL_ID,
-                "env",
-                "org",
-                "Portal",
-                PortalNavigationStructure.empty(),
-                null,
-                true,
-                url("https://portal.example")
-            );
+            var portal = aDefaultPortalWithUrl();
 
             var copy = portal.withNavigationStructure(STRUCTURE);
 
@@ -148,16 +134,7 @@ class PortalTest {
 
         @Test
         void with_active_theme_id_keeps_default_marker_and_url() {
-            var portal = Portal.of(
-                PORTAL_ID,
-                "env",
-                "org",
-                "Portal",
-                PortalNavigationStructure.empty(),
-                null,
-                true,
-                url("https://portal.example")
-            );
+            var portal = aDefaultPortalWithUrl();
 
             var copy = portal.withActiveThemeId("theme-1");
 

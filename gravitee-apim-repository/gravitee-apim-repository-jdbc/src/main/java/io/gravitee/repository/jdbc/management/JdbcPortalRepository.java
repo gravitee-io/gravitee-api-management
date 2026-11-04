@@ -94,7 +94,7 @@ public class JdbcPortalRepository extends JdbcAbstractCrudRepository<Portal, Str
         try {
             return jdbcTemplate
                 .query(
-                    getOrm().getSelectAllSql() + " WHERE environment_id = ? AND default_portal = ?",
+                    getOrm().getSelectAllSql() + " WHERE environment_id = ? AND default_portal = ? ORDER BY id",
                     getOrm().getRowMapper(),
                     environmentId,
                     true

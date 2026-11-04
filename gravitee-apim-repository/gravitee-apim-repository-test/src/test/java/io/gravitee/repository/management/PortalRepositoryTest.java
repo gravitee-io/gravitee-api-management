@@ -157,12 +157,13 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_find_one_default_when_environment_has_several() throws Exception {
-        portalRepository.create(aDefaultPortal("default-a", "environment3"));
+    public void should_find_the_default_with_the_lowest_id_when_environment_has_several() throws Exception {
         portalRepository.create(aDefaultPortal("default-b", "environment3"));
+        portalRepository.create(aDefaultPortal("default-c", "environment3"));
+        portalRepository.create(aDefaultPortal("default-a", "environment3"));
 
         assertThat(portalRepository.findDefaultByEnvironmentId("environment3")).hasValueSatisfying(found ->
-            assertThat(found.getId()).isIn("default-a", "default-b")
+            assertThat(found.getId()).isEqualTo("default-a")
         );
     }
 

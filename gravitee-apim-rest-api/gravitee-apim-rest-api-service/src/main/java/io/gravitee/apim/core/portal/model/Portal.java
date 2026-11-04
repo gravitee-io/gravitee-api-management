@@ -25,6 +25,8 @@ import lombok.Getter;
 @Getter
 public class Portal {
 
+    private static final String URL_PLACEHOLDER_VALUE = "https://example.com/to-be-implemented";
+
     /** Stored until portals get a real URL; the column is mandatory, so it cannot stay empty. */
     public static final URL URL_PLACEHOLDER = placeholderUrl();
 
@@ -171,7 +173,7 @@ public class Portal {
 
     private static URL placeholderUrl() {
         try {
-            return URI.create("https://example.com/to-be-implemented").toURL();
+            return URI.create(URL_PLACEHOLDER_VALUE).toURL();
         } catch (MalformedURLException e) {
             throw new ExceptionInInitializerError(e);
         }
