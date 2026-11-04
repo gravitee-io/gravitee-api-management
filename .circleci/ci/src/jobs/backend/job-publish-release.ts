@@ -84,6 +84,22 @@ export class PublishReleaseJob {
         command: `mvn clean deploy --activate-profiles gio-release --batch-mode -T 4 -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true --settings ${config.maven.settingsFile} --update-snapshots -DaltDeploymentRepository=azure-artifacts-gravitee::${config.maven.azureFeedUrl}`,
       }),
       new reusable.ReusedCommand(saveMavenCacheCmd, { jobName: PublishReleaseJob.jobName }),
+      // Customers read the feed through the `public` view only: it holds what used to go to Maven
+      // Central. A fresh token, because the deploy above may outlive the first one (one hour).
+      new reusable.ReusedCommand(azureArtifactsTokenCmd),
+      new reusable.ReusedCommand(keeper.commands['env-export'], {
+        'secret-url': config.secrets.githubApiToken,
+        'var-name': 'GITHUB_TOKEN',
+      }),
+      new commands.Run({
+        name: 'Promote the release to the @public view of the Azure feed',
+        environment: {
+          MAVEN_SETTINGS: config.maven.settingsFile,
+          MAVEN_PROFILES: 'gio-release',
+        },
+        command: 'bash .circleci/scripts/promote-to-view.sh',
+      }),
+      new commands.StoreArtifacts({ path: '/tmp/promote-to-view', destination: 'promote-to-view' }),
     ];
 
     return new Job(PublishReleaseJob.jobName, OpenJdkNodeExecutor.create('xlarge'), steps);
