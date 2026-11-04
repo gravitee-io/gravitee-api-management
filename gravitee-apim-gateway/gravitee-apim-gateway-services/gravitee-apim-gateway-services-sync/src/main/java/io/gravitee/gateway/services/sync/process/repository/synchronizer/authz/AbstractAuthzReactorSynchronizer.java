@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
 import io.gravitee.gateway.services.sync.process.common.deployer.Deployer;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.ResyncWindow;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.repository.management.model.Event;
@@ -63,7 +64,7 @@ public abstract class AbstractAuthzReactorSynchronizer<D extends AuthzScopedDepl
     private final Map<String, D> pendingDeploys = new ConcurrentHashMap<>();
     private final Map<String, D> pendingUndeploys = new ConcurrentHashMap<>();
     private final Map<String, Integer> pendingAttempts = new ConcurrentHashMap<>();
-    private final AuthzResyncWindow resyncWindow = new AuthzResyncWindow();
+    private final ResyncWindow resyncWindow = new ResyncWindow();
 
     protected AbstractAuthzReactorSynchronizer(
         LatestEventFetcher eventsFetcher,

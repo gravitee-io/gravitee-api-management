@@ -19,6 +19,7 @@ import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.ResyncWindow;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.node.api.Node;
@@ -97,7 +98,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
 
     private final Map<String, Integer> pendingProvisionAttempts = new ConcurrentHashMap<>();
 
-    private final AuthzResyncWindow resyncWindow = new AuthzResyncWindow();
+    private final ResyncWindow resyncWindow = new ResyncWindow();
 
     /** Re-drive counter for {@link #pendingHydrations}, capped at {@link #MAX_PENDING_ATTEMPTS} so a
      *  permanently failing hydration stops re-driving every cycle instead of retrying forever. */

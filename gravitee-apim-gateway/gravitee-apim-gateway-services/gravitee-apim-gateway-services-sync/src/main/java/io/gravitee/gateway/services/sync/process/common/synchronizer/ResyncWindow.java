@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
+package io.gravitee.gateway.services.sync.process.common.synchronizer;
 
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Tracks the {@code from} bound of a failed authz sync window so the synchronizer can swallow the
- * failure — keeping the shared sync cycle (and everything ordered after authz: API, subscription,
- * api-key) alive — and still re-fetch the missed window itself on the next cycle. The global cycle
- * cursor advances on swallowed failures, so without this the failed window's events would be lost
- * and the engine would drift from the control plane. A failed initial sync ({@code from = -1})
- * re-runs as an initial fetch next cycle.
+ * Tracks the {@code from} bound of a failed sync window so a synchronizer can swallow the failure
+ * — keeping the shared sync cycle (and every synchronizer ordered after it) alive — and still
+ * re-fetch the missed window itself on the next cycle. The global cycle cursor advances on
+ * swallowed failures, so without this the failed window's events would be lost and the gateway
+ * would drift from the control plane. A failed initial sync ({@code from = -1}) re-runs as an
+ * initial fetch next cycle.
  */
-class AuthzResyncWindow {
+public class ResyncWindow {
 
     private static final long NONE = Long.MIN_VALUE;
 
@@ -33,7 +33,7 @@ class AuthzResyncWindow {
 
     /** The {@code from} to fetch with this cycle: the caller's window widened to cover a previously
      *  failed window, {@code -1} (full initial fetch) when either is an initial sync. */
-    Long effectiveFrom(Long from) {
+    public Long effectiveFrom(Long from) {
         long pending = retryFrom.get();
         if (pending == NONE) {
             return from;
@@ -45,14 +45,14 @@ class AuthzResyncWindow {
     }
 
     /** Record a failed window; returns {@code true} on the first failure after a success (log loudly once). */
-    boolean markFailed(Long effectiveFrom) {
+    public boolean markFailed(Long effectiveFrom) {
         long failedFrom = effectiveFrom == null ? -1L : effectiveFrom;
         long previous = retryFrom.getAndSet(failedFrom);
         return previous == NONE;
     }
 
     /** Clear any pending window; returns {@code true} when this success recovered from a failure. */
-    boolean markSucceeded() {
+    public boolean markSucceeded() {
         return retryFrom.getAndSet(NONE) != NONE;
     }
 }
