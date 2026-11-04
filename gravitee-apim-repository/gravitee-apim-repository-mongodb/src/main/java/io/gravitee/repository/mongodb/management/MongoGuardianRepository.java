@@ -1,0 +1,138 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.repository.mongodb.management;
+
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.GuardianRepository;
+import io.gravitee.repository.management.api.search.GuardianCriteria;
+import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
+import io.gravitee.repository.management.model.Guardian;
+import io.gravitee.repository.mongodb.management.internal.guardians.GuardianMongoRepository;
+import io.gravitee.repository.mongodb.management.internal.model.GuardianMongo;
+import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import io.gravitee.repository.mongodb.utils.FieldUtils;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import lombok.CustomLog;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Component;
+
+/**
+ * @author GraviteeSource Team
+ */
+@CustomLog
+@Component
+@RequiredArgsConstructor
+public class MongoGuardianRepository implements GuardianRepository {
+
+    private final GraviteeMapper mapper;
+    private final GuardianMongoRepository internalGuardianMongoRepo;
+
+    @Override
+    public Optional<Guardian> findById(String id) throws TechnicalException {
+        log.debug("Find guardian by ID [{}]", id);
+        final GuardianMongo guardianMongo = internalGuardianMongoRepo.findById(id).orElse(null);
+        log.debug("Find guardian by ID [{}] - Done", id);
+        return Optional.ofNullable(mapGuardian(guardianMongo));
+    }
+
+    @Override
+    public Guardian create(Guardian item) throws TechnicalException {
+        log.debug("Create guardian with id [{}]", item.getId());
+        final GuardianMongo created = internalGuardianMongoRepo.insert(mapGuardian(item));
+        final Guardian res = mapGuardian(created);
+        log.debug("Create guardian with id [{}] - Done", res.getId());
+        return res;
+    }
+
+    @Override
+    public Guardian update(Guardian item) throws TechnicalException {
+        if (item == null || item.getId() == null) {
+            throw new IllegalStateException("Guardian to update must have an id");
+        }
+        if (internalGuardianMongoRepo.findById(item.getId()).isEmpty()) {
+            throw new IllegalStateException(String.format("No guardian found with id [%s]", item.getId()));
+        }
+        log.debug("Update guardian with id [{}]", item.getId());
+        final GuardianMongo updated = internalGuardianMongoRepo.save(mapGuardian(item));
+        log.debug("Update guardian with id [{}] - Done", item.getId());
+        return mapGuardian(updated);
+    }
+
+    @Override
+    public void delete(String id) throws TechnicalException {
+        try {
+            internalGuardianMongoRepo.deleteById(id);
+        } catch (Exception e) {
+            log.error("An error occurred when deleting guardian [{}]", id, e);
+            throw new TechnicalException("An error occurred when deleting guardian");
+        }
+    }
+
+    @Override
+    public Set<Guardian> findAll() throws TechnicalException {
+        throw new IllegalStateException("Not implemented");
+    }
+
+    @Override
+    public Page<Guardian> search(GuardianCriteria criteria, Pageable pageable, Sortable sortable) throws TechnicalException {
+        Objects.requireNonNull(pageable, "Pageable must not be null");
+        Objects.requireNonNull(criteria, "GuardianCriteria must not be null");
+        Objects.requireNonNull(criteria.getEnvironmentId(), "EnvironmentId must not be null");
+        log.debug("MongoGuardianRepository.search({}, {})", criteria, pageable);
+        try {
+            sortable = sortable == null ? new SortableBuilder().field("created_at").setAsc(true).build() : sortable;
+            final var sortOrder = sortable.order() == Order.ASC ? Sort.Direction.ASC : Sort.Direction.DESC;
+            final var sortField = FieldUtils.toCamelCase(sortable.field());
+            return this.internalGuardianMongoRepo.search(
+                criteria,
+                PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sortOrder, sortField)
+            ).map(this::mapGuardian);
+        } catch (Exception e) {
+            log.error("An error occurred when searching for guardians", e);
+            throw new TechnicalException("An error occurred when searching for guardians", e);
+        }
+    }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("Delete guardians by environmentId [{}]", environmentId);
+        try {
+            final var res = internalGuardianMongoRepo.deleteByEnvironmentId(environmentId).stream().map(GuardianMongo::getId).toList();
+            log.debug("Delete guardians by environmentId [{}] - Done", environmentId);
+            return res;
+        } catch (Exception ex) {
+            log.error("Failed to delete guardians by environmentId: {}", environmentId, ex);
+            throw new TechnicalException("Failed to delete guardians by environmentId");
+        }
+    }
+
+    private Guardian mapGuardian(GuardianMongo item) {
+        return item == null ? null : mapper.map(item);
+    }
+
+    private GuardianMongo mapGuardian(Guardian item) {
+        return item == null ? null : mapper.map(item);
+    }
+}

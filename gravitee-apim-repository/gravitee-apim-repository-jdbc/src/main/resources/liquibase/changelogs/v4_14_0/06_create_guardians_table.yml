@@ -1,0 +1,31 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.14.0_create_guardians_table
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}guardians
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}guardians" } }
+              - column: {name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: name, type: nvarchar(512), constraints: { nullable: false } }
+              - column: {name: description, type: nvarchar(1024) }
+              - column: {name: version, type: nvarchar(64) }
+              - column: {name: api_type, type: nvarchar(10), constraints: { nullable: false } }
+              - column: {name: phase, type: nvarchar(32), constraints: { nullable: false } }
+              - column: {name: definition, type: nclob }
+              - column: {name: lifecycle_state, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: deployed_at, type: timestamp(6), constraints: { nullable: true } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
+              - column: {name: updated_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
+        - createIndex:
+            tableName: ${gravitee_prefix}guardians
+            indexName: idx_${gravitee_prefix}guardians_environment_id_name
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+              - column:
+                  name: name
+                  type: nvarchar(512)

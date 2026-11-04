@@ -152,6 +152,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "integration_groups",
         "asyncjobs",
         "api_category_orders",
+        "guardians",
         "sharedpolicygroups",
         "sharedpolicygrouphistories",
         "scoring_reports",

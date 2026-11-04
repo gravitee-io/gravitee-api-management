@@ -81,6 +81,7 @@ import org.junit.platform.suite.api.Suite;
         QualityRuleRepositoryTest.class,
         RatingRepositoryTest.class,
         RoleRepositoryTest.class,
+        GuardianRepositoryTest.class,
         SharedPolicyGroupRepositoryTest.class,
         SubscriptionRepositoryTest.class,
         TagRepositoryTest.class,
