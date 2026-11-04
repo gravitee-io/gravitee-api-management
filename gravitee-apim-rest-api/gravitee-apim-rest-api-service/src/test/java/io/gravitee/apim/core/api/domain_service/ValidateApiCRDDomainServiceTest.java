@@ -47,9 +47,11 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
 import io.gravitee.apim.core.cluster.domain_service.DeployedClustersDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService;
 import io.gravitee.apim.core.cluster.domain_service.ValidateKafkaClusterBindingDomainService;
 import io.gravitee.apim.core.cluster.exception.ClusterBindingNotAllowedException;
 import io.gravitee.apim.core.cluster.model.Cluster;
+import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -151,7 +153,8 @@ class ValidateApiCRDDomainServiceTest {
             new DeployedClustersDomainService(eventLatestQueryService, OBJECT_MAPPER),
             OBJECT_MAPPER
         ),
-        new ClusterBindingPermissionDomainService(clusterQueryService, permissionDomainService, new ObjectMapper())
+        new ClusterBindingPermissionDomainService(clusterQueryService, permissionDomainService, new ObjectMapper()),
+        new ValidateApiClusterBindingService(clusterQueryService, OBJECT_MAPPER)
     );
 
     PortalNotificationConfigEntity consoleNotificationConfiguration = new PortalNotificationConfigEntity();
@@ -319,6 +322,39 @@ class ValidateApiCRDDomainServiceTest {
     }
 
     @Test
+    void should_report_a_started_native_api_bound_to_a_cluster_that_is_not_deployed() {
+        givenTheClusterIsUndeployed();
+        givenEveryValidatorAccepts();
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+
+        assertThat(severeErrorsOf(systemCall, aNativeSpecBoundTo("plain")))
+            .singleElement(STRING)
+            .contains("its cluster {prod} is not deployed");
+    }
+
+    @Test
+    void should_accept_a_stopped_native_api_bound_to_a_cluster_that_is_not_deployed() {
+        givenTheClusterIsUndeployed();
+        givenEveryValidatorAccepts();
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        var spec = aNativeSpecBoundTo("plain").toBuilder().state("STOPPED").build();
+
+        assertThat(severeErrorsOf(systemCall, spec)).isEmpty();
+    }
+
+    @Test
+    void should_report_a_started_message_api_bound_to_an_undeployed_cluster_whose_last_deployment_remains() {
+        givenTheClusterIsUndeployed();
+        givenTheClusterIsDeployed();
+        givenEveryValidatorAccepts();
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+
+        assertThat(severeErrorsOf(systemCall, aMessageSpecBoundTo("plain")))
+            .singleElement(STRING)
+            .contains("its cluster {prod} is not deployed");
+    }
+
+    @Test
     void should_not_check_the_bindings_without_an_actor() {
         givenAClusterTheUserIsNotAMemberOf();
         givenEveryValidatorAccepts();
@@ -338,6 +374,22 @@ class ValidateApiCRDDomainServiceTest {
                     .name("Production")
                     .type(ClusterType.KAFKA_CLUSTER)
                     .environmentId(ENV_ID)
+                    .lifecycleState(ClusterLifecycleState.DEPLOYED)
+                    .build()
+            )
+        );
+    }
+
+    private void givenTheClusterIsUndeployed() {
+        clusterQueryService.initWith(
+            List.of(
+                Cluster.builder()
+                    .id("prod-id")
+                    .crossId("prod")
+                    .name("Production")
+                    .type(ClusterType.KAFKA_CLUSTER)
+                    .environmentId(ENV_ID)
+                    .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
                     .build()
             )
         );
