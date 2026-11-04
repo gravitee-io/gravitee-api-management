@@ -18,6 +18,7 @@ package io.gravitee.plugin.endpoint.http.proxy.connector;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -50,9 +51,13 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -99,6 +104,9 @@ class WebSocketConnectorTest {
     private HttpHeaders responseHeaders;
     private NetServer backend;
     private CompletableFuture<String> backendReceivedExtensions;
+    private CompletableFuture<String> backendReceivedProtocol;
+    private volatile String backendSelectedProtocol;
+    private final List<Map<String, String>> backendHandshakes = new CopyOnWriteArrayList<>();
     private HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration;
     private HttpProxyEndpointConnectorConfiguration configuration;
 
@@ -115,6 +123,9 @@ class WebSocketConnectorTest {
     @BeforeEach
     void init() throws Exception {
         backendReceivedExtensions = new CompletableFuture<>();
+        backendReceivedProtocol = new CompletableFuture<>();
+        backendSelectedProtocol = null;
+        backendHandshakes.clear();
         backend = vertx.getDelegate().createNetServer().connectHandler(this::answerHandshakeLikeRfc7692Server);
         backend.listen(0).toCompletionStage().toCompletableFuture().get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
@@ -188,6 +199,70 @@ class WebSocketConnectorTest {
         verify(callerWebSocket).upgrade();
     }
 
+    @Test
+    void should_accept_backend_that_selects_no_sub_protocol() throws Exception {
+        requestHeaders.set("Sec-WebSocket-Protocol", "USP");
+
+        connect();
+
+        assertThat(backendReceivedProtocol.get(TIMEOUT_SECONDS, TimeUnit.SECONDS)).isEqualTo("USP");
+        verify(ctx, never()).interruptWith(any(ExecutionFailure.class));
+        verify(callerWebSocket).upgrade();
+        assertThat(responseHeaders.contains("Sec-WebSocket-Protocol")).isFalse();
+        // The first handshake declares the sub protocol and is rejected by the client; the retry relays it as a plain header.
+        assertThat(backendHandshakes).hasSize(2);
+        assertThat(backendHandshakes.get(1)).containsEntry("Sec-WebSocket-Protocol", "USP");
+    }
+
+    @Test
+    void should_strip_caller_extension_offer_on_the_retry_without_sub_protocols() throws Exception {
+        requestHeaders.set("Sec-WebSocket-Protocol", "USP");
+        requestHeaders.set("Sec-WebSocket-Extensions", "permessage-deflate; client_max_window_bits");
+        sharedConfiguration.getHttpOptions().setUseCompression(false);
+
+        connect();
+
+        verify(ctx, never()).interruptWith(any(ExecutionFailure.class));
+        assertThat(backendHandshakes).hasSize(2);
+        assertThat(backendHandshakes).allSatisfy(handshake -> assertThat(handshake).containsEntry("Sec-WebSocket-Extensions", ""));
+        assertThat(backendHandshakes.get(1)).containsEntry("Sec-WebSocket-Protocol", "USP");
+    }
+
+    @Test
+    void should_not_retry_when_backend_selects_a_sub_protocol_the_caller_did_not_offer() throws Exception {
+        requestHeaders.set("Sec-WebSocket-Protocol", "USP");
+        backendSelectedProtocol = "other";
+
+        connect();
+
+        assertThat(backendHandshakes).hasSize(1);
+        verify(ctx).interruptWith(argThat((ExecutionFailure failure) -> failure.statusCode() == 500));
+        verify(callerWebSocket, never()).upgrade();
+    }
+
+    @Test
+    void should_not_retry_when_backend_selects_an_empty_sub_protocol() throws Exception {
+        requestHeaders.set("Sec-WebSocket-Protocol", "USP");
+        backendSelectedProtocol = "";
+
+        connect();
+
+        assertThat(backendHandshakes).hasSize(1);
+        verify(ctx).interruptWith(argThat((ExecutionFailure failure) -> failure.statusCode() == 500));
+    }
+
+    @Test
+    void should_relay_sub_protocol_selected_by_backend_to_caller() throws Exception {
+        requestHeaders.set("Sec-WebSocket-Protocol", "chat, USP");
+        backendSelectedProtocol = "USP";
+
+        connect();
+
+        assertThat(backendReceivedProtocol.get(TIMEOUT_SECONDS, TimeUnit.SECONDS).replace(" ", "")).isEqualTo("chat,USP");
+        verify(ctx, never()).interruptWith(any(ExecutionFailure.class));
+        assertThat(responseHeaders.get("Sec-WebSocket-Protocol")).isEqualTo("USP");
+    }
+
     private void connect() {
         new WebSocketConnector(configuration, sharedConfiguration, new HttpClientFactory())
             .connect(ctx)
@@ -202,8 +277,9 @@ class WebSocketConnectorTest {
      */
     private void answerHandshakeLikeRfc7692Server(io.vertx.core.net.NetSocket socket) {
         final Buffer received = Buffer.buffer();
+        final AtomicBoolean answered = new AtomicBoolean();
         socket.handler(chunk -> {
-            if (backendReceivedExtensions.isDone()) {
+            if (answered.get()) {
                 return;
             }
             received.appendBuffer(chunk);
@@ -211,9 +287,14 @@ class WebSocketConnectorTest {
             if (!head.contains("\r\n\r\n")) {
                 return;
             }
+            answered.set(true);
             final String key = header(head, "Sec-WebSocket-Key");
             final String offer = header(head, "Sec-WebSocket-Extensions");
             backendReceivedExtensions.complete(offer);
+            backendReceivedProtocol.complete(header(head, "Sec-WebSocket-Protocol"));
+            backendHandshakes.add(
+                Map.of("Sec-WebSocket-Extensions", offer, "Sec-WebSocket-Protocol", header(head, "Sec-WebSocket-Protocol"))
+            );
 
             final StringBuilder handshake = new StringBuilder()
                 .append("HTTP/1.1 101 Switching Protocols\r\n")
@@ -222,6 +303,9 @@ class WebSocketConnectorTest {
                 .append("Sec-WebSocket-Accept: ")
                 .append(accept(key))
                 .append("\r\n");
+            if (backendSelectedProtocol != null) {
+                handshake.append("Sec-WebSocket-Protocol: ").append(backendSelectedProtocol).append("\r\n");
+            }
             final String firstOffer = Arrays.stream(offer.split(","))
                 .map(String::trim)
                 .filter(extension -> extension.startsWith("permessage-deflate"))
