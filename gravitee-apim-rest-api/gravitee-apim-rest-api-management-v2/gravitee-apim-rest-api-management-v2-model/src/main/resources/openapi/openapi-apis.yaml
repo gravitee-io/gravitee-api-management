@@ -9656,7 +9656,10 @@ components:
                     description: Job-specific state; its shape depends on the job type.
                 errors:
                     type: array
-                    description: Failures on individual items; the failure of the job itself is in errorMessage.
+                    description: |-
+                        Failures on individual items; the failure of the job itself is in errorMessage.
+                        At most 1000 errors are kept per job: when more items fail, only the first 1000 are listed.
+                    maxItems: 1000
                     items:
                         $ref: "#/components/schemas/AsyncJobError"
                 createdAt:
@@ -9701,7 +9704,8 @@ components:
                     example: slug_conflict
                 message:
                     type: string
-                    description: A message detailing the failure.
+                    description: A message detailing the failure, cut to 256 characters.
+                    maxLength: 256
                 itemId:
                     type: string
                     description: Id of the item that failed, when the failure is tied to one.
