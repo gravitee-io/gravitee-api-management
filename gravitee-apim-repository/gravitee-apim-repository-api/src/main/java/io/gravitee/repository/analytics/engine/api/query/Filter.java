@@ -54,6 +54,8 @@ public record Filter(FilterName name, Operator operator, Object value) {
         HTTP_RESPONSE_CONTENT_LENGTH,
         LLM_PROXY_MODEL,
         LLM_PROXY_PROVIDER,
+        AI_HUB_BUDGET,
+        AI_HUB_USER_NAME,
         MCP_PROXY_METHOD,
         MCP_PROXY_TOOL,
         MCP_PROXY_RESOURCE,

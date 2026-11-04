@@ -71,6 +71,8 @@ public class FilterAdapter {
         Filter.Name.HTTP_RESPONSE_CONTENT_LENGTH,
         Filter.Name.LLM_PROXY_MODEL,
         Filter.Name.LLM_PROXY_PROVIDER,
+        Filter.Name.AI_HUB_BUDGET,
+        Filter.Name.AI_HUB_USER_NAME,
         Filter.Name.MCP_PROXY_METHOD,
         Filter.Name.MCP_PROXY_TOOL,
         Filter.Name.MCP_PROXY_RESOURCE,
