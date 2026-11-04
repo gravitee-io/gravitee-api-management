@@ -110,7 +110,6 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
             { path: 'resources', label: 'Resources', icon: ServerIcon },
             { path: 'properties', label: 'API Properties', icon: SettingsIcon },
             { path: 'cors', label: 'CORS', icon: ShieldCheckIcon },
-            { path: 'path-mappings', label: 'Path Mappings', icon: WaypointsIcon },
         ],
     },
     {
@@ -124,6 +123,7 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
     {
         label: 'Monitoring',
         items: [
+            { path: 'path-mappings', label: 'Path Mappings', icon: WaypointsIcon },
             { path: 'notifications', label: 'Notifications', icon: BellIcon },
             { path: 'alerts', label: 'Alerts', icon: TriangleAlertIcon },
             { path: 'audit-logs', label: 'Audit Logs', icon: ScrollTextIcon },

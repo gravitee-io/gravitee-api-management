@@ -22,18 +22,19 @@ const DEFAULT_PAGE_SIZE = CLIENT_TABLE_PAGE_SIZE_OPTIONS[0];
 
 /**
  * Client search + pagination over an in-memory collection.
- * Pass the current page slice to DataTable with `serverSide` + controlled `pagination`
+ * Pass the current page slice to DataTable with `serverSide` + controlled `pagination`.
  *
- * `matchesSearch` receives a trimmed, lowercased query (empty query skips filtering).
+ * `matchesSearch` receives a trimmed, lowercased query. Omit it to paginate without filtering.
+ * An empty query also skips filtering.
  */
-export function useClientFilteredPagination<T>(items: T[], matchesSearch: (item: T, query: string) => boolean) {
+export function useClientFilteredPagination<T>(items: T[], matchesSearch?: (item: T, query: string) => boolean) {
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
 
     const filtered = useMemo(() => {
         const query = search.trim().toLowerCase();
-        if (!query) return items;
+        if (!query || !matchesSearch) return items;
         return items.filter(item => matchesSearch(item, query));
     }, [items, matchesSearch, search]);
 

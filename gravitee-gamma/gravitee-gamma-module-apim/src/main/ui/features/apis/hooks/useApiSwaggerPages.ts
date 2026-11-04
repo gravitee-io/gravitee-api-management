@@ -16,7 +16,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { retryUnlessClientError } from './retryUnlessClientError';
-import { listApiSwaggerPages } from '../services/apis';
+import { getApiSwaggerPagePaths, listApiSwaggerPages } from '../services/apis';
 import { apiSwaggerPagesKeys } from '../utils/queryKeys';
 
 export function useApiSwaggerPages(environmentId: string | undefined, apiId: string | undefined, enabled: boolean) {
@@ -25,5 +25,21 @@ export function useApiSwaggerPages(environmentId: string | undefined, apiId: str
         queryFn: () => listApiSwaggerPages(environmentId!, apiId!),
         enabled: enabled && Boolean(environmentId && apiId),
         retry: retryUnlessClientError,
+        staleTime: 60_000,
+    });
+}
+
+export function useApiSwaggerPagePaths(
+    environmentId: string | undefined,
+    apiId: string | undefined,
+    pageId: string | undefined,
+    enabled: boolean,
+) {
+    return useQuery({
+        queryKey: apiSwaggerPagesKeys.paths(environmentId ?? '', apiId ?? '', pageId ?? ''),
+        queryFn: () => getApiSwaggerPagePaths(environmentId!, apiId!, pageId!),
+        enabled: enabled && Boolean(environmentId && apiId && pageId),
+        retry: retryUnlessClientError,
+        staleTime: 60_000,
     });
 }

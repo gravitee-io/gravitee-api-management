@@ -54,6 +54,13 @@ describe('API_PROXY_NAV_GROUPS', () => {
         expect(GROUPS.map(g => g.label)).toEqual(['General', 'Design', 'Consumers', 'Monitoring', 'Operations']);
     });
 
+    it('places Path mappings first under Monitoring', () => {
+        const design = GROUPS.find(g => g.label === 'Design')!;
+        const monitoring = GROUPS.find(g => g.label === 'Monitoring')!;
+        expect(design.items.map(item => item.path)).not.toContain('path-mappings');
+        expect(monitoring.items[0]).toMatchObject({ path: 'path-mappings', label: 'Path Mappings' });
+    });
+
     it('opens Design with Entrypoints, Policy Studio, Endpoints', () => {
         const design = GROUPS.find(g => g.label === 'Design')!;
         expect(design.items.slice(0, 3).map(i => i.path)).toEqual(['entrypoints', 'policy-studio', 'endpoints/list']);

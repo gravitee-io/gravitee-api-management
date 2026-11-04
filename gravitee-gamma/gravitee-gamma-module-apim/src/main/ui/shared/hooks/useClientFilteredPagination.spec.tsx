@@ -23,6 +23,18 @@ const ITEMS = Array.from({ length: 25 }, (_, i) => ({ id: `item-${i}`, name: i %
 describe('useClientFilteredPagination', () => {
     const matchesSearch = (item: (typeof ITEMS)[number], query: string) => item.name.toLowerCase().includes(query);
 
+    it('paginates every item when no search matcher is provided', () => {
+        const { result } = renderHook(() => useClientFilteredPagination(ITEMS));
+
+        act(() => {
+            result.current.handleSearchChange('beta');
+        });
+
+        expect(result.current.totalCount).toBe(25);
+        expect(result.current.pageData).toHaveLength(10);
+        expect(result.current.pageData[0]?.id).toBe('item-0');
+    });
+
     it('paginates the full collection by default', () => {
         const { result } = renderHook(() => useClientFilteredPagination(ITEMS, matchesSearch));
         expect(result.current.totalCount).toBe(25);
