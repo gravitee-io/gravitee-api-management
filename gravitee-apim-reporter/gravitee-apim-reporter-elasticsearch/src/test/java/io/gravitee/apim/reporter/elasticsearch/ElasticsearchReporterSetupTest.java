@@ -205,7 +205,13 @@ class ElasticsearchReporterSetupTest {
         elasticsearch.verify(0, putRequestedFor(urlPathEqualTo(PIPELINE_PATH)));
         assertThat(reporterMessages(Level.ERROR))
             .singleElement()
-            .satisfies(message -> assertThat(message).contains("index template [gravitee-request]").contains("until the gateway restarts"));
+            .satisfies(message ->
+                assertThat(message)
+                    .contains("index template [gravitee-request]")
+                    .contains("status[400]")
+                    .contains("number_of_shards must be greater than 0")
+                    .contains("until the gateway restarts")
+            );
         assertThat(reporterMessages(Level.WARN))
             .singleElement()
             .satisfies(message -> assertThat(message).contains("3 documents"));
@@ -249,7 +255,13 @@ class ElasticsearchReporterSetupTest {
         elasticsearch.verify(0, postRequestedFor(urlPathEqualTo("/_bulk")));
         assertThat(reporterMessages(Level.ERROR))
             .singleElement()
-            .satisfies(message -> assertThat(message).contains("gravitee-request-000001").contains("until the gateway restarts"));
+            .satisfies(message ->
+                assertThat(message)
+                    .contains("gravitee-request-000001")
+                    .contains("status[400]")
+                    .contains("resource_already_exists_exception")
+                    .contains("until the gateway restarts")
+            );
         assertNoNullPointerExceptionLogged();
     }
 
