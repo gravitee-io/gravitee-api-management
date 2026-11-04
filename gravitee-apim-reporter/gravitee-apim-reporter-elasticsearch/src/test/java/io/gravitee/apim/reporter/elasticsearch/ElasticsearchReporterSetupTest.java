@@ -26,6 +26,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.mock;
@@ -238,6 +239,36 @@ class ElasticsearchReporterSetupTest {
             .singleElement()
             .satisfies(message -> assertThat(message).contains("index template ["));
         assertThat(undeliverableErrors).isEmpty();
+    }
+
+    @Test
+    void should_index_when_another_gateway_creates_the_ilm_alias_first() throws Exception {
+        elasticsearch.stubFor(
+            get(urlPathEqualTo("/_alias/gravitee-request"))
+                .inScenario("alias race")
+                .whenScenarioStateIs(STARTED)
+                .willReturn(aResponse().withStatus(404))
+        );
+        elasticsearch.stubFor(
+            put(urlPathEqualTo("/gravitee-request-000001"))
+                .inScenario("alias race")
+                .whenScenarioStateIs(STARTED)
+                .willReturn(aResponse().withStatus(400).withBody("{\"error\":\"resource_already_exists_exception\"}"))
+                .willSetStateTo("created by another gateway")
+        );
+        elasticsearch.stubFor(
+            get(urlPathEqualTo("/_alias/gravitee-request"))
+                .inScenario("alias race")
+                .whenScenarioStateIs("created by another gateway")
+                .willReturn(okJson("{\"gravitee-request-000001\":{\"aliases\":{\"gravitee-request\":{\"is_write_index\":true}}}}"))
+        );
+        startReporter(Map.of("reporters.elasticsearch.index_mode", "ilm"));
+        awaitReporterLog(Level.INFO, "Starting Elastic reporter engine... DONE");
+
+        reporter.report(metrics());
+
+        assertThat(awaitBulkBody()).contains("\"pipeline\" : \"gravitee_pipeline\"");
+        assertThat(reporterMessages(Level.ERROR)).isEmpty();
     }
 
     @Test
