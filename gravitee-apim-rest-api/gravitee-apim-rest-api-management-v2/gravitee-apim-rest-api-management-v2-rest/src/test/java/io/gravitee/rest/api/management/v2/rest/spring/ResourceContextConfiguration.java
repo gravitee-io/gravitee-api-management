@@ -129,6 +129,7 @@ import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
+import io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService;
 import io.gravitee.apim.core.cluster.domain_service.ValidateKafkaClusterBindingDomainService;
 import io.gravitee.apim.core.cluster.use_case.CountClustersByLifecycleStateUseCase;
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
@@ -908,7 +909,8 @@ public class ResourceContextConfiguration {
         DataEncryptor dataEncryptor,
         CRDMembersDomainServiceInMemory crdMembersDomainService,
         ValidateKafkaClusterBindingDomainService validateKafkaClusterBindingDomainService,
-        ClusterBindingPermissionDomainService clusterBindingPermissionDomainService
+        ClusterBindingPermissionDomainService clusterBindingPermissionDomainService,
+        ValidateApiClusterBindingService validateApiClusterBindingService
     ) {
         ValidateGroupsDomainService groupsValidator = new ValidateGroupsDomainService(groupQueryService);
         return new ValidateApiCRDUseCase(
@@ -935,7 +937,8 @@ public class ResourceContextConfiguration {
                 new PropertyDomainService(dataEncryptor),
                 crdMembersDomainService,
                 validateKafkaClusterBindingDomainService,
-                clusterBindingPermissionDomainService
+                clusterBindingPermissionDomainService,
+                validateApiClusterBindingService
             )
         );
     }
@@ -1204,6 +1207,11 @@ public class ResourceContextConfiguration {
     @Bean
     public ValidateKafkaClusterBindingDomainService validateKafkaClusterBindingDomainService() {
         return mock(ValidateKafkaClusterBindingDomainService.class);
+    }
+
+    @Bean
+    public ValidateApiClusterBindingService validateApiClusterBindingService() {
+        return mock(ValidateApiClusterBindingService.class);
     }
 
     @Bean
