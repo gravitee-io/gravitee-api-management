@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.common.deployer;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.handlers.api.manager.ApprovalRuleManager;
 import io.gravitee.gateway.handlers.api.manager.DeployedApprovalRule;
@@ -25,7 +26,9 @@ import io.gravitee.gateway.handlers.api.manager.DeployedApprovalRule.ArgumentCon
 import io.gravitee.gateway.handlers.api.manager.DeployedApprovalRule.ToolBinding;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.approvalrule.ApprovalRuleDeployable;
+import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -47,11 +50,14 @@ class ApprovalRuleDeployerTest {
     @Mock
     private ApprovalRuleManager approvalRuleManager;
 
+    @Mock
+    private DistributedSyncService distributedSyncService;
+
     private ApprovalRuleDeployer cut;
 
     @BeforeEach
     void beforeEach() {
-        cut = new ApprovalRuleDeployer(approvalRuleManager);
+        cut = new ApprovalRuleDeployer(approvalRuleManager, distributedSyncService);
     }
 
     @Nested
@@ -83,6 +89,16 @@ class ApprovalRuleDeployerTest {
 
             cut.deploy(deployable(SyncAction.DEPLOY)).test().assertFailure(SyncException.class);
         }
+
+        @Test
+        void should_distribute_after_deployment() {
+            ApprovalRuleDeployable deployable = deployable(SyncAction.DEPLOY);
+            when(distributedSyncService.distributeIfNeeded(deployable)).thenReturn(Completable.complete());
+
+            cut.doAfterDeployment(deployable).test().assertComplete();
+
+            verify(distributedSyncService).distributeIfNeeded(deployable);
+        }
     }
 
     @Nested
@@ -100,6 +116,16 @@ class ApprovalRuleDeployerTest {
             doThrow(new RuntimeException("error")).when(approvalRuleManager).undeploy(any(), any());
 
             cut.undeploy(deployable(SyncAction.UNDEPLOY)).test().assertFailure(SyncException.class);
+        }
+
+        @Test
+        void should_distribute_after_undeployment() {
+            ApprovalRuleDeployable deployable = deployable(SyncAction.UNDEPLOY);
+            when(distributedSyncService.distributeIfNeeded(deployable)).thenReturn(Completable.complete());
+
+            cut.doAfterUndeployment(deployable).test().assertComplete();
+
+            verify(distributedSyncService).distributeIfNeeded(deployable);
         }
     }
 

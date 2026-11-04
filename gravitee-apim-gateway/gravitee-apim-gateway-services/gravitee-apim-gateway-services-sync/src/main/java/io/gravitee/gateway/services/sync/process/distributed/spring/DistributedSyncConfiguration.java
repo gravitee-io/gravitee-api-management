@@ -24,6 +24,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointM
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiProductMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.ApprovalRuleMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzEntityMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzPolicyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.CredentialMapper;
@@ -38,6 +39,7 @@ import io.gravitee.gateway.services.sync.process.distributed.synchronizer.access
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.api.DistributedApiSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.apikey.DistributedApiKeySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.apiproduct.DistributedApiProductSynchronizer;
+import io.gravitee.gateway.services.sync.process.distributed.synchronizer.approvalrule.DistributedApprovalRuleSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.authz.DistributedAuthzEntitySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.authz.DistributedAuthzPolicySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.credential.DistributedCredentialSynchronizer;
@@ -47,6 +49,7 @@ import io.gravitee.gateway.services.sync.process.distributed.synchronizer.node.D
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.organization.DistributedOrganizationSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.sharedpolicygroup.DistributedSharedPolicyGroupSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.subscription.DistributedSubscriptionSynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.GammaEnabledCondition;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.distributedsync.api.DistributedEventRepository;
@@ -363,6 +366,29 @@ public class DistributedSyncConfiguration {
     }
 
     @Bean
+    public ApprovalRuleMapper distributedApprovalRuleMapper(ObjectMapper objectMapper) {
+        return new ApprovalRuleMapper(objectMapper);
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public DistributedApprovalRuleSynchronizer distributedApprovalRuleSynchronizer(
+        DistributedEventFetcher distributedEventFetcher,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+        DeployerFactory deployerFactory,
+        ApprovalRuleMapper approvalRuleMapper
+    ) {
+        return new DistributedApprovalRuleSynchronizer(
+            distributedEventFetcher,
+            syncFetcherExecutor,
+            syncDeployerExecutor,
+            deployerFactory,
+            approvalRuleMapper
+        );
+    }
+
+    @Bean
     public DefaultDistributedSyncService distributedSyncService(
         final Node node,
         final ClusterManager clusterManager,
@@ -381,7 +407,8 @@ public class DistributedSyncConfiguration {
         final AuthzEntityMapper authzEntityMapper,
         final AuthzPolicyMapper authzPolicyMapper,
         final ApiProductMapper apiProductMapper,
-        final CredentialMapper credentialMapper
+        final CredentialMapper credentialMapper,
+        final ApprovalRuleMapper approvalRuleMapper
     ) {
         return new DefaultDistributedSyncService(
             node,
@@ -401,7 +428,8 @@ public class DistributedSyncConfiguration {
             authzEntityMapper,
             authzPolicyMapper,
             apiProductMapper,
-            credentialMapper
+            credentialMapper,
+            approvalRuleMapper
         );
     }
 }

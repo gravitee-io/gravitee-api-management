@@ -33,6 +33,7 @@ import io.gravitee.gateway.handlers.api.manager.impl.ApprovalRuleManagerImpl;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApprovalRuleDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
+import io.gravitee.gateway.services.sync.process.distributed.service.NoopDistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.node.api.license.License;
@@ -235,7 +236,9 @@ class ApprovalRuleSynchronizerTest {
 
         @BeforeEach
         void useARealManager() {
-            when(deployerFactory.createApprovalRuleDeployer()).thenReturn(new ApprovalRuleDeployer(manager));
+            when(deployerFactory.createApprovalRuleDeployer()).thenReturn(
+                new ApprovalRuleDeployer(manager, new NoopDistributedSyncService())
+            );
         }
 
         @Test

@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.common.deployer;
 import io.gravitee.gateway.handlers.api.manager.ApprovalRuleManager;
 import io.gravitee.gateway.handlers.api.manager.DeployedApprovalRule;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.approvalrule.ApprovalRuleDeployable;
 import io.reactivex.rxjava3.core.Completable;
 import lombok.CustomLog;
@@ -28,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 public class ApprovalRuleDeployer implements Deployer<ApprovalRuleDeployable> {
 
     private final ApprovalRuleManager approvalRuleManager;
+    private final DistributedSyncService distributedSyncService;
 
     @Override
     public Completable deploy(final ApprovalRuleDeployable deployable) {
@@ -55,6 +57,11 @@ public class ApprovalRuleDeployer implements Deployer<ApprovalRuleDeployable> {
     }
 
     @Override
+    public Completable doAfterDeployment(final ApprovalRuleDeployable deployable) {
+        return distributedSyncService.distributeIfNeeded(deployable);
+    }
+
+    @Override
     public Completable undeploy(final ApprovalRuleDeployable deployable) {
         return Completable.fromRunnable(() -> {
             try {
@@ -63,6 +70,11 @@ public class ApprovalRuleDeployer implements Deployer<ApprovalRuleDeployable> {
                 throw new SyncException(String.format("An error occurred when trying to undeploy approval rule [%s].", deployable.id()), e);
             }
         });
+    }
+
+    @Override
+    public Completable doAfterUndeployment(final ApprovalRuleDeployable deployable) {
+        return distributedSyncService.distributeIfNeeded(deployable);
     }
 
     /** Makes the rules (un)deployed since the last commit visible to the policies, once for the whole sync pass. */

@@ -161,6 +161,6 @@ public class DeployerFactory {
     }
 
     public ApprovalRuleDeployer createApprovalRuleDeployer() {
-        return new ApprovalRuleDeployer(approvalRuleManager);
+        return new ApprovalRuleDeployer(approvalRuleManager, distributedSyncService);
     }
 }
