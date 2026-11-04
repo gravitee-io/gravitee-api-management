@@ -20,6 +20,7 @@ import io.gravitee.apim.reporter.common.formatter.Formatter;
 import io.gravitee.apim.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.indexer.IndexNameGenerator;
 import io.gravitee.reporter.api.Reportable;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -45,6 +46,12 @@ public class ElasticBulkTransformer extends BulkFormatterTransformer {
 
     @Override
     protected Map<String, Object> buildOptions(final Reportable reportable) {
-        return Map.of(INDEX_OPTION, indexNameGenerator.generate(reportable), PIPELINE_OPTION, pipelineConfiguration.getPipeline());
+        final Map<String, Object> options = new HashMap<>();
+        options.put(INDEX_OPTION, indexNameGenerator.generate(reportable));
+        final String pipeline = pipelineConfiguration.getPipeline();
+        if (pipeline != null) {
+            options.put(PIPELINE_OPTION, pipeline);
+        }
+        return options;
     }
 }
