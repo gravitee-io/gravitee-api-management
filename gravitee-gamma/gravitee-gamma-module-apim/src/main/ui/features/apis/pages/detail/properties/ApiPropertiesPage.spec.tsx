@@ -310,34 +310,20 @@ describe('dynamic properties', () => {
         expect(await saved()).toEqual([{ ...DYNAMIC_PROP, encryptable: true }]);
     });
 
-    it('offers Renew encryption and Remove, and nothing else, on an encrypted dynamic row', async () => {
+    it('offers only Remove on an encrypted dynamic row, like classic: the sync owns its value, so it cannot be renewed', async () => {
         const user = userEvent.setup();
         renderPage([ENCRYPTED_DYNAMIC_PROP]);
 
         await openRowMenu(user, ENCRYPTED_DYNAMIC_PROP.key);
 
-        expect(menuItemNames()).toEqual(['Renew encryption', 'Remove (re-added on next sync)']);
-    });
-
-    it('renews an encrypted dynamic property: asks for a plaintext and sends dynamic, encrypted=false, encryptable=true', async () => {
-        const user = userEvent.setup();
-        renderPage([ENCRYPTED_DYNAMIC_PROP]);
-
-        await openRowMenu(user, ENCRYPTED_DYNAMIC_PROP.key);
-        await user.click(screen.getByRole('menuitem', { name: 'Renew encryption' }));
-        const dialog = screen.getByRole('dialog');
-        expect(within(dialog).getByText('Enter a new plaintext value. It will be re-encrypted on save.')).not.toBeNull();
-        fireEvent.change(within(dialog).getByLabelText(/value/i), { target: { value: 'n3w-s3cret' } });
-        await user.click(within(dialog).getByRole('button', { name: 'Save' }));
-
-        expect(await saved()).toEqual([{ key: 'dynamic.secret', value: 'n3w-s3cret', encrypted: false, encryptable: true, dynamic: true }]);
+        expect(menuItemNames()).toEqual(['Remove (re-added on next sync)']);
     });
 
     it('cannot renew with an empty or spaces-only value', async () => {
         const user = userEvent.setup();
-        renderPage([ENCRYPTED_DYNAMIC_PROP]);
+        renderPage([ENCRYPTED_PROP]);
 
-        await openRowMenu(user, ENCRYPTED_DYNAMIC_PROP.key);
+        await openRowMenu(user, ENCRYPTED_PROP.key);
         await user.click(screen.getByRole('menuitem', { name: 'Renew encryption' }));
         const dialog = screen.getByRole('dialog');
         expect(within(dialog).getByRole('button', { name: 'Save' })).toBeDisabled();
@@ -396,15 +382,15 @@ describe('saving from fresh API state', () => {
 
     it('fails and saves nothing when the property to renew was removed by a sync', async () => {
         const user = userEvent.setup();
-        renderPage([ENCRYPTED_DYNAMIC_PROP], { onServer: [] });
+        renderPage([ENCRYPTED_PROP], { onServer: [] });
 
-        await openRowMenu(user, ENCRYPTED_DYNAMIC_PROP.key);
+        await openRowMenu(user, ENCRYPTED_PROP.key);
         await user.click(screen.getByRole('menuitem', { name: 'Renew encryption' }));
         const dialog = screen.getByRole('dialog');
         fireEvent.change(within(dialog).getByLabelText(/value/i), { target: { value: 'n3w-s3cret' } });
         await user.click(within(dialog).getByRole('button', { name: 'Save' }));
 
-        expect(await screen.findByText('Property "dynamic.secret" no longer exists')).not.toBeNull();
+        expect(await screen.findByText('Property "secret.key" no longer exists')).not.toBeNull();
         expect(savedProperties).toBeUndefined();
     });
 
