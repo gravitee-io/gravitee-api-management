@@ -1637,6 +1637,15 @@ paths:
                                             facets: ["API", "LLM_PROXY_MODEL"]
                                             filters: ["API", "API_TYPE", "LLM_PROXY_MODEL"]
                                             origin: "BUILT_IN"
+                                          - name: "LLM_PROMPT_TOKEN_TOTAL_COST"
+                                            label: "Total token cost"
+                                            unit: "CURRENCY"
+                                            currency: "USD"
+                                            apiTypes: ["LLM"]
+                                            measures: ["COUNT", "AVG"]
+                                            facets: ["API", "LLM_PROXY_MODEL"]
+                                            filters: ["API", "API_TYPE", "LLM_PROXY_MODEL"]
+                                            origin: "BUILT_IN"
                                     - name: "ADDITIONAL"
                                       label: "Additional metrics"
                                       metrics:
@@ -3746,6 +3755,10 @@ components:
                         Unit of the metric values, one of the named units of `MetricDefinition.unit`. Absent
                         for an additional metric field: its declared unit is served by the metric definitions.
                     example: "COUNT"
+                currency:
+                    type: string
+                    description: The ISO 4217 code of the values, as `MetricDefinition.currency` serves it for this metric.
+                    example: "USD"
                 measures:
                     type: array
                     items:
@@ -3825,6 +3838,10 @@ components:
                         Unit of the metric values, one of the named units of `MetricDefinition.unit`. Absent
                         for an additional metric field.
                     example: "COUNT"
+                currency:
+                    type: string
+                    description: The ISO 4217 code of the values, as `MetricDefinition.currency` serves it for this metric.
+                    example: "USD"
                 buckets:
                     type: array
                     items:
@@ -3900,6 +3917,10 @@ components:
                         Unit of the metric values, one of the named units of `MetricDefinition.unit`. Absent
                         for an additional metric field.
                     example: "COUNT"
+                currency:
+                    type: string
+                    description: The ISO 4217 code of the values, as `MetricDefinition.currency` serves it for this metric.
+                    example: "USD"
                 buckets:
                     type: array
                     items:
@@ -3991,11 +4012,19 @@ components:
                     type: string
                     description: |
                         Unit of the metric values, in the vocabulary of `MetricDefinitionEntry.unit`. On a built-in,
-                        a named unit: the same value the measures, facets and time-series responses carry for it
-                        (`CURRENCY` carries no currency code). On a `DECLARED` entry, the record's unit, as
-                        `GET /metric-definitions` serves it. Absent when none is known, so on every `DISCOVERED`
-                        entry and on a record without a unit.
+                        a named unit: the same value the measures, facets and time-series responses carry for it.
+                        On a `DECLARED` entry, the record's unit, as `GET /metric-definitions` serves it. Absent when
+                        none is known, so on every `DISCOVERED` entry and on a record without a unit.
                     example: "MILLISECONDS"
+                currency:
+                    type: string
+                    description: |
+                        ISO 4217 code of the metric's values, present on a built-in whose `unit` is `CURRENCY`. The
+                        value is the platform's pricing currency, `USD`; it is not read from the cost documents, so a
+                        cost from a model priced in another currency is still labelled `USD`. Per-document currency
+                        is tracked by OBS-188. Absent on every other metric, a `DECLARED` record whose unit is
+                        `CURRENCY` included.
+                    example: "USD"
                 apiTypes:
                     type: array
                     description: API kinds the metric exists for.

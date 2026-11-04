@@ -27,6 +27,8 @@ import java.util.List;
  * @param unit the unit of a built-in in Gamma's vocabulary ({@code AdditionalMetricUnit.NAMED_UNITS}, mapped from the
  *             engine's by {@code ServedMetricUnit}), the record's unit on a {@code DECLARED} field, or {@code null}
  *             when none is known
+ * @param currency the ISO 4217 code of a built-in whose unit is {@code CURRENCY}; {@code null} on every other metric,
+ *             a declared record in {@code CURRENCY} included, its currency being unknown
  * @author GraviteeSource Team
  */
 public record MetricDefinition(
@@ -37,8 +39,23 @@ public record MetricDefinition(
     List<String> measures,
     List<DimensionDefinition> facets,
     List<String> filters,
-    CatalogOrigin origin
+    CatalogOrigin origin,
+    String currency
 ) {
+    /** A metric served without a currency: every additional metric, and a built-in that is not a cost. */
+    public MetricDefinition(
+        String name,
+        String label,
+        String unit,
+        List<ApiType> apiTypes,
+        List<String> measures,
+        List<DimensionDefinition> facets,
+        List<String> filters,
+        CatalogOrigin origin
+    ) {
+        this(name, label, unit, apiTypes, measures, facets, filters, origin, null);
+    }
+
     /** A built-in is grouped by its API kinds; an additional metric field by its origin, under one family. */
     public MetricFamily family() {
         return origin == CatalogOrigin.BUILT_IN ? MetricFamily.of(apiTypes) : MetricFamily.ADDITIONAL;

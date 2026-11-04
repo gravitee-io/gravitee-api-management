@@ -145,6 +145,7 @@ class ListMetricDefinitionsUseCaseTest {
             assertThat(entry.label()).isEqualTo("LLM_PROMPT_TOKEN_SENT label");
             assertThat(entry.apiTypes()).containsExactly(ApiType.LLM);
             assertThat(entry.type()).isNull();
+            assertThat(entry.unit()).as("a built-in's unit is the analytics definition's").isNull();
         });
     }
 

@@ -357,6 +357,7 @@ class MetricDefinitionsResourceTest extends AbstractResourceTest {
                 .containsExactly("BUILT_IN");
             JsonNode builtIn = entry(listed, "MCP_PROXY_TOOL");
             assertThat(builtIn.has("lastSeen")).isFalse();
+            assertThat(builtIn.has("unit")).isFalse();
             assertThat(builtIn.get("apiTypes")).extracting(JsonNode::asText).containsExactly("MCP");
             assertThat(listed.get("truncated").asBoolean()).isFalse();
         }

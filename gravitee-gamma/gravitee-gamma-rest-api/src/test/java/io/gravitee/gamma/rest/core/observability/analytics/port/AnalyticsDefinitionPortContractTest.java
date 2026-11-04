@@ -114,6 +114,19 @@ public abstract class AnalyticsDefinitionPortContractTest {
     }
 
     @Test
+    void should_serve_a_currency_code_with_every_cost_and_with_no_other_metric() {
+        for (var kind : ApiType.API_KINDS) {
+            assertThat(port().metricsOf(kind)).allSatisfy(metric -> {
+                if ("CURRENCY".equals(metric.unit())) {
+                    assertThat(metric.currency()).as(metric.name()).isEqualTo("USD");
+                } else {
+                    assertThat(metric.currency()).as(metric.name()).isNull();
+                }
+            });
+        }
+    }
+
+    @Test
     void should_mark_every_metric_and_facet_as_built_in() {
         for (var kind : ApiType.API_KINDS) {
             assertThat(port().metricsOf(kind)).allSatisfy(metric -> {
