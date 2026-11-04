@@ -132,6 +132,11 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
     }
 
     @Override
+    public MeasuresResult searchNativeApiMeasures(QueryContext queryContext, MeasuresQuery query) {
+        return new MeasuresResult(Collections.emptyList());
+    }
+
+    @Override
     public FacetsResult searchNativeApiFacets(QueryContext queryContext, FacetsQuery query) {
         return new FacetsResult(Collections.emptyList());
     }

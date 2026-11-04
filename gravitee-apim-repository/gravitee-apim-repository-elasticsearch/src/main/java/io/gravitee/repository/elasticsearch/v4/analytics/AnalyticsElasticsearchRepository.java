@@ -68,6 +68,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     private final HTTPMeasuresQueryAdapter httpMeasuresQueryAdapter = new HTTPMeasuresQueryAdapter();
     private final HTTPFacetsQueryAdapter httpFacetsQueryAdapter = new HTTPFacetsQueryAdapter();
+    private final NativeMeasuresQueryAdapter nativeMeasuresQueryAdapter = new NativeMeasuresQueryAdapter();
     private final NativeFacetsQueryAdapter nativeFacetsQueryAdapter = new NativeFacetsQueryAdapter();
     private final HTTPTimeSeriesQueryAdapter httpTimeSeriesQueryAdapter = new HTTPTimeSeriesQueryAdapter();
     private final NativeTimeSeriesQueryAdapter nativeTimeSeriesQueryAdapter = new NativeTimeSeriesQueryAdapter();
@@ -389,6 +390,19 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         return client
             .search(index, null, esQuery)
             .map(response -> facetsResponseAdapter.adapt(AuthzScopedFacetAggregation.unwrap(response, query), query))
+            .blockingGet();
+    }
+
+    @Override
+    public MeasuresResult searchNativeApiMeasures(QueryContext queryContext, MeasuresQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var esQuery = nativeMeasuresQueryAdapter.adapt(query);
+
+        log.debug("Native measures query: {}", esQuery);
+
+        return client
+            .search(index, null, esQuery)
+            .map(response -> measuresResponseAdapter.adapt(response, query))
             .blockingGet();
     }
 

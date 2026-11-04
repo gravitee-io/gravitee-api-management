@@ -76,6 +76,9 @@ public interface AnalyticsRepository {
 
     FacetsResult searchEdgeFacets(QueryContext queryContext, FacetsQuery query);
 
+    /** The connection counts of native Kafka APIs, read from the connection documents of {@code v4-metrics}. */
+    MeasuresResult searchNativeApiMeasures(QueryContext queryContext, MeasuresQuery query);
+
     FacetsResult searchNativeApiFacets(QueryContext queryContext, FacetsQuery query);
 
     TimeSeriesResult searchHTTPTimeSeries(QueryContext queryContext, TimeSeriesQuery query);

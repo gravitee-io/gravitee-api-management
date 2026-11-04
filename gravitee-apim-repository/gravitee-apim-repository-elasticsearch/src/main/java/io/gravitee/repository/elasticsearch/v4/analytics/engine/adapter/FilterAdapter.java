@@ -332,6 +332,11 @@ public class FilterAdapter {
         return jsonFilters;
     }
 
+    /**
+     * Selects the native Kafka connection documents a native query counts: the time range, the admitted filters and the
+     * native entrypoint, as {@link #adaptForEdge} selects the Edge documents. Without the entrypoint predicate a query
+     * carrying no native API filter counted every request document of the window as a connection.
+     */
     public JsonArray adaptForNative(Query query) {
         var jsonFilters = JsonArray.of(TimeRangeAdapter.adapt(query));
         for (var filter : query.filters()) {
@@ -339,7 +344,12 @@ public class FilterAdapter {
                 jsonFilters.add(filter(filter));
             }
         }
-        return jsonFilters;
+        return jsonFilters.add(nativeConnectionScope());
+    }
+
+    /** The documents of the native Kafka entrypoint: the connection documents of {@link ObservabilityEntrypoints#NATIVE_KAFKA}. */
+    JsonObject nativeConnectionScope() {
+        return EntrypointScopeClause.exactly(List.of(ObservabilityEntrypoints.NATIVE_KAFKA.id()));
     }
 
     public JsonArray adaptForEventMetrics(Query query) {

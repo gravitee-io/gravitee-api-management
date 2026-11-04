@@ -2146,6 +2146,69 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             }
         }
 
+        /** The four connections of {@code kafka-api-001} in the fixture: two CONNECTED, one CONNECTION_ERROR, one DISCONNECTED. */
+        @Nested
+        class NativeMeasures {
+
+            private static final String KAFKA_API = "kafka-api-001";
+
+            @Test
+            void should_count_the_connections_of_a_native_api() {
+                var metrics = List.of(new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, Set.of(Measure.COUNT)));
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(KAFKA_API));
+
+                var result = cut.searchNativeApiMeasures(QUERY_CONTEXT, new MeasuresQuery(buildTimeRange(), List.of(filter), metrics));
+
+                assertThat(result.measures())
+                    .singleElement()
+                    .satisfies(metric -> {
+                        assertThat(metric.metric()).isEqualTo(Metric.NATIVE_CONNECTIONS_SUMMARY);
+                        assertThat(metric.measures().get(Measure.COUNT).longValue()).isEqualTo(4L);
+                    });
+            }
+
+            /**
+             * The fixture holds five native connection documents in the window (four of the Kafka API, one of the
+             * entrypoint-scope API) next to dozens of HTTP requests: a query without a native API filter counts the
+             * connections, not the requests, on measures as on the time-series the scope is shared with.
+             */
+            @Test
+            void should_count_the_native_connections_only_without_an_api_filter() {
+                var metrics = List.of(new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, Set.of(Measure.COUNT)));
+
+                var measures = cut.searchNativeApiMeasures(QUERY_CONTEXT, new MeasuresQuery(buildTimeRange(), List.of(), metrics));
+                var series = cut.searchNativeApiTimeSeries(
+                    QUERY_CONTEXT,
+                    new TimeSeriesQuery(buildTimeRange(), List.of(), Duration.ofDays(1).toMillis(), metrics)
+                );
+
+                assertThat(measures.measures().getFirst().measures().get(Measure.COUNT).longValue()).isEqualTo(5L);
+                var total = series
+                    .metrics()
+                    .getFirst()
+                    .buckets()
+                    .stream()
+                    .map(bucket -> bucket.measures().get(Measure.COUNT))
+                    .filter(Objects::nonNull)
+                    .mapToLong(Number::longValue)
+                    .sum();
+                assertThat(total).isEqualTo(5L);
+            }
+
+            @Test
+            void should_count_only_the_connections_the_per_metric_filters_select() {
+                var connected = new Filter(Filter.Name.NATIVE_CONNECTION_STATUS, Filter.Operator.EQ, "CONNECTED");
+                var metrics = List.of(
+                    new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, Set.of(Measure.COUNT), List.of(connected), List.of())
+                );
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(KAFKA_API));
+
+                var result = cut.searchNativeApiMeasures(QUERY_CONTEXT, new MeasuresQuery(buildTimeRange(), List.of(filter), metrics));
+
+                assertThat(result.measures().getFirst().measures().get(Measure.COUNT).longValue()).isEqualTo(2L);
+            }
+        }
+
         @Nested
         class NativeTimeSeries {
 

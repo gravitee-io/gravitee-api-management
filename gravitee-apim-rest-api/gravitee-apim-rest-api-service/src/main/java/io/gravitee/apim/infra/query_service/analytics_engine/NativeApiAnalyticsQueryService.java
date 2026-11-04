@@ -50,7 +50,12 @@ public class NativeApiAnalyticsQueryService implements AnalyticsEngineQueryServi
 
     @Override
     public MeasuresResponse searchMeasures(ExecutionContext context, MeasuresRequest request) {
-        throw new UnsupportedOperationException("native API analytics does not support measures");
+        var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
+        var result = analyticsRepository.searchNativeApiMeasures(context.getQueryContext(), query);
+        return IgnoredFilters.mark(
+            AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
+            IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.NATIVE, query)
+        );
     }
 
     @Override
