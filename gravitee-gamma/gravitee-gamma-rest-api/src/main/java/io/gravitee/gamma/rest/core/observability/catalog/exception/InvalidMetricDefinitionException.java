@@ -27,6 +27,10 @@ import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricU
 public class InvalidMetricDefinitionException extends ValidationDomainException {
 
     private static final String CODE_PREFIX = "observability.metric_definition.";
+    private static final String INVALID_BODY_RULE = "invalid_body";
+
+    /** The code of a body the endpoint cannot read: none, or one with a property the schema does not list. */
+    public static final String INVALID_BODY = CODE_PREFIX + INVALID_BODY_RULE;
 
     private InvalidMetricDefinitionException(String message, String rule) {
         super(message, CODE_PREFIX + rule);
@@ -72,6 +76,6 @@ public class InvalidMetricDefinitionException extends ValidationDomainException 
     }
 
     public static InvalidMetricDefinitionException missingBody() {
-        return new InvalidMetricDefinitionException("Request body is required", "invalid_body");
+        return new InvalidMetricDefinitionException("Request body is required", INVALID_BODY_RULE);
     }
 }

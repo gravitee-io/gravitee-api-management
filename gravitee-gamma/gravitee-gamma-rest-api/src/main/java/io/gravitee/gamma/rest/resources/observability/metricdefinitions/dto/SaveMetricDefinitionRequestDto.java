@@ -15,8 +15,9 @@
  */
 package io.gravitee.gamma.rest.resources.observability.metricdefinitions.dto;
 
+import io.gravitee.gamma.rest.core.observability.catalog.exception.InvalidMetricDefinitionException;
 import io.gravitee.gamma.rest.resources.RejectUnknownProperties;
 
 /** Body of a write on one record, whose name travels in the query. Replaces every field: an absent one is cleared. */
-@RejectUnknownProperties
+@RejectUnknownProperties(technicalCode = InvalidMetricDefinitionException.INVALID_BODY)
 public record SaveMetricDefinitionRequestDto(String label, String description, String unit, Boolean exposed) {}

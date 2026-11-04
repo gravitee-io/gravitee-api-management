@@ -472,11 +472,12 @@ class AnalyticsResourceTest extends AbstractResourceTest {
             );
         }
 
+        /** The analytics bodies document no code for an unknown key, unlike the metric definition ones: none is served. */
         private void assertUnknownKey(Response response, String unknownKey) {
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-            assertThat(response.readEntity(JsonNode.class).get("message").asText()).isEqualTo(
-                "Property [" + unknownKey + "] is not recognized as a valid property"
-            );
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("message").asText()).isEqualTo("Property [" + unknownKey + "] is not recognized as a valid property");
+            assertThat(body.hasNonNull("technicalCode")).isFalse();
             verifyNoInteractions(analyticsDataPort);
         }
     }
