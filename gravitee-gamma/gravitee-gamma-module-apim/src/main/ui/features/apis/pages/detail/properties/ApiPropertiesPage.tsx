@@ -558,28 +558,27 @@ export function ApiPropertiesPage() {
                                           </Button>
                                       </DropdownMenuTrigger>
                                       <DropdownMenuContent align="end" className="whitespace-nowrap" style={{ minWidth: '16rem' }}>
-                                          {prop.encrypted ? (
+                                          {prop.encrypted && !prop.dynamic ? (
                                               <DropdownMenuItem onSelect={() => openDialog({ type: 'edit', property: prop })}>
                                                   <RefreshCwIcon className="size-4" />
                                                   Renew encryption
                                               </DropdownMenuItem>
-                                          ) : (
-                                              <>
-                                                  {prop.dynamic ? null : (
-                                                      <DropdownMenuItem onSelect={() => openDialog({ type: 'edit', property: prop })}>
-                                                          Edit value
-                                                      </DropdownMenuItem>
-                                                  )}
-                                                  <DropdownMenuItem
-                                                      onSelect={() => handleMarkEncryptable(prop.key)}
-                                                      disabled={mutation.isPending}
-                                                  >
-                                                      <LockIcon className="size-4" />
-                                                      Encrypt value
-                                                  </DropdownMenuItem>
-                                              </>
+                                          ) : null}
+                                          {prop.encrypted || prop.dynamic ? null : (
+                                              <DropdownMenuItem onSelect={() => openDialog({ type: 'edit', property: prop })}>
+                                                  Edit value
+                                              </DropdownMenuItem>
                                           )}
-                                          <DropdownMenuSeparator />
+                                          {prop.encrypted ? null : (
+                                              <DropdownMenuItem
+                                                  onSelect={() => handleMarkEncryptable(prop.key)}
+                                                  disabled={mutation.isPending}
+                                              >
+                                                  <LockIcon className="size-4" />
+                                                  Encrypt value
+                                              </DropdownMenuItem>
+                                          )}
+                                          {prop.encrypted && prop.dynamic ? null : <DropdownMenuSeparator />}
                                           <DropdownMenuItem
                                               className="text-destructive"
                                               onSelect={() => handleDelete(prop.key)}
