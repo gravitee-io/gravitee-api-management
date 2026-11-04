@@ -25,10 +25,12 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.redis.client.RedisAPI;
 import io.vertx.redis.client.Response;
 import io.vertx.rxjava3.SingleHelper;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -79,33 +81,7 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
                         );
                         return redisAPI
                             .evalsha(scriptArgs)
-                            .recover(t -> {
-                                if (!RedisScriptSupport.isNoScript(t)) {
-                                    return Future.failedFuture(t);
-                                }
-                                final String source = this.redisClient.scriptSource(SCRIPT_RATELIMIT_KEY);
-                                if (source == null) {
-                                    return Future.failedFuture(
-                                        new IllegalStateException(
-                                            "Cannot recover from NOSCRIPT: rate-limit script source unavailable (script was never loaded)"
-                                        )
-                                    );
-                                }
-                                // On Redis Cluster, SCRIPT LOAD only reaches the contacted node, so an
-                                // EVALSHA routed by hash slot to another master returns NOSCRIPT. Fall back
-                                // to EVAL with the script source, which caches it on that node for next time.
-                                // NOSCRIPT means the script did not execute, so replaying via EVAL cannot double-count.
-                                log.debug(
-                                    "EVALSHA returned NOSCRIPT; falling back to EVAL to load the rate-limit script on the target node"
-                                );
-                                return redisAPI
-                                    .eval(convertToList(source, REDIS_KEY_PREFIX + key, weight, newRate))
-                                    .recover(evalError -> {
-                                        // Preserve the original NOSCRIPT cause for diagnostics under a fallback storm.
-                                        evalError.addSuppressed(t);
-                                        return Future.failedFuture(evalError);
-                                    });
-                            })
+                            .recover(t -> recoverFromNoScript(redisAPI, t, key, weight, newRate))
                             .timeout(operationTimeout, TimeUnit.MILLISECONDS)
                             .recover(t -> RedisScriptSupport.mapTimeout(t, operationTimeout));
                     })
@@ -114,21 +90,48 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
                         redisClient.notifyConnectionFailure(t);
                     })
                     .onComplete(asyncResultHandler)
-        ).map(response -> {
-            // It may happen when the rate has been expired while running the script
-            // expired values return a list of 'null'
-            if (response.size() > 0 && response.get(0) != null) {
-                RateLimit rateLimit = new RateLimit(key);
-                rateLimit.setCounter(response.get(0).toLong());
-                rateLimit.setLimit(response.get(1).toLong());
-                rateLimit.setResetTime(response.get(2).toLong());
-                rateLimit.setSubscription(response.get(3).toString());
+        ).map(response -> toRateLimit(response, key, newRate));
+    }
 
-                return rateLimit;
-            }
+    private static RateLimit toRateLimit(Response response, String key, RateLimit newRate) {
+        // It may happen when the rate has been expired while running the script
+        // expired values return a list of 'null'
+        if (response.size() > 0 && response.get(0) != null) {
+            RateLimit rateLimit = new RateLimit(key);
+            rateLimit.setCounter(response.get(0).toLong());
+            rateLimit.setLimit(response.get(1).toLong());
+            rateLimit.setResetTime(response.get(2).toLong());
+            String subscription = response.get(3) == null ? null : response.get(3).toString();
+            rateLimit.setSubscription(subscription == null || subscription.isEmpty() ? null : subscription);
 
-            return newRate;
-        });
+            return rateLimit;
+        }
+
+        return newRate;
+    }
+
+    private Future<Response> recoverFromNoScript(RedisAPI redisAPI, Throwable t, String key, long weight, RateLimit newRate) {
+        if (!RedisScriptSupport.isNoScript(t)) {
+            return Future.failedFuture(t);
+        }
+        final String source = this.redisClient.scriptSource(SCRIPT_RATELIMIT_KEY);
+        if (source == null) {
+            return Future.failedFuture(
+                new IllegalStateException("Cannot recover from NOSCRIPT: rate-limit script source unavailable (script was never loaded)")
+            );
+        }
+        // On Redis Cluster, SCRIPT LOAD only reaches the contacted node, so an
+        // EVALSHA routed by hash slot to another master returns NOSCRIPT. Fall back
+        // to EVAL with the script source, which caches it on that node for next time.
+        // NOSCRIPT means the script did not execute, so replaying via EVAL cannot double-count.
+        log.debug("EVALSHA returned NOSCRIPT; falling back to EVAL to load the rate-limit script on the target node");
+        return redisAPI
+            .eval(convertToList(source, REDIS_KEY_PREFIX + key, weight, newRate))
+            .recover(evalError -> {
+                // Preserve the original NOSCRIPT cause for diagnostics under a fallback storm.
+                evalError.addSuppressed(t);
+                return Future.failedFuture(evalError);
+            });
     }
 
     private void logOperationFailure(Throwable t) {
@@ -152,7 +155,9 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
             Long.toString(rate.getCounter()),
             Long.toString(rate.getLimit()),
             Long.toString(rate.getResetTime()),
-            rate.getSubscription()
+            // The subscription is unset for calls made before plan security (organization flows).
+            // The Redis client rejects null arguments, so an empty string stands for "no subscription".
+            Objects.toString(rate.getSubscription(), "")
         );
     }
 }
