@@ -43,6 +43,9 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.rest.api.service.impl.swagger.parser.OAIParser;
 import io.gravitee.rest.api.service.swagger.converter.extension.XGraviteeIODefinition;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.Paths;
+import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import java.io.IOException;
@@ -762,6 +765,50 @@ class OAIToImportDefinitionConverterTest {
                     .toList();
                 softly.assertThat(flowPaths).contains("/primary", "/secondary");
             });
+        }
+    }
+
+    @Nested
+    class PathMappings {
+
+        @Test
+        void should_fill_http_listener_path_mappings_when_requested() {
+            var result = OAIToImportDefinitionConverter.INSTANCE.toImportDefinition(specWithPaths("/pets/{petId}"), List.of(), false, true);
+
+            var listener = (HttpListener) result.getApiExport().getListeners().getFirst();
+            assertThat(listener.getPathMappings()).containsExactly("/pets/:petId");
+        }
+
+        @Test
+        void should_not_fill_path_mappings_by_default() {
+            var result = OAIToImportDefinitionConverter.INSTANCE.toImportDefinition(
+                specWithPaths("/pets/{petId}"),
+                List.of(),
+                false,
+                false
+            );
+
+            var listener = (HttpListener) result.getApiExport().getListeners().getFirst();
+            assertThat(listener.getPathMappings()).isNull();
+        }
+
+        @Test
+        void should_leave_path_mappings_empty_when_spec_has_no_paths() {
+            var result = OAIToImportDefinitionConverter.INSTANCE.toImportDefinition(specWithPaths(), List.of(), false, true);
+
+            var listener = (HttpListener) result.getApiExport().getListeners().getFirst();
+            assertThat(listener.getPathMappings()).isEmpty();
+        }
+
+        private OpenAPI specWithPaths(String... paths) {
+            var openAPI = new OpenAPI();
+            openAPI.setInfo(new Info().title("pets").version("1.0.0"));
+            var pathMap = new Paths();
+            for (var path : paths) {
+                pathMap.addPathItem(path, new PathItem());
+            }
+            openAPI.setPaths(pathMap);
+            return openAPI;
         }
     }
 

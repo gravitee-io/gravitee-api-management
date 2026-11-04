@@ -131,6 +131,12 @@
 						</goals>
 						<configuration>
 							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-apis.yaml</inputSpec>
+							<configOptions>
+								<dateLibrary>java8</dateLibrary>
+								<enumPropertyNaming>legacy</enumPropertyNaming>
+								<useBeanValidation>true</useBeanValidation>
+								<openApiNullable>false</openApiNullable>
+							</configOptions>
 						</configuration>
 					</execution>
                     <execution>

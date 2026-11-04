@@ -40,7 +40,9 @@ import org.mapstruct.factory.Mappers;
 public interface ListenerMapper {
     ListenerMapper INSTANCE = Mappers.getMapper(ListenerMapper.class);
 
+    @Mapping(target = "pathMappings", source = "pathMappings", defaultExpression = "java(new java.util.ArrayList<>())")
     io.gravitee.rest.api.management.v2.rest.model.HttpListener map(HttpListener httpListener);
+
     io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener map(SubscriptionListener subscriptionListener);
     io.gravitee.rest.api.management.v2.rest.model.TcpListener map(TcpListener tcpListener);
     io.gravitee.rest.api.management.v2.rest.model.KafkaListener map(KafkaListener kafkaListener);
@@ -63,6 +65,12 @@ public interface ListenerMapper {
         for (var pathMapping : pathMappings) {
             if (seen.containsKey(pathMapping)) {
                 throw new InvalidPathMappingsException("Path mappings contain duplicate entries: [" + pathMapping + "]", pathMapping);
+            }
+            if (!PathMappingTemplates.isCompilable(pathMapping)) {
+                throw new InvalidPathMappingsException(
+                    "Path mappings contain invalid templates: [" + pathMapping + "]",
+                    String.valueOf(pathMapping)
+                );
             }
             seen.put(pathMapping, PathMappingTemplates.patternFor(pathMapping));
         }

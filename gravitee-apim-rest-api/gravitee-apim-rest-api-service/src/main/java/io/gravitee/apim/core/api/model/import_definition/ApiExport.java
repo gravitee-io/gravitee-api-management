@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api.model.import_definition;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.Api.ApiBuilder;
+import io.gravitee.apim.core.api.model.HttpListenerPathMappings;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -120,6 +121,13 @@ public class ApiExport {
     PrimaryOwnerEntity primaryOwner;
 
     private Boolean allowedInApiProducts;
+
+    public void replaceFirstHttpListenerPathMappings(Set<String> mappings) {
+        if (listeners == null) {
+            return;
+        }
+        setListeners(HttpListenerPathMappings.withFirstHttpListenerMappings((List<Listener>) listeners, mappings));
+    }
 
     public ApiBuilder toApiBuilder() {
         return Api.builder()

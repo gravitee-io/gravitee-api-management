@@ -39,13 +39,22 @@ public class OAIToImportDefinitionConverter {
     private static final String PICTURE_REGEX = "^data:image/[\\w]+;base64,.*$";
 
     public ImportDefinition toImportDefinition(OpenAPI specification, Collection<? extends OAIOperationVisitor> visitors) {
-        return toImportDefinition(specification, visitors, false);
+        return toImportDefinition(specification, visitors, false, false);
     }
 
     public ImportDefinition toImportDefinition(
         OpenAPI specification,
         Collection<? extends OAIOperationVisitor> visitors,
         boolean skipFlows
+    ) {
+        return toImportDefinition(specification, visitors, skipFlows, false);
+    }
+
+    public ImportDefinition toImportDefinition(
+        OpenAPI specification,
+        Collection<? extends OAIOperationVisitor> visitors,
+        boolean skipFlows,
+        boolean withPathMapping
     ) {
         var xGraviteeIODefinition = getXGraviteeIODefinition(specification);
         var serverUrls = OAIServersConverter.INSTANCE.convert(specification.getServers());
@@ -65,7 +74,8 @@ public class OAIToImportDefinitionConverter {
                 OAIToListenersConverter.INSTANCE.convert(
                     xGraviteeIODefinition,
                     specification.getInfo().getTitle(),
-                    serverUrls.isEmpty() ? null : serverUrls.get(0)
+                    serverUrls.isEmpty() ? null : serverUrls.get(0),
+                    withPathMapping ? OAIPathMappings.from(specification) : null
                 )
             )
             .endpointGroups(OAIToEndpointGroupsConverter.INSTANCE.convert(specification.getServers(), serverUrls));

@@ -87,7 +87,8 @@ public class OAIDomainServiceImpl implements OAIDomainService {
         var importDefinition = OAIToImportDefinitionConverter.INSTANCE.toImportDefinition(
             descriptor.getSpecification(),
             visitors,
-            importSwaggerDescriptor.isSkipFlows()
+            importSwaggerDescriptor.isSkipFlows(),
+            importSwaggerDescriptor.isWithPathMapping()
         );
 
         if (importDefinition != null) {
