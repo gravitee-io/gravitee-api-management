@@ -129,3 +129,4 @@ gravitee-secret-provider-kubernetes
 
 # Agent Providers
 gravitee-agent-provider-azure-foundry
+gravitee-agent-provider-google-agent

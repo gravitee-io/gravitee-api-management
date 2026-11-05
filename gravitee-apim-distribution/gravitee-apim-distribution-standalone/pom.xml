@@ -2622,6 +2622,19 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.agentprovider</groupId>
+                    <artifactId>gravitee-agent-provider-google-agent</artifactId>
+                    <version>${gravitee-agent-provider-google-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
 
                 <!-- ==== Shipped by the bundle-dev flavor, or only listed for custom images ==== -->
                 <!-- Endpoints -->
