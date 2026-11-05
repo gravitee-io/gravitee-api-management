@@ -43,13 +43,16 @@ public class NotFoundProcessor extends AbstractProcessor<ExecutionContext> {
         context.response().status(HttpStatusCode.NOT_FOUND_404);
 
         String message = environment.getProperty("http.errors[404].message", "No context-path matches the request URI.");
-        context.response().headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(message.length()));
+        Buffer body = Buffer.buffer(message);
+        // Counted on the encoded body, not on the string: a non-ASCII character is more than one byte,
+        // and a short Content-Length truncates the response.
+        context.response().headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.length()));
         context
             .response()
             .headers()
             .set(HttpHeaders.CONTENT_TYPE, environment.getProperty("http.errors[404].contentType", MediaType.TEXT_PLAIN));
         context.response().headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
-        context.response().write(Buffer.buffer(message));
+        context.response().write(body);
 
         context.response().end();
         next.handle(context);
