@@ -190,7 +190,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
             onDistributedRoleChanged();
             distributedSyncService.onDemotion();
         }
-        return secondaryCycleStart(System.currentTimeMillis());
+        return distributedSyncService.serverTime().flatMap(this::secondaryCycleStart);
     }
 
     private Single<Long> primaryUpperBound() {
@@ -216,7 +216,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
         if (nextFromTime == -1 && !syncReadyForProbe.get()) {
             distributedSyncService.requestResync("the primary node starts with nothing deployed");
         }
-        return Single.just(System.currentTimeMillis());
+        return distributedSyncService.serverTime().onErrorResumeNext(throwable -> Single.just(System.currentTimeMillis()));
     }
 
     private Completable runCycle(final boolean primary, final long nextToTime) {

@@ -43,7 +43,7 @@ public class RedisDistributedSyncRepositoryConfiguration {
             environment,
             vertx,
             Scope.DISTRIBUTED_SYNC.getName(),
-            Map.of()
+            Map.of("distributed_event_write", "scripts/distributed_event_write.lua")
         ).createRedisClient();
         warnOnEvictingPolicy(redisClient);
         return redisClient;
