@@ -1779,16 +1779,20 @@ components:
       properties:
         properties:
           type: object
-          description: Dictionary data are key/value pairs for `MANUAL` properties
+          description: >-
+            Plain properties, keyed by the property key. A key APIM stores encrypted cannot be listed
+            here: the request is rejected with `dictionary.property.encryptedToPlain`. To make a secret
+            plain, remove it from `encryptedProperties` and apply, then add it here and apply again.
           additionalProperties:
             type: string
         encryptedProperties:
           type: object
           description: >-
-            Secret properties, keyed by the property key. A read reports every key here with its
-            value masked, which proves only that a value is stored: the mask is a fixed literal, so a
-            value changed outside the manifest cannot be detected by comparing reads. A key must not
-            appear in both `properties` and `encryptedProperties`.
+            Secret properties, keyed by the property key. APIM stores each value encrypted and never
+            returns it: a read reports every key with its value masked. The mask is a fixed literal that
+            proves only that a value is stored, so a value changed outside the manifest cannot be
+            detected by comparing reads. Moving a plain key here encrypts it on the next apply. A key
+            must not appear in both `properties` and `encryptedProperties`.
           additionalProperties:
             $ref: "#/components/schemas/EncryptableValue"
     EncryptableValue:
@@ -1797,8 +1801,9 @@ components:
       properties:
         value:
           description: >-
-            `••••••••••••` on a read. On a write, the plaintext to encrypt, or the mask to keep
-            the stored value.
+            On a read, always `••••••••••••`. On a write, the plaintext to encrypt, or
+            `••••••••••••` to keep the stored value. Sending the mask for a key APIM does not hold
+            encrypted is rejected with `dictionary.property.maskedValue`.
           type: string
           minLength: 1
       required:
