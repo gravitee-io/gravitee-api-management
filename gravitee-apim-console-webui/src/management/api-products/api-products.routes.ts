@@ -69,6 +69,16 @@ export const API_PRODUCTS_ROUTES: Routes = [
         },
       },
       {
+        path: 'configuration/resources',
+        loadComponent: () => import('./resources/api-product-resources.component').then(m => m.ApiProductResourcesComponent),
+        data: {
+          permissions: {
+            anyOf: ['api_product-definition-r'],
+            unauthorizedFallbackTo: 'configuration/general',
+          },
+        },
+      },
+      {
         path: 'apis',
         loadComponent: () => import('./apis/api-product-apis.component').then(m => m.ApiProductApisComponent),
       },

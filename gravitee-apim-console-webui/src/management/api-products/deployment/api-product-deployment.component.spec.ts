@@ -122,6 +122,7 @@ describe('ApiProductDeploymentComponent', () => {
     expect(updateReq.request.body.tags).toEqual(['tag-1', 'tag-2']);
     expect(updateReq.request.body.name).toBe('Test API Product');
     expect(updateReq.request.body.apiIds).toEqual(['api-1']);
+    expect(updateReq.request.body.resources).toEqual([]);
     updateReq.flush({ ...fakeApiProduct, tags: ['tag-1', 'tag-2'] });
     await fixture.whenStable();
 

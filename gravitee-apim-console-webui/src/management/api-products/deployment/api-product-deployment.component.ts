@@ -109,6 +109,7 @@ export class ApiProductDeploymentComponent {
       groups: product.groups,
       disableMembershipNotifications: product.disableMembershipNotifications,
       tags: this.form.getRawValue().tags ?? [],
+      resources: product.resources ?? [],
     };
 
     this.apiProductV2Service

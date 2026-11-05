@@ -41,7 +41,7 @@ import {
   ApiProductAddApiDialogResult,
 } from './add-api-dialog/api-product-add-api-dialog.component';
 
-import { Api } from '../../../entities/management-api-v2';
+import { Api, Resource } from '../../../entities/management-api-v2';
 import { getApiContextPath } from '../../../shared/utils/api-access.util';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
@@ -268,7 +268,9 @@ export class ApiProductApisComponent implements OnInit {
         (ctx): ctx is { apiProduct: NonNullable<typeof ctx.apiProduct>; selectedApis: ApiProductAddApiDialogResult } =>
           (ctx.selectedApis?.length ?? 0) > 0,
       ),
-      switchMap(({ apiProduct, selectedApis }) => this.addApisToProduct(selectedApis, apiProductId, apiProduct.apiIds || [])),
+      switchMap(({ apiProduct, selectedApis }) =>
+        this.addApisToProduct(selectedApis, apiProductId, apiProduct.apiIds || [], apiProduct.resources ?? []),
+      ),
     );
     this.subscribeWithSuccessReload(addApis$, selectedApis => {
       const apiNames = selectedApis.map(api => api.name).join(', ');
@@ -282,10 +284,11 @@ export class ApiProductApisComponent implements OnInit {
     selectedApis: ApiProductAddApiDialogResult,
     apiProductId: string,
     currentApiIds: string[],
+    resources: Resource[],
   ): Observable<ApiProductAddApiDialogResult> {
     const newApiIds = selectedApis.map(api => api.id);
     const updatedApiIds = [...currentApiIds, ...newApiIds];
-    return this.apiProductV2Service.updateApiProductApis(apiProductId, updatedApiIds).pipe(
+    return this.apiProductV2Service.updateApiProductApis(apiProductId, updatedApiIds, resources).pipe(
       tap(() => this.apiProductV2Service.notifyApiProductChanged()),
       map(() => selectedApis),
       catchError(this.handleError('An error occurred while adding the APIs', EMPTY)),
@@ -318,7 +321,7 @@ export class ApiProductApisComponent implements OnInit {
       catchError(this.handleError(ApiProductApisComponent.LOAD_API_PRODUCT_ERROR, EMPTY)),
       switchMap(apiProduct => {
         const updatedApiIds = (apiProduct.apiIds || []).filter(id => id !== api.id);
-        return this.apiProductV2Service.updateApiProductApis(apiProductId, updatedApiIds).pipe(
+        return this.apiProductV2Service.updateApiProductApis(apiProductId, updatedApiIds, apiProduct.resources ?? []).pipe(
           tap(() => this.apiProductV2Service.notifyApiProductChanged()),
           catchError(this.handleError('An error occurred while removing the API', EMPTY)),
           map(() => undefined),

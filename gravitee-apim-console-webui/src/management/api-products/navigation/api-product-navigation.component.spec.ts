@@ -304,6 +304,28 @@ describe('ApiProductNavigationComponent', () => {
     });
   });
 
+  describe('Resources tab visibility', () => {
+    it('should show Resources tab when user has api product definition read permission', async () => {
+      await configureNavigationTestBed(['api_product-definition-r']);
+      createFixture();
+      flushRequests(fakeApiProduct);
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('Resources');
+    });
+
+    it('should hide Resources tab when user lacks api product definition read permission', async () => {
+      await configureNavigationTestBed(['api_product-member-r']);
+      createFixture();
+      flushRequests(fakeApiProduct);
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).not.toContain('Resources');
+    });
+  });
+
   describe('Deployment menu item visibility', () => {
     it('should show Deployment menu item when user has api product definition read permission', async () => {
       await configureNavigationTestBed(['api_product-definition-r']);

@@ -217,6 +217,7 @@ describe('ApiProductConfigurationComponent', () => {
     });
     expect(updateReq.request.body.name).toBe('Test API Product');
     expect(updateReq.request.body.description).toBe('Updated desc');
+    expect(updateReq.request.body.resources).toEqual([]);
     updateReq.flush({ ...fakeApiProduct, description: 'Updated desc' });
     await fixture.whenStable();
 
@@ -272,9 +273,13 @@ describe('ApiProductConfigurationComponent', () => {
     expect(fakeSnackBarService.error).toHaveBeenCalled();
   });
 
-  it('should remove all APIs when confirmed', async () => {
+  it('should remove all APIs when confirmed and keep the product resources', async () => {
+    const productWithResource: ApiProduct = {
+      ...fakeApiProduct,
+      resources: [{ name: 'MyCache', type: 'cache', configuration: { timeToLiveSeconds: 60 }, enabled: true }],
+    };
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
-    req.flush(fakeApiProduct);
+    req.flush(productWithResource);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -285,12 +290,12 @@ describe('ApiProductConfigurationComponent', () => {
     await dialog.confirm();
 
     const putReq = httpTestingController.expectOne(req => req.url.includes(`/api-products/${API_PRODUCT_ID}`) && req.method === 'PUT');
-    expect(putReq.request.body).toEqual({ apiIds: [] });
-    putReq.flush({ ...fakeApiProduct, apiIds: [] });
+    expect(putReq.request.body).toEqual({ apiIds: [], resources: productWithResource.resources });
+    putReq.flush({ ...productWithResource, apiIds: [] });
     await fixture.whenStable();
 
     const reloadReq = httpTestingController.expectOne(req => req.url.includes(`/api-products/${API_PRODUCT_ID}`) && req.method === 'GET');
-    reloadReq.flush({ ...fakeApiProduct, apiIds: [] });
+    reloadReq.flush({ ...productWithResource, apiIds: [] });
     await fixture.whenStable();
 
     expect(fakeSnackBarService.success).toHaveBeenCalledWith('All APIs have been removed from the API Product.');

@@ -327,6 +327,7 @@ export class ApiProductMembersComponent {
             description: apiProduct.description,
             apiIds: apiProduct.apiIds ?? [],
             groups: result.groups,
+            resources: apiProduct.resources ?? [],
           }),
         ),
         tap(() => this.reloadMembers$.next()),
@@ -507,6 +508,7 @@ export class ApiProductMembersComponent {
             apiIds: apiProduct.apiIds ?? [],
             groups: apiProduct.groups,
             disableMembershipNotifications: !notificationControl.value,
+            resources: apiProduct.resources ?? [],
           }),
         );
       }

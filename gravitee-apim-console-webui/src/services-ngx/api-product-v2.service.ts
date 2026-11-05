@@ -30,7 +30,7 @@ import {
   UpdateApiProduct,
   VerifyApiProductDeployResponse,
 } from '../entities/management-api-v2/api-product';
-import { AddMember, Member, MembersResponse, UpdateMember } from '../entities/management-api-v2';
+import { AddMember, Member, MembersResponse, Resource, UpdateMember } from '../entities/management-api-v2';
 import { ApiProductTransferOwnership } from '../entities/management-api-v2/api-product/apiProductTransferOwnership';
 
 @Injectable({
@@ -195,12 +195,14 @@ export class ApiProductV2Service {
    * Calls PUT /environments/{envId}/api-products/{apiProductId}
    * @param apiProductId - The API Product ID
    * @param apiIds - The new list of API IDs
+   * @param resources - The product's current resources, sent back so the update does not clear them
    * @returns Observable of the updated API Product
    */
-  updateApiProductApis(apiProductId: string, apiIds: string[]): Observable<ApiProduct> {
+  updateApiProductApis(apiProductId: string, apiIds: string[], resources: Resource[]): Observable<ApiProduct> {
     return this.http
       .put<ApiProduct>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}`, {
         apiIds,
+        resources,
       })
       .pipe(tap(api => this.lastApiProductFetch$.next(api)));
   }

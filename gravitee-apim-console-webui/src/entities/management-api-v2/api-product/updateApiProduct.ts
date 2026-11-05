@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { Resource } from '../api';
+
 export interface UpdateApiProduct {
   /**
    * API Product's name. Must be unique within the environment.
@@ -44,4 +46,9 @@ export interface UpdateApiProduct {
    * @default false
    */
   disableMembershipNotifications?: boolean;
+  /**
+   * Full resource list. A value replaces the list. Omit nothing once resources exist:
+   * the update applies this field as given, and a missing list clears it.
+   */
+  resources?: Resource[];
 }

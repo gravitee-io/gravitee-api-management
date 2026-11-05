@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { PrimaryOwner } from '../api';
+import { PrimaryOwner, Resource } from '../api';
 
 export type ApiProductDeploymentState = 'NEED_REDEPLOY' | 'DEPLOYED';
 
@@ -68,6 +68,10 @@ export interface ApiProduct {
    * @default false
    */
   disableMembershipNotifications?: boolean;
+  /**
+   * Resources available to policies that run on this API Product.
+   */
+  resources?: Resource[];
 
   _links?: { [key: string]: string };
 }

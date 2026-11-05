@@ -246,13 +246,16 @@ export class ApiProductNavigationComponent {
     if (this.canAccessApiProductUserPermissions()) {
       configurationTabs.push({ displayName: 'User Permissions', routerLink: 'configuration/members' });
     }
+    if (this.canAccessApiProductDefinition()) {
+      configurationTabs.push({ displayName: 'Resources', routerLink: 'configuration/resources' });
+    }
 
     const items: MenuItem[] = [
       {
         displayName: 'Configuration',
         routerLink: 'configuration',
         icon: 'gio:settings',
-        header: { title: 'Configuration', subtitle: 'Manage general settings and user permissions.' },
+        header: { title: 'Configuration', subtitle: 'Manage general settings, user permissions, and resources.' },
         tabs: configurationTabs,
       },
     ];

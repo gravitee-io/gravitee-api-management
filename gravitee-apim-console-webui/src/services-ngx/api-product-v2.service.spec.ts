@@ -327,7 +327,7 @@ describe('ApiProductV2Service', () => {
     it('should call the API', done => {
       const apiIds = ['api-1', 'api-2', 'api-3'];
 
-      apiProductV2Service.updateApiProductApis('product-123', apiIds).subscribe(apiProduct => {
+      apiProductV2Service.updateApiProductApis('product-123', apiIds, []).subscribe(apiProduct => {
         expect(apiProduct.apiIds).toEqual(apiIds);
         done();
       });
@@ -336,7 +336,7 @@ describe('ApiProductV2Service', () => {
         url: `${baseURL}/api-products/product-123`,
         method: 'PUT',
       });
-      expect(req.request.body).toEqual({ apiIds });
+      expect(req.request.body).toEqual({ apiIds, resources: [] });
 
       req.flush(fakeApiProduct({ id: 'product-123', apiIds }));
     });

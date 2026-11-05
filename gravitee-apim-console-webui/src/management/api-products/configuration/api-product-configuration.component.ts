@@ -142,6 +142,7 @@ export class ApiProductConfigurationComponent {
       version: version?.trim() || '',
       description: description?.trim() || undefined,
       apiIds: product?.apiIds,
+      resources: product.resources ?? [],
     };
 
     this.apiProductV2Service
@@ -187,7 +188,7 @@ export class ApiProductConfigurationComponent {
       .afterClosed()
       .pipe(
         filter((confirm): confirm is true => confirm === true),
-        switchMap(() => this.apiProductV2Service.updateApiProductApis(apiProductId, [])),
+        switchMap(() => this.apiProductV2Service.updateApiProductApis(apiProductId, [], this.apiProduct()?.resources ?? [])),
         tap(() => {
           this.apiProductV2Service.notifyApiProductChanged();
           this.snackBarService.success('All APIs have been removed from the API Product.');
