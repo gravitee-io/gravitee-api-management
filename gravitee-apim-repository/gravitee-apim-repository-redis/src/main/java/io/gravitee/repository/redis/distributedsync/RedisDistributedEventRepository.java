@@ -19,6 +19,7 @@ import static io.gravitee.repository.redis.distributedsync.RedisDistributedSyncR
 
 import io.gravitee.common.utils.RxHelper;
 import io.gravitee.repository.distributedsync.api.DistributedEventRepository;
+import io.gravitee.repository.distributedsync.api.DistributedSyncUnavailableException;
 import io.gravitee.repository.distributedsync.api.search.DistributedEventCriteria;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
@@ -457,6 +458,14 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
                         RedisDistributedEventRepository::isRetryableWriteFailure
                     )
                 )
+                .onErrorResumeNext(throwable -> {
+                    if (isRetryableWriteFailure(throwable)) {
+                        return Completable.error(
+                            new DistributedSyncUnavailableException("Redis is unavailable for distributed sync writes", throwable)
+                        );
+                    }
+                    return Completable.error(throwable);
+                })
         );
     }
 
@@ -552,12 +561,13 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
             "TIMEOUT",
             String.valueOf(SEARCH_TIMEOUT_MS),
             "LOAD",
-            "5",
+            "6",
             "@" + DistributedEvent.Fields.id,
             "@" + DistributedEvent.Fields.payload,
             "@" + DistributedEvent.Fields.type,
             "@" + DistributedEvent.Fields.syncAction,
             "@" + DistributedEvent.Fields.updatedAt,
+            "@" + DistributedEvent.Fields.schemaVersion,
             "WITHCURSOR",
             "COUNT",
             String.valueOf(batchSize),
@@ -634,6 +644,10 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
             args.add(DistributedEvent.Fields.syncAction);
             args.add(distributedEvent.getSyncAction().name());
         }
+        if (distributedEvent.getSchemaVersion() != null) {
+            args.add(DistributedEvent.Fields.schemaVersion);
+            args.add(String.valueOf(distributedEvent.getSchemaVersion()));
+        }
         if (updatedAtOverride != null) {
             args.add(DistributedEvent.Fields.updatedAt);
             args.add(String.valueOf(updatedAtOverride));
@@ -680,6 +694,10 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
         var updatedAt = attributes.get(DistributedEvent.Fields.updatedAt);
         if (updatedAt != null) {
             distributedEventBuilder.updatedAt(Date.from(Instant.ofEpochMilli(updatedAt.toLong())));
+        }
+        var schemaVersion = attributes.get(DistributedEvent.Fields.schemaVersion);
+        if (schemaVersion != null) {
+            distributedEventBuilder.schemaVersion(schemaVersion.toInteger());
         }
         return distributedEventBuilder.build();
     }

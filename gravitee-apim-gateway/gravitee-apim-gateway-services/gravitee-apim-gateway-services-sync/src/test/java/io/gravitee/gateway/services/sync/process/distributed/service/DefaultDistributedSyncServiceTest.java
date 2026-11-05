@@ -45,6 +45,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.SharedPolicy
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.distributed.model.DistributedSyncException;
 import io.gravitee.gateway.services.sync.process.distributed.model.DistributedSyncTransientException;
+import io.gravitee.gateway.services.sync.process.distributed.model.DistributedSyncTransientException;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
@@ -60,6 +61,7 @@ import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.node.api.cluster.Member;
 import io.gravitee.repository.distributedsync.api.DistributedEventRepository;
 import io.gravitee.repository.distributedsync.api.DistributedSyncStateRepository;
+import io.gravitee.repository.distributedsync.api.DistributedSyncUnavailableException;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
@@ -68,9 +70,11 @@ import io.gravitee.repository.distributedsync.model.DistributedSyncStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
@@ -115,12 +119,17 @@ class DefaultDistributedSyncServiceTest {
         lenient().when(member.primary()).thenReturn(true);
         lenient().when(clusterManager.self()).thenReturn(member);
         lenient().when(clusterManager.clusterId()).thenReturn("clusterId");
+        lenient().when(clusterManager.members()).thenReturn(Set.of(member, mock(Member.class)));
         lenient().when(distributedSyncStateRepository.ready()).thenReturn(Completable.complete());
 
+        cut = service(DistributedSyncSettings.defaults());
+    }
+
+    private DefaultDistributedSyncService service(final DistributedSyncSettings settings) {
         SubscriptionMapper subscriptionMapper = new SubscriptionMapper(objectMapper);
         ApiKeyMapper apiKeyMapper = new ApiKeyMapper(objectMapper);
         ApiMapper apiMapper = new ApiMapper(objectMapper, subscriptionMapper, apiKeyMapper);
-        cut = new DefaultDistributedSyncService(
+        return new DefaultDistributedSyncService(
             node,
             clusterManager,
             "type",
@@ -140,7 +149,7 @@ class DefaultDistributedSyncServiceTest {
             new ApiProductMapper(objectMapper),
             new io.gravitee.gateway.services.sync.process.distributed.mapper.CredentialMapper(objectMapper),
             new DistributedSyncMetrics(),
-            DistributedSyncSettings.defaults()
+            settings
         );
     }
 
@@ -196,6 +205,93 @@ class DefaultDistributedSyncServiceTest {
         void should_not_validate_when_cluster_id_is_blank() {
             when(clusterManager.clusterId()).thenReturn("   ");
             assertThrows(SyncException.class, () -> cut.validate());
+        }
+
+        @Test
+        void should_not_fail_validation_when_only_one_member_is_visible() {
+            // A distributed cluster manager can transiently report a single member during a rolling restart:
+            // validation must not fail the pod in that window.
+            when(clusterManager.members()).thenReturn(Set.of(member));
+            assertDoesNotThrow(() -> cut.validate());
+        }
+
+        @Test
+        void should_not_fail_validation_when_no_members_are_visible() {
+            when(clusterManager.members()).thenReturn(Set.of());
+            assertDoesNotThrow(() -> cut.validate());
+        }
+
+        @Test
+        void should_not_fail_validation_when_members_are_not_reported() {
+            when(clusterManager.members()).thenReturn(null);
+            assertDoesNotThrow(() -> cut.validate());
+        }
+
+        @Test
+        void should_report_another_node_writing_the_same_catalog_and_clear_it_when_the_state_is_ours() {
+            when(node.id()).thenReturn("node-1");
+            when(distributedSyncStateRepository.createOrUpdate(any())).thenReturn(Completable.complete());
+            cut.storeState(1L, 2L).test().assertComplete();
+
+            when(distributedSyncStateRepository.findByClusterId("clusterId")).thenReturn(
+                Maybe.just(DistributedSyncState.builder().nodeId("node-2").build())
+            );
+            cut.preparePrimaryCycle().test().assertValue(false);
+            assertThat(cut.metrics().orElseThrow().foreignWriterDetected()).isTrue();
+
+            when(distributedSyncStateRepository.findByClusterId("clusterId")).thenReturn(
+                Maybe.just(DistributedSyncState.builder().nodeId("node-1").build())
+            );
+            cut.preparePrimaryCycle().test().assertValue(false);
+            assertThat(cut.metrics().orElseThrow().foreignWriterDetected()).isFalse();
+        }
+
+        @Test
+        void should_report_a_topology_mismatch_and_a_stale_primary_then_their_recovery() {
+            cut = service(new DistributedSyncSettings(1L, 1L, "s:eu;t:*;o:*;e:*", 1_000L));
+            DistributedSyncState mismatch = DistributedSyncState.builder()
+                .nodeId("primary")
+                .topology("s:us;t:*;o:*;e:*")
+                .heartbeatAt(0L)
+                .build();
+            cut.inspectPrimaryState(mismatch);
+            cut.inspectPrimaryState(mismatch);
+            assertThat(cut.metrics().orElseThrow().topologyMismatch()).isTrue();
+            assertThat(cut.metrics().orElseThrow().primaryHeartbeatAgeMs()).isGreaterThan(1_000L);
+
+            cut.inspectPrimaryState(
+                DistributedSyncState.builder()
+                    .nodeId("primary")
+                    .topology("s:eu;t:*;o:*;e:*")
+                    .heartbeatAt(System.currentTimeMillis())
+                    .build()
+            );
+            assertThat(cut.metrics().orElseThrow().topologyMismatch()).isFalse();
+
+            cut.inspectPrimaryState(DistributedSyncState.builder().nodeId("primary").build());
+            assertThat(cut.metrics().orElseThrow().topologyMismatch()).isFalse();
+        }
+
+        @Test
+        void should_skip_the_remaining_writes_of_a_cycle_when_the_repository_is_unreachable() {
+            when(distributedEventRepository.createOrUpdateAtWriteTime(any())).thenReturn(
+                Completable.error(new DistributedSyncUnavailableException("down", new IOException("closed")))
+            );
+            cut.beginCycle();
+
+            cut
+                .distributeIfNeeded(ApiReactorDeployable.builder().apiId("api-1").build())
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertError(DistributedSyncTransientException.class);
+            assertThat(cut.metrics().orElseThrow().skippedDistributions()).isZero();
+
+            cut
+                .distributeIfNeeded(ApiReactorDeployable.builder().apiId("api-1").build())
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertError(DistributedSyncTransientException.class);
+            assertThat(cut.metrics().orElseThrow().skippedDistributions()).isEqualTo(1);
         }
 
         @Test

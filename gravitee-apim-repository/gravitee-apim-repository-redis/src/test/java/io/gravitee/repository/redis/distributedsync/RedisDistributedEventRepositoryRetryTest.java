@@ -17,11 +17,13 @@ package io.gravitee.repository.redis.distributedsync;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.repository.distributedsync.api.DistributedSyncUnavailableException;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
@@ -114,6 +116,20 @@ class RedisDistributedEventRepositoryRetryTest {
             .assertError(error -> "malformed payload".equals(error.getMessage()));
 
         verify(redisAPI, times(1)).hset(any());
+    }
+
+    @Test
+    void should_surface_an_unreachable_repository_once_retries_are_exhausted() {
+        RedisAPI redisAPI = mock(RedisAPI.class);
+        when(redisAPI.hset(any())).thenReturn(Future.failedFuture(new RuntimeException("Connection is closed")));
+
+        new RedisDistributedEventRepository(redisClientReturning(redisAPI))
+            .createOrUpdate(anEvent())
+            .test()
+            .awaitDone(20, TimeUnit.SECONDS)
+            .assertError(DistributedSyncUnavailableException.class);
+
+        verify(redisAPI, atLeast(2)).hset(any());
     }
 
     private static RedisClient redisClientReturning(final RedisAPI redisAPI) {

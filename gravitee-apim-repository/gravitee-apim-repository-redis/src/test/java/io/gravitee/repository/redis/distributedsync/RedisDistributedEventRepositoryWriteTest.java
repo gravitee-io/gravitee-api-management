@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.repository.distributedsync.api.search.DistributedEventCriteria;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
@@ -79,6 +80,53 @@ class RedisDistributedEventRepositoryWriteTest {
             .assertComplete();
 
         assertThat(updatedAt(attempts.get(0))).isEqualTo(1_000L);
+    }
+
+    @Test
+    void should_store_the_payload_schema_version() {
+        RedisAPI redisAPI = mock(RedisAPI.class);
+        List<List<String>> attempts = new ArrayList<>();
+        when(redisAPI.hset(any())).thenAnswer(invocation -> {
+            attempts.add(invocation.getArgument(0));
+            return Future.succeededFuture(mock(Response.class));
+        });
+
+        DistributedEvent event = anEvent(new Date(1_000));
+        event.setSchemaVersion(3);
+        new RedisDistributedEventRepository(redisClientReturning(redisAPI))
+            .createOrUpdate(event)
+            .test()
+            .awaitDone(10, TimeUnit.SECONDS)
+            .assertComplete();
+
+        assertThat(attempts.get(0)).contains(DistributedEvent.Fields.schemaVersion, "3");
+    }
+
+    @Test
+    void should_read_the_payload_schema_version() {
+        RedisAPI redisAPI = mock(RedisAPI.class);
+        Response version = mock(Response.class);
+        when(version.toInteger()).thenReturn(3);
+        Response row = mock(Response.class);
+        when(row.type()).thenReturn(ResponseType.MULTI);
+        when(row.get(any())).thenAnswer(invocation ->
+            DistributedEvent.Fields.schemaVersion.equals(invocation.getArgument(0)) ? version : null
+        );
+        Response search = mock(Response.class);
+        when(search.type()).thenReturn(ResponseType.MULTI);
+        when(search.size()).thenReturn(1);
+        when(search.stream()).thenAnswer(invocation -> Stream.of(row));
+        when(redisAPI.ftSearch(any())).thenReturn(Future.succeededFuture(search));
+
+        DistributedEvent event = new RedisDistributedEventRepository(redisClientReturning(redisAPI))
+            .search(DistributedEventCriteria.builder().build(), 0L, 10L)
+            .test()
+            .awaitDone(10, TimeUnit.SECONDS)
+            .assertComplete()
+            .values()
+            .get(0);
+
+        assertThat(event.getSchemaVersion()).isEqualTo(3);
     }
 
     @Test
