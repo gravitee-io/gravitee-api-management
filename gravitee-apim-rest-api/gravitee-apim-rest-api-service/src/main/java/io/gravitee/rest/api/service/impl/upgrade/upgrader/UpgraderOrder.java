@@ -43,6 +43,8 @@ public class UpgraderOrder {
     public static final int PLANS_FLOWS_DEFINITION_UPGRADER = 550;
     public static final int EVENTS_LATEST_UPGRADER = 600;
     public static final int EXECUTION_MODE_UPGRADER = 610;
+    // Before the upgraders that seed portal navigation (711, 712, 727): the items they write name the default portal.
+    public static final int DEFAULT_PORTAL_UPGRADER = 699;
     public static final int QUALITY_RULES_SCOPING_UPGRADER = 700;
     public static final int API_V4_CATEGORIES_UPGRADER = 701;
     public static final int API_CATEGORY_ORDER_UPGRADER = 702;
@@ -73,7 +75,6 @@ public class UpgraderOrder {
     public static final int PORTAL_NAVIGATION_ITEM_API_OWNED_REKEY_UPGRADER = 725;
     public static final int PORTAL_NAVIGATION_ITEM_API_OWNED_CONSOLE_MIGRATION_UPGRADER = 726;
     public static final int ENVIRONMENTS_DEFAULT_APIS_FOLDER_UPGRADER = 727;
-    public static final int DEFAULT_PORTAL_UPGRADER = 728;
     public static final int CLUSTER_ROLES_UPGRADER = 900;
     public static final int CLUSTER_CROSS_ID_UPGRADER = 901;
     public static final int API_ENDPOINT_WEIGHT_UPGRADER = 560;

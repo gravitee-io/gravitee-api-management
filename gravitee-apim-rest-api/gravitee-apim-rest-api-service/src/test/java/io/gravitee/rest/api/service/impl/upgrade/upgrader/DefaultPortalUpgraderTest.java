@@ -262,10 +262,12 @@ class DefaultPortalUpgraderTest {
     }
 
     @Test
-    void should_run_after_default_apis_folder_upgrader() {
+    void should_run_before_the_navigation_seeding_upgraders() {
         assertThat(upgrader.getOrder())
             .isEqualTo(UpgraderOrder.DEFAULT_PORTAL_UPGRADER)
-            .isEqualTo(728)
-            .isGreaterThan(UpgraderOrder.ENVIRONMENTS_DEFAULT_APIS_FOLDER_UPGRADER);
+            .isGreaterThan(UpgraderOrder.DEFAULT_ENVIRONMENT_UPGRADER)
+            .isLessThan(UpgraderOrder.ENVIRONMENTS_DEFAULT_PORTAL_PAGE_UPGRADER)
+            .isLessThan(UpgraderOrder.ENVIRONMENTS_DEFAULT_PORTAL_NAVIGATION_ITEMS_UPGRADER)
+            .isLessThan(UpgraderOrder.ENVIRONMENTS_DEFAULT_APIS_FOLDER_UPGRADER);
     }
 }
