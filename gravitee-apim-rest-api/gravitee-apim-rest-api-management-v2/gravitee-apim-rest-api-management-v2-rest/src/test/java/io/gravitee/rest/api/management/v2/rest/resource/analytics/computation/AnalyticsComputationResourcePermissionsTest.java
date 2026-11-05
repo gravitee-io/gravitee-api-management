@@ -43,6 +43,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.BeforeEach;
@@ -212,7 +213,15 @@ class AnalyticsComputationResourcePermissionsTest extends ApiResourceTest {
             )
         );
         when(analyticsQueryContextLoader.load(any(), any())).thenReturn(
-            new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
+            new AnalyticsQueryContext(
+                null,
+                new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                Set.of(),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Optional.empty()
+            )
         );
         when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));
 
