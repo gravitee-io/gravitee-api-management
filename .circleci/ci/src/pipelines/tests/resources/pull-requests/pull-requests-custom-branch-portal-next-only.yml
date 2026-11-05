@@ -201,7 +201,7 @@ jobs:
           apim-ui-project-workdir: gravitee-apim-portal-webui
       - run:
           name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui/build.json"
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.3-SNAPSHOT\"/' gravitee-apim-portal-webui/build.json"
       - run:
           name: Build
           command: yarn build:prod
@@ -211,7 +211,7 @@ jobs:
       - cmd-workspace-install
       - run:
           name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui-next/build.json"
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.3-SNAPSHOT\"/' gravitee-apim-portal-webui-next/build.json"
       - run:
           name: Build Portal Next
           command: NODE_OPTIONS=--max_old_space_size=4086 yarn portal-next:build:prod

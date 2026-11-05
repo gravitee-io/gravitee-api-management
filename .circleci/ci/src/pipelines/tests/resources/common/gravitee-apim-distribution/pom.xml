@@ -20,6 +20,9 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>gravitee-apim-distribution</artifactId>
     <properties>
+        <revision>4.2.3</revision>
+        <sha1/>
+        <changelist>-SNAPSHOT</changelist>
         <apim.core.version>4.2.0</apim.core.version>
     </properties>
 </project>

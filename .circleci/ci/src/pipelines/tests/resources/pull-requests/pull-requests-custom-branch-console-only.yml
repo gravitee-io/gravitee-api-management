@@ -129,7 +129,7 @@ jobs:
       - cmd-workspace-install
       - run:
           name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-console-webui/build.json"
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.3-SNAPSHOT\"/' gravitee-apim-console-webui/build.json"
       - run:
           name: Build Console
           command: NODE_OPTIONS=--max_old_space_size=4086 yarn console:build:prod

@@ -17,7 +17,7 @@ import { Command, Config, Job, commands, reusable } from '../../circleci-config'
 import { NodeLtsExecutor } from '../../executors';
 import { InstallYarnCommand, NotifyOnFailureCommand, WorkspaceInstallCommand } from '../../commands';
 import { CircleCIEnvironment } from '../../pipelines';
-import { computeApimVersion } from '../../utils';
+import { distributionVersion } from '../../utils';
 import { config } from '../../config';
 
 export class GammaWebuiBuildJob {
@@ -33,7 +33,7 @@ export class GammaWebuiBuildJob {
     const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig, environment);
     dynamicConfig.addReusableCommand(notifyOnFailureCommand);
 
-    const apimVersion = environment.action === 'distribution_release' ? environment.graviteeioVersion : computeApimVersion(environment);
+    const productVersion = environment.action === 'distribution_release' ? environment.graviteeioVersion : distributionVersion(environment);
 
     const steps: Command[] = [
       new commands.Checkout(),
@@ -43,7 +43,7 @@ export class GammaWebuiBuildJob {
       new reusable.ReusedCommand(workspaceInstallCommand),
       new commands.Run({
         name: 'Update Build version',
-        command: `sed -i 's/"version": ".*"/"version": "${apimVersion}"/' ${config.components.gamma.workdir}/build.json`,
+        command: `sed -i 's/"version": ".*"/"version": "${productVersion}"/' ${config.components.gamma.workdir}/build.json`,
       }),
       new commands.Run({
         name: 'Build Gamma UI',

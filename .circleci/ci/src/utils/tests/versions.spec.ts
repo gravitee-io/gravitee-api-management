@@ -17,6 +17,7 @@ import {
   bridgeClientTags,
   computeApimVersion,
   corePin,
+  distributionVersion,
   isLatestRelease,
   nextDevelopmentVersion,
   parse,
@@ -124,6 +125,37 @@ describe('version', function () {
     it('should refuse a missing distribution pom', () => {
       expect(() => corePin(releaseOf('./src/utils/tests/resources/pom.xml'))).toThrow(
         'corePin - No file at specified path: ./src/utils/tests/resources/gravitee-apim-distribution/pom.xml',
+      );
+    });
+  });
+
+  describe('distributionVersion', () => {
+    const buildOf = (apimVersionPath: string): CircleCIEnvironment => ({
+      action: 'pull_requests',
+      baseBranch: '4.1.x',
+      branch: 'my-branch',
+      sha1: '784ff35ca',
+      changedFiles: [],
+      buildNum: '1234',
+      buildId: '1234',
+      graviteeioVersion: '',
+      isDryRun: false,
+      apimVersionPath,
+    });
+
+    it('should read the version of the distribution pom, not the one of the root pom', () => {
+      expect(distributionVersion(buildOf('./src/utils/tests/resources/pinned/pom.xml'))).toStrictEqual('4.1.2-SNAPSHOT');
+    });
+
+    it('should refuse a missing distribution pom', () => {
+      expect(() => distributionVersion(buildOf('./src/utils/tests/resources/pom.xml'))).toThrow(
+        'distributionVersion - No file at specified path: ./src/utils/tests/resources/gravitee-apim-distribution/pom.xml',
+      );
+    });
+
+    it('should refuse a distribution pom without a revision', () => {
+      expect(() => distributionVersion(buildOf('./src/utils/tests/resources/unpinned/pom.xml'))).toThrow(
+        'distributionVersion - No <revision> in ./src/utils/tests/resources/unpinned/gravitee-apim-distribution/pom.xml',
       );
     });
   });
