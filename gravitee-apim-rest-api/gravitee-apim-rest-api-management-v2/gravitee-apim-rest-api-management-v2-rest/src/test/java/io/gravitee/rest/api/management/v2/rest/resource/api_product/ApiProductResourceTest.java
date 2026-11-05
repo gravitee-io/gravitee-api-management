@@ -37,7 +37,6 @@ import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.ApiProductKind;
 import io.gravitee.apim.core.api_product.model.ApiProductKindFilter;
-import io.gravitee.apim.core.api_product.model.UpdateApiProduct;
 import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeployApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
@@ -45,6 +44,7 @@ import io.gravitee.apim.core.api_product.use_case.UpdateApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductDeployUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductExistsUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -55,9 +55,11 @@ import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -171,6 +173,56 @@ class ApiProductResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_return_resources_on_get_by_id() {
+            Resource cache = Resource.builder().name("cache").type("cache").configuration("{\"ttl\":10}").enabled(true).build();
+            ApiProduct apiProduct = ApiProduct.builder()
+                .id(API_PRODUCT_ID)
+                .environmentId(ENV_ID)
+                .name("My API Product")
+                .resources(List.of(cache))
+                .build();
+
+            when(getApiProductByIdUseCase.execute(any())).thenReturn(GetApiProductsUseCase.Output.single(Optional.of(apiProduct)));
+
+            try (Response response = rootTarget().request().get()) {
+                assertThat(response.getStatus()).isEqualTo(OK_200);
+                var result = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.ApiProduct.class);
+                assertThat(result.getResources())
+                    .singleElement()
+                    .satisfies(resource -> {
+                        assertThat(resource.getName()).isEqualTo("cache");
+                        assertThat(resource.getType()).isEqualTo("cache");
+                        assertThat(resource.getEnabled()).isTrue();
+                        assertThat(resource.getConfiguration()).isNotNull();
+                    });
+            }
+        }
+
+        @Test
+        void should_return_groups_deployment_state_and_membership_flag_on_get_by_id() {
+            ApiProduct apiProduct = ApiProduct.builder()
+                .id(API_PRODUCT_ID)
+                .environmentId(ENV_ID)
+                .name("My API Product")
+                .groups(Set.of("group-1"))
+                .deploymentState(ApiProduct.DeploymentState.NEED_REDEPLOY)
+                .disableMembershipNotifications(true)
+                .build();
+
+            when(getApiProductByIdUseCase.execute(any())).thenReturn(GetApiProductsUseCase.Output.single(Optional.of(apiProduct)));
+
+            try (Response response = rootTarget().request().get()) {
+                assertThat(response.getStatus()).isEqualTo(OK_200);
+                var result = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.ApiProduct.class);
+                assertThat(result.getGroups()).containsExactly("group-1");
+                assertThat(result.getDeploymentState()).isEqualTo(
+                    io.gravitee.rest.api.management.v2.rest.model.ApiProductDeploymentState.NEED_REDEPLOY
+                );
+                assertThat(result.getDisableMembershipNotifications()).isTrue();
+            }
+        }
+
+        @Test
         void should_return_404_when_api_product_not_found() {
             when(getApiProductByIdUseCase.execute(any())).thenReturn(GetApiProductsUseCase.Output.single(Optional.empty()));
 
@@ -228,7 +280,10 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @Test
         void should_not_update_a_product_this_surface_does_not_manage() {
-            final Response response = rootTarget().request().put(Entity.json(UpdateApiProduct.builder().name("Renamed").build()));
+            var rename = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
+            rename.setName("Renamed");
+            rename.setVersion("1.0.0");
+            final Response response = rootTarget().request().put(Entity.json(rename));
 
             assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
             verify(updateApiProductUseCase, never()).execute(any());
@@ -305,8 +360,7 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void initUpdateApiProductTests() {
-            // OpenAPI UpdateApiProduct serializes tags as [] by default; the resource loads the existing
-            // product for tag validation whenever tags are present in the request body.
+            // Tag validation loads the existing product when the update payload carries a tags list.
             when(getApiProductByIdUseCase.execute(any())).thenReturn(
                 GetApiProductsUseCase.Output.single(
                     Optional.of(
@@ -358,6 +412,10 @@ class ApiProductResourceTest extends AbstractResourceTest {
                 var input = captor.getValue();
                 soft.assertThat(input.apiProductId()).isEqualTo(API_PRODUCT_ID);
                 soft.assertThat(input.updateApiProduct().getName()).isEqualTo("Updated Product");
+                soft.assertThat(input.updateApiProduct().getTags()).isNull();
+                soft.assertThat(input.updateApiProduct().getGroups()).isNull();
+                soft.assertThat(input.updateApiProduct().getResources()).isNull();
+                soft.assertThat(input.updateApiProduct().getDisableMembershipNotifications()).isNull();
                 soft.assertThat(input.auditInfo()).isInstanceOf(AuditInfo.class);
             });
         }
@@ -376,6 +434,7 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
             var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
             updatePayload.setName("Existing Product");
+            updatePayload.setVersion("1.0.0");
             updatePayload.setAnalytics(new io.gravitee.rest.api.management.v2.rest.model.Analytics().enabled(false));
 
             try (Response response = rootTarget().request().put(json(updatePayload))) {
@@ -397,6 +456,7 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
             var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
             updatePayload.setName("Existing Product");
+            updatePayload.setVersion("1.0.0");
             updatePayload.setAnalytics(null);
 
             try (Response response = rootTarget().request().put(json(updatePayload))) {
@@ -406,6 +466,84 @@ class ApiProductResourceTest extends AbstractResourceTest {
             var captor = ArgumentCaptor.forClass(UpdateApiProductUseCase.Input.class);
             verify(updateApiProductUseCase).execute(captor.capture());
             assertThat(captor.getValue().updateApiProduct().getAnalytics()).isNull();
+        }
+
+        @Test
+        void should_update_api_product_resources() {
+            Resource cache = Resource.builder().name("cache").type("cache").configuration("{\"ttl\":10}").enabled(true).build();
+            ApiProduct updatedApiProduct = ApiProduct.builder()
+                .id(API_PRODUCT_ID)
+                .environmentId(ENV_ID)
+                .name("Existing Product")
+                .resources(List.of(cache))
+                .build();
+
+            when(updateApiProductUseCase.execute(any())).thenReturn(new UpdateApiProductUseCase.Output(updatedApiProduct));
+
+            var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
+            updatePayload.setName("Existing Product");
+            updatePayload.setVersion("1.0.0");
+            updatePayload.setResources(
+                List.of(
+                    new io.gravitee.rest.api.management.v2.rest.model.Resource()
+                        .name("cache")
+                        .type("cache")
+                        .enabled(true)
+                        .configuration(new LinkedHashMap<>(Map.of("ttl", 10)))
+                )
+            );
+
+            io.gravitee.rest.api.management.v2.rest.model.ApiProduct updatedResponse;
+            try (Response response = rootTarget().request().put(json(updatePayload))) {
+                assertThat(response.getStatus()).isEqualTo(OK_200);
+                updatedResponse = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.ApiProduct.class);
+            }
+
+            assertThat(updatedResponse.getResources())
+                .singleElement()
+                .satisfies(resource -> {
+                    assertThat(resource.getName()).isEqualTo("cache");
+                    assertThat(resource.getType()).isEqualTo("cache");
+                    assertThat(resource.getEnabled()).isTrue();
+                    assertThat(resource.getConfiguration()).isNotNull();
+                });
+
+            var captor = ArgumentCaptor.forClass(UpdateApiProductUseCase.Input.class);
+            verify(updateApiProductUseCase).execute(captor.capture());
+            assertThat(captor.getValue().updateApiProduct().getResources())
+                .singleElement()
+                .satisfies(resource -> {
+                    assertThat(resource.getName()).isEqualTo("cache");
+                    assertThat(resource.getType()).isEqualTo("cache");
+                    assertThat(resource.isEnabled()).isTrue();
+                    assertThat(resource.getConfiguration()).contains("ttl");
+                });
+        }
+
+        @Test
+        void should_clear_api_product_resources_when_sent_as_null() {
+            ApiProduct updatedApiProduct = ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).name("Existing Product").build();
+
+            when(updateApiProductUseCase.execute(any())).thenReturn(new UpdateApiProductUseCase.Output(updatedApiProduct));
+
+            // Jersey's ObjectMapper uses NON_NULL, so setResources(null) is dropped on serialize.
+            // Send an explicit null in JSON to clear the list.
+            try (
+                Response response = rootTarget()
+                    .request()
+                    .put(
+                        Entity.entity(
+                            "{\"name\":\"Existing Product\",\"version\":\"1.0.0\",\"resources\":null}",
+                            MediaType.APPLICATION_JSON_TYPE
+                        )
+                    )
+            ) {
+                assertThat(response.getStatus()).isEqualTo(OK_200);
+            }
+
+            var captor = ArgumentCaptor.forClass(UpdateApiProductUseCase.Input.class);
+            verify(updateApiProductUseCase).execute(captor.capture());
+            assertThat(captor.getValue().updateApiProduct().getResources()).isNull();
         }
 
         @Test
@@ -432,6 +570,7 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
             var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
             updatePayload.setName("Updated Product");
+            updatePayload.setVersion("1.0.0");
 
             try (Response response = rootTarget().request().put(json(updatePayload))) {
                 assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
@@ -446,6 +585,7 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
             var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
             updatePayload.setName("Updated Product");
+            updatePayload.setVersion("1.0.0");
 
             final Response response = rootTarget().request().put(json(updatePayload));
 
@@ -465,6 +605,7 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
             var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
             updatePayload.setName("Updated Product");
+            updatePayload.setVersion("1.0.0");
             updatePayload.setTags(List.of("restricted-tag"));
 
             try (Response response = rootTarget().request().put(json(updatePayload))) {

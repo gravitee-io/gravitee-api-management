@@ -75,6 +75,7 @@ public class DeployApiProductDomainService {
             .tags(apiProduct.getTags())
             .plans(plans)
             .analytics(apiProduct.getAnalytics())
+            .resources(apiProduct.getResources())
             .build();
 
         final Event event = eventCrudService.createEvent(
