@@ -21,6 +21,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
@@ -51,6 +52,7 @@ public class CreateOrUpdatePortalUseCase {
     private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
     private final ThemeCrudService themeCrudService;
     private final CurrentThemeDomainService currentThemeDomainService;
+    private final PortalUrlDomainService portalUrlDomainService;
 
     public record Input(AuditInfo auditInfo, Portal portal, PortalNavigationStructure structure, String activeThemeHrid) {
         public Input(AuditInfo auditInfo, Portal portal) {
@@ -91,7 +93,7 @@ public class CreateOrUpdatePortalUseCase {
             sanitized.structure()
         );
         var resolvedActiveThemeId = resolveActiveThemeId(input, existing.map(Portal::getActiveThemeId).orElse(null));
-        var portalToSave = existing.orElse(sanitized.portal());
+        var portalToSave = existing.orElseGet(() -> withResolvedUrl(sanitized.portal()));
         portalToSave.update(sanitized.portal().getName(), sanitized.structure(), resolvedActiveThemeId);
         var saved = existing.isPresent() ? portalCrudService.update(portalToSave) : portalCrudService.create(portalToSave);
         var portalExists = portalAutomationScopeEnforcer.portalExistsInEnvironment(input.auditInfo(), saved.getId());
@@ -117,6 +119,15 @@ public class CreateOrUpdatePortalUseCase {
             .map(Theme::getAutomationMetadata)
             .map(ThemeAutomationMetadata::hrid)
             .orElse(null);
+    }
+
+    /**
+     * The Automation API's input carries no URL. A new portal is served at its environment's portal URL; only when
+     * that URL cannot be resolved does it keep the placeholder, since a deployment cannot be postponed.
+     */
+    private Portal withResolvedUrl(Portal portal) {
+        portalUrlDomainService.resolveDefaultPortalUrl(portal.getEnvironmentId()).ifPresent(portal::changeUrl);
+        return portal;
     }
 
     private String resolveActiveThemeId(Input input, String currentActiveThemeId) {

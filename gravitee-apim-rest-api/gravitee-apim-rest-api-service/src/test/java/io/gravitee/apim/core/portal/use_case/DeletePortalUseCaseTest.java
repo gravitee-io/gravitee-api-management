@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import fixtures.core.model.PortalFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalListingCrudServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
@@ -35,6 +36,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanExecutor;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
@@ -116,7 +118,8 @@ class DeletePortalUseCaseTest {
             ),
             scopeEnforcer,
             themeCrudService,
-            currentThemeDomainService
+            currentThemeDomainService,
+            new PortalUrlDomainService(new InstallationAccessQueryServiceInMemory())
         );
         useCase = new DeletePortalUseCase(portalCrudService, navSync, themeCrudService, currentThemeDomainService);
     }

@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 import fixtures.core.model.PortalFixtures;
+import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalListingCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
@@ -33,6 +34,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanExecutor;
 import io.gravitee.apim.core.portal.model.NavigationPath;
@@ -77,6 +79,7 @@ class CreateOrUpdatePortalUseCaseTest {
     private final PortalListingCrudServiceInMemory portalListingCrudService = new PortalListingCrudServiceInMemory();
     private final ThemeCrudServiceInMemory themeCrudService = new ThemeCrudServiceInMemory();
     private final ThemeQueryServiceInMemory themeQueryService = new ThemeQueryServiceInMemory(themeCrudService);
+    private final InstallationAccessQueryServiceInMemory installationAccessQueryService = new InstallationAccessQueryServiceInMemory();
     private CreateOrUpdatePortalUseCase useCase;
 
     @BeforeEach
@@ -99,12 +102,14 @@ class CreateOrUpdatePortalUseCaseTest {
             ),
             scopeEnforcer,
             themeCrudService,
-            new CurrentThemeDomainService(themeQueryService, themeCrudService)
+            new CurrentThemeDomainService(themeQueryService, themeCrudService),
+            new PortalUrlDomainService(installationAccessQueryService)
         );
     }
 
     @AfterEach
     void tearDown() {
+        installationAccessQueryService.reset();
         portalCrudService.reset();
         navCrudService.reset();
         pageContentCrudService.reset();
@@ -164,10 +169,22 @@ class CreateOrUpdatePortalUseCaseTest {
     }
 
     @Test
-    void should_create_a_non_default_portal_with_placeholder_url() {
+    void should_create_a_non_default_portal_with_the_resolved_url() {
+        installationAccessQueryService.withPortalUrl(AUDIT_INFO.environmentId(), "https://portal.acme.io");
+
         var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, PortalFixtures.aPortal()));
 
         assertThat(output.portal().isDefault()).isFalse();
+        assertThat(output.portal().getUrl()).hasToString("https://portal.acme.io/next");
+        assertThat(portalCrudService.storage())
+            .singleElement()
+            .satisfies(saved -> assertThat(saved.getUrl()).hasToString("https://portal.acme.io/next"));
+    }
+
+    @Test
+    void should_create_a_portal_with_the_placeholder_url_when_the_url_cannot_be_resolved() {
+        var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, PortalFixtures.aPortal()));
+
         assertThat(output.portal().getUrl()).isEqualTo(Portal.URL_PLACEHOLDER);
     }
 
