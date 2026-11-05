@@ -208,17 +208,18 @@ class DefaultPortalUpgraderTest {
 
     @Test
     @SneakyThrows
-    void should_keep_placeholder_when_url_cannot_be_resolved() {
+    void should_postpone_the_default_portal_of_an_environment_whose_url_cannot_be_resolved() {
         installationAccessQueryService.reset();
-        givenEnvironments(ENV_A);
+        installationAccessQueryService.withPortalUrl(ENV_B.getId(), "https://b.acme.io");
+        givenEnvironments(ENV_A, ENV_B);
 
         assertThat(upgrader.upgrade()).isTrue();
 
         assertThat(portalCrudService.storage())
             .singleElement()
             .satisfies(portal -> {
-                assertThat(portal.isDefault()).isTrue();
-                assertThat(portal.getUrl()).hasToString(Portal.URL_PLACEHOLDER.toString());
+                assertThat(portal.getEnvironmentId()).isEqualTo(ENV_B.getId());
+                assertThat(portal.getUrl()).hasToString("https://b.acme.io/next");
             });
     }
 

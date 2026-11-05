@@ -116,16 +116,22 @@ class DefaultPortalDomainServiceTest {
         }
 
         @Test
-        void should_create_default_portal_with_placeholder_when_url_cannot_be_resolved() {
+        void should_postpone_the_default_portal_while_its_url_cannot_be_resolved() {
             var result = cut.ensureDefault(ORG_ID, ENV_ID);
 
-            assertThat(result).isPresent();
-            assertThat(portalCrudService.storage())
-                .singleElement()
-                .satisfies(portal -> {
-                    assertThat(portal.isDefault()).isTrue();
-                    assertThat(portal.getUrl()).hasToString(Portal.URL_PLACEHOLDER.toString());
-                });
+            assertThat(result).isEmpty();
+            assertThat(portalCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_create_the_postponed_default_portal_once_its_url_can_be_resolved() {
+            cut.ensureDefault(ORG_ID, ENV_ID);
+            installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io");
+
+            var result = cut.ensureDefault(ORG_ID, ENV_ID);
+
+            assertThat(result).hasValueSatisfying(portal -> assertThat(portal.getUrl()).hasToString("https://portal.acme.io/next"));
+            assertThat(portalCrudService.storage()).hasSize(1);
         }
 
         @Test
@@ -156,6 +162,7 @@ class DefaultPortalDomainServiceTest {
 
         @Test
         void should_create_a_single_default_portal_when_called_twice() {
+            installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io");
             cut.ensureDefault(ORG_ID, ENV_ID);
             cut.ensureDefault(ORG_ID, ENV_ID);
 
@@ -164,6 +171,7 @@ class DefaultPortalDomainServiceTest {
 
         @Test
         void should_only_look_at_the_given_environment() {
+            installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io");
             portalCrudService.initWith(List.of(aPortal(AUTOMATION_PORTAL_ID, OTHER_ENV_ID, "Other", false, Portal.URL_PLACEHOLDER)));
 
             var result = cut.ensureDefault(ORG_ID, ENV_ID);

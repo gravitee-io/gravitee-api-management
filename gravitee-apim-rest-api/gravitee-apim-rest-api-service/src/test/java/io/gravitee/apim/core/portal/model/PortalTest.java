@@ -48,21 +48,27 @@ class PortalTest {
     class Factories {
 
         @Test
-        void create_default_builds_a_default_portal_with_the_placeholder_url() {
-            var portal = Portal.createDefault("env", "org", "Developer Portal");
+        void create_default_builds_a_default_portal_with_the_given_url() {
+            var portal = Portal.createDefault("env", "org", "Developer Portal", url("https://portal.example/next"));
 
             assertThat(portal.getId()).isNotNull();
             assertThat(portal.getName()).isEqualTo("Developer Portal");
             assertThat(portal.isDefault()).isTrue();
-            assertThat(portal.getUrl()).isEqualTo(Portal.URL_PLACEHOLDER);
+            assertThat(portal.getUrl()).isEqualTo(url("https://portal.example/next"));
         }
 
         @Test
-        void create_builds_a_non_default_portal_with_the_placeholder_url() {
-            var portal = Portal.create("env", "org", "Portal");
+        void create_builds_a_non_default_portal_with_the_given_url() {
+            var portal = Portal.create("env", "org", "Portal", url("https://portal.example/next"));
 
             assertThat(portal.isDefault()).isFalse();
-            assertThat(portal.getUrl()).isEqualTo(Portal.URL_PLACEHOLDER);
+            assertThat(portal.getUrl()).isEqualTo(url("https://portal.example/next"));
+        }
+
+        @Test
+        void create_and_create_default_refuse_a_missing_url() {
+            assertThatThrownBy(() -> Portal.createDefault("env", "org", "Developer Portal", null)).isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> Portal.create("env", "org", "Portal", null)).isInstanceOf(NullPointerException.class);
         }
 
         @Test

@@ -38,17 +38,26 @@ public class DefaultPortalDomainService {
 
     /**
      * Creates the environment's default portal when it has no portal at all. A portal the environment
-     * already has is never marked default: one created by the Automation API stays as it is.
+     * already has is never marked default: one created by the Automation API stays as it is. The portal is
+     * created with its real URL only: while that URL cannot be resolved (a Cloud environment whose access
+     * points are not stored yet, an invalid portal URL setting), creation is postponed to a later call.
      *
-     * @return the default portal, or empty when the environment's only portal is not the default one
+     * @return the default portal, or empty when the environment's only portal is not the default one or
+     *     its creation is postponed
      * @throws SeveralPortalsInEnvironmentException when the environment has several portals
      */
     public Optional<Portal> ensureDefault(String organizationId, String environmentId) {
         var portals = findAtMostOnePortal(environmentId);
         if (portals.isEmpty()) {
-            var portal = Portal.createDefault(environmentId, organizationId, DEFAULT_PORTAL_NAME);
-            resolveUrl(environmentId).ifPresent(portal::changeUrl);
-            var created = portalCrudService.create(portal);
+            var url = portalUrlDomainService.resolveDefaultPortalUrl(environmentId);
+            if (url.isEmpty()) {
+                log.warn(
+                    "Default portal of environment [{}] not created yet: its portal URL is not set or is not an absolute http(s) URL without credentials",
+                    environmentId
+                );
+                return Optional.empty();
+            }
+            var created = portalCrudService.create(Portal.createDefault(environmentId, organizationId, DEFAULT_PORTAL_NAME, url.get()));
             log.info("Default portal [{}] created for environment [{}] with URL [{}]", created.getId(), environmentId, created.getUrl());
             return Optional.of(created);
         }

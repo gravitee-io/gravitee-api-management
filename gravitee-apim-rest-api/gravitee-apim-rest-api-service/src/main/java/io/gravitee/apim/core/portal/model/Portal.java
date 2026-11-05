@@ -28,7 +28,10 @@ public class Portal {
 
     private static final String URL_PLACEHOLDER_VALUE = "https://example.com/to-be-implemented";
 
-    /** Stored until portals get a real URL; the column is mandatory, so it cannot stay empty. */
+    /**
+     * The URL stored on portals created before they had a real one (the column is mandatory). The default portal
+     * upgrader replaces it; a portal created now always gets a real URL.
+     */
     public static final URL URL_PLACEHOLDER = placeholderUrl();
 
     @Nonnull
@@ -75,17 +78,17 @@ public class Portal {
         this.url = url;
     }
 
-    /** New portal with a random id and no navigation. */
-    public static Portal create(String environmentId, String organizationId, String name) {
-        return newPortal(environmentId, organizationId, name, false);
+    /** New portal served at {@code url}, with a random id and no navigation. */
+    public static Portal create(String environmentId, String organizationId, String name, @Nonnull URL url) {
+        return newPortal(environmentId, organizationId, name, false, url);
     }
 
-    /** New default portal of the environment, with a random id and no navigation. */
-    public static Portal createDefault(String environmentId, String organizationId, String name) {
-        return newPortal(environmentId, organizationId, name, true);
+    /** New default portal of the environment, served at {@code url}, with a random id and no navigation. */
+    public static Portal createDefault(String environmentId, String organizationId, String name, @Nonnull URL url) {
+        return newPortal(environmentId, organizationId, name, true, url);
     }
 
-    private static Portal newPortal(String environmentId, String organizationId, String name, boolean defaultPortal) {
+    private static Portal newPortal(String environmentId, String organizationId, String name, boolean defaultPortal, URL url) {
         return new Portal(
             PortalId.random(),
             environmentId,
@@ -94,7 +97,7 @@ public class Portal {
             PortalNavigationStructure.empty(),
             null,
             defaultPortal,
-            URL_PLACEHOLDER
+            Objects.requireNonNull(url, "url")
         );
     }
 
