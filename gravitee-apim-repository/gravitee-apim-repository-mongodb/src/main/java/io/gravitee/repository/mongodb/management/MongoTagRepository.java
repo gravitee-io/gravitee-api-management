@@ -129,7 +129,7 @@ public class MongoTagRepository implements TagRepository {
             TagMongo tagMongoUpdated = internalTagRepo.save(tagMongo);
             return mapper.map(tagMongoUpdated);
         } catch (Exception e) {
-            log.error("An error occured when updating tag", e);
+            log.error("An error occurred when updating tag", e);
             throw new TechnicalException("An error occured when updating tag");
         }
     }
