@@ -84,6 +84,14 @@ export function computeApimVersion(environment: CircleCIEnvironment): string {
   return `${revision}${sha1}${changelist}`;
 }
 
+function distributionPomOf(environment: CircleCIEnvironment, caller: string): string {
+  const distributionPom = `${path.dirname(environment.apimVersionPath)}/gravitee-apim-distribution/pom.xml`;
+  if (!fs.existsSync(distributionPom)) {
+    throw new Error(`${caller} - No file at specified path: ${distributionPom}`);
+  }
+  return distributionPom;
+}
+
 /**
  * The core version the distribution assembles, read from the pom beside the root one.
  *
@@ -93,16 +101,27 @@ export function computeApimVersion(environment: CircleCIEnvironment): string {
  * it cannot assemble, through Maven, before it builds anything.
  */
 export function corePin(environment: CircleCIEnvironment): string {
-  const distributionPom = `${path.dirname(environment.apimVersionPath)}/gravitee-apim-distribution/pom.xml`;
-  if (!fs.existsSync(distributionPom)) {
-    throw new Error('corePin - No file at specified path: ' + distributionPom);
-  }
-
+  const distributionPom = distributionPomOf(environment, 'corePin');
   const pin = fs.readFileSync(distributionPom, 'utf8').match(/<apim\.core\.version>(.*?)<\/apim\.core\.version>/);
   if (pin === null || isBlank(pin[1])) {
     throw new Error('corePin - No <apim.core.version> in ' + distributionPom);
   }
   return pin[1];
+}
+
+/**
+ * The product version, read from the distribution pom beside the root one.
+ *
+ * This is the number users know, the one the images and the bundle carry. The root pom holds the
+ * core version, which a core release moves on its own: under distribution `4.13.1` it read `4.13.5`.
+ */
+export function distributionVersion(environment: CircleCIEnvironment): string {
+  const distributionPom = distributionPomOf(environment, 'distributionVersion');
+  const { revision, sha1, changelist } = parsePomXml(fs.readFileSync(distributionPom, 'utf8'));
+  if (isBlank(revision)) {
+    throw new Error('distributionVersion - No <revision> in ' + distributionPom);
+  }
+  return `${revision}${sha1}${changelist}`;
 }
 
 /** A server keeps talking to four client lines: its own and the three before it. */
