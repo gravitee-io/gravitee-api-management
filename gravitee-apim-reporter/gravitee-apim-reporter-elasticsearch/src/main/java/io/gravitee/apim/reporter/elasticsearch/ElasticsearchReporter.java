@@ -36,7 +36,7 @@ import io.gravitee.node.api.Node;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.Reporter;
 import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -62,7 +62,7 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
     private final AtomicLong droppedDocuments = new AtomicLong();
     private BulkProcessor bulkProcessor;
     private volatile SetupState setupState = SetupState.PREPARING;
-    private volatile Disposable droppedDocumentsLogger;
+    private volatile CompositeDisposable disposables;
 
     private enum SetupState {
         PREPARING,
@@ -75,6 +75,7 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
         if (reporterConfiguration.isEnabled()) {
             super.doStart();
             log.info("Starting Elastic reporter engine...");
+            disposables = new CompositeDisposable();
 
             BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
             if (beanFactory == null) {
@@ -103,10 +104,12 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
                     },
                     throwable -> {
                         setupState = SetupState.FAILED;
-                        droppedDocumentsLogger = Flowable.interval(1, 1, TimeUnit.MINUTES).subscribe(tick -> logDroppedDocuments());
+                        // Once the reporter is stopped, the disposables are disposed: the logger added afterwards is disposed at once
+                        disposables.add(Flowable.interval(1, 1, TimeUnit.MINUTES).subscribe(tick -> logDroppedDocuments()));
                         log.error(
                             "{}. The Elasticsearch reporter is disabled: no analytics will be written to Elasticsearch until the gateway restarts.",
-                            throwable.getMessage()
+                            throwable.getMessage(),
+                            throwable
                         );
                     }
                 );
@@ -161,8 +164,8 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
     protected void doStop() throws Exception {
         if (reporterConfiguration.isEnabled()) {
             super.doStop();
-            if (droppedDocumentsLogger != null) {
-                droppedDocumentsLogger.dispose();
+            if (disposables != null) {
+                disposables.dispose();
             }
             log.info("Stopping Elastic reporter engine... DONE");
         }
