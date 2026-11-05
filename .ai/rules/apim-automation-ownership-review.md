@@ -19,3 +19,4 @@ Report:
 
 - **Blocker** — the diff changes an owned file and the PR description has no **Automation API / CRD impact** section stating that the owning team requested or authored the change. One line naming the team is enough, and it is the only exemption: the review cannot see the author's team.
 - **Improvement** — the diff changes a v4 API definition model, a Management API v2 schema property or enum value, or a repository entity field surfaced through Management API v2, and the PR description has no **Automation API / CRD impact** section saying whether the owned surface must follow.
+- **Blocker** — the diff lets a `dryRun=true` request accept what the same request without `dryRun` rejects: a check on the write path that the dry run never reaches, or a dry run validating through its own code instead of the write path's. GKO admits a resource on the dry run's answer, so it is stored in Kubernetes and then fails on every reconcile.
