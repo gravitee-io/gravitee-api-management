@@ -409,7 +409,7 @@ export interface ApiDetailDto {
     deploymentState?: ApiDeploymentState;
     type?: ApiType;
     apiVersion?: string;
-    definitionVersion?: 'V4' | 'V4_NATIVE' | 'FEDERATED' | 'FEDERATED_AGENT';
+    definitionVersion?: 'V2' | 'V4' | 'V4_NATIVE' | 'FEDERATED' | 'FEDERATED_AGENT';
     lifecycleState?: ApiLifecycleState;
     workflowState?: ApiWorkflowState;
     visibility?: ApiVisibility;
@@ -559,11 +559,19 @@ export interface DynamicPropertyHttpConfiguration {
     httpClientOptions?: DynamicPropertyHttpClientOptions;
     httpProxyOptions?: DynamicPropertyHttpProxyOptions;
     sslOptions?: DynamicPropertySslOptions;
+    // The keys of the same settings on a V4 API, whose schedule also lives in this configuration.
+    schedule?: string;
+    transformation?: string;
+    systemProxy?: boolean;
+    http?: DynamicPropertyHttpClientOptions & { version?: string };
+    proxy?: DynamicPropertyHttpProxyOptions;
+    ssl?: DynamicPropertySslOptions;
 }
 
 export interface DynamicPropertyConfig {
     enabled: boolean;
     type?: string;
+    overrideConfiguration?: boolean;
     schedule?: string;
     provider?: DynamicPropertyProvider;
     configuration?: DynamicPropertyHttpConfiguration;

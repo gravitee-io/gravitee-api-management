@@ -441,13 +441,21 @@ export async function updateApiEndpointGroups(environmentId: string, apiId: stri
     });
 }
 
-export async function updateDynamicProperties(environmentId: string, apiId: string, config: DynamicPropertyConfig): Promise<void> {
+/** `build` receives the dynamic property the API stores when the request runs, so what the form does not show is kept from it. */
+export async function updateDynamicProperties(
+    environmentId: string,
+    apiId: string,
+    build: (current: DynamicPropertyConfig | undefined) => DynamicPropertyConfig,
+): Promise<void> {
     const current = await apimFetchJsonV2<Record<string, unknown>>(environmentId, `/apis/${encodeURIComponent(apiId)}`);
     const services = (current.services as Record<string, unknown>) ?? {};
     await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}`, {
         method: 'PUT',
         headers: JSON_HEADERS,
-        body: JSON.stringify({ ...current, services: { ...services, dynamicProperty: config } }),
+        body: JSON.stringify({
+            ...current,
+            services: { ...services, dynamicProperty: build(services.dynamicProperty as DynamicPropertyConfig | undefined) },
+        }),
     });
 }
 
