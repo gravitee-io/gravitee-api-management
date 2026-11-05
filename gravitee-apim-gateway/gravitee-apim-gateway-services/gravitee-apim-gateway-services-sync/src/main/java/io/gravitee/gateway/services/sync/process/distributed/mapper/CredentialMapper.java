@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.distributed.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncMetrics;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.credential.CredentialDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
@@ -37,6 +38,11 @@ import lombok.RequiredArgsConstructor;
 public class CredentialMapper {
 
     private final ObjectMapper objectMapper;
+    private final DistributedSyncMetrics metrics;
+
+    public CredentialMapper(final ObjectMapper objectMapper) {
+        this(objectMapper, new DistributedSyncMetrics());
+    }
 
     public Maybe<CredentialDeployable> to(final DistributedEvent event) {
         return Maybe.fromCallable(() -> {
@@ -68,8 +74,7 @@ public class CredentialMapper {
                     .syncAction(syncAction)
                     .build();
             } catch (Exception e) {
-                log.warn("Error while reading credential from distributed event [{}]", event.getId(), e);
-                return null;
+                return MappingFailures.decodeFailure(metrics, event, e);
             }
         });
     }
@@ -98,8 +103,7 @@ public class CredentialMapper {
                 }
                 return builder.build();
             } catch (Exception e) {
-                log.warn("Error while building distributed event from credential [{}]", deployable.credentialId(), e);
-                return null;
+                return MappingFailures.deadLetter(metrics, DistributedEventType.CREDENTIAL, deployable.credentialId(), e);
             }
         });
     }

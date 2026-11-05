@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.distributed.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncMetrics;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.sharedpolicygroup.SharedPolicyGroupReactorDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
@@ -36,6 +37,11 @@ import lombok.RequiredArgsConstructor;
 public class SharedPolicyGroupMapper {
 
     private final ObjectMapper objectMapper;
+    private final DistributedSyncMetrics metrics;
+
+    public SharedPolicyGroupMapper(final ObjectMapper objectMapper) {
+        this(objectMapper, new DistributedSyncMetrics());
+    }
 
     public Maybe<SharedPolicyGroupReactorDeployable> to(final DistributedEvent event) {
         return Maybe.fromCallable(() -> {
@@ -55,8 +61,7 @@ public class SharedPolicyGroupMapper {
                     .syncAction(SyncActionMapper.to(event.getSyncAction()))
                     .build();
             } catch (Exception e) {
-                log.warn("Error while determining shared policy group into event payload", e);
-                return null;
+                return MappingFailures.decodeFailure(metrics, event, e);
             }
         });
     }
@@ -66,7 +71,7 @@ public class SharedPolicyGroupMapper {
     }
 
     private Flowable<DistributedEvent> toSharedPolicyGroupDistributedEvent(final SharedPolicyGroupReactorDeployable deployable) {
-        return Flowable.fromCallable(() -> {
+        return Maybe.fromCallable(() -> {
             try {
                 ReactableSharedPolicyGroup payloadSource = deployable.reactableSharedPolicyGroup();
                 if (payloadSource == null) {
@@ -83,9 +88,8 @@ public class SharedPolicyGroupMapper {
                     .payload(objectMapper.writeValueAsString(payloadSource))
                     .build();
             } catch (Exception e) {
-                log.warn("Error while building distributed event from shared policy group reactor", e);
-                return null;
+                return MappingFailures.deadLetter(metrics, DistributedEventType.SHARED_POLICY_GROUP, deployable.sharedPolicyGroupId(), e);
             }
-        });
+        }).toFlowable();
     }
 }

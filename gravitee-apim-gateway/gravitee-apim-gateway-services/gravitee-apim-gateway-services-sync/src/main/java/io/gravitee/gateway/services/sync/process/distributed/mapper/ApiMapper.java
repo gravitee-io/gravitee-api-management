@@ -24,6 +24,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncMetrics;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
@@ -42,11 +43,22 @@ public class ApiMapper {
     private final SubscriptionMapper subscriptionMapper;
     private final ApiKeyMapper apiKeyMapper;
     private final List<Function<String, ReactableApi<?>>> parsers;
+    private final DistributedSyncMetrics metrics;
 
     public ApiMapper(ObjectMapper objectMapper, SubscriptionMapper subscriptionMapper, ApiKeyMapper apiKeyMapper) {
+        this(objectMapper, subscriptionMapper, apiKeyMapper, new DistributedSyncMetrics());
+    }
+
+    public ApiMapper(
+        ObjectMapper objectMapper,
+        SubscriptionMapper subscriptionMapper,
+        ApiKeyMapper apiKeyMapper,
+        DistributedSyncMetrics metrics
+    ) {
         this.objectMapper = objectMapper;
         this.subscriptionMapper = subscriptionMapper;
         this.apiKeyMapper = apiKeyMapper;
+        this.metrics = metrics;
 
         parsers = List.of(
             payload -> parseAndAssert(payload, Api.class, reactableApi -> reactableApi.getDefinitionVersion() == DefinitionVersion.V2),
@@ -91,8 +103,7 @@ public class ApiMapper {
                     .syncAction(SyncActionMapper.to(event.getSyncAction()))
                     .build();
             } catch (Exception e) {
-                log.warn("Error while determining api into event payload", e);
-                return null;
+                return MappingFailures.decodeFailure(metrics, event, e);
             }
         });
     }
@@ -119,7 +130,7 @@ public class ApiMapper {
     }
 
     private Flowable<DistributedEvent> toApiDistributedEvent(final ApiReactorDeployable deployable) {
-        return Flowable.fromCallable(() -> {
+        return Maybe.fromCallable(() -> {
             try {
                 DistributedEvent.DistributedEventBuilder builder = DistributedEvent.builder()
                     .id(deployable.id())
@@ -131,10 +142,9 @@ public class ApiMapper {
                 }
                 return builder.build();
             } catch (Exception e) {
-                log.warn("Error while building distributed event from api reactor", e);
-                return null;
+                return MappingFailures.deadLetter(metrics, DistributedEventType.API, deployable.id(), e);
             }
-        });
+        }).toFlowable();
     }
 
     /**

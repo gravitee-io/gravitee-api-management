@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync.process.distributed.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncMetrics;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.node.NodeMetadataDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
@@ -31,6 +32,11 @@ import lombok.RequiredArgsConstructor;
 public class NodeMetadataMapper {
 
     private final ObjectMapper objectMapper;
+    private final DistributedSyncMetrics metrics;
+
+    public NodeMetadataMapper(final ObjectMapper objectMapper) {
+        this(objectMapper, new DistributedSyncMetrics());
+    }
 
     public Maybe<NodeMetadataDeployable> to(final DistributedEvent event) {
         return Maybe.fromCallable(() -> {
@@ -47,8 +53,7 @@ public class NodeMetadataMapper {
                     .installationId(distributedDeployable.installationId)
                     .build();
             } catch (Exception e) {
-                log.warn("Error while determining deployed organization into event payload", e);
-                return null;
+                return MappingFailures.decodeFailure(metrics, event, e);
             }
         });
     }
@@ -71,8 +76,7 @@ public class NodeMetadataMapper {
                     .updatedAt(new Date())
                     .build();
             } catch (Exception e) {
-                log.warn("Error while building distributed event from node metadata", e);
-                return null;
+                return MappingFailures.deadLetter(metrics, DistributedEventType.NODE_METADATA, nodeMetadataDeployable.id(), e);
             }
         });
     }

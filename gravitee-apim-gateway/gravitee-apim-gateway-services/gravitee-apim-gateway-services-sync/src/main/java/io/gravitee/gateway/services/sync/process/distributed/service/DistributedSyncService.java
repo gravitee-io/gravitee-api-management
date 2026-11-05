@@ -31,6 +31,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.subscri
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import java.util.Optional;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -48,6 +49,43 @@ public interface DistributedSyncService {
     Maybe<DistributedSyncState> state();
 
     Completable storeState(final long fromTime, final long toTime);
+
+    /**
+     * Samples the node role once for a sync cycle and pins it until {@link #endCycle()}, so every
+     * {@link #isPrimaryNode()} call made during the cycle sees the same role even if the cluster elects a new
+     * primary meanwhile.
+     *
+     * @return whether this node acts as primary for the cycle
+     */
+    default boolean beginCycle() {
+        return isPrimaryNode();
+    }
+
+    default void endCycle() {}
+
+    /**
+     * Whether the current cycle must re-distribute entities that are already deployed locally (the
+     * {@code ActionOnApi.NONE} case): set when a previous distribution failed and its window is replayed, or
+     * when this node was just promoted and must re-publish what the previous primary may have missed.
+     */
+    default boolean republishRequired() {
+        return false;
+    }
+
+    /**
+     * Requests that the current (or next) primary cycle re-distributes the already-deployed entities found in
+     * its window.
+     */
+    default void requestReplay() {}
+
+    /**
+     * Forgets any pending replay: called when this node stops acting as primary.
+     */
+    default void onDemotion() {}
+
+    default Optional<DistributedSyncMetrics> metrics() {
+        return Optional.empty();
+    }
 
     Completable distributeIfNeeded(final ApiReactorDeployable deployable);
 

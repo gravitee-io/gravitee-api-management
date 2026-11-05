@@ -31,4 +31,18 @@ public interface DistributedSynchronizer {
     Completable synchronize(final Long from, final Long to);
 
     int order();
+
+    /**
+     * Whether the last synchronization asked to keep the sync window where it is (some entities hit a transient
+     * failure and must be fetched again). Reading the request clears it.
+     */
+    default boolean consumeHoldRequest() {
+        return false;
+    }
+
+    /**
+     * Drops a pending window-hold when this node is promoted or demoted. The hold belonged to the
+     * previous role; keeping it would make the next secondary cycle refetch one extra window.
+     */
+    default void onRoleChanged() {}
 }

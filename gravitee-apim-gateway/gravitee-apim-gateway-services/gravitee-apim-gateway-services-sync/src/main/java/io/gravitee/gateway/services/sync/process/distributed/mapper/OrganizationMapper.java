@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.distributed.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncMetrics;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
@@ -31,6 +32,11 @@ import lombok.RequiredArgsConstructor;
 public class OrganizationMapper {
 
     private final ObjectMapper objectMapper;
+    private final DistributedSyncMetrics metrics;
+
+    public OrganizationMapper(final ObjectMapper objectMapper) {
+        this(objectMapper, new DistributedSyncMetrics());
+    }
 
     public Maybe<OrganizationDeployable> to(final DistributedEvent event) {
         return Maybe.fromCallable(() -> {
@@ -38,8 +44,7 @@ public class OrganizationMapper {
                 final ReactableOrganization reactableOrganization = objectMapper.readValue(event.getPayload(), ReactableOrganization.class);
                 return OrganizationDeployable.builder().reactableOrganization(reactableOrganization).build();
             } catch (Exception e) {
-                log.warn("Error while determining deployed organization into event payload", e);
-                return null;
+                return MappingFailures.decodeFailure(metrics, event, e);
             }
         });
     }
@@ -55,8 +60,7 @@ public class OrganizationMapper {
                     .updatedAt(new Date())
                     .build();
             } catch (Exception e) {
-                log.warn("Error while building distributed event from organization", e);
-                return null;
+                return MappingFailures.deadLetter(metrics, DistributedEventType.ORGANIZATION, organizationDeployable.id(), e);
             }
         });
     }

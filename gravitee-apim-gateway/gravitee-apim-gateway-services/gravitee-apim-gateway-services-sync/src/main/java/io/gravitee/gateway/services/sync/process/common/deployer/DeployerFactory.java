@@ -81,6 +81,10 @@ public class DeployerFactory {
 
     private final CredentialManager credentialManager;
 
+    public DistributedSyncService distributedSyncService() {
+        return distributedSyncService;
+    }
+
     public SubscriptionDeployer createSubscriptionDeployer() {
         return new SubscriptionDeployer(
             subscriptionService,

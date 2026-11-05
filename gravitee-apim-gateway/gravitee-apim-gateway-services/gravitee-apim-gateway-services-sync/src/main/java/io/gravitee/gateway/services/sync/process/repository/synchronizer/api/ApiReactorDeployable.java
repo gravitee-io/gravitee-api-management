@@ -50,6 +50,12 @@ public class ApiReactorDeployable implements ApiKeyDeployable, SubscriptionDeplo
 
     private SyncAction syncAction;
 
+    /**
+     * The API is already deployed and up-to-date locally: only its distribution (API, subscriptions and API keys)
+     * must be performed again, the local reactor must not be redeployed.
+     */
+    private boolean republishOnly;
+
     @Builder.Default
     private List<Subscription> subscriptions = List.of();
 
