@@ -1680,10 +1680,13 @@ gateway:
 #    # Same limit expressed per GiB of JVM max heap. When both are set, the smaller one applies. Unset or 0: off.
 #    maxConnectionsPerGiB: 0
 #    readiness:
-#      # Adds the `kafka-readiness` probe: the pod reports not ready once it holds `notReadyPercent` of its connection
+#      # The `kafka-readiness` probe: the pod reports not ready once it holds `notReadyPercent` of its connection
 #      # limit, and ready again at `readyPercent` or below. Needs a connection limit, and the probe named in the
-#      # readiness check only (never in liveness). 1 <= readyPercent < notReadyPercent <= 100. Default is false.
-#      enabled: false
+#      # readiness check only (never in liveness), and only when `enabled` is true: the chart leaves it out otherwise,
+#      # so a gateway image that does not register it keeps working. 1 <= readyPercent < notReadyPercent <= 100.
+#      # `notReadyPercent` and `readyPercent` are rendered only when `enabled` is true, since the gateway rejects
+#      # invalid thresholds even while the probe is off. `enabled: false` is rendered, to override a gateway default.
+#      enabled: true
 #      notReadyPercent: 90
 #      readyPercent: 80
 #

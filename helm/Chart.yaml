@@ -35,3 +35,8 @@ annotations:
       links:
         - name: Github PR
           url: https://github.com/gravitee-io/gravitee-api-management/pull/21756
+    - kind: changed
+      description: "The gateway readiness probe includes `kafka-readiness` only when `gateway.kafka.enabled` and `gateway.kafka.readiness.enabled` are true; liveness and startup probes are unchanged"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/22223

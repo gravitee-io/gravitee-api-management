@@ -373,6 +373,80 @@ tests:
                 enabled: true
                 notReadyPercent: 95
                 readyPercent: 85
+  - it: Enable Kafka and render no readiness block when only thresholds are set
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          readiness:
+            notReadyPercent: 95
+            readyPercent: 85
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "readiness:|notReadyPercent|readyPercent"
+  - it: Enable Kafka and render only enabled false when readiness is off with thresholds
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          readiness:
+            enabled: false
+            notReadyPercent: 95
+            readyPercent: 85
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: true
+              readiness:
+                enabled: false
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "notReadyPercent|readyPercent"
+  - it: Enable Kafka and render enabled true with only one readiness threshold
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          readiness:
+            enabled: true
+            readyPercent: 85
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: true
+              readiness:
+                enabled: true
+                readyPercent: 85
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "notReadyPercent"
+  - it: Enable Kafka and render enabled true with no readiness threshold
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          readiness:
+            enabled: true
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: true
+              readiness:
+                enabled: true
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "notReadyPercent|readyPercent"
   - it: Enable Kafka and keep the connection limit and readiness unset by default
     template: gateway/gateway-configmap.yaml
     set:
