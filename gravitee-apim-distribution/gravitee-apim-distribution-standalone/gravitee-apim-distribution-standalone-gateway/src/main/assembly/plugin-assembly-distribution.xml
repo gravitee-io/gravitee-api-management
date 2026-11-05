@@ -137,9 +137,10 @@
         </fileSet>
         <!--
             The version the node reports: heartbeat, node endpoint, startup banner, User-Agent. All of
-            them read Version.RUNTIME_VERSION, the first version.properties on the classpath, and the
-            core container jar carries one stamped with the core version. lib/ext is the root of the
-            extension class loader, the parent of the one over lib, so this file wins over the jar's.
+            them read Version.RUNTIME_VERSION, the first version.properties on the classpath, and this
+            is the only one: the core container jar stopped shipping its own in 4.13.9. An older pinned
+            core still carries one, stamped with the core version, and this file shadows it: lib/ext is
+            the root of the extension class loader, the parent of the one over lib.
         -->
         <fileSet>
             <directory>src/main/resources/metadata</directory>
