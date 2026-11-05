@@ -285,6 +285,7 @@
 
     <!-- Agent Provider plugins -->
     <gravitee-agent-provider-azure-foundry.version>1.0.0-alpha.3</gravitee-agent-provider-azure-foundry.version>
+    <gravitee-agent-provider-google-agent.version>1.0.0-alpha.2</gravitee-agent-provider-google-agent.version>
     </properties>
 
     <dependencyManagement>
