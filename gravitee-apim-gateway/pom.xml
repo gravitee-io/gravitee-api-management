@@ -38,6 +38,7 @@
         <module>gravitee-apim-gateway-core</module>
         <module>gravitee-apim-gateway-coverage</module>
         <module>gravitee-apim-gateway-dictionary</module>
+        <module>gravitee-apim-gateway-generic-event</module>
         <module>gravitee-apim-gateway-env</module>
         <module>gravitee-apim-gateway-flow</module>
         <module>gravitee-apim-gateway-handlers</module>

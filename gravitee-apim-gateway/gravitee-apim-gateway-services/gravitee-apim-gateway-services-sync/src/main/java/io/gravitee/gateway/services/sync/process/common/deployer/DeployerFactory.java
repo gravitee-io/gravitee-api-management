@@ -21,6 +21,7 @@ import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.genericevent.GenericEventManager;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.CredentialManager;
@@ -80,6 +81,8 @@ public class DeployerFactory {
     private final AuthzEnginePort authzEnginePort;
 
     private final CredentialManager credentialManager;
+
+    private final GenericEventManager genericEventManager;
 
     public SubscriptionDeployer createSubscriptionDeployer() {
         return new SubscriptionDeployer(
@@ -155,5 +158,9 @@ public class DeployerFactory {
 
     public CredentialDeployer createCredentialDeployer() {
         return new CredentialDeployer(credentialManager, distributedSyncService);
+    }
+
+    public GenericEventDeployer createGenericEventDeployer() {
+        return new GenericEventDeployer(genericEventManager, distributedSyncService);
     }
 }

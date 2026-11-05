@@ -22,6 +22,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.genericevent.GenericEventManager;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.services.ApiKeyCacheService;
 import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
@@ -78,6 +79,8 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.credent
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.credential.CredentialSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.debug.DebugSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionarySynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.genericevent.GenericEventMapper;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.genericevent.GenericEventSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.node.NodeMetadataSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.FlowAppender;
@@ -316,6 +319,30 @@ public class RepositorySyncConfiguration {
             eventsFetcher,
             credentialMapper,
             environmentService,
+            deployerFactory,
+            syncFetcherExecutor,
+            syncDeployerExecutor
+        );
+    }
+
+    @Bean
+    public GenericEventMapper genericEventMapper(ObjectMapper objectMapper) {
+        return new GenericEventMapper(objectMapper);
+    }
+
+    @Bean
+    public GenericEventSynchronizer genericEventSynchronizer(
+        LatestEventFetcher eventsFetcher,
+        GenericEventMapper genericEventMapper,
+        GenericEventManager genericEventManager,
+        DeployerFactory deployerFactory,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
+    ) {
+        return new GenericEventSynchronizer(
+            eventsFetcher,
+            genericEventMapper,
+            genericEventManager,
             deployerFactory,
             syncFetcherExecutor,
             syncDeployerExecutor

@@ -25,6 +25,7 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Organization;
+import io.gravitee.gateway.api.genericevent.GenericEvent;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
@@ -37,6 +38,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiProductMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.GenericEventMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.NodeMetadataMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
@@ -49,6 +51,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.credential.CredentialDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.genericevent.GenericEventDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.sharedpolicygroup.SharedPolicyGroupReactorDeployable;
@@ -132,7 +135,8 @@ class DefaultDistributedSyncServiceTest {
             new io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzEntityMapper(objectMapper),
             new io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzPolicyMapper(objectMapper),
             new ApiProductMapper(objectMapper),
-            new io.gravitee.gateway.services.sync.process.distributed.mapper.CredentialMapper(objectMapper)
+            new io.gravitee.gateway.services.sync.process.distributed.mapper.CredentialMapper(objectMapper),
+            new GenericEventMapper(objectMapper)
         );
     }
 
@@ -159,6 +163,7 @@ class DefaultDistributedSyncServiceTest {
                 null,
                 distributedEventRepository,
                 distributedSyncStateRepository,
+                null,
                 null,
                 null,
                 null,
@@ -254,6 +259,12 @@ class DefaultDistributedSyncServiceTest {
                 .distributeIfNeeded(CredentialDeployable.builder().credentialId("credential-id").syncAction(SyncAction.UNDEPLOY).build())
                 .test()
                 .assertComplete();
+            verify(distributedEventRepository).createOrUpdate(any());
+        }
+
+        @Test
+        void should_distribute_generic_event() {
+            cut.distributeIfNeeded(genericEvent()).test().assertComplete();
             verify(distributedEventRepository).createOrUpdate(any());
         }
 
@@ -376,6 +387,12 @@ class DefaultDistributedSyncServiceTest {
         }
 
         @Test
+        void should_not_call_repository_when_distributing_generic_event() {
+            cut.distributeIfNeeded(genericEvent()).test().assertComplete();
+            verifyNoInteractions(distributedEventRepository);
+        }
+
+        @Test
         void should_not_call_repository_when_distributing_organization() {
             cut
                 .distributeIfNeeded(
@@ -458,5 +475,13 @@ class DefaultDistributedSyncServiceTest {
             when(distributedSyncStateRepository.createOrUpdate(any())).thenReturn(Completable.complete());
             cut.storeState(1L, 2L).test().assertComplete();
         }
+    }
+
+    private static GenericEventDeployable genericEvent() {
+        return new GenericEventDeployable(
+            "event-id",
+            SyncAction.DEPLOY,
+            new GenericEvent("aihub.hub", "hub-1", "env-1", "org-1", null, null, "{}")
+        );
     }
 }

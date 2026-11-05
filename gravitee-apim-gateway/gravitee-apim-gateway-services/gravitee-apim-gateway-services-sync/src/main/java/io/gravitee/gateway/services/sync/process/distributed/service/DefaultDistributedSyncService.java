@@ -26,6 +26,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzEntityM
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzPolicyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.CredentialMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.GenericEventMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.NodeMetadataMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
@@ -40,6 +41,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.A
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzPolicyReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.credential.CredentialDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.genericevent.GenericEventDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.node.NodeMetadataDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationDeployable;
@@ -97,6 +99,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     private final AuthzPolicyMapper authzPolicyMapper;
     private final ApiProductMapper apiProductMapper;
     private final CredentialMapper credentialMapper;
+    private final GenericEventMapper genericEventMapper;
 
     @Override
     public void validate() {
@@ -304,6 +307,18 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
                 return trackFailure(distribute(credentialMapper.to(deployable)), "credential", deployable.id());
             }
             log.debug("Not a primary node, skipping credential event distribution");
+            return Completable.complete();
+        });
+    }
+
+    @Override
+    public Completable distributeIfNeeded(final GenericEventDeployable deployable) {
+        return Completable.defer(() -> {
+            if (isPrimaryNode()) {
+                log.debug("Node is primary, distributing generic event event for {}", deployable.id());
+                return trackFailure(distribute(genericEventMapper.to(deployable)), "generic event", deployable.id());
+            }
+            log.debug("Not a primary node, skipping generic event event distribution");
             return Completable.complete();
         });
     }
