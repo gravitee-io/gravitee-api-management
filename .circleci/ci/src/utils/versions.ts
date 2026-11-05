@@ -105,6 +105,25 @@ export function corePin(environment: CircleCIEnvironment): string {
   return pin[1];
 }
 
+/**
+ * The product version, read from the distribution pom beside the root one.
+ *
+ * This is the number users know, the one the images and the bundle carry. The root pom holds the
+ * core version, which a core release moves on its own: under distribution `4.13.1` it read `4.13.5`.
+ */
+export function distributionVersion(environment: CircleCIEnvironment): string {
+  const distributionPom = `${path.dirname(environment.apimVersionPath)}/gravitee-apim-distribution/pom.xml`;
+  if (!fs.existsSync(distributionPom)) {
+    throw new Error('distributionVersion - No file at specified path: ' + distributionPom);
+  }
+
+  const { revision, sha1, changelist } = parsePomXml(fs.readFileSync(distributionPom, 'utf8'));
+  if (isBlank(revision)) {
+    throw new Error('distributionVersion - No <revision> in ' + distributionPom);
+  }
+  return `${revision}${sha1}${changelist}`;
+}
+
 /** A server keeps talking to four client lines: its own and the three before it. */
 const BRIDGE_CLIENT_LINES = 4;
 
