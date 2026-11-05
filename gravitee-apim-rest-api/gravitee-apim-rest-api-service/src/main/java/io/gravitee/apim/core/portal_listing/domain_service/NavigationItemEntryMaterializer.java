@@ -63,12 +63,13 @@ class NavigationItemEntryMaterializer {
             applyUpdate(navApi, apiId, entry, parent, title, visibility);
             return (PortalNavigationApi) navigationItemCrudService.update(navApi);
         }
-        rejectIfSegmentTakenByForeignItem(auditInfo, parent, Slug.from(entry.apiHrid()).value(), navApiId, entry.location());
+        rejectIfSegmentTakenByForeignItem(auditInfo, portalId, parent, Slug.from(entry.apiHrid()).value(), navApiId, entry.location());
         var create = CreatePortalNavigationItem.builder()
             .id(navApiId)
             .title(title)
             .segment(Slug.from(entry.apiHrid()).value())
             .area(AREA)
+            .reference(new NavigationItemReference.PortalReference(portalId))
             .type(PortalNavigationItemType.API)
             .order(entry.order() != null ? entry.order() : 0)
             .apiId(apiId)
@@ -120,6 +121,7 @@ class NavigationItemEntryMaterializer {
             .title(entry.apiHrid())
             .segment(Slug.from(entry.apiHrid()).value())
             .area(AREA)
+            .reference(new NavigationItemReference.PortalReference(portalId))
             .type(PortalNavigationItemType.API)
             .order(entry.order() != null ? entry.order() : 0)
             .apiId(apiId)
@@ -132,6 +134,7 @@ class NavigationItemEntryMaterializer {
 
     private void rejectIfSegmentTakenByForeignItem(
         AuditInfo auditInfo,
+        PortalId portalId,
         PortalNavigationItemContainer parent,
         String segment,
         PortalNavigationItemId expectedId,
@@ -139,7 +142,7 @@ class NavigationItemEntryMaterializer {
     ) {
         var parentId = Optional.ofNullable(parent).map(PortalNavigationItemContainer::getId).orElse(null);
         navigationItemsQueryService
-            .findByParentIdAndSegment(auditInfo.environmentId(), parentId, segment, NavigationItemReference.defaultReference())
+            .findByParentIdAndSegment(auditInfo.environmentId(), parentId, segment, new NavigationItemReference.PortalReference(portalId))
             .filter(sibling -> !sibling.getId().equals(expectedId))
             .ifPresent(squatter -> {
                 throw PathConflictException.segmentTaken(PathConflictException.EntryKind.LISTING, location);
