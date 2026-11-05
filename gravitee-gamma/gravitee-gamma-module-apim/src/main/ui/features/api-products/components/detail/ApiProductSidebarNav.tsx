@@ -18,12 +18,13 @@ import {
     BoxesIcon,
     LayoutDashboardIcon,
     RocketIcon,
+    ServerIcon,
     ShieldIcon,
     SlidersHorizontalIcon,
     UsersIcon,
     UsersRoundIcon,
 } from '@gravitee/graphene-core/icons';
-import type { ComponentType } from 'react';
+import { useMemo, type ComponentType } from 'react';
 import { NavLink } from 'react-router-dom';
 
 interface NavItem {
@@ -68,12 +69,25 @@ const API_PRODUCT_NAV_GROUPS: NavGroup[] = [
 
 interface ApiProductSidebarNavProps {
     basePath: string;
+    showResourcesNav?: boolean;
 }
 
-export function ApiProductSidebarNav({ basePath }: ApiProductSidebarNavProps) {
+export function ApiProductSidebarNav({ basePath, showResourcesNav = false }: ApiProductSidebarNavProps) {
+    const navGroups = useMemo((): NavGroup[] => {
+        if (!showResourcesNav) {
+            return API_PRODUCT_NAV_GROUPS;
+        }
+        const resourcesGroup: NavGroup = {
+            label: 'Design',
+            items: [{ path: 'resources', label: 'Resources', icon: ServerIcon }],
+        };
+        const [general, ...rest] = API_PRODUCT_NAV_GROUPS;
+        return [general, resourcesGroup, ...rest];
+    }, [showResourcesNav]);
+
     return (
         <div className="space-y-0.5 px-2 py-2">
-            {API_PRODUCT_NAV_GROUPS.map(group => (
+            {navGroups.map(group => (
                 <div key={group.label} className="pt-4 first:pt-0">
                     <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</p>
                     {group.items.map(item => {

@@ -49,16 +49,34 @@ describe('updateApiProductShardingTags', () => {
         expect(putTracker.callCount).toBe(1);
         const url = new URL(putTracker.lastCall!.url);
         expect(url.pathname).toContain('/api-products/prod-1');
-        // Tags replaced, all other fields carried over untouched — guards against the classic
-        // GET-then-PUT pitfall of dropping fields the form did not load.
+        // Tags replaced; core fields forwarded; resources omitted so concurrent resource edits are not overwritten.
         expect(putTracker.lastCall?.body).toEqual({
-            id: 'prod-1',
             name: 'Payments',
             version: '1.0.0',
             description: 'Keep me',
             apiIds: ['api-a', 'api-b'],
             tags: ['public', 'partner'],
         });
+    });
+
+    it('does not send resources when updating tags', async () => {
+        server.use(
+            http.get(PRODUCT_PATH, () =>
+                HttpResponse.json({
+                    id: 'prod-1',
+                    name: 'P',
+                    version: '1',
+                    apiIds: [],
+                    resources: [{ name: 'oauth', type: 'oauth2-am-resource', configuration: {}, enabled: true }],
+                    tags: [],
+                }),
+            ),
+        );
+        const putTracker = trackHandler('put', PRODUCT_PATH, { ok: true });
+
+        await updateApiProductShardingTags('DEFAULT', 'prod-1', ['public']);
+
+        expect(putTracker.lastCall?.body).not.toHaveProperty('resources');
     });
 
     it('clears all tags when given an empty list', async () => {

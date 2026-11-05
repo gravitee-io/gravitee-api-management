@@ -107,6 +107,14 @@ describe('ApiProductApisPage', () => {
             );
         });
 
+        it('does not send resources when updating apiIds', () => {
+            renderPage();
+            fireEvent.click(screen.getByRole('button', { name: /Add API/i }));
+            fireEvent.click(screen.getByTestId('mock-dialog-add'));
+            const [body] = mockUpdateProduct.mock.calls[0] as [Record<string, unknown>];
+            expect(body).not.toHaveProperty('resources');
+        });
+
         it('closes the dialog on successful add', () => {
             mockUpdateProduct.mockImplementation((_req: unknown, opts: { onSuccess: () => void }) => opts.onSuccess());
             renderPage();
