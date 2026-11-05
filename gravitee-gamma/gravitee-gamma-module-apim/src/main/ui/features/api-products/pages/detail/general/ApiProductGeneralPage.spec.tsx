@@ -108,6 +108,14 @@ describe('ApiProductGeneralPage', () => {
             );
         });
 
+        it('does not send resources on save (backend keeps them when omitted)', () => {
+            renderPage();
+            fireEvent.change(screen.getByDisplayValue('Prod1'), { target: { value: 'Renamed' } });
+            fireEvent.click(screen.getByRole('button', { name: /Save changes/i }));
+            const [body] = mockUpdateProduct.mock.calls[0] as [Record<string, unknown>];
+            expect(body).not.toHaveProperty('resources');
+        });
+
         it('sends description as undefined when the description field is cleared', () => {
             renderPage();
             fireEvent.change(screen.getByDisplayValue('My product description'), { target: { value: '' } });
