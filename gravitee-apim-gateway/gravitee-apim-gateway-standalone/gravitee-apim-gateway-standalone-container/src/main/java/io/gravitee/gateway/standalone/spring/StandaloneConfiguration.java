@@ -28,6 +28,7 @@ import io.gravitee.gateway.env.RequestConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.spring.AccessPointConfiguration;
 import io.gravitee.gateway.handlers.api.spring.ApiHandlerConfiguration;
 import io.gravitee.gateway.handlers.api.spring.ApiProductConfiguration;
+import io.gravitee.gateway.handlers.api.spring.ApprovalConfiguration;
 import io.gravitee.gateway.handlers.api.spring.CredentialConfiguration;
 import io.gravitee.gateway.handlers.cluster.spring.ClusterConfiguration;
 import io.gravitee.gateway.handlers.sharedpolicygroup.spring.SharedPolicyGroupConfiguration;
@@ -66,6 +67,7 @@ import org.springframework.context.annotation.Primary;
         ClusterConfiguration.class,
         ApiProductConfiguration.class,
         CredentialConfiguration.class,
+        ApprovalConfiguration.class,
         DictionaryConfiguration.class,
         PolicyConfiguration.class,
         PlatformConfiguration.class,

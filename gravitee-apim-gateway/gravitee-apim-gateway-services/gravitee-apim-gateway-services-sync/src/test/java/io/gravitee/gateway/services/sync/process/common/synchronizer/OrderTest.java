@@ -69,6 +69,14 @@ class OrderTest {
     }
 
     @Test
+    void approval_rule_order_runs_after_license_and_organization_and_before_apis() {
+        assertThat(Order.APPROVAL_RULE.index()).isGreaterThan(Order.LICENSE.index());
+        assertThat(Order.APPROVAL_RULE.index()).isGreaterThan(Order.ORGANIZATION.index());
+        assertThat(Order.APPROVAL_RULE.index()).isLessThan(Order.API_PRODUCT.index());
+        assertThat(Order.APPROVAL_RULE.index()).isLessThan(Order.API.index());
+    }
+
+    @Test
     void enum_contains_all_expected_orders_with_no_silent_removal() {
         Set<String> names = Arrays.stream(Order.values()).map(Order::name).collect(Collectors.toUnmodifiableSet());
         assertThat(names).contains(
@@ -87,7 +95,8 @@ class OrderTest {
             "AUTHZ_PDP",
             "AUTHZ_ENTITY",
             "AUTHZ_POLICY",
-            "CREDENTIAL"
+            "CREDENTIAL",
+            "APPROVAL_RULE"
         );
     }
 }

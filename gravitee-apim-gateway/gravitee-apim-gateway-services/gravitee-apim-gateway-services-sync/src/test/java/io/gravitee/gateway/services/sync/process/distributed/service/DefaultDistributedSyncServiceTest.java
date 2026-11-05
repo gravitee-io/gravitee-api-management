@@ -36,6 +36,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointM
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiProductMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.ApprovalRuleMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.NodeMetadataMapper;
@@ -47,6 +48,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.accessp
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.approvalrule.ApprovalRuleDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.credential.CredentialDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
@@ -132,7 +134,8 @@ class DefaultDistributedSyncServiceTest {
             new io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzEntityMapper(objectMapper),
             new io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzPolicyMapper(objectMapper),
             new ApiProductMapper(objectMapper),
-            new io.gravitee.gateway.services.sync.process.distributed.mapper.CredentialMapper(objectMapper)
+            new io.gravitee.gateway.services.sync.process.distributed.mapper.CredentialMapper(objectMapper),
+            new ApprovalRuleMapper(objectMapper)
         );
     }
 
@@ -159,6 +162,7 @@ class DefaultDistributedSyncServiceTest {
                 null,
                 distributedEventRepository,
                 distributedSyncStateRepository,
+                null,
                 null,
                 null,
                 null,
@@ -252,6 +256,17 @@ class DefaultDistributedSyncServiceTest {
         void should_distribute_credential() {
             cut
                 .distributeIfNeeded(CredentialDeployable.builder().credentialId("credential-id").syncAction(SyncAction.UNDEPLOY).build())
+                .test()
+                .assertComplete();
+            verify(distributedEventRepository).createOrUpdate(any());
+        }
+
+        @Test
+        void should_distribute_approval_rule() {
+            cut
+                .distributeIfNeeded(
+                    ApprovalRuleDeployable.builder().approvalRuleId("approval-rule-id").syncAction(SyncAction.UNDEPLOY).build()
+                )
                 .test()
                 .assertComplete();
             verify(distributedEventRepository).createOrUpdate(any());
@@ -370,6 +385,17 @@ class DefaultDistributedSyncServiceTest {
         void should_not_call_repository_when_distributing_credential() {
             cut
                 .distributeIfNeeded(CredentialDeployable.builder().credentialId("credential-id").syncAction(SyncAction.UNDEPLOY).build())
+                .test()
+                .assertComplete();
+            verifyNoInteractions(distributedEventRepository);
+        }
+
+        @Test
+        void should_not_call_repository_when_distributing_approval_rule() {
+            cut
+                .distributeIfNeeded(
+                    ApprovalRuleDeployable.builder().approvalRuleId("approval-rule-id").syncAction(SyncAction.UNDEPLOY).build()
+                )
                 .test()
                 .assertComplete();
             verifyNoInteractions(distributedEventRepository);

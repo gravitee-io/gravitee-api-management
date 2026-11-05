@@ -60,6 +60,8 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.Rep
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.SubscriptionAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.ApiKeySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductSynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.approvalrule.ApprovalRuleMapper;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.approvalrule.ApprovalRuleSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzAppliedRevisions;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityMapper;
@@ -315,6 +317,32 @@ public class RepositorySyncConfiguration {
         return new CredentialSynchronizer(
             eventsFetcher,
             credentialMapper,
+            environmentService,
+            deployerFactory,
+            syncFetcherExecutor,
+            syncDeployerExecutor
+        );
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public ApprovalRuleMapper approvalRuleMapper(ObjectMapper objectMapper) {
+        return new ApprovalRuleMapper(objectMapper);
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public ApprovalRuleSynchronizer approvalRuleSynchronizer(
+        LatestEventFetcher eventsFetcher,
+        ApprovalRuleMapper approvalRuleMapper,
+        EnvironmentService environmentService,
+        DeployerFactory deployerFactory,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
+    ) {
+        return new ApprovalRuleSynchronizer(
+            eventsFetcher,
+            approvalRuleMapper,
             environmentService,
             deployerFactory,
             syncFetcherExecutor,

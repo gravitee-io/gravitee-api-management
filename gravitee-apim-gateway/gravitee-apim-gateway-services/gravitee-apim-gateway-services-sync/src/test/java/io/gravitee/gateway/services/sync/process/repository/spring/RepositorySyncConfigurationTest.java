@@ -59,6 +59,20 @@ class RepositorySyncConfigurationTest {
         assertThat(isGammaConditional(bean)).isTrue();
     }
 
+    @Test
+    void declares_approval_rule_mapper_bean_under_gamma_condition() {
+        Method bean = beanMethod("approvalRuleMapper");
+        assertThat(bean).isNotNull();
+        assertThat(isGammaConditional(bean)).isTrue();
+    }
+
+    @Test
+    void declares_approval_rule_synchronizer_bean_under_gamma_condition() {
+        Method bean = beanMethod("approvalRuleSynchronizer");
+        assertThat(bean).isNotNull();
+        assertThat(isGammaConditional(bean)).isTrue();
+    }
+
     private static Method beanMethod(String name) {
         return Arrays.stream(RepositorySyncConfiguration.class.getDeclaredMethods())
             .filter(m -> m.getName().equals(name) && m.isAnnotationPresent(Bean.class))
