@@ -50,6 +50,7 @@ public class EventLatestMongoRepositoryImpl implements EventLatestMongoRepositor
 
     private static final String UPDATED_AT = "updatedAt";
     private static final String ID = "_id";
+    private static final String EXPIRES_AT = "expiresAt";
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -66,7 +67,7 @@ public class EventLatestMongoRepositoryImpl implements EventLatestMongoRepositor
             aggregationOperations.add(Aggregation.match(Criteria.where("properties." + group.getValue()).exists(true)));
         }
         if (criteria != null) {
-            List<Criteria> criteriaList = buildDBCriteria(criteria);
+            List<Criteria> criteriaList = buildLatestCriteria(criteria);
             if (!criteriaList.isEmpty()) {
                 aggregationOperations.add(Aggregation.match(new Criteria().andOperator(criteriaList.toArray(new Criteria[0]))));
             }
@@ -126,13 +127,21 @@ public class EventLatestMongoRepositoryImpl implements EventLatestMongoRepositor
             clauses.add(Criteria.where("properties." + group.getValue()).exists(true));
         }
         if (criteria != null) {
-            clauses.addAll(buildDBCriteria(criteria));
+            clauses.addAll(buildLatestCriteria(criteria));
         }
         clauses.add(position);
         Query query = new Query(new Criteria().andOperator(clauses))
             .with(Sort.by(Sort.Order.asc(UPDATED_AT), Sort.Order.asc(ID)))
             .limit(limit);
         return mongoTemplate.find(query, EventLatestMongo.class);
+    }
+
+    private static List<Criteria> buildLatestCriteria(EventCriteria criteria) {
+        List<Criteria> criteriaList = buildDBCriteria(criteria);
+        if (criteria.getExpiresBefore() > 0) {
+            criteriaList.add(Criteria.where(EXPIRES_AT).lt(new Date(criteria.getExpiresBefore())));
+        }
+        return criteriaList;
     }
 
     private static Criteria after(EventLatestCursor after) {

@@ -15,6 +15,9 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.Date;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
@@ -22,4 +25,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author GraviteeSource Team
  */
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}events_latest")
-public class EventLatestMongo extends EventMongo {}
+@Getter
+@Setter
+public class EventLatestMongo extends EventMongo {
+
+    private Date expiresAt;
+}
