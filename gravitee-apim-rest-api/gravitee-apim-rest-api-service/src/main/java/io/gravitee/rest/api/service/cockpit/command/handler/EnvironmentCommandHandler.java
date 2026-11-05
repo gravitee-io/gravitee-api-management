@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
+import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.environment.EnvironmentCommand;
@@ -25,6 +26,7 @@ import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.reactivex.rxjava3.core.Single;
 import java.util.ArrayList;
@@ -45,6 +47,7 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
     private final EnvironmentService environmentService;
     private final AccessPointCrudService accessPointService;
     private final CreateDefaultPortalNavigationItemsUseCase createDefaultPortalNavigationItemsUseCase;
+    private final DefaultPortalDomainService defaultPortalDomainService;
 
     @Override
     public String supportType() {
@@ -95,6 +98,15 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
                 environment.getId(),
                 accessPointsToCreate
             );
+            // The portal access point is stored only now: a default portal created by createOrUpdate could not resolve its URL yet.
+            try {
+                defaultPortalDomainService.ensureDefault(environment.getOrganizationId(), environment.getId());
+                defaultPortalDomainService.syncUrl(environment.getId());
+            } finally {
+                // ParameterService memoizes parameters per thread by key only: the next command on this thread
+                // must not resolve its environment's portal URL to this one.
+                GraviteeContext.cleanContext();
+            }
 
             // Seed defaults only when Cockpit registers this environment for the first time
             if (existingEnvironment == null) {
