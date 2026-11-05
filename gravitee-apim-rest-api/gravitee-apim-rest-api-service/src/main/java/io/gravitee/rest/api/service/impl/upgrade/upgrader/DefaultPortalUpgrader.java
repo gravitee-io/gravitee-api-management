@@ -61,6 +61,9 @@ public class DefaultPortalUpgrader implements Upgrader {
         var environments = List.copyOf(environmentRepository.findAll());
         checkSinglePortalInEveryEnvironment(environments);
         for (var environment : environments) {
+            // ParameterService memoizes parameters per thread by key only: clear the context around each
+            // environment so none gets a portal URL read for another one, here or in an earlier upgrader.
+            GraviteeContext.cleanContext();
             try {
                 defaultPortalDomainService.ensureDefault(environment.getOrganizationId(), environment.getId());
                 var replacedUrls = defaultPortalDomainService.replacePlaceholderUrls(environment.getId());
@@ -68,8 +71,6 @@ public class DefaultPortalUpgrader implements Upgrader {
                     log.info("Placeholder URL replaced on {} portal(s) of environment [{}]", replacedUrls, environment.getId());
                 }
             } finally {
-                // ParameterService memoizes parameters per thread by key only: without this, every environment
-                // would get the portal URL of the first one.
                 GraviteeContext.cleanContext();
             }
         }

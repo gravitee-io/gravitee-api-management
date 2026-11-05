@@ -153,6 +153,8 @@ class DefaultPortalUpgraderTest {
             new DefaultPortalDomainService(portalCrudService, new PortalUrlDomainService(memoizingInstallationAccess))
         );
         givenEnvironments(ENV_A, ENV_B);
+        // a value memoized on this thread before the upgrader runs, e.g. by an earlier upgrader
+        GraviteeContext.getCurrentParameters().put(Key.PORTAL_URL, "https://stale.acme.io");
 
         assertThat(upgrader.upgrade()).isTrue();
 
