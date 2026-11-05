@@ -35,6 +35,7 @@ import static org.mockito.Mockito.when;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.core.read.ListAppender;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
@@ -49,6 +50,7 @@ import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -176,11 +178,10 @@ class ElasticsearchReporterSetupTest {
 
         assertThat(awaitBulkBody()).doesNotContain("pipeline");
         elasticsearch.verify(0, putRequestedFor(urlPathEqualTo(PIPELINE_PATH)));
-        assertThat(reporterMessages(Level.WARN))
-            .singleElement()
-            .satisfies(message ->
-                assertThat(message).contains("reporters.elasticsearch.pipeline.plugins.ingest").contains("without the ingest pipeline")
-            );
+        assertThat(reporterMessages(Level.WARN)).isEmpty();
+        assertThat(reporterMessages(Level.INFO)).anySatisfy(message ->
+            assertThat(message).contains("reporters.elasticsearch.pipeline.plugins.ingest").contains("without the ingest pipeline")
+        );
         assertNoNullPointerExceptionLogged();
     }
 
@@ -239,6 +240,40 @@ class ElasticsearchReporterSetupTest {
             .singleElement()
             .satisfies(message -> assertThat(message).contains("index template ["));
         assertThat(undeliverableErrors).isEmpty();
+    }
+
+    @Test
+    void should_log_the_cause_when_an_index_template_cannot_be_generated() throws Exception {
+        startReporter(Map.of("reporters.elasticsearch.template_mapping.extended_settings", "missing-extended-settings.json"));
+        awaitReporterLog(Level.ERROR, "until the gateway restarts");
+
+        assertThat(reporterEvents(Level.ERROR))
+            .singleElement()
+            .satisfies(event -> {
+                assertThat(event.getThrowableProxy()).isNotNull();
+                assertThat(causeMessages(event.getThrowableProxy())).anySatisfy(message ->
+                    assertThat(message).contains("missing-extended-settings.json")
+                );
+            });
+    }
+
+    @Test
+    void should_not_log_dropped_documents_when_the_setup_fails_after_the_reporter_stopped() throws Exception {
+        final TestScheduler testScheduler = new TestScheduler();
+        RxJavaPlugins.setComputationSchedulerHandler(ignore -> testScheduler);
+        elasticsearch.stubFor(
+            put(urlPathEqualTo(REQUEST_TEMPLATE_PATH)).willReturn(
+                aResponse().withStatus(400).withFixedDelay(500).withBody("{\"error\":\"number_of_shards must be greater than 0\"}")
+            )
+        );
+        startReporter(Map.of());
+        reporter.stop();
+        awaitReporterLog(Level.ERROR, "until the gateway restarts");
+
+        reporter.report(metrics());
+        testScheduler.advanceTimeBy(1, TimeUnit.MINUTES);
+
+        assertThat(reporterMessages(Level.WARN)).isEmpty();
     }
 
     @Test
@@ -347,14 +382,25 @@ class ElasticsearchReporterSetupTest {
             );
     }
 
-    /** Logs of the reporter itself, leaving out those of the Elasticsearch client, which logs every failed call on its own. */
     private List<String> reporterMessages(Level level) {
+        return reporterEvents(level).stream().map(ILoggingEvent::getFormattedMessage).toList();
+    }
+
+    /** Logs of the reporter itself, leaving out those of the Elasticsearch client, which logs every failed call on its own. */
+    private List<ILoggingEvent> reporterEvents(Level level) {
         return logs.list
             .stream()
             .filter(event -> event.getLevel() == level)
             .filter(event -> event.getLoggerName().startsWith("io.gravitee.apim.reporter.elasticsearch"))
-            .map(ILoggingEvent::getFormattedMessage)
             .toList();
+    }
+
+    private static List<String> causeMessages(IThrowableProxy throwable) {
+        final List<String> messages = new ArrayList<>();
+        for (IThrowableProxy current = throwable; current != null; current = current.getCause()) {
+            messages.add(String.valueOf(current.getMessage()));
+        }
+        return messages;
     }
 
     private void assertNoNullPointerExceptionLogged() {
