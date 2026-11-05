@@ -22,6 +22,7 @@ import static fixtures.core.model.PortalNavigationItemFixtures.CATEGORY1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -53,6 +54,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDoma
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemRenderingDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
+import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
@@ -145,6 +147,16 @@ class CreatePortalNavigationItemUseCaseTest {
                 Api.builder().id("api-1").name("Alpha").environmentId(ENV_ID).build()
             )
         );
+    }
+
+    @Test
+    void should_reject_a_second_homepage_once_the_first_one_names_the_default_portal() {
+        var homepage = CreatePortalNavigationItem.builder().type(PortalNavigationItemType.FOLDER).title("Home").area(PortalArea.HOMEPAGE);
+        useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, homepage.build()));
+
+        assertThatThrownBy(() ->
+            useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, homepage.title("Another home").build()))
+        ).isInstanceOf(HomepageAlreadyExistsException.class);
     }
 
     @Test
