@@ -19,6 +19,7 @@ import jakarta.annotation.Nonnull;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -47,7 +48,7 @@ public class Portal {
 
     private String activeThemeId;
 
-    // Update methods for the default marker and the URL are added with the portal update stories.
+    // The update method for the default marker is added with the portal update stories.
     @Getter(AccessLevel.NONE)
     private boolean defaultPortal;
 
@@ -135,6 +136,10 @@ public class Portal {
         this.name = name;
         this.navigationStructure = orEmpty(navigationStructure);
         this.activeThemeId = activeThemeId;
+    }
+
+    public void changeUrl(@Nonnull URL url) {
+        this.url = Objects.requireNonNull(url, "url");
     }
 
     /** @deprecated Portal is a mutable entity: use {@link #update(String, PortalNavigationStructure, String)}. */

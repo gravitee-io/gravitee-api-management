@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.URI;
 import java.net.URL;
@@ -115,6 +116,29 @@ class PortalTest {
             portal.update("Portal", null, null);
 
             assertThat(portal.getNavigationStructure().isEmpty()).isTrue();
+        }
+    }
+
+    @Nested
+    class ChangeUrl {
+
+        @Test
+        void should_change_url() {
+            var portal = aDefaultPortalWithUrl();
+
+            portal.changeUrl(url("https://portal.acme.io/next"));
+
+            assertThat(portal.getUrl()).hasToString("https://portal.acme.io/next");
+            assertThat(portal.isDefault()).isTrue();
+            assertThat(portal.getName()).isEqualTo("Portal");
+        }
+
+        @Test
+        void should_reject_null_url() {
+            var portal = aDefaultPortalWithUrl();
+
+            assertThatThrownBy(() -> portal.changeUrl(null)).isInstanceOf(NullPointerException.class);
+            assertThat(portal.getUrl()).hasToString("https://portal.example");
         }
     }
 
