@@ -47,6 +47,10 @@ public class EventCriteria {
     @Builder.Default
     private final long to = -1;
 
+    /** Latest events only: those expiring before this epoch millisecond. */
+    @Builder.Default
+    private final long expiresBefore = -1;
+
     @Singular
     private final Set<String> organizations;
 

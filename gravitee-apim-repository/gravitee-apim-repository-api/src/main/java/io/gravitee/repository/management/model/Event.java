@@ -88,6 +88,24 @@ public class Event implements Serializable {
      */
     private Date updatedAt;
 
+    /** When the event stops applying; stored by the latest events repository only. */
+    private Date expiresAt;
+
+    /** Kept for callers built before {@link #expiresAt}. */
+    public Event(
+        String id,
+        Set<String> environments,
+        Set<String> organizations,
+        EventType type,
+        String payload,
+        String parentId,
+        Map<String, String> properties,
+        Date createdAt,
+        Date updatedAt
+    ) {
+        this(id, environments, organizations, type, payload, parentId, properties, createdAt, updatedAt, null);
+    }
+
     @RequiredArgsConstructor
     @Getter
     public enum EventProperties {
@@ -108,7 +126,9 @@ public class Event implements Serializable {
         AUTHZ_ENTITY_ID("authz_entity_id"),
         AUTHZ_PDP_ID("authz_pdp_id"),
         AUTHZ_SCHEMA_ID("authz_schema_id"),
-        CREDENTIAL_ID("credential_id");
+        CREDENTIAL_ID("credential_id"),
+        GENERIC_EVENT_ID("generic_event_id"),
+        GENERIC_EVENT_KIND("generic_event_kind");
 
         private final String value;
     }

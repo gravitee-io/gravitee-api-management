@@ -56,7 +56,7 @@ public class MongoEventLatestRepository implements EventLatestRepository {
         EventLatestMongo eventMongo = mapper.mapEvent(event);
         EventLatestMongo createdEventMongo = internalEventRepo.save(eventMongo);
 
-        return mapper.map(createdEventMongo);
+        return mapper.mapEventLatest(createdEventMongo);
     }
 
     @Override

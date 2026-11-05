@@ -195,13 +195,18 @@ public interface GraviteeMapper {
     EnvironmentMongo map(Environment toMap);
 
     // Event mapping
+    @Mapping(target = "expiresAt", ignore = true)
     Event map(EventMongo toMap);
 
     EventMongo map(Event toMap);
 
     List<Event> mapEvents(Collection<EventMongo> toMap);
 
-    List<Event> mapEventLatests(Collection<EventLatestMongo> toMap);
+    Event mapEventLatest(EventLatestMongo toMap);
+
+    default List<Event> mapEventLatests(Collection<EventLatestMongo> toMap) {
+        return toMap == null ? null : toMap.stream().map(this::mapEventLatest).toList();
+    }
 
     EventLatestMongo mapEvent(Event toMap);
 

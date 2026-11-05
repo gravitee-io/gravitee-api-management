@@ -240,6 +240,7 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
             .addColumn("payload", Types.NVARCHAR, String.class)
             .addColumn("parent_id", Types.NVARCHAR, String.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .addColumn("expires_at", Types.TIMESTAMP, Date.class)
             .build();
     }
 
@@ -445,6 +446,12 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
             builder.append(eventTableAlias + ".updated_at < ?");
             args.add(new Date(filter.getTo()));
+            started = true;
+        }
+        if (filter.getExpiresBefore() > 0) {
+            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
+            builder.append(eventTableAlias + ".expires_at < ?");
+            args.add(new Date(filter.getExpiresBefore()));
             started = true;
         }
         if (!isEmpty(filter.getEnvironments())) {

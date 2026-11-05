@@ -19,6 +19,7 @@ import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.groups.Tuple.tuple;
 
 import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -29,6 +30,7 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -317,6 +319,77 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
         assertThat(eventLatestRepository.search(criteria, Event.EventProperties.AUTHZ_ENTITY_ID, 1L, 2L))
             .extracting(Event::getId)
             .containsExactly("multi-3");
+    }
+
+    @Test
+    public void shouldSeekThroughEveryEventCarryingAProperty() throws Exception {
+        List<String> matching = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            String id = "generic-" + i;
+            Map<String, String> properties = new HashMap<>(Map.of(Event.EventProperties.GENERIC_EVENT_ID.getValue(), id));
+            if (i % 4 != 0) {
+                properties.put(Event.EventProperties.GENERIC_EVENT_KIND.getValue(), "feature.kind");
+                matching.add(id);
+            }
+            eventLatestRepository.createOrUpdate(genericEvent(id, 1000 + i).properties(properties).build());
+        }
+        EventCriteria criteria = EventCriteria.builder()
+            .types(Set.of(EventType.PUBLISH_GENERIC_EVENT))
+            .property(Event.EventProperties.GENERIC_EVENT_KIND.getValue(), "feature.kind")
+            .build();
+
+        assertThat(seekAll(criteria, null, 4)).containsExactlyElementsOf(matching);
+        assertThat(seekAll(EventCriteria.builder().types(Set.of(EventType.PUBLISH_GENERIC_EVENT)).to(1006).build(), null, 4)).hasSize(6);
+    }
+
+    @Test
+    public void shouldSeekThroughExpiredEvents() throws Exception {
+        List<String> expired = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            String id = "expiring-" + i;
+            var event = genericEvent(id, 1000 + i);
+            if (i % 5 != 0) {
+                event.expiresAt(new Date(2000 + i));
+                if (i < 5) {
+                    expired.add(id);
+                }
+            }
+            eventLatestRepository.createOrUpdate(event.build());
+        }
+        EventCriteria criteria = EventCriteria.builder().types(Set.of(EventType.PUBLISH_GENERIC_EVENT)).expiresBefore(2005).build();
+
+        assertThat(seekAll(criteria, null, 2)).containsExactlyElementsOf(expired);
+        assertThat(eventLatestRepository.search(criteria, null, 0L, 10L))
+            .extracting(Event::getId, Event::getExpiresAt)
+            .containsExactly(
+                tuple("expiring-1", new Date(2001)),
+                tuple("expiring-2", new Date(2002)),
+                tuple("expiring-3", new Date(2003)),
+                tuple("expiring-4", new Date(2004))
+            );
+    }
+
+    @Test
+    public void shouldClearTheExpiryOnUpdate() throws Exception {
+        eventLatestRepository.createOrUpdate(genericEvent("expiring", 1000).expiresAt(new Date(2000)).build());
+
+        Event updated = eventLatestRepository.createOrUpdate(genericEvent("expiring", 1001).build());
+
+        assertThat(updated.getExpiresAt()).isNull();
+        EventCriteria criteria = EventCriteria.builder().types(Set.of(EventType.PUBLISH_GENERIC_EVENT)).expiresBefore(3000).build();
+        assertThat(eventLatestRepository.search(criteria, null, 0L, 10L)).isEmpty();
+    }
+
+    private static Event.EventBuilder genericEvent(String id, long updatedAt) {
+        return Event.builder()
+            .id(id)
+            .type(EventType.PUBLISH_GENERIC_EVENT)
+            .payload("{}")
+            .environments(Set.of("DEFAULT"))
+            .organizations(Set.of("DEFAULT"))
+            .properties(Map.of(Event.EventProperties.GENERIC_EVENT_ID.getValue(), id))
+            .createdAt(new Date(1000))
+            .updatedAt(new Date(updatedAt));
     }
 
     private List<String> seekAll(EventCriteria criteria, Event.EventProperties group, int size) {

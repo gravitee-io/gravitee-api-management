@@ -24,6 +24,7 @@ public enum DistributedEventType {
     AUTHZ_POLICY,
     CREDENTIAL,
     DICTIONARY,
+    GENERIC_EVENT,
     LICENSE,
     NODE_METADATA,
     ORGANIZATION,

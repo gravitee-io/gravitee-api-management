@@ -453,3 +453,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_14_0/04_add_default_portal_and_url_to_portals.yml
     - include:
         - file: liquibase/changelogs/v4_14_0/05_add_progress_details_errors_to_async_jobs_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_14_0/06_add_expires_at_to_events_latest.yml
