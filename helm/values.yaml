@@ -1514,7 +1514,7 @@ gateway:
 #  kafka:
 #    enabled: false
 #
-#    routingMode: host # default is host. Only host is supported for now.
+#    routingMode: host # host or port. Default is host.
 #    # Routing Host Mode
 #    routingHostMode:
 #      brokerPrefix: broker-          # default is broker-
