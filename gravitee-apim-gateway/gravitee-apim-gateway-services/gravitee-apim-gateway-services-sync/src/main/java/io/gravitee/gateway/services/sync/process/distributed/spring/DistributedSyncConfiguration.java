@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.distributed.spring;
 import static io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_BULK_ITEMS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.gateway.handlers.api.manager.impl.ApprovalStateJson;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointMapper;
@@ -25,6 +26,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiProductMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApprovalRuleMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.ApprovalStateMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzEntityMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzPolicyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.CredentialMapper;
@@ -40,6 +42,7 @@ import io.gravitee.gateway.services.sync.process.distributed.synchronizer.api.Di
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.apikey.DistributedApiKeySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.apiproduct.DistributedApiProductSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.approvalrule.DistributedApprovalRuleSynchronizer;
+import io.gravitee.gateway.services.sync.process.distributed.synchronizer.approvalstate.DistributedApprovalStateSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.authz.DistributedAuthzEntitySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.authz.DistributedAuthzPolicySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.credential.DistributedCredentialSynchronizer;
@@ -54,6 +57,7 @@ import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.distributedsync.api.DistributedEventRepository;
 import io.gravitee.repository.distributedsync.api.DistributedSyncStateRepository;
+import java.time.Clock;
 import java.util.concurrent.ThreadPoolExecutor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -133,6 +137,11 @@ public class DistributedSyncConfiguration {
     @Bean
     public ApiProductMapper distributedApiProductMapper(ObjectMapper objectMapper) {
         return new ApiProductMapper(objectMapper);
+    }
+
+    @Bean
+    public ApprovalStateMapper distributedApprovalStateMapper(ObjectMapper objectMapper) {
+        return new ApprovalStateMapper(new ApprovalStateJson(objectMapper), Clock.systemUTC());
     }
 
     @Bean
@@ -389,6 +398,24 @@ public class DistributedSyncConfiguration {
     }
 
     @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public DistributedApprovalStateSynchronizer distributedApprovalStateSynchronizer(
+        DistributedEventFetcher distributedEventFetcher,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+        DeployerFactory deployerFactory,
+        ApprovalStateMapper approvalStateMapper
+    ) {
+        return new DistributedApprovalStateSynchronizer(
+            distributedEventFetcher,
+            syncFetcherExecutor,
+            syncDeployerExecutor,
+            deployerFactory,
+            approvalStateMapper
+        );
+    }
+
+    @Bean
     public DefaultDistributedSyncService distributedSyncService(
         final Node node,
         final ClusterManager clusterManager,
@@ -408,7 +435,8 @@ public class DistributedSyncConfiguration {
         final AuthzPolicyMapper authzPolicyMapper,
         final ApiProductMapper apiProductMapper,
         final CredentialMapper credentialMapper,
-        final ApprovalRuleMapper approvalRuleMapper
+        final ApprovalRuleMapper approvalRuleMapper,
+        final ApprovalStateMapper approvalStateMapper
     ) {
         return new DefaultDistributedSyncService(
             node,
@@ -429,7 +457,8 @@ public class DistributedSyncConfiguration {
             authzPolicyMapper,
             apiProductMapper,
             credentialMapper,
-            approvalRuleMapper
+            approvalRuleMapper,
+            approvalStateMapper
         );
     }
 }

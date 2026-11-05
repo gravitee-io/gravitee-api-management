@@ -126,6 +126,13 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Compile scope: the approval ports in this module and the policies using them load it from the gateway's lib. -->
+        <dependency>
+            <groupId>io.gravitee.gamma.definition</groupId>
+            <artifactId>gravitee-gamma-definition-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>

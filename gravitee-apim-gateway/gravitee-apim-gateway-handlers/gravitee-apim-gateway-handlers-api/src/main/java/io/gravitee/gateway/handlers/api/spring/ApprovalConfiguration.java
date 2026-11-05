@@ -15,12 +15,21 @@
  */
 package io.gravitee.gateway.handlers.api.spring;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.gateway.handlers.api.manager.ApprovalCommandWriter;
 import io.gravitee.gateway.handlers.api.manager.ApprovalRuleManager;
+import io.gravitee.gateway.handlers.api.manager.ApprovalStateManager;
+import io.gravitee.gateway.handlers.api.manager.impl.ApprovalCommandWriterImpl;
 import io.gravitee.gateway.handlers.api.manager.impl.ApprovalFeature;
 import io.gravitee.gateway.handlers.api.manager.impl.ApprovalRuleManagerImpl;
+import io.gravitee.gateway.handlers.api.manager.impl.ApprovalStateManagerImpl;
+import io.gravitee.node.api.Node;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.repository.management.api.CommandRepository;
+import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 
 /**
@@ -39,5 +48,16 @@ public class ApprovalConfiguration {
     @Bean
     public ApprovalRuleManager approvalRuleManager(ApprovalFeature approvalFeature) {
         return new ApprovalRuleManagerImpl(approvalFeature);
+    }
+
+    @Bean
+    public ApprovalStateManager approvalStateManager(ApprovalFeature approvalFeature) {
+        return new ApprovalStateManagerImpl(approvalFeature, Clock.systemUTC());
+    }
+
+    // Lazy: the repositories are registered once the repository plugins are loaded, after this context starts.
+    @Bean
+    public ApprovalCommandWriter approvalCommandWriter(@Lazy CommandRepository commandRepository, ObjectMapper objectMapper, Node node) {
+        return new ApprovalCommandWriterImpl(commandRepository, objectMapper, node, Clock.systemUTC());
     }
 }
