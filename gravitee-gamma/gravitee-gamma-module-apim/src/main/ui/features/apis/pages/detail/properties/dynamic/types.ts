@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { DynamicPropertyConfig, DynamicPropertySslStore } from '../../../../types';
+import type { DynamicPropertyConfig, DynamicPropertyHttpProxyOptions, DynamicPropertySslStore } from '../../../../types';
 
 // ─── HTTP method ──────────────────────────────────────────────────────────────
 
@@ -374,6 +374,92 @@ export function fromFormStateToDto(state: DynamicPropertiesFormState): DynamicPr
                 trustAll: state.ssl.trustAll,
                 trustStore: trustStore ?? null,
                 keyStore: keyStore ?? null,
+            },
+        },
+    };
+}
+
+/**
+ * A V4 API stores what the `http-dynamic-properties` service reads, under other keys than a V2 API and with its schedule
+ * in the configuration. The service fails to start without `transformation`, so a V2-shaped save stops the sync.
+ * An API saved with the V2 shape before this was fixed still holds its settings under the V2 keys: they are read as a fallback.
+ */
+export function fromV4DtoToFormState(dto: DynamicPropertyConfig): DynamicPropertiesFormState {
+    const { schedule, transformation, systemProxy, http, proxy, ssl, ...shared } = dto.configuration ?? {};
+    return fromDtoToFormState({
+        enabled: dto.enabled,
+        schedule: schedule ?? dto.schedule,
+        configuration: {
+            ...shared,
+            specification: transformation ?? shared.specification,
+            useSystemProxy: systemProxy ?? shared.useSystemProxy,
+            // The service compresses unless told otherwise, so an API that stores no value shows it on.
+            httpClientOptions: {
+                ...(http ?? shared.httpClientOptions),
+                useCompression: (http ?? shared.httpClientOptions)?.useCompression ?? true,
+            },
+            httpProxyOptions: proxy ?? shared.httpProxyOptions,
+            sslOptions: ssl ?? shared.sslOptions,
+        },
+    });
+}
+
+/** A save must not write the service default for a setting the API never stored. */
+function withoutUnsetCompression<T extends { useCompression?: boolean }>(http: T, stored: { useCompression?: boolean } | undefined): T {
+    if (stored?.useCompression !== undefined || http.useCompression !== true) return http;
+    const { useCompression: _unset, ...rest } = http;
+    return rest as T;
+}
+
+/**
+ * The service applies `proxy` after `systemProxy`, and `systemProxy` only sets the flags on the proxy it already has:
+ * with the request-level switch on, `proxy` keeps its settings. A proxy that is off keeps nothing, credentials included.
+ */
+function toV4Proxy(
+    useSystemProxy: boolean | undefined,
+    edited: DynamicPropertyHttpProxyOptions | undefined,
+    stored: DynamicPropertyHttpProxyOptions | undefined,
+): DynamicPropertyHttpProxyOptions | undefined {
+    const merged = edited?.enabled ? { ...stored, ...edited } : undefined;
+    if (useSystemProxy) return { ...(merged ?? stored), enabled: true, useSystemProxy: true };
+    return merged ?? edited;
+}
+
+/** The form shows part of a store: what it does not show, such as inline content, is kept while the store keeps its type. */
+function mergeStore(stored: DynamicPropertySslStore | null | undefined, edited: DynamicPropertySslStore | null | undefined) {
+    return stored && edited && stored.type === edited.type ? { ...stored, ...edited } : edited;
+}
+
+export function fromFormStateToV4Dto(state: DynamicPropertiesFormState, stored: DynamicPropertyConfig | undefined): DynamicPropertyConfig {
+    const { enabled, type, configuration } = fromFormStateToDto(state);
+    const { specification, useSystemProxy, httpClientOptions, httpProxyOptions, sslOptions, ...shared } = configuration ?? {};
+    // The V2 keys an earlier save left next to the V4 ones are not carried over: the form shows their content, under the V4 keys.
+    const {
+        specification: _specification,
+        useSystemProxy: _useSystemProxy,
+        httpClientOptions: _httpClientOptions,
+        httpProxyOptions: _httpProxyOptions,
+        sslOptions: _sslOptions,
+        ...storedConfiguration
+    } = stored?.configuration ?? {};
+    return {
+        ...(stored?.overrideConfiguration === undefined ? {} : { overrideConfiguration: stored.overrideConfiguration }),
+        enabled,
+        type,
+        configuration: {
+            ...storedConfiguration,
+            ...shared,
+            schedule: state.schedule,
+            transformation: specification,
+            systemProxy: useSystemProxy,
+            // The form shows a subset of these settings: the others, such as the HTTP version, stay as stored.
+            http: withoutUnsetCompression({ ...storedConfiguration.http, ...httpClientOptions }, storedConfiguration.http),
+            proxy: toV4Proxy(useSystemProxy, httpProxyOptions, storedConfiguration.proxy),
+            ssl: {
+                ...storedConfiguration.ssl,
+                ...sslOptions,
+                trustStore: mergeStore(storedConfiguration.ssl?.trustStore, sslOptions?.trustStore),
+                keyStore: mergeStore(storedConfiguration.ssl?.keyStore, sslOptions?.keyStore),
             },
         },
     };
