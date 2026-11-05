@@ -106,7 +106,7 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
                 });
         }
 
-        log.warn(
+        log.info(
             "No ingest plugin is configured in 'reporters.elasticsearch.pipeline.plugins.ingest': documents are indexed without the ingest pipeline [{}]",
             pipelineName
         );
