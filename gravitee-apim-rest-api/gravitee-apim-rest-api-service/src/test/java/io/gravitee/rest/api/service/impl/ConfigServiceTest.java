@@ -58,16 +58,19 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import inmemory.AccessPointQueryServiceInMemory;
 import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.settings.BrandedSenderConfig;
@@ -138,6 +141,9 @@ class ConfigServiceTest {
 
     @Mock
     private AccessPointQueryService accessPointQueryService;
+
+    @Mock
+    private DefaultPortalDomainService defaultPortalDomainService;
 
     @BeforeEach
     public void setup() {
@@ -417,6 +423,33 @@ class ConfigServiceTest {
             "DEFAULT",
             ParameterReferenceType.ENVIRONMENT
         );
+    }
+
+    @Test
+    void should_sync_default_portal_url_when_saving_environment_portal_settings() {
+        PortalSettingsEntity portalSettingsEntity = new PortalSettingsEntity();
+        portalSettingsEntity.getPortal().setUrl("https://portal.acme.io");
+
+        configService.save(GraviteeContext.getExecutionContext(), portalSettingsEntity);
+
+        var inOrder = inOrder(mockParameterService, defaultPortalDomainService);
+        inOrder
+            .verify(mockParameterService)
+            .save(
+                GraviteeContext.getExecutionContext(),
+                PORTAL_URL,
+                "https://portal.acme.io",
+                "DEFAULT",
+                ParameterReferenceType.ENVIRONMENT
+            );
+        inOrder.verify(defaultPortalDomainService).syncUrl("DEFAULT");
+    }
+
+    @Test
+    void should_not_sync_default_portal_url_when_saving_organization_settings() {
+        configService.save(GraviteeContext.getExecutionContext(), new ConsoleSettingsEntity());
+
+        verifyNoInteractions(defaultPortalDomainService);
     }
 
     @Test

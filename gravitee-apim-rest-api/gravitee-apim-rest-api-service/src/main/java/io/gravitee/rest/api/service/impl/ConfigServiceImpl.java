@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -57,6 +58,7 @@ import java.util.Map;
 import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
 
@@ -90,6 +92,10 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
 
     @Autowired
     private AccessPointQueryService accessPointQueryService;
+
+    @Lazy
+    @Autowired
+    private DefaultPortalDomainService defaultPortalDomainService;
 
     private static final String SENSITIVE_VALUE = "********";
 
@@ -392,6 +398,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         validateSenderSettings(portalSettingsEntity.getEmail(), storedEmail, false);
         Object[] objects = getObjectArray(portalSettingsEntity);
         saveConfigByReference(executionContext, objects, executionContext.getEnvironmentId(), ParameterReferenceType.ENVIRONMENT);
+        defaultPortalDomainService.syncUrl(executionContext.getEnvironmentId());
     }
 
     @Override
