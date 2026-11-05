@@ -14,11 +14,63 @@
  * limitations under the License.
  */
 import { type PermissionScope, permissionService, useEnvironment } from '@gravitee/gamma-modules-sdk';
-import { useQuery } from '@tanstack/react-query';
+import { type QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
+import { getCurrentUser } from '../../apis/services/currentUser';
+import { currentUserKeys } from '../../apis/utils/queryKeys';
 import { getApiProductPermissions } from '../services/apiProductMembers';
 import { apiProductKeys } from '../utils/queryKeys';
+
+const API_PRODUCT_SCOPE = 'api_product' as PermissionScope;
+
+let sessionPermissionInvalidationRegistered = false;
+let sessionPermissionInvalidationClient: QueryClient | undefined;
+
+/**
+ * When the Gamma host resets permissions (sign-out / sign-in), refetch the session user.
+ * Product permissions refetch automatically when `userId` in the query key updates.
+ */
+function registerSessionPermissionInvalidation(queryClient: QueryClient): void {
+    sessionPermissionInvalidationClient = queryClient;
+    if (sessionPermissionInvalidationRegistered) return;
+    sessionPermissionInvalidationRegistered = true;
+    permissionService.subscribe(() => {
+        if (permissionService.getAllPermissions().length > 0) return;
+        const client = sessionPermissionInvalidationClient;
+        if (!client) return;
+        void client.invalidateQueries({ queryKey: currentUserKeys.forSession() });
+    });
+}
+
+/** Fresh GET /user for product permission keys (avoids the 5m cache on {@link currentUserKeys.me}). */
+function useSessionCurrentUser() {
+    return useQuery({
+        queryKey: currentUserKeys.forSession(),
+        queryFn: getCurrentUser,
+        staleTime: 0,
+        refetchOnMount: 'always',
+    });
+}
+
+function useApiProductPermissionsQuery(productId: string | undefined) {
+    const env = useEnvironment();
+    const queryClient = useQueryClient();
+    const { data: user } = useSessionCurrentUser();
+    const userId = user?.id;
+
+    useEffect(() => {
+        registerSessionPermissionInvalidation(queryClient);
+    }, [queryClient]);
+
+    return useQuery({
+        queryKey: apiProductKeys.permissions(env?.id ?? '', productId ?? '', userId ?? ''),
+        queryFn: () => getApiProductPermissions(env!.id, productId!),
+        enabled: Boolean(env && productId && userId),
+        staleTime: 0,
+        refetchOnMount: 'always',
+    });
+}
 
 /**
  * Fetches the current user's API-product-scoped permissions and loads them into
@@ -27,21 +79,12 @@ import { apiProductKeys } from '../utils/queryKeys';
  * Mirrors the `useApiPermissions` pattern: load on enter, clear on leave.
  */
 export function useApiProductPermissions(productId: string | undefined): { permissionsReady: boolean } {
-    const env = useEnvironment();
-
-    const { data: permissions, isSuccess } = useQuery({
-        queryKey: apiProductKeys.permissions(env?.id ?? '', productId ?? ''),
-        queryFn: () => getApiProductPermissions(env!.id, productId!),
-        enabled: Boolean(env && productId),
-        staleTime: 60_000,
-    });
+    const { data: permissions, isSuccess } = useApiProductPermissionsQuery(productId);
 
     useEffect(() => {
         if (!permissions) return;
-        // 'api_product' is not yet in the alpha SDK's PermissionScope union — cast until SDK is updated
-        const scope = 'api_product' as PermissionScope;
-        permissionService.load(scope, permissions);
-        return () => permissionService.clear(scope);
+        permissionService.load(API_PRODUCT_SCOPE, permissions);
+        return () => permissionService.clear(API_PRODUCT_SCOPE);
     }, [permissions]);
 
     return { permissionsReady: isSuccess };
@@ -61,17 +104,13 @@ export interface ApiProductCrudPermissions {
  * Checks for strings in the format `api_product-{resource}-{op}` produced by the service.
  */
 export function useApiProductResourcePermissions(productId: string | undefined, resource: string): ApiProductCrudPermissions {
-    const env = useEnvironment();
+    const { data: user, isLoading: userLoading } = useSessionCurrentUser();
+    const { data: permissions, isLoading: permissionsLoading } = useApiProductPermissionsQuery(productId);
 
-    const { data: permissions, isLoading } = useQuery({
-        queryKey: apiProductKeys.permissions(env?.id ?? '', productId ?? ''),
-        queryFn: () => getApiProductPermissions(env!.id, productId!),
-        enabled: Boolean(env && productId),
-        staleTime: 60_000,
-    });
+    const isLoading = userLoading || permissionsLoading || !user?.id;
 
     if (isLoading || !permissions) {
-        return { canRead: false, canCreate: false, canUpdate: false, canDelete: false, isLoading };
+        return { canRead: false, canCreate: false, canUpdate: false, canDelete: false, isLoading: true };
     }
 
     const prefix = `api_product-${resource.toLowerCase()}-`;

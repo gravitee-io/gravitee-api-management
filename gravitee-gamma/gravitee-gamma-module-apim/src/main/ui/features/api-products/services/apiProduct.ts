@@ -15,6 +15,7 @@
  */
 import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
 import type { ApiListResponse } from '../../apis/types';
+import type { ApiResource } from '../../apis/types/resource';
 import type {
     ApiProductListItem,
     ApiProductListResponse,
@@ -82,11 +83,34 @@ export async function updateApiProduct(
 
 export async function updateApiProductShardingTags(environmentId: string, productId: string, tagIds: string[]): Promise<void> {
     // v2 has no PATCH or dedicated tags endpoint; GET then PUT is the only available mechanism.
-    const current = await apimFetchJsonV2<Record<string, unknown>>(environmentId, `/api-products/${productId}`);
-    await apimFetchJsonV2(environmentId, `/api-products/${productId}`, {
-        method: 'PUT',
-        headers: JSON_HEADERS,
-        body: JSON.stringify({ ...current, tags: tagIds }),
+    const current = await getApiProductById(environmentId, productId);
+    await updateApiProduct(environmentId, productId, {
+        name: current.name,
+        version: current.version,
+        description: current.description,
+        apiIds: current.apiIds ?? [],
+        analytics: current.analytics,
+        tags: tagIds,
+    });
+}
+
+export type ApiProductResourcesApplyFn = (current: ApiResource[]) => ApiResource[];
+
+/** v2 has no resources sub-resource; GET-then-PUT on the product is the only mechanism. */
+export async function updateApiProductResources(
+    environmentId: string,
+    productId: string,
+    apply: ApiProductResourcesApplyFn,
+): Promise<ApiProductListItem> {
+    const current = await getApiProductById(environmentId, productId);
+    const resources = apply(current.resources ?? []);
+    return updateApiProduct(environmentId, productId, {
+        name: current.name,
+        version: current.version,
+        description: current.description,
+        apiIds: current.apiIds ?? [],
+        analytics: current.analytics,
+        resources,
     });
 }
 

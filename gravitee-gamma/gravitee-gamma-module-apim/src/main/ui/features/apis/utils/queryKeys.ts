@@ -164,6 +164,7 @@ export const apiNotificationKeys = {
 export const currentUserKeys = {
     all: ['current-user'] as const,
     me: () => [...currentUserKeys.all, 'me'] as const,
+    forSession: () => [...currentUserKeys.all, 'session'] as const,
 };
 
 export const integrationKeys = {

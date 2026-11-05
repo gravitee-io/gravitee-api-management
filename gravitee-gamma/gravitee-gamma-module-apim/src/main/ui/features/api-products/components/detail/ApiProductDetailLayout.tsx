@@ -21,7 +21,7 @@ import { ApiProductSidebarNav } from './ApiProductSidebarNav';
 import { useDetailBasePath } from '../../../../shared/hooks/useDetailBasePath';
 import { ApiProductDetailContext } from '../../context/ApiProductDetailContext';
 import { useApiProductDetail } from '../../hooks/useApiProductDetail';
-import { useApiProductPermissions } from '../../hooks/useApiProductPermissions';
+import { useApiProductPermissions, useApiProductResourcePermissions } from '../../hooks/useApiProductPermissions';
 import type { ApiProductListItem } from '../../types/apiProduct';
 import { SyncStatusBadge } from '../SyncStatusBadge';
 
@@ -91,6 +91,11 @@ export function ApiProductDetailLayout() {
     const basePath = useDetailBasePath('api-products', productId);
     const { data: product, isLoading, isError } = useApiProductDetail(productId);
     const { permissionsReady } = useApiProductPermissions(productId);
+    const { canRead: canReadDefinition, isLoading: definitionPermissionsLoading } = useApiProductResourcePermissions(
+        productId,
+        'DEFINITION',
+    );
+    const showResourcesNav = permissionsReady && !definitionPermissionsLoading && canReadDefinition;
     const [contextExpanded, setContextExpanded] = useState(true);
 
     useLayoutConfig(
@@ -99,7 +104,7 @@ export function ApiProductDetailLayout() {
             contextExpanded,
             contextSidebar: (
                 <ContextSidebar header={<ProductInfoHeader product={product ?? null} isLoading={isLoading} />}>
-                    <ApiProductSidebarNav basePath={basePath} />
+                    <ApiProductSidebarNav basePath={basePath} showResourcesNav={showResourcesNav} />
                 </ContextSidebar>
             ),
             leading: <ContextToggleButton expanded={contextExpanded} onToggle={() => setContextExpanded(v => !v)} />,
@@ -114,7 +119,7 @@ export function ApiProductDetailLayout() {
                 },
             ],
         },
-        [contextExpanded, product, isLoading, basePath],
+        [contextExpanded, product, isLoading, basePath, showResourcesNav],
     );
 
     if (isError) {

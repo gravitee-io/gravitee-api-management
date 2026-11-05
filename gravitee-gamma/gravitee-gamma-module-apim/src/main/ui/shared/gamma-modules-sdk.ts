@@ -25,6 +25,10 @@
 import type { License } from '@gravitee/gamma-modules-sdk/types';
 import type { ReactNode } from 'react';
 
+// ─── Environment ──────────────────────────────────────────────────────────────
+
+export const useEnvironment = (): { id: string; hrids: string[] } => ({ id: 'DEFAULT', hrids: ['DEFAULT'] });
+
 // ─── License ──────────────────────────────────────────────────────────────────
 
 /** Test stub — defaults to granted. Mock `useHasFeature` per-test for denied states. */
