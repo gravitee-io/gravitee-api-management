@@ -71,6 +71,7 @@ import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
+import io.gravitee.apim.core.portal.exception.SeveralPortalsInEnvironmentException;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.settings.BrandedSenderConfig;
@@ -442,7 +443,19 @@ class ConfigServiceTest {
                 "DEFAULT",
                 ParameterReferenceType.ENVIRONMENT
             );
+        inOrder.verify(defaultPortalDomainService).ensureDefault("DEFAULT", "DEFAULT");
         inOrder.verify(defaultPortalDomainService).syncUrl("DEFAULT");
+    }
+
+    @Test
+    void should_save_settings_and_sync_the_url_when_the_environment_has_several_portals() {
+        when(defaultPortalDomainService.ensureDefault("DEFAULT", "DEFAULT")).thenThrow(
+            new SeveralPortalsInEnvironmentException("DEFAULT", List.of("[p1] \"One\"", "[p2] \"Two\""))
+        );
+
+        configService.save(GraviteeContext.getExecutionContext(), new PortalSettingsEntity());
+
+        verify(defaultPortalDomainService).syncUrl("DEFAULT");
     }
 
     @Test
