@@ -436,6 +436,62 @@ class PortalListingSyncDomainServiceTest {
     }
 
     @Test
+    void should_store_the_synced_portal_on_materialized_listings() {
+        apiCrud.initWith(List.of(anApi(API_HRID)));
+
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1))));
+
+        assertThat(navItemCrud.storage())
+            .filteredOn(PortalNavigationApi.class::isInstance)
+            .singleElement()
+            .extracting(PortalNavigationItem::getReference)
+            .isEqualTo(new NavigationItemReference.PortalReference(PORTAL_ID));
+    }
+
+    @Test
+    void should_keep_a_second_portal_s_listings_on_that_portal() {
+        var secondPortalId = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid("second-portal").id());
+        var secondListing = PortalListing.of(
+            PortalListingId.of(HRIDToUUID.portalListing().context(AUDIT_INFO).portal("second-portal").hrid("default-listing").id()),
+            AUDIT_INFO.environmentId(),
+            AUDIT_INFO.organizationId(),
+            secondPortalId,
+            List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1))
+        );
+        apiCrud.initWith(List.of(anApi(API_HRID)));
+
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1))));
+        syncService.sync(AUDIT_INFO, secondPortalId, List.of(), secondListing);
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 2))));
+
+        assertThat(navItemCrud.storage())
+            .filteredOn(PortalNavigationApi.class::isInstance)
+            .extracting(PortalNavigationItem::getReference)
+            .containsExactlyInAnyOrder(
+                new NavigationItemReference.PortalReference(PORTAL_ID),
+                new NavigationItemReference.PortalReference(secondPortalId)
+            );
+    }
+
+    @Test
+    void should_validate_listings_with_the_synced_portal() {
+        syncService.validateForConflicts(
+            AUDIT_INFO,
+            PORTAL_ID,
+            aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)))
+        );
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<CreatePortalNavigationItem>> createsCaptor = ArgumentCaptor.forClass(List.class);
+        verify(validator).validate(createsCaptor.capture(), ArgumentMatchers.anyList(), ArgumentMatchers.anyString());
+        assertThat(createsCaptor.getValue())
+            .filteredOn(item -> item.getType() == PortalNavigationItemType.API)
+            .singleElement()
+            .extracting(CreatePortalNavigationItem::getReference)
+            .isEqualTo(new NavigationItemReference.PortalReference(PORTAL_ID));
+    }
+
+    @Test
     void validate_for_conflicts_produces_create_for_new_nav_api_and_no_updates() {
         var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
 
