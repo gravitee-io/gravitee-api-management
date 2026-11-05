@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.distributed.spring;
 import static io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_BULK_ITEMS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.gateway.genericevent.GenericEventManager;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointMapper;
@@ -28,6 +29,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzEntityM
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzPolicyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.CredentialMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.GenericEventMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.NodeMetadataMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
@@ -42,6 +44,7 @@ import io.gravitee.gateway.services.sync.process.distributed.synchronizer.authz.
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.authz.DistributedAuthzPolicySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.credential.DistributedCredentialSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.dictionary.DistributedDictionarySynchronizer;
+import io.gravitee.gateway.services.sync.process.distributed.synchronizer.genericevent.DistributedGenericEventSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.license.DistributedLicenseSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.node.DistributedNodeMetadataSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.organization.DistributedOrganizationSynchronizer;
@@ -115,6 +118,11 @@ public class DistributedSyncConfiguration {
     @Bean
     public CredentialMapper distributedCredentialMapper(ObjectMapper objectMapper) {
         return new CredentialMapper(objectMapper);
+    }
+
+    @Bean
+    public GenericEventMapper distributedGenericEventMapper(ObjectMapper objectMapper) {
+        return new GenericEventMapper(objectMapper);
     }
 
     @Bean
@@ -346,6 +354,25 @@ public class DistributedSyncConfiguration {
     }
 
     @Bean
+    public DistributedGenericEventSynchronizer distributedGenericEventSynchronizer(
+        DistributedEventFetcher distributedEventFetcher,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+        DeployerFactory deployerFactory,
+        GenericEventMapper genericEventMapper,
+        GenericEventManager genericEventManager
+    ) {
+        return new DistributedGenericEventSynchronizer(
+            distributedEventFetcher,
+            syncFetcherExecutor,
+            syncDeployerExecutor,
+            deployerFactory,
+            genericEventMapper,
+            genericEventManager
+        );
+    }
+
+    @Bean
     public DistributedNodeMetadataSynchronizer distributedNodeMetadataSynchronizer(
         DistributedEventFetcher distributedEventFetcher,
         @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
@@ -381,7 +408,8 @@ public class DistributedSyncConfiguration {
         final AuthzEntityMapper authzEntityMapper,
         final AuthzPolicyMapper authzPolicyMapper,
         final ApiProductMapper apiProductMapper,
-        final CredentialMapper credentialMapper
+        final CredentialMapper credentialMapper,
+        final GenericEventMapper genericEventMapper
     ) {
         return new DefaultDistributedSyncService(
             node,
@@ -401,7 +429,8 @@ public class DistributedSyncConfiguration {
             authzEntityMapper,
             authzPolicyMapper,
             apiProductMapper,
-            credentialMapper
+            credentialMapper,
+            genericEventMapper
         );
     }
 }

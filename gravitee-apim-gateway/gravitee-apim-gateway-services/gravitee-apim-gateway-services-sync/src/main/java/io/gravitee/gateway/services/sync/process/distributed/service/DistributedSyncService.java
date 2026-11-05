@@ -23,6 +23,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.A
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzPolicyReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.credential.CredentialDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.genericevent.GenericEventDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.node.NodeMetadataDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationDeployable;
@@ -74,4 +75,6 @@ public interface DistributedSyncService {
     Completable distributeIfNeeded(final AuthzPolicyReactorDeployable deployable);
 
     Completable distributeIfNeeded(final CredentialDeployable deployable);
+
+    Completable distributeIfNeeded(final GenericEventDeployable deployable);
 }

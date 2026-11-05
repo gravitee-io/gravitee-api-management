@@ -23,6 +23,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.A
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzPolicyReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.credential.CredentialDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.genericevent.GenericEventDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.node.NodeMetadataDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationDeployable;
@@ -130,6 +131,11 @@ public class NoopDistributedSyncService implements DistributedSyncService {
 
     @Override
     public Completable distributeIfNeeded(final CredentialDeployable deployable) {
+        return Completable.complete();
+    }
+
+    @Override
+    public Completable distributeIfNeeded(final GenericEventDeployable deployable) {
         return Completable.complete();
     }
 }

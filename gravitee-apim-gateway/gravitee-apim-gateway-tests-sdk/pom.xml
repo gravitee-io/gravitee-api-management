@@ -117,6 +117,12 @@
 
         <dependency>
             <groupId>io.gravitee.apim.gateway</groupId>
+            <artifactId>gravitee-apim-gateway-generic-event</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.apim.gateway</groupId>
             <artifactId>gravitee-apim-gateway-reporting</artifactId>
             <version>${project.version}</version>
         </dependency>
