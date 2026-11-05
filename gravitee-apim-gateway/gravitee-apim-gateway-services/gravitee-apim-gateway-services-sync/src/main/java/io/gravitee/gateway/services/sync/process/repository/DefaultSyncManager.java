@@ -77,6 +77,9 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
     private final AtomicLong totalSyncOnErrorCounter = new AtomicLong(0);
     private final AtomicLong lastSuccessfulSyncAt = new AtomicLong(-1);
     private final AtomicBoolean lastSyncOnError = new AtomicBoolean(false);
+    /** Random 0..initialJitterMs delay before the first secondary sync cycle, so scaled-out pods join gradually. */
+    private final long initialJitterMs;
+    private volatile boolean firstCycle = true;
 
     private final AtomicReference<String> lastSyncErrorMessage = new AtomicReference<>();
 
@@ -105,6 +108,15 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
         this.delay = delay;
         this.unit = unit;
         this.retryAttempt = retryAttempt;
+        this.initialJitterMs = parseJitterMs(System.getProperty("services.sync.distributed.jitterMs", "0"));
+    }
+
+    private static long parseJitterMs(final String value) {
+        try {
+            return Math.max(0, Long.parseLong(value));
+        } catch (NumberFormatException e) {
+            return 5_000L;
+        }
     }
 
     @Override
@@ -166,14 +178,30 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
 
     private Completable synchronize() {
         AtomicBoolean cyclePrimary = new AtomicBoolean(true);
-        return Completable.defer(() -> {
-            log.debug("Running synchronization process...");
-            return distributedSyncService.ready();
-        })
+        return waitForStartupJitter()
             .andThen(Single.defer(() -> cycleUpperBound(cyclePrimary)))
             .flatMapCompletable(nextToTime -> runCycle(cyclePrimary.get(), nextToTime))
             .doOnError(this::onCycleFailed)
             .doFinally(distributedSyncService::endCycle);
+    }
+
+    private Completable waitForStartupJitter() {
+        return Completable.defer(() -> {
+            if (shouldDelayFirstSecondaryCycle()) {
+                firstCycle = false;
+                // A configured jitter always waits at least 1ms: a deployed fleet never wants instant boots.
+                long jitter = 1 + (long) (Math.random() * initialJitterMs);
+                log.debug("Distributed sync secondary waiting {}ms jitter before its first cycle", jitter);
+                return Completable.timer(jitter, TimeUnit.MILLISECONDS);
+            }
+            firstCycle = false;
+            log.debug("Running synchronization process...");
+            return distributedSyncService.ready();
+        });
+    }
+
+    private boolean shouldDelayFirstSecondaryCycle() {
+        return firstCycle && initialJitterMs > 0 && distributedSyncService.isEnabled() && !distributedSyncService.isPrimaryNode();
     }
 
     private Single<Long> cycleUpperBound(final AtomicBoolean cyclePrimary) {
@@ -185,12 +213,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
         if (primary) {
             return primaryUpperBound();
         }
-        if (actingPrimary.get()) {
-            log.info("Node is no longer the distributed sync primary, it now synchronizes from the distributed repository");
-            onDistributedRoleChanged();
-            distributedSyncService.onDemotion();
-        }
-        return distributedSyncService.serverTime().flatMap(this::secondaryCycleStart);
+        return secondaryUpperBound();
     }
 
     private Single<Long> primaryUpperBound() {
@@ -217,6 +240,15 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
             distributedSyncService.requestResync("the primary node starts with nothing deployed");
         }
         return distributedSyncService.serverTime().onErrorResumeNext(throwable -> Single.just(System.currentTimeMillis()));
+    }
+
+    private Single<Long> secondaryUpperBound() {
+        if (actingPrimary.get()) {
+            log.info("Node is no longer the distributed sync primary, it now synchronizes from the distributed repository");
+            onDistributedRoleChanged();
+            distributedSyncService.onDemotion();
+        }
+        return distributedSyncService.serverTime().flatMap(this::secondaryCycleStart);
     }
 
     private Completable runCycle(final boolean primary, final long nextToTime) {
@@ -279,9 +311,11 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
         // This condition is only to avoid printing the stacktrace on every loop
         if (!lastSyncOnError.get()) {
             log.error("Synchronization process has failed", throwable);
-        } else {
-            log.error("Synchronization process is still failing.");
+            lastSyncOnError.set(true);
+            lastSyncErrorMessage.set(throwable.getMessage());
+            return;
         }
+        log.error("Synchronization process is still failing.");
         lastSyncOnError.set(true);
         lastSyncErrorMessage.set(throwable.getMessage());
     }

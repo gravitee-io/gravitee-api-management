@@ -375,6 +375,61 @@ class DefaultSyncManagerTest {
     }
 
     @Test
+    void should_wait_for_the_secondary_startup_jitter_before_the_first_cycle() throws Exception {
+        try {
+            final TestScheduler testScheduler = new TestScheduler();
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+            RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
+
+            String previous = System.getProperty("services.sync.distributed.jitterMs");
+            System.setProperty("services.sync.distributed.jitterMs", "5000");
+            try {
+                DistributedSyncService distributedSyncService = distributedSyncService();
+                when(distributedSyncService.isEnabled()).thenReturn(true);
+                when(distributedSyncService.isPrimaryNode()).thenReturn(false);
+                when(distributedSyncService.beginCycle()).thenReturn(false);
+                when(distributedSyncService.ready()).thenReturn(Completable.complete());
+                doReturn(Maybe.just(DistributedSyncState.builder().status(DistributedSyncStatus.ACTIVE).build()))
+                    .when(distributedSyncService)
+                    .sharedState();
+                when(distributedSyncService.storeState(anyLong(), anyLong())).thenReturn(Completable.complete());
+                DistributedSynchronizer distributedSynchronizer = mock(DistributedSynchronizer.class);
+                when(distributedSynchronizer.synchronize(any(), any())).thenReturn(Completable.complete());
+
+                cut = new DefaultSyncManager(
+                    router,
+                    node,
+                    synchronizers,
+                    new ArrayList<>(List.of(distributedSynchronizer)),
+                    distributedSyncService,
+                    5,
+                    TimeUnit.SECONDS,
+                    1
+                );
+                cut.start();
+
+                // Before the jitter elapses (minimum 1ms) the secondary has not run its first cycle.
+                testScheduler.advanceTimeBy(0, TimeUnit.MILLISECONDS);
+                testScheduler.triggerActions();
+                verify(distributedSynchronizer, never()).synchronize(any(), any());
+
+                // After the jitter window (max 5001ms) the first cycle runs.
+                testScheduler.advanceTimeBy(10, TimeUnit.SECONDS);
+                testScheduler.triggerActions();
+                verify(distributedSynchronizer, atLeastOnce()).synchronize(any(), any());
+            } finally {
+                if (previous == null) {
+                    System.clearProperty("services.sync.distributed.jitterMs");
+                } else {
+                    System.setProperty("services.sync.distributed.jitterMs", previous);
+                }
+            }
+        } finally {
+            RxJavaPlugins.reset();
+        }
+    }
+
+    @Test
     void should_stay_not_ready_while_no_primary_published_a_catalog() throws Exception {
         DistributedSyncService distributedSyncService = distributedSyncService();
         when(distributedSyncService.isEnabled()).thenReturn(true);

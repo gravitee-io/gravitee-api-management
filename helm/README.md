@@ -423,6 +423,54 @@ Distributed sync lets multiple gateway replicas share sync state through Redis w
 
 **Why:** Secondary gateways read distributed state from Redis. Initial sync on a secondary is one-shot; the primary must populate Redis before secondaries rely on it.
 
+**How it runs.** Hazelcast elects one primary per cluster. The primary reads the management repository and writes deploy and undeploy events to Redis. Secondaries read those events and deploy them locally. A sync cycle covers a time window. The window moves forward only after the cycle has stored its state, so a failed distribution is retried instead of being skipped. Writes are fenced with a Redis lease (`services.sync.distributed.fencing.enabled`, default `true`) and stamped with the Redis server clock, so a demoted primary cannot overwrite a newer value with an older one. Leave fencing enabled. Without the lease, the last writer wins and can resurrect older content, for example a revoked API key written back as `DEPLOY`.
+
+**What recovers on its own**
+
+- A failed Redis write keeps the window in place and the primary replays it.
+- A transient deploy failure on a secondary holds the window and retries the entity, up to 12 cycles.
+- Promotion of a new primary replays from the last stored window and re-distributes what the previous primary may have left half-written.
+- A full catalog rebuild marks the catalog paused, rewrites live entities, undeploys entries that were not rewritten, then marks the catalog active. Secondaries wait while the catalog is paused if they have not synchronized yet.
+
+**What does not recover on its own**
+
+- Gaps already stored in Redis by an older gateway are not repaired by an upgrade or by promotion. The rollout does not rebuild the catalog. After upgrading, call the resync endpoint once on the primary (see below).
+- After 12 held attempts, a secondary skips the failing entities until they change again. `skippedAfterRetries` on `/_node/sync` counts those give-ups. `heldWindows` counts retries, not give-ups.
+- An entity the primary cannot map becomes a dead letter and is not retried.
+- A secondary that lagged past tombstone retention may keep a removed entity until it restarts or runs a full synchronization.
+- Changing sharding tags changes the cluster name. Old Redis keys are not deleted automatically.
+
+**What to look at.** `GET /_node/sync` (node management API) returns the sync probe. When distributed sync is on, the `distributed` object adds:
+
+| Field | Meaning |
+| --- | --- |
+| `role` | `primary` or `secondary` for the last successful cycle |
+| `resyncInProgress` | The primary is rebuilding the catalog |
+| `deadLetters` / `deadLettersByType` | Entities the primary could not turn into a distributed event |
+| `decodeFailures` / `decodeFailuresByType` | Events a secondary could not turn back into an entity |
+| `distributionFailures` | Redis writes that failed after retries. The window is replayed |
+| `replayedCycles` | Cycles run again because a distribution had failed |
+| `heldWindows` | Cycles that kept the window in place to retry a transient failure |
+| `skippedAfterRetries` / `skippedAfterRetriesByType` | Cycles that gave up after the retry bound. The entities stay skipped until they change |
+| `localDeploys` | Entities deployed locally on the primary |
+| `staleEntriesRemoved` | Catalog entries removed because a rebuild did not rewrite them |
+| `skippedStaleEntriesRemovals` | A stale-entry sweep was skipped |
+| `skippedDistributions` | Distributions skipped because this node is not the writer |
+| `unsupportedSchemaEvents` | Events whose payload schema is newer than this gateway |
+| `primaryHeartbeatAgeMs` | Age of the primary heartbeat seen by a secondary. `-1` when unknown |
+| `topologyMismatch` | This node's sharding or environment fingerprint does not match the primary |
+| `foreignWriterDetected` | A node that does not hold the lease wrote to the catalog |
+
+A sync cycle can return success while `deadLetters` or `skippedAfterRetries` increases. Alert on those counters together with the HTTP status of `/_node/sync`.
+
+**Emergency rebuild.** Only the primary accepts it:
+
+```bash
+curl -X POST http://<primary-node>:18082/_node/sync/distributed/resync
+```
+
+The response is `202` when this node is the primary and `409` when it is a secondary. The catalog is rebuilt on the next synchronization cycle: live entities are republished and entries that are no longer live are removed. Call it once on the primary after upgrading to a gateway that stops the window on a failed distribution, so gaps left by the previous version are repaired.
+
 Example values when distributed sync is enabled:
 
 ```yaml
