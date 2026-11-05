@@ -18,13 +18,16 @@ package inmemory;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
 import io.gravitee.rest.api.model.EventType;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class EventLatestQueryServiceInMemory implements EventLatestQueryService, InMemoryAlternative<Event> {
 
@@ -57,6 +60,19 @@ public class EventLatestQueryServiceInMemory implements EventLatestQueryService,
             .filter(event -> event.getType() != null && typeNames.contains(event.getType().name()))
             .filter(event -> event.getEnvironments() != null && event.getEnvironments().stream().anyMatch(environments::contains))
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public Stream<Event> findAll(Set<EventType> eventTypes, Instant expiresBefore, Instant updatedBefore) {
+        return storage
+            .stream()
+            .filter(event -> eventTypes.contains(event.getType()))
+            .filter(
+                event -> expiresBefore == null || (event.getExpiresAt() != null && event.getExpiresAt().toInstant().isBefore(expiresBefore))
+            )
+            .filter(event -> updatedBefore == null || event.getUpdatedAt().toInstant().isBefore(updatedBefore))
+            .toList()
+            .stream();
     }
 
     @Override

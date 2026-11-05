@@ -458,6 +458,13 @@ services:
     #  Pre-expiration notification, number of days before the expiration an email should be send to subscriber and primary owner
     pre-expiration-notification-schedule: 90,45,30
 
+  # Purge of generic events: deletes expired ones, and unpublished ones once gateways no longer need them
+  genericEvents:
+    enabled: true
+    cron: "0 * * * * *"
+    # Minutes an unpublished event is kept; a gateway that misses it keeps the event until it restarts
+    deletedRetention: 10080
+
 
 
 node:

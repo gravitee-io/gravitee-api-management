@@ -17,8 +17,10 @@ package io.gravitee.apim.core.event.query_service;
 
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.rest.api.model.EventType;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Port for querying the event_latest store, which holds exactly one
@@ -39,4 +41,14 @@ public interface EventLatestQueryService {
     List<Event> findLatestByEntityIds(Set<String> entityIds, EventType eventType, Event.EventProperties propertyKey);
 
     List<Event> findAllByTypeAndEnvironments(Set<EventType> eventTypes, Set<String> environments, Event.EventProperties groupBy);
+
+    /**
+     * Every latest event of the given types, across all environments.
+     * <p>
+     * Pages are fetched as the stream is consumed, so it can be iterated over any number of events.
+     *
+     * @param expiresBefore only events expiring before this instant, or <code>null</code> for all
+     * @param updatedBefore only events last updated before this instant, or <code>null</code> for all
+     */
+    Stream<Event> findAll(Set<EventType> eventTypes, Instant expiresBefore, Instant updatedBefore);
 }

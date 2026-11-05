@@ -8825,6 +8825,8 @@ components:
                 - UNPUBLISH_AUTHZ_SCHEMA
                 - PUBLISH_CREDENTIAL
                 - UNPUBLISH_CREDENTIAL
+                - PUBLISH_GENERIC_EVENT
+                - UNPUBLISH_GENERIC_EVENT
 
         # Documentation pages
         AccessControl:

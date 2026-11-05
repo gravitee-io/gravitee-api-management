@@ -35,6 +35,11 @@ public class EventLatestCrudInMemory implements EventLatestCrudService, InMemory
     }
 
     @Override
+    public void delete(String latestEventId) {
+        storage.removeIf(event -> latestEventId.equals(event.getId()));
+    }
+
+    @Override
     public void initWith(List<Event> items) {
         reset();
         storage.addAll(items);

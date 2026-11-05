@@ -19,4 +19,6 @@ import io.gravitee.apim.core.event.model.Event;
 
 public interface EventLatestCrudService {
     Event createOrPatchLatestEvent(String organizationId, String latestEventId, Event event);
+
+    void delete(String latestEventId);
 }
