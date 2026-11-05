@@ -20,6 +20,8 @@ public enum DistributedEventType {
     API,
     API_KEY,
     API_PRODUCT,
+    APPROVAL_RULE,
+    APPROVAL_STATE,
     AUTHZ_ENTITY,
     AUTHZ_POLICY,
     CREDENTIAL,

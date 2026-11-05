@@ -147,6 +147,10 @@ public interface EventRepository extends CrudRepository<Event, String> {
                 case PUBLISH_AUTHZ_ENTITY, UNPUBLISH_AUTHZ_ENTITY -> properties.get(Event.EventProperties.AUTHZ_ENTITY_ID.getValue());
                 case PUBLISH_AUTHZ_SCHEMA, UNPUBLISH_AUTHZ_SCHEMA -> properties.get(Event.EventProperties.AUTHZ_SCHEMA_ID.getValue());
                 case PUBLISH_CREDENTIAL, UNPUBLISH_CREDENTIAL -> properties.get(Event.EventProperties.CREDENTIAL_ID.getValue());
+                case PUBLISH_APPROVAL_RULE, UNPUBLISH_APPROVAL_RULE -> properties.get(Event.EventProperties.APPROVAL_RULE_ID.getValue());
+                case PUBLISH_APPROVAL_STATE, UNPUBLISH_APPROVAL_STATE -> properties.get(
+                    Event.EventProperties.APPROVAL_REQUEST_ID.getValue()
+                );
                 default -> properties.get(Event.EventProperties.ID.getValue()); // For unknown event types, try to use a generic ID property
             };
 
