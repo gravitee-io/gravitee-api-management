@@ -174,6 +174,8 @@ Do not create, edit, rename or delete a file on the owned surface unless the per
 
 The same hand-off applies when a change outside the surface alters what the surface exposes: a v4 API definition model (`gravitee-apim-definition`), a Management API v2 schema property or enum value, or a repository entity field surfaced through Management API v2. Do not mirror it into the Automation API or the CRD classes; record it in the PR description's impact section. The owning team's mirroring procedure is `.ai/guides/automation-api-sync.md`.
 
+**Dry run.** GKO's admission webhook admits a resource on the answer of a dry run (`dryRun=true` on an Automation `PUT` or on `_import/crd`), then reconciles it with the same request without `dryRun`. Never give a dry run validation of its own: put every check the write runs, the service's own checks included, in one method that both the dry run and the write call, and skip only the write and its side effects (deployment, events, audit). Test it by sending the same invalid request with and without `dryRun` and expecting the same error.
+
 # APIM Two Maven Reactors
 
 This repository holds **two independent reactors**:

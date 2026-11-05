@@ -9,9 +9,9 @@ inputs:
   - { path: ".ai/manifest.yaml", hash: "sha256:a3fc626307814c38ea8bcf0ab11572a44fadb105da322881a3af46b0f5d842c2" }
   - { path: ".ai/rules/ai-context-authoring.md", hash: "sha256:53f31c71d869cfa939b7344834333c0f352aa795f81c147a19ce0e80d5bb5476" }
   - { path: ".ai/rules/apim-angular.md", hash: "sha256:9e7472cc16201f62230b0de128c0c47c370fffe517cf1b0482dd43a584f17850" }
-  - { path: ".ai/rules/apim-automation-api.md", hash: "sha256:c24ccb1f03041b276a0e5ee06836cc78fbb1118f415ca67d306a95850261ff65" }
+  - { path: ".ai/rules/apim-automation-api.md", hash: "sha256:93e81b91fb9c3feb25422c90cbe05ba98860b1f5f1ae7f91e79eee7fa4da1124" }
   - { path: ".ai/rules/apim-automation-module-ownership.md", hash: "sha256:817b9be54a62e3cdf2cd17cf16432f05aaddcf888971c7772f877b0560d7a229" }
-  - { path: ".ai/rules/apim-automation-ownership-review.md", hash: "sha256:154e43a696e47f1e100f58d1b98c547f22642bb3e4d772811c0756c91f3696a2" }
+  - { path: ".ai/rules/apim-automation-ownership-review.md", hash: "sha256:3fcb547ad223e52e94a467d21ac083fef83c6bbf144b351916896cb99480f291" }
   - { path: ".ai/rules/apim-automation-signpost-definition.md", hash: "sha256:36cdfade56e02f0f0fce4b03c1d015fb1f3d64bd8f9577b888c348055b90b7d6" }
   - { path: ".ai/rules/apim-automation-signpost-repository.md", hash: "sha256:2445a6a106e1b3187a130f6efa374bd7f57c051d4d51df000672a265a987de8b" }
   - { path: ".ai/rules/apim-automation-signpost-restapi.md", hash: "sha256:962751855bd090c2812076d8d465187c34e39ead0bb273ee506d4a8db778496b" }
@@ -67,7 +67,7 @@ entries:
     status: generated
     scope: committed
   - path: ".github/instructions/apim-automation-ownership-review.instructions.md"
-    hash: sha256:8ca32f5fdfc9f5f6c6d8c4dedbb3b11544a4702736181ac87d4af58a3d19fc57
+    hash: sha256:d7d2c56d0044052f048c43bf1fead13411293c82dd9900cbc0a849f94e7d6886
     status: generated
     scope: committed
   - path: ".github/instructions/code-review.instructions.md"
@@ -83,7 +83,7 @@ entries:
     status: generated
     scope: committed
   - path: "AGENTS.md"
-    hash: sha256:937db296fe8e8645960542ae22671d9867bb8ddea92878e64f2cc8a25538db53
+    hash: sha256:eaa165bf5c1dee762470627eb4e85adf647e9a94a4e526b63a4bb60f17baabc7
     status: generated
     scope: committed
   - path: "CLAUDE.md"
@@ -274,4 +274,4 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-record: sha256:999a1036f2cd72d48edace72a18e767447831663fe0f3e41da65757a98f228ba
+record: sha256:8d593ffe772e8cfb7a87c2d0fc86feff97b5ebefb7d04a0d2f93be050db473bf
