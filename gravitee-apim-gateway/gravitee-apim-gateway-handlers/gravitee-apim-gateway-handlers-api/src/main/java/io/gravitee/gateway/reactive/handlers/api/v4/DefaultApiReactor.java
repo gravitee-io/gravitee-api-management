@@ -37,10 +37,13 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.core.component.CompositeComponentProvider;
+import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
 import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
+import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.ComponentType;
@@ -74,6 +77,7 @@ import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.reactive.core.v4.invoker.HttpEndpointInvoker;
 import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter;
+import io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LoggingHook;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory;
@@ -96,6 +100,7 @@ import io.gravitee.node.logging.LogEntryFactory;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.reporter.api.v4.metric.Metrics;
+import io.gravitee.resource.api.ResourceManager;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableSource;
@@ -169,6 +174,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected final LogGuardService logGuardService;
     private final ApiProductRegistry apiProductRegistry;
     private final ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory;
+    private final ApiProductManager apiProductManager;
     private final FlowChainFactory v4FlowChainFactory;
     private PolicyManager apiProductPlanPolicyManager;
     private EventListener<ApiProductEventType, ApiProductChangedEvent> apiProductEventListener;
@@ -222,6 +228,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
             tracingContext,
             logGuardService,
             null,
+            null,
             null
         );
     }
@@ -249,7 +256,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
         final TracingContext tracingContext,
         final LogGuardService logGuardService,
         final ApiProductRegistry apiProductRegistry,
-        final ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory
+        final ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory,
+        final ApiProductManager apiProductManager
     ) {
         // apiProductRegistry may be null when API Product support is not loaded
         super(
@@ -272,6 +280,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
         this.logGuardService = logGuardService;
         this.apiProductRegistry = apiProductRegistry;
         this.apiProductPlanPolicyManagerFactory = apiProductPlanPolicyManagerFactory;
+        this.apiProductManager = apiProductManager;
 
         this.defaultInvoker = endpointInvoker(endpointManager);
 
@@ -823,7 +832,36 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
     private Completable executeProductPlanFlowChain(final MutableExecutionContext ctx, final ExecutionPhase phase) {
         final FlowChain chain = apiProductPlanFlowChain;
-        return chain != null ? chain.execute(ctx, phase) : Completable.complete();
+        if (chain == null) {
+            return Completable.complete();
+        }
+
+        // Resolve the product id and manager when the chain runs, not when handleRequest builds it.
+        // ATTR_API_PRODUCT is set during the security chain, which has not executed yet at build time.
+        return Completable.defer(() -> {
+            final String apiProductId = ctx.getAttribute(SubscriptionProcessor.ATTR_API_PRODUCT);
+            final ResourceLifecycleManager productResourceManager = apiProductManager != null && apiProductId != null
+                ? apiProductManager.getResourceManager(apiProductId)
+                : null;
+            if (productResourceManager == null) {
+                return chain.execute(ctx, phase);
+            }
+
+            final CustomComponentProvider productComponents = new CustomComponentProvider();
+            productComponents.add(ResourceManager.class, productResourceManager);
+            final ComponentProvider productScopedProvider = new CompositeComponentProvider(productComponents, componentProvider);
+
+            // Eager dispose restores the API provider before the next andThen step runs.
+            return Completable.using(
+                () -> {
+                    ctx.componentProvider(productScopedProvider);
+                    return componentProvider;
+                },
+                ignored -> chain.execute(ctx, phase),
+                original -> ctx.componentProvider(original),
+                true
+            );
+        });
     }
 
     protected void addInvokerHooks(List<InvokerHook> invokerHooks) {}

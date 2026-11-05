@@ -23,6 +23,7 @@ import io.gravitee.gateway.debug.definition.ReactableDebugApi;
 import io.gravitee.gateway.debug.reactor.handler.context.PathTransformer;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
+import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
@@ -76,7 +77,8 @@ public class DebugV4ApiReactor extends DefaultApiReactor {
         TracingContext tracingContext,
         LogGuardService logGuardService,
         ApiProductRegistry apiProductRegistry,
-        ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory
+        ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory,
+        ApiProductManager apiProductManager
     ) {
         super(
             api,
@@ -101,7 +103,8 @@ public class DebugV4ApiReactor extends DefaultApiReactor {
             tracingContext,
             logGuardService,
             apiProductRegistry,
-            apiProductPlanPolicyManagerFactory
+            apiProductPlanPolicyManagerFactory,
+            apiProductManager
         );
         invokerHooks.add(new DebugInvokerHook());
     }

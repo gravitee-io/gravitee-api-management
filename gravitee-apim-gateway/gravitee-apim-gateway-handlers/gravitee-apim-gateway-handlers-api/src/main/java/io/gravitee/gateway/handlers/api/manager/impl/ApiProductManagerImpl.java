@@ -88,6 +88,11 @@ public class ApiProductManagerImpl implements ApiProductManager {
         return apiProducts.values();
     }
 
+    @Override
+    public ResourceLifecycleManager getResourceManager(String apiProductId) {
+        return apiProductId == null ? null : resourceManagers.get(apiProductId);
+    }
+
     private Completable register(ReactableApiProduct apiProduct, boolean force, Completable doBeforeEmit) {
         // License check: API Products require apim-api-products feature
         var license = licenseManager.getOrganizationLicenseOrPlatform(apiProduct.getOrganizationId());

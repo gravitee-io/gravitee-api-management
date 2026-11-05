@@ -446,7 +446,8 @@ class DefaultApiReactorTest {
                 tracingContext,
                 logGuardService,
                 apiProductRegistry,
-                apiProductPlanPolicyManagerFactory
+                apiProductPlanPolicyManagerFactory,
+                null
             );
             ReflectionTestUtils.setField(defaultApiReactor, "entrypointConnectorResolver", entrypointConnectorResolver);
             ReflectionTestUtils.setField(defaultApiReactor, "defaultInvoker", defaultInvoker);

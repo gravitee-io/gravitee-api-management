@@ -29,6 +29,7 @@ import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
+import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.opentelemetry.TracerResourceAttributes;
 import io.gravitee.gateway.opentelemetry.TracingContext;
@@ -360,11 +361,13 @@ public class DefaultApiReactorFactory extends AbstractApiReactorFactory<Api> {
         // Get API Product support beans if available
         ApiProductRegistry apiProductRegistry = null;
         ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory = null;
+        ApiProductManager apiProductManager = null;
         try {
             apiProductRegistry = applicationContext.getBean(ApiProductRegistry.class);
             if (apiProductRegistry != null) {
                 apiProductPlanPolicyManagerFactory = createApiProductPlanPolicyManagerFactory(componentProvider, apiProductRegistry);
             }
+            apiProductManager = applicationContext.getBean(ApiProductManager.class);
         } catch (BeansException e) {
             // API Product support may not be loaded
         }
@@ -392,7 +395,8 @@ public class DefaultApiReactorFactory extends AbstractApiReactorFactory<Api> {
             createTracingContext(api, "API_V4"),
             logGuardService,
             apiProductRegistry,
-            apiProductPlanPolicyManagerFactory
+            apiProductPlanPolicyManagerFactory,
+            apiProductManager
         );
         return reactor;
     }

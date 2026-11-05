@@ -16,6 +16,7 @@
 package io.gravitee.gateway.handlers.api.manager;
 
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
+import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Collection;
 
@@ -64,4 +65,6 @@ public interface ApiProductManager {
      * @return collection of all API Products
      */
     Collection<ReactableApiProduct> getApiProducts();
+
+    ResourceLifecycleManager getResourceManager(String apiProductId);
 }
