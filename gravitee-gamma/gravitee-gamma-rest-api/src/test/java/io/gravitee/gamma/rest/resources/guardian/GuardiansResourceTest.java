@@ -1,0 +1,466 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.gamma.rest.resources.guardian;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gamma.rest.core.guardian.GuardianFixtures;
+import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
+import io.gravitee.gamma.rest.core.guardian.model.Guardian;
+import io.gravitee.gamma.rest.resource.AbstractResourceTest;
+import io.gravitee.gamma.rest.resources.guardian.GuardiansResourceTest.GuardiansTestConfiguration;
+import io.gravitee.gamma.rest.spring.ResourceContextConfiguration;
+import io.gravitee.rest.api.model.EnvironmentEntity;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.test.context.ContextConfiguration;
+
+/**
+ * The Guardian endpoints over HTTP, under
+ * {@code /gamma/organizations/{orgId}/environments/{envId}/guardians}.
+ *
+ * <p>Exercises the wire contract the console depends on: the paginated envelope, the one field the
+ * DTO deliberately hides, the {@code 201} with its {@code Location}, and the refusals — including the
+ * ones the request DTOs now declare as bean validation constraints rather than checking in the
+ * domain, which is only a 400 if the host's mapper is really wired. The use cases run for real
+ * against in-memory ports, so these tests fail if the routing, the DTO mapping or the environment
+ * scoping break — not only if a mock stops being called.
+ *
+ * @author GraviteeSource Team
+ */
+@ContextConfiguration(classes = { ResourceContextConfiguration.class, GuardiansTestConfiguration.class })
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+class GuardiansResourceTest extends AbstractResourceTest {
+
+    private static final String ENVIRONMENT = "fake-env";
+    private static final String OTHER_ENVIRONMENT = "other-env";
+    private static final String GUARDIAN_ID = GuardianFixtures.GUARDIAN_ID;
+
+    private static final Map<String, Object> A_POLICY = Map.of(
+        "name",
+        "Detect credentials",
+        "policy",
+        "data-logging-masking",
+        "enabled",
+        true
+    );
+
+    /** A whole definition, which is what both the creation and the update now take. */
+    private static final Map<String, Object> PAYLOAD = Map.of(
+        "name",
+        "Prompt injection shield",
+        "description",
+        "Flags a prompt that tries to override the system instructions.",
+        "apiTypes",
+        List.of("llm-proxy"),
+        "phase",
+        "REQUEST",
+        "policies",
+        List.of(A_POLICY)
+    );
+
+    @Inject
+    private InMemoryGuardianRepository guardianRepository;
+
+    @Override
+    protected String contextPath() {
+        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/guardians";
+    }
+
+    @BeforeEach
+    void prepareEnvironment() {
+        EnvironmentEntity env = new EnvironmentEntity();
+        env.setId(ENVIRONMENT);
+        env.setOrganizationId(ORGANIZATION);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(env);
+    }
+
+    @AfterEach
+    void resetRepository() {
+        guardianRepository.reset();
+    }
+
+    private static Guardian guardian(String id, String environmentId, String name) {
+        return GuardianFixtures.aGuardian(d -> d.id(id).environmentId(environmentId).name(name)).build();
+    }
+
+    private static Map<String, Object> payloadWith(String key, Object value) {
+        var payload = new HashMap<String, Object>(PAYLOAD);
+        payload.put(key, value);
+        return payload;
+    }
+
+    private Response post(Object payload) {
+        return rootTarget().request().post(Entity.entity(payload, MediaType.APPLICATION_JSON_TYPE));
+    }
+
+    @Nested
+    class ListGuardians {
+
+        @Test
+        void should_return_200_with_the_paginated_envelope() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+
+            Response response = rootTarget().request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("data")).hasSize(1);
+            assertThat(body.get("data").get(0).get("id").asText()).isEqualTo(GUARDIAN_ID);
+            assertThat(body.get("pagination").get("totalCount").asLong()).isEqualTo(1L);
+        }
+
+        @Test
+        void should_expose_the_whole_definition_and_hide_only_the_environment() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+
+            JsonNode dto = rootTarget().request().get().readEntity(JsonNode.class).get("data").get(0);
+
+            assertThat(dto.get("policies")).hasSize(1);
+            assertThat(dto.get("apiTypes").get(0).asText()).isEqualTo("llm-proxy");
+            // already in the path, so repeating it in every row says nothing
+            assertThat(dto.has("environmentId")).isFalse();
+        }
+
+        @Test
+        void should_only_return_guardians_of_the_context_environment() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Mine"));
+            guardianRepository.givenGuardian(guardian("elsewhere", OTHER_ENVIRONMENT, "Theirs"));
+
+            JsonNode body = rootTarget().request().get().readEntity(JsonNode.class);
+
+            assertThat(body.get("data")).hasSize(1);
+            assertThat(body.get("data").get(0).get("id").asText()).isEqualTo(GUARDIAN_ID);
+        }
+
+        @Test
+        void should_refuse_an_unknown_sort_field_with_400() {
+            // the API types are a set in the definition, so there is nothing to order rows by
+            Response response = rootTarget().queryParam("sortBy", "apiType").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_report_the_default_page_size_when_perPage_is_omitted() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+
+            JsonNode pagination = rootTarget().request().get().readEntity(JsonNode.class).get("pagination");
+
+            assertThat(pagination.get("perPage").asInt()).isEqualTo(10);
+            assertThat(pagination.get("pageCount").asInt()).isEqualTo(1);
+            assertThat(pagination.get("pageItemsCount").asInt()).isEqualTo(1);
+        }
+
+        @Test
+        void should_report_the_default_page_size_when_perPage_is_zero() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+
+            JsonNode pagination = rootTarget().queryParam("perPage", 0).request().get().readEntity(JsonNode.class).get("pagination");
+
+            // perPage=0 falls back to the default, so a pageCount of 0 would tell the console there is
+            // nothing to show while the page carries a row
+            assertThat(pagination.get("perPage").asInt()).isEqualTo(10);
+            assertThat(pagination.get("pageCount").asInt()).isEqualTo(1);
+        }
+
+        @Test
+        void should_keep_the_requested_page_size_on_a_partial_last_page() {
+            guardianRepository.givenGuardian(guardian("g1", ENVIRONMENT, "A"));
+            guardianRepository.givenGuardian(guardian("g2", ENVIRONMENT, "B"));
+            guardianRepository.givenGuardian(guardian("g3", ENVIRONMENT, "C"));
+
+            JsonNode body = rootTarget().queryParam("page", 2).queryParam("perPage", 2).request().get().readEntity(JsonNode.class);
+
+            // one row on the last page must not shrink perPage to 1, which would turn pageCount into 3
+            assertThat(body.get("data")).hasSize(1);
+            assertThat(body.get("pagination").get("perPage").asInt()).isEqualTo(2);
+            assertThat(body.get("pagination").get("pageCount").asInt()).isEqualTo(2);
+            assertThat(body.get("pagination").get("pageItemsCount").asInt()).isEqualTo(1);
+        }
+    }
+
+    @Nested
+    class CreateGuardian {
+
+        @Test
+        void should_return_201_with_a_location_and_an_undeployed_guardian() {
+            Response response = post(PAYLOAD);
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("lifecycleState").asText()).isEqualTo("UNDEPLOYED");
+            assertThat(response.getLocation().toString()).endsWith(body.get("id").asText());
+        }
+
+        @Test
+        void should_carry_the_description_the_payload_sends() {
+            JsonNode body = post(PAYLOAD).readEntity(JsonNode.class);
+
+            assertThat(body.get("description").asText()).isEqualTo("Flags a prompt that tries to override the system instructions.");
+        }
+
+        @Test
+        void should_refuse_a_description_longer_than_its_column_with_400() {
+            assertThat(post(payloadWith("description", "d".repeat(1025))).getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_store_the_guardrail_sequence_the_payload_carries() {
+            JsonNode body = post(PAYLOAD).readEntity(JsonNode.class);
+
+            assertThat(body.get("policies")).hasSize(1);
+            assertThat(body.get("policies").get(0).get("policy").asText()).isEqualTo("data-logging-masking");
+        }
+
+        @Test
+        void should_spell_the_api_type_the_way_the_rest_of_apim_does() {
+            // The definition enum serializes llm-proxy through @JsonValue. Two spellings for one
+            // concept would make every consumer special-case this API.
+            JsonNode body = post(PAYLOAD).readEntity(JsonNode.class);
+
+            assertThat(body.get("apiTypes").get(0).asText()).isEqualTo("llm-proxy");
+        }
+
+        @Test
+        void should_refuse_an_api_type_other_than_llm_proxy_with_400() {
+            assertThat(post(payloadWith("apiTypes", List.of("mcp-proxy"))).getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_refuse_an_empty_api_type_list_with_400() {
+            assertThat(post(payloadWith("apiTypes", List.of())).getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_refuse_a_blank_name_with_400() {
+            assertThat(post(payloadWith("name", "  ")).getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_refuse_a_name_longer_than_its_column_with_400() {
+            assertThat(post(payloadWith("name", "n".repeat(513))).getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_refuse_a_missing_phase_with_400() {
+            var payload = new HashMap<String, Object>(PAYLOAD);
+            payload.remove("phase");
+
+            assertThat(post(payload).getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_refuse_an_id_that_is_not_a_uuid_with_400() {
+            // the id lands in the Location header of the creation and in every later path, and the
+            // server generates UUIDs itself, so accepting anything else would mix two id shapes
+            assertThat(post(payloadWith("id", "chosen-id")).getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_keep_a_uuid_the_caller_supplies() {
+            var chosen = "0b0c2a6e-3f1d-4a7b-9c8e-5d4f3a2b1c0d";
+
+            JsonNode body = post(payloadWith("id", chosen)).readEntity(JsonNode.class);
+
+            assertThat(body.get("id").asText()).isEqualTo(chosen);
+        }
+
+        @Test
+        void should_refuse_a_missing_body_with_400() {
+            // the JSON null literal, which Jackson maps to a null DTO: that is the branch under test,
+            // and @NotNull on the parameter is what answers it. Entity.entity(null, ...) cannot serve
+            // here, the Jersey client refuses it before sending.
+            assertThat(post("null").getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_refuse_an_unknown_key_with_400() {
+            assertThat(post(payloadWith("colour", "blue")).getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+    }
+
+    @Nested
+    class ReadUpdateDelete {
+
+        @BeforeEach
+        void seed() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+        }
+
+        private Response put(Object payload) {
+            return rootTarget("/" + GUARDIAN_ID).request().put(Entity.entity(payload, MediaType.APPLICATION_JSON_TYPE));
+        }
+
+        @Test
+        void should_return_200_on_get() {
+            Response response = rootTarget("/" + GUARDIAN_ID).request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            assertThat(response.readEntity(JsonNode.class).get("id").asText()).isEqualTo(GUARDIAN_ID);
+        }
+
+        @Test
+        void should_return_404_on_an_unknown_guardian() {
+            Response response = rootTarget("/nope").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        void should_replace_the_whole_definition_on_put() {
+            Response response = put(payloadWith("policies", List.of()));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("name").asText()).isEqualTo("Prompt injection shield");
+            // a PUT replaces: the guardrail the stored definition carried is gone because the payload
+            // did not carry it
+            assertThat(body.get("policies")).isEmpty();
+        }
+
+        @Test
+        void should_drop_the_description_when_the_put_payload_omits_it() {
+            var payload = new HashMap<String, Object>(PAYLOAD);
+            payload.remove("description");
+
+            JsonNode body = put(payload).readEntity(JsonNode.class);
+
+            // @JsonInclude(NON_NULL) on the DTO: a cleared description leaves the key out entirely
+            assertThat(body.has("description")).isFalse();
+        }
+
+        @Test
+        void should_keep_the_id_out_of_the_update_body() {
+            // the path owns it, and a second one in the body could only disagree
+            assertThat(put(payloadWith("id", GUARDIAN_ID)).getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_refuse_a_partial_update_body_with_400() {
+            // a PUT sets everything, so a body carrying only a rename is not a valid one
+            assertThat(put(Map.of("name", "Renamed")).getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_204_on_delete() {
+            Response response = rootTarget("/" + GUARDIAN_ID).request().delete();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
+            assertThat(guardianRepository.storedGuardians()).isEmpty();
+        }
+
+        @Test
+        void should_refuse_a_missing_update_body_with_400() {
+            assertThat(put("null").getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+    }
+
+    /**
+     * The ticket's acceptance criterion, verbatim: "a user without the permission ... gets 403 on the
+     * endpoints". One test per operation rather than one for the lot, because {@code @Permissions} is
+     * declared per method with its own ACL &mdash; a single test would pass while another verb silently
+     * lost its guard.
+     */
+    @Nested
+    class Authorization {
+
+        @BeforeEach
+        void seedAndDenyEveryPermission() {
+            // seeded so the unguarded request would succeed: the test then proves the permission
+            // prevents the operation, not merely that the Guardian happens to be missing
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+            when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
+        }
+
+        @Test
+        void should_return_403_on_list_without_the_read_permission() {
+            assertThat(rootTarget().request().get().getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
+        }
+
+        @Test
+        void should_return_403_on_create_without_the_create_permission() {
+            assertThat(post(PAYLOAD).getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
+        }
+
+        @Test
+        void should_return_403_on_get_without_the_read_permission() {
+            assertThat(rootTarget("/" + GUARDIAN_ID).request().get().getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
+        }
+
+        @Test
+        void should_return_403_on_update_without_the_update_permission() {
+            Response response = rootTarget("/" + GUARDIAN_ID).request().put(Entity.entity(PAYLOAD, MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
+        }
+
+        @Test
+        void should_return_403_on_delete_without_the_delete_permission() {
+            assertThat(rootTarget("/" + GUARDIAN_ID).request().delete().getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
+        }
+    }
+
+    /**
+     * Mirrors the production wiring of {@code GammaGuardiansConfiguration}: the use cases come from the
+     * same scan rather than being declared one by one, so this test keeps exercising whatever the real
+     * context would build. Only the two ports are substituted — production derives the repository from
+     * the {@code GuardianRepository} SPI, which the repository plugin registers at runtime and which
+     * does not exist in a unit-test context.
+     */
+    @Configuration
+    @ComponentScan(
+        basePackages = "io.gravitee.gamma.rest.core.guardian",
+        includeFilters = {
+            @ComponentScan.Filter(type = FilterType.ANNOTATION, value = io.gravitee.apim.core.DomainService.class),
+            @ComponentScan.Filter(type = FilterType.ANNOTATION, value = UseCase.class),
+        }
+    )
+    static class GuardiansTestConfiguration {
+
+        @Bean
+        InMemoryGuardianRepository guardianRepository() {
+            return new InMemoryGuardianRepository();
+        }
+
+        @Bean
+        AuditDomainService auditDomainService() {
+            // the domain writes its own audit log now; the trail itself is asserted at the use-case level
+            return org.mockito.Mockito.mock(AuditDomainService.class);
+        }
+    }
+}

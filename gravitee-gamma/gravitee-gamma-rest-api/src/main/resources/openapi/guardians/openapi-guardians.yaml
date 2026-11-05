@@ -1,0 +1,598 @@
+openapi: 3.0.3
+info:
+    title: Gravitee.io Gamma - Guardians
+    description: |
+        CRUD for Guardians: named, reusable guardrail sequences defined at environment level and
+        attached to LLM proxies. A Guardian is stored and edited here; deploying it to the gateway
+        is a separate concern and no endpoint on this surface deploys anything.
+
+        **What this surface does not carry.** Two fields the domain holds are deliberately absent
+        from every payload. The environment, because it is already in the path. And the serialized
+        guardrail sequence (`definition`), because it belongs to the Design tab and to its own
+        story — putting a blob the list never renders into every row would only make the payload
+        heavier. A general-settings update therefore carries the sequence over untouched: renaming
+        a Guardian cannot disturb what it enforces.
+
+        **Nothing here is generated.** The gamma rest-api has no OpenAPI generator wired, so the
+        request and response bodies are hand-written Java records and this file is documentation
+        kept in step with them by hand. If the two ever disagree, the records are the truth.
+
+        **Timestamps are epoch seconds as a number**, not RFC 3339 strings — `1793889043.331` and
+        not `2026-11-05T11:30:43Z`. That is what the host's object mapper produces for
+        `ZonedDateTime` on this surface, and a client parsing it as a string will fail.
+
+        **A Guardian is its definition.** Creation and update both carry the whole thing — name,
+        phase, API types, guardrail sequence and resources — and a `PUT` replaces it rather than
+        patching it. Only the identity, which comes from the path, and `deployedAt`, which only a
+        deployment writes, are kept back from the caller.
+
+        **Only `llm-proxy` guardians can be written** in 4.14; any other value in `apiTypes` is
+        refused. Reads accept every API type the platform knows, so a row written by another writer
+        never breaks the list.
+    contact:
+        email: team-apim@graviteesource.com
+    license:
+        name: Apache 2.0
+        url: http://www.apache.org/licenses/LICENSE-2.0.html
+    version: 1.0.0
+
+security:
+    - CookieAuth: []
+
+servers:
+    - url: "/gamma"
+      description: Gravitee.io Gamma host application
+
+tags:
+    - name: Guardians
+      description: |
+          Reusable guardrail sequences of an environment. Every operation requires the
+          `ENVIRONMENT_GUARDIAN` permission with the action matching the verb, so holding read
+          rights never grants creation. An organization admin bypasses the check.
+
+paths:
+    /organizations/{orgId}/environments/{envId}/guardians:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            tags:
+                - Guardians
+            summary: List the Guardians of the environment
+            description: |
+                Paged and searchable by name. `q` is matched as **literal text**, not as a pattern:
+                the two storage backends match it differently under the hood, so it is escaped
+                before it reaches either.
+            operationId: searchGuardians
+            parameters:
+                - name: q
+                  in: query
+                  required: false
+                  description: Case-insensitive substring of the name. Literal text, not a pattern.
+                  schema:
+                      type: string
+                - name: page
+                  in: query
+                  required: false
+                  description: 1-based page number.
+                  schema:
+                      type: integer
+                      minimum: 1
+                      default: 1
+                - name: perPage
+                  in: query
+                  required: false
+                  description: |
+                      Rows per page. Capped at 100; a value above the cap is served as 100, and a
+                      value of 0 or less falls back to the default. The `perPage` reported in the
+                      response is always the size actually served, never the number of rows the
+                      page happens to hold.
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                      default: 10
+                - name: sortBy
+                  in: query
+                  required: false
+                  description: |
+                      One of the sortable fields, prefixed with `-` for descending order. Any other
+                      value is refused with 400 rather than silently ignored.
+
+                      `apiType` is absent because a Guardian carries its API types as a set: there is
+                      no single value to order rows by. `deployedAt` is absent because every value is
+                      null until the deployment path lands, and the backends disagree on where nulls
+                      sort — Postgres last on an ascending sort, MySQL and Mongo first. It can be
+                      offered once that is settled.
+                  schema:
+                      type: string
+                      default: "-updatedAt"
+                      enum:
+                          - name
+                          - "-name"
+                          - phase
+                          - "-phase"
+                          - createdAt
+                          - "-createdAt"
+                          - updatedAt
+                          - "-updatedAt"
+            responses:
+                "200":
+                    description: A page of Guardians.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GuardiansResponse"
+                "400":
+                    $ref: "#/components/responses/BadRequest"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+        post:
+            tags:
+                - Guardians
+            summary: Create a Guardian
+            description: |
+                The id comes from the request, as every resource-creation endpoint on this surface
+                does; omit it and the server assigns one. A Guardian is created **undeployed**:
+                storing a definition is not deploying it.
+
+                The body is the whole definition: the guardrail sequence and the resources travel
+                with the general settings rather than through a second endpoint.
+            operationId: createGuardian
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/CreateGuardian"
+            responses:
+                "201":
+                    description: The Guardian as created, with a `Location` header pointing at it.
+                    headers:
+                        Location:
+                            description: URL of the created Guardian.
+                            schema:
+                                type: string
+                                format: uri
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Guardian"
+                "400":
+                    description: |
+                        The payload is not acceptable: a missing or blank name, a name over 512
+                        characters, a missing phase, an empty `apiTypes` or one holding a type other
+                        than `llm-proxy`, an `id` that is not a UUID or is already taken, or a key
+                        the schema does not declare.
+
+                        The body of a refusal carries `message` and `http_status`, except for the
+                        schema constraints — name, description, phase, `apiTypes`, `id` shape — which
+                        the host's bean-validation mapper answers with `message`, `path`,
+                        `invalid_value` and `details`. Those constraints are declared on the domain's
+                        own create and update commands rather than on the HTTP body, so they hold for
+                        any caller and not only for one arriving over HTTP.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+
+    /organizations/{orgId}/environments/{envId}/guardians/{guardianId}:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/guardianIdParam"
+        get:
+            tags:
+                - Guardians
+            summary: Get a Guardian
+            operationId: getGuardian
+            responses:
+                "200":
+                    description: The Guardian.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Guardian"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+        put:
+            tags:
+                - Guardians
+            summary: Replace the definition of a Guardian
+            description: |
+                Carries the whole definition: the name, the phase, the API types, the guardrail
+                sequence and the resources.
+
+                **A `PUT` replaces, it does not patch.** A property the payload omits is left out of
+                the stored definition too, so a client that edits one setting sends back everything
+                it read — sending only `name` answers 400, because `phase` and `apiTypes` are
+                required. Only the identity and `deployedAt` are kept back from the caller.
+            operationId: updateGuardian
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateGuardian"
+            responses:
+                "200":
+                    description: The Guardian as updated.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Guardian"
+                "400":
+                    $ref: "#/components/responses/BadRequest"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+        delete:
+            tags:
+                - Guardians
+            summary: Delete a Guardian
+            description: |
+                Deletes it outright. The PRD's rule — refusing to delete a Guardian that is enabled
+                on an API, with the list of those APIs — is **not implemented yet**: the association
+                between an API and a Guardian lands with AIAM-1533, so there is nothing to look it
+                up in.
+            operationId: deleteGuardian
+            responses:
+                "204":
+                    description: Deleted. The body is empty.
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+components:
+    securitySchemes:
+        CookieAuth:
+            type: apiKey
+            in: cookie
+            name: GAMMA-SESSION
+            description: |
+                Gamma-host session cookie set by the parent rest-api login flow. The same scheme
+                used by every other gamma endpoint.
+
+    parameters:
+        orgIdParam:
+            name: orgId
+            in: path
+            required: true
+            description: Id of an organization.
+            schema:
+                type: string
+                default: DEFAULT
+        envIdParam:
+            name: envId
+            in: path
+            required: true
+            description: |
+                Id or hrid of an environment. The host resolves and validates it against the
+                organization, so a mismatch is refused before any Guardian is read.
+            schema:
+                type: string
+                default: DEFAULT
+        guardianIdParam:
+            name: guardianId
+            in: path
+            required: true
+            description: Id of a Guardian.
+            schema:
+                type: string
+                maxLength: 64
+
+    responses:
+        BadRequest:
+            description: The request is not acceptable.
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+        Forbidden:
+            description: |
+                The caller lacks the `ENVIRONMENT_GUARDIAN` permission for the action this verb
+                needs.
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+        NotFound:
+            description: |
+                No Guardian with this id **in this environment**. One that exists in another
+                environment answers the same way, on purpose: the response does not distinguish
+                "absent" from "not yours".
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+
+    schemas:
+        Guardian:
+            type: object
+            description: A Guardian as this surface serves it.
+            properties:
+                id:
+                    type: string
+                    maxLength: 64
+                name:
+                    type: string
+                    maxLength: 512
+                description:
+                    type: string
+                    maxLength: 1024
+                    description: |
+                        Free text the console shows beside the name. Control-plane only: the gateway
+                        never reads it, so it is not part of the definition.
+                phase:
+                    $ref: "#/components/schemas/GuardianPhase"
+                apiTypes:
+                    $ref: "#/components/schemas/ApiTypes"
+                policies:
+                    $ref: "#/components/schemas/Policies"
+                resources:
+                    $ref: "#/components/schemas/Resources"
+                lifecycleState:
+                    $ref: "#/components/schemas/GuardianLifecycleState"
+                deployedAt:
+                    $ref: "#/components/schemas/EpochSeconds"
+                createdAt:
+                    $ref: "#/components/schemas/EpochSeconds"
+                updatedAt:
+                    $ref: "#/components/schemas/EpochSeconds"
+            required:
+                - id
+                - name
+                - phase
+                - apiTypes
+                - lifecycleState
+                - createdAt
+                - updatedAt
+            example:
+                id: cd7e491c-5398-483d-b24e-208d6ac197f1
+                name: Credential leakage guard
+                description: Blocks a reply that echoes an API key.
+                phase: RESPONSE
+                apiTypes:
+                    - llm-proxy
+                policies:
+                    - name: Mask credentials
+                      policy: data-logging-masking
+                      enabled: true
+                lifecycleState: UNDEPLOYED
+                createdAt: 1793889043.331
+                updatedAt: 1793889043.331
+
+        CreateGuardian:
+            type: object
+            description: |
+                The whole Guardian definition, guardrail sequence included. Rejects any key it does
+                not declare, rather than ignoring it — an unknown property answers 400.
+
+                The environment is not a property: it comes from the path. Neither is `deployedAt`,
+                which only a deployment may write.
+            additionalProperties: false
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                    description: |
+                        Optional, and a UUID when given — anything else answers 400. Omit it and the
+                        server generates one. An id already in use is refused with 400.
+                name:
+                    type: string
+                    maxLength: 512
+                description:
+                    type: string
+                    maxLength: 1024
+                    description: |
+                        Free text the console shows beside the name. Control-plane only: the gateway
+                        never reads it, so it is not part of the definition.
+                phase:
+                    $ref: "#/components/schemas/GuardianPhase"
+                apiTypes:
+                    $ref: "#/components/schemas/ApiTypes"
+                policies:
+                    $ref: "#/components/schemas/Policies"
+                resources:
+                    $ref: "#/components/schemas/Resources"
+            required:
+                - name
+                - phase
+                - apiTypes
+            example:
+                name: Credential leakage guard
+                description: Blocks a reply that echoes an API key.
+                phase: RESPONSE
+                apiTypes:
+                    - llm-proxy
+                policies:
+                    - name: Mask credentials
+                      policy: data-logging-masking
+                      enabled: true
+
+        UpdateGuardian:
+            type: object
+            description: |
+                The whole definition again: a `PUT` replaces, it does not patch. A property this body
+                leaves out is left out of the stored definition too, so a client that edits one
+                setting sends back everything it read.
+
+                `id` is not a property — the path owns it, and a second one in the body could only
+                disagree. Rejects any key it does not declare.
+            additionalProperties: false
+            properties:
+                name:
+                    type: string
+                    maxLength: 512
+                description:
+                    type: string
+                    maxLength: 1024
+                    description: |
+                        Free text the console shows beside the name. Control-plane only: the gateway
+                        never reads it, so it is not part of the definition.
+                phase:
+                    $ref: "#/components/schemas/GuardianPhase"
+                apiTypes:
+                    $ref: "#/components/schemas/ApiTypes"
+                policies:
+                    $ref: "#/components/schemas/Policies"
+                resources:
+                    $ref: "#/components/schemas/Resources"
+            required:
+                - name
+                - phase
+                - apiTypes
+            example:
+                name: Credential leakage guard v2
+                description: Blocks a reply that echoes an API key, v2.
+                phase: RESPONSE
+                apiTypes:
+                    - llm-proxy
+                policies: []
+
+        GuardiansResponse:
+            type: object
+            description: |
+                The `{ data, pagination }` envelope the rest of this surface uses. 1-based `page`.
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Guardian"
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+            required:
+                - data
+                - pagination
+
+        Pagination:
+            type: object
+            properties:
+                totalCount:
+                    type: integer
+                    format: int64
+                    description: Guardians matching the query across every page.
+                page:
+                    type: integer
+                    description: 1-based number of the page served.
+                perPage:
+                    type: integer
+                    description: |
+                        The page size actually served, which is the default or the cap when the
+                        request asked for neither a valid size nor none. Not the number of rows
+                        this page holds — that is `pageItemsCount`.
+                pageCount:
+                    type: integer
+                    description: Pages needed for `totalCount` at `perPage` rows each.
+                pageItemsCount:
+                    type: integer
+                    description: Rows in `data`. Smaller than `perPage` on the last page.
+            required:
+                - totalCount
+                - page
+                - perPage
+                - pageCount
+                - pageItemsCount
+
+        ApiType:
+            type: string
+            description: |
+                The kind of API a Guardian is designed for, spelled as the label the rest of APIM
+                uses — `llm-proxy`, not `LLM_PROXY`. **Creation accepts `llm-proxy` only** in 4.14;
+                the other values can be read but not written here.
+            enum:
+                - a2a-proxy
+                - authz
+                - edge
+                - llm-proxy
+                - mcp-proxy
+                - message
+                - native
+                - proxy
+            example: llm-proxy
+
+        ApiTypes:
+            type: array
+            description: |
+                The API types this Guardian is designed for. **In 4.14 the only accepted value is
+                `llm-proxy`**, and the list may not be empty: the gateway runs a Guardian on nothing
+                else, so storing another type would store a Guardian nothing can execute.
+            minItems: 1
+            items:
+                $ref: "#/components/schemas/ApiType"
+            example:
+                - llm-proxy
+
+        Policies:
+            type: array
+            description: |
+                The guardrail sequence, in order. Each entry is a v4 definition-model `Step` — the
+                same shape a flow uses, carrying at least `policy`, plus `name`, `description`,
+                `configuration`, `condition` and `enabled`. Not enumerated here: the shape belongs to
+                `gravitee-apim-definition`, and restating it would let the two drift apart.
+            items:
+                type: object
+                additionalProperties: true
+            example:
+                - name: Mask credentials
+                  policy: data-logging-masking
+                  enabled: true
+
+        Resources:
+            type: array
+            description: |
+                The resources the guardrails need, as v4 definition-model `Resource` entries. Same
+                reasoning as `policies`: the shape lives in the definition model.
+            items:
+                type: object
+                additionalProperties: true
+            example: []
+
+        GuardianPhase:
+            type: string
+            description: |
+                When the guardrail sequence runs. Chosen at creation and sent again on every update,
+                because a `PUT` replaces the whole definition.
+            enum:
+                - REQUEST
+                - RESPONSE
+
+        GuardianLifecycleState:
+            type: string
+            description: |
+                Whether the gateway is running this Guardian. Set by the deployment path, never by
+                this surface: a Guardian created here is always `UNDEPLOYED`.
+            enum:
+                - DEPLOYED
+                - UNDEPLOYED
+                - PENDING
+
+        EpochSeconds:
+            type: number
+            format: double
+            description: |
+                Seconds since the Unix epoch, with a fractional part — **not** an RFC 3339 string.
+            example: 1793889043.331
+
+        Error:
+            type: object
+            description: |
+                The error body of this surface. It carries a human-readable message and the status,
+                and **no technical code** — do not write a client against one.
+            properties:
+                message:
+                    type: string
+                http_status:
+                    type: integer
+            required:
+                - message
+                - http_status
+            example:
+                message: "Guardian 'nope' not found"
+                http_status: 404
