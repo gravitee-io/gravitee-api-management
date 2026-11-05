@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
+import io.gravitee.apim.core.portal.exception.SeveralPortalsInEnvironmentException;
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.environment.EnvironmentCommand;
@@ -99,12 +100,13 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
                 accessPointsToCreate
             );
             // The portal access point is stored only now: a default portal created by createOrUpdate could not resolve its URL yet.
+            // ParameterService memoizes parameters per thread by key only: clear the context around the URL
+            // resolution so this environment never gets a portal URL read for another one.
+            GraviteeContext.cleanContext();
             try {
-                defaultPortalDomainService.ensureDefault(environment.getOrganizationId(), environment.getId());
+                ensureDefaultPortal(environment);
                 defaultPortalDomainService.syncUrl(environment.getId());
             } finally {
-                // ParameterService memoizes parameters per thread by key only: the next command on this thread
-                // must not resolve its environment's portal URL to this one.
                 GraviteeContext.cleanContext();
             }
 
@@ -122,6 +124,18 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
             );
             log.error(errorDetails, e);
             return Single.just(new EnvironmentReply(command.getId(), errorDetails));
+        }
+    }
+
+    /**
+     * An environment can hold several portals when the Automation API allows it: the command still succeeds, since the
+     * environment and its access points are already stored.
+     */
+    private void ensureDefaultPortal(EnvironmentEntity environment) {
+        try {
+            defaultPortalDomainService.ensureDefault(environment.getOrganizationId(), environment.getId());
+        } catch (SeveralPortalsInEnvironmentException e) {
+            log.warn("No default portal ensured for environment [{}]: {}", environment.getId(), e.getMessage());
         }
     }
 

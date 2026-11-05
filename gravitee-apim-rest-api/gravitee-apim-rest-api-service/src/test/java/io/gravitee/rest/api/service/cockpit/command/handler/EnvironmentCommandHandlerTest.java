@@ -29,6 +29,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
+import io.gravitee.apim.core.portal.exception.SeveralPortalsInEnvironmentException;
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
 import io.gravitee.cockpit.api.command.model.accesspoint.AccessPoint;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
@@ -164,6 +165,46 @@ public class EnvironmentCommandHandlerTest {
         cut.handle(new EnvironmentCommand(anEnvironmentPayload("env-y"))).test().await();
 
         assertThat(memoizedWhenHandlingY.get()).isNull();
+    }
+
+    @Test
+    @SneakyThrows
+    void should_not_resolve_the_portal_url_with_a_value_memoized_before_the_command() {
+        GraviteeContext.getCurrentParameters().put(Key.PORTAL_URL, "https://stale.acme.io");
+        var memoizedWhenEnsuring = new AtomicReference<String>("unset");
+        doAnswer(invocation -> {
+            memoizedWhenEnsuring.set(GraviteeContext.getCurrentParameters().get(Key.PORTAL_URL));
+            return Optional.empty();
+        })
+            .when(defaultPortalDomainService)
+            .ensureDefault("orga#1", "env-y");
+        when(environmentService.findByCockpitId(any())).thenThrow(new EnvironmentNotFoundException("Env not found"));
+        when(environmentService.createOrUpdate(eq("orga#1"), eq("env-y"), any())).thenReturn(
+            EnvironmentEntity.builder().id("env-y").organizationId("orga#1").build()
+        );
+
+        cut.handle(new EnvironmentCommand(anEnvironmentPayload("env-y"))).test().await();
+
+        assertThat(memoizedWhenEnsuring.get()).isNull();
+    }
+
+    @Test
+    @SneakyThrows
+    void should_succeed_and_sync_the_url_when_the_environment_has_several_portals() {
+        when(defaultPortalDomainService.ensureDefault("orga#1", "env-multi")).thenThrow(
+            new SeveralPortalsInEnvironmentException("env-multi", List.of("[p1] \"One\"", "[p2] \"Two\""))
+        );
+        when(environmentService.findByCockpitId(any())).thenThrow(new EnvironmentNotFoundException("Env not found"));
+        when(environmentService.createOrUpdate(eq("orga#1"), eq("env-multi"), any())).thenReturn(
+            EnvironmentEntity.builder().id("env-multi").organizationId("orga#1").build()
+        );
+
+        TestObserver<EnvironmentReply> obs = cut.handle(new EnvironmentCommand(anEnvironmentPayload("env-multi"))).test();
+
+        obs.await();
+        obs.assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        verify(defaultPortalDomainService).syncUrl("env-multi");
+        verify(createDefaultPortalNavigationItemsUseCase).execute("orga#1", "env-multi");
     }
 
     private static EnvironmentCommandPayload anEnvironmentPayload(String envId) {
