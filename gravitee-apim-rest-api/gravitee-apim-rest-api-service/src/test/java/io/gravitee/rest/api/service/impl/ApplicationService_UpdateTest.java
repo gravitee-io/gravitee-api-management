@@ -756,6 +756,174 @@ public class ApplicationService_UpdateTest {
     }
 
     @Test
+<<<<<<< HEAD
+=======
+    public void should_keep_subscription_metadata_when_renaming_application() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setApp(new SimpleApplicationSettings());
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(NEW_APPLICATION_NAME);
+        when(applicationRepository.update(any())).thenReturn(existingApplication);
+
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+
+        MembershipEntity po = getPrimaryOwner();
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId("sub-1");
+        subscription.setApplicationName(APPLICATION_NAME);
+        subscription.setMetadata(Map.of("tier", "gold", "legacy.key", "kept"));
+        when(subscriptionService.search(any(), any())).thenReturn(List.of(subscription));
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(getConsoleConfigEntity(false));
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        ArgumentCaptor<Consumer<Subscription>> subscriptionModifierCaptor = ArgumentCaptor.forClass(Consumer.class);
+        verify(subscriptionService).update(any(), any(UpdateSubscriptionEntity.class), subscriptionModifierCaptor.capture());
+
+        // Before the modifier runs, the subscription update has replaced the stored metadata with the request's: none
+        Subscription storedSubscription = new Subscription();
+        subscriptionModifierCaptor.getValue().accept(storedSubscription);
+        Assertions.assertThat(storedSubscription.getApplicationName()).isEqualTo(NEW_APPLICATION_NAME);
+        Assertions.assertThat(storedSubscription.getMetadata()).containsExactlyInAnyOrderEntriesOf(
+            Map.of("tier", "gold", "legacy.key", "kept")
+        );
+    }
+
+    @Test
+    public void should_allow_certificate_rename_when_fingerprint_already_belongs_to_same_application() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setApp(new SimpleApplicationSettings());
+        settings.setTls(
+            TlsSettings.builder()
+                .clientCertificates(
+                    java.util.List.of(
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("new-name", null, null, VALID_PEM_1)
+                    )
+                )
+                .build()
+        );
+
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+
+        io.gravitee.apim.core.application_certificate.model.ClientCertificate existingCert =
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "existing-cert-id",
+                null,
+                APPLICATION_ID,
+                "old-name",
+                null,
+                null,
+                new java.util.Date(),
+                new java.util.Date(),
+                VALID_PEM_1,
+                null,
+                null,
+                null,
+                "fp:" + VALID_PEM_1,
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
+        when(
+            clientCertificateCrudService.findByApplicationIdAndStatuses(
+                any(),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
+            )
+        ).thenReturn(java.util.List.of(existingCert));
+
+        applicationService.syncClientCertificates(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        verify(clientCertificateCrudService).update(eq("existing-cert-id"), any());
+        verify(clientCertificateCrudService, never()).create(any(), any());
+        verify(clientCertificateValidationDomainService, never()).validateForCreation(any(), any(), any());
+    }
+
+    @Test
+    public void should_create_certificate_during_sync_when_exclude_ignores_same_application_fingerprint() throws TechnicalException {
+        ClientCertificateCrudServiceInMemory backingStore = new ClientCertificateCrudServiceInMemory();
+        ClientCertificateValidationDomainServiceImpl realValidation = new ClientCertificateValidationDomainServiceImpl(backingStore);
+        var certInfo = realValidation.validate(VALID_PEM_1);
+
+        backingStore.initWith(
+            List.of(
+                new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                    "stored-cert-id",
+                    null,
+                    APPLICATION_ID,
+                    "existing",
+                    null,
+                    null,
+                    new java.util.Date(),
+                    new java.util.Date(),
+                    VALID_PEM_1,
+                    null,
+                    null,
+                    null,
+                    certInfo.fingerprint(),
+                    GraviteeContext.getExecutionContext().getEnvironmentId(),
+                    io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+                )
+            )
+        );
+
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setApp(new SimpleApplicationSettings());
+        settings.setTls(TlsSettings.builder().clientCertificate(VALID_PEM_1).build());
+
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+
+        io.gravitee.apim.core.application_certificate.model.ClientCertificate staleExisting =
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "stored-cert-id",
+                null,
+                APPLICATION_ID,
+                "existing",
+                null,
+                null,
+                new java.util.Date(),
+                new java.util.Date(),
+                VALID_PEM_1,
+                null,
+                null,
+                null,
+                "stale-fingerprint",
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
+        when(
+            clientCertificateCrudService.findByApplicationIdAndStatuses(
+                any(),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
+            )
+        ).thenReturn(java.util.List.of(staleExisting));
+        when(clientCertificateCrudService.create(eq(APPLICATION_ID), any())).thenAnswer(invocation ->
+            backingStore.create(invocation.getArgument(0), invocation.getArgument(1))
+        );
+        when(clientCertificateValidationDomainService.validate(any())).thenAnswer(invocation ->
+            realValidation.validate(invocation.getArgument(0))
+        );
+        when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any())).thenAnswer(invocation ->
+            realValidation.validateForCreation(invocation.getArgument(0), invocation.getArgument(1), invocation.getArgument(2))
+        );
+
+        applicationService.syncClientCertificates(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        verify(clientCertificateCrudService).create(eq(APPLICATION_ID), any());
+        verify(clientCertificateValidationDomainService).validateForCreation(any(), any(), eq(APPLICATION_ID));
+    }
+
+    @Test
+>>>>>>> 9d8a114 (fix(application): keep subscription metadata on app rename (APIM-15496))
     public void should_update_client_certificate_via_crud_service() throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
         settings.setApp(new SimpleApplicationSettings());
