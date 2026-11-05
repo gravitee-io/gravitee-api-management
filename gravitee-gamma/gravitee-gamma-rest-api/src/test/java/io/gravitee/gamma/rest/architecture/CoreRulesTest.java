@@ -45,8 +45,18 @@ class CoreRulesTest {
             "com.fasterxml..",
             "org.slf4j..",
             "io.gravitee.common..",
-            "io.gravitee.apim.core",
-            "io.gravitee.apim.core.exception..",
+            // the apim core, whose concerns the host already owns: the domain writes its own audit log
+            // through AuditDomainService and its validators implement
+            // io.gravitee.apim.core.validation.Validator, rather than each gamma domain re-inventing a
+            // port for both. Requested by the lead on AIAM-1574.
+            "io.gravitee.apim.core..",
+            // the definition model, which AGENTS.md section 5 already lists as allowed; the rule was
+            // stricter than its own documentation, which is what forced a local ApiType copy
+            "io.gravitee.definition..",
+            // bean validation, which AGENTS.md section 5 also already allows as part of jakarta.*: the
+            // create and update commands declare their constraints, so they hold for every caller of
+            // the use case and not only for one arriving through JAX-RS. Requested by the lead.
+            "jakarta.validation..",
             // meta-annotation pulled transitively by {@code @UseCase} (accepted trade-off, AGENTS.md §5).
             "org.springframework.transaction.annotation..",
             CORE_PACKAGE
