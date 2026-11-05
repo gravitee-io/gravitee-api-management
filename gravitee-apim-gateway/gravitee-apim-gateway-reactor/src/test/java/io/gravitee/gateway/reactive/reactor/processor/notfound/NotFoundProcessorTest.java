@@ -24,17 +24,21 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.reactor.processor.AbstractProcessorTest;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Flowable;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.StandardEnvironment;
 
 /**
@@ -66,5 +70,26 @@ class NotFoundProcessorTest extends AbstractProcessorTest {
         assertThat(metrics.getApiId()).isEqualTo(UNKNOWN_SERVICE);
         assertThat(metrics.getApplicationId()).isEqualTo(UNKNOWN_SERVICE);
         verify(mockResponse).status(HttpStatusCode.NOT_FOUND_404);
+    }
+
+    @Test
+    void should_set_content_length_from_the_encoded_body_when_the_message_is_not_ascii() {
+        String message = "Aucune API à cette adresse.";
+        StandardEnvironment environment = new StandardEnvironment();
+        environment.getPropertySources().addFirst(new MapPropertySource("test", Map.of("http.errors[404].message", message)));
+        notFoundProcessor = new NotFoundProcessor(environment);
+
+        HttpHeaders headers = HttpHeaders.create();
+        when(mockResponse.headers()).thenReturn(headers);
+
+        notFoundProcessor.execute(ctx).test().assertResult();
+
+        ArgumentCaptor<Buffer> body = ArgumentCaptor.forClass(Buffer.class);
+        verify(mockResponse).body(body.capture());
+        assertThat(body.getValue().toString()).isEqualTo(message);
+        assertThat(headers.get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo(
+            Integer.toString(message.getBytes(StandardCharsets.UTF_8).length)
+        );
+        assertThat(headers.get(HttpHeaderNames.CONTENT_LENGTH)).isNotEqualTo(Integer.toString(message.length()));
     }
 }
