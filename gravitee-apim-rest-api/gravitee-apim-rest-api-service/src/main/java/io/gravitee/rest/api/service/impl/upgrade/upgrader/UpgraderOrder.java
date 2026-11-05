@@ -73,6 +73,7 @@ public class UpgraderOrder {
     public static final int PORTAL_NAVIGATION_ITEM_API_OWNED_REKEY_UPGRADER = 725;
     public static final int PORTAL_NAVIGATION_ITEM_API_OWNED_CONSOLE_MIGRATION_UPGRADER = 726;
     public static final int ENVIRONMENTS_DEFAULT_APIS_FOLDER_UPGRADER = 727;
+    public static final int DEFAULT_PORTAL_UPGRADER = 728;
     public static final int CLUSTER_ROLES_UPGRADER = 900;
     public static final int CLUSTER_CROSS_ID_UPGRADER = 901;
     public static final int API_ENDPOINT_WEIGHT_UPGRADER = 560;
