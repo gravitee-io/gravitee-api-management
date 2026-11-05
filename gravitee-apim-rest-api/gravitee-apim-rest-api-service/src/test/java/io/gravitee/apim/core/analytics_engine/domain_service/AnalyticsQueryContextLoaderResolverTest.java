@@ -26,6 +26,7 @@ import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -39,7 +40,15 @@ class AnalyticsQueryContextLoaderResolverTest {
     private final AuditInfo auditInfo = AuditInfo.builder().organizationId("org").environmentId("env").build();
 
     private AnalyticsQueryContext aContext(String apiId) {
-        return new AnalyticsQueryContext(auditInfo, new ExecutionContext("org", "env"), Set.of(apiId), Map.of(), Map.of(), Map.of());
+        return new AnalyticsQueryContext(
+            auditInfo,
+            new ExecutionContext("org", "env"),
+            Set.of(apiId),
+            Map.of(),
+            Map.of(),
+            Map.of(),
+            Optional.empty()
+        );
     }
 
     @Test

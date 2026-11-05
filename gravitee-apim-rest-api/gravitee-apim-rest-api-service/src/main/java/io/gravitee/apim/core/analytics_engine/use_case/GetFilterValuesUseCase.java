@@ -408,7 +408,8 @@ public class GetFilterValuesUseCase {
             narrowedAuthorizedIds,
             narrowedNames,
             context.applicationNamesById(),
-            context.apiIdsByType()
+            context.apiIdsByType(),
+            context.restrictedToApplicationIds()
         );
     }
 
