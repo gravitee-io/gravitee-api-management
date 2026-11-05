@@ -37,7 +37,8 @@ public class EventWithInitiator extends Event {
             b.getProperties(),
             b.getEnvironments(),
             b.getCreatedAt(),
-            b.getUpdatedAt()
+            b.getUpdatedAt(),
+            b.getExpiresAt()
         );
         this.initiator = initiator;
     }

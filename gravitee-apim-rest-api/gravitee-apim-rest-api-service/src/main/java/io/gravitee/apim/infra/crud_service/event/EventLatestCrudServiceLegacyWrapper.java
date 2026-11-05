@@ -18,19 +18,36 @@ package io.gravitee.apim.infra.crud_service.event;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.infra.adapter.EventAdapter;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.rest.api.service.EventService;
-import lombok.RequiredArgsConstructor;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-@RequiredArgsConstructor
 @Service
 public class EventLatestCrudServiceLegacyWrapper implements EventLatestCrudService {
 
     private final EventService eventService;
+    private final EventLatestRepository eventLatestRepository;
+
+    public EventLatestCrudServiceLegacyWrapper(EventService eventService, @Lazy EventLatestRepository eventLatestRepository) {
+        this.eventService = eventService;
+        this.eventLatestRepository = eventLatestRepository;
+    }
 
     @Override
     public Event createOrPatchLatestEvent(String organizationId, String latestEventId, Event event) {
         eventService.createOrPatchLatestEvent(latestEventId, organizationId, EventAdapter.INSTANCE.toEntity(event));
         return event;
+    }
+
+    @Override
+    public void delete(String latestEventId) {
+        try {
+            eventLatestRepository.delete(latestEventId);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while trying to delete latest event " + latestEventId, e);
+        }
     }
 }

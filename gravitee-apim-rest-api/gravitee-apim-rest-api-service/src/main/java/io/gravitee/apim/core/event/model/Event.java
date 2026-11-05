@@ -51,6 +51,9 @@ public class Event {
     private ZonedDateTime createdAt;
     private ZonedDateTime updatedAt;
 
+    /** When the event stops applying; kept on latest events only. */
+    private ZonedDateTime expiresAt;
+
     @RequiredArgsConstructor
     @Getter
     public enum EventProperties {
@@ -69,7 +72,9 @@ public class Event {
         ORGANIZATIONS_HRIDS_PROPERTY("organizations_hrids"),
         SHARED_POLICY_GROUP_ID("shared_policy_group_id"),
         API_PRODUCT_ID("api_product_id"),
-        CLUSTER_ID("cluster_id");
+        CLUSTER_ID("cluster_id"),
+        GENERIC_EVENT_ID("generic_event_id"),
+        GENERIC_EVENT_KIND("generic_event_kind");
 
         private static final Map<String, EventProperties> LABELS_MAP;
 

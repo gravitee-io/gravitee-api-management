@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
 import java.util.Map;
@@ -38,6 +39,9 @@ public class EventEntity {
 
     @JsonProperty("updated_at")
     private Date updatedAt;
+
+    @JsonIgnore
+    private Date expiresAt;
 
     public String getId() {
         return id;
@@ -101,6 +105,14 @@ public class EventEntity {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Date getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(Date expiresAt) {
+        this.expiresAt = expiresAt;
     }
 
     public void setEnvironments(Set<String> environments) {

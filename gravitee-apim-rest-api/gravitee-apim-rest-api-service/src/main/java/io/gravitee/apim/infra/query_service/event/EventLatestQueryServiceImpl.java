@@ -20,18 +20,25 @@ import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
 import io.gravitee.apim.infra.adapter.EventAdapter;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.EventLatestCursor;
+import io.gravitee.repository.management.api.search.EventLatestPage;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
 public class EventLatestQueryServiceImpl implements EventLatestQueryService {
+
+    static final int FIND_ALL_PAGE_SIZE = 100;
 
     private final EventLatestRepository eventLatestRepository;
 
@@ -89,6 +96,37 @@ public class EventLatestQueryServiceImpl implements EventLatestQueryService {
             return events.stream().map(EventAdapter.INSTANCE::map).collect(Collectors.toList());
         } catch (Exception e) {
             throw new TechnicalManagementException("An error occurs while trying to find latest events: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Stream<Event> findAll(Set<io.gravitee.rest.api.model.EventType> eventTypes, Instant expiresBefore, Instant updatedBefore) {
+        var criteria = EventCriteria.builder().types(
+            eventTypes
+                .stream()
+                .map(et -> EventType.valueOf(et.name()))
+                .toList()
+        );
+        if (expiresBefore != null) {
+            criteria.expiresBefore(expiresBefore.toEpochMilli());
+        }
+        if (updatedBefore != null) {
+            criteria.to(updatedBefore.toEpochMilli());
+        }
+        var built = criteria.build();
+        // Keyset pages fetched lazily, so the caller holds one page at a time.
+        return Stream.iterate(searchAfter(built, null), Objects::nonNull, page ->
+            page.events().size() < FIND_ALL_PAGE_SIZE ? null : searchAfter(built, page.next())
+        )
+            .flatMap(page -> page.events().stream())
+            .map(EventAdapter.INSTANCE::map);
+    }
+
+    private EventLatestPage searchAfter(EventCriteria criteria, EventLatestCursor after) {
+        try {
+            return eventLatestRepository.searchAfter(criteria, null, after, FIND_ALL_PAGE_SIZE);
+        } catch (Exception e) {
+            throw new TechnicalManagementException("An error occurs while trying to find latest events after " + after, e);
         }
     }
 }

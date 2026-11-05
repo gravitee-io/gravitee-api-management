@@ -595,6 +595,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         event.setProperties(new HashMap<>(eventEntity.getProperties()));
         event.setCreatedAt(eventEntity.getCreatedAt());
         event.setUpdatedAt(eventEntity.getUpdatedAt());
+        event.setExpiresAt(eventEntity.getExpiresAt());
 
         return event;
     }
