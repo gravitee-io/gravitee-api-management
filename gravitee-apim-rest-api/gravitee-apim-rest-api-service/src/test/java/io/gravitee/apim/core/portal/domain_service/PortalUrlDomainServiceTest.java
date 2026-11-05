@@ -69,6 +69,23 @@ class PortalUrlDomainServiceTest {
     }
 
     @ParameterizedTest
+    @ValueSource(strings = { "  https://portal.acme.io  ", "HTTPS://portal.acme.io" })
+    void should_accept_a_padded_url_or_an_upper_case_scheme(String portalUrl) {
+        installationAccessQueryService.withPortalUrl(ENV_ID, portalUrl);
+
+        assertThat(cut.resolveDefaultPortalUrl(ENV_ID)).hasValueSatisfying(url ->
+            assertThat(url.toString()).endsWith("://portal.acme.io/next")
+        );
+    }
+
+    @Test
+    void should_return_empty_when_portal_url_carries_credentials() {
+        installationAccessQueryService.withPortalUrl(ENV_ID, "https://user:secret@portal.acme.io");
+
+        assertThat(cut.resolveDefaultPortalUrl(ENV_ID)).isEmpty();
+    }
+
+    @ParameterizedTest
     @NullSource
     @ValueSource(strings = { "", "   " })
     void should_return_empty_when_no_portal_url(String portalUrl) {

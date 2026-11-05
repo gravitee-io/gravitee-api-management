@@ -37,7 +37,7 @@ public class PortalUrlDomainService {
     /**
      * The URL of the environment's Next Gen portal: its portal URL followed by {@code /next}.
      *
-     * @return empty when the environment has no portal URL, or one that is not an absolute http(s) URL
+     * @return empty when the environment has no portal URL, or one that is not an absolute http(s) URL without credentials
      */
     public Optional<URL> resolveDefaultPortalUrl(String environmentId) {
         var portalUrl = installationAccessQueryService.getPortalUrl(environmentId);
@@ -58,7 +58,13 @@ public class PortalUrlDomainService {
     private static Optional<URL> toHttpUrl(String value) {
         try {
             var uri = new URI(value);
-            if (uri.getScheme() == null || !HTTP_SCHEMES.contains(uri.getScheme().toLowerCase()) || uri.getHost() == null) {
+            // A user-info part would put credentials in the stored URL and in the logs.
+            if (
+                uri.getScheme() == null ||
+                !HTTP_SCHEMES.contains(uri.getScheme().toLowerCase()) ||
+                uri.getHost() == null ||
+                uri.getRawUserInfo() != null
+            ) {
                 return Optional.empty();
             }
             return Optional.of(uri.toURL());
