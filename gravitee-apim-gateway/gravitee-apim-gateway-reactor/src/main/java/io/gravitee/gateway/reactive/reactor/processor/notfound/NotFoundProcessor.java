@@ -63,12 +63,15 @@ public class NotFoundProcessor implements Processor {
                 ctx.response().headers().set("grpc-message", message);
             }
 
-            ctx.response().headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(message.length()));
+            final Buffer body = Buffer.buffer(message);
+            // Counted on the encoded body, not on the string: a non-ASCII character is more than one byte,
+            // and a short Content-Length truncates the response.
+            ctx.response().headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(body.length()));
             ctx
                 .response()
                 .headers()
                 .set(HttpHeaderNames.CONTENT_TYPE, environment.getProperty("http.errors[404].contentType", MediaType.TEXT_PLAIN));
-            ctx.response().body(Buffer.buffer(message));
+            ctx.response().body(body);
             return ctx.response().end(ctx);
         });
     }
