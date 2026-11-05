@@ -35,9 +35,10 @@ import org.junit.jupiter.params.provider.ValueSource;
  *
  * <p>Every consumer of the APIM version — the Cockpit hello command, the gateway heartbeat, the node
  * endpoint, the startup banner — reads {@code Version.RUNTIME_VERSION}, which is the first
- * {@code version.properties} on the classpath. The core container jar carries one stamped with the
- * core version; once the core and the distribution stop sharing a number, that is not the version
- * users know. The distribution must ship its own and make it win.
+ * {@code version.properties} on the classpath. The distribution ships the only one; recent core
+ * container jars no longer carry one, but older pinned ones still do, stamped with the core version,
+ * which is not the version users know once the two stop sharing a number. The distribution's must
+ * win over it.
  *
  * <p>Like {@code ObservabilityEntrypointsDistributionTest}, this reads the distributions that
  * {@code Build backend} assembled, and needs them under {@code target/distribution}.
