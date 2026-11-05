@@ -76,6 +76,7 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
             "ENTRYPOINT",
             "EXPLORER",
             "GROUP",
+            "GUARDIAN",
             "IDENTITY_PROVIDER_ACTIVATION",
             "INSTANCE",
             "INTEGRATION",

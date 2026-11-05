@@ -22,6 +22,8 @@ import io.gravitee.gamma.rest.resources.OpenAPIResource;
 import io.gravitee.gamma.rest.resources.UnknownPropertyExceptionMapper;
 import io.gravitee.gamma.rest.resources.gravitee_plugin.AgentProviderPluginResource;
 import io.gravitee.gamma.rest.resources.gravitee_plugin.PluginResource;
+import io.gravitee.gamma.rest.resources.guardian.GuardianResource;
+import io.gravitee.gamma.rest.resources.guardian.GuardiansResource;
 import io.gravitee.gamma.rest.resources.observability.GammaObservabilityResource;
 import io.gravitee.gamma.rest.resources.observability.analytics.AnalyticsDefinitionResource;
 import io.gravitee.gamma.rest.resources.observability.analytics.AnalyticsResource;
@@ -68,6 +70,8 @@ public class GammaModuleApplication extends ResourceConfig {
         register(GammaRootResource.class);
         register(GammaUIResource.class);
         register(OpenAPIResource.class);
+        register(GuardiansResource.class);
+        register(GuardianResource.class);
         register(GammaObservabilityResource.class);
         register(TracingResource.class);
         register(ObservabilityFiltersResource.class);
