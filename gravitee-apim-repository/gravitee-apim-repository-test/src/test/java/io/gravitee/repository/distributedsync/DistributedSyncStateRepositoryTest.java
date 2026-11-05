@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.distributedsync.api.DistributedSyncStateRepository;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
+import io.gravitee.repository.distributedsync.model.DistributedSyncStatus;
 import lombok.CustomLog;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +67,45 @@ public class DistributedSyncStateRepositoryTest extends AbstractRepositoryTest {
                 assertThat(distributedSyncState.getNodeVersion()).isEqualTo("nodeVersion");
                 assertThat(distributedSyncState.getFrom()).isEqualTo(1683877018L);
                 assertThat(distributedSyncState.getTo()).isEqualTo(1683877618L);
+                return true;
+            });
+    }
+
+    @Test
+    public void should_read_a_legacy_state_without_status_as_active() throws InterruptedException {
+        distributedSyncStateRepository
+            .findByClusterId("clusterId")
+            .test()
+            .await()
+            .assertValue(distributedSyncState -> distributedSyncState.getStatus() == null && distributedSyncState.active());
+    }
+
+    @Test
+    public void should_store_and_read_the_catalog_status_and_resync_markers() throws InterruptedException {
+        distributedSyncStateRepository
+            .createOrUpdate(
+                DistributedSyncState.builder()
+                    .clusterId("clusterId")
+                    .nodeId("primary")
+                    .nodeVersion("4.14.0")
+                    .from(-1L)
+                    .to(2000L)
+                    .status(DistributedSyncStatus.PAUSED)
+                    .resyncId(3L)
+                    .heartbeatAt(2500L)
+                    .tombstoneHorizon(1500L)
+                    .build()
+            )
+            .andThen(distributedSyncStateRepository.findByClusterId("clusterId"))
+            .test()
+            .await()
+            .assertValue(distributedSyncState -> {
+                assertThat(distributedSyncState.getStatus()).isEqualTo(DistributedSyncStatus.PAUSED);
+                assertThat(distributedSyncState.active()).isFalse();
+                assertThat(distributedSyncState.getResyncId()).isEqualTo(3L);
+                assertThat(distributedSyncState.getHeartbeatAt()).isEqualTo(2500L);
+                assertThat(distributedSyncState.getTombstoneHorizon()).isEqualTo(1500L);
+                assertThat(distributedSyncState.getNodeId()).isEqualTo("primary");
                 return true;
             });
     }

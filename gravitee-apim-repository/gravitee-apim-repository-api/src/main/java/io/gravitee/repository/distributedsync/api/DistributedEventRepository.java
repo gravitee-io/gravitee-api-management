@@ -21,7 +21,9 @@ import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Single;
 import java.util.Date;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -114,5 +116,41 @@ public interface DistributedEventRepository {
         final DistributedSyncAction syncAction
     ) {
         return updateAll(clusterId, refType, refId, syncAction, new Date());
+    }
+
+    /**
+     * Makes sure the structures needed to search events exist (e.g. a search index), creating them if they were
+     * lost.
+     */
+    default Completable ensureSearchable() {
+        return Completable.complete();
+    }
+
+    /**
+     * Whether every stored event is visible to searches. A search structure being (re)built after a restart of the
+     * underlying store returns partial results, which a node starting from scratch must not trust.
+     */
+    default Single<Boolean> fullyIndexed() {
+        return Single.just(true);
+    }
+
+    /**
+     * Marks as {@link DistributedSyncAction#UNDEPLOY} every {@link DistributedSyncAction#DEPLOY} event of the given
+     * types last written before {@code before}. Used after a full republish: whatever was not rewritten is no longer
+     * part of the catalog.
+     *
+     * @return the number of events marked
+     */
+    default Single<Long> undeployNotUpdatedSince(final String clusterId, final Set<DistributedEventType> types, final Date before) {
+        return Single.error(new UnsupportedOperationException("Removing stale distributed events is not supported by this repository"));
+    }
+
+    /**
+     * Deletes the {@link DistributedSyncAction#UNDEPLOY} events last written before {@code before}.
+     *
+     * @return the number of events deleted
+     */
+    default Single<Long> deleteUndeployedBefore(final String clusterId, final Date before) {
+        return Single.just(0L);
     }
 }

@@ -41,4 +41,16 @@ public class DistributedSyncState {
     private String nodeVersion;
     private Long from;
     private Long to;
+    /** {@code null} for a state written by a gateway that predates the status, read as {@link DistributedSyncStatus#ACTIVE}. */
+    private DistributedSyncStatus status;
+    /** Incremented each time the primary rebuilds the whole catalog. */
+    private Long resyncId;
+    /** Last time the primary stored this state. */
+    private Long heartbeatAt;
+    /** Removal events older than this instant have been purged from the distributed repository. */
+    private Long tombstoneHorizon;
+
+    public boolean active() {
+        return status == null || status == DistributedSyncStatus.ACTIVE;
+    }
 }

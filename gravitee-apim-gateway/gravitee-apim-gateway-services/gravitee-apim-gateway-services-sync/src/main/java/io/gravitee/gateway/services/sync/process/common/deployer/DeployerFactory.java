@@ -85,6 +85,10 @@ public class DeployerFactory {
         return distributedSyncService;
     }
 
+    public ApiManager apiManager() {
+        return apiManager;
+    }
+
     public SubscriptionDeployer createSubscriptionDeployer() {
         return new SubscriptionDeployer(
             subscriptionService,
