@@ -77,14 +77,7 @@ public class PortalNavigationItemDomainService {
      * written, so a refusal leaves no item of the batch behind.
      */
     public List<PortalNavigationItem> createAll(String organizationId, String environmentId, List<CreatePortalNavigationItem> items) {
-        var unnamed = items
-            .stream()
-            .filter(item -> NavigationItemReference.PortalReference.DEFAULT.equals(item.getReference()))
-            .toList();
-        if (!unnamed.isEmpty()) {
-            var portal = namedOwner(organizationId, environmentId, NavigationItemReference.defaultReference());
-            unnamed.forEach(item -> item.setReference(portal));
-        }
+        nameOwners(organizationId, environmentId, items);
         return items
             .stream()
             .map(item -> create(organizationId, environmentId, item))
@@ -92,7 +85,7 @@ public class PortalNavigationItemDomainService {
     }
 
     public PortalNavigationItem create(String organizationId, String environmentId, CreatePortalNavigationItem createPortalNavigationItem) {
-        createPortalNavigationItem.setReference(namedOwner(organizationId, environmentId, createPortalNavigationItem.getReference()));
+        nameOwners(organizationId, environmentId, List.of(createPortalNavigationItem));
         int sanitizedOrder = this.sanitizeOrderForInsertion(
             createPortalNavigationItem.getParentId(),
             environmentId,
@@ -220,13 +213,36 @@ public class PortalNavigationItemDomainService {
 
     /**
      * The model default reference means the caller did not name the item's portal: it is stored on the portal
-     * the console writes to. PORTAL-345 removes that default.
+     * the console writes to, which refuses a parent of another portal. PORTAL-345 removes that default.
      */
-    private NavigationItemReference namedOwner(String organizationId, String environmentId, NavigationItemReference reference) {
-        if (!NavigationItemReference.PortalReference.DEFAULT.equals(reference)) {
-            return reference;
+    private void nameOwners(String organizationId, String environmentId, List<CreatePortalNavigationItem> items) {
+        var unnamed = items
+            .stream()
+            .filter(item -> NavigationItemReference.PortalReference.DEFAULT.equals(item.getReference()))
+            .toList();
+        if (unnamed.isEmpty()) {
+            return;
         }
-        return new NavigationItemReference.PortalReference(navigationPortalDomainService.resolve(organizationId, environmentId).getId());
+        var portal = navigationPortalDomainService.resolveReference(organizationId, environmentId);
+        for (var item : unnamed) {
+            if (
+                item.getParentId() != null &&
+                belongsToAnotherPortal(queryService.findByIdAndEnvironmentId(environmentId, item.getParentId()), portal)
+            ) {
+                throw NavigationPortalNotResolvedException.foreignDestination(environmentId);
+            }
+        }
+        unnamed.forEach(item -> item.setReference(portal));
+    }
+
+    /** A legacy parent, still on the zero UUID, belongs to no portal in particular. */
+    private static boolean belongsToAnotherPortal(@Nullable PortalNavigationItem parent, NavigationItemReference.PortalReference portal) {
+        return (
+            parent != null &&
+            parent.getReference() instanceof NavigationItemReference.PortalReference parentPortal &&
+            !NavigationItemReference.PortalReference.DEFAULT.equals(parentPortal) &&
+            !parentPortal.equals(portal)
+        );
     }
 
     /**
@@ -350,6 +366,7 @@ public class PortalNavigationItemDomainService {
         boolean ownerFixed
     ) {
         var resolved = requested.toBuilder().renderedParentId(null).reference(null).build();
+        refuseMoveToAnotherPortal(requested, existing);
         if (!apiOwnedNavigationDomainService.isDocumentation(existing)) {
             return resolved;
         }
@@ -377,6 +394,29 @@ public class PortalNavigationItemDomainService {
         return resolved;
     }
 
+    /** An API item is left to {@link #newOwnerAt}. A legacy item, on the zero UUID, is on the portal the console writes to. */
+    private void refuseMoveToAnotherPortal(UpdatePortalNavigationItem requested, PortalNavigationItem existing) {
+        if (
+            !(existing.getReference() instanceof NavigationItemReference.PortalReference itemPortal) ||
+            requested.getParentId() == null ||
+            requested.getParentId().equals(existing.getParentId())
+        ) {
+            return;
+        }
+        var environmentId = existing.getEnvironmentId();
+        var parent = queryService.findByIdAndEnvironmentId(environmentId, requested.getParentId());
+        if (!belongsToAnotherPortal(parent, itemPortal)) {
+            return;
+        }
+        if (
+            NavigationItemReference.PortalReference.DEFAULT.equals(itemPortal) &&
+            !belongsToAnotherPortal(parent, navigationPortalDomainService.resolveReference(existing.getOrganizationId(), environmentId))
+        ) {
+            return;
+        }
+        throw NavigationPortalNotResolvedException.foreignDestination(environmentId);
+    }
+
     /**
      * @return the owner the item takes at the destination, null when it keeps the one it has. An item of the
      *         portal stays with its portal wherever it goes in the portal: only an API takes or gives an item,
@@ -395,17 +435,8 @@ public class PortalNavigationItemDomainService {
         if (!(existing.getReference() instanceof NavigationItemReference.ApiReference)) {
             return null;
         }
-        var defaultPortal = namedOwner(
-            existing.getOrganizationId(),
-            existing.getEnvironmentId(),
-            NavigationItemReference.defaultReference()
-        );
-        if (
-            parent != null &&
-            parent.getReference() instanceof NavigationItemReference.PortalReference parentPortal &&
-            !NavigationItemReference.PortalReference.DEFAULT.equals(parentPortal) &&
-            !parentPortal.equals(defaultPortal)
-        ) {
+        var defaultPortal = navigationPortalDomainService.resolveReference(existing.getOrganizationId(), existing.getEnvironmentId());
+        if (belongsToAnotherPortal(parent, defaultPortal)) {
             throw NavigationPortalNotResolvedException.foreignDestination(existing.getEnvironmentId());
         }
         return defaultPortal;

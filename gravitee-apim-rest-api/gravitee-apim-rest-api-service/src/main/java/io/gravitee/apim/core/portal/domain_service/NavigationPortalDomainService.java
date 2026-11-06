@@ -20,6 +20,7 @@ import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.exception.NavigationPortalNotResolvedException;
 import io.gravitee.apim.core.portal.exception.SeveralPortalsInEnvironmentException;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -50,5 +51,10 @@ public class NavigationPortalDomainService {
         } catch (SeveralPortalsInEnvironmentException e) {
             throw NavigationPortalNotResolvedException.severalPortals(environmentId, e);
         }
+    }
+
+    /** The reference a navigation item stores to belong to the portal {@link #resolve} returns. */
+    public NavigationItemReference.PortalReference resolveReference(String organizationId, String environmentId) {
+        return new NavigationItemReference.PortalReference(resolve(organizationId, environmentId).getId());
     }
 }

@@ -1412,7 +1412,9 @@ class UpdatePortalNavigationItemUseCaseTest {
             var folder = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Tutorials")));
             var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", folder.getId())));
 
-            assertThatThrownBy(() -> move(folder, portalFolder.getId())).isInstanceOf(NavigationPortalNotResolvedException.class);
+            assertThatThrownBy(() -> move(folder, portalFolder.getId()))
+                .isInstanceOf(NavigationPortalNotResolvedException.class)
+                .hasMessageContaining("the destination belongs to a portal managed through the Automation API");
 
             assertThat(List.of(find(folder), find(page))).extracting(PortalNavigationItem::getReference).containsOnly(API_A);
             assertThat(find(folder).getParentId()).isNull();
