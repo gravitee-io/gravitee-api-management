@@ -123,6 +123,7 @@ public enum RolePermission {
     ORGANIZATION_POLICIES(RoleScope.ORGANIZATION, OrganizationPermission.POLICIES),
     ORGANIZATION_AUDIT(RoleScope.ORGANIZATION, OrganizationPermission.AUDIT),
     ORGANIZATION_LICENSE_MANAGEMENT(RoleScope.ORGANIZATION, OrganizationPermission.LICENSE_MANAGEMENT),
+    ORGANIZATION_SECRET(RoleScope.ORGANIZATION, OrganizationPermission.SECRET),
 
     INTEGRATION_DEFINITION(RoleScope.INTEGRATION, IntegrationPermission.DEFINITION),
     INTEGRATION_MEMBER(RoleScope.INTEGRATION, IntegrationPermission.MEMBER),

@@ -41,6 +41,7 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
             "NOTIFICATION_TEMPLATES",
             "POLICIES",
             "ROLE",
+            "SECRET",
             "SETTINGS",
             "TAG",
             "TENANT",
