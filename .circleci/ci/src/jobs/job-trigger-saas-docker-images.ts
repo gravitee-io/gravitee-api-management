@@ -36,21 +36,42 @@ export class TriggerSaasDockerImagesJob {
         }", "sha1":"${computeDockerTagSuffix(environment.sha1)}", "release-version":"${environment.graviteeioVersion}", "dry-run":${
           environment.isDryRun
         }, "os-distribution":"${osDistribution}"}}' | jq -r '.id')
+if [[ -z "$PIPELINE_ID" || "$PIPELINE_ID" == "null" ]]; then
+    echo "Failed to trigger the SaaS Docker images pipeline."
+    exit 1
+fi
 echo "Pipeline triggered with ID: $PIPELINE_ID"
+# Right after the trigger the pipeline is not readable yet: the API answers 404 "Pipeline run not found." until it is.
 waitForPipelineCompletion() {
+    local pendingSince=$SECONDS
     while true; do
-        STATUS=$(curl --request GET --url "https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow" --header "Circle-Token: \${CIRCLE_TOKEN}" | jq -r '.items[].status')
+        STATUS=$(curl --silent --request GET --url "https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow" --header "Circle-Token: \${CIRCLE_TOKEN}" | jq -r 'if .items then (if any(.items[]; .status == "failed" or .status == "error" or .status == "canceled" or .status == "unauthorized" or .status == "not_run") then "failed" elif (.items | length) > 0 and all(.items[]; .status == "success") then "success" else "running" end) elif .message == "Pipeline run not found." then "pending" else "error: " + (.message // "unreadable response") end') || STATUS="pending"
         echo "Current status: $STATUS"
-        if [[ "$STATUS" == "success" ]]; then
-            echo "Pipeline completed successfully."
-            break
-        elif [[ "$STATUS" == "failed" ]]; then
-            echo "Pipeline failed."
-            exit 1
-        fi
+        case "$STATUS" in
+            success)
+                echo "Pipeline completed successfully."
+                return 0
+                ;;
+            failed)
+                echo "Pipeline failed."
+                exit 1
+                ;;
+            error:*)
+                exit 1
+                ;;
+            pending)
+                if (( SECONDS - pendingSince > 300 )); then
+                    echo "Pipeline $PIPELINE_ID is still not readable after 5 minutes."
+                    exit 1
+                fi
+                ;;
+            *)
+                pendingSince=$SECONDS
+                ;;
+        esac
         sleep 30
     done
-}  
+}
 waitForPipelineCompletion`,
       }),
     ];

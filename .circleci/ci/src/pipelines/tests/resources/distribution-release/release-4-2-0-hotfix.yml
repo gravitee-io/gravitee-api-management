@@ -949,21 +949,42 @@ jobs:
           name: Trigger SaaS Docker images pipeline
           command: |-
             PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"prod", "branch-version":"4.2.x", "sha1":"784ff35", "release-version":"4.2.0-hotfix.1", "dry-run":false, "os-distribution":"debian"}}' | jq -r '.id')
+            if [[ -z "$PIPELINE_ID" || "$PIPELINE_ID" == "null" ]]; then
+                echo "Failed to trigger the SaaS Docker images pipeline."
+                exit 1
+            fi
             echo "Pipeline triggered with ID: $PIPELINE_ID"
+            # Right after the trigger the pipeline is not readable yet: the API answers 404 "Pipeline run not found." until it is.
             waitForPipelineCompletion() {
+                local pendingSince=$SECONDS
                 while true; do
-                    STATUS=$(curl --request GET --url "https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow" --header "Circle-Token: ${CIRCLE_TOKEN}" | jq -r '.items[].status')
+                    STATUS=$(curl --silent --request GET --url "https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow" --header "Circle-Token: ${CIRCLE_TOKEN}" | jq -r 'if .items then (if any(.items[]; .status == "failed" or .status == "error" or .status == "canceled" or .status == "unauthorized" or .status == "not_run") then "failed" elif (.items | length) > 0 and all(.items[]; .status == "success") then "success" else "running" end) elif .message == "Pipeline run not found." then "pending" else "error: " + (.message // "unreadable response") end') || STATUS="pending"
                     echo "Current status: $STATUS"
-                    if [[ "$STATUS" == "success" ]]; then
-                        echo "Pipeline completed successfully."
-                        break
-                    elif [[ "$STATUS" == "failed" ]]; then
-                        echo "Pipeline failed."
-                        exit 1
-                    fi
+                    case "$STATUS" in
+                        success)
+                            echo "Pipeline completed successfully."
+                            return 0
+                            ;;
+                        failed)
+                            echo "Pipeline failed."
+                            exit 1
+                            ;;
+                        error:*)
+                            exit 1
+                            ;;
+                        pending)
+                            if (( SECONDS - pendingSince > 300 )); then
+                                echo "Pipeline $PIPELINE_ID is still not readable after 5 minutes."
+                                exit 1
+                            fi
+                            ;;
+                        *)
+                            pendingSince=$SECONDS
+                            ;;
+                    esac
                     sleep 30
                 done
-            }  
+            }
             waitForPipelineCompletion
   job-trigger-saas-docker-images-chainguard:
     docker:
@@ -974,21 +995,42 @@ jobs:
           name: Trigger SaaS Docker images pipeline
           command: |-
             PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"prod", "branch-version":"4.2.x", "sha1":"784ff35", "release-version":"4.2.0-hotfix.1", "dry-run":false, "os-distribution":"chainguard"}}' | jq -r '.id')
+            if [[ -z "$PIPELINE_ID" || "$PIPELINE_ID" == "null" ]]; then
+                echo "Failed to trigger the SaaS Docker images pipeline."
+                exit 1
+            fi
             echo "Pipeline triggered with ID: $PIPELINE_ID"
+            # Right after the trigger the pipeline is not readable yet: the API answers 404 "Pipeline run not found." until it is.
             waitForPipelineCompletion() {
+                local pendingSince=$SECONDS
                 while true; do
-                    STATUS=$(curl --request GET --url "https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow" --header "Circle-Token: ${CIRCLE_TOKEN}" | jq -r '.items[].status')
+                    STATUS=$(curl --silent --request GET --url "https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow" --header "Circle-Token: ${CIRCLE_TOKEN}" | jq -r 'if .items then (if any(.items[]; .status == "failed" or .status == "error" or .status == "canceled" or .status == "unauthorized" or .status == "not_run") then "failed" elif (.items | length) > 0 and all(.items[]; .status == "success") then "success" else "running" end) elif .message == "Pipeline run not found." then "pending" else "error: " + (.message // "unreadable response") end') || STATUS="pending"
                     echo "Current status: $STATUS"
-                    if [[ "$STATUS" == "success" ]]; then
-                        echo "Pipeline completed successfully."
-                        break
-                    elif [[ "$STATUS" == "failed" ]]; then
-                        echo "Pipeline failed."
-                        exit 1
-                    fi
+                    case "$STATUS" in
+                        success)
+                            echo "Pipeline completed successfully."
+                            return 0
+                            ;;
+                        failed)
+                            echo "Pipeline failed."
+                            exit 1
+                            ;;
+                        error:*)
+                            exit 1
+                            ;;
+                        pending)
+                            if (( SECONDS - pendingSince > 300 )); then
+                                echo "Pipeline $PIPELINE_ID is still not readable after 5 minutes."
+                                exit 1
+                            fi
+                            ;;
+                        *)
+                            pendingSince=$SECONDS
+                            ;;
+                    esac
                     sleep 30
                 done
-            }  
+            }
             waitForPipelineCompletion
   job-trigger-saas-docker-images-chainguard-fips:
     docker:
@@ -999,21 +1041,42 @@ jobs:
           name: Trigger SaaS Docker images pipeline
           command: |-
             PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"prod", "branch-version":"4.2.x", "sha1":"784ff35", "release-version":"4.2.0-hotfix.1", "dry-run":false, "os-distribution":"chainguard-fips"}}' | jq -r '.id')
+            if [[ -z "$PIPELINE_ID" || "$PIPELINE_ID" == "null" ]]; then
+                echo "Failed to trigger the SaaS Docker images pipeline."
+                exit 1
+            fi
             echo "Pipeline triggered with ID: $PIPELINE_ID"
+            # Right after the trigger the pipeline is not readable yet: the API answers 404 "Pipeline run not found." until it is.
             waitForPipelineCompletion() {
+                local pendingSince=$SECONDS
                 while true; do
-                    STATUS=$(curl --request GET --url "https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow" --header "Circle-Token: ${CIRCLE_TOKEN}" | jq -r '.items[].status')
+                    STATUS=$(curl --silent --request GET --url "https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow" --header "Circle-Token: ${CIRCLE_TOKEN}" | jq -r 'if .items then (if any(.items[]; .status == "failed" or .status == "error" or .status == "canceled" or .status == "unauthorized" or .status == "not_run") then "failed" elif (.items | length) > 0 and all(.items[]; .status == "success") then "success" else "running" end) elif .message == "Pipeline run not found." then "pending" else "error: " + (.message // "unreadable response") end') || STATUS="pending"
                     echo "Current status: $STATUS"
-                    if [[ "$STATUS" == "success" ]]; then
-                        echo "Pipeline completed successfully."
-                        break
-                    elif [[ "$STATUS" == "failed" ]]; then
-                        echo "Pipeline failed."
-                        exit 1
-                    fi
+                    case "$STATUS" in
+                        success)
+                            echo "Pipeline completed successfully."
+                            return 0
+                            ;;
+                        failed)
+                            echo "Pipeline failed."
+                            exit 1
+                            ;;
+                        error:*)
+                            exit 1
+                            ;;
+                        pending)
+                            if (( SECONDS - pendingSince > 300 )); then
+                                echo "Pipeline $PIPELINE_ID is still not readable after 5 minutes."
+                                exit 1
+                            fi
+                            ;;
+                        *)
+                            pendingSince=$SECONDS
+                            ;;
+                    esac
                     sleep 30
                 done
-            }  
+            }
             waitForPipelineCompletion
   job-trigger-apim-api-docs-pipeline:
     docker:
