@@ -18,9 +18,16 @@ package io.gravitee.apim.core.portal.domain_service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.InstallationAccessQueryServiceInMemory;
+import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
+import java.net.URI;
+import java.net.URL;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
@@ -100,5 +107,66 @@ class PortalUrlDomainServiceTest {
         installationAccessQueryService.withPortalUrl(ENV_ID, portalUrl);
 
         assertThat(cut.resolveDefaultPortalUrl(ENV_ID)).isEmpty();
+    }
+
+    @Nested
+    class ResolveUrl {
+
+        private static final URL STORED_URL = url("https://stored.acme.io/next");
+
+        @Test
+        void should_return_the_portal_url_followed_by_next_for_the_default_portal() {
+            installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io");
+
+            assertThat(cut.resolveUrl(aPortal(true))).hasValueSatisfying(url -> assertThat(url).hasToString("https://portal.acme.io/next"));
+        }
+
+        @Test
+        void should_strip_trailing_slashes_for_the_default_portal() {
+            installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io//");
+
+            assertThat(cut.resolveUrl(aPortal(true))).hasValueSatisfying(url -> assertThat(url).hasToString("https://portal.acme.io/next"));
+        }
+
+        @Test
+        void should_resolve_the_default_portal_url_instead_of_returning_its_stored_url() {
+            installationAccessQueryService.withPortalUrl(ENV_ID, "https://new.acme.io");
+
+            assertThat(cut.resolveUrl(aPortal(true))).hasValueSatisfying(url -> assertThat(url).hasToString("https://new.acme.io/next"));
+        }
+
+        @Test
+        void should_return_empty_for_the_default_portal_when_its_environment_has_no_portal_url() {
+            installationAccessQueryService.withPortalUrl(ENV_ID, null);
+
+            assertThat(cut.resolveUrl(aPortal(true))).isEmpty();
+        }
+
+        @ParameterizedTest
+        @NullSource
+        @ValueSource(strings = "https://portal.acme.io")
+        void should_return_the_stored_url_for_a_portal_that_is_not_the_default_one(String environmentPortalUrl) {
+            installationAccessQueryService.withPortalUrl(ENV_ID, environmentPortalUrl);
+
+            assertThat(cut.resolveUrl(aPortal(false))).hasValue(STORED_URL);
+        }
+
+        private static Portal aPortal(boolean defaultPortal) {
+            return Portal.of(
+                PortalId.of("11111111-1111-1111-1111-111111111111"),
+                ENV_ID,
+                "org-1",
+                "Portal",
+                PortalNavigationStructure.empty(),
+                null,
+                defaultPortal,
+                STORED_URL
+            );
+        }
+
+        @SneakyThrows
+        private static URL url(String value) {
+            return URI.create(value).toURL();
+        }
     }
 }

@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource.bootstrap;
 
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.bootstrap.PortalUIBootstrapEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -59,6 +60,9 @@ public class PortalUIBootstrapResource {
     protected EnvironmentService environmentService;
 
     @Autowired
+    protected DefaultPortalDomainService defaultPortalDomainService;
+
+    @Autowired
     private Environment environment;
 
     @GET
@@ -88,25 +92,29 @@ public class PortalUIBootstrapResource {
                 : GraviteeContext.getDefaultOrganization();
         }
 
+        String portalId = defaultPortalDomainService
+            .findDefault(environmentId)
+            .map(portal -> portal.getId().toString())
+            .orElse(null);
         String portalApiUrl = installationAccessQueryService.getPortalAPIUrl(environmentId);
-        if (portalApiUrl != null) {
-            return Response.ok(
-                PortalUIBootstrapEntity.builder().organizationId(organizationId).environmentId(environmentId).baseURL(portalApiUrl).build()
-            ).build();
-        }
+        String baseUrl = portalApiUrl != null ? portalApiUrl : portalApiUrlFromRequest(httpServletRequest);
+        return Response.ok(
+            PortalUIBootstrapEntity.builder()
+                .organizationId(organizationId)
+                .environmentId(environmentId)
+                .portalId(portalId)
+                .baseURL(baseUrl)
+                .build()
+        ).build();
+    }
 
+    private String portalApiUrlFromRequest(HttpServletRequest httpServletRequest) {
         ServerHttpRequest request = new ServletServerHttpRequest(httpServletRequest);
         UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(request)
             .replacePath(getPortalProxyPath())
             .replaceQuery(null)
             .build();
-        return Response.ok(
-            PortalUIBootstrapEntity.builder()
-                .organizationId(organizationId)
-                .environmentId(environmentId)
-                .baseURL(uriComponents.toUriString())
-                .build()
-        ).build();
+        return uriComponents.toUriString();
     }
 
     private String getPortalProxyPath() {
