@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Location } from '@angular/common';
 import { AfterViewInit, Directive, ElementRef, HostListener, inject, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, Routes } from '@angular/router';
 
 @Directive({
   selector: '[appInnerLink]',
@@ -22,6 +23,7 @@ import { Router } from '@angular/router';
 })
 export class InnerLinkDirective implements AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
   private pendingFragment: string | null = null;
@@ -37,7 +39,7 @@ export class InnerLinkDirective implements AfterViewInit, OnDestroy {
     const anchor = this.findAnchor(event);
     const href = anchor?.getAttribute('href');
 
-    if (!href) {
+    if (!anchor || !href || this.isLeftToBrowser(event, anchor)) {
       return;
     }
 
@@ -54,9 +56,11 @@ export class InnerLinkDirective implements AfterViewInit, OnDestroy {
       return;
     }
 
-    if (!href.startsWith('https:') && !href.startsWith('http:')) {
+    // Normalizing the browser-resolved path strips the base href, so the router does not prepend it a second time.
+    const appPath = this.location.normalize(anchor.pathname) || '/';
+    if (this.matchesTopLevelRoute(appPath, this.router.config)) {
       event.preventDefault();
-      void this.router.navigateByUrl(href);
+      void this.router.navigateByUrl(`${appPath}${anchor.search}${anchor.hash}`);
     }
   }
 
@@ -66,6 +70,39 @@ export class InnerLinkDirective implements AfterViewInit, OnDestroy {
 
   public ngOnDestroy(): void {
     this.mutationObserver?.disconnect();
+  }
+
+  private isLeftToBrowser(event: MouseEvent, anchor: HTMLAnchorElement): boolean {
+    const target = anchor.getAttribute('target');
+    return (
+      event.button !== 0 ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      event.altKey ||
+      anchor.hasAttribute('download') ||
+      (!!target && target !== '_self') ||
+      anchor.origin !== this.hostElement.ownerDocument.defaultView?.location.origin
+    );
+  }
+
+  /** Paths outside the router config (another app on the same host) must reach the server, not the portal's 404 route. */
+  private matchesTopLevelRoute(path: string, routes: Routes): boolean {
+    const firstSegment = path.split(/[/;]/)[1];
+    return routes.some(route => {
+      if (route.path === '**') {
+        return false;
+      }
+      if (!route.path) {
+        if (firstSegment === '') {
+          return true;
+        }
+
+        return !!route.children && this.matchesTopLevelRoute(path, route.children);
+      }
+      const routeSegment = route.path.split('/')[0];
+      return routeSegment.startsWith(':') || routeSegment === firstSegment;
+    });
   }
 
   private syncFragmentFromUrl(): void {
