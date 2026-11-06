@@ -20,6 +20,6 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 public class InvalidSecretKeyException extends ValidationDomainException {
 
     public InvalidSecretKeyException() {
-        super("A secret key must be 1 to 128 letters, digits, '.', '_' or '-'.");
+        super("A secret key must be 1 to 128 letters, digits, '.', '_' or '-', and start with a letter or a digit.");
     }
 }

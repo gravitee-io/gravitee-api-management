@@ -69,7 +69,7 @@ class ListSecretsUseCaseTest {
     }
 
     @ParameterizedTest
-    @CsvSource({ "0, 10", "1, 0", "1, 101" })
+    @CsvSource({ "0, 10", "1, 0", "1, 101", "2147483647, 100" })
     void should_refuse_an_invalid_page(int pageNumber, int pageSize) {
         assertThatThrownBy(() ->
             secrets.listSecretsUseCase.execute(new ListSecretsUseCase.Input(ORGANIZATION_ID, ENVIRONMENT_ID, pageNumber, pageSize))

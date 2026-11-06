@@ -16,11 +16,14 @@
 package io.gravitee.gamma.module.platform.core.secret.model;
 
 import io.gravitee.gamma.module.platform.core.secret.exception.InvalidSecretValueException;
+import java.nio.charset.StandardCharsets;
 
 public record SecretValue(String plaintext) {
+    public static final int MAX_BYTES = 65536;
+
     public SecretValue {
-        if (plaintext == null || plaintext.isEmpty()) {
-            throw new InvalidSecretValueException();
+        if (plaintext == null || plaintext.isEmpty() || plaintext.getBytes(StandardCharsets.UTF_8).length > MAX_BYTES) {
+            throw new InvalidSecretValueException(MAX_BYTES);
         }
     }
 

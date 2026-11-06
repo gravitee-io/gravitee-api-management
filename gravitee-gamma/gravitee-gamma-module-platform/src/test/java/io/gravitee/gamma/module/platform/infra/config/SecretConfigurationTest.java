@@ -60,7 +60,7 @@ class SecretConfigurationTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "not base64!", "c2hvcnQ=" })
+    @ValueSource(strings = { "", " ", "not base64!", "c2hvcnQ=" })
     void should_start_with_an_invalid_key_and_refuse_to_encrypt(String key) {
         var encryptor = configuration.platformSecretValueEncryptor(environmentWithKey(key));
 
