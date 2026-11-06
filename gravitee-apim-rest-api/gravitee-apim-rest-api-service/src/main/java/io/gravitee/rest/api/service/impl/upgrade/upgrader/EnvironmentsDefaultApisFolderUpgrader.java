@@ -22,6 +22,7 @@ import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -60,7 +61,14 @@ public class EnvironmentsDefaultApisFolderUpgrader implements Upgrader {
 
     private boolean applyUpgrade() throws TechnicalException {
         for (final var environment : environmentRepository.findAll()) {
-            createDefaultPortalNavigationItemsUseCase.ensureApisSection(environment.getOrganizationId(), environment.getId());
+            // The section may resolve the portal URL, which ParameterService memoizes per thread by key only: clear
+            // the context around each environment so none gets the portal URL read for another one.
+            GraviteeContext.cleanContext();
+            try {
+                createDefaultPortalNavigationItemsUseCase.ensureApisSection(environment.getOrganizationId(), environment.getId());
+            } finally {
+                GraviteeContext.cleanContext();
+            }
         }
         return true;
     }

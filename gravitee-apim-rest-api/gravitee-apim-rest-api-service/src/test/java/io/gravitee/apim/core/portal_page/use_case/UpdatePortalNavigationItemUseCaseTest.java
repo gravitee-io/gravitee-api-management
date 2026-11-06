@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.NavigationPortalDomainServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -40,6 +41,7 @@ import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.portal.exception.NavigationPortalNotResolvedException;
 import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
@@ -95,6 +97,7 @@ class UpdatePortalNavigationItemUseCaseTest {
     private final ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
     private PortalPageContentCrudServiceInMemory pageContentCrudService;
     private PortalNavigationItemSourceDomainServiceInMemory sourceDomainService;
+    private NavigationPortalDomainServiceInMemory navigationPortals;
 
     @BeforeEach
     void setUp() {
@@ -110,6 +113,7 @@ class UpdatePortalNavigationItemUseCaseTest {
         // A single instance shared by the three collaborators, so that a test can observe what the
         // validation was given and in which order masking and merging happened.
         sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();
+        navigationPortals = new NavigationPortalDomainServiceInMemory();
 
         validatorService = new PortalNavigationItemValidatorService(
             queryService,
@@ -125,7 +129,8 @@ class UpdatePortalNavigationItemUseCaseTest {
             PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
             apiCrudService,
             sourceDomainService,
-            new ApiOwnedNavigationDomainService(queryService, crudService)
+            new ApiOwnedNavigationDomainService(queryService, crudService),
+            navigationPortals
         );
         useCase = new UpdatePortalNavigationItemUseCase(queryService, validatorService, domainService, sourceDomainService);
 
@@ -1020,6 +1025,11 @@ class UpdatePortalNavigationItemUseCaseTest {
         assertThat(exception.getMessage()).isEqualTo("Parent hierarchy cannot include API items.");
     }
 
+    /** The portal a console write stores an item on, created by the first such write. */
+    private NavigationItemReference consolePortal() {
+        return new NavigationItemReference.PortalReference(navigationPortals.defaultPortalIdOf(ENV_ID));
+    }
+
     private UpdatePortalNavigationItem updateFolderPublished(PortalNavigationFolder folder, boolean published) {
         return UpdatePortalNavigationItem.builder()
             .type(folder.getType())
@@ -1387,14 +1397,14 @@ class UpdatePortalNavigationItemUseCaseTest {
             move(find(folder), section.getId());
 
             assertThat(List.of(find(folder), find(subFolder), find(page))).allSatisfy(item -> {
-                assertThat(item.getReference()).isEqualTo(PORTAL);
+                assertThat(item.getReference()).isEqualTo(consolePortal());
                 assertThat(item.getRootId()).isEqualTo(section.getId());
             });
             assertThat(find(folder).getParentId()).isEqualTo(section.getId());
         }
 
         @Test
-        void should_take_the_portal_of_the_folder_it_lands_in_when_it_leaves_an_api() {
+        void should_refuse_to_move_an_item_leaving_an_api_into_a_folder_of_another_portal() {
             var otherPortal = new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-0000000000aa"));
             var portalFolder = store(
                 PortalNavigationItemFixtures.aFolder("Other portal guides").toBuilder().reference(otherPortal).build()
@@ -1402,10 +1412,12 @@ class UpdatePortalNavigationItemUseCaseTest {
             var folder = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Tutorials")));
             var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", folder.getId())));
 
-            move(folder, portalFolder.getId());
+            assertThatThrownBy(() -> move(folder, portalFolder.getId()))
+                .isInstanceOf(NavigationPortalNotResolvedException.class)
+                .hasMessageContaining("the destination belongs to a portal managed through the Automation API");
 
-            assertThat(List.of(find(folder), find(page))).extracting(PortalNavigationItem::getReference).containsOnly(otherPortal);
-            assertThat(find(folder).getParentId()).isEqualTo(portalFolder.getId());
+            assertThat(List.of(find(folder), find(page))).extracting(PortalNavigationItem::getReference).containsOnly(API_A);
+            assertThat(find(folder).getParentId()).isNull();
         }
 
         @Test
@@ -1454,7 +1466,7 @@ class UpdatePortalNavigationItemUseCaseTest {
 
             move(page, productFolder.getId());
 
-            assertThat(find(page).getReference()).isEqualTo(PORTAL);
+            assertThat(find(page).getReference()).isEqualTo(consolePortal());
             assertThat(find(page).getParentId()).isEqualTo(productFolder.getId());
         }
 
@@ -1493,15 +1505,15 @@ class UpdatePortalNavigationItemUseCaseTest {
         }
 
         @Test
-        void should_not_treat_a_move_between_two_portal_references_as_a_change_of_owner() {
+        void should_refuse_moving_an_item_of_another_portal_and_leave_it_where_it_is() {
             var otherPortal = new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-0000000000aa"));
             var managed = store(
                 automationManaged(PortalNavigationItemFixtures.aPage("Managed page", null)).toBuilder().reference(otherPortal).build()
             );
 
-            move(managed, section.getId());
+            assertThatThrownBy(() -> move(managed, section.getId())).isInstanceOf(NavigationPortalNotResolvedException.class);
 
-            assertThat(find(managed).getParentId()).isEqualTo(section.getId());
+            assertThat(find(managed).getParentId()).isNull();
             assertThat(find(managed).getReference()).isEqualTo(otherPortal);
         }
 
@@ -1524,7 +1536,7 @@ class UpdatePortalNavigationItemUseCaseTest {
 
             move(folder, null);
 
-            assertThat(List.of(find(folder), find(page))).extracting(PortalNavigationItem::getReference).containsOnly(PORTAL);
+            assertThat(List.of(find(folder), find(page))).extracting(PortalNavigationItem::getReference).containsOnly(consolePortal());
             assertThat(find(folder).getParentId()).isNull();
             assertThat(find(apiRoot).getReference()).isEqualTo(API_A);
         }
@@ -1693,7 +1705,7 @@ class UpdatePortalNavigationItemUseCaseTest {
 
                 move(page, section.getId());
 
-                assertThat(find(page).getReference()).isEqualTo(PORTAL);
+                assertThat(find(page).getReference()).isEqualTo(consolePortal());
                 assertThat(find(page).getParentId()).isEqualTo(section.getId());
             }
 
@@ -1713,7 +1725,7 @@ class UpdatePortalNavigationItemUseCaseTest {
 
                 move(page, section.getId());
 
-                assertThat(find(page).getReference()).isEqualTo(PORTAL);
+                assertThat(find(page).getReference()).isEqualTo(consolePortal());
             }
 
             @Test
@@ -1722,7 +1734,7 @@ class UpdatePortalNavigationItemUseCaseTest {
 
                 move(page, section.getId());
 
-                assertThat(find(page).getReference()).isEqualTo(PORTAL);
+                assertThat(find(page).getReference()).isEqualTo(consolePortal());
             }
 
             @Test

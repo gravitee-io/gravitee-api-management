@@ -16,10 +16,12 @@
 package io.gravitee.apim.core.portal.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalListingCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -30,6 +32,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator;
 import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanExecutor;
+import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
@@ -38,6 +41,7 @@ import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -550,6 +554,88 @@ class PortalNavigationSyncDomainServiceTest {
         var captured = verifyValidate();
         assertThat(captured.creates()).isEmpty();
         assertThat(captured.updates()).hasSize(2);
+    }
+
+    @Test
+    void should_store_the_synced_portal_on_created_folders() {
+        syncService.sync(
+            AUDIT_INFO,
+            PORTAL_ID,
+            PortalNavigationStructure.empty(),
+            PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/a", null), new NavigationPath("/a/b", null)))
+        );
+
+        assertThat(crud.storage())
+            .hasSize(2)
+            .extracting(PortalNavigationItem::getReference)
+            .containsOnly(new NavigationItemReference.PortalReference(PORTAL_ID));
+    }
+
+    @Test
+    void should_keep_a_second_portal_s_folders_on_that_portal() {
+        var secondPortal = PortalId.of("22222222-2222-2222-2222-222222222222");
+
+        syncService.sync(
+            AUDIT_INFO,
+            PORTAL_ID,
+            PortalNavigationStructure.empty(),
+            PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/first", null)))
+        );
+        syncService.sync(
+            AUDIT_INFO,
+            secondPortal,
+            PortalNavigationStructure.empty(),
+            PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/second", null)))
+        );
+        syncService.sync(
+            AUDIT_INFO,
+            PORTAL_ID,
+            PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/first", null))),
+            PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/first", "First")))
+        );
+
+        assertThat(findByPath("/First")).hasValueSatisfying(folder ->
+            assertThat(folder.getReference()).isEqualTo(new NavigationItemReference.PortalReference(PORTAL_ID))
+        );
+        assertThat(findByPath("/second")).hasValueSatisfying(folder ->
+            assertThat(folder.getReference()).isEqualTo(new NavigationItemReference.PortalReference(secondPortal))
+        );
+    }
+
+    @Test
+    void should_validate_new_folders_with_the_synced_portal() {
+        syncService.validateForConflicts(
+            AUDIT_INFO,
+            PORTAL_ID,
+            PortalNavigationStructure.empty(),
+            PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/a", null), new NavigationPath("/a/b", null)))
+        );
+
+        assertThat(verifyValidate().creates())
+            .extracting(io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem::getReference)
+            .containsOnly(new NavigationItemReference.PortalReference(PORTAL_ID));
+    }
+
+    @Test
+    void should_still_reject_a_folder_whose_segment_a_console_folder_on_the_zero_uuid_holds() {
+        var consoleFolder = PortalNavigationItemFixtures.aFolder("Docs")
+            .toBuilder()
+            .organizationId(AUDIT_INFO.organizationId())
+            .environmentId(AUDIT_INFO.environmentId())
+            .segment("docs")
+            .reference(NavigationItemReference.defaultReference())
+            .build();
+        crud.initWith(List.of(consoleFolder));
+
+        assertThatThrownBy(() ->
+            syncService.sync(
+                AUDIT_INFO,
+                PORTAL_ID,
+                PortalNavigationStructure.empty(),
+                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/docs", null)))
+            )
+        ).isInstanceOf(PathConflictException.class);
+        assertThat(crud.storage()).containsExactly(consoleFolder);
     }
 
     private record CapturedValidate(

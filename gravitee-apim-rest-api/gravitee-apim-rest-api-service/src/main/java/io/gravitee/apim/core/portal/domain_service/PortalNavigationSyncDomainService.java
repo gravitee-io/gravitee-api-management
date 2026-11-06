@@ -101,7 +101,7 @@ public class PortalNavigationSyncDomainService {
             auditInfo,
             area,
             null,
-            NavigationItemReference.defaultReference(),
+            new NavigationItemReference.PortalReference(portalId),
             portalIdFolderFactory(auditInfo, portalId),
             ctx.ownership().asDeleteStrategy()
         );
@@ -158,6 +158,7 @@ public class PortalNavigationSyncDomainService {
             .title(df.title())
             .segment(df.segment().value())
             .area(area)
+            .reference(new NavigationItemReference.PortalReference(portalId))
             .type(PortalNavigationItemType.FOLDER)
             .order(df.order())
             .parentId(df.parentPath() == null ? null : idFactory.apply(df.parentPath()))

@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.NavigationPortalDomainServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -71,6 +72,7 @@ class PublishApiToPortalUseCaseTest {
         crudService.storage()
     );
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    private final NavigationPortalDomainServiceInMemory navigationPortals = new NavigationPortalDomainServiceInMemory();
     private PublishApiToPortalUseCase useCase;
 
     @BeforeEach
@@ -95,7 +97,8 @@ class PublishApiToPortalUseCaseTest {
                 pageContentQueryService,
                 apiCrudService,
                 sourceDomainService,
-                apiOwnedNavigationDomainService
+                apiOwnedNavigationDomainService,
+                navigationPortals
             )
         );
         apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("Api A").environmentId(ENV_ID).build()));
@@ -114,7 +117,9 @@ class PublishApiToPortalUseCaseTest {
             assertThat(listing.getTitle()).isEqualTo("Api A");
             assertThat(listing.getParentId()).isEqualTo(section.getId());
             assertThat(listing.getPublished()).isTrue();
-            assertThat(listing.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+            assertThat(listing.getReference()).isEqualTo(
+                new NavigationItemReference.PortalReference(navigationPortals.defaultPortalIdOf(ENV_ID))
+            );
         });
     }
 

@@ -17,6 +17,8 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
+import io.gravitee.apim.core.portal.exception.NavigationPortalNotResolvedException;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
@@ -31,6 +33,7 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.List;
+import java.util.Optional;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -49,6 +52,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
     private final PortalNavigationItemDomainService portalNavigationItemDomainService;
     private final PortalPageContentCrudService pageContentCrudService;
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
+    private final NavigationPortalDomainService navigationPortalDomainService;
 
     /**
      * Creates whichever of the following default navigation items are still missing for the environment:
@@ -66,8 +70,15 @@ public class CreateDefaultPortalNavigationItemsUseCase {
      * Idempotent per item, so it is safe to call more than once for the same environment (e.g. to repair
      * an environment left partially seeded by a previous failed run): items that already exist by title
      * under their expected parent are left untouched, and only missing items are created.
+     * <p>
+     * Nothing is created in an environment without a default portal (see {@link #defaultPortalOf}).
      */
     public void execute(String organizationId, String environmentId) {
+        var defaultPortal = defaultPortalOf(organizationId, environmentId);
+        if (defaultPortal.isEmpty()) {
+            return;
+        }
+        final var owner = defaultPortal.get();
         final var topLevelTopNavbarItems = portalNavigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(
             environmentId,
             PortalArea.TOP_NAVBAR
@@ -75,7 +86,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
 
         var folderGuides = findByTitleAndType(topLevelTopNavbarItems, "Guides", PortalNavigationItemType.FOLDER);
         if (folderGuides == null) {
-            folderGuides = createPortalFolder("Guides", organizationId, environmentId, PortalArea.TOP_NAVBAR, null);
+            folderGuides = createPortalFolder("Guides", organizationId, environmentId, owner, PortalArea.TOP_NAVBAR, null);
         }
 
         final var guidesChildren = portalNavigationItemsQueryService.findByParentIdAndEnvironmentId(environmentId, folderGuides.getId());
@@ -86,6 +97,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
                 "Getting started",
                 organizationId,
                 environmentId,
+                owner,
                 PortalArea.TOP_NAVBAR,
                 contentGettingStarted.getId(),
                 folderGuides.getId()
@@ -98,6 +110,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
                 "Core concepts",
                 organizationId,
                 environmentId,
+                owner,
                 PortalArea.TOP_NAVBAR,
                 folderGuides.getId()
             );
@@ -114,6 +127,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
                 "Authentication",
                 organizationId,
                 environmentId,
+                owner,
                 PortalArea.TOP_NAVBAR,
                 contentAuthentication.getId(),
                 folderCoreConcepts.getId()
@@ -126,16 +140,17 @@ public class CreateDefaultPortalNavigationItemsUseCase {
                 "Making your first API call",
                 organizationId,
                 environmentId,
+                owner,
                 PortalArea.TOP_NAVBAR,
                 contentFirstApiCall.getId(),
                 folderCoreConcepts.getId()
             );
         }
 
-        ensureApisSection(organizationId, environmentId);
+        createApisSectionIfMissing(organizationId, environmentId, owner);
 
         if (findByTitleAndType(topLevelTopNavbarItems, "Docs", PortalNavigationItemType.LINK) == null) {
-            createPortalLink("Docs", organizationId, environmentId, DOCS_URL, PortalArea.TOP_NAVBAR, null);
+            createPortalLink("Docs", organizationId, environmentId, owner, DOCS_URL, PortalArea.TOP_NAVBAR, null);
         }
 
         final var existingHomepage = portalNavigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(
@@ -144,7 +159,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
         );
         if (existingHomepage.isEmpty()) {
             final var contentHomePage = createPortalPageContent(organizationId, environmentId, HOMEPAGE_CONTENT_PATH);
-            createPortalPage("Home Page", organizationId, environmentId, PortalArea.HOMEPAGE, contentHomePage.getId(), null);
+            createPortalPage("Home Page", organizationId, environmentId, owner, PortalArea.HOMEPAGE, contentHomePage.getId(), null);
         }
     }
 
@@ -153,6 +168,24 @@ public class CreateDefaultPortalNavigationItemsUseCase {
      * navigation, which is what an API can be published into. Added after whatever the menu already holds.
      */
     public void ensureApisSection(String organizationId, String environmentId) {
+        defaultPortalOf(organizationId, environmentId).ifPresent(owner -> createApisSectionIfMissing(organizationId, environmentId, owner));
+    }
+
+    /**
+     * Seeding runs at start-up and on environment creation, so a refusal must not stop it: the navigation of an
+     * Automation API portal belongs to the Automation API, and a postponed default portal gets an empty
+     * navigation that admins fill once its URL is fixed.
+     */
+    private Optional<NavigationItemReference> defaultPortalOf(String organizationId, String environmentId) {
+        try {
+            return Optional.of(navigationPortalDomainService.resolveReference(organizationId, environmentId));
+        } catch (NavigationPortalNotResolvedException e) {
+            log.warn("Default navigation of environment [{}] not created: {}", environmentId, e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    private void createApisSectionIfMissing(String organizationId, String environmentId, NavigationItemReference owner) {
         final var hasApisSection = portalNavigationItemsQueryService
             .findTopLevelItemsByEnvironmentIdAndPortalArea(environmentId, PortalArea.TOP_NAVBAR)
             .stream()
@@ -160,7 +193,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
             .filter(item -> !(item.getReference() instanceof NavigationItemReference.ApiReference))
             .anyMatch(item -> APIS_SECTION_TITLE.equals(item.getTitle()) && item.getType() == PortalNavigationItemType.FOLDER);
         if (!hasApisSection) {
-            createPortalFolder(APIS_SECTION_TITLE, organizationId, environmentId, PortalArea.TOP_NAVBAR, null);
+            createPortalFolder(APIS_SECTION_TITLE, organizationId, environmentId, owner, PortalArea.TOP_NAVBAR, null);
         }
     }
 
@@ -176,10 +209,11 @@ public class CreateDefaultPortalNavigationItemsUseCase {
         String title,
         String organizationId,
         String environmentId,
+        NavigationItemReference owner,
         PortalArea area,
         PortalNavigationItemId parentId
     ) {
-        final var createItem = buildCommonItem(title, parentId, area);
+        final var createItem = buildCommonItem(title, owner, parentId, area);
         createItem.setType(PortalNavigationItemType.FOLDER);
         return portalNavigationItemDomainService.create(organizationId, environmentId, createItem);
     }
@@ -188,11 +222,12 @@ public class CreateDefaultPortalNavigationItemsUseCase {
         String title,
         String organizationId,
         String environmentId,
+        NavigationItemReference owner,
         PortalArea area,
         PortalPageContentId portalPageContentId,
         PortalNavigationItemId parentId
     ) {
-        final var createItem = buildCommonItem(title, parentId, area);
+        final var createItem = buildCommonItem(title, owner, parentId, area);
         createItem.setType(PortalNavigationItemType.PAGE);
         createItem.setPortalPageContentId(portalPageContentId);
         return portalNavigationItemDomainService.create(organizationId, environmentId, createItem);
@@ -202,21 +237,28 @@ public class CreateDefaultPortalNavigationItemsUseCase {
         String title,
         String organizationId,
         String environmentId,
+        NavigationItemReference owner,
         String url,
         PortalArea area,
         PortalNavigationItemId parentId
     ) {
-        final var createItem = buildCommonItem(title, parentId, area);
+        final var createItem = buildCommonItem(title, owner, parentId, area);
         createItem.setType(PortalNavigationItemType.LINK);
         createItem.setUrl(url);
         return portalNavigationItemDomainService.create(organizationId, environmentId, createItem);
     }
 
-    private CreatePortalNavigationItem buildCommonItem(String title, PortalNavigationItemId parentId, PortalArea area) {
+    private CreatePortalNavigationItem buildCommonItem(
+        String title,
+        NavigationItemReference owner,
+        PortalNavigationItemId parentId,
+        PortalArea area
+    ) {
         return CreatePortalNavigationItem.builder()
             .title(title)
             .area(area)
             .parentId(parentId)
+            .reference(owner)
             .published(true)
             .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
             .build();

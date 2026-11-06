@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.NavigationPortalDomainServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -63,7 +64,8 @@ public class DeletePortalNavigationItemUseCaseTest {
             PortalPageContentQueryServiceInMemory.sharing(portalPageContentCrudService.storage()),
             apiCrudService,
             new PortalNavigationItemSourceDomainServiceInMemory(),
-            new ApiOwnedNavigationDomainService(portalNavigationItemsQueryService, portalNavigationItemsCrudService)
+            new ApiOwnedNavigationDomainService(portalNavigationItemsQueryService, portalNavigationItemsCrudService),
+            new NavigationPortalDomainServiceInMemory()
         );
 
         deletePortalNavigationItemUseCase = new DeletePortalNavigationItemUseCase(

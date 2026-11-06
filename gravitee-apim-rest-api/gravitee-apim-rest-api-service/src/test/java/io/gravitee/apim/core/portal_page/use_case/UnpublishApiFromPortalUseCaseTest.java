@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.NavigationPortalDomainServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -84,7 +85,8 @@ class UnpublishApiFromPortalUseCaseTest {
             pageContentQueryService,
             apiCrudService,
             sourceDomainService,
-            apiOwnedNavigationDomainService
+            apiOwnedNavigationDomainService,
+            new NavigationPortalDomainServiceInMemory()
         );
         var validatorService = new PortalNavigationItemValidatorService(
             queryService,
