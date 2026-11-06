@@ -118,9 +118,7 @@ class PortalUrlDomainServiceTest {
         void should_return_the_portal_url_followed_by_next_for_the_default_portal() {
             installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io");
 
-            assertThat(cut.resolveUrl(aPortal(true))).hasValueSatisfying(url ->
-                assertThat(url).hasToString(installationAccessQueryService.getPortalUrl(ENV_ID) + "/next")
-            );
+            assertThat(cut.resolveUrl(aPortal(true))).hasValueSatisfying(url -> assertThat(url).hasToString("https://portal.acme.io/next"));
         }
 
         @Test
@@ -138,7 +136,7 @@ class PortalUrlDomainServiceTest {
         }
 
         @Test
-        void should_return_empty_for_the_default_portal_when_no_portal_url_is_configured() {
+        void should_return_empty_for_the_default_portal_when_its_environment_has_no_portal_url() {
             installationAccessQueryService.withPortalUrl(ENV_ID, null);
 
             assertThat(cut.resolveUrl(aPortal(true))).isEmpty();
