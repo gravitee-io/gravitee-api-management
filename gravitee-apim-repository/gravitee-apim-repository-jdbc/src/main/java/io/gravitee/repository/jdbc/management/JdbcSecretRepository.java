@@ -15,10 +15,10 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SecretRepository;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -32,13 +32,17 @@ import java.sql.Timestamp;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HexFormat;
-import java.util.List;
 import java.util.Optional;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /** {@code JdbcObjectMapper} logs every value it binds or reads, so this repository writes its own SQL to keep the encrypted value out of the logs. */
 @CustomLog
@@ -50,33 +54,56 @@ public class JdbcSecretRepository extends TransactionalRepository implements Sec
     private final String tableName;
     private final String columns;
 
+    /** On PostgreSQL a failed statement aborts the whole transaction, so a duplicate insert runs in a savepoint of the caller's transaction. */
+    private final TransactionTemplate savepoint;
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    JdbcSecretRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcSecretRepository(
+        @Value("${management.jdbc.prefix:}") String tablePrefix,
+        @Lazy @Autowired @Qualifier("graviteeTransactionManager") PlatformTransactionManager transactionManager
+    ) {
         this.tableName = tablePrefix + "secrets";
         this.columns = "id, organization_id, environment_id, " + KEY + ", key_hash, encrypted_value, created_at, updated_at";
+        this.savepoint = new TransactionTemplate(transactionManager);
+        this.savepoint.setPropagationBehavior(TransactionDefinition.PROPAGATION_NESTED);
     }
 
     @Override
     public Secret create(Secret secret) throws TechnicalException {
         log.debug("JdbcSecretRepository.create({})", secret.getId());
         try {
-            jdbcTemplate.update(
-                "INSERT INTO " + tableName + " (" + columns + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                secret.getId(),
-                secret.getOrganizationId(),
-                secret.getEnvironmentId(),
-                secret.getKey(),
-                keyHash(secret.getKey()),
-                secret.getEncryptedValue(),
-                timestamp(secret.getCreatedAt()),
-                timestamp(secret.getUpdatedAt())
+            savepoint.executeWithoutResult(status ->
+                jdbcTemplate.update(
+                    "INSERT INTO " + tableName + " (" + columns + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    secret.getId(),
+                    secret.getOrganizationId(),
+                    secret.getEnvironmentId(),
+                    secret.getKey(),
+                    keyHash(secret.getKey()),
+                    secret.getEncryptedValue(),
+                    timestamp(secret.getCreatedAt()),
+                    timestamp(secret.getUpdatedAt())
+                )
             );
-            return findById(secret.getOrganizationId(), secret.getEnvironmentId(), secret.getId()).orElseThrow();
+        } catch (org.springframework.dao.DuplicateKeyException ex) {
+            throw new DuplicateKeyException(
+                "A secret with id [" +
+                    secret.getId() +
+                    "] or key [" +
+                    secret.getKey() +
+                    "] already exists in environment [" +
+                    secret.getEnvironmentId() +
+                    "]",
+                ex
+            );
         } catch (Exception ex) {
             throw new TechnicalException("Failed to create secret " + secret.getId(), ex);
         }
+        return findById(secret.getOrganizationId(), secret.getEnvironmentId(), secret.getId()).orElseThrow(() ->
+            new TechnicalException("Secret " + secret.getId() + " not found after its creation")
+        );
     }
 
     @Override

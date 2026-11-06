@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SecretRepository;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -52,6 +53,17 @@ public class MongoSecretRepository implements SecretRepository {
         log.debug("MongoSecretRepository.create({})", secret.getId());
         try {
             return mapper.map(internalRepo.insert(mapper.map(secret)));
+        } catch (org.springframework.dao.DuplicateKeyException ex) {
+            throw new DuplicateKeyException(
+                "A secret with id [" +
+                    secret.getId() +
+                    "] or key [" +
+                    secret.getKey() +
+                    "] already exists in environment [" +
+                    secret.getEnvironmentId() +
+                    "]",
+                ex
+            );
         } catch (Exception ex) {
             throw new TechnicalException("Failed to create secret " + secret.getId(), ex);
         }
