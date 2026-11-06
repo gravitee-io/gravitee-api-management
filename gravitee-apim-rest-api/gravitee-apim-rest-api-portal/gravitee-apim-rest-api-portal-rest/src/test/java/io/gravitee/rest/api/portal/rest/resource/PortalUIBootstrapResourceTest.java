@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -26,12 +27,16 @@ import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.client.WebTarget;
 import java.net.URI;
 import java.net.URL;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import lombok.SneakyThrows;
+import org.glassfish.hk2.utilities.binding.AbstractBinder;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +49,7 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
     private static final String OTHER_ENV_ID = "env-2";
     private static final String PORTAL_API_URL = "https://api.acme.io/portal";
     private static final PortalId DEFAULT_ENV_PORTAL_ID = PortalId.of("11111111-1111-1111-1111-111111111111");
+    private static final String REQUEST_URL = "https://apim.acme.io/portal/ui/bootstrap";
     private static final PortalId OTHER_ENV_PORTAL_ID = PortalId.of("22222222-2222-2222-2222-222222222222");
 
     @Autowired
@@ -55,6 +61,24 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
     @Override
     protected String contextPath() {
         return "";
+    }
+
+    // The in-memory test container has no servlet request: the resource builds baseURL from one when no Portal API URL is set.
+    @Override
+    protected void decorate(ResourceConfig resourceConfig) {
+        super.decorate(resourceConfig);
+        var request = mock(HttpServletRequest.class);
+        when(request.getRequestURL()).thenAnswer(invocation -> new StringBuffer(REQUEST_URL));
+        when(request.getHeaderNames()).thenAnswer(invocation -> Collections.emptyEnumeration());
+        when(request.getMethod()).thenReturn("GET");
+        resourceConfig.register(
+            new AbstractBinder() {
+                @Override
+                protected void configure() {
+                    bind(request).to(HttpServletRequest.class);
+                }
+            }
+        );
     }
 
     @BeforeEach
@@ -114,6 +138,21 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
         assertThat(bootstrap.get("portalId")).isNull();
         assertThat(bootstrap.get("environmentId")).isEqualTo(ENVIRONMENT);
         assertThat(bootstrap.get("baseURL")).isEqualTo(PORTAL_API_URL);
+    }
+
+    @Test
+    void should_return_the_default_portal_when_the_base_url_is_built_from_the_request() {
+        when(installationAccessQueryService.getPortalAPIUrl(ENVIRONMENT)).thenReturn(null);
+        portalCrudService.initWith(List.of(aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT)));
+
+        var response = bootstrap().request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        var bootstrap = response.readEntity(Map.class);
+        assertThat(bootstrap.get("portalId")).isEqualTo(DEFAULT_ENV_PORTAL_ID.toString());
+        assertThat(bootstrap.get("environmentId")).isEqualTo(ENVIRONMENT);
+        assertThat(bootstrap.get("organizationId")).isEqualTo(ORG_ID);
+        assertThat(bootstrap.get("baseURL")).isEqualTo("https://apim.acme.io/portal");
     }
 
     // The bootstrap is served at the application root, outside /environments/{envId}.
