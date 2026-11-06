@@ -25,7 +25,6 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVali
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -49,10 +48,7 @@ public class CreatePortalNavigationItemUseCase {
         validatorService.validateAll(expansion.itemsToCreate(), environmentId);
         var renderedParents = renderingDomainService.prepareRenderingParents(environmentId, expansion.itemsToCreate());
 
-        var createdItems = new ArrayList<PortalNavigationItem>(expansion.itemsToCreate().size());
-        for (var itemToCreate : expansion.itemsToCreate()) {
-            createdItems.add(domainService.create(organizationId, environmentId, itemToCreate));
-        }
+        var createdItems = domainService.createAll(organizationId, environmentId, expansion.itemsToCreate());
 
         var defaultPageNavigationItemIds = Stream.concat(
             createdItems.stream().filter(PortalNavigationApiProduct.class::isInstance).map(PortalNavigationItem::getId),

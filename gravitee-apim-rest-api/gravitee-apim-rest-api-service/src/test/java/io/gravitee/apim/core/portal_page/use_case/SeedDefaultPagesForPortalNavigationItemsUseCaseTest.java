@@ -27,6 +27,7 @@ import static org.assertj.core.api.Assertions.tuple;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.NavigationPortalDomainServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -74,6 +75,7 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
     private PortalNavigationItemsCrudServiceInMemory portalNavigationItemsCrudService;
     private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService;
     private PortalPageContentCrudServiceInMemory portalPageContentCrudService;
+    private final NavigationPortalDomainServiceInMemory navigationPortals = new NavigationPortalDomainServiceInMemory();
 
     @BeforeEach
     void setUp() {
@@ -106,7 +108,8 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
                     pageContentQueryService,
                     apiCrudService,
                     sourceDomainService,
-                    apiOwnedNavigationDomainService
+                    apiOwnedNavigationDomainService,
+                    navigationPortals
                 ),
                 portalPageContentCrudService,
                 apiCrudService,
@@ -294,7 +297,7 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
             .singleElement()
             .satisfies(page -> {
                 assertThat(page).isInstanceOf(PortalNavigationPage.class);
-                assertThat(page.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+                assertThat(page.getReference()).isEqualTo(consolePortal());
                 assertThat(page.getParentId()).isEqualTo(listing.getId());
                 assertThat(page.getRootId()).isEqualTo(product.getId());
                 assertThat(page.getPublished()).isFalse();
@@ -330,7 +333,7 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
         assertThat(portalPageContentCrudService.storage()).hasSize(2);
         assertThat(portalNavigationItemsQueryService.findByParentIdAndEnvironmentId(ENV_ID, secondListing.getId()))
             .singleElement()
-            .satisfies(page -> assertThat(page.getReference()).isEqualTo(NavigationItemReference.defaultReference()));
+            .satisfies(page -> assertThat(page.getReference()).isEqualTo(consolePortal()));
     }
 
     @ParameterizedTest
@@ -589,5 +592,10 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
         } catch (Exception e) {
             throw new IllegalStateException("Unable to load template " + templatePath, e);
         }
+    }
+
+    /** The portal a console write stores an item on, created by the first such write. */
+    private NavigationItemReference consolePortal() {
+        return new NavigationItemReference.PortalReference(navigationPortals.defaultPortalIdOf(ENV_ID));
     }
 }

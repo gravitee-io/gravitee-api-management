@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.NavigationPortalDomainServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -83,7 +84,8 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
             PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
             new ApiCrudServiceInMemory(),
             sourceDomainService,
-            new ApiOwnedNavigationDomainService(queryService, crudService)
+            new ApiOwnedNavigationDomainService(queryService, crudService),
+            new NavigationPortalDomainServiceInMemory()
         );
         var bulkImportDomainService = new PortalNavigationBulkImportDomainService(
             sourceDomainService,

@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.NavigationPortalDomainServiceInMemory;
 import inmemory.PortalListingCrudServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
@@ -683,7 +684,8 @@ class PortalListingSyncDomainServiceTest {
                 pageContentQuery,
                 apiCrud,
                 new PortalNavigationItemSourceDomainServiceInMemory(),
-                new ApiOwnedNavigationDomainService(navItemQuery, navItemCrud)
+                new ApiOwnedNavigationDomainService(navItemQuery, navItemCrud),
+                new NavigationPortalDomainServiceInMemory()
             );
             declare(GUIDES);
         }
