@@ -17,6 +17,7 @@ package io.gravitee.apim.integration.tests.messages.websocket;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import com.graviteesource.entrypoint.websocket.WebSocketCloseStatus;
 import com.graviteesource.entrypoint.websocket.WebSocketEntrypointConnectorFactory;
@@ -29,6 +30,7 @@ import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.gateway.tests.sdk.reactor.ReactorBuilder;
 import io.gravitee.apim.integration.tests.fake.InvalidUtf8MessagePolicy;
+import io.gravitee.apim.integration.tests.fake.MessageFlowReleasePolicy;
 import io.gravitee.apim.plugin.reactor.ReactorPlugin;
 import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
@@ -60,7 +62,7 @@ class WebsocketEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest
     private static final int MESSAGE_COUNT = 5;
     private static final String MESSAGE = "message";
     private static final String MULTIBYTE_MESSAGE = "zażółć € 😀";
-    private static final int FRAMES_PER_CONNECTION = 3;
+    private static final int FRAMES_BEFORE_DISCONNECT = 3;
     // The mock endpoint numbers its messages from 0, so the corrupted message's id is also the number of messages sent before it.
     private static final int CORRUPTED_MESSAGE_INDEX = Integer.parseInt(InvalidUtf8MessagePolicy.CORRUPTED_MESSAGE_ID);
 
@@ -82,6 +84,7 @@ class WebsocketEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
         policies.put(InvalidUtf8MessagePolicy.ID, PolicyBuilder.build(InvalidUtf8MessagePolicy.ID, InvalidUtf8MessagePolicy.class));
+        policies.put(MessageFlowReleasePolicy.ID, PolicyBuilder.build(MessageFlowReleasePolicy.ID, MessageFlowReleasePolicy.class));
     }
 
     @EnumSource(value = Qos.class, names = { "NONE", "AUTO" })
@@ -159,17 +162,22 @@ class WebsocketEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest
 
     @Test
     @DeployApi("/apis/v4/messages/websocket/websocket-entrypoint-mock-endpoint-text-endless.json")
-    void should_serve_a_new_text_connection_after_a_client_disconnect(WebSocketClient client) {
-        client
-            .rxConnect("/text-endless")
-            .flatMapCompletable(webSocket ->
-                dataFrames(webSocket).take(FRAMES_PER_CONNECTION).ignoreElements().andThen(webSocket.rxClose())
-            )
+    void should_release_the_endpoint_message_flow_when_the_client_disconnects(WebSocketClient client) {
+        WebSocket webSocket = client.rxConnect("/text-endless").blockingGet();
+        dataFrames(webSocket)
+            .take(FRAMES_BEFORE_DISCONNECT)
             .test()
             .awaitDone(30, TimeUnit.SECONDS)
-            .assertComplete();
+            .assertValueCount(FRAMES_BEFORE_DISCONNECT);
 
-        assertTextFrames(receive(client, "/text-endless", FRAMES_PER_CONNECTION), MESSAGE);
+        assertThat(MessageFlowReleasePolicy.subscribedFlows()).isEqualTo(1);
+        assertThat(MessageFlowReleasePolicy.releasedFlows()).isZero();
+
+        webSocket.rxClose().blockingAwait();
+
+        await()
+            .atMost(10, TimeUnit.SECONDS)
+            .untilAsserted(() -> assertThat(MessageFlowReleasePolicy.releasedFlows()).isEqualTo(1));
     }
 
     private static List<WebSocketFrame> receive(WebSocketClient client, String path, int frameCount) {

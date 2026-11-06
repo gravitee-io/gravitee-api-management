@@ -48,7 +48,20 @@
       ]
     }
   ],
-  "flows": [],
+  "flows": [
+    {
+      "name": "Message flow release",
+      "enabled": true,
+      "subscribe": [
+        {
+          "name": "Message flow release",
+          "description": "Count the subscribed and released message flows",
+          "enabled": true,
+          "policy": "message-flow-release"
+        }
+      ]
+    }
+  ],
   "analytics": {
     "enabled": false
   }
