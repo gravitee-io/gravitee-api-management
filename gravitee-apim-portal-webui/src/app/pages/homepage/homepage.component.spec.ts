@@ -34,12 +34,8 @@ describe('HomepageComponent', () => {
   const createComponent = createComponentFactory({
     component: HomepageComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-<<<<<<< HEAD
     imports: [RouterTestingModule, HttpClientTestingModule],
     declarations: [GvPageComponent, ApiStatesPipe, ApiLabelsPipe],
-    providers: [ApiStatesPipe, ApiLabelsPipe],
-=======
-    imports: [RouterTestingModule, HttpClientTestingModule, GvPageComponent, ApiStatesPipe, ApiLabelsPipe],
     providers: [
       ApiStatesPipe,
       ApiLabelsPipe,
@@ -50,7 +46,6 @@ describe('HomepageComponent', () => {
         useValue: { get: (key: string, defaultValue?: unknown) => (key === 'baseURL' ? '/portal' : defaultValue) },
       },
     ],
->>>>>>> 76ee0e6 (fix(portal): sanitize API descriptions in search results and homepage)
   });
 
   let spectator: Spectator<HomepageComponent>;
