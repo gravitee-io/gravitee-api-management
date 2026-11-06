@@ -35,6 +35,8 @@ import io.gravitee.gamma.module.platform.rest.resource.dto.secret.SecretDtos.Cre
 import io.gravitee.gamma.module.platform.rest.resource.dto.secret.SecretDtos.RotateSecretRequest;
 import io.gravitee.gamma.module.platform.rest.resource.dto.secret.SecretDtos.SecretResponse;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.NotFoundException;
 import java.time.Duration;
 import java.util.List;
@@ -81,17 +83,32 @@ class SecretsResourceTest {
         user.setSource("memory");
         user.setSourceId("admin");
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null, List.of()));
+        GraviteeContext.fromExecutionContext(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID));
     }
 
     @AfterEach
     void clearAuthentication() {
         SecurityContextHolder.clearContext();
+        GraviteeContext.cleanContext();
+    }
+
+    @Test
+    void should_store_the_secret_under_the_environment_id_that_the_context_resolved() {
+        // Given
+        GraviteeContext.fromExecutionContext(new ExecutionContext(ORGANIZATION_ID, "resolved-env-id"));
+
+        // When
+        var body = (SecretResponse) resource.create(new CreateSecretRequest("anthropic-key", "sk-ant-123")).getEntity();
+
+        // Then
+        assertThat(body.path()).isEqualTo("/secrets/built-in/resolved-env-id/anthropic-key");
+        assertThat(secrets.secretRepository.findById(ORGANIZATION_ID, "resolved-env-id", body.id())).isPresent();
     }
 
     @Test
     void should_create_a_secret_and_answer_its_metadata_only() throws Exception {
         // When
-        var response = resource.create(ORGANIZATION_ID, ENVIRONMENT_ID, new CreateSecretRequest("anthropic-key", "sk-ant-123"));
+        var response = resource.create(new CreateSecretRequest("anthropic-key", "sk-ant-123"));
 
         // Then
         assertThat(response.getStatus()).isEqualTo(201);
@@ -106,7 +123,7 @@ class SecretsResourceTest {
     @Test
     void should_audit_the_authenticated_user() {
         // When
-        resource.create(ORGANIZATION_ID, ENVIRONMENT_ID, new CreateSecretRequest("anthropic-key", "sk-ant-123"));
+        resource.create(new CreateSecretRequest("anthropic-key", "sk-ant-123"));
 
         // Then
         assertThat(secrets.auditLog.last().actor()).isEqualTo(new SecretActor("user-id", "memory", "admin"));
@@ -120,7 +137,7 @@ class SecretsResourceTest {
         secrets.givenASecret(input -> input.key("cohere-key"));
 
         // When
-        var page = resource.list(ORGANIZATION_ID, ENVIRONMENT_ID, 1, 2);
+        var page = resource.list(1, 2);
 
         // Then
         assertThat(page.data()).extracting(SecretResponse::key).containsExactly("anthropic-key", "cohere-key");
@@ -137,7 +154,7 @@ class SecretsResourceTest {
         var secret = secrets.givenASecret();
 
         // When
-        var body = resource.get(ORGANIZATION_ID, ENVIRONMENT_ID, secret.id());
+        var body = resource.get(secret.id());
 
         // Then
         assertThat(body.id()).isEqualTo(secret.id());
@@ -151,7 +168,7 @@ class SecretsResourceTest {
         secrets.clock.advance(Duration.ofMinutes(5));
 
         // When
-        var body = resource.rotate(ORGANIZATION_ID, ENVIRONMENT_ID, secret.id(), new RotateSecretRequest("new-value"));
+        var body = resource.rotate(secret.id(), new RotateSecretRequest("new-value"));
 
         // Then
         assertThat(body.updatedAt()).isAfter(body.createdAt());
@@ -165,7 +182,7 @@ class SecretsResourceTest {
         var secret = secrets.givenASecret();
 
         // When / Then
-        assertThatThrownBy(() -> resource.rotate(ORGANIZATION_ID, ENVIRONMENT_ID, secret.id(), new RotateSecretRequest(null))).isInstanceOf(
+        assertThatThrownBy(() -> resource.rotate(secret.id(), new RotateSecretRequest(null))).isInstanceOf(
             InvalidSecretValueException.class
         );
     }
@@ -176,19 +193,23 @@ class SecretsResourceTest {
         var secret = secrets.givenASecret();
 
         // When
-        var response = resource.delete(ORGANIZATION_ID, ENVIRONMENT_ID, secret.id());
+        var response = resource.delete(secret.id());
 
         // Then
         assertThat(response.getStatus()).isEqualTo(204);
-        assertThatThrownBy(() -> resource.get(ORGANIZATION_ID, ENVIRONMENT_ID, secret.id())).isInstanceOf(SecretNotFoundException.class);
+        assertThatThrownBy(() -> resource.get(secret.id())).isInstanceOf(SecretNotFoundException.class);
     }
 
     @Test
     void should_not_serve_secrets_without_an_environment_in_the_path() {
-        assertThatThrownBy(() -> resource.list(ORGANIZATION_ID, null, 1, 10)).isInstanceOf(NotFoundException.class);
-        assertThatThrownBy(() ->
-            resource.create(ORGANIZATION_ID, null, new CreateSecretRequest("anthropic-key", "sk-ant-123"))
-        ).isInstanceOf(NotFoundException.class);
+        // Given
+        GraviteeContext.fromExecutionContext(new ExecutionContext(ORGANIZATION_ID));
+
+        // When / Then
+        assertThatThrownBy(() -> resource.list(1, 10)).isInstanceOf(NotFoundException.class);
+        assertThatThrownBy(() -> resource.create(new CreateSecretRequest("anthropic-key", "sk-ant-123"))).isInstanceOf(
+            NotFoundException.class
+        );
     }
 
     @Test
