@@ -18,11 +18,18 @@ package io.gravitee.repository.management;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Secret;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 public class SecretRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -85,6 +92,16 @@ public class SecretRepositoryTest extends AbstractManagementRepositoryTest {
         secretRepository.update(rotated);
 
         assertThat(secretRepository.findById("org-1", "env-1", "secret-1")).contains(rotated);
+    }
+
+    @Test
+    public void should_rotate_the_value_of_a_secret_whose_id_looks_like_an_object_id() throws Exception {
+        var created = secretRepository.create(aSecret("5f8d0d55b54764421b7156c9").build());
+        var rotated = created.toBuilder().encryptedValue("ciphertext-rotated").updatedAt(new Date(1753711900000L)).build();
+
+        secretRepository.update(rotated);
+
+        assertThat(secretRepository.findById("org-1", "env-1", "5f8d0d55b54764421b7156c9")).contains(rotated);
     }
 
     @Test
@@ -174,6 +191,35 @@ public class SecretRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(firstPage.getContent()).extracting(Secret::getKey).containsExactly("anthropic-key", "cohere-key");
         assertThat(firstPage.getTotalElements()).isEqualTo(3);
         assertThat(secondPage.getContent()).extracting(Secret::getKey).containsExactly("mistral-key");
+    }
+
+    @Test
+    public void should_keep_the_encrypted_value_out_of_the_debug_logs() throws Exception {
+        var appender = new ListAppender<ILoggingEvent>();
+        appender.start();
+        var levels = new HashMap<Logger, Level>();
+        for (var name : List.of("io.gravitee", "org.springframework")) {
+            var logger = (Logger) LoggerFactory.getLogger(name);
+            levels.put(logger, logger.getLevel());
+            logger.setLevel(Level.DEBUG);
+            logger.addAppender(appender);
+        }
+        try {
+            var created = secretRepository.create(aSecret("logged").encryptedValue("value-created").build());
+            secretRepository.update(created.toBuilder().encryptedValue("value-rotated").build());
+            secretRepository.findByKey("org-1", "env-1", created.getKey());
+            secretRepository.search("org-1", "env-1", new PageableBuilder().pageNumber(0).pageSize(10).build());
+        } finally {
+            levels.forEach((logger, level) -> {
+                logger.setLevel(level);
+                logger.detachAppender(appender);
+            });
+        }
+
+        assertThat(appender.list)
+            .extracting(ILoggingEvent::getFormattedMessage)
+            .isNotEmpty()
+            .noneMatch(message -> message.contains("value-created") || message.contains("value-rotated") || message.contains("ciphertext"));
     }
 
     @Test

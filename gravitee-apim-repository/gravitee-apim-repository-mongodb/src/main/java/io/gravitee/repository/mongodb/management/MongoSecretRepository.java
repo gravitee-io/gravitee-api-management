@@ -15,9 +15,8 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import static org.springframework.data.mongodb.core.query.Criteria.where;
-import static org.springframework.data.mongodb.core.query.Query.query;
-
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SecretRepository;
@@ -28,11 +27,11 @@ import io.gravitee.repository.mongodb.management.internal.secret.SecretMongoRepo
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.Optional;
 import lombok.CustomLog;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 @CustomLog
@@ -81,22 +80,19 @@ public class MongoSecretRepository implements SecretRepository {
     @Override
     public Secret update(Secret secret) throws TechnicalException {
         log.debug("MongoSecretRepository.update({})", secret.getId());
+        var filter = Filters.and(
+            Filters.eq("_id", mongoTemplate.getConverter().convertId(secret.getId(), ObjectId.class)),
+            Filters.eq("organizationId", secret.getOrganizationId()),
+            Filters.eq("environmentId", secret.getEnvironmentId())
+        );
+        var update = Updates.combine(
+            Updates.set("encryptedValue", secret.getEncryptedValue()),
+            Updates.set("updatedAt", secret.getUpdatedAt())
+        );
         long matched;
         try {
-            matched = mongoTemplate
-                .updateFirst(
-                    query(
-                        where("_id")
-                            .is(secret.getId())
-                            .and("organizationId")
-                            .is(secret.getOrganizationId())
-                            .and("environmentId")
-                            .is(secret.getEnvironmentId())
-                    ),
-                    new Update().set("encryptedValue", secret.getEncryptedValue()).set("updatedAt", secret.getUpdatedAt()),
-                    SecretMongo.class
-                )
-                .getMatchedCount();
+            // The update methods of MongoTemplate log the update document, encrypted value included, at debug level.
+            matched = mongoTemplate.execute(SecretMongo.class, collection -> collection.updateOne(filter, update)).getMatchedCount();
         } catch (Exception ex) {
             throw new TechnicalException("Failed to update secret " + secret.getId(), ex);
         }
