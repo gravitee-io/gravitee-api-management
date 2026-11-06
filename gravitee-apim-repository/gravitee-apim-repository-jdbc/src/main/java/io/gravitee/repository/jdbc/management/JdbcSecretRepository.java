@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 
 import io.gravitee.common.data.domain.Page;
@@ -29,9 +30,9 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Optional;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -185,24 +186,34 @@ public class JdbcSecretRepository extends TransactionalRepository implements Sec
         }
     }
 
-    /** Sorted in Java because the default collations of MySQL, MariaDB and SQL Server ignore case. */
     @Override
     public Page<Secret> search(String organizationId, String environmentId, Pageable pageable) throws TechnicalException {
         log.debug("JdbcSecretRepository.search({}, {})", organizationId, environmentId);
         try {
-            var all = jdbcTemplate.query(
-                "SELECT " + columns + " FROM " + tableName + " WHERE organization_id = ? AND environment_id = ?",
+            var total = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM " + tableName + " WHERE organization_id = ? AND environment_id = ?",
+                Long.class,
+                organizationId,
+                environmentId
+            );
+            if (total == null || total == 0) {
+                return new Page<>(List.of(), pageable.pageNumber(), 0, 0);
+            }
+            // id breaks ties: MySQL, MariaDB and SQL Server collate keys that differ only by case as equal.
+            var content = jdbcTemplate.query(
+                "SELECT " +
+                    columns +
+                    " FROM " +
+                    tableName +
+                    " WHERE organization_id = ? AND environment_id = ? ORDER BY " +
+                    KEY +
+                    ", id " +
+                    createPagingClause(pageable.pageSize(), pageable.from()),
                 JdbcSecretRepository::toSecret,
                 organizationId,
                 environmentId
             );
-            var content = all
-                .stream()
-                .sorted(Comparator.comparing(Secret::getKey))
-                .skip(pageable.from())
-                .limit(pageable.pageSize())
-                .toList();
-            return new Page<>(content, pageable.pageNumber(), content.size(), all.size());
+            return new Page<>(content, pageable.pageNumber(), content.size(), total);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to search secrets of environment " + environmentId, ex);
         }
