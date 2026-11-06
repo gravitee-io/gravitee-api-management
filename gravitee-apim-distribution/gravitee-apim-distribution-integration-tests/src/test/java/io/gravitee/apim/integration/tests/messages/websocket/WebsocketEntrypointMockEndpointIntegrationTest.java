@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.integration.tests.messages.websocket;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.graviteesource.entrypoint.websocket.WebSocketCloseStatus;
@@ -45,6 +46,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -133,20 +135,26 @@ class WebsocketEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest
         }
     )
     void should_close_with_invalid_payload_data_when_text_message_is_not_utf8(Qos qos, WebSocketClient client) {
-        AtomicReference<WebSocket> webSocket = new AtomicReference<>();
+        ClosedConnection connection = receiveUntilClosed(client, "/text-invalid-utf8-" + qos.getLabel());
 
-        List<WebSocketFrame> frames = client
-            .rxConnect("/text-invalid-utf8-" + qos.getLabel())
-            .doOnSuccess(webSocket::set)
-            .flatMapPublisher(WebsocketEntrypointMockEndpointIntegrationTest::dataFrames)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertComplete()
-            .values();
+        assertThat(connection.frames()).hasSize(CORRUPTED_MESSAGE_INDEX);
+        assertTextFrames(connection.frames(), MESSAGE);
+        assertThat(connection.closeStatusCode()).isEqualTo((short) WebSocketCloseStatus.INVALID_PAYLOAD_DATA.code());
+    }
 
-        assertThat(frames).hasSize(CORRUPTED_MESSAGE_INDEX);
-        assertTextFrames(frames, MESSAGE);
-        assertThat(webSocket.get().closeStatusCode()).isEqualTo((short) WebSocketCloseStatus.INVALID_PAYLOAD_DATA.code());
+    @Test
+    @DeployApi("/apis/v4/messages/websocket/websocket-entrypoint-mock-endpoint-binary-invalid-utf8-none.json")
+    void should_send_invalid_utf8_unchanged_when_frame_type_is_binary(WebSocketClient client) {
+        ClosedConnection connection = receiveUntilClosed(client, "/binary-invalid-utf8-none");
+
+        List<byte[]> expectedContents = IntStream.range(0, MESSAGE_COUNT)
+            .mapToObj(index -> index == CORRUPTED_MESSAGE_INDEX ? InvalidUtf8MessagePolicy.INVALID_UTF8 : MESSAGE.getBytes(UTF_8))
+            .toList();
+        assertThat(connection.frames()).allSatisfy(frame -> assertThat(frame.isBinary()).isTrue());
+        assertThat(connection.frames())
+            .extracting(frame -> frame.binaryData().getBytes())
+            .containsExactlyElementsOf(expectedContents);
+        assertThat(connection.closeStatusCode()).isEqualTo((short) WebSocketCloseStatus.NORMAL_CLOSURE.code());
     }
 
     @Test
@@ -174,6 +182,21 @@ class WebsocketEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest
             .assertComplete()
             .assertValueCount(frameCount)
             .values();
+    }
+
+    private static ClosedConnection receiveUntilClosed(WebSocketClient client, String path) {
+        AtomicReference<WebSocket> webSocket = new AtomicReference<>();
+
+        List<WebSocketFrame> frames = client
+            .rxConnect(path)
+            .doOnSuccess(webSocket::set)
+            .flatMapPublisher(WebsocketEntrypointMockEndpointIntegrationTest::dataFrames)
+            .test()
+            .awaitDone(30, TimeUnit.SECONDS)
+            .assertComplete()
+            .values();
+
+        return new ClosedConnection(frames, webSocket.get().closeStatusCode());
     }
 
     private static void assertTextFrames(List<WebSocketFrame> frames, String expectedContent) {
@@ -208,4 +231,6 @@ class WebsocketEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest
             BackpressureStrategy.BUFFER
         );
     }
+
+    private record ClosedConnection(List<WebSocketFrame> frames, short closeStatusCode) {}
 }

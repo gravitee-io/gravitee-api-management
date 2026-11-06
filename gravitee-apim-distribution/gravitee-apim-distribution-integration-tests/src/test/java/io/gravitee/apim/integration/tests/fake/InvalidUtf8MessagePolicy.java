@@ -30,7 +30,7 @@ public class InvalidUtf8MessagePolicy implements Policy {
     public static final String ID = "invalid-utf8-message";
     public static final String CORRUPTED_MESSAGE_ID = "2";
 
-    private static final byte[] INVALID_UTF8 = { (byte) 0xC3, (byte) 0x28 };
+    public static final byte[] INVALID_UTF8 = { (byte) 0xC3, (byte) 0x28 };
 
     @Override
     public String id() {
