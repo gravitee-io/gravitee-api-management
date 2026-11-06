@@ -22,6 +22,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Secret;
@@ -65,7 +66,19 @@ public class SecretRepositoryTest extends AbstractManagementRepositoryTest {
     public void should_refuse_a_second_secret_with_the_same_key_in_one_environment() {
         var duplicate = aSecret("duplicate").key("anthropic-key").build();
 
-        assertThatThrownBy(() -> secretRepository.create(duplicate)).isInstanceOf(TechnicalException.class);
+        assertThatThrownBy(() -> secretRepository.create(duplicate))
+            .isInstanceOf(DuplicateKeyException.class)
+            .hasMessageContaining("anthropic-key");
+    }
+
+    @Test
+    public void should_refuse_a_second_secret_with_the_same_id() throws Exception {
+        var sameId = aSecret("secret-1").key("new-key").build();
+
+        assertThatThrownBy(() -> secretRepository.create(sameId))
+            .isInstanceOf(DuplicateKeyException.class)
+            .hasMessageContaining("secret-1");
+        assertThat(secretRepository.findById("org-1", "env-1", "secret-1")).map(Secret::getKey).contains("anthropic-key");
     }
 
     @Test
