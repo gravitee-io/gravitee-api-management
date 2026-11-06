@@ -432,6 +432,9 @@ public interface GraviteeMapper {
     AiWorkspaceComponent map(AiWorkspaceComponentMongo toMap);
     AiWorkspaceComponentMongo map(AiWorkspaceComponent toMap);
 
+    Secret map(SecretMongo toMap);
+    SecretMongo map(Secret toMap);
+
     // SubscriptionForm mapping
     SubscriptionForm map(SubscriptionFormMongo toMap);
     SubscriptionFormMongo map(SubscriptionForm toMap);
