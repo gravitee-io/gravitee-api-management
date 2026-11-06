@@ -88,10 +88,51 @@ public class SecretRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_refuse_to_update_a_secret_of_another_environment() {
-        var wrongEnv = aSecret("secret-1").environmentId("env-2").build();
+    public void should_refuse_to_update_a_secret_of_another_environment() throws Exception {
+        var original = secretRepository.findById("org-1", "env-1", "secret-1").orElseThrow();
+        var wrongEnv = original.toBuilder().environmentId("env-2").encryptedValue("ciphertext-hijacked").build();
 
         assertThatThrownBy(() -> secretRepository.update(wrongEnv)).isInstanceOf(TechnicalException.class);
+        assertThat(secretRepository.findById("org-1", "env-1", "secret-1")).contains(original);
+    }
+
+    @Test
+    public void should_refuse_to_update_a_secret_of_another_organization() throws Exception {
+        var original = secretRepository.findById("org-1", "env-1", "secret-1").orElseThrow();
+        var wrongOrg = original.toBuilder().organizationId("org-2").encryptedValue("ciphertext-hijacked").build();
+
+        assertThatThrownBy(() -> secretRepository.update(wrongOrg)).isInstanceOf(TechnicalException.class);
+        assertThat(secretRepository.findById("org-1", "env-1", "secret-1")).contains(original);
+    }
+
+    @Test
+    public void should_refuse_to_update_a_deleted_secret_rather_than_recreate_it() throws Exception {
+        var existing = secretRepository.findById("org-1", "env-1", "secret-1").orElseThrow();
+        secretRepository.delete("org-1", "env-1", "secret-1");
+
+        assertThatThrownBy(() -> secretRepository.update(existing.toBuilder().encryptedValue("ciphertext-late").build())).isInstanceOf(
+            TechnicalException.class
+        );
+        assertThat(secretRepository.findById("org-1", "env-1", "secret-1")).isEmpty();
+    }
+
+    @Test
+    public void should_change_only_the_value_and_the_update_date() throws Exception {
+        var existing = secretRepository.findById("org-1", "env-1", "secret-1").orElseThrow();
+
+        secretRepository.update(
+            existing
+                .toBuilder()
+                .key("renamed-key")
+                .createdAt(new Date(1700000000000L))
+                .encryptedValue("ciphertext-rotated")
+                .updatedAt(new Date(1753711900000L))
+                .build()
+        );
+
+        assertThat(secretRepository.findById("org-1", "env-1", "secret-1")).contains(
+            existing.toBuilder().encryptedValue("ciphertext-rotated").updatedAt(new Date(1753711900000L)).build()
+        );
     }
 
     @Test
@@ -107,6 +148,22 @@ public class SecretRepositoryTest extends AbstractManagementRepositoryTest {
         secretRepository.delete("org-1", "env-2", "secret-1");
 
         assertThat(secretRepository.findById("org-1", "env-1", "secret-1")).isPresent();
+    }
+
+    @Test
+    public void should_not_delete_a_secret_of_another_organization() throws Exception {
+        secretRepository.delete("org-2", "env-1", "secret-1");
+
+        assertThat(secretRepository.findById("org-1", "env-1", "secret-1")).isPresent();
+    }
+
+    @Test
+    public void should_keep_keys_that_differ_only_by_case_apart() throws Exception {
+        secretRepository.create(aSecret("upper").key("ApiKey").build());
+        secretRepository.create(aSecret("lower").key("apikey").build());
+
+        assertThat(secretRepository.findByKey("org-1", "env-1", "ApiKey")).map(Secret::getId).contains("upper");
+        assertThat(secretRepository.findByKey("org-1", "env-1", "apikey")).map(Secret::getId).contains("lower");
     }
 
     @Test
