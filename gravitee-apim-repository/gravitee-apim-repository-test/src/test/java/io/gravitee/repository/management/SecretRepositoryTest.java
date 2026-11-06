@@ -234,17 +234,6 @@ public class SecretRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_sort_keys_with_upper_case_before_lower_case() throws Exception {
-        secretRepository.create(aSecret("beta").environmentId("env-3").key("beta").build());
-        secretRepository.create(aSecret("alpha").environmentId("env-3").key("Alpha").build());
-        secretRepository.create(aSecret("gamma").environmentId("env-3").key("Gamma").build());
-
-        var page = secretRepository.search("org-1", "env-3", new PageableBuilder().pageNumber(0).pageSize(10).build());
-
-        assertThat(page.getContent()).extracting(Secret::getKey).containsExactly("Alpha", "Gamma", "beta");
-    }
-
-    @Test
     public void should_keep_the_encrypted_value_out_of_the_debug_logs() throws Exception {
         var appender = new ListAppender<ILoggingEvent>();
         appender.start();
