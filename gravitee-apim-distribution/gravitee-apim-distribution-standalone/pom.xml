@@ -1463,11 +1463,12 @@
             Catalog: every plugin a flavor can add to the slim distribution, with its version. Never activated:
             the flavor goal of gravitee-apim-release-manifest-maven-plugin reads it to resolve the names of the
             layer files (../flavors/*.txt), and the release manifest lists it for custom images.
+            Declaring a plugin here ships it nowhere: add its artifactId to one layer file too.
         -->
         <profile>
             <id>catalog</id>
             <dependencies>
-                <!-- ==== Shipped by the bundle-default flavor ==== -->
+                <!-- ==== Listed in ../flavors/enterprise.txt (bundle-default) ==== -->
                 <!-- Entrypoints -->
                 <dependency>
                     <groupId>com.graviteesource.entrypoint</groupId>
@@ -2649,7 +2650,7 @@
                     </exclusions>
                 </dependency>
 
-                <!-- ==== Shipped by the bundle-dev flavor, or only listed for custom images ==== -->
+                <!-- ==== Listed in ../flavors/dev.txt (bundle-dev), or in no layer (custom images only) ==== -->
                 <!-- Endpoints -->
                 <dependency>
                     <groupId>com.graviteesource.endpoint</groupId>
