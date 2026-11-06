@@ -30,17 +30,6 @@ import { ConfigurationService } from '../../services/configuration.service';
   standalone: false,
 })
 export class HomepageComponent implements OnInit {
-<<<<<<< HEAD
-=======
-  private portalService = inject(PortalService);
-  private apiService = inject(ApiService);
-  private router = inject(Router);
-  private apiStates = inject(ApiStatesPipe);
-  private apiLabels = inject(ApiLabelsPipe);
-  private config = inject(ConfigurationService);
-  private markdownDescription = inject(MarkdownDescriptionPipe);
-
->>>>>>> 76ee0e6 (fix(portal): sanitize API descriptions in search results and homepage)
   public homepage: Page;
   public topApis: { item: Api; metric: Promise<ApiMetrics> }[] = [];
   public pageBaseUrl = '/documentation/root';
@@ -52,6 +41,7 @@ export class HomepageComponent implements OnInit {
     private apiStates: ApiStatesPipe,
     private apiLabels: ApiLabelsPipe,
     private config: ConfigurationService,
+    private markdownDescription: MarkdownDescriptionPipe,
   ) {}
 
   ngOnInit() {

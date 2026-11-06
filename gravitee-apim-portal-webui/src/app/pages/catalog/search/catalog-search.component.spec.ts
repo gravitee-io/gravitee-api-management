@@ -38,16 +38,12 @@ describe('CatalogSearchComponent', () => {
     component: CatalogSearchComponent,
     imports: [RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-<<<<<<< HEAD
     declarations: [ApiStatesPipe, ApiLabelsPipe],
-    providers: [mockProvider(NotificationService), mockProvider(ConfigurationService)],
-=======
     providers: [
       MarkdownDescriptionPipe,
       mockProvider(NotificationService),
       mockProvider(ConfigurationService, { get: (key: string, defaultValue?: unknown) => config[key] ?? defaultValue }),
     ],
->>>>>>> 76ee0e6 (fix(portal): sanitize API descriptions in search results and homepage)
   });
 
   let spectator: Spectator<CatalogSearchComponent>;
