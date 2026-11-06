@@ -225,7 +225,7 @@ commands:
 jobs:
   job-danger-js:
     docker:
-      - image: cimg/node:22.12.0
+      - image: cimg/node:24.22.1
     resource_class: small
     steps:
       - checkout
@@ -649,7 +649,7 @@ jobs:
             - gravitee-apim-repository/gravitee-apim-repository-coverage/target/site/jacoco-aggregate/
   job-nx-format-check:
     docker:
-      - image: cimg/node:22.12.0
+      - image: cimg/node:24.22.1
     resource_class: medium
     steps:
       - checkout
@@ -663,7 +663,7 @@ jobs:
       - cmd-notify-on-failure
   job-webui-libs-lint-test:
     docker:
-      - image: cimg/node:22.12.0
+      - image: cimg/node:24.22.1
     resource_class: medium+
     steps:
       - checkout
@@ -720,7 +720,7 @@ jobs:
         default: 35%
         description: Maximum number of workers for Jest tests
     docker:
-      - image: cimg/node:22.12.0
+      - image: cimg/node:24.22.1
     resource_class: << parameters.resource_class >>
     steps:
       - checkout
@@ -748,11 +748,7 @@ jobs:
           path: << parameters.apim-ui-project-workdir >>/coverage/junit.xml
   job-console-webui-build:
     docker:
-<<<<<<< HEAD
-      - image: cimg/node:22.12.0
-=======
       - image: cimg/node:24.22.1
->>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: large
     steps:
       - checkout
@@ -825,7 +821,7 @@ jobs:
         default: medium
         description: Resource class to use for executor
     docker:
-      - image: cimg/node:22.12.0
+      - image: cimg/node:24.22.1
     resource_class: << parameters.resource_class >>
     steps:
       - checkout
@@ -858,11 +854,7 @@ jobs:
           path: << parameters.apim-ui-project-workdir >>/coverage/junit.xml
   job-portal-webui-build:
     docker:
-<<<<<<< HEAD
-      - image: cimg/node:22.12.0
-=======
       - image: cimg/node:24.22.1
->>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: large
     steps:
       - checkout
@@ -897,11 +889,7 @@ jobs:
             - gravitee-apim-portal-webui/dist
   job-gamma-webui-build:
     docker:
-<<<<<<< HEAD
-      - image: cimg/node:22.12.0
-=======
       - image: cimg/node:24.22.1
->>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: large
     steps:
       - checkout
@@ -994,7 +982,7 @@ jobs:
             - gravitee-apim-e2e/lib/portal-webclient-sdk
   job-e2e-lint-build:
     docker:
-      - image: cimg/node:22.12.0
+      - image: cimg/node:24.22.1
     resource_class: small
     steps:
       - checkout
@@ -1104,7 +1092,7 @@ jobs:
           path: ./gravitee-apim-e2e/.logs
   job-perf-lint-build:
     docker:
-      - image: cimg/node:22.12.0
+      - image: cimg/node:24.22.1
     resource_class: small
     steps:
       - checkout
@@ -1193,11 +1181,7 @@ jobs:
           jobName: job-publish-snapshot
   job-release-helm:
     docker:
-<<<<<<< HEAD
-      - image: cimg/node:22.12.0
-=======
       - image: cimg/node:24.22.1
->>>>>>> 30fc823 (ci: bump node image to 24.22.1)
     resource_class: medium
     steps:
       - checkout
