@@ -995,8 +995,7 @@ gamma:
   enabled: false
 
 # Gamma platform module secrets. Secret values are encrypted with AES-256-GCM under this key.
-# Without a key the module uses a default key that is public in the source: set your own in production.
-# With an invalid key the module still starts, but creating or rotating a secret fails.
+# Without a valid key the module still starts, but creating or rotating a secret fails.
 # Generate a key with: openssl rand -base64 32
 #modules:
 #  platform:
