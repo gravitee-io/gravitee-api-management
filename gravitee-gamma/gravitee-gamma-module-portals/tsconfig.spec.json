@@ -1,11 +1,16 @@
 {
     "extends": "./tsconfig.json",
     "compilerOptions": {
+        "baseUrl": ".",
         "outDir": "../../dist/out-tsc",
-        "module": "commonjs",
-        "moduleResolution": "node10",
+        "module": "ES2022",
+        "moduleResolution": "bundler",
         "jsx": "react-jsx",
-        "types": ["jest", "node", "@nx/react/typings/cssmodule.d.ts", "@nx/react/typings/image.d.ts"]
+        "types": ["jest", "node", "@testing-library/jest-dom", "@nx/react/typings/cssmodule.d.ts", "@nx/react/typings/image.d.ts"],
+        "paths": {
+            "@gravitee/gamma-modules-sdk": ["./src/main/ui/shared/gamma-modules-sdk.ts"],
+            "@gravitee/gamma-ui-shared/api": ["../gamma-ui-shared/src/api/index.ts"]
+        }
     },
     "include": [
         "jest.config.ts",
