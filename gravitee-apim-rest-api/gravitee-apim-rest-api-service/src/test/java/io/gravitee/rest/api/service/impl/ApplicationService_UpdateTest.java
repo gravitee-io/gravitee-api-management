@@ -917,6 +917,45 @@ public class ApplicationService_UpdateTest {
     }
 
     @Test
+    public void should_keep_subscription_metadata_when_renaming_application() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setApp(new SimpleApplicationSettings());
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(NEW_APPLICATION_NAME);
+        when(applicationRepository.update(any())).thenReturn(existingApplication);
+
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+
+        MembershipEntity po = getPrimaryOwner();
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId("sub-1");
+        subscription.setApplicationName(APPLICATION_NAME);
+        subscription.setMetadata(Map.of("tier", "gold", "legacy.key", "kept"));
+        when(subscriptionService.search(any(), any())).thenReturn(List.of(subscription));
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(getConsoleConfigEntity(false));
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        ArgumentCaptor<Consumer<Subscription>> subscriptionModifierCaptor = ArgumentCaptor.forClass(Consumer.class);
+        verify(subscriptionService).update(any(), any(UpdateSubscriptionEntity.class), subscriptionModifierCaptor.capture());
+
+        // Before the modifier runs, the subscription update has replaced the stored metadata with the request's: none
+        Subscription storedSubscription = new Subscription();
+        subscriptionModifierCaptor.getValue().accept(storedSubscription);
+        Assertions.assertThat(storedSubscription.getApplicationName()).isEqualTo(NEW_APPLICATION_NAME);
+        Assertions.assertThat(storedSubscription.getMetadata()).containsExactlyInAnyOrderEntriesOf(
+            Map.of("tier", "gold", "legacy.key", "kept")
+        );
+    }
+
+    @Test
     public void should_allow_certificate_rename_when_fingerprint_already_belongs_to_same_application() throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
         settings.setApp(new SimpleApplicationSettings());
