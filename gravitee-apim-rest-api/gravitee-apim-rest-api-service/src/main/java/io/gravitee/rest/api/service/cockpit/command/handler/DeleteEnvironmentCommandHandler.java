@@ -478,13 +478,13 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         asyncJobRepository.deleteByEnvironmentId(environment.getId());
         mediaRepository.deleteByEnvironment(environment.getId());
         metadataRepository.deleteByReferenceIdAndReferenceType(environment.getId(), MetadataReferenceType.ENVIRONMENT);
+        secretRepository.deleteByEnvironmentId(environment.getId());
         environmentService.delete(environment.getId());
         auditRepository.deleteByReferenceIdAndReferenceType(environment.getId(), Audit.AuditReferenceType.ENVIRONMENT);
         clientRegistrationProviderRepository.deleteByEnvironmentId(environment.getId());
         qualityRuleRepository.deleteByReferenceIdAndReferenceType(environment.getId(), QualityRule.ReferenceType.ENVIRONMENT);
         clusterRepository.deleteByEnvironmentId(environment.getId());
         subscriptionFormRepository.deleteByEnvironmentId(environment.getId());
-        secretRepository.deleteByEnvironmentId(environment.getId());
     }
 
     private void deletePortalNavigationItems(EnvironmentEntity environment) throws TechnicalException {
