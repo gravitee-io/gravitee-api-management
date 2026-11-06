@@ -41,6 +41,7 @@ import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.portal.exception.NavigationPortalNotResolvedException;
 import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
@@ -1403,7 +1404,7 @@ class UpdatePortalNavigationItemUseCaseTest {
         }
 
         @Test
-        void should_take_the_portal_of_the_folder_it_lands_in_when_it_leaves_an_api() {
+        void should_refuse_to_move_an_item_leaving_an_api_into_a_folder_of_another_portal() {
             var otherPortal = new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-0000000000aa"));
             var portalFolder = store(
                 PortalNavigationItemFixtures.aFolder("Other portal guides").toBuilder().reference(otherPortal).build()
@@ -1411,10 +1412,10 @@ class UpdatePortalNavigationItemUseCaseTest {
             var folder = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Tutorials")));
             var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", folder.getId())));
 
-            move(folder, portalFolder.getId());
+            assertThatThrownBy(() -> move(folder, portalFolder.getId())).isInstanceOf(NavigationPortalNotResolvedException.class);
 
-            assertThat(List.of(find(folder), find(page))).extracting(PortalNavigationItem::getReference).containsOnly(otherPortal);
-            assertThat(find(folder).getParentId()).isEqualTo(portalFolder.getId());
+            assertThat(List.of(find(folder), find(page))).extracting(PortalNavigationItem::getReference).containsOnly(API_A);
+            assertThat(find(folder).getParentId()).isNull();
         }
 
         @Test
