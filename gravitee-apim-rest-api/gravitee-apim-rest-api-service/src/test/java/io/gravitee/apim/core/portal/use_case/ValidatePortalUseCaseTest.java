@@ -17,10 +17,12 @@ package io.gravitee.apim.core.portal.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
@@ -50,14 +52,27 @@ class ValidatePortalUseCaseTest {
         "Default Portal"
     );
 
+    private final InstallationAccessQueryServiceInMemory installationAccessQueryService = new InstallationAccessQueryServiceInMemory();
     private final ValidatePortalDomainService validator = new ValidatePortalDomainService(
-        new PortalAutomationScopeDomainService(new PortalCrudServiceInMemory(), () -> false)
+        new PortalAutomationScopeDomainService(new PortalCrudServiceInMemory(), () -> false),
+        new PortalUrlDomainService(installationAccessQueryService)
     );
     private ValidatePortalUseCase useCase;
 
     @BeforeEach
     void setUp() {
+        installationAccessQueryService.reset();
+        installationAccessQueryService.withPortalUrl(AUDIT_INFO.environmentId(), "https://portal.acme.io");
         useCase = new ValidatePortalUseCase(validator);
+    }
+
+    @Test
+    void should_report_an_error_for_a_new_portal_whose_url_cannot_be_resolved() {
+        installationAccessQueryService.reset();
+
+        var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, PORTAL, PortalNavigationStructure.empty()));
+
+        assertThat(output.errors()).anyMatch(e -> e.getMessage().contains("portal URL"));
     }
 
     @Test

@@ -69,7 +69,11 @@ class CreateOrUpdatePortalUseCaseTest {
 
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
     private final PortalAutomationScopeDomainService scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService, () -> false);
-    private final ValidatePortalDomainService validator = new ValidatePortalDomainService(scopeEnforcer);
+    private final InstallationAccessQueryServiceInMemory installationAccessQueryService = new InstallationAccessQueryServiceInMemory();
+    private final ValidatePortalDomainService validator = new ValidatePortalDomainService(
+        scopeEnforcer,
+        new PortalUrlDomainService(installationAccessQueryService)
+    );
     private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
     private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
         navCrudService.storage()
@@ -79,11 +83,12 @@ class CreateOrUpdatePortalUseCaseTest {
     private final PortalListingCrudServiceInMemory portalListingCrudService = new PortalListingCrudServiceInMemory();
     private final ThemeCrudServiceInMemory themeCrudService = new ThemeCrudServiceInMemory();
     private final ThemeQueryServiceInMemory themeQueryService = new ThemeQueryServiceInMemory(themeCrudService);
-    private final InstallationAccessQueryServiceInMemory installationAccessQueryService = new InstallationAccessQueryServiceInMemory();
     private CreateOrUpdatePortalUseCase useCase;
 
     @BeforeEach
     void setUp() {
+        installationAccessQueryService.withPortalUrl(AUDIT_INFO.environmentId(), "https://portal.acme.io");
+        installationAccessQueryService.withPortalUrl("other-env", "https://other.acme.io");
         useCase = new CreateOrUpdatePortalUseCase(
             validator,
             portalCrudService,
@@ -170,8 +175,6 @@ class CreateOrUpdatePortalUseCaseTest {
 
     @Test
     void should_create_a_non_default_portal_with_the_resolved_url() {
-        installationAccessQueryService.withPortalUrl(AUDIT_INFO.environmentId(), "https://portal.acme.io");
-
         var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, PortalFixtures.aPortal()));
 
         assertThat(output.portal().isDefault()).isFalse();
@@ -182,10 +185,30 @@ class CreateOrUpdatePortalUseCaseTest {
     }
 
     @Test
-    void should_create_a_portal_with_the_placeholder_url_when_the_url_cannot_be_resolved() {
-        var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, PortalFixtures.aPortal()));
+    void should_refuse_a_new_portal_whose_url_cannot_be_resolved() {
+        installationAccessQueryService.reset();
 
-        assertThat(output.portal().getUrl()).isEqualTo(Portal.URL_PLACEHOLDER);
+        assertThatThrownBy(() -> useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, PortalFixtures.aPortal())))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("portal URL");
+        assertThat(portalCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_update_an_existing_portal_even_when_the_url_cannot_be_resolved() {
+        var existing = PortalFixtures.aPortal();
+        portalCrudService.initWith(List.of(existing));
+        installationAccessQueryService.reset();
+
+        var output = useCase.execute(
+            new CreateOrUpdatePortalUseCase.Input(
+                AUDIT_INFO,
+                Portal.of(existing.getId(), existing.getEnvironmentId(), existing.getOrganizationId(), "Renamed Portal")
+            )
+        );
+
+        assertThat(output.portal().getName()).isEqualTo("Renamed Portal");
+        assertThat(output.portal().getUrl()).isEqualTo(existing.getUrl());
     }
 
     @Test

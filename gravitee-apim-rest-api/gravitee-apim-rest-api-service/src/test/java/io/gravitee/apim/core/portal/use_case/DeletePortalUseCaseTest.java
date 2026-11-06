@@ -105,8 +105,13 @@ class DeletePortalUseCaseTest {
         var scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService, () -> false);
         var themeQueryService = new ThemeQueryServiceInMemory(themeCrudService);
         var currentThemeDomainService = new CurrentThemeDomainService(themeQueryService, themeCrudService);
+        var portalUrlDomainService = new PortalUrlDomainService(
+            new InstallationAccessQueryServiceInMemory()
+                .withPortalUrl("environment-id", "https://portal.acme.io")
+                .withPortalUrl("other-env", "https://other.acme.io")
+        );
         setupUseCase = new CreateOrUpdatePortalUseCase(
-            new ValidatePortalDomainService(scopeEnforcer),
+            new ValidatePortalDomainService(scopeEnforcer, portalUrlDomainService),
             portalCrudService,
             navSync,
             pageContentQueryService,
@@ -119,7 +124,7 @@ class DeletePortalUseCaseTest {
             scopeEnforcer,
             themeCrudService,
             currentThemeDomainService,
-            new PortalUrlDomainService(new InstallationAccessQueryServiceInMemory())
+            portalUrlDomainService
         );
         useCase = new DeletePortalUseCase(portalCrudService, navSync, themeCrudService, currentThemeDomainService);
     }

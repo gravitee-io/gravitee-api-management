@@ -37,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 public class ValidatePortalDomainService implements Validator<ValidatePortalDomainService.Input> {
 
     private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
+    private final PortalUrlDomainService portalUrlDomainService;
 
     public record Input(AuditInfo auditInfo, Portal portal, PortalNavigationStructure structure) implements Validator.Input {}
 
@@ -44,9 +45,26 @@ public class ValidatePortalDomainService implements Validator<ValidatePortalDoma
     public Result<Input> validateAndSanitize(Input input) {
         var errors = new ArrayList<Error>();
         errors.addAll(portalAutomationScopeEnforcer.validate(input.auditInfo(), input.portal().getId(), "hrid"));
+        if (isNewPortalWithoutResolvableUrl(input)) {
+            errors.add(
+                Error.severe(
+                    "Portal [%s] cannot be created: the portal URL of environment [%s] is not set or is not an absolute http(s) URL without credentials",
+                    input.portal().getId(),
+                    input.auditInfo().environmentId()
+                )
+            );
+        }
         var structure = input.structure() == null ? PortalNavigationStructure.empty() : input.structure();
         structure.areas().forEach((area, paths) -> errors.addAll(validateArea(area, paths)));
         return Result.ofBoth(input, errors);
+    }
+
+    /** A portal is only created with a real URL; an existing one keeps its stored URL. */
+    private boolean isNewPortalWithoutResolvableUrl(Input input) {
+        return (
+            !portalAutomationScopeEnforcer.portalExistsInEnvironment(input.auditInfo(), input.portal().getId()) &&
+            portalUrlDomainService.resolveDefaultPortalUrl(input.auditInfo().environmentId()).isEmpty()
+        );
     }
 
     private static List<Error> validateArea(PortalArea area, List<NavigationPath> paths) {

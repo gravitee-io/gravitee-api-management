@@ -122,11 +122,17 @@ public class CreateOrUpdatePortalUseCase {
     }
 
     /**
-     * The Automation API's input carries no URL. A new portal is served at its environment's portal URL; only when
-     * that URL cannot be resolved does it keep the placeholder, since a deployment cannot be postponed.
+     * The Automation API's input carries no URL: a new portal is served at its environment's portal URL. Validation
+     * has already refused a new portal whose URL cannot be resolved.
      */
     private Portal withResolvedUrl(Portal portal) {
-        portalUrlDomainService.resolveDefaultPortalUrl(portal.getEnvironmentId()).ifPresent(portal::changeUrl);
+        portal.changeUrl(
+            portalUrlDomainService
+                .resolveDefaultPortalUrl(portal.getEnvironmentId())
+                .orElseThrow(() ->
+                    new ValidationDomainException("Portal URL of environment [" + portal.getEnvironmentId() + "] cannot be resolved")
+                )
+        );
         return portal;
     }
 
