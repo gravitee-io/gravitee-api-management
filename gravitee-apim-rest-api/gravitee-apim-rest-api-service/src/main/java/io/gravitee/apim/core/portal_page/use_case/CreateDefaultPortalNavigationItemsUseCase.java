@@ -178,9 +178,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
      */
     private Optional<NavigationItemReference> defaultPortalOf(String organizationId, String environmentId) {
         try {
-            return Optional.of(
-                new NavigationItemReference.PortalReference(navigationPortalDomainService.resolve(organizationId, environmentId).getId())
-            );
+            return Optional.of(navigationPortalDomainService.resolveReference(organizationId, environmentId));
         } catch (NavigationPortalNotResolvedException e) {
             log.warn("Default navigation of environment [{}] not created: {}", environmentId, e.getMessage());
             return Optional.empty();

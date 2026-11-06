@@ -781,6 +781,126 @@ public class PortalNavigationItemDomainServiceTest {
             assertThat(moved.getReference()).isEqualTo(defaultPortal());
         }
 
+        private void stored(PortalNavigationItem... items) {
+            portalNavigationItemsCrudService.initWith(List.of(items));
+            portalNavigationItemsQueryService.initWith(List.of(items));
+        }
+
+        private UpdatePortalNavigationItem moveUnder(PortalNavigationItem item, PortalNavigationItem parent) {
+            return UpdatePortalNavigationItem.builder().title(item.getTitle()).parentId(parent.getId()).build();
+        }
+
+        private NavigationItemReference existingDefaultPortal() {
+            navigationPortals.resolve(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID);
+            return defaultPortal();
+        }
+
+        @Test
+        void should_refuse_creating_an_item_under_a_folder_of_another_portal() {
+            var automationFolder = PortalNavigationItemFixtures.aFolder("Products").toBuilder().reference(A_PORTAL).build();
+            stored(automationFolder);
+
+            assertThatThrownBy(() ->
+                domainService.create(
+                    PortalNavigationItemFixtures.ORG_ID,
+                    PortalNavigationItemFixtures.ENV_ID,
+                    aFolderToCreate("Guides").toBuilder().parentId(automationFolder.getId()).build()
+                )
+            )
+                .isInstanceOf(NavigationPortalNotResolvedException.class)
+                .hasMessageContaining("the destination belongs to a portal managed through the Automation API");
+            assertThat(portalNavigationItemsCrudService.storage()).containsExactly(automationFolder);
+        }
+
+        @Test
+        void should_create_nothing_when_an_item_of_the_batch_lands_under_a_folder_of_another_portal() {
+            var automationFolder = PortalNavigationItemFixtures.aFolder("Products").toBuilder().reference(A_PORTAL).build();
+            stored(automationFolder);
+
+            assertThatThrownBy(() ->
+                domainService.createAll(
+                    PortalNavigationItemFixtures.ORG_ID,
+                    PortalNavigationItemFixtures.ENV_ID,
+                    List.of(aFolderToCreate("Guides"), aFolderToCreate("Tutorials").toBuilder().parentId(automationFolder.getId()).build())
+                )
+            ).isInstanceOf(NavigationPortalNotResolvedException.class);
+            assertThat(portalNavigationItemsCrudService.storage()).containsExactly(automationFolder);
+        }
+
+        @Test
+        void should_create_an_item_under_a_folder_of_the_default_portal_or_a_legacy_folder() {
+            var defaultPortalFolder = PortalNavigationItemFixtures.aFolder("Guides").toBuilder().reference(existingDefaultPortal()).build();
+            var legacyFolder = PortalNavigationItemFixtures.aFolder("Legacy");
+            stored(defaultPortalFolder, legacyFolder);
+
+            var created = domainService.createAll(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                List.of(
+                    aFolderToCreate("Under guides").toBuilder().parentId(defaultPortalFolder.getId()).build(),
+                    aFolderToCreate("Under legacy").toBuilder().parentId(legacyFolder.getId()).build()
+                )
+            );
+
+            assertThat(created).extracting(PortalNavigationItem::getReference).containsOnly(defaultPortal());
+        }
+
+        @Test
+        void should_refuse_moving_a_portal_item_under_a_folder_of_another_portal() {
+            var page = PortalNavigationItemFixtures.aPage("Guide", null).toBuilder().reference(existingDefaultPortal()).build();
+            var automationFolder = PortalNavigationItemFixtures.aFolder("Products").toBuilder().reference(A_PORTAL).build();
+            stored(page, automationFolder);
+
+            assertThatThrownBy(() -> domainService.resolveDestination(moveUnder(page, automationFolder), page, false))
+                .isInstanceOf(NavigationPortalNotResolvedException.class)
+                .hasMessageContaining("the destination belongs to a portal managed through the Automation API");
+        }
+
+        @Test
+        void should_refuse_moving_a_folder_under_a_folder_of_another_portal() {
+            var folder = PortalNavigationItemFixtures.aFolder("Guides").toBuilder().reference(existingDefaultPortal()).build();
+            var automationFolder = PortalNavigationItemFixtures.aFolder("Products").toBuilder().reference(A_PORTAL).build();
+            stored(folder, automationFolder);
+
+            assertThatThrownBy(() -> domainService.resolveDestination(moveUnder(folder, automationFolder), folder, false)).isInstanceOf(
+                NavigationPortalNotResolvedException.class
+            );
+        }
+
+        @Test
+        void should_refuse_moving_a_legacy_item_under_a_folder_of_another_portal() {
+            var legacyPage = PortalNavigationItemFixtures.aPage("Guide", null);
+            var automationFolder = PortalNavigationItemFixtures.aFolder("Products").toBuilder().reference(A_PORTAL).build();
+            stored(legacyPage, automationFolder);
+
+            assertThatThrownBy(() ->
+                domainService.resolveDestination(moveUnder(legacyPage, automationFolder), legacyPage, false)
+            ).isInstanceOf(NavigationPortalNotResolvedException.class);
+        }
+
+        @Test
+        void should_move_a_legacy_item_under_a_folder_of_the_default_portal_and_keep_its_reference() {
+            var legacyPage = PortalNavigationItemFixtures.aPage("Guide", null);
+            var defaultPortalFolder = PortalNavigationItemFixtures.aFolder("Guides").toBuilder().reference(existingDefaultPortal()).build();
+            stored(legacyPage, defaultPortalFolder);
+
+            var moved = domainService.resolveDestination(moveUnder(legacyPage, defaultPortalFolder), legacyPage, false);
+
+            assertThat(moved.getReference()).isNull();
+        }
+
+        @Test
+        void should_keep_moving_an_item_inside_its_own_portal() {
+            var page = PortalNavigationItemFixtures.aPage("Guide", null).toBuilder().reference(A_PORTAL).build();
+            var folderOfTheSamePortal = PortalNavigationItemFixtures.aFolder("Products").toBuilder().reference(A_PORTAL).build();
+            stored(page, folderOfTheSamePortal);
+
+            var moved = domainService.resolveDestination(moveUnder(page, folderOfTheSamePortal), page, false);
+
+            assertThat(moved.getReference()).isNull();
+            assertThat(navigationPortals.resolveCalls()).isZero();
+        }
+
         @Test
         void should_refuse_moving_an_api_item_under_a_folder_of_another_portal() {
             var apiOwner = new NavigationItemReference.ApiReference("api-1");
