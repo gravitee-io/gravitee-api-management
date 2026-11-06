@@ -18,6 +18,7 @@ package io.gravitee.gamma.module.platform.infra.repository.secret;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.gamma.module.platform.core.secret.exception.SecretKeyAlreadyExistsException;
+import io.gravitee.gamma.module.platform.core.secret.exception.SecretNotFoundException;
 import io.gravitee.gamma.module.platform.core.secret.model.Secret;
 import io.gravitee.gamma.module.platform.core.secret.port.repository.SecretRepository;
 import io.gravitee.repository.exceptions.DuplicateKeyException;
@@ -67,6 +68,9 @@ public class ApimSecretRepository implements SecretRepository {
         try {
             return toCore(secretRepository.update(toStored(secret, encryptedValue)));
         } catch (TechnicalException e) {
+            if (findById(secret.organizationId(), secret.environmentId(), secret.id()).isEmpty()) {
+                throw new SecretNotFoundException(secret.id());
+            }
             throw new TechnicalDomainException("Failed to rotate secret " + secret.id(), e);
         }
     }
