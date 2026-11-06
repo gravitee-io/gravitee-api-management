@@ -36,21 +36,45 @@ export class TriggerSaasDockerImagesJob {
         }", "sha1":"${computeDockerTagSuffix(environment.sha1)}", "release-version":"${environment.graviteeioVersion}", "dry-run":${
           environment.isDryRun
         }, "os-distribution":"${osDistribution}"}}' | jq -r '.id')
+if [[ -z "$PIPELINE_ID" || "$PIPELINE_ID" == "null" ]]; then
+    echo "Failed to trigger the SaaS Docker images pipeline."
+    exit 1
+fi
 echo "Pipeline triggered with ID: $PIPELINE_ID"
 waitForPipelineCompletion() {
+    local notFound=0
     while true; do
-        STATUS=$(curl --request GET --url "https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow" --header "Circle-Token: \${CIRCLE_TOKEN}" | jq -r '.items[].status')
+        # The statuses of the pipeline's workflows, comma-separated, or the error message when there are none
+        STATUS=$(curl --silent --request GET --url "https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow" --header "Circle-Token: \${CIRCLE_TOKEN}" | jq -r 'if .items then [.items[].status] | unique | join(",") else .message end') || STATUS=""
         echo "Current status: $STATUS"
-        if [[ "$STATUS" == "success" ]]; then
-            echo "Pipeline completed successfully."
-            break
-        elif [[ "$STATUS" == "failed" ]]; then
-            echo "Pipeline failed."
-            exit 1
-        fi
+        case "$STATUS" in
+            success)
+                echo "Pipeline completed successfully."
+                return 0
+                ;;
+            *failed* | *error* | *canceled* | *unauthorized* | *not_run*)
+                echo "Pipeline failed."
+                exit 1
+                ;;
+            *running* | *on_hold* | *failing*)
+                notFound=0
+                ;;
+            # Right after the trigger the pipeline is not readable yet: wait for it, at most 5 minutes
+            "Pipeline run not found." | "")
+                notFound=$((notFound + 1))
+                if ((notFound > 10)); then
+                    echo "Pipeline $PIPELINE_ID is still not readable after 5 minutes."
+                    exit 1
+                fi
+                ;;
+            *)
+                echo "Unexpected answer from the CircleCI API."
+                exit 1
+                ;;
+        esac
         sleep 30
     done
-}  
+}
 waitForPipelineCompletion`,
       }),
     ];
