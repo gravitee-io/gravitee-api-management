@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { APP_BASE_HREF, PlatformLocation } from '@angular/common';
 import { AfterViewInit, Directive, ElementRef, HostListener, inject, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, Routes } from '@angular/router';
+
+const URL_SCHEME = /^[a-z][a-z\d+.-]*:/i;
 
 @Directive({
   selector: '[appInnerLink]',
@@ -22,6 +25,7 @@ import { Router } from '@angular/router';
 })
 export class InnerLinkDirective implements AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
+  private readonly baseHref = inject(APP_BASE_HREF, { optional: true }) ?? inject(PlatformLocation).getBaseHrefFromDOM();
   private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
   private pendingFragment: string | null = null;
@@ -37,7 +41,7 @@ export class InnerLinkDirective implements AfterViewInit, OnDestroy {
     const anchor = this.findAnchor(event);
     const href = anchor?.getAttribute('href');
 
-    if (!href) {
+    if (!anchor || !href || this.isLeftToBrowser(event, anchor, href)) {
       return;
     }
 
@@ -54,9 +58,10 @@ export class InnerLinkDirective implements AfterViewInit, OnDestroy {
       return;
     }
 
-    if (!href.startsWith('https:') && !href.startsWith('http:')) {
+    const appUrl = this.toAppUrl(href);
+    if (this.matchesTopLevelRoute(appUrl, this.router.config)) {
       event.preventDefault();
-      void this.router.navigateByUrl(href);
+      void this.router.navigateByUrl(appUrl);
     }
   }
 
@@ -66,6 +71,49 @@ export class InnerLinkDirective implements AfterViewInit, OnDestroy {
 
   public ngOnDestroy(): void {
     this.mutationObserver?.disconnect();
+  }
+
+  private isLeftToBrowser(event: MouseEvent, anchor: HTMLAnchorElement, href: string): boolean {
+    const target = anchor.getAttribute('target');
+    return (
+      event.button !== 0 ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      event.altKey ||
+      anchor.hasAttribute('download') ||
+      (!!target && target !== '_self') ||
+      URL_SCHEME.test(href) ||
+      href.startsWith('//')
+    );
+  }
+
+  /** Strips the app base href so the router does not prepend it a second time. */
+  private toAppUrl(href: string): string {
+    const base = (this.baseHref ?? '/').replace(/\/+$/, '');
+    if (!base || !href.startsWith(base)) {
+      return href;
+    }
+    const rest = href.substring(base.length);
+    if (rest === '' || /^[/?#]/.test(rest)) {
+      return rest.startsWith('/') ? rest : `/${rest}`;
+    }
+    return href;
+  }
+
+  /** Paths outside the router config (another app on the same host) must reach the server, not the portal's 404 route. */
+  private matchesTopLevelRoute(url: string, routes: Routes): boolean {
+    const firstSegment = url.replace(/^\//, '').split(/[/?#;]/)[0];
+    return routes.some(route => {
+      if (route.path === '**') {
+        return false;
+      }
+      if (!route.path) {
+        return firstSegment === '' || (!!route.children && this.matchesTopLevelRoute(url, route.children));
+      }
+      const routeSegment = route.path.split('/')[0];
+      return routeSegment.startsWith(':') || routeSegment === firstSegment;
+    });
   }
 
   private syncFragmentFromUrl(): void {
