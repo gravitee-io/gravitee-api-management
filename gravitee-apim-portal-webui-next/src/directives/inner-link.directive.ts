@@ -104,7 +104,11 @@ export class InnerLinkDirective implements AfterViewInit, OnDestroy {
         return false;
       }
       if (!route.path) {
-        return firstSegment === '' || (!!route.children && this.matchesTopLevelRoute(path, route.children));
+        if (firstSegment === '') {
+          return true;
+        }
+
+        return !!route.children && this.matchesTopLevelRoute(path, route.children);
       }
       const routeSegment = route.path.split('/')[0];
       return routeSegment.startsWith(':') || routeSegment === firstSegment;
