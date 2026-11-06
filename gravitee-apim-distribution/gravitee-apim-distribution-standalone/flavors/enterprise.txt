@@ -114,6 +114,7 @@ gravitee-reactor-llm-proxy
 gravitee-reactor-a2a-proxy
 gravitee-reactor-authz
 gravitee-reactor-edge
+gravitee-reactor-guardian
 
 # Repositories
 gravitee-apim-repository-bridge-http-server
