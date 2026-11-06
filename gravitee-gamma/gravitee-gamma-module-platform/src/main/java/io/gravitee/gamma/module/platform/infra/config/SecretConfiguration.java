@@ -27,11 +27,14 @@ import io.gravitee.gamma.module.platform.core.secret.use_case.UpdateSecretUseCas
 import io.gravitee.gamma.module.platform.infra.repository.secret.ApimSecretRepository;
 import io.gravitee.gamma.module.platform.infra.service_provider.secret.AesGcmSecretValueEncryptor;
 import io.gravitee.gamma.module.platform.infra.service_provider.secret.ApimSecretAuditLog;
+import io.gravitee.gamma.module.platform.infra.service_provider.secret.UnavailableSecretValueEncryptor;
 import java.time.Clock;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
+@CustomLog
 @Configuration
 public class SecretConfiguration {
 
@@ -42,9 +45,15 @@ public class SecretConfiguration {
         return new ApimSecretRepository(secretRepository);
     }
 
+    // A bad key must not stop the module context: the AM settings live in the same module.
     @Bean
     public SecretValueEncryptor platformSecretValueEncryptor(Environment environment) {
-        return new AesGcmSecretValueEncryptor(environment.getProperty(AesGcmSecretValueEncryptor.KEY_PROPERTY));
+        try {
+            return new AesGcmSecretValueEncryptor(environment.getProperty(AesGcmSecretValueEncryptor.KEY_PROPERTY));
+        } catch (IllegalArgumentException e) {
+            log.warn("The platform module cannot store secret values: {}", e.getMessage());
+            return new UnavailableSecretValueEncryptor();
+        }
     }
 
     @Bean
