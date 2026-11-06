@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.gamma.module.platform.core.secret.exception.SecretKeyAlreadyExistsException;
+import io.gravitee.gamma.module.platform.core.secret.exception.SecretNotFoundException;
 import io.gravitee.gamma.module.platform.core.secret.model.Secret;
 import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -107,6 +108,26 @@ class ApimSecretRepositoryTest {
 
         verify(secretRepository).update(rotated);
         assertThat(result.updatedAt()).isEqualTo(UPDATED_AT);
+    }
+
+    @Test
+    void should_report_the_rotation_of_a_deleted_secret_as_not_found() throws TechnicalException {
+        when(secretRepository.update(any())).thenThrow(new TechnicalException("no row"));
+        when(secretRepository.findById("org-1", "env-1", "secret-1")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> repository.rotate(aSecret().rotatedAt(UPDATED_AT), "new-ciphertext")).isInstanceOf(
+            SecretNotFoundException.class
+        );
+    }
+
+    @Test
+    void should_report_a_failed_rotation_of_an_existing_secret_as_technical() throws TechnicalException {
+        when(secretRepository.update(any())).thenThrow(new TechnicalException("down"));
+        when(secretRepository.findById("org-1", "env-1", "secret-1")).thenReturn(Optional.of(aStoredSecret()));
+
+        assertThatThrownBy(() -> repository.rotate(aSecret().rotatedAt(UPDATED_AT), "new-ciphertext")).isInstanceOf(
+            TechnicalDomainException.class
+        );
     }
 
     @Test
