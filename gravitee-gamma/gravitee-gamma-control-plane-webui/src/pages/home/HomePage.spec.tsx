@@ -206,5 +206,13 @@ describe('HomePage', () => {
                 expect(screen.getByRole('heading', { level: 3, name })).toBeTruthy();
             }
         });
+
+        it('should link Add Integration to the AI Agent Management landing page', async () => {
+            renderHome(ALL_MODULES);
+
+            const heading = await screen.findByRole('heading', { level: 3, name: 'Add Integration' });
+
+            expect(heading.closest('a')?.getAttribute('href')).toBe('/environments/env-1/aim');
+        });
     });
 });
