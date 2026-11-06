@@ -15,10 +15,18 @@
  */
 package io.gravitee.rest.api.management.security.config;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import io.gravitee.rest.api.security.config.AbstractSecurityConfigurerAdapterTest;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
@@ -36,6 +44,29 @@ class BasicSecurityConfigurerAdapterTest extends AbstractSecurityConfigurerAdapt
         return "/openapi.json";
     }
 
+    @Test
+    void should_let_the_cockpit_login_form_through() throws Exception {
+        postLoginFormFromCockpit("/auth/cockpit").andExpect(status().isOk());
+    }
+
+    @Test
+    void should_not_let_the_cockpit_login_form_through_on_another_path() throws Exception {
+        postLoginFormFromCockpit("/auth/cockpitx").andExpect(status().isForbidden());
+    }
+
+    private ResultActions postLoginFormFromCockpit(String path) throws Exception {
+        return mockMvc.perform(
+            post(path)
+                .with(request -> {
+                    request.setPathInfo(path);
+                    return request;
+                })
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .param("token", "login-token")
+                .header(HttpHeaders.ORIGIN, "https://cockpit.example.com")
+        );
+    }
+
     @Configuration
     @EnableWebMvc
     @RestController
@@ -43,5 +74,8 @@ class BasicSecurityConfigurerAdapterTest extends AbstractSecurityConfigurerAdapt
 
         @GetMapping(path = { "/openapi.json" })
         public void handle() {}
+
+        @PostMapping(path = { "/auth/cockpit", "/auth/cockpitx" })
+        public void login() {}
     }
 }

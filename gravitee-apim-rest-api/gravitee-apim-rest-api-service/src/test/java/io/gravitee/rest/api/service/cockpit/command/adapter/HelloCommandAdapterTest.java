@@ -147,6 +147,7 @@ public class HelloCommandAdapterTest {
         obs.assertValue(helloCommand -> {
             assertEquals(CUSTOM_VALUE, helloCommand.getPayload().getAdditionalInformation().get(CUSTOM_KEY));
             assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey(AdditionalInfoConstants.AUTH_PATH));
+            assertEquals("true", helloCommand.getPayload().getAdditionalInformation().get(AdditionalInfoConstants.AUTH_FORM_POST));
             assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey(AdditionalInfoConstants.AUTH_BASE_URL));
             assertEquals(InstallationType.STANDALONE.getLabel(), helloCommand.getPayload().getInstallationType());
 
@@ -183,6 +184,7 @@ public class HelloCommandAdapterTest {
         obs.assertValue(helloCommand -> {
             assertEquals(CUSTOM_VALUE, helloCommand.getPayload().getAdditionalInformation().get(CUSTOM_KEY));
             assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey(AdditionalInfoConstants.AUTH_PATH));
+            assertEquals("true", helloCommand.getPayload().getAdditionalInformation().get(AdditionalInfoConstants.AUTH_FORM_POST));
             assertFalse(helloCommand.getPayload().getAdditionalInformation().containsKey(AdditionalInfoConstants.AUTH_BASE_URL));
             assertEquals(InstallationType.MULTI_TENANT.getLabel(), helloCommand.getPayload().getInstallationType());
 

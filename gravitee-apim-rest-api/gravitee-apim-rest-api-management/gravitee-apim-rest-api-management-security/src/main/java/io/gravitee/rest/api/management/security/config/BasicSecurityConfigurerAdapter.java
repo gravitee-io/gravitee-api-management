@@ -280,6 +280,8 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
              */
             .requestMatchers(HttpMethod.GET, "/auth/cockpit")
             .permitAll()
+            .requestMatchers(HttpMethod.POST, "/auth/cockpit")
+            .permitAll()
             /*
              * Global external auth resources.
              */

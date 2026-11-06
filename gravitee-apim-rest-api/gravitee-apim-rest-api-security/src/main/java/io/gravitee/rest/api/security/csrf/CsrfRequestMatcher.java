@@ -38,7 +38,8 @@ public class CsrfRequestMatcher implements RequestMatcher {
         Arrays.asList(
             Pattern.compile("^/organizations/[^/]+/user/login$"),
             Pattern.compile("^/organizations/[^/]+/auth/.*$"),
-            Pattern.compile("^/environments/[^/]+/auth/.*$")
+            Pattern.compile("^/environments/[^/]+/auth/.*$"),
+            Pattern.compile("^/auth/cockpit$")
         )
     );
 

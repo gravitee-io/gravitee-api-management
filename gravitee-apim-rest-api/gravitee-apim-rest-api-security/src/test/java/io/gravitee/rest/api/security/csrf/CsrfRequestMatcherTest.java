@@ -131,4 +131,23 @@ class CsrfRequestMatcherTest {
 
         assertFalse(csrfRequestMatcher.matches(request));
     }
+
+    @Test
+    void should_not_match_with_POST_request_and_cockpit_auth_path() {
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/auth/cockpit");
+        request.setPathInfo("/auth/cockpit");
+        request.addHeader("Origin", "http://localhost:8083");
+
+        assertFalse(csrfRequestMatcher.matches(request));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "/auth/cockpit/other", "/auth/cockpitx", "/auth/external" })
+    void should_match_with_POST_request_and_path_close_to_cockpit_auth(String path) {
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", path);
+        request.setPathInfo(path);
+        request.addHeader("Origin", "http://localhost:8083");
+
+        assertTrue(csrfRequestMatcher.matches(request));
+    }
 }

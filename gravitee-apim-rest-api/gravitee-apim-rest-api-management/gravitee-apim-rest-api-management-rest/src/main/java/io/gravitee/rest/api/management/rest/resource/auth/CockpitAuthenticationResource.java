@@ -44,10 +44,14 @@ import io.gravitee.rest.api.service.v4.ApiSearchService;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
@@ -143,6 +147,23 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
         @QueryParam(value = "token") final String token,
         @Context final HttpServletResponse httpResponse
     ) {
+        return exchange(httpServletRequest, token, httpResponse);
+    }
+
+    /**
+     * Same exchange as the GET, with the token sent in a form body instead of the query string.
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response tokenExchangeFromForm(
+        @Context final HttpServletRequest httpServletRequest,
+        @FormParam(value = "token") final String token,
+        @Context final HttpServletResponse httpResponse
+    ) {
+        return exchange(httpServletRequest, token, httpResponse);
+    }
+
+    private Response exchange(final HttpServletRequest httpServletRequest, final String token, final HttpServletResponse httpResponse) {
         if (!enabled) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -186,12 +207,12 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
                     url = uriComponents.toUriString();
                 }
 
-                return Response.temporaryRedirect(
+                return Response.seeOther(
                     new URI("%s/environments/%s/auth/console?token=%s".formatted(url, environmentId, tokenEntity.getToken()))
                 ).build();
             } else if (APPLICATION_GAMMA.equalsIgnoreCase(application)) {
                 final String gammaUrl = installationAccessQueryService.getGammaUrl(organizationId);
-                return Response.temporaryRedirect(new URI("%s/environments/%s".formatted(gammaUrl, environmentId))).build();
+                return Response.seeOther(new URI("%s/environments/%s".formatted(gammaUrl, environmentId))).build();
             } else {
                 final String apiCrossId = jwtClaimsSet.getStringClaim(API_CLAIM);
                 final String apiId = Optional.ofNullable(apiCrossId)
@@ -206,7 +227,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
                 );
 
                 // Redirect the user.
-                return Response.temporaryRedirect(new URI(url)).build();
+                return Response.seeOther(new URI(url)).build();
             }
         } catch (UserNotFoundException e) {
             log.error("Authentication failed", e);
