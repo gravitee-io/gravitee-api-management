@@ -17,8 +17,6 @@ import { APP_BASE_HREF, PlatformLocation } from '@angular/common';
 import { AfterViewInit, Directive, ElementRef, HostListener, inject, OnDestroy } from '@angular/core';
 import { Router, Routes } from '@angular/router';
 
-const URL_SCHEME = /^[a-z][a-z\d+.-]*:/i;
-
 @Directive({
   selector: '[appInnerLink]',
   standalone: true,
@@ -49,7 +47,7 @@ export class InnerLinkDirective implements AfterViewInit, OnDestroy {
     const anchor = this.findAnchor(event);
     const href = anchor?.getAttribute('href');
 
-    if (!anchor || !href || this.isLeftToBrowser(event, anchor, href)) {
+    if (!anchor || !href || this.isLeftToBrowser(event, anchor)) {
       return;
     }
 
@@ -83,7 +81,7 @@ export class InnerLinkDirective implements AfterViewInit, OnDestroy {
     this.mutationObserver?.disconnect();
   }
 
-  private isLeftToBrowser(event: MouseEvent, anchor: HTMLAnchorElement, href: string): boolean {
+  private isLeftToBrowser(event: MouseEvent, anchor: HTMLAnchorElement): boolean {
     const target = anchor.getAttribute('target');
     return (
       event.button !== 0 ||
@@ -93,8 +91,7 @@ export class InnerLinkDirective implements AfterViewInit, OnDestroy {
       event.altKey ||
       anchor.hasAttribute('download') ||
       (!!target && target !== '_self') ||
-      URL_SCHEME.test(href) ||
-      href.startsWith('//')
+      anchor.origin !== this.hostElement.ownerDocument.defaultView?.location.origin
     );
   }
 
