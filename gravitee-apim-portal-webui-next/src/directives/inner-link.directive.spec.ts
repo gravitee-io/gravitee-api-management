@@ -267,6 +267,7 @@ describe('InnerLinkDirective with absolute paths', () => {
     ['a mailto link', { href: 'mailto:x@y' }],
     ['a tel link', { href: 'tel:+123' }],
     ['a protocol-relative link', { href: '//other.host/catalog' }],
+    ['a javascript link', { href: 'javascript:void(0)' }],
     ['a ctrl-click', { href: '/catalog', eventInit: { ctrlKey: true } }],
     ['a meta-click', { href: '/catalog', eventInit: { metaKey: true } }],
     ['a middle-click', { href: '/catalog', eventInit: { button: 1 } }],
