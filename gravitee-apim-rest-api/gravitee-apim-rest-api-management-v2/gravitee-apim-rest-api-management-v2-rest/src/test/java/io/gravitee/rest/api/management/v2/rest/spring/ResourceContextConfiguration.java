@@ -36,10 +36,12 @@ import inmemory.GroupQueryServiceInMemory;
 import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.KafkaPortRangeCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
+import inmemory.NavigationPortalDomainServiceInMemory;
 import inmemory.NewtAIProviderInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
+import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationManifestParserInMemory;
 import inmemory.RoleQueryServiceInMemory;
@@ -205,6 +207,7 @@ import io.gravitee.apim.core.plan.use_case.UpdatePlanUseCase;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
@@ -1640,7 +1643,8 @@ public class ResourceContextConfiguration {
         PortalPageContentQueryService portalPageContentQueryService,
         ApiCrudService apiCrudService,
         PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService,
-        ApiOwnedNavigationDomainService apiOwnedNavigationDomainService
+        ApiOwnedNavigationDomainService apiOwnedNavigationDomainService,
+        NavigationPortalDomainService navigationPortalDomainService
     ) {
         return new PortalNavigationItemDomainService(
             portalNavigationItemCrudService,
@@ -1649,8 +1653,14 @@ public class ResourceContextConfiguration {
             portalPageContentQueryService,
             apiCrudService,
             portalNavigationItemSourceDomainService,
-            apiOwnedNavigationDomainService
+            apiOwnedNavigationDomainService,
+            navigationPortalDomainService
         );
+    }
+
+    @Bean
+    public NavigationPortalDomainService navigationPortalDomainService(PortalCrudServiceInMemory portalCrudService) {
+        return new NavigationPortalDomainServiceInMemory(portalCrudService);
     }
 
     @Bean

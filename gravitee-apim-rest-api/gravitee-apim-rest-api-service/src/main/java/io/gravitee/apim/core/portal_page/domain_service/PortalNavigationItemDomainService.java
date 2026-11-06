@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
@@ -68,8 +69,29 @@ public class PortalNavigationItemDomainService {
     private final ApiCrudService apiCrudService;
     private final PortalNavigationItemSourceDomainService sourceDomainService;
     private final ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
+    private final NavigationPortalDomainService navigationPortalDomainService;
+
+    /**
+     * Creates the items in order. The portal of the items that name none is resolved once, before anything is
+     * written, so a refusal leaves no item of the batch behind.
+     */
+    public List<PortalNavigationItem> createAll(String organizationId, String environmentId, List<CreatePortalNavigationItem> items) {
+        var unnamed = items
+            .stream()
+            .filter(item -> NavigationItemReference.PortalReference.DEFAULT.equals(item.getReference()))
+            .toList();
+        if (!unnamed.isEmpty()) {
+            var portal = namedOwner(organizationId, environmentId, NavigationItemReference.defaultReference());
+            unnamed.forEach(item -> item.setReference(portal));
+        }
+        return items
+            .stream()
+            .map(item -> create(organizationId, environmentId, item))
+            .toList();
+    }
 
     public PortalNavigationItem create(String organizationId, String environmentId, CreatePortalNavigationItem createPortalNavigationItem) {
+        createPortalNavigationItem.setReference(namedOwner(organizationId, environmentId, createPortalNavigationItem.getReference()));
         int sanitizedOrder = this.sanitizeOrderForInsertion(
             createPortalNavigationItem.getParentId(),
             environmentId,
@@ -193,6 +215,17 @@ public class PortalNavigationItemDomainService {
         final var source = page.getSource();
         fetchState.applyTo(source);
         return crudService.updateSourceFetchState(page.getId(), source, fetchState).orElse(page);
+    }
+
+    /**
+     * The model default reference means the caller did not name the item's portal: it is stored on the portal
+     * the console writes to. PORTAL-345 removes that default.
+     */
+    private NavigationItemReference namedOwner(String organizationId, String environmentId, NavigationItemReference reference) {
+        if (!NavigationItemReference.PortalReference.DEFAULT.equals(reference)) {
+            return reference;
+        }
+        return new NavigationItemReference.PortalReference(navigationPortalDomainService.resolve(organizationId, environmentId).getId());
     }
 
     /**
@@ -349,7 +382,7 @@ public class PortalNavigationItemDomainService {
      *         and an item an API gives up joins the portal of the parent it lands under.
      */
     @Nullable
-    private static NavigationItemReference newOwnerAt(
+    private NavigationItemReference newOwnerAt(
         DocumentationDestination destination,
         @Nullable PortalNavigationItem parent,
         PortalNavigationItem existing
@@ -360,9 +393,10 @@ public class PortalNavigationItemDomainService {
         if (!(existing.getReference() instanceof NavigationItemReference.ApiReference)) {
             return null;
         }
-        return parent != null && parent.getReference() instanceof NavigationItemReference.PortalReference
+        var portalOwner = parent != null && parent.getReference() instanceof NavigationItemReference.PortalReference
             ? parent.getReference()
             : NavigationItemReference.defaultReference();
+        return namedOwner(existing.getOrganizationId(), existing.getEnvironmentId(), portalOwner);
     }
 
     public PortalNavigationItem update(UpdatePortalNavigationItem toUpdate, PortalNavigationItem originalItem) {

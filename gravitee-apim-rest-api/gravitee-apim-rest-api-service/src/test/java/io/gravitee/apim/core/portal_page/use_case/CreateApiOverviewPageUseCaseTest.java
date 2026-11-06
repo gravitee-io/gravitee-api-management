@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.NavigationPortalDomainServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -77,7 +78,8 @@ class CreateApiOverviewPageUseCaseTest {
                     pageContentQueryService,
                     apiCrudService,
                     sourceDomainService,
-                    apiOwnedNavigationDomainService
+                    apiOwnedNavigationDomainService,
+                    new NavigationPortalDomainServiceInMemory()
                 ),
                 pageContentCrudService,
                 apiCrudService,

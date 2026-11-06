@@ -20,14 +20,23 @@ import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 
+import fixtures.core.model.PortalFixtures;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.InstallationAccessQueryServiceInMemory;
+import inmemory.NavigationPortalDomainServiceInMemory;
+import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
+import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
+import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
@@ -52,6 +61,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
 
     private PortalNavigationItemDomainService portalNavigationItemDomainService;
     private CreateDefaultPortalNavigationItemsUseCase useCase;
+    private NavigationPortalDomainServiceInMemory navigationPortals;
     private PortalNavigationItemsCrudServiceInMemory crudService;
     private PortalNavigationItemsQueryServiceInMemory queryService;
     private PortalPageContentCrudServiceInMemory pageContentCrudService;
@@ -64,6 +74,11 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
         pageContentCrudService = new PortalPageContentCrudServiceInMemory();
+        navigationPortals = new NavigationPortalDomainServiceInMemory();
+        useCase = useCaseResolvingWith(navigationPortals);
+    }
+
+    private CreateDefaultPortalNavigationItemsUseCase useCaseResolvingWith(NavigationPortalDomainService navigationPortalDomainService) {
         portalNavigationItemDomainService = new PortalNavigationItemDomainService(
             crudService,
             queryService,
@@ -71,9 +86,74 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
             PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
             apiCrudService,
             new PortalNavigationItemSourceDomainServiceInMemory(),
-            new ApiOwnedNavigationDomainService(queryService, crudService)
+            new ApiOwnedNavigationDomainService(queryService, crudService),
+            navigationPortalDomainService
         );
-        useCase = new CreateDefaultPortalNavigationItemsUseCase(portalNavigationItemDomainService, pageContentCrudService, queryService);
+        return new CreateDefaultPortalNavigationItemsUseCase(
+            portalNavigationItemDomainService,
+            pageContentCrudService,
+            queryService,
+            navigationPortalDomainService
+        );
+    }
+
+    @Test
+    void should_attach_seeded_items_to_the_default_portal() {
+        useCase.execute(ORG_ID, ENV_ID);
+
+        var defaultPortal = consolePortal();
+        assertThat(queryService.storage())
+            .extracting(PortalNavigationItem::getTitle, PortalNavigationItem::getReference)
+            .containsExactlyInAnyOrder(
+                tuple("Guides", defaultPortal),
+                tuple("Getting started", defaultPortal),
+                tuple("Core concepts", defaultPortal),
+                tuple("Authentication", defaultPortal),
+                tuple("Making your first API call", defaultPortal),
+                tuple("APIs", defaultPortal),
+                tuple("Docs", defaultPortal),
+                tuple("Home Page", defaultPortal)
+            );
+    }
+
+    @Test
+    void should_look_up_the_default_portal_once_per_seeding() {
+        useCase.execute(ORG_ID, ENV_ID);
+
+        assertThat(navigationPortals.resolveCalls()).isEqualTo(1);
+    }
+
+    @Test
+    void should_look_up_the_default_portal_once_when_adding_the_apis_section() {
+        useCase.ensureApisSection(ORG_ID, ENV_ID);
+
+        assertThat(navigationPortals.resolveCalls()).isEqualTo(1);
+    }
+
+    @Test
+    void should_seed_nothing_when_the_environment_has_no_default_portal() {
+        var portalCrudService = new PortalCrudServiceInMemory();
+        portalCrudService.initWith(
+            List.of(PortalFixtures.aPortal(PortalId.of("22222222-2222-2222-2222-222222222222"), ENV_ID, ORG_ID, "Automation Portal"))
+        );
+        var automationOnly = useCaseResolvingWith(new NavigationPortalDomainServiceInMemory(portalCrudService));
+        var postponed = useCaseResolvingWith(
+            new NavigationPortalDomainService(
+                new DefaultPortalDomainService(
+                    new PortalCrudServiceInMemory(),
+                    new PortalUrlDomainService(new InstallationAccessQueryServiceInMemory())
+                ),
+                new PortalCrudServiceInMemory()
+            )
+        );
+
+        automationOnly.execute(ORG_ID, ENV_ID);
+        automationOnly.ensureApisSection(ORG_ID, ENV_ID);
+        postponed.execute(ORG_ID, ENV_ID);
+        postponed.ensureApisSection(ORG_ID, ENV_ID);
+
+        assertThat(queryService.storage()).isEmpty();
+        assertThat(pageContentCrudService.storage()).isEmpty();
     }
 
     @Test
@@ -290,7 +370,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         assertThat(section.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
         assertThat(section.getPublished()).isTrue();
         assertThat(section.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
-        assertThat(section.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+        assertThat(section.getReference()).isEqualTo(consolePortal());
     }
 
     @Test
@@ -394,5 +474,10 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         // Then
         assertThat(queryService.storage().stream().map(PortalNavigationItem::getTitle)).contains("Home Page", "Getting started");
         assertThat(pageContentCrudService.storage()).hasSize(4);
+    }
+
+    /** The portal a console write stores an item on, created by the first such write. */
+    private NavigationItemReference consolePortal() {
+        return new NavigationItemReference.PortalReference(navigationPortals.defaultPortalIdOf(ENV_ID));
     }
 }

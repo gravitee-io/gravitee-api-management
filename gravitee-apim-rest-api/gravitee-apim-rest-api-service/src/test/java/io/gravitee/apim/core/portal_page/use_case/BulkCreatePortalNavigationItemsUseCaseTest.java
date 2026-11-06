@@ -30,11 +30,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.NavigationPortalDomainServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -87,6 +89,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
     private ApiProductQueryServiceInMemory apiProductQueryService;
     private ApiCrudServiceInMemory apiCrudService;
     private PortalPageContentCrudServiceInMemory pageContentCrudService;
+    private final NavigationPortalDomainServiceInMemory navigationPortals = new NavigationPortalDomainServiceInMemory();
 
     @BeforeEach
     void setUp() {
@@ -113,7 +116,8 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
             apiCrudService,
             new PortalNavigationItemSourceDomainServiceInMemory(),
-            new ApiOwnedNavigationDomainService(queryService, crudService)
+            new ApiOwnedNavigationDomainService(queryService, crudService),
+            navigationPortals
         );
         creationExpansionDomainService = new PortalNavigationItemCreationExpansionDomainService(
             apiProductQueryService,
@@ -188,7 +192,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
                 assertThat(page.getOrder()).isZero();
                 assertThat(page.getPublished()).isFalse();
                 assertThat(page.getParentId()).isEqualTo(output.items().getFirst().getId());
-                assertThat(page.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+                assertThat(page.getReference()).isEqualTo(consolePortal());
             });
     }
 
@@ -213,7 +217,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         assertThat(output.items())
             .extracting(PortalNavigationItem::getId)
             .containsExactly(api.getId(), folder.getId(), page.getId(), link.getId());
-        assertThat(output.items().getFirst().getReference()).isEqualTo(NavigationItemReference.defaultReference());
+        assertThat(output.items().getFirst().getReference()).isEqualTo(consolePortal());
         assertThat(output.items().subList(1, 4)).allSatisfy(item -> {
             assertThat(item.getReference()).isEqualTo(new NavigationItemReference.ApiReference("pending-api"));
             assertThat(item.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
@@ -408,7 +412,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         assertThat(output.items().getFirst().getReference()).isEqualTo(new NavigationItemReference.ApiReference("api-1"));
         assertThat(output.items().getFirst().getParentId()).isEqualTo(standaloneApi.getId());
         assertThat(output.items().getFirst().getRootId()).isEqualTo(standaloneApi.getRootId());
-        assertThat(output.items().getLast().getReference()).isEqualTo(NavigationItemReference.defaultReference());
+        assertThat(output.items().getLast().getReference()).isEqualTo(consolePortal());
         assertThat(output.items().getLast().getParentId()).isEqualTo(productApi.getId());
         assertThat(output.items().getLast().getRootId()).isEqualTo(product.getId());
         assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, standalonePage.getId())).satisfies(stored -> {
@@ -577,11 +581,11 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
 
         // Then
         assertThat(exception.getMessage()).isEqualTo("The parentId field is required and cannot be blank.");
-        verify(domainService, never()).create(anyString(), anyString(), any(CreatePortalNavigationItem.class));
+        verify(domainService, never()).createAll(anyString(), anyString(), anyList());
     }
 
     @Test
-    void should_stop_after_first_persistence_failure_without_compensating_previous_writes() {
+    void should_seed_no_default_page_when_a_persistence_failure_stops_the_creation() {
         var domainService = mock(PortalNavigationItemDomainService.class);
         var validatorService = mock(PortalNavigationItemValidatorService.class);
         var creationExpansionDomainService = mock(PortalNavigationItemCreationExpansionDomainService.class);
@@ -599,15 +603,10 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             List.of(root, firstChild, secondChild),
             List.of(rootId)
         );
-        var persistedRoot = PortalNavigationItemFixtures.anApiProduct(
-            rootId.toString(),
-            "Product",
-            PortalNavigationItemId.of(APIS_ID),
-            "product-1"
-        );
         when(creationExpansionDomainService.expand(List.of(root), ENV_ID)).thenReturn(expansion);
-        when(domainService.create(ORG_ID, ENV_ID, root)).thenReturn(persistedRoot);
-        when(domainService.create(ORG_ID, ENV_ID, firstChild)).thenThrow(new IllegalStateException("persistence failure"));
+        when(domainService.createAll(ORG_ID, ENV_ID, expansion.itemsToCreate())).thenThrow(
+            new IllegalStateException("persistence failure")
+        );
         var useCase = new BulkCreatePortalNavigationItemUseCase(
             domainService,
             validatorService,
@@ -621,9 +620,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(root)))
         );
 
-        verify(domainService).create(ORG_ID, ENV_ID, root);
-        verify(domainService).create(ORG_ID, ENV_ID, firstChild);
-        verify(domainService, never()).create(anyString(), anyString(), eq(secondChild));
+        verifyNoInteractions(defaultPageDomainService);
     }
 
     private static CreatePortalNavigationItem productItem(String apiProductId, String title, int order) {
@@ -660,7 +657,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
                 assertThat(page.getOrder()).isZero();
                 assertThat(page.getPublished()).isFalse();
                 assertThat(page.getParentId()).isEqualTo(productNavigationItemId);
-                assertThat(page.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+                assertThat(page.getReference()).isEqualTo(consolePortal());
             });
         assertThat(productChildren)
             .filteredOn(PortalNavigationApi.class::isInstance)
@@ -673,8 +670,13 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
                         assertThat(page.getTitle()).isEqualTo("Overview");
                         assertThat(page.getPublished()).isFalse();
                         assertThat(page.getParentId()).isEqualTo(apiItem.getId());
-                        assertThat(page.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+                        assertThat(page.getReference()).isEqualTo(consolePortal());
                     });
             });
+    }
+
+    /** The portal a console write stores an item on, created by the first such write. */
+    private NavigationItemReference consolePortal() {
+        return new NavigationItemReference.PortalReference(navigationPortals.defaultPortalIdOf(ENV_ID));
     }
 }

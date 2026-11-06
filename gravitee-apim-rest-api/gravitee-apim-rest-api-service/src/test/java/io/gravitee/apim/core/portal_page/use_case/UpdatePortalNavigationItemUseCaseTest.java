@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.NavigationPortalDomainServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -95,6 +96,7 @@ class UpdatePortalNavigationItemUseCaseTest {
     private final ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
     private PortalPageContentCrudServiceInMemory pageContentCrudService;
     private PortalNavigationItemSourceDomainServiceInMemory sourceDomainService;
+    private NavigationPortalDomainServiceInMemory navigationPortals;
 
     @BeforeEach
     void setUp() {
@@ -110,6 +112,7 @@ class UpdatePortalNavigationItemUseCaseTest {
         // A single instance shared by the three collaborators, so that a test can observe what the
         // validation was given and in which order masking and merging happened.
         sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();
+        navigationPortals = new NavigationPortalDomainServiceInMemory();
 
         validatorService = new PortalNavigationItemValidatorService(
             queryService,
@@ -125,7 +128,8 @@ class UpdatePortalNavigationItemUseCaseTest {
             PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
             apiCrudService,
             sourceDomainService,
-            new ApiOwnedNavigationDomainService(queryService, crudService)
+            new ApiOwnedNavigationDomainService(queryService, crudService),
+            navigationPortals
         );
         useCase = new UpdatePortalNavigationItemUseCase(queryService, validatorService, domainService, sourceDomainService);
 
@@ -1020,6 +1024,11 @@ class UpdatePortalNavigationItemUseCaseTest {
         assertThat(exception.getMessage()).isEqualTo("Parent hierarchy cannot include API items.");
     }
 
+    /** The portal a console write stores an item on, created by the first such write. */
+    private NavigationItemReference consolePortal() {
+        return new NavigationItemReference.PortalReference(navigationPortals.defaultPortalIdOf(ENV_ID));
+    }
+
     private UpdatePortalNavigationItem updateFolderPublished(PortalNavigationFolder folder, boolean published) {
         return UpdatePortalNavigationItem.builder()
             .type(folder.getType())
@@ -1387,7 +1396,7 @@ class UpdatePortalNavigationItemUseCaseTest {
             move(find(folder), section.getId());
 
             assertThat(List.of(find(folder), find(subFolder), find(page))).allSatisfy(item -> {
-                assertThat(item.getReference()).isEqualTo(PORTAL);
+                assertThat(item.getReference()).isEqualTo(consolePortal());
                 assertThat(item.getRootId()).isEqualTo(section.getId());
             });
             assertThat(find(folder).getParentId()).isEqualTo(section.getId());
@@ -1454,7 +1463,7 @@ class UpdatePortalNavigationItemUseCaseTest {
 
             move(page, productFolder.getId());
 
-            assertThat(find(page).getReference()).isEqualTo(PORTAL);
+            assertThat(find(page).getReference()).isEqualTo(consolePortal());
             assertThat(find(page).getParentId()).isEqualTo(productFolder.getId());
         }
 
@@ -1524,7 +1533,7 @@ class UpdatePortalNavigationItemUseCaseTest {
 
             move(folder, null);
 
-            assertThat(List.of(find(folder), find(page))).extracting(PortalNavigationItem::getReference).containsOnly(PORTAL);
+            assertThat(List.of(find(folder), find(page))).extracting(PortalNavigationItem::getReference).containsOnly(consolePortal());
             assertThat(find(folder).getParentId()).isNull();
             assertThat(find(apiRoot).getReference()).isEqualTo(API_A);
         }
@@ -1693,7 +1702,7 @@ class UpdatePortalNavigationItemUseCaseTest {
 
                 move(page, section.getId());
 
-                assertThat(find(page).getReference()).isEqualTo(PORTAL);
+                assertThat(find(page).getReference()).isEqualTo(consolePortal());
                 assertThat(find(page).getParentId()).isEqualTo(section.getId());
             }
 
@@ -1713,7 +1722,7 @@ class UpdatePortalNavigationItemUseCaseTest {
 
                 move(page, section.getId());
 
-                assertThat(find(page).getReference()).isEqualTo(PORTAL);
+                assertThat(find(page).getReference()).isEqualTo(consolePortal());
             }
 
             @Test
@@ -1722,7 +1731,7 @@ class UpdatePortalNavigationItemUseCaseTest {
 
                 move(page, section.getId());
 
-                assertThat(find(page).getReference()).isEqualTo(PORTAL);
+                assertThat(find(page).getReference()).isEqualTo(consolePortal());
             }
 
             @Test

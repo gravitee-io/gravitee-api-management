@@ -22,6 +22,7 @@ import static org.assertj.core.groups.Tuple.tuple;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.NavigationPortalDomainServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -77,6 +78,7 @@ class ImportPortalNavigationUseCaseTest {
     private PortalNavigationItemSourceDomainServiceInMemory sourceDomainService;
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private PortalNavigationManifestParserInMemory manifestParser;
+    private NavigationPortalDomainServiceInMemory navigationPortals;
 
     @BeforeEach
     void setUp() {
@@ -87,6 +89,7 @@ class ImportPortalNavigationUseCaseTest {
         pageContentCrudService = new PortalPageContentCrudServiceInMemory();
         sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();
         manifestParser = new PortalNavigationManifestParserInMemory();
+        navigationPortals = new NavigationPortalDomainServiceInMemory();
 
         var pageContentQueryService = PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage());
         var domainService = new PortalNavigationItemDomainService(
@@ -96,7 +99,8 @@ class ImportPortalNavigationUseCaseTest {
             pageContentQueryService,
             new ApiCrudServiceInMemory(),
             sourceDomainService,
-            new ApiOwnedNavigationDomainService(queryService, crudService)
+            new ApiOwnedNavigationDomainService(queryService, crudService),
+            navigationPortals
         );
         var validatorService = new PortalNavigationItemValidatorService(
             queryService,
@@ -153,7 +157,8 @@ class ImportPortalNavigationUseCaseTest {
                 PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
                 new ApiCrudServiceInMemory(),
                 sourceDomainService,
-                new ApiOwnedNavigationDomainService(queryService, crudService)
+                new ApiOwnedNavigationDomainService(queryService, crudService),
+                navigationPortals
             ),
             queryService,
             crudService,
@@ -163,8 +168,27 @@ class ImportPortalNavigationUseCaseTest {
         return bulkImportDomainService.importSubtree((PortalNavigationFolder) queryService.findByIdAndEnvironmentId(ENV_ID, rootId));
     }
 
+    /** The portal a console write stores an item on, created by the first such write. */
+    private NavigationItemReference consolePortal() {
+        return new NavigationItemReference.PortalReference(navigationPortals.defaultPortalIdOf(ENV_ID));
+    }
+
     private PortalNavigationItemSource aSource() {
         return PortalNavigationItemSource.builder().sourceType("github-fetcher").sourceConfiguration("{\"repository\":\"docs\"}").build();
+    }
+
+    @Test
+    void should_store_the_default_portal_on_the_imported_root_and_its_children() {
+        sourceDomainService.givenRemoteFile("/docs/getting-started.md", "# Getting started");
+
+        var root = execute("Imported Docs").rootFolder();
+
+        var docsFolder = childFolder(root.getId(), "docs");
+        var page = childPage(docsFolder.getId(), "getting-started");
+        assertThat(List.of(root.getId(), docsFolder.getId(), page.getId()))
+            .map(id -> queryService.findByIdAndEnvironmentId(ENV_ID, id).getReference())
+            .containsOnly(consolePortal())
+            .doesNotContain(NavigationItemReference.defaultReference());
     }
 
     @Nested
@@ -715,7 +739,7 @@ class ImportPortalNavigationUseCaseTest {
 
             assertThat(crudService.storage())
                 .isNotEmpty()
-                .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference()));
+                .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(consolePortal()));
         }
     }
 
@@ -727,7 +751,6 @@ class ImportPortalNavigationUseCaseTest {
     class OwnedThroughTheParent {
 
         private static final NavigationItemReference API_REFERENCE = new NavigationItemReference.ApiReference("api-id");
-        private static final NavigationItemReference PORTAL = NavigationItemReference.defaultReference();
 
         private PortalNavigationFolder section;
         private PortalNavigationApi listing;
@@ -789,7 +812,7 @@ class ImportPortalNavigationUseCaseTest {
             assertThat(root.getParentId()).isEqualTo(section.getId());
             assertThat(importedBelow(root))
                 .hasSize(5)
-                .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(PORTAL));
+                .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(consolePortal()));
         }
 
         @Test
@@ -799,7 +822,7 @@ class ImportPortalNavigationUseCaseTest {
             assertThat(root.getParentId()).isNull();
             assertThat(importedBelow(root))
                 .hasSize(5)
-                .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(PORTAL));
+                .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(consolePortal()));
         }
 
         @Test
@@ -816,7 +839,7 @@ class ImportPortalNavigationUseCaseTest {
             assertThat(root.getParentId()).isEqualTo(member.getId());
             assertThat(importedBelow(root))
                 .hasSize(5)
-                .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(PORTAL));
+                .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(consolePortal()));
         }
 
         @Test
