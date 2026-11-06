@@ -20,12 +20,14 @@ import static org.mockito.Mockito.verify;
 
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.gamma.module.platform.core.secret.model.Secret;
 import io.gravitee.gamma.module.platform.core.secret.model.SecretActor;
 import io.gravitee.gamma.module.platform.core.secret.model.SecretAuditEvent;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Map;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -63,7 +65,7 @@ class ApimSecretAuditLogTest {
             assertThat(entry.createdAt()).isEqualTo(AT.atZone(ZoneOffset.UTC));
             assertThat(entry.oldValue()).isNull();
             assertThat(entry.newValue()).isEqualTo(SECRET);
-            assertThat(entry.properties()).isEmpty();
+            assertThat(entry.properties()).isEqualTo(Map.of(AuditProperties.SECRET, "secret-1"));
         });
     }
 
@@ -77,5 +79,17 @@ class ApimSecretAuditLogTest {
         assertThat(captor.getValue().environmentId()).isEqualTo("env-1");
         assertThat(captor.getValue().oldValue()).isEqualTo(SECRET);
         assertThat(captor.getValue().newValue()).isNull();
+        assertThat(captor.getValue().properties()).isEqualTo(Map.of(AuditProperties.SECRET, "secret-1"));
+    }
+
+    @Test
+    void should_name_the_rotated_secret() {
+        var rotated = SECRET.rotatedAt(AT.plusSeconds(60));
+
+        auditLog.record(SecretAuditEvent.SECRET_UPDATED, SECRET, rotated, ACTOR, AT.plusSeconds(60));
+
+        var captor = ArgumentCaptor.forClass(EnvironmentAuditLogEntity.class);
+        verify(auditDomainService).createEnvironmentAuditLog(captor.capture());
+        assertThat(captor.getValue().properties()).isEqualTo(Map.of(AuditProperties.SECRET, "secret-1"));
     }
 }
