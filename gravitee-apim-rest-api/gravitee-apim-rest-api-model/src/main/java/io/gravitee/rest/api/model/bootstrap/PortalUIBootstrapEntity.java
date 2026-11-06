@@ -29,4 +29,5 @@ public class PortalUIBootstrapEntity {
     private String baseURL;
     private String organizationId;
     private String environmentId;
+    private String portalId;
 }

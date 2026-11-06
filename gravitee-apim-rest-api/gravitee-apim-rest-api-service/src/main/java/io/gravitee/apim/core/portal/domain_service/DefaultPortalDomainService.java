@@ -73,10 +73,12 @@ public class DefaultPortalDomainService {
         return Optional.empty();
     }
 
+    public Optional<Portal> findDefault(String environmentId) {
+        return portalCrudService.findDefaultByEnvironmentId(environmentId);
+    }
+
     public Portal getDefault(String environmentId) {
-        return portalCrudService
-            .findDefaultByEnvironmentId(environmentId)
-            .orElseThrow(() -> new DefaultPortalNotFoundException(environmentId));
+        return findDefault(environmentId).orElseThrow(() -> new DefaultPortalNotFoundException(environmentId));
     }
 
     /** @throws SeveralPortalsInEnvironmentException when the environment has several portals */

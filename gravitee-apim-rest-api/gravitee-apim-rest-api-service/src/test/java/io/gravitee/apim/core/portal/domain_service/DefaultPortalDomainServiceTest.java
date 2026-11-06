@@ -222,6 +222,24 @@ class DefaultPortalDomainServiceTest {
     }
 
     @Nested
+    class FindDefault {
+
+        @Test
+        void should_return_default_portal() {
+            portalCrudService.initWith(List.of(aDefaultPortal(STALE_URL)));
+
+            assertThat(cut.findDefault(ENV_ID)).hasValueSatisfying(portal -> assertThat(portal.getId()).isEqualTo(DEFAULT_PORTAL_ID));
+        }
+
+        @Test
+        void should_return_empty_when_environment_has_no_default_portal() {
+            portalCrudService.initWith(List.of(anAutomationPortal(STALE_URL)));
+
+            assertThat(cut.findDefault(ENV_ID)).isEmpty();
+        }
+    }
+
+    @Nested
     class GetDefault {
 
         @Test
