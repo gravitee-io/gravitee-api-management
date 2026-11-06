@@ -53,7 +53,7 @@ class CreateSecretUseCaseTest {
             assertThat(secret.organizationId()).isEqualTo(ORGANIZATION_ID);
             assertThat(secret.environmentId()).isEqualTo(ENVIRONMENT_ID);
             assertThat(secret.key()).isEqualTo("anthropic-key");
-            assertThat(secret.path()).isEqualTo("/secrets/built-in/env-1/anthropic-key");
+            assertThat(secret.path()).isEqualTo("/gravitee/anthropic-key");
             assertThat(secret.createdAt()).isEqualTo(Instant.parse("2026-11-06T10:00:00Z"));
             assertThat(secret.updatedAt()).isEqualTo(secret.createdAt());
         });

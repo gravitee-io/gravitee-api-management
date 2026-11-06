@@ -101,7 +101,6 @@ class SecretsResourceTest {
         var body = (SecretResponse) resource.create(new CreateSecretRequest("anthropic-key", "sk-ant-123")).getEntity();
 
         // Then
-        assertThat(body.path()).isEqualTo("/secrets/built-in/resolved-env-id/anthropic-key");
         assertThat(secrets.secretRepository.findById(ORGANIZATION_ID, "resolved-env-id", body.id())).isPresent();
     }
 
@@ -114,7 +113,7 @@ class SecretsResourceTest {
         assertThat(response.getStatus()).isEqualTo(201);
         var body = (SecretResponse) response.getEntity();
         assertThat(body.key()).isEqualTo("anthropic-key");
-        assertThat(body.path()).isEqualTo("/secrets/built-in/env-1/anthropic-key");
+        assertThat(body.path()).isEqualTo("/gravitee/anthropic-key");
         assertThat(body.id()).isNotBlank();
         var json = new ObjectMapper().writeValueAsString(body);
         assertThat(json).doesNotContain("sk-ant-123").doesNotContain("\"value\"");
