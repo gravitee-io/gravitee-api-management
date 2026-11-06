@@ -15,11 +15,15 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.data.mongodb.core.query.Query.query;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SecretRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Secret;
+import io.gravitee.repository.mongodb.management.internal.model.SecretMongo;
 import io.gravitee.repository.mongodb.management.internal.secret.SecretMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.Optional;
@@ -27,6 +31,8 @@ import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 @CustomLog
@@ -38,6 +44,9 @@ public class MongoSecretRepository implements SecretRepository {
 
     @Autowired
     private GraviteeMapper mapper;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     @Override
     public Secret create(Secret secret) throws TechnicalException {
@@ -72,16 +81,31 @@ public class MongoSecretRepository implements SecretRepository {
     @Override
     public Secret update(Secret secret) throws TechnicalException {
         log.debug("MongoSecretRepository.update({})", secret.getId());
+        long matched;
         try {
-            if (internalRepo.findById(secret.getOrganizationId(), secret.getEnvironmentId(), secret.getId()).isEmpty()) {
-                throw new TechnicalException("Secret " + secret.getId() + " not found in environment " + secret.getEnvironmentId());
-            }
-            return mapper.map(internalRepo.save(mapper.map(secret)));
-        } catch (TechnicalException te) {
-            throw te;
+            matched = mongoTemplate
+                .updateFirst(
+                    query(
+                        where("_id")
+                            .is(secret.getId())
+                            .and("organizationId")
+                            .is(secret.getOrganizationId())
+                            .and("environmentId")
+                            .is(secret.getEnvironmentId())
+                    ),
+                    new Update().set("encryptedValue", secret.getEncryptedValue()).set("updatedAt", secret.getUpdatedAt()),
+                    SecretMongo.class
+                )
+                .getMatchedCount();
         } catch (Exception ex) {
             throw new TechnicalException("Failed to update secret " + secret.getId(), ex);
         }
+        if (matched == 0) {
+            throw new TechnicalException("Secret " + secret.getId() + " not found in environment " + secret.getEnvironmentId());
+        }
+        return findById(secret.getOrganizationId(), secret.getEnvironmentId(), secret.getId()).orElseThrow(() ->
+            new TechnicalException("Secret " + secret.getId() + " disappeared after its update")
+        );
     }
 
     @Override

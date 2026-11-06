@@ -20,44 +20,59 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.SecretRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Secret;
-import java.sql.Types;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
 import lombok.CustomLog;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+/** {@code JdbcObjectMapper} logs every value it binds or reads, so this repository writes its own SQL to keep the encrypted value out of the logs. */
 @CustomLog
 @Repository
-public class JdbcSecretRepository extends JdbcAbstractRepository<Secret> implements SecretRepository {
+public class JdbcSecretRepository extends TransactionalRepository implements SecretRepository {
+
+    private static final String KEY = escapeReservedWord("key");
+
+    private final String tableName;
+    private final String columns;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     JdbcSecretRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
-        super(tablePrefix, "secrets");
-    }
-
-    @Override
-    protected JdbcObjectMapper<Secret> buildOrm() {
-        return JdbcObjectMapper.builder(Secret.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("organization_id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("key", Types.NVARCHAR, String.class)
-            .addColumn("encrypted_value", Types.NCLOB, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+        this.tableName = tablePrefix + "secrets";
+        this.columns = "id, organization_id, environment_id, " + KEY + ", key_hash, encrypted_value, created_at, updated_at";
     }
 
     @Override
     public Secret create(Secret secret) throws TechnicalException {
         log.debug("JdbcSecretRepository.create({})", secret.getId());
         try {
-            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(secret));
+            jdbcTemplate.update(
+                "INSERT INTO " + tableName + " (" + columns + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                secret.getId(),
+                secret.getOrganizationId(),
+                secret.getEnvironmentId(),
+                secret.getKey(),
+                keyHash(secret.getKey()),
+                secret.getEncryptedValue(),
+                timestamp(secret.getCreatedAt()),
+                timestamp(secret.getUpdatedAt())
+            );
             return findById(secret.getOrganizationId(), secret.getEnvironmentId(), secret.getId()).orElseThrow();
         } catch (Exception ex) {
             throw new TechnicalException("Failed to create secret " + secret.getId(), ex);
@@ -70,8 +85,8 @@ public class JdbcSecretRepository extends JdbcAbstractRepository<Secret> impleme
         try {
             return jdbcTemplate
                 .query(
-                    getOrm().getSelectAllSql() + " WHERE id = ? AND organization_id = ? AND environment_id = ?",
-                    getOrm().getRowMapper(),
+                    "SELECT " + columns + " FROM " + tableName + " WHERE id = ? AND organization_id = ? AND environment_id = ?",
+                    JdbcSecretRepository::toSecret,
                     id,
                     organizationId,
                     environmentId
@@ -89,14 +104,11 @@ public class JdbcSecretRepository extends JdbcAbstractRepository<Secret> impleme
         try {
             return jdbcTemplate
                 .query(
-                    getOrm().getSelectAllSql() +
-                        " WHERE organization_id = ? AND environment_id = ? AND " +
-                        escapeReservedWord("key") +
-                        " = ?",
-                    getOrm().getRowMapper(),
+                    "SELECT " + columns + " FROM " + tableName + " WHERE organization_id = ? AND environment_id = ? AND key_hash = ?",
+                    JdbcSecretRepository::toSecret,
                     organizationId,
                     environmentId,
-                    key
+                    keyHash(key)
                 )
                 .stream()
                 .findFirst();
@@ -108,15 +120,28 @@ public class JdbcSecretRepository extends JdbcAbstractRepository<Secret> impleme
     @Override
     public Secret update(Secret secret) throws TechnicalException {
         log.debug("JdbcSecretRepository.update({})", secret.getId());
-        if (findById(secret.getOrganizationId(), secret.getEnvironmentId(), secret.getId()).isEmpty()) {
-            throw new TechnicalException("Secret " + secret.getId() + " not found in environment " + secret.getEnvironmentId());
-        }
+        int updated;
         try {
-            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(secret, secret.getId()));
-            return findById(secret.getOrganizationId(), secret.getEnvironmentId(), secret.getId()).orElseThrow();
+            // MariaDB gives the first TIMESTAMP column ON UPDATE CURRENT_TIMESTAMP unless the statement sets it.
+            updated = jdbcTemplate.update(
+                "UPDATE " +
+                    tableName +
+                    " SET encrypted_value = ?, updated_at = ?, created_at = created_at WHERE id = ? AND organization_id = ? AND environment_id = ?",
+                secret.getEncryptedValue(),
+                timestamp(secret.getUpdatedAt()),
+                secret.getId(),
+                secret.getOrganizationId(),
+                secret.getEnvironmentId()
+            );
         } catch (Exception ex) {
             throw new TechnicalException("Failed to update secret " + secret.getId(), ex);
         }
+        if (updated == 0) {
+            throw new TechnicalException("Secret " + secret.getId() + " not found in environment " + secret.getEnvironmentId());
+        }
+        return findById(secret.getOrganizationId(), secret.getEnvironmentId(), secret.getId()).orElseThrow(() ->
+            new TechnicalException("Secret " + secret.getId() + " disappeared after its update")
+        );
     }
 
     @Override
@@ -124,7 +149,7 @@ public class JdbcSecretRepository extends JdbcAbstractRepository<Secret> impleme
         log.debug("JdbcSecretRepository.delete({}, {}, {})", organizationId, environmentId, id);
         try {
             jdbcTemplate.update(
-                "DELETE FROM " + this.tableName + " WHERE id = ? AND organization_id = ? AND environment_id = ?",
+                "DELETE FROM " + tableName + " WHERE id = ? AND organization_id = ? AND environment_id = ?",
                 id,
                 organizationId,
                 environmentId
@@ -134,30 +159,24 @@ public class JdbcSecretRepository extends JdbcAbstractRepository<Secret> impleme
         }
     }
 
+    /** Sorted in Java because the default collations of MySQL, MariaDB and SQL Server ignore case. */
     @Override
     public Page<Secret> search(String organizationId, String environmentId, Pageable pageable) throws TechnicalException {
         log.debug("JdbcSecretRepository.search({}, {})", organizationId, environmentId);
         try {
-            Long total = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM " + this.tableName + " WHERE organization_id = ? AND environment_id = ?",
-                Long.class,
+            var all = jdbcTemplate.query(
+                "SELECT " + columns + " FROM " + tableName + " WHERE organization_id = ? AND environment_id = ?",
+                JdbcSecretRepository::toSecret,
                 organizationId,
                 environmentId
             );
-            if (total == null || total == 0) {
-                return new Page<>(List.of(), pageable.pageNumber(), 0, 0);
-            }
-            var content = jdbcTemplate.query(
-                getOrm().getSelectAllSql() +
-                    " WHERE organization_id = ? AND environment_id = ? ORDER BY " +
-                    escapeReservedWord("key") +
-                    " " +
-                    createPagingClause(pageable.pageSize(), pageable.from()),
-                getOrm().getRowMapper(),
-                organizationId,
-                environmentId
-            );
-            return new Page<>(content, pageable.pageNumber(), content.size(), total);
+            var content = all
+                .stream()
+                .sorted(Comparator.comparing(Secret::getKey))
+                .skip(pageable.from())
+                .limit(pageable.pageSize())
+                .toList();
+            return new Page<>(content, pageable.pageNumber(), content.size(), all.size());
         } catch (Exception ex) {
             throw new TechnicalException("Failed to search secrets of environment " + environmentId, ex);
         }
@@ -167,9 +186,37 @@ public class JdbcSecretRepository extends JdbcAbstractRepository<Secret> impleme
     public void deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("JdbcSecretRepository.deleteByEnvironmentId({})", environmentId);
         try {
-            jdbcTemplate.update("DELETE FROM " + this.tableName + " WHERE environment_id = ?", environmentId);
+            jdbcTemplate.update("DELETE FROM " + tableName + " WHERE environment_id = ?", environmentId);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to delete secrets of environment " + environmentId, ex);
         }
+    }
+
+    private static Secret toSecret(ResultSet rs, int rowNum) throws SQLException {
+        return Secret.builder()
+            .id(rs.getString("id"))
+            .organizationId(rs.getString("organization_id"))
+            .environmentId(rs.getString("environment_id"))
+            .key(rs.getString("key"))
+            .encryptedValue(rs.getString("encrypted_value"))
+            .createdAt(date(rs.getTimestamp("created_at")))
+            .updatedAt(date(rs.getTimestamp("updated_at")))
+            .build();
+    }
+
+    private static String keyHash(String key) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(key.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 is not available", e);
+        }
+    }
+
+    private static Timestamp timestamp(Date date) {
+        return date == null ? null : new Timestamp(date.getTime());
+    }
+
+    private static Date date(Timestamp timestamp) {
+        return timestamp == null ? null : new Date(timestamp.getTime());
     }
 }
