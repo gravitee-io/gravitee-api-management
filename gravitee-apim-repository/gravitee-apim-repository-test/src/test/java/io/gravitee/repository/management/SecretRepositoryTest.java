@@ -202,8 +202,46 @@ public class SecretRepositoryTest extends AbstractManagementRepositoryTest {
         var secondPage = secretRepository.search("org-1", "env-1", new PageableBuilder().pageNumber(1).pageSize(2).build());
 
         assertThat(firstPage.getContent()).extracting(Secret::getKey).containsExactly("anthropic-key", "cohere-key");
+        assertThat(firstPage.getPageNumber()).isZero();
+        assertThat(firstPage.getPageElements()).isEqualTo(2);
         assertThat(firstPage.getTotalElements()).isEqualTo(3);
         assertThat(secondPage.getContent()).extracting(Secret::getKey).containsExactly("mistral-key");
+        assertThat(secondPage.getPageNumber()).isEqualTo(1);
+        assertThat(secondPage.getPageElements()).isEqualTo(1);
+        assertThat(secondPage.getTotalElements()).isEqualTo(3);
+    }
+
+    @Test
+    public void should_return_an_empty_page_past_the_last_one() throws Exception {
+        var page = secretRepository.search("org-1", "env-1", new PageableBuilder().pageNumber(5).pageSize(2).build());
+
+        assertThat(page.getContent()).isEmpty();
+        assertThat(page.getPageNumber()).isEqualTo(5);
+        assertThat(page.getPageElements()).isZero();
+        assertThat(page.getTotalElements()).isEqualTo(3);
+    }
+
+    @Test
+    public void should_store_and_rotate_a_value_of_several_kilobytes() throws Exception {
+        var value = "a".repeat(16 * 1024);
+        var created = secretRepository.create(aSecret("large").encryptedValue(value).build());
+        var rotated = created.toBuilder().encryptedValue("b".repeat(16 * 1024)).updatedAt(new Date(1753711900000L)).build();
+
+        secretRepository.update(rotated);
+
+        assertThat(created.getEncryptedValue()).isEqualTo(value);
+        assertThat(secretRepository.findById("org-1", "env-1", "large")).contains(rotated);
+    }
+
+    @Test
+    public void should_sort_keys_with_upper_case_before_lower_case() throws Exception {
+        secretRepository.create(aSecret("beta").environmentId("env-3").key("beta").build());
+        secretRepository.create(aSecret("alpha").environmentId("env-3").key("Alpha").build());
+        secretRepository.create(aSecret("gamma").environmentId("env-3").key("Gamma").build());
+
+        var page = secretRepository.search("org-1", "env-3", new PageableBuilder().pageNumber(0).pageSize(10).build());
+
+        assertThat(page.getContent()).extracting(Secret::getKey).containsExactly("Alpha", "Gamma", "beta");
     }
 
     @Test
