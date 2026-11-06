@@ -103,7 +103,6 @@ public class MongoSecretRepository implements SecretRepository {
         );
         long matched;
         try {
-            // The update methods of MongoTemplate log the update document, encrypted value included, at debug level.
             matched = mongoTemplate.execute(SecretMongo.class, collection -> collection.updateOne(filter, update)).getMatchedCount();
         } catch (Exception ex) {
             throw new TechnicalException("Failed to update secret " + secret.getId(), ex);

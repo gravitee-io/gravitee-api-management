@@ -44,7 +44,6 @@ public class JdbcSecretTransactionTest extends AbstractManagementRepositoryTest 
 
     @Test
     public void should_find_the_winner_in_the_same_transaction_after_a_duplicate_insert() throws Exception {
-        // On PostgreSQL a failed statement aborts the whole transaction: the read that follows would fail too.
         secretRepository.create(aSecret("winner"));
 
         Optional<Secret> found = new TransactionTemplate(graviteeTransactionManager).execute(status -> {
