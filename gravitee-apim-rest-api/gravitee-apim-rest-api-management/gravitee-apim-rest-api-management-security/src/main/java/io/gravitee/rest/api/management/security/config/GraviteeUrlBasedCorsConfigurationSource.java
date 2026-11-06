@@ -39,6 +39,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  */
 public class GraviteeUrlBasedCorsConfigurationSource extends AbstractGraviteeUrlBasedCorsConfigurationSource {
 
+    private static final String COCKPIT_AUTH_PATH = "/auth/cockpit";
+
     public GraviteeUrlBasedCorsConfigurationSource(
         final Environment environment,
         final ParameterService parameterService,
@@ -47,6 +49,16 @@ public class GraviteeUrlBasedCorsConfigurationSource extends AbstractGraviteeUrl
         final ParameterReferenceType parameterReferenceType
     ) {
         super(environment, parameterService, installationAccessQueryService, eventManager, parameterReferenceType);
+    }
+
+    @Override
+    public CorsConfiguration getCorsConfiguration(final @NonNull HttpServletRequest request) {
+        // Cockpit posts its login form from its own origin. It is a top-level navigation, which CORS does not protect,
+        // and an organization's allowed origins must not block it.
+        if (COCKPIT_AUTH_PATH.equals(request.getPathInfo())) {
+            return null;
+        }
+        return super.getCorsConfiguration(request);
     }
 
     @Override

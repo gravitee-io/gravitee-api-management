@@ -111,6 +111,7 @@ public class HelloCommandAdapter implements CommandAdapter<io.gravitee.exchange.
             Map<String, String> additionalInformation = new HashMap<>(configuration.getAdditionalInformation());
             additionalInformation.putAll(installation.getAdditionalInformation());
             additionalInformation.put(AdditionalInfoConstants.AUTH_PATH, buildAuthPath);
+            additionalInformation.put(AdditionalInfoConstants.AUTH_FORM_POST, Boolean.TRUE.toString());
             if (installationType == InstallationType.MULTI_TENANT) {
                 Map<AccessPoint.Type, List<AccessPoint>> accessPointTemplates = new EnumMap<>(AccessPoint.Type.class);
                 cockpitAccessService
