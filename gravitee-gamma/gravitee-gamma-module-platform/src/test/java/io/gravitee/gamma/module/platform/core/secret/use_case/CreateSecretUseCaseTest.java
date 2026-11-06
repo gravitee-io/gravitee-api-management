@@ -113,7 +113,7 @@ class CreateSecretUseCaseTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    @ValueSource(strings = { "with space", "slash/key", "{#el}", "é" })
+    @ValueSource(strings = { "with space", "slash/key", "{#el}", "é", ".", "..", ".env", "-key", "_key" })
     void should_refuse_an_invalid_key(String key) {
         assertThatThrownBy(() -> secrets.givenASecret(input -> input.key(key))).isInstanceOf(InvalidSecretKeyException.class);
         assertThat(secrets.auditLog.entries()).isEmpty();
@@ -129,6 +129,13 @@ class CreateSecretUseCaseTest {
     @NullAndEmptySource
     void should_refuse_an_empty_value(String value) {
         assertThatThrownBy(() -> new SecretValue(value)).isInstanceOf(InvalidSecretValueException.class);
+    }
+
+    @Test
+    void should_accept_a_value_of_64_KiB_and_refuse_one_byte_more() {
+        assertThat(new SecretValue("v".repeat(65536)).plaintext()).hasSize(65536);
+        assertThatThrownBy(() -> new SecretValue("v".repeat(65537))).isInstanceOf(InvalidSecretValueException.class);
+        assertThatThrownBy(() -> new SecretValue("é".repeat(32769))).isInstanceOf(InvalidSecretValueException.class);
     }
 
     @Test

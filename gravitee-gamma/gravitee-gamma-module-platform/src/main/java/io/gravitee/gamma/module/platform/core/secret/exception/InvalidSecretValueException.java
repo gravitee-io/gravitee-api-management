@@ -19,7 +19,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 
 public class InvalidSecretValueException extends ValidationDomainException {
 
-    public InvalidSecretValueException() {
-        super("A secret value must not be empty.");
+    public InvalidSecretValueException(int maxBytes) {
+        super("A secret value must be 1 to " + maxBytes + " bytes.");
     }
 }

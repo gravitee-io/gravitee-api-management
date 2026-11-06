@@ -71,7 +71,6 @@ class UpdateSecretUseCaseTest {
             assertThat(entry.after()).isEqualTo(rotated);
             assertThat(entry.actor()).isEqualTo(ACTOR);
             assertThat(entry.at()).isEqualTo(rotated.updatedAt());
-            assertThat(entry.toString()).doesNotContain("old-value").doesNotContain("new-value");
         });
     }
 

@@ -22,7 +22,7 @@ import lombok.Builder;
 
 @Builder(toBuilder = true)
 public record Secret(String id, String organizationId, String environmentId, String key, Instant createdAt, Instant updatedAt) {
-    private static final Pattern KEY_PATTERN = Pattern.compile("[a-zA-Z0-9._-]{1,128}");
+    private static final Pattern KEY_PATTERN = Pattern.compile("[a-zA-Z0-9][a-zA-Z0-9._-]{0,127}");
 
     public static Secret create(String id, String organizationId, String environmentId, String key, Instant now) {
         if (key == null || !KEY_PATTERN.matcher(key).matches()) {

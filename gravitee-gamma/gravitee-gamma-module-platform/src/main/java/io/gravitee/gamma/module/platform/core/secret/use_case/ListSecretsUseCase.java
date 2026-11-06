@@ -36,7 +36,12 @@ public class ListSecretsUseCase {
     public record Output(Page<Secret> secrets) {}
 
     public Output execute(Input input) {
-        if (input.pageNumber() < 1 || input.pageSize() < 1 || input.pageSize() > MAX_PAGE_SIZE) {
+        if (
+            input.pageNumber() < 1 ||
+            input.pageSize() < 1 ||
+            input.pageSize() > MAX_PAGE_SIZE ||
+            (long) (input.pageNumber() - 1) * input.pageSize() > Integer.MAX_VALUE
+        ) {
             throw new ValidationDomainException("The page must be 1 or more and hold 1 to " + MAX_PAGE_SIZE + " secrets.");
         }
         return new Output(secretRepository.search(input.organizationId(), input.environmentId(), input.pageNumber(), input.pageSize()));
