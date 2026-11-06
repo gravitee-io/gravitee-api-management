@@ -48,16 +48,8 @@ public class SecretConfiguration {
     // A bad key must not stop the module context: the AM settings live in the same module.
     @Bean
     public SecretValueEncryptor platformSecretValueEncryptor(Environment environment) {
-        var key = environment.getProperty(AesGcmSecretValueEncryptor.KEY_PROPERTY);
-        if (key == null) {
-            log.warn(
-                "Please customize the '{}' parameter value, or ask your administrator to do it. Secret values are encrypted with the default key.",
-                AesGcmSecretValueEncryptor.KEY_PROPERTY
-            );
-            key = AesGcmSecretValueEncryptor.DEFAULT_KEY;
-        }
         try {
-            return new AesGcmSecretValueEncryptor(key);
+            return new AesGcmSecretValueEncryptor(environment.getProperty(AesGcmSecretValueEncryptor.KEY_PROPERTY));
         } catch (IllegalArgumentException e) {
             log.warn("The platform module cannot store secret values: {}", e.getMessage());
             return new UnavailableSecretValueEncryptor();

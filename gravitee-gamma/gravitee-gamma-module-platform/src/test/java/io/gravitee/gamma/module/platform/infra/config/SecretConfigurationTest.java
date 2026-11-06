@@ -49,14 +49,12 @@ class SecretConfigurationTest {
     }
 
     @Test
-    void should_fall_back_to_the_default_key_when_none_is_set() {
+    void should_start_without_a_key_and_refuse_to_encrypt() {
         var encryptor = configuration.platformSecretValueEncryptor(environmentWithKey(null));
 
-        var ciphertext = encryptor.encrypt(SECRET, "sk-ant-123");
-
-        assertThat(new AesGcmSecretValueEncryptor(AesGcmSecretValueEncryptor.DEFAULT_KEY).decrypt(SECRET, ciphertext)).isEqualTo(
-            "sk-ant-123"
-        );
+        assertThatThrownBy(() -> encryptor.encrypt(SECRET, "sk-ant-123"))
+            .isInstanceOf(SecretEncryptionUnavailableException.class)
+            .hasMessageContaining(AesGcmSecretValueEncryptor.KEY_PROPERTY);
     }
 
     @ParameterizedTest
