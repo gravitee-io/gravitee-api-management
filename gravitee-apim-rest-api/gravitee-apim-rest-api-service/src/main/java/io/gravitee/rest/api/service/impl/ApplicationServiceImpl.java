@@ -872,7 +872,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     updateSubscriptionEntity.setStartingAt(subscriptionEntity.getStartingAt());
                     updateSubscriptionEntity.setEndingAt(subscriptionEntity.getEndingAt());
                     updateSubscriptionEntity.setConfiguration(subscriptionEntity.getConfiguration());
-                    subscriptionService.update(executionContext, updateSubscriptionEntity, subscriptionModifier);
+                    // The update replaces the metadata with the request's. Restoring the stored map verbatim, instead of
+                    // sending it in the request, keeps it clear of the key validation older entries may not pass.
+                    Map<String, String> storedMetadata = subscriptionEntity.getMetadata();
+                    subscriptionService.update(
+                        executionContext,
+                        updateSubscriptionEntity,
+                        subscriptionModifier.andThen(subscription -> subscription.setMetadata(storedMetadata))
+                    );
                 }
             });
     }
