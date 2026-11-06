@@ -47,7 +47,7 @@ public class CreateSecretUseCase {
         if (secretRepository.findByKey(secret.organizationId(), secret.environmentId(), secret.key()).isPresent()) {
             throw new SecretKeyAlreadyExistsException(secret.key());
         }
-        var created = secretRepository.create(secret, secretValueEncryptor.encrypt(secret.organizationId(), input.value().plaintext()));
+        var created = secretRepository.create(secret, secretValueEncryptor.encrypt(secret, input.value().plaintext()));
         secretAuditLog.record(SecretAuditEvent.SECRET_CREATED, null, created, input.actor(), created.createdAt());
         return new Output(created);
     }

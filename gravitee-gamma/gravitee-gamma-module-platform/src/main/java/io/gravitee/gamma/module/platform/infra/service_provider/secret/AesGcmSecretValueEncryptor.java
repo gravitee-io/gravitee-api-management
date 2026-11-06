@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.module.platform.infra.service_provider.secret;
 
+import io.gravitee.gamma.module.platform.core.secret.model.Secret;
 import io.gravitee.gamma.module.platform.core.secret.port.service_provider.SecretValueEncryptor;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -28,7 +29,8 @@ import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Stand-in until per-organization keys exist: one AES-256 key from configuration serves every organization.
- * A ciphertext is base64 of the 12-byte IV followed by the GCM output, with the organization id as associated data.
+ * A ciphertext is base64 of the 12-byte IV followed by the GCM output. The associated data is the organization id,
+ * the environment id and the secret id, so a ciphertext copied onto another secret fails to decrypt.
  */
 public class AesGcmSecretValueEncryptor implements SecretValueEncryptor {
 
@@ -47,36 +49,37 @@ public class AesGcmSecretValueEncryptor implements SecretValueEncryptor {
     }
 
     @Override
-    public String encrypt(String organizationId, String plaintext) {
+    public String encrypt(Secret secret, String plaintext) {
         try {
             var iv = new byte[IV_BYTES];
             random.nextBytes(iv);
-            var cipher = cipher(Cipher.ENCRYPT_MODE, organizationId, iv);
+            var cipher = cipher(Cipher.ENCRYPT_MODE, secret, iv);
             var encrypted = cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(ByteBuffer.allocate(IV_BYTES + encrypted.length).put(iv).put(encrypted).array());
         } catch (GeneralSecurityException e) {
-            throw new IllegalStateException("Failed to encrypt a secret value of organization " + organizationId, e);
+            throw new IllegalStateException("Failed to encrypt the value of secret " + secret.id(), e);
         }
     }
 
     @Override
-    public String decrypt(String organizationId, String ciphertext) {
+    public String decrypt(Secret secret, String ciphertext) {
         try {
             var bytes = Base64.getDecoder().decode(ciphertext);
             if (bytes.length <= IV_BYTES) {
                 throw new IllegalArgumentException("ciphertext is shorter than its IV");
             }
-            var cipher = cipher(Cipher.DECRYPT_MODE, organizationId, Arrays.copyOf(bytes, IV_BYTES));
+            var cipher = cipher(Cipher.DECRYPT_MODE, secret, Arrays.copyOf(bytes, IV_BYTES));
             return new String(cipher.doFinal(bytes, IV_BYTES, bytes.length - IV_BYTES), StandardCharsets.UTF_8);
         } catch (GeneralSecurityException | IllegalArgumentException e) {
-            throw new IllegalStateException("Failed to decrypt a secret value of organization " + organizationId, e);
+            throw new IllegalStateException("Failed to decrypt the value of secret " + secret.id(), e);
         }
     }
 
-    private Cipher cipher(int mode, String organizationId, byte[] iv) throws GeneralSecurityException {
+    private Cipher cipher(int mode, Secret secret, byte[] iv) throws GeneralSecurityException {
         var cipher = Cipher.getInstance(TRANSFORMATION);
         cipher.init(mode, key, new GCMParameterSpec(TAG_BITS, iv));
-        cipher.updateAAD(organizationId.getBytes(StandardCharsets.UTF_8));
+        // Ids never hold NUL, so two different (organization, environment, secret) triples never give the same bytes.
+        cipher.updateAAD(String.join("\0", secret.organizationId(), secret.environmentId(), secret.id()).getBytes(StandardCharsets.UTF_8));
         return cipher;
     }
 

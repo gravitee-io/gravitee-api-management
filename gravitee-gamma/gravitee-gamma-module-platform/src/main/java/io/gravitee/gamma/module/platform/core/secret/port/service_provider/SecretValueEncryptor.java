@@ -15,9 +15,11 @@
  */
 package io.gravitee.gamma.module.platform.core.secret.port.service_provider;
 
-/** A ciphertext decrypts only under the organization that encrypted it. */
-public interface SecretValueEncryptor {
-    String encrypt(String organizationId, String plaintext);
+import io.gravitee.gamma.module.platform.core.secret.model.Secret;
 
-    String decrypt(String organizationId, String ciphertext);
+/** A ciphertext decrypts only for the secret that it was encrypted for. */
+public interface SecretValueEncryptor {
+    String encrypt(Secret secret, String plaintext);
+
+    String decrypt(Secret secret, String ciphertext);
 }

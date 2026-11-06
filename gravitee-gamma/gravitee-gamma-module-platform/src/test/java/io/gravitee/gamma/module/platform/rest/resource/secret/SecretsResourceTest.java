@@ -156,7 +156,7 @@ class SecretsResourceTest {
         // Then
         assertThat(body.updatedAt()).isAfter(body.createdAt());
         var stored = secrets.secretRepository.encryptedValueOf(secret.id()).orElseThrow();
-        assertThat(secrets.encryptor.decrypt(ORGANIZATION_ID, stored)).isEqualTo("new-value");
+        assertThat(secrets.encryptor.decrypt(secret, stored)).isEqualTo("new-value");
     }
 
     @Test
