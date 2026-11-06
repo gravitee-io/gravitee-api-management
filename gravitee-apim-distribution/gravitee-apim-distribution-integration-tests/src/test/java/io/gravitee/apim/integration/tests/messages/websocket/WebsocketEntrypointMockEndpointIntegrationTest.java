@@ -59,6 +59,8 @@ class WebsocketEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest
     private static final String MESSAGE = "message";
     private static final String MULTIBYTE_MESSAGE = "zażółć € 😀";
     private static final int FRAMES_PER_CONNECTION = 3;
+    // The mock endpoint numbers its messages from 0, so the corrupted message's id is also the number of messages sent before it.
+    private static final int CORRUPTED_MESSAGE_INDEX = Integer.parseInt(InvalidUtf8MessagePolicy.CORRUPTED_MESSAGE_ID);
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
@@ -142,7 +144,7 @@ class WebsocketEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest
             .assertComplete()
             .values();
 
-        assertThat(frames).hasSize(2);
+        assertThat(frames).hasSize(CORRUPTED_MESSAGE_INDEX);
         assertTextFrames(frames, MESSAGE);
         assertThat(webSocket.get().closeStatusCode()).isEqualTo((short) WebSocketCloseStatus.INVALID_PAYLOAD_DATA.code());
     }
