@@ -394,7 +394,10 @@ public class PortalNavigationItemDomainService {
         return resolved;
     }
 
-    /** An API item is left to {@link #newOwnerAt}. A legacy item, on the zero UUID, is on the portal the console writes to. */
+    /**
+     * An API item is left to {@link #newOwnerAt}. A row still on the zero UUID belongs to the portal the console
+     * writes to, whether it is the item or its new parent: a lookup is only needed in that case.
+     */
     private void refuseMoveToAnotherPortal(UpdatePortalNavigationItem requested, PortalNavigationItem existing) {
         if (
             !(existing.getReference() instanceof NavigationItemReference.PortalReference itemPortal) ||
@@ -405,12 +408,20 @@ public class PortalNavigationItemDomainService {
         }
         var environmentId = existing.getEnvironmentId();
         var parent = queryService.findByIdAndEnvironmentId(environmentId, requested.getParentId());
-        if (!belongsToAnotherPortal(parent, itemPortal)) {
+        if (
+            parent == null ||
+            !(parent.getReference() instanceof NavigationItemReference.PortalReference parentPortal) ||
+            parentPortal.equals(itemPortal)
+        ) {
             return;
         }
+        var itemIsLegacy = NavigationItemReference.PortalReference.DEFAULT.equals(itemPortal);
+        var parentIsLegacy = NavigationItemReference.PortalReference.DEFAULT.equals(parentPortal);
         if (
-            NavigationItemReference.PortalReference.DEFAULT.equals(itemPortal) &&
-            !belongsToAnotherPortal(parent, navigationPortalDomainService.resolveReference(existing.getOrganizationId(), environmentId))
+            (itemIsLegacy || parentIsLegacy) &&
+            navigationPortalDomainService
+                .resolveReference(existing.getOrganizationId(), environmentId)
+                .equals(itemIsLegacy ? parentPortal : itemPortal)
         ) {
             return;
         }

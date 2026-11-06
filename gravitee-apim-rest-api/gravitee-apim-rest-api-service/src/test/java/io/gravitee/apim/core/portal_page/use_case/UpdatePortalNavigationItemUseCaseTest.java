@@ -1505,15 +1505,15 @@ class UpdatePortalNavigationItemUseCaseTest {
         }
 
         @Test
-        void should_not_treat_a_move_between_two_portal_references_as_a_change_of_owner() {
+        void should_refuse_moving_an_item_of_another_portal_and_leave_it_where_it_is() {
             var otherPortal = new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-0000000000aa"));
             var managed = store(
                 automationManaged(PortalNavigationItemFixtures.aPage("Managed page", null)).toBuilder().reference(otherPortal).build()
             );
 
-            move(managed, section.getId());
+            assertThatThrownBy(() -> move(managed, section.getId())).isInstanceOf(NavigationPortalNotResolvedException.class);
 
-            assertThat(find(managed).getParentId()).isEqualTo(section.getId());
+            assertThat(find(managed).getParentId()).isNull();
             assertThat(find(managed).getReference()).isEqualTo(otherPortal);
         }
 
