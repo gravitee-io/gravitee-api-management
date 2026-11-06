@@ -149,7 +149,6 @@ public class JdbcSecretRepository extends TransactionalRepository implements Sec
         log.debug("JdbcSecretRepository.update({})", secret.getId());
         int updated;
         try {
-            // MariaDB gives the first TIMESTAMP column ON UPDATE CURRENT_TIMESTAMP unless the statement sets it.
             updated = jdbcTemplate.update(
                 "UPDATE " +
                     tableName +
