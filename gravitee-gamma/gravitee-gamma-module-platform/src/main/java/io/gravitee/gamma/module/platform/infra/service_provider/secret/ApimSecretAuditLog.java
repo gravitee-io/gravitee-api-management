@@ -17,6 +17,7 @@ package io.gravitee.gamma.module.platform.infra.service_provider.secret;
 
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.audit.model.event.AuditEvent;
 import io.gravitee.gamma.module.platform.core.secret.model.Secret;
@@ -42,7 +43,7 @@ public class ApimSecretAuditLog implements SecretAuditLog {
                 .organizationId(scope.organizationId())
                 .environmentId(scope.environmentId())
                 .actor(new AuditActor(actor.userId(), actor.source(), actor.sourceId()))
-                .properties(Map.of())
+                .properties(Map.of(AuditProperties.SECRET, scope.id()))
                 .event(auditEvent)
                 .createdAt(at.atZone(ZoneOffset.UTC))
                 .oldValue(before)

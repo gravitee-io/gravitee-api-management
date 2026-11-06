@@ -56,4 +56,5 @@ public enum AuditProperties {
     AI_WORKSPACE_COMPONENT,
     MCP_SERVER,
     ENCRYPTED,
+    SECRET,
 }
