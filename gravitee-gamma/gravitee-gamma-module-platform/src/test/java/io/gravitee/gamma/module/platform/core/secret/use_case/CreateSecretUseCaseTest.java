@@ -67,7 +67,7 @@ class CreateSecretUseCaseTest {
         // Then
         var stored = secrets.secretRepository.encryptedValueOf(secret.id()).orElseThrow();
         assertThat(stored).isNotEqualTo("sk-ant-123").doesNotContain("sk-ant-123");
-        assertThat(secrets.encryptor.decrypt(ORGANIZATION_ID, stored)).isEqualTo("sk-ant-123");
+        assertThat(secrets.encryptor.decrypt(secret, stored)).isEqualTo("sk-ant-123");
     }
 
     @Test

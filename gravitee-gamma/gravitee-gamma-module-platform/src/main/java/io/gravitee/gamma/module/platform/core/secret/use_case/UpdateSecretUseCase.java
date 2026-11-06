@@ -43,7 +43,7 @@ public class UpdateSecretUseCase {
         var current = secretRepository.get(input.organizationId(), input.environmentId(), input.id());
         var rotated = secretRepository.rotate(
             current.rotatedAt(clock.instant()),
-            secretValueEncryptor.encrypt(current.organizationId(), input.value().plaintext())
+            secretValueEncryptor.encrypt(current, input.value().plaintext())
         );
         secretAuditLog.record(SecretAuditEvent.SECRET_UPDATED, current, rotated, input.actor(), rotated.updatedAt());
         return new Output(rotated);

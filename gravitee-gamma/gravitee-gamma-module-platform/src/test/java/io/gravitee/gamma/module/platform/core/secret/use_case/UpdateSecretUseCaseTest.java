@@ -48,7 +48,7 @@ class UpdateSecretUseCaseTest {
 
         // Then
         var stored = secrets.secretRepository.encryptedValueOf(secret.id()).orElseThrow();
-        assertThat(secrets.encryptor.decrypt(ORGANIZATION_ID, stored)).isEqualTo("new-value");
+        assertThat(secrets.encryptor.decrypt(secret, stored)).isEqualTo("new-value");
         assertThat(rotated.key()).isEqualTo(secret.key());
         assertThat(rotated.path()).isEqualTo(secret.path());
         assertThat(rotated.createdAt()).isEqualTo(secret.createdAt());
