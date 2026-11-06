@@ -32,6 +32,8 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotNull;
@@ -73,12 +75,13 @@ public class SecretsResource {
     @GET
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SECRET, acls = RolePermissionAction.READ) })
     public SecretsPageResponse list(
-        @PathParam("orgId") String orgId,
-        @PathParam("envId") String envId,
         @QueryParam("page") @DefaultValue("1") int page,
         @QueryParam("perPage") @DefaultValue("10") int perPage
     ) {
-        var secrets = listSecretsUseCase.execute(new ListSecretsUseCase.Input(orgId, requireEnvironment(envId), page, perPage)).secrets();
+        var context = environmentContext();
+        var secrets = listSecretsUseCase
+            .execute(new ListSecretsUseCase.Input(context.getOrganizationId(), context.getEnvironmentId(), page, perPage))
+            .secrets();
         long pageCount = (secrets.getTotalElements() + perPage - 1) / perPage;
         return new SecretsPageResponse(
             secrets.getContent().stream().map(SecretResponse::from).toList(),
@@ -88,13 +91,14 @@ public class SecretsResource {
 
     @POST
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SECRET, acls = RolePermissionAction.CREATE) })
-    public Response create(@PathParam("orgId") String orgId, @PathParam("envId") String envId, @NotNull CreateSecretRequest request) {
+    public Response create(@NotNull CreateSecretRequest request) {
+        var context = environmentContext();
         var secret = createSecretUseCase
             .execute(
                 CreateSecretUseCase.Input.builder()
                     .id(UuidString.generateRandom())
-                    .organizationId(orgId)
-                    .environmentId(requireEnvironment(envId))
+                    .organizationId(context.getOrganizationId())
+                    .environmentId(context.getEnvironmentId())
                     .key(request.key())
                     .value(new SecretValue(request.value()))
                     .actor(currentActor())
@@ -107,24 +111,21 @@ public class SecretsResource {
     @GET
     @Path("/{secretId}")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SECRET, acls = RolePermissionAction.READ) })
-    public SecretResponse get(@PathParam("orgId") String orgId, @PathParam("envId") String envId, @PathParam("secretId") String secretId) {
+    public SecretResponse get(@PathParam("secretId") String secretId) {
+        var context = environmentContext();
         return SecretResponse.from(
-            getSecretUseCase.execute(new GetSecretUseCase.Input(orgId, requireEnvironment(envId), secretId)).secret()
+            getSecretUseCase.execute(new GetSecretUseCase.Input(context.getOrganizationId(), context.getEnvironmentId(), secretId)).secret()
         );
     }
 
     @PUT
     @Path("/{secretId}")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SECRET, acls = RolePermissionAction.UPDATE) })
-    public SecretResponse rotate(
-        @PathParam("orgId") String orgId,
-        @PathParam("envId") String envId,
-        @PathParam("secretId") String secretId,
-        @NotNull RotateSecretRequest request
-    ) {
+    public SecretResponse rotate(@PathParam("secretId") String secretId, @NotNull RotateSecretRequest request) {
+        var context = environmentContext();
         var input = new UpdateSecretUseCase.Input(
-            orgId,
-            requireEnvironment(envId),
+            context.getOrganizationId(),
+            context.getEnvironmentId(),
             secretId,
             new SecretValue(request.value()),
             currentActor()
@@ -135,16 +136,21 @@ public class SecretsResource {
     @DELETE
     @Path("/{secretId}")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SECRET, acls = RolePermissionAction.DELETE) })
-    public Response delete(@PathParam("orgId") String orgId, @PathParam("envId") String envId, @PathParam("secretId") String secretId) {
-        deleteSecretUseCase.execute(new DeleteSecretUseCase.Input(orgId, requireEnvironment(envId), secretId, currentActor()));
+    public Response delete(@PathParam("secretId") String secretId) {
+        var context = environmentContext();
+        deleteSecretUseCase.execute(
+            new DeleteSecretUseCase.Input(context.getOrganizationId(), context.getEnvironmentId(), secretId, currentActor())
+        );
         return Response.noContent().build();
     }
 
-    private static String requireEnvironment(String envId) {
-        if (envId == null) {
+    // The context holds the canonical ids; the path may name the environment by its hrid.
+    private static ExecutionContext environmentContext() {
+        var context = GraviteeContext.getExecutionContext();
+        if (!context.hasEnvironmentId()) {
             throw new NotFoundException();
         }
-        return envId;
+        return context;
     }
 
     private static SecretActor currentActor() {
