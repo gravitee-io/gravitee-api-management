@@ -764,6 +764,43 @@ public class PortalNavigationItemDomainServiceTest {
         }
 
         @Test
+        void should_store_the_default_portal_when_an_api_item_moves_under_a_folder_of_the_default_portal() {
+            var apiOwner = new NavigationItemReference.ApiReference("api-1");
+            var apiFolder = PortalNavigationItemFixtures.aFolder("Advanced").toBuilder().reference(apiOwner).build();
+            navigationPortals.resolve(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID);
+            var defaultPortalFolder = PortalNavigationItemFixtures.aFolder("Guides").toBuilder().reference(defaultPortal()).build();
+            portalNavigationItemsCrudService.initWith(List.of(apiFolder, defaultPortalFolder));
+            portalNavigationItemsQueryService.initWith(List.of(apiFolder, defaultPortalFolder));
+
+            var moved = domainService.resolveDestination(
+                UpdatePortalNavigationItem.builder().title("Advanced").parentId(defaultPortalFolder.getId()).build(),
+                apiFolder,
+                false
+            );
+
+            assertThat(moved.getReference()).isEqualTo(defaultPortal());
+        }
+
+        @Test
+        void should_refuse_moving_an_api_item_under_a_folder_of_another_portal() {
+            var apiOwner = new NavigationItemReference.ApiReference("api-1");
+            var apiFolder = PortalNavigationItemFixtures.aFolder("Advanced").toBuilder().reference(apiOwner).build();
+            var automationFolder = PortalNavigationItemFixtures.aFolder("Products").toBuilder().reference(A_PORTAL).build();
+            portalNavigationItemsCrudService.initWith(List.of(apiFolder, automationFolder));
+            portalNavigationItemsQueryService.initWith(List.of(apiFolder, automationFolder));
+
+            assertThatThrownBy(() ->
+                domainService.resolveDestination(
+                    UpdatePortalNavigationItem.builder().title("Advanced").parentId(automationFolder.getId()).build(),
+                    apiFolder,
+                    false
+                )
+            )
+                .isInstanceOf(NavigationPortalNotResolvedException.class)
+                .hasMessageContaining("the destination belongs to a portal managed through the Automation API");
+        }
+
+        @Test
         void should_refuse_a_console_write_in_an_automation_managed_environment() {
             navigationPortals
                 .portalCrudService()

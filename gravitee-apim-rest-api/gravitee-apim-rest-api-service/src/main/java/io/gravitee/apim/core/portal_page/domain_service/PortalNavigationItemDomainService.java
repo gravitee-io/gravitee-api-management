@@ -19,6 +19,7 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
+import io.gravitee.apim.core.portal.exception.NavigationPortalNotResolvedException;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
@@ -379,7 +380,8 @@ public class PortalNavigationItemDomainService {
     /**
      * @return the owner the item takes at the destination, null when it keeps the one it has. An item of the
      *         portal stays with its portal wherever it goes in the portal: only an API takes or gives an item,
-     *         and an item an API gives up joins the portal of the parent it lands under.
+     *         and an item an API gives up joins the default portal, the only one the console manages.
+     * @throws NavigationPortalNotResolvedException when that item lands under a folder of another portal
      */
     @Nullable
     private NavigationItemReference newOwnerAt(
@@ -393,10 +395,20 @@ public class PortalNavigationItemDomainService {
         if (!(existing.getReference() instanceof NavigationItemReference.ApiReference)) {
             return null;
         }
-        var portalOwner = parent != null && parent.getReference() instanceof NavigationItemReference.PortalReference
-            ? parent.getReference()
-            : NavigationItemReference.defaultReference();
-        return namedOwner(existing.getOrganizationId(), existing.getEnvironmentId(), portalOwner);
+        var defaultPortal = namedOwner(
+            existing.getOrganizationId(),
+            existing.getEnvironmentId(),
+            NavigationItemReference.defaultReference()
+        );
+        if (
+            parent != null &&
+            parent.getReference() instanceof NavigationItemReference.PortalReference parentPortal &&
+            !NavigationItemReference.PortalReference.DEFAULT.equals(parentPortal) &&
+            !parentPortal.equals(defaultPortal)
+        ) {
+            throw NavigationPortalNotResolvedException.foreignDestination(existing.getEnvironmentId());
+        }
+        return defaultPortal;
     }
 
     public PortalNavigationItem update(UpdatePortalNavigationItem toUpdate, PortalNavigationItem originalItem) {
