@@ -107,7 +107,7 @@ export function HomePage({ modules, loading }: HomePageProps) {
                                 <GetStartedCard
                                     key={step.title}
                                     step={step}
-                                    to={`${buildModulePath(envHrid, step.moduleId)}/${step.subPath}`}
+                                    to={[buildModulePath(envHrid, step.moduleId), step.subPath].filter(Boolean).join('/')}
                                 />
                             ))}
                         </div>
