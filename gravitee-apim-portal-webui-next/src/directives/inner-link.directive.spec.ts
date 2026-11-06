@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { APP_BASE_HREF, Location } from '@angular/common';
 import { Component, input, signal, ViewEncapsulation } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 
 import { InnerLinkDirective } from './inner-link.directive';
 
@@ -45,6 +46,7 @@ class TestHostComponent {
 
 const createRouterStub = (url: string) => ({
   url,
+  config: [{ path: 'catalog' }],
   navigateByUrl: jest.fn().mockResolvedValue(true),
 });
 
@@ -136,5 +138,144 @@ describe('InnerLinkDirective', () => {
     expect(clickEvent.defaultPrevented).toBe(false);
     expect(router.navigateByUrl).not.toHaveBeenCalled();
     expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+});
+
+@Component({ template: 'page' })
+class PageComponent {}
+
+@Component({ template: 'not found' })
+class NotFoundComponent {}
+
+@Component({
+  template: `<div appInnerLink>
+    <a data-testid="link" [attr.href]="href" [attr.target]="target" [attr.download]="download">link</a>
+  </div>`,
+  imports: [InnerLinkDirective],
+})
+class LinkHostComponent {
+  href = '';
+  target: string | null = null;
+  download: string | null = null;
+}
+
+describe('InnerLinkDirective with absolute paths', () => {
+  const click = async ({
+    baseHref,
+    href,
+    target = null,
+    download = null,
+    eventInit = {},
+  }: {
+    baseHref: string;
+    href: string;
+    target?: string | null;
+    download?: string | null;
+    eventInit?: MouseEventInit;
+  }) => {
+    await TestBed.configureTestingModule({
+      imports: [LinkHostComponent],
+      providers: [
+        { provide: APP_BASE_HREF, useValue: baseHref },
+        provideRouter([
+          { path: '', component: PageComponent },
+          { path: 'catalog', children: [{ path: '**', component: PageComponent }] },
+          { path: 'documentation/:navId', component: PageComponent },
+          { path: '', children: [{ path: 'guides/:id', component: PageComponent }] },
+          { path: '**', component: NotFoundComponent },
+        ]),
+      ],
+    }).compileComponents();
+
+    const router = TestBed.inject(Router);
+    const location = TestBed.inject(Location);
+    const fixture = TestBed.createComponent(LinkHostComponent);
+    Object.assign(fixture.componentInstance, { href, target, download });
+    fixture.detectChanges();
+    const navigateByUrl = jest.spyOn(router, 'navigateByUrl');
+
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true, composed: true, button: 0, ...eventInit });
+    fixture.nativeElement.querySelector('[data-testid="link"]').dispatchEvent(event);
+    await fixture.whenStable();
+
+    return { event, navigateByUrl, browserUrl: () => location.prepareExternalUrl(location.path()) };
+  };
+
+  it('should leave a same-host path outside the portal routes to the browser', async () => {
+    const { event, navigateByUrl } = await click({ baseHref: '/', href: '/portal-extension/next/documentation/abc' });
+
+    expect(event.defaultPrevented).toBe(false);
+    expect(navigateByUrl).not.toHaveBeenCalled();
+  });
+
+  it('should not prepend the base href a second time to a link that already contains it', async () => {
+    const { event, navigateByUrl, browserUrl } = await click({ baseHref: '/next/', href: '/next/documentation/abc' });
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(navigateByUrl).toHaveBeenCalledWith('/documentation/abc');
+    expect(browserUrl()).toBe('/next/documentation/abc');
+  });
+
+  it('should strip a multi-segment base href before routing', async () => {
+    const { event, navigateByUrl } = await click({
+      baseHref: '/portal-extension/next/',
+      href: '/portal-extension/next/documentation/abc',
+    });
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(navigateByUrl).toHaveBeenCalledWith('/documentation/abc');
+  });
+
+  it('should only strip the base href on a segment boundary', async () => {
+    const { event, navigateByUrl } = await click({ baseHref: '/next/', href: '/nextgen/documentation/abc' });
+
+    expect(event.defaultPrevented).toBe(false);
+    expect(navigateByUrl).not.toHaveBeenCalled();
+  });
+
+  it('should strip a base href whose first segment is also a route name', async () => {
+    const { navigateByUrl } = await click({ baseHref: '/documentation/', href: '/documentation/documentation/abc' });
+
+    expect(navigateByUrl).toHaveBeenCalledWith('/documentation/abc');
+  });
+
+  it.each(['/', '/next/'])('should route generated internal links through the router at base %s', async baseHref => {
+    for (const href of ['/catalog/api/a/documentation/p', '/catalog']) {
+      TestBed.resetTestingModule();
+      const { event, navigateByUrl } = await click({ baseHref, href });
+
+      expect(event.defaultPrevented).toBe(true);
+      expect(navigateByUrl).toHaveBeenCalledWith(href);
+    }
+  });
+
+  it('should route links to children of a top-level empty-path route', async () => {
+    const { event, navigateByUrl } = await click({ baseHref: '/', href: '/guides/abc' });
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(navigateByUrl).toHaveBeenCalledWith('/guides/abc');
+  });
+
+  it('should route a link to the portal root with target _self', async () => {
+    const { event, navigateByUrl } = await click({ baseHref: '/', href: '/', target: '_self' });
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(navigateByUrl).toHaveBeenCalledWith('/');
+  });
+
+  it.each([
+    ['a mailto link', { href: 'mailto:x@y' }],
+    ['a tel link', { href: 'tel:+123' }],
+    ['a protocol-relative link', { href: '//other.host/catalog' }],
+    ['a ctrl-click', { href: '/catalog', eventInit: { ctrlKey: true } }],
+    ['a meta-click', { href: '/catalog', eventInit: { metaKey: true } }],
+    ['a middle-click', { href: '/catalog', eventInit: { button: 1 } }],
+    ['a link opening in a new tab', { href: '/catalog', target: '_blank' }],
+    ['a download link', { href: '/catalog', download: '' }],
+  ])('should leave %s to the browser', async (_, options) => {
+    const { event, navigateByUrl } = await click({ baseHref: '/', ...options });
+
+    expect(event.defaultPrevented).toBe(false);
+    expect(navigateByUrl).not.toHaveBeenCalled();
   });
 });
