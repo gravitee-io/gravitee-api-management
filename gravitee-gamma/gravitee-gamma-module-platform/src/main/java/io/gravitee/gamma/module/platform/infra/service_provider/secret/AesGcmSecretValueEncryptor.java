@@ -36,6 +36,9 @@ public class AesGcmSecretValueEncryptor implements SecretValueEncryptor {
 
     public static final String KEY_PROPERTY = "modules.platform.secrets.encryption.key";
 
+    /** Public in the source, so a value stored under it is not secret from anyone who reads the database. */
+    public static final String DEFAULT_KEY = "wdvgpa286WSRs4URb63fHAl3/AWYvPGJX8OF0IdfSlk=";
+
     private static final String TRANSFORMATION = "AES/GCM/NoPadding";
     private static final int KEY_BYTES = 32;
     private static final int IV_BYTES = 12;
