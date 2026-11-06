@@ -32,6 +32,7 @@ export default {
     },
     devServer: {
         port: 3004,
+        historyApiFallback: true,
         headers: {
             'Access-Control-Allow-Origin': '*',
         },

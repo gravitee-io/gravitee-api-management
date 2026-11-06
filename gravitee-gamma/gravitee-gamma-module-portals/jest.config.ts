@@ -18,7 +18,8 @@ import { fileURLToPath } from 'node:url';
 export default {
     displayName: 'gravitee-gamma-module-portals',
     testEnvironment: 'jest-fixed-jsdom',
-    transformIgnorePatterns: ['/node_modules/(?!(until-async|@gravitee/graphene-core)/)'],
+    setupFilesAfterEnv: ['<rootDir>/src/main/ui/test-setup.ts'],
+    transformIgnorePatterns: ['/node_modules/(?!(until-async|@gravitee/graphene-core|@gravitee/gamma-modules-sdk)/)'],
     moduleNameMapper: {
         '^react$': '<rootDir>/../../node_modules/react/index.js',
         '^react/jsx-runtime$': '<rootDir>/../../node_modules/react/jsx-runtime.js',

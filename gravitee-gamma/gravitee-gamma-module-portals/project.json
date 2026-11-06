@@ -16,8 +16,7 @@
             "executor": "@nx/jest:jest",
             "outputs": ["{projectRoot}/coverage"],
             "options": {
-                "jestConfig": "gravitee-gamma/gravitee-gamma-module-portals/jest.config.ts",
-                "passWithNoTests": true
+                "jestConfig": "gravitee-gamma/gravitee-gamma-module-portals/jest.config.ts"
             }
         }
     }

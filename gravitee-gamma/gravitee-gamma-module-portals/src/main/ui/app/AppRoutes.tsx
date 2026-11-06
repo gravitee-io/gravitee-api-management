@@ -13,16 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Route, Routes } from 'react-router-dom';
+import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
+import { SidebarNavigation, useLayoutConfig } from '@gravitee/graphene-core';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useState } from 'react';
+import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 
-function PortalsHomePage() {
-    return <h1>Developer Portals</h1>;
+import { useModuleBreadcrumbs } from './useModuleBreadcrumbs';
+import { useModuleNavigation } from './useModuleNavigation';
+import { getActiveNavKey, PORTALS_ROUTE_CONFIG, ROUTES } from '../config/routes';
+import { PortalOverviewPlaceholderPage } from '../features/portals/pages/PortalOverviewPlaceholderPage';
+import { PortalsDashboardPlaceholderPage } from '../features/portals/pages/PortalsDashboardPlaceholderPage';
+import { PortalsListPlaceholderPage } from '../features/portals/pages/PortalsListPlaceholderPage';
+
+function ModuleLayout() {
+    const routing = useModuleRouting(PORTALS_ROUTE_CONFIG);
+    const { pathname } = useLocation();
+    const activeNavKey = getActiveNavKey(pathname, routing.pathForKey('dashboard'));
+    const { navGroups, handleNavSelect } = useModuleNavigation(routing);
+    const breadcrumbs = useModuleBreadcrumbs(activeNavKey, routing);
+
+    useLayoutConfig(
+        {
+            navigation: <SidebarNavigation groups={navGroups} activeItemKey={activeNavKey} onItemSelect={handleNavSelect} />,
+            breadcrumbs,
+        },
+        [activeNavKey, breadcrumbs, navGroups, handleNavSelect],
+    );
+
+    return <Outlet />;
 }
 
 export function AppRoutes() {
+    const [queryClient] = useState(() => new QueryClient());
+
     return (
-        <Routes>
-            <Route index element={<PortalsHomePage />} />
-        </Routes>
+        <QueryClientProvider client={queryClient}>
+            <Routes>
+                <Route element={<ModuleLayout />}>
+                    <Route index element={<PortalsDashboardPlaceholderPage />} />
+                    <Route path={ROUTES.portals.path} element={<PortalsListPlaceholderPage />} />
+                    <Route path=":portalId">
+                        <Route index element={<Navigate to="overview" replace />} />
+                        <Route path="overview" element={<PortalOverviewPlaceholderPage />} />
+                        <Route path="*" element={<Navigate to="../overview" replace />} />
+                    </Route>
+                </Route>
+            </Routes>
+        </QueryClientProvider>
     );
 }
