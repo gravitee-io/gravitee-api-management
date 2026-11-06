@@ -35,8 +35,8 @@ public record Secret(String id, String organizationId, String environmentId, Str
         return toBuilder().updatedAt(now).build();
     }
 
-    /** The reference that an expression uses to resolve the value. */
+    /** The reference that an expression uses to resolve the value, in the environment where the expression runs. */
     public String path() {
-        return "/secrets/built-in/" + environmentId + "/" + key;
+        return "/gravitee/" + key;
     }
 }
