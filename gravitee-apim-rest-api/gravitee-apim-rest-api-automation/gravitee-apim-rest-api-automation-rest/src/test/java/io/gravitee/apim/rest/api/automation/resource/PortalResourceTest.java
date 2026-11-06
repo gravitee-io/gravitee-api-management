@@ -21,6 +21,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.PortalFixtures;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
@@ -65,7 +66,7 @@ class PortalResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_portal_by_hrid() {
-            var persisted = Portal.of(PORTAL_ID, ENVIRONMENT, ORGANIZATION, "Default Portal");
+            var persisted = PortalFixtures.aPortal(PORTAL_ID, ENVIRONMENT, ORGANIZATION, "Default Portal");
             when(getPortalUseCase.execute(any())).thenReturn(
                 new GetPortalUseCase.Output(persisted, PortalNavigationStructure.empty(), null)
             );
@@ -86,7 +87,7 @@ class PortalResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_navigation_alongside_portal() {
-            var persisted = Portal.of(PORTAL_ID, ENVIRONMENT, ORGANIZATION, "Default Portal");
+            var persisted = PortalFixtures.aPortal(PORTAL_ID, ENVIRONMENT, ORGANIZATION, "Default Portal");
             // order is inverted in the list to show that API returns it in the correct order
             var navigation = List.of(new NavigationPath("/projects/alpha", "Alpha", 1), new NavigationPath("/projects", null));
             when(getPortalUseCase.execute(any())).thenReturn(

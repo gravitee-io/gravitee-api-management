@@ -78,17 +78,18 @@ public class PortalsResource extends AbstractResource {
             throw new ValidationDomainException("navigation and structure cannot be used at the same time");
         }
         var auditInfo = getAuditInfo();
-        var portal = Portal.of(
-            PortalId.of(HRIDToUUID.portal().context(auditInfo).hrid(spec.getHrid()).id()),
-            auditInfo.environmentId(),
-            auditInfo.organizationId(),
-            spec.getName()
-        );
+        var portalId = PortalId.of(HRIDToUUID.portal().context(auditInfo).hrid(spec.getHrid()).id());
         var structure = PortalMapper.INSTANCE.toCoreStructure(spec);
-        authorizeImport(auditInfo, portal.getId(), spec.getActiveThemeHrid());
+        authorizeImport(auditInfo, portalId, spec.getActiveThemeHrid());
 
-        var input = new CreateOrUpdatePortalUseCase.Input(auditInfo, portal, structure, spec.getActiveThemeHrid());
-        var output = dryRun ? validatePortalUseCase.execute(input) : createOrUpdatePortalUseCase.execute(input);
+        var input = new CreateOrUpdatePortalUseCase.Input(auditInfo, portalId, spec.getName(), structure, spec.getActiveThemeHrid());
+        if (dryRun) {
+            var dryRunOutput = validatePortalUseCase.execute(input);
+            return Response.ok(
+                PortalMapper.INSTANCE.toPortalState(dryRunOutput, auditInfo.environmentId(), auditInfo.organizationId(), spec.getHrid())
+            ).build();
+        }
+        var output = createOrUpdatePortalUseCase.execute(input);
 
         return Response.ok(
             PortalMapper.INSTANCE.toPortalState(

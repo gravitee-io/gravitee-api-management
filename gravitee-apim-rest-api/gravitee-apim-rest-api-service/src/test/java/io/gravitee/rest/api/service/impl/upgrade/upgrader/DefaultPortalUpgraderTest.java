@@ -94,7 +94,7 @@ class DefaultPortalUpgraderTest {
             PortalNavigationStructure.empty(),
             null,
             false,
-            Portal.URL_PLACEHOLDER
+            DefaultPortalUpgrader.URL_PLACEHOLDER
         );
     }
 
@@ -194,7 +194,7 @@ class DefaultPortalUpgraderTest {
                     PortalNavigationStructure.empty(),
                     null,
                     true,
-                    Portal.URL_PLACEHOLDER
+                    DefaultPortalUpgrader.URL_PLACEHOLDER
                 )
             )
         );

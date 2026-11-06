@@ -17,6 +17,8 @@ package io.gravitee.apim.core.portal.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
+import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +29,20 @@ public class ValidatePortalUseCase {
 
     private final ValidatePortalDomainService validator;
 
-    public CreateOrUpdatePortalUseCase.Output execute(CreateOrUpdatePortalUseCase.Input input) {
-        var result = validator.validateAndSanitize(
-            new ValidatePortalDomainService.Input(input.auditInfo(), input.portal(), input.structure())
-        );
+    /** What a dry run reports: nothing is created, so there is no portal, only what was declared. */
+    public record Output(
+        PortalId portalId,
+        String name,
+        PortalNavigationStructure structure,
+        String activeThemeHrid,
+        List<Validator.Error> errors
+    ) {}
+
+    public Output execute(CreateOrUpdatePortalUseCase.Input input) {
+        var declared = new ValidatePortalDomainService.Input(input.auditInfo(), input.portalId(), input.structure());
+        var result = validator.validateAndSanitize(declared);
         List<Validator.Error> errors = result.errors().orElseGet(List::of);
-        var sanitized = result.value().orElse(new ValidatePortalDomainService.Input(input.auditInfo(), input.portal(), input.structure()));
-        return new CreateOrUpdatePortalUseCase.Output(sanitized.portal(), sanitized.structure(), input.activeThemeHrid(), errors);
+        var sanitized = result.value().orElse(declared);
+        return new Output(sanitized.portalId(), input.name(), sanitized.structure(), input.activeThemeHrid(), errors);
     }
 }

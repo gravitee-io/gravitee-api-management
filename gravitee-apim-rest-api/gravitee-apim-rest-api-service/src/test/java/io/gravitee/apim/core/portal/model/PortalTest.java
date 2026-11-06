@@ -72,16 +72,19 @@ class PortalTest {
         }
 
         @Test
-        void of_builds_a_non_default_portal_with_the_placeholder_url() {
-            var portal = Portal.of(PORTAL_ID, "env", "org", "Portal");
+        void create_with_an_id_builds_a_non_default_portal_with_that_id_and_url() {
+            var portal = Portal.create(PORTAL_ID, "env", "org", "Portal", url("https://portal.example/next"));
 
+            assertThat(portal.getId()).isEqualTo(PORTAL_ID);
+            assertThat(portal.getName()).isEqualTo("Portal");
             assertThat(portal.isDefault()).isFalse();
-            assertThat(portal.getUrl()).isEqualTo(Portal.URL_PLACEHOLDER);
+            assertThat(portal.getNavigationStructure().isEmpty()).isTrue();
+            assertThat(portal.getUrl()).isEqualTo(url("https://portal.example/next"));
         }
 
         @Test
-        void placeholder_url_is_the_to_be_implemented_example() {
-            assertThat(Portal.URL_PLACEHOLDER).hasToString("https://example.com/to-be-implemented");
+        void create_with_an_id_refuses_a_missing_url() {
+            assertThatThrownBy(() -> Portal.create(PORTAL_ID, "env", "org", "Portal", null)).isInstanceOf(NullPointerException.class);
         }
 
         @Test
@@ -117,7 +120,7 @@ class PortalTest {
 
         @Test
         void update_with_null_navigation_sets_an_empty_structure() {
-            var portal = Portal.of(PORTAL_ID, "env", "org", "Portal", STRUCTURE);
+            var portal = Portal.of(PORTAL_ID, "env", "org", "Portal", STRUCTURE, null, false, url("https://portal.example"));
 
             portal.update("Portal", null, null);
 

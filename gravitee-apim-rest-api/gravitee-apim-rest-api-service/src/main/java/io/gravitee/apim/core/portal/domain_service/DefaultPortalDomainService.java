@@ -99,27 +99,26 @@ public class DefaultPortalDomainService {
     }
 
     /**
-     * Replaces the placeholder URL on every portal of the environment, the default one or not, with the
-     * resolved URL.
+     * Replaces {@code staleUrl} on every portal of the environment, the default one or not, with the resolved URL.
      *
      * @return the number of portals changed
      */
-    public int replacePlaceholderUrls(String environmentId) {
-        var portalsWithPlaceholder = portalCrudService
+    public int replaceUrl(String environmentId, URL staleUrl) {
+        var portalsWithStaleUrl = portalCrudService
             .findByEnvironmentId(environmentId)
             .stream()
-            .filter(portal -> sameUrl(portal.getUrl(), Portal.URL_PLACEHOLDER))
+            .filter(portal -> sameUrl(portal.getUrl(), staleUrl))
             .toList();
-        if (portalsWithPlaceholder.isEmpty()) {
+        if (portalsWithStaleUrl.isEmpty()) {
             return 0;
         }
         return resolveUrl(environmentId)
             .map(url -> {
-                portalsWithPlaceholder.forEach(portal -> {
+                portalsWithStaleUrl.forEach(portal -> {
                     portal.changeUrl(url);
                     portalCrudService.update(portal);
                 });
-                return portalsWithPlaceholder.size();
+                return portalsWithStaleUrl.size();
             })
             .orElse(0);
     }

@@ -44,6 +44,7 @@ class DefaultPortalDomainServiceTest {
     private static final String OTHER_ENV_ID = "env-2";
     private static final PortalId DEFAULT_PORTAL_ID = PortalId.of("11111111-1111-1111-1111-111111111111");
     private static final PortalId AUTOMATION_PORTAL_ID = PortalId.of("22222222-2222-2222-2222-222222222222");
+    private static final URL STALE_URL = url("https://example.com/to-be-implemented");
 
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
     private final InstallationAccessQueryServiceInMemory installationAccessQueryService = new InstallationAccessQueryServiceInMemory();
@@ -137,7 +138,7 @@ class DefaultPortalDomainServiceTest {
         @Test
         void should_not_create_nor_mark_default_when_environment_has_only_an_automation_portal() {
             installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io");
-            portalCrudService.initWith(List.of(anAutomationPortal(Portal.URL_PLACEHOLDER)));
+            portalCrudService.initWith(List.of(anAutomationPortal(STALE_URL)));
             var before = storedState();
 
             var result = cut.ensureDefault(ORG_ID, ENV_ID);
@@ -172,7 +173,7 @@ class DefaultPortalDomainServiceTest {
         @Test
         void should_only_look_at_the_given_environment() {
             installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io");
-            portalCrudService.initWith(List.of(aPortal(AUTOMATION_PORTAL_ID, OTHER_ENV_ID, "Other", false, Portal.URL_PLACEHOLDER)));
+            portalCrudService.initWith(List.of(aPortal(AUTOMATION_PORTAL_ID, OTHER_ENV_ID, "Other", false, STALE_URL)));
 
             var result = cut.ensureDefault(ORG_ID, ENV_ID);
 
@@ -182,7 +183,7 @@ class DefaultPortalDomainServiceTest {
 
         @Test
         void should_fail_when_environment_has_several_portals() {
-            portalCrudService.initWith(List.of(aDefaultPortal(Portal.URL_PLACEHOLDER), anAutomationPortal(Portal.URL_PLACEHOLDER)));
+            portalCrudService.initWith(List.of(aDefaultPortal(STALE_URL), anAutomationPortal(STALE_URL)));
             var before = storedState();
 
             assertThatThrownBy(() -> cut.ensureDefault(ORG_ID, ENV_ID))
@@ -201,7 +202,7 @@ class DefaultPortalDomainServiceTest {
 
         @Test
         void should_accept_an_environment_with_one_portal_or_none() {
-            portalCrudService.initWith(List.of(anAutomationPortal(Portal.URL_PLACEHOLDER)));
+            portalCrudService.initWith(List.of(anAutomationPortal(STALE_URL)));
 
             cut.checkSinglePortal(ENV_ID);
             cut.checkSinglePortal(OTHER_ENV_ID);
@@ -209,7 +210,7 @@ class DefaultPortalDomainServiceTest {
 
         @Test
         void should_name_the_environment_its_portals_and_the_fix_when_it_has_several() {
-            portalCrudService.initWith(List.of(aDefaultPortal(Portal.URL_PLACEHOLDER), anAutomationPortal(Portal.URL_PLACEHOLDER)));
+            portalCrudService.initWith(List.of(aDefaultPortal(STALE_URL), anAutomationPortal(STALE_URL)));
 
             assertThatThrownBy(() -> cut.checkSinglePortal(ENV_ID))
                 .isInstanceOf(SeveralPortalsInEnvironmentException.class)
@@ -225,14 +226,14 @@ class DefaultPortalDomainServiceTest {
 
         @Test
         void should_return_default_portal() {
-            portalCrudService.initWith(List.of(aDefaultPortal(Portal.URL_PLACEHOLDER)));
+            portalCrudService.initWith(List.of(aDefaultPortal(STALE_URL)));
 
             assertThat(cut.getDefault(ENV_ID).getId()).isEqualTo(DEFAULT_PORTAL_ID);
         }
 
         @Test
         void should_throw_default_portal_not_found_when_none() {
-            portalCrudService.initWith(List.of(anAutomationPortal(Portal.URL_PLACEHOLDER)));
+            portalCrudService.initWith(List.of(anAutomationPortal(STALE_URL)));
 
             assertThatThrownBy(() -> cut.getDefault(ENV_ID))
                 .isInstanceOf(DefaultPortalNotFoundException.class)
@@ -258,7 +259,7 @@ class DefaultPortalDomainServiceTest {
         @Test
         void should_replace_the_placeholder_once_the_url_can_be_resolved() {
             installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io");
-            portalCrudService.initWith(List.of(aDefaultPortal(Portal.URL_PLACEHOLDER)));
+            portalCrudService.initWith(List.of(aDefaultPortal(STALE_URL)));
 
             cut.syncUrl(ENV_ID);
 
@@ -301,7 +302,7 @@ class DefaultPortalDomainServiceTest {
         @Test
         void should_do_nothing_when_environment_has_no_default_portal() {
             installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io");
-            portalCrudService.initWith(List.of(anAutomationPortal(Portal.URL_PLACEHOLDER)));
+            portalCrudService.initWith(List.of(anAutomationPortal(STALE_URL)));
             var before = storedState();
 
             cut.syncUrl(ENV_ID);
@@ -317,20 +318,17 @@ class DefaultPortalDomainServiceTest {
         void should_replace_the_placeholder_on_every_portal_of_the_environment() {
             installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io");
             portalCrudService.initWith(
-                List.of(
-                    anAutomationPortal(Portal.URL_PLACEHOLDER),
-                    aPortal(DEFAULT_PORTAL_ID, OTHER_ENV_ID, "Other", true, Portal.URL_PLACEHOLDER)
-                )
+                List.of(anAutomationPortal(STALE_URL), aPortal(DEFAULT_PORTAL_ID, OTHER_ENV_ID, "Other", true, STALE_URL))
             );
 
-            var replaced = cut.replacePlaceholderUrls(ENV_ID);
+            var replaced = cut.replaceUrl(ENV_ID, STALE_URL);
 
             assertThat(replaced).isEqualTo(1);
             assertThat(portalCrudService.findByIdAndEnvironmentId(AUTOMATION_PORTAL_ID, ENV_ID)).hasValueSatisfying(portal ->
                 assertThat(portal.getUrl()).hasToString("https://portal.acme.io/next")
             );
             assertThat(portalCrudService.findByIdAndEnvironmentId(DEFAULT_PORTAL_ID, OTHER_ENV_ID)).hasValueSatisfying(portal ->
-                assertThat(portal.getUrl()).hasToString(Portal.URL_PLACEHOLDER.toString())
+                assertThat(portal.getUrl()).hasToString(STALE_URL.toString())
             );
         }
 
@@ -339,7 +337,7 @@ class DefaultPortalDomainServiceTest {
             installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io");
             portalCrudService.initWith(List.of(aDefaultPortal(url("https://custom.acme.io/next"))));
 
-            var replaced = cut.replacePlaceholderUrls(ENV_ID);
+            var replaced = cut.replaceUrl(ENV_ID, STALE_URL);
 
             assertThat(replaced).isZero();
             assertThat(portalCrudService.storage())
@@ -349,14 +347,14 @@ class DefaultPortalDomainServiceTest {
 
         @Test
         void should_keep_the_placeholder_when_url_cannot_be_resolved() {
-            portalCrudService.initWith(List.of(aDefaultPortal(Portal.URL_PLACEHOLDER)));
+            portalCrudService.initWith(List.of(aDefaultPortal(STALE_URL)));
 
-            var replaced = cut.replacePlaceholderUrls(ENV_ID);
+            var replaced = cut.replaceUrl(ENV_ID, STALE_URL);
 
             assertThat(replaced).isZero();
             assertThat(portalCrudService.storage())
                 .singleElement()
-                .satisfies(portal -> assertThat(portal.getUrl()).hasToString(Portal.URL_PLACEHOLDER.toString()));
+                .satisfies(portal -> assertThat(portal.getUrl()).hasToString(STALE_URL.toString()));
         }
     }
 }

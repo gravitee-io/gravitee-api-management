@@ -141,7 +141,7 @@ class PortalCrudServiceImplTest {
         @SneakyThrows
         void should_update_existing_portal() {
             Portal base = PortalFixtures.aPortal();
-            Portal portal = Portal.of(base.getId(), base.getEnvironmentId(), base.getOrganizationId(), "Renamed");
+            Portal portal = PortalFixtures.aPortal(base.getId(), base.getEnvironmentId(), base.getOrganizationId(), "Renamed");
             when(repository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             service.update(portal);

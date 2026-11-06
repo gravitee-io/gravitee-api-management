@@ -24,6 +24,7 @@ import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainSer
 import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
@@ -54,15 +55,8 @@ public class CreateOrUpdatePortalUseCase {
     private final CurrentThemeDomainService currentThemeDomainService;
     private final PortalUrlDomainService portalUrlDomainService;
 
-    public record Input(AuditInfo auditInfo, Portal portal, PortalNavigationStructure structure, String activeThemeHrid) {
-        public Input(AuditInfo auditInfo, Portal portal) {
-            this(auditInfo, portal, PortalNavigationStructure.empty(), null);
-        }
-
-        public Input(AuditInfo auditInfo, Portal portal, PortalNavigationStructure structure) {
-            this(auditInfo, portal, structure, null);
-        }
-    }
+    /** The portal as the Automation API declares it: no URL, a new portal is served at its environment's portal URL. */
+    public record Input(AuditInfo auditInfo, PortalId portalId, String name, PortalNavigationStructure structure, String activeThemeHrid) {}
 
     public record Output(Portal portal, PortalNavigationStructure structure, String activeThemeHrid, List<Validator.Error> errors) {
         public Output(Portal portal, PortalNavigationStructure structure, List<Validator.Error> errors) {
@@ -72,7 +66,7 @@ public class CreateOrUpdatePortalUseCase {
 
     public Output execute(Input input) {
         var validation = validator.validateAndSanitize(
-            new ValidatePortalDomainService.Input(input.auditInfo(), input.portal(), input.structure())
+            new ValidatePortalDomainService.Input(input.auditInfo(), input.portalId(), input.structure())
         );
 
         validation
@@ -84,17 +78,17 @@ public class CreateOrUpdatePortalUseCase {
         var warnings = validation.warning().orElseGet(List::of);
 
         var sanitized = validation.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize portal"));
-        var existing = portalCrudService.findByIdAndEnvironmentId(sanitized.portal().getId(), input.auditInfo().environmentId());
+        var existing = portalCrudService.findByIdAndEnvironmentId(sanitized.portalId(), input.auditInfo().environmentId());
         var previouslyPersisted = existing.map(Portal::getNavigationStructure).orElseGet(PortalNavigationStructure::empty);
         portalNavigationSyncDomainService.validateForConflicts(
             input.auditInfo(),
-            sanitized.portal().getId(),
+            sanitized.portalId(),
             previouslyPersisted,
             sanitized.structure()
         );
         var resolvedActiveThemeId = resolveActiveThemeId(input, existing.map(Portal::getActiveThemeId).orElse(null));
-        var portalToSave = existing.orElseGet(() -> withResolvedUrl(sanitized.portal()));
-        portalToSave.update(sanitized.portal().getName(), sanitized.structure(), resolvedActiveThemeId);
+        var portalToSave = existing.orElseGet(() -> newPortal(input));
+        portalToSave.update(input.name(), sanitized.structure(), resolvedActiveThemeId);
         var saved = existing.isPresent() ? portalCrudService.update(portalToSave) : portalCrudService.create(portalToSave);
         var portalExists = portalAutomationScopeEnforcer.portalExistsInEnvironment(input.auditInfo(), saved.getId());
         if (portalExists) {
@@ -121,19 +115,13 @@ public class CreateOrUpdatePortalUseCase {
             .orElse(null);
     }
 
-    /**
-     * The Automation API's input carries no URL: a new portal is served at its environment's portal URL. Validation
-     * has already refused a new portal whose URL cannot be resolved.
-     */
-    private Portal withResolvedUrl(Portal portal) {
-        portal.changeUrl(
-            portalUrlDomainService
-                .resolveDefaultPortalUrl(portal.getEnvironmentId())
-                .orElseThrow(() ->
-                    new ValidationDomainException("Portal URL of environment [" + portal.getEnvironmentId() + "] cannot be resolved")
-                )
-        );
-        return portal;
+    /** Validation has already refused a new portal whose URL cannot be resolved. */
+    private Portal newPortal(Input input) {
+        var environmentId = input.auditInfo().environmentId();
+        var url = portalUrlDomainService
+            .resolveDefaultPortalUrl(environmentId)
+            .orElseThrow(() -> new ValidationDomainException("Portal URL of environment [" + environmentId + "] cannot be resolved"));
+        return Portal.create(input.portalId(), environmentId, input.auditInfo().organizationId(), input.name(), url);
     }
 
     private String resolveActiveThemeId(Input input, String currentActiveThemeId) {

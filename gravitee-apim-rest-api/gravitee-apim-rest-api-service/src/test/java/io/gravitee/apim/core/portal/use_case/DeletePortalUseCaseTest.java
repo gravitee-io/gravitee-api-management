@@ -179,10 +179,12 @@ class DeletePortalUseCaseTest {
         setupUseCase.execute(
             new CreateOrUpdatePortalUseCase.Input(
                 AUDIT_INFO,
-                portal,
+                portal.getId(),
+                portal.getName(),
                 PortalNavigationStructure.ofTopNavbar(
                     List.of(new NavigationPath("/projects/alpha", null), new NavigationPath("/projects/beta", null))
-                )
+                ),
+                null
             )
         );
         assertThat(navCrudService.storage()).as("setup should materialize folders").isNotEmpty();
@@ -201,7 +203,7 @@ class DeletePortalUseCaseTest {
             .actor(AUDIT_INFO.actor())
             .build();
         var portalA = PortalFixtures.aPortal();
-        var portalB = Portal.of(
+        var portalB = PortalFixtures.aPortal(
             PortalId.of("00000000-0000-0000-0000-0000000000a2"),
             otherEnvAudit.environmentId(),
             otherEnvAudit.organizationId(),
@@ -210,15 +212,19 @@ class DeletePortalUseCaseTest {
         setupUseCase.execute(
             new CreateOrUpdatePortalUseCase.Input(
                 AUDIT_INFO,
-                portalA,
-                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/alpha", null)))
+                portalA.getId(),
+                portalA.getName(),
+                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/alpha", null))),
+                null
             )
         );
         setupUseCase.execute(
             new CreateOrUpdatePortalUseCase.Input(
                 otherEnvAudit,
-                portalB,
-                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/beta", null)))
+                portalB.getId(),
+                portalB.getName(),
+                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/beta", null))),
+                null
             )
         );
         assertThat(navCrudService.storage()).hasSize(2);
@@ -307,8 +313,10 @@ class DeletePortalUseCaseTest {
         setupUseCase.execute(
             new CreateOrUpdatePortalUseCase.Input(
                 AUDIT_INFO,
-                portal,
-                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/projects/alpha", null)))
+                portal.getId(),
+                portal.getName(),
+                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/projects/alpha", null))),
+                null
             )
         );
         var folder = (PortalNavigationFolder) navCrudService

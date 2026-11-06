@@ -25,7 +25,6 @@ import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainSe
 import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.model.NavigationPath;
-import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
@@ -45,12 +44,8 @@ class ValidatePortalUseCaseTest {
         .actor(AuditActor.builder().userId("user-id").build())
         .build();
     private static final String PORTAL_HRID = "default-portal";
-    private static final Portal PORTAL = Portal.of(
-        PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid(PORTAL_HRID).id()),
-        AUDIT_INFO.environmentId(),
-        AUDIT_INFO.organizationId(),
-        "Default Portal"
-    );
+    private static final PortalId PORTAL_ID = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid(PORTAL_HRID).id());
+    private static final String PORTAL_NAME = "Default Portal";
 
     private final InstallationAccessQueryServiceInMemory installationAccessQueryService = new InstallationAccessQueryServiceInMemory();
     private final ValidatePortalDomainService validator = new ValidatePortalDomainService(
@@ -67,11 +62,15 @@ class ValidatePortalUseCaseTest {
     }
 
     @Test
-    void should_report_an_error_for_a_new_portal_whose_url_cannot_be_resolved() {
+    void should_report_a_new_portal_whose_url_cannot_be_resolved_by_its_id_and_name() {
         installationAccessQueryService.reset();
 
-        var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, PORTAL, PortalNavigationStructure.empty()));
+        var output = useCase.execute(
+            new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, PORTAL_ID, PORTAL_NAME, PortalNavigationStructure.empty(), null)
+        );
 
+        assertThat(output.portalId()).isEqualTo(PORTAL_ID);
+        assertThat(output.name()).isEqualTo(PORTAL_NAME);
         assertThat(output.errors()).anyMatch(e -> e.getMessage().contains("portal URL"));
     }
 
@@ -80,14 +79,17 @@ class ValidatePortalUseCaseTest {
         var output = useCase.execute(
             new CreateOrUpdatePortalUseCase.Input(
                 AUDIT_INFO,
-                PORTAL,
+                PORTAL_ID,
+                PORTAL_NAME,
                 PortalNavigationStructure.ofTopNavbar(
                     List.of(new NavigationPath("/docs", null), new NavigationPath("/docs/getting-started", null))
-                )
+                ),
+                null
             )
         );
 
-        assertThat(output.portal()).isEqualTo(PORTAL);
+        assertThat(output.portalId()).isEqualTo(PORTAL_ID);
+        assertThat(output.name()).isEqualTo(PORTAL_NAME);
         assertThat(output.errors()).isEmpty();
     }
 
@@ -96,8 +98,10 @@ class ValidatePortalUseCaseTest {
         var output = useCase.execute(
             new CreateOrUpdatePortalUseCase.Input(
                 AUDIT_INFO,
-                PORTAL,
-                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/valid", null), new NavigationPath("bad-path", null)))
+                PORTAL_ID,
+                PORTAL_NAME,
+                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/valid", null), new NavigationPath("bad-path", null))),
+                null
             )
         );
 
@@ -108,7 +112,7 @@ class ValidatePortalUseCaseTest {
     void should_echo_navigation_in_output() {
         var nav = List.of(new NavigationPath("/docs", null));
         var structure = PortalNavigationStructure.ofTopNavbar(nav);
-        var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, PORTAL, structure));
+        var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, PORTAL_ID, PORTAL_NAME, structure, null));
 
         assertThat(output.structure().forArea(PortalArea.TOP_NAVBAR)).containsExactlyElementsOf(nav);
         assertThat(output.errors()).isEmpty();

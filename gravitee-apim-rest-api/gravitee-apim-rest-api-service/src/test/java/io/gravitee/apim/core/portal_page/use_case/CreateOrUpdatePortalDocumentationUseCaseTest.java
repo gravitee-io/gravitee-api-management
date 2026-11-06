@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.mock;
 
+import fixtures.core.model.PortalFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
@@ -244,7 +245,9 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
     @Test
     void should_reject_portal_when_environment_already_has_a_different_portal() {
         var establishedCrud = new PortalCrudServiceInMemory();
-        establishedCrud.initWith(List.of(Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Established")));
+        establishedCrud.initWith(
+            List.of(PortalFixtures.aPortal(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Established"))
+        );
         var restrictedEnforcer = new PortalAutomationScopeDomainService(establishedCrud, () -> false);
         var restrictedUseCase = new CreateOrUpdatePortalDocumentationUseCase(
             new ValidatePortalDocumentationDomainService(restrictedEnforcer),
@@ -474,7 +477,7 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
 
     private void seedDefaultPortal() {
         portalCrudService.initWith(
-            List.of(Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Default Portal"))
+            List.of(PortalFixtures.aPortal(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Default Portal"))
         );
     }
 

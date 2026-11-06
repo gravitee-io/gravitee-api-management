@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.adapter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import fixtures.core.model.PortalFixtures;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
@@ -40,7 +41,7 @@ class PortalAdapterTest {
 
         @Test
         void round_trip_through_repository_and_back() {
-            var portal = Portal.of(
+            var portal = PortalFixtures.aPortal(
                 PortalId.of("11111111-1111-1111-1111-111111111111"),
                 "env",
                 "org",
@@ -132,7 +133,7 @@ class PortalAdapterTest {
 
         @Test
         void to_repository_maps_basic_fields() {
-            var portal = Portal.of(PortalId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), "env", "org", "Portal");
+            var portal = PortalFixtures.aPortal(PortalId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), "env", "org", "Portal");
 
             var repo = adapter.toRepository(portal);
 
@@ -146,9 +147,12 @@ class PortalAdapterTest {
 
         @Test
         void to_repository_forwards_active_theme_id() {
-            var portal = Portal.of(PortalId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), "env", "org", "Portal").withActiveThemeId(
-                "theme-1"
-            );
+            var portal = PortalFixtures.aPortal(
+                PortalId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+                "env",
+                "org",
+                "Portal"
+            ).withActiveThemeId("theme-1");
 
             var repo = adapter.toRepository(portal);
 
