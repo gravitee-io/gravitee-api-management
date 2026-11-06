@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.apim.core.portal.model.Portal;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -45,6 +46,19 @@ public class PortalUrlDomainService {
             return Optional.empty();
         }
         return toHttpUrl(withoutTrailingSlashes(portalUrl.strip()) + NEXT_PORTAL_PATH);
+    }
+
+    /**
+     * The URL a portal is served at. The default portal's URL is resolved from its environment on each call, so it
+     * follows the environment's portal URL and Cloud access points; any other portal is served at its stored URL.
+     *
+     * @return empty when the portal is the default one and {@link #resolveDefaultPortalUrl(String)} gives no URL
+     */
+    public Optional<URL> resolveUrl(Portal portal) {
+        if (portal.isDefault()) {
+            return resolveDefaultPortalUrl(portal.getEnvironmentId());
+        }
+        return Optional.of(portal.getUrl());
     }
 
     private static String withoutTrailingSlashes(String url) {
