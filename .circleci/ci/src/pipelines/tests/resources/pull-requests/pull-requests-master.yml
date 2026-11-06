@@ -755,32 +755,35 @@ jobs:
                 exit 1
             fi
             echo "Pipeline triggered with ID: $PIPELINE_ID"
-            # Right after the trigger the pipeline is not readable yet: the API answers 404 "Pipeline run not found." until it is.
             waitForPipelineCompletion() {
-                local pendingSince=$SECONDS
+                local notFound=0
                 while true; do
-                    STATUS=$(curl --silent --request GET --url "https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow" --header "Circle-Token: ${CIRCLE_TOKEN}" | jq -r 'if .items then (if any(.items[]; .status == "failed" or .status == "error" or .status == "canceled" or .status == "unauthorized" or .status == "not_run") then "failed" elif (.items | length) > 0 and all(.items[]; .status == "success") then "success" else "running" end) elif .message == "Pipeline run not found." then "pending" else "error: " + (.message // "unreadable response") end') || STATUS="pending"
+                    # The statuses of the pipeline's workflows, comma-separated, or the error message when there are none
+                    STATUS=$(curl --silent --request GET --url "https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow" --header "Circle-Token: ${CIRCLE_TOKEN}" | jq -r 'if .items then [.items[].status] | unique | join(",") else .message end') || STATUS=""
                     echo "Current status: $STATUS"
                     case "$STATUS" in
                         success)
                             echo "Pipeline completed successfully."
                             return 0
                             ;;
-                        failed)
+                        *failed* | *error* | *canceled* | *unauthorized* | *not_run*)
                             echo "Pipeline failed."
                             exit 1
                             ;;
-                        error:*)
-                            exit 1
+                        *running* | *on_hold* | *failing*)
+                            notFound=0
                             ;;
-                        pending)
-                            if (( SECONDS - pendingSince > 300 )); then
+                        # Right after the trigger the pipeline is not readable yet: wait for it, at most 5 minutes
+                        "Pipeline run not found." | "")
+                            notFound=$((notFound + 1))
+                            if ((notFound > 10)); then
                                 echo "Pipeline $PIPELINE_ID is still not readable after 5 minutes."
                                 exit 1
                             fi
                             ;;
                         *)
-                            pendingSince=$SECONDS
+                            echo "Unexpected answer from the CircleCI API."
+                            exit 1
                             ;;
                     esac
                     sleep 30
