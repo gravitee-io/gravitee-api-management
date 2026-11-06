@@ -263,6 +263,29 @@ describe('InnerLinkDirective with absolute paths', () => {
     expect(navigateByUrl).toHaveBeenCalledWith('/');
   });
 
+  it('should route a full link to the portal itself without reloading the page', async () => {
+    const { event, navigateByUrl } = await click({ baseHref: '/next/', href: `${window.location.origin}/next/catalog` });
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(navigateByUrl).toHaveBeenCalledWith('/catalog');
+  });
+
+  it('should route a dot-relative link', async () => {
+    window.history.replaceState({}, '', '/');
+    const { event, navigateByUrl } = await click({ baseHref: '/', href: './catalog' });
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(navigateByUrl).toHaveBeenCalledWith('/catalog');
+  });
+
+  it('should keep the current page for a query-only link', async () => {
+    window.history.replaceState({}, '', '/documentation/abc');
+    const { event, navigateByUrl } = await click({ baseHref: '/', href: '?tab=2' });
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(navigateByUrl).toHaveBeenCalledWith('/documentation/abc?tab=2');
+  });
+
   it.each([
     ['a mailto link', { href: 'mailto:x@y' }],
     ['a tel link', { href: 'tel:+123' }],
