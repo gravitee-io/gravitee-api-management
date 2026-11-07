@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,6 +42,8 @@ import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
+import io.gravitee.reporter.api.v4.metric.Metrics;
+import io.gravitee.reporter.api.v4.metric.NoopMetrics;
 import io.gravitee.reporter.api.v4.report.DecisionReport;
 import io.gravitee.reporter.api.v4.report.DecisionReport.Enforced;
 import io.gravitee.reporter.api.v4.report.DecisionReport.IndeterminateCause;
@@ -86,12 +89,14 @@ class GuardianDecisionReporterTest {
     @Mock
     private ReactableApi<?> api;
 
+    private final Metrics metrics = Metrics.builder().build();
     private final GuardianVerdicts verdicts = new GuardianVerdicts();
     private GuardianDecisionReporter cut;
 
     @BeforeEach
     void setUp() {
         lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API)).thenReturn(api);
+        lenient().when(ctx.metrics()).thenReturn(metrics);
         lenient().when(ctx.request()).thenReturn(request);
         lenient().when(ctx.getComponent(Api.class)).thenReturn(callingApi(ApiType.LLM_PROXY));
         lenient().when(request.id()).thenReturn("request-id");
@@ -353,6 +358,37 @@ class GuardianDecisionReporterTest {
             assertThat(decision.getApplicationId()).isNull();
             assertThat(decision.getPlanId()).isNull();
         }
+    }
+
+    @Test
+    void should_put_the_id_of_the_decision_in_the_metrics_of_the_call() {
+        cut.decided(ctx, STEP, guardian(), Guardian.Phase.REQUEST, verdicts, 42L);
+        cut.notReady(ctx, STEP, GUARDIAN_ID, Guardian.Phase.RESPONSE);
+
+        ArgumentCaptor<DecisionReport> decisions = ArgumentCaptor.forClass(DecisionReport.class);
+        verify(reporterService, times(2)).report(decisions.capture());
+        assertThat(metrics.getDecisionId()).containsExactlyElementsOf(
+            decisions.getAllValues().stream().map(DecisionReport::getEventId).toList()
+        );
+    }
+
+    @Test
+    void should_report_the_decision_of_a_call_without_analytics() {
+        when(ctx.metrics()).thenReturn(new NoopMetrics());
+
+        cut.decided(ctx, STEP, guardian(), Guardian.Phase.REQUEST, verdicts, 42L);
+
+        assertThat(reported().getEventId()).isNotBlank();
+    }
+
+    @Test
+    void should_not_put_in_the_metrics_a_decision_that_was_not_reported() {
+        when(ctx.withLogger(any())).thenReturn(mock(Logger.class));
+        doThrow(new IllegalStateException("reporter down")).when(reporterService).report(any());
+
+        cut.decided(ctx, STEP, guardian(), Guardian.Phase.REQUEST, verdicts, 42L);
+
+        assertThat(metrics.getDecisionId()).isNull();
     }
 
     @Test

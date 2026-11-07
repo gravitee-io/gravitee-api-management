@@ -50,8 +50,8 @@ import lombok.CustomLog;
 
 /**
  * Reports one {@link DecisionReport} per Guardian run: the only place that knows that model. A decision carries rule
- * names and locations, never the content of the exchange. Reporting never fails the call: a failure is logged and the
- * outcome of the Guardian stands.
+ * names and locations, never the content of the exchange. Its id goes in the metrics of the call, so that the call
+ * leads to its decisions. Reporting never fails the call: a failure is logged and the outcome of the Guardian stands.
  *
  * @author GraviteeSource Team
  */
@@ -177,7 +177,9 @@ public class GuardianDecisionReporter {
 
     private void report(HttpPlainExecutionContext ctx, Supplier<DecisionReport> decision) {
         try {
-            reporterService.report(decision.get());
+            DecisionReport report = decision.get();
+            reporterService.report(report);
+            ctx.metrics().addDecisionId(report.getEventId());
         } catch (Exception e) {
             ctx.withLogger(log).warn("Unable to report the decision of a Guardian", e);
         }
