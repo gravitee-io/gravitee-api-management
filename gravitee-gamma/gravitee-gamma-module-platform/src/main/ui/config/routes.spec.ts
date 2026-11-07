@@ -50,4 +50,11 @@ describe('platform routes', () => {
     it('resolves environment SMTP before org SMTP on environment/smtp paths', () => {
         expect(resolveActiveNavKey('/environments/dev/platform/environment/smtp')).toBe('environment-smtp');
     });
+
+    it('resolves Metrics configuration on environment/metrics-configuration paths', () => {
+        expect(resolveActiveNavKey('/environments/dev/platform/environment/metrics-configuration')).toBe(
+            'environment-metrics-configuration',
+        );
+        expect(ROUTES['environment-metrics-configuration'].label).toBe('Metrics configuration');
+    });
 });

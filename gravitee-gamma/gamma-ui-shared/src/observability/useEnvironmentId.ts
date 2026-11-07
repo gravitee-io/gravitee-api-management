@@ -23,8 +23,8 @@ const ENV_PATH_RE = /\/environments\/([^/]+)/;
  * Resolves the active environment id. Order of precedence:
  *  1. The shared SDK singleton (when the host has propagated the environment).
  *  2. The `:envHrid` segment of the current URL — host routes follow
- *     `/environments/:envHrid/apim/...`, so we can recover it even when the SDK
- *     hasn't been wired up yet (e.g. before the host's environment sync runs).
+ *     `/environments/:envHrid/<module>/...`, so we can recover it even when the
+ *     SDK hasn't been wired up yet (e.g. before the host's environment sync runs).
  *  3. `DEFAULT` as a last-resort fallback.
  */
 export function useEnvironmentId(): string {

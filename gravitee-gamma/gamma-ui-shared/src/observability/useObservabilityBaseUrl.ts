@@ -17,12 +17,21 @@ import { buildObservabilityBaseUrl } from '@gravitee/gamma-lib-observability';
 import { useQuery } from '@tanstack/react-query';
 
 import { useEnvironmentId } from './useEnvironmentId';
-import { loadApimBootstrap } from '../../shared/api/apimClient';
+import { loadApimBootstrap } from '../api/apimClient';
 
-const useDevProxy = process.env.NODE_ENV !== 'production';
+function isDevProxyEnabled(): boolean {
+    return process.env.NODE_ENV !== 'production';
+}
 
+/**
+ * The Gamma observability base URL of the active environment, built from the
+ * bootstrap config (`gammaBaseURL`, `organizationId`). Outside production the
+ * origin is dropped so the browser hits the local dev proxy. Needs a
+ * `QueryClientProvider` above.
+ */
 export function useObservabilityBaseUrl() {
     const environmentId = useEnvironmentId();
+    const useDevProxy = isDevProxyEnabled();
 
     const query = useQuery({
         queryKey: ['observability-base-url', environmentId, useDevProxy] as const,
