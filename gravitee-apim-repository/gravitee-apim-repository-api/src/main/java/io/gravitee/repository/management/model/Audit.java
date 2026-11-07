@@ -94,6 +94,7 @@ public class Audit {
          */
         ENCRYPTED,
         MCP_SERVER,
+        SECRET,
     }
 
     private String id;
