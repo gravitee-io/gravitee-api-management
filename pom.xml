@@ -73,7 +73,7 @@
     <gravitee-plugin.version>5.2.0-alpha.1</gravitee-plugin.version>
     <gravitee-plugin-common-configurations.version>1.5.1</gravitee-plugin-common-configurations.version>
     <gravitee-policy-api.version>2.0.0</gravitee-policy-api.version>
-    <gravitee-reporter-api.version>3.2.1</gravitee-reporter-api.version>
+    <gravitee-reporter-api.version>3.3.0</gravitee-reporter-api.version>
     <gravitee-resource-api.version>2.0.0</gravitee-resource-api.version>
     <gravitee-resource-auth-provider-api.version>2.0.0</gravitee-resource-auth-provider-api.version>
     <gravitee-resource-cache-provider-api.version>3.0.0</gravitee-resource-cache-provider-api.version>
