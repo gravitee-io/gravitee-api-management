@@ -21640,7 +21640,7 @@ __metadata:
     eslint-plugin-storybook: "npm:10.6.0"
     eslint-plugin-unused-imports: "npm:4.4.1"
     globals: "npm:17.12.0"
-    highcharts: "npm:13.0.2"
+    highcharts: "npm:13.1.1"
     highcharts-angular: "npm:5.4.1"
     highlight.js: "npm:11.12.0"
     html-loader: "npm:5.1.0"
@@ -21919,9 +21919,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"highcharts@npm:13.0.2":
-  version: 13.0.2
-  resolution: "highcharts@npm:13.0.2"
+"highcharts@npm:13.1.1":
+  version: 13.1.1
+  resolution: "highcharts@npm:13.1.1"
   peerDependencies:
     jspdf: ^4.1.0
     svg2pdf.js: ^2.7.0
@@ -21930,7 +21930,7 @@ __metadata:
       optional: true
     svg2pdf.js:
       optional: true
-  checksum: 10c0/44209429c54227cfdd98a160199648a5fafb35ea93a59d0143cd270f0c89d45f9e508b92c8606f56cee0a4baa60591873907ee3e57f030627f84db76ab255c77
+  checksum: 10c0/c2ce45fa2bf2112572b82ff2c0f26196f42ccd5858a14de9296457d4f7a840a624f0d018601004019f857179781d939627d1015aa182d0e45e5ecb831e663cb5
   languageName: node
   linkType: hard
 
