@@ -23,6 +23,8 @@ import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService;
+import io.gravitee.apim.core.cluster.domain_service.ValidateKafkaClusterBindingDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.documentation.model.factory.PageModelFactory;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -38,11 +40,14 @@ import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
+import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -86,7 +91,11 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
 
     private final CRDMembersDomainService membersDomainService;
 
+    private final ValidateKafkaClusterBindingDomainService kafkaClusterBindingValidator;
+
     private final ClusterBindingPermissionDomainService clusterBindingPermissionDomainService;
+
+    private final ValidateApiClusterBindingService apiClusterBindingValidator;
 
     @Override
     public Validator.Result<ValidateApiCRDDomainService.Input> validateAndSanitize(ValidateApiCRDDomainService.Input input) {
@@ -173,6 +182,13 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
         existingApi.ifPresent(api ->
             membersDomainService.checkApiMembersUpdate(input.auditInfo(), api.getId(), sanitizedSpec.getMembers())
         );
+        if (apiType(sanitizedSpec) == ApiType.MESSAGE) {
+            try {
+                kafkaClusterBindingValidator.validate(input.auditInfo().environmentId(), httpEndpointGroups(sanitizedSpec));
+            } catch (InvalidDataException e) {
+                errors.add(Error.severe(e.getMessage()));
+            }
+        }
         clusterBindingPermissionDomainService.validate(
             input.auditInfo().organizationId(),
             input.auditInfo().environmentId(),
@@ -182,6 +198,19 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
             apiType(sanitizedSpec),
             sanitizedSpec.getEndpointGroups()
         );
+        // The import persists the API before starting it: refuse here, or a start failure leaves it saved STARTED but not deployed
+        if (Api.LifecycleState.STARTED.name().equalsIgnoreCase(sanitizedSpec.getState())) {
+            try {
+                apiClusterBindingValidator.validateStartable(
+                    sanitizedSpec.getId(),
+                    input.auditInfo().environmentId(),
+                    apiType(sanitizedSpec),
+                    sanitizedSpec.getEndpointGroups()
+                );
+            } catch (ApiNotDeployableException e) {
+                errors.add(Error.severe(e.getMessage()));
+            }
+        }
 
         return Validator.Result.ofBoth(new ValidateApiCRDDomainService.Input(input.auditInfo(), sanitizedSpec), errors);
     }
@@ -192,6 +221,12 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
             .filter(type -> type.name().equalsIgnoreCase(spec.getType()))
             .findFirst()
             .orElse(null);
+    }
+
+    private static List<EndpointGroup> httpEndpointGroups(ApiCRDSpec spec) {
+        return spec.getEndpointGroups() == null
+            ? null
+            : spec.getEndpointGroups().stream().filter(EndpointGroup.class::isInstance).map(EndpointGroup.class::cast).toList();
     }
 
     private void validateAgainstExistingApi(Api existingApi, ApiCRDSpec spec) {

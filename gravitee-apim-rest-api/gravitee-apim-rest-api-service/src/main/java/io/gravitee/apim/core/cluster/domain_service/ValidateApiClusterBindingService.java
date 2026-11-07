@@ -22,8 +22,10 @@ import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.cluster.query_service.ClusterQueryService;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
+import java.util.List;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -74,6 +76,27 @@ public class ValidateApiClusterBindingService {
                         "} cannot be deployed or started because its cluster {" +
                         use.clusterCrossId() +
                         "} is not deployed"
+                );
+            }
+        }
+    }
+
+    /**
+     * Throws {@link ApiNotDeployableException} when an API of {@code apiType} whose endpoint groups are
+     * {@code endpointGroups}, as an import declares them, uses a cluster that is not currently deployed. Lets an import
+     * refuse to start such an API before persisting anything.
+     */
+    public void validateStartable(
+        String apiId,
+        String environmentId,
+        ApiType apiType,
+        List<? extends AbstractEndpointGroup<?>> endpointGroups
+    ) {
+        var uses = ClusterBoundApisQueryService.clusterUses(apiType, endpointGroups, objectMapper);
+        for (String crossId : ClusterBoundApisQueryService.clusterCrossIds(uses)) {
+            if (!isDeployed(crossId, environmentId)) {
+                throw new ApiNotDeployableException(
+                    "The API {" + apiId + "} cannot be deployed or started because its cluster {" + crossId + "} is not deployed"
                 );
             }
         }

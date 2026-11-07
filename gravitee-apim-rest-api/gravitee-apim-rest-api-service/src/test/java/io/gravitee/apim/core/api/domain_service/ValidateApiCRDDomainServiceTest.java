@@ -21,12 +21,14 @@ import static io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.InstanceOfAssertFactories.STRING;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.ApiCRDFixtures;
 import fixtures.core.model.ApiFixtures;
@@ -34,6 +36,7 @@ import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.ClusterQueryServiceInMemory;
+import inmemory.EventLatestQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
 import io.gravitee.apim.core.api.exception.ApiPropertyNotCiphertextException;
@@ -43,9 +46,14 @@ import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
+import io.gravitee.apim.core.cluster.domain_service.DeployedClustersDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService;
+import io.gravitee.apim.core.cluster.domain_service.ValidateKafkaClusterBindingDomainService;
 import io.gravitee.apim.core.cluster.exception.ClusterBindingNotAllowedException;
 import io.gravitee.apim.core.cluster.model.Cluster;
+import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
+import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
@@ -57,6 +65,7 @@ import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.common.util.DataEncryptor;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
@@ -64,11 +73,15 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.service.Service;
+import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import java.security.GeneralSecurityException;
+import java.time.ZonedDateTime;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -86,6 +99,7 @@ class ValidateApiCRDDomainServiceTest {
     private static final String ENV_ID = "TEST";
     private static final String USER_ID = "user-id";
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORG_ID, ENV_ID, USER_ID);
+    private static final ObjectMapper OBJECT_MAPPER = new GraviteeMapper();
 
     ValidateCategoryIdsDomainService categoryIdsValidator = mock(ValidateCategoryIdsDomainService.class);
 
@@ -119,6 +133,8 @@ class ValidateApiCRDDomainServiceTest {
 
     PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
 
+    EventLatestQueryServiceInMemory eventLatestQueryService = new EventLatestQueryServiceInMemory();
+
     ValidateApiCRDDomainService cut = new ValidateApiCRDDomainService(
         categoryIdsValidator,
         pathValidator,
@@ -133,7 +149,12 @@ class ValidateApiCRDDomainServiceTest {
         apiQueryService,
         new PropertyDomainService(dataEncryptor),
         membersDomainService,
-        new ClusterBindingPermissionDomainService(clusterQueryService, permissionDomainService, new ObjectMapper())
+        new ValidateKafkaClusterBindingDomainService(
+            new DeployedClustersDomainService(eventLatestQueryService, OBJECT_MAPPER),
+            OBJECT_MAPPER
+        ),
+        new ClusterBindingPermissionDomainService(clusterQueryService, permissionDomainService, new ObjectMapper()),
+        new ValidateApiClusterBindingService(clusterQueryService, OBJECT_MAPPER)
     );
 
     PortalNotificationConfigEntity consoleNotificationConfiguration = new PortalNotificationConfigEntity();
@@ -238,23 +259,45 @@ class ValidateApiCRDDomainServiceTest {
     @Test
     void should_refuse_a_message_api_binding_to_a_cluster_the_user_is_not_a_member_of() {
         givenAClusterTheUserIsNotAMemberOf();
+        givenTheClusterIsDeployed();
         givenEveryValidatorAccepts();
-        var definition = ApiFixtures.aMessageApiBoundToCluster(
-            "api-id",
-            ENV_ID,
-            Api.LifecycleState.STARTED,
-            "prod",
-            "plain"
-        ).getApiDefinitionHttpV4();
-        var spec = ApiCRDFixtures.newBaseSpec()
-            .type("MESSAGE")
-            .endpointGroups(definition.getEndpointGroups())
-            .consoleNotificationConfiguration(consoleNotificationConfiguration)
-            .build();
 
         assertThatExceptionOfType(ClusterBindingNotAllowedException.class).isThrownBy(() ->
-            cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))
+            cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, aMessageSpecBoundTo("plain")))
         );
+    }
+
+    @Test
+    void should_accept_a_message_api_bound_to_a_connection_of_a_deployed_cluster() {
+        givenAClusterTheUserIsNotAMemberOf();
+        givenTheClusterIsDeployed();
+        givenEveryValidatorAccepts();
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+
+        assertThat(severeErrorsOf(systemCall, aMessageSpecBoundTo("plain"))).isEmpty();
+    }
+
+    @Test
+    void should_report_a_message_api_bound_to_a_cluster_that_is_not_deployed() {
+        givenAClusterTheUserIsNotAMemberOf();
+        givenEveryValidatorAccepts();
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+
+        assertThat(severeErrorsOf(systemCall, aMessageSpecBoundTo("plain")))
+            .singleElement(STRING)
+            .contains("Kafka cluster [prod] is not deployed in this environment");
+    }
+
+    @Test
+    void should_report_a_message_api_bound_to_a_connection_the_deployed_cluster_does_not_have() {
+        givenAClusterTheUserIsNotAMemberOf();
+        givenTheClusterIsDeployed();
+        givenEveryValidatorAccepts();
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+
+        assertThat(severeErrorsOf(systemCall, aMessageSpecBoundTo("unknown")))
+            .singleElement(STRING)
+            .contains("connection [unknown] does not exist in the deployed Kafka cluster [prod]");
     }
 
     @Test
@@ -279,6 +322,39 @@ class ValidateApiCRDDomainServiceTest {
     }
 
     @Test
+    void should_report_a_started_native_api_bound_to_a_cluster_that_is_not_deployed() {
+        givenTheClusterIsUndeployed();
+        givenEveryValidatorAccepts();
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+
+        assertThat(severeErrorsOf(systemCall, aNativeSpecBoundTo("plain")))
+            .singleElement(STRING)
+            .contains("its cluster {prod} is not deployed");
+    }
+
+    @Test
+    void should_accept_a_stopped_native_api_bound_to_a_cluster_that_is_not_deployed() {
+        givenTheClusterIsUndeployed();
+        givenEveryValidatorAccepts();
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        var spec = aNativeSpecBoundTo("plain").toBuilder().state("STOPPED").build();
+
+        assertThat(severeErrorsOf(systemCall, spec)).isEmpty();
+    }
+
+    @Test
+    void should_report_a_started_message_api_bound_to_an_undeployed_cluster_whose_last_deployment_remains() {
+        givenTheClusterIsUndeployed();
+        givenTheClusterIsDeployed();
+        givenEveryValidatorAccepts();
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+
+        assertThat(severeErrorsOf(systemCall, aMessageSpecBoundTo("plain")))
+            .singleElement(STRING)
+            .contains("its cluster {prod} is not deployed");
+    }
+
+    @Test
     void should_not_check_the_bindings_without_an_actor() {
         givenAClusterTheUserIsNotAMemberOf();
         givenEveryValidatorAccepts();
@@ -298,9 +374,95 @@ class ValidateApiCRDDomainServiceTest {
                     .name("Production")
                     .type(ClusterType.KAFKA_CLUSTER)
                     .environmentId(ENV_ID)
+                    .lifecycleState(ClusterLifecycleState.DEPLOYED)
                     .build()
             )
         );
+    }
+
+    private void givenTheClusterIsUndeployed() {
+        clusterQueryService.initWith(
+            List.of(
+                Cluster.builder()
+                    .id("prod-id")
+                    .crossId("prod")
+                    .name("Production")
+                    .type(ClusterType.KAFKA_CLUSTER)
+                    .environmentId(ENV_ID)
+                    .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
+                    .build()
+            )
+        );
+    }
+
+    private void givenTheClusterIsDeployed() {
+        var cluster = Cluster.builder()
+            .id("prod-id")
+            .crossId("prod")
+            .name("Production")
+            .type(ClusterType.KAFKA_CLUSTER)
+            .environmentId(ENV_ID)
+            .configuration(
+                Map.of(
+                    "connections",
+                    List.of(
+                        Map.of(
+                            "crossId",
+                            "plain",
+                            "name",
+                            "Plain",
+                            "bootstrapServers",
+                            "kafka:9092",
+                            "security",
+                            Map.of("protocol", "PLAINTEXT")
+                        )
+                    )
+                )
+            )
+            .build();
+        var properties = new EnumMap<Event.EventProperties, String>(Event.EventProperties.class);
+        properties.put(Event.EventProperties.CLUSTER_ID, cluster.getCrossId());
+        try {
+            eventLatestQueryService.initWith(
+                List.of(
+                    Event.builder()
+                        .id("deploy-prod")
+                        .type(EventType.DEPLOY_CLUSTER)
+                        .payload(OBJECT_MAPPER.writeValueAsString(cluster))
+                        .environments(Set.of(ENV_ID))
+                        .properties(properties)
+                        .createdAt(ZonedDateTime.now())
+                        .build()
+                )
+            );
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private List<String> severeErrorsOf(AuditInfo auditInfo, ApiCRDSpec spec) {
+        return cut
+            .validateAndSanitize(new ValidateApiCRDDomainService.Input(auditInfo, spec))
+            .severe()
+            .orElse(List.of())
+            .stream()
+            .map(Validator.Error::getMessage)
+            .toList();
+    }
+
+    private ApiCRDSpec aMessageSpecBoundTo(String connectionCrossId) {
+        var definition = ApiFixtures.aMessageApiBoundToCluster(
+            "api-id",
+            ENV_ID,
+            Api.LifecycleState.STARTED,
+            "prod",
+            connectionCrossId
+        ).getApiDefinitionHttpV4();
+        return ApiCRDFixtures.newBaseSpec()
+            .type("MESSAGE")
+            .endpointGroups(definition.getEndpointGroups())
+            .consoleNotificationConfiguration(consoleNotificationConfiguration)
+            .build();
     }
 
     private ApiCRDSpec aNativeSpecBoundTo(String connectionCrossId) {
