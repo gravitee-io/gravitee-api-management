@@ -47,6 +47,8 @@ import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
 import io.gravitee.rest.api.service.common.JWTHelper;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Form;
 import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
@@ -179,7 +181,7 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
         when(installationAccessQueryService.getConsoleUrl(ORGANIZATION_ID)).thenReturn(rootTarget("console").getUri().toString());
         final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
-        assertEquals(HttpStatusCode.TEMPORARY_REDIRECT_307, response.getStatus());
+        assertEquals(HttpStatusCode.SEE_OTHER_303, response.getStatus());
         assertTrue(response.getLocation().toString().contains("/console/#!/environment-id/"));
     }
 
@@ -193,7 +195,7 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         when(installationAccessQueryService.getConsoleUrl(ORGANIZATION_ID)).thenReturn(rootTarget("console").getUri().toString());
         when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, "apiId")).thenReturn(Optional.of("apiId"));
         final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
-        assertEquals(HttpStatusCode.TEMPORARY_REDIRECT_307, response.getStatus());
+        assertEquals(HttpStatusCode.SEE_OTHER_303, response.getStatus());
         assertTrue(response.getLocation().toString().contains("/console/#!/environment-id/apis/apiId"));
     }
 
@@ -206,7 +208,7 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
         when(installationAccessQueryService.getPortalAPIUrl(ENVIRONMENT_ID)).thenReturn(rootTarget("portal").getUri().toString());
         final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
-        assertEquals(HttpStatusCode.TEMPORARY_REDIRECT_307, response.getStatus());
+        assertEquals(HttpStatusCode.SEE_OTHER_303, response.getStatus());
         assertTrue(response.getLocation().toString().contains("/portal/environments/environment-id/auth/console?token="));
         assertToken(response, userEntity);
     }
@@ -220,7 +222,7 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
         when(installationAccessQueryService.getGammaUrl(ORGANIZATION_ID)).thenReturn("http://localhost:4200");
         final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
-        assertEquals(HttpStatusCode.TEMPORARY_REDIRECT_307, response.getStatus());
+        assertEquals(HttpStatusCode.SEE_OTHER_303, response.getStatus());
         assertEquals("http://localhost:4200/environments/" + ENVIRONMENT_ID, response.getLocation().toString());
     }
 
@@ -234,7 +236,7 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         when(httpServletRequest.getRequestURL()).thenReturn(new StringBuffer(rootTarget(PATH).getUri().toString()));
 
         final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
-        assertEquals(HttpStatusCode.TEMPORARY_REDIRECT_307, response.getStatus());
+        assertEquals(HttpStatusCode.SEE_OTHER_303, response.getStatus());
         assertTrue(response.getLocation().toString().contains("/portal/environments/environment-id/auth/console?token="));
         assertToken(response, userEntity);
     }
@@ -258,7 +260,7 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
         when(installationAccessQueryService.getGammaUrl(ORGANIZATION_ID)).thenReturn("http://localhost:4200");
         final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
-        assertEquals(HttpStatusCode.TEMPORARY_REDIRECT_307, response.getStatus());
+        assertEquals(HttpStatusCode.SEE_OTHER_303, response.getStatus());
         assertEquals(gcat, sessionCookieJwt().getClaim(JWTHelper.Claims.GCAT).asString());
     }
 
@@ -271,8 +273,49 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
         when(installationAccessQueryService.getGammaUrl(ORGANIZATION_ID)).thenReturn("http://localhost:4200");
         final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
-        assertEquals(HttpStatusCode.TEMPORARY_REDIRECT_307, response.getStatus());
+        assertEquals(HttpStatusCode.SEE_OTHER_303, response.getStatus());
         assertNull(sessionCookieJwt().getClaim(JWTHelper.Claims.GCAT).asString());
+    }
+
+    @Test
+    public void shouldNotAuthenticateWithFormPostIfCockpitIsNotEnabled() {
+        System.clearProperty(getPropertyPrefix() + ".enabled");
+        final Response response = postToken("test");
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotAuthenticateWithInvalidTokenInFormPost() {
+        final Response response = postToken("invalid");
+        assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
+    }
+
+    @Test
+    public void shouldAuthenticateToGammaWithFormPost() {
+        UserEntity userEntity = mockUserEntity();
+        String gcat = "Bearer cockpit-session-token";
+
+        String jwt = this.generateJWT(
+            userEntity.getId(),
+            ORGANIZATION_ID,
+            ENVIRONMENT_ID,
+            "audience",
+            null,
+            null,
+            "gamma_console",
+            Map.of(JWTHelper.Claims.GCAT, gcat)
+        );
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true)).thenReturn(userEntity);
+        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
+        when(installationAccessQueryService.getGammaUrl(ORGANIZATION_ID)).thenReturn("http://localhost:4200");
+        final Response response = postToken(jwt);
+        assertEquals(HttpStatusCode.SEE_OTHER_303, response.getStatus());
+        assertEquals("http://localhost:4200/environments/" + ENVIRONMENT_ID, response.getLocation().toString());
+        assertEquals(gcat, sessionCookieJwt().getClaim(JWTHelper.Claims.GCAT).asString());
+    }
+
+    private Response postToken(String token) {
+        return rootTarget(PATH).request().post(Entity.form(new Form("token", token)));
     }
 
     /** The cookie generator is a mock in the test context, so the session cookie is read from what the resource asked it to build. */
