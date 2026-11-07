@@ -63,10 +63,9 @@ describe('validateContextPath', () => {
         expect(validateContextPath('   ')).toBe('Context path is required.');
     });
 
-    it('returns an error when path is 3 characters or fewer', () => {
-        expect(validateContextPath('/')).toBe('Context path has to be more than 3 characters long.');
-        expect(validateContextPath('/ab')).toBe('Context path has to be more than 3 characters long.');
-        expect(validateContextPath('/ab')).toBe('Context path has to be more than 3 characters long.');
+    it('accepts short paths, including the root path "/"', () => {
+        expect(validateContextPath('/')).toBeNull();
+        expect(validateContextPath('/ab')).toBeNull();
     });
 
     it('returns an error for paths containing double slashes', () => {
