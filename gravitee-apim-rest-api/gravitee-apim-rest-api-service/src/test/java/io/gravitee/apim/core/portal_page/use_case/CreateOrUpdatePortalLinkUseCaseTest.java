@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import fixtures.core.model.PortalFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
@@ -74,7 +75,7 @@ class CreateOrUpdatePortalLinkUseCaseTest {
     @BeforeEach
     void setUp() {
         portalCrudService.initWith(
-            List.of(Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Default Portal"))
+            List.of(PortalFixtures.aPortal(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Default Portal"))
         );
         useCase = new CreateOrUpdatePortalLinkUseCase(
             navQueryService,

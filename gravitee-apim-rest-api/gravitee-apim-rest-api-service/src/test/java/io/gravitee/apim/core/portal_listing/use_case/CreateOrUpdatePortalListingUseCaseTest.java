@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.mock;
 
+import fixtures.core.model.PortalFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalListingCrudServiceInMemory;
@@ -199,7 +200,9 @@ class CreateOrUpdatePortalListingUseCaseTest {
     @Test
     void should_reject_portal_when_environment_already_has_a_different_portal() {
         var establishedCrud = new PortalCrudServiceInMemory();
-        establishedCrud.initWith(List.of(Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Established")));
+        establishedCrud.initWith(
+            List.of(PortalFixtures.aPortal(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Established"))
+        );
         var restrictedUseCase = new CreateOrUpdatePortalListingUseCase(
             new ValidatePortalListingDomainService(new PortalAutomationScopeDomainService(establishedCrud, () -> false), apiCrudService),
             portalListingCrudService,

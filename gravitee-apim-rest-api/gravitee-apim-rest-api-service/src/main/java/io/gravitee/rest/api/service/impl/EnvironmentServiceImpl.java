@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
 import io.gravitee.apim.core.shared_policy_group.use_case.InitializeSharedPolicyGroupUseCase;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -79,6 +80,10 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
 
     @Autowired
     private MetadataService metadataService;
+
+    @Lazy
+    @Autowired
+    private DefaultPortalDomainService defaultPortalDomainService;
 
     @Override
     public EnvironmentEntity findById(String environmentId) {
@@ -184,6 +189,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
                     InitializeSharedPolicyGroupUseCase.Input.builder().organizationId(organizationId).environmentId(environmentId).build()
                 );
                 metadataService.initialize(executionContext);
+                defaultPortalDomainService.ensureDefault(organizationId, environmentId);
                 return createdEnvironment;
             }
         } catch (TechnicalException ex) {
@@ -215,6 +221,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
         defaultEnvironment.setOrganizationId(GraviteeContext.getDefaultOrganization());
         try {
             environmentRepository.create(defaultEnvironment);
+            defaultPortalDomainService.ensureDefault(defaultEnvironment.getOrganizationId(), defaultEnvironment.getId());
             return convert(defaultEnvironment);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to create default environment", ex);

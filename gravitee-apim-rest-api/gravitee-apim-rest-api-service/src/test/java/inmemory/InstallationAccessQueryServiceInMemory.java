@@ -17,7 +17,9 @@ package inmemory;
 
 import io.gravitee.apim.core.installation.model.RestrictedDomain;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -25,6 +27,17 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public class InstallationAccessQueryServiceInMemory implements InstallationAccessQueryService {
+
+    private final Map<String, String> portalUrls = new HashMap<>();
+
+    public InstallationAccessQueryServiceInMemory withPortalUrl(final String environmentId, final String portalUrl) {
+        portalUrls.put(environmentId, portalUrl);
+        return this;
+    }
+
+    public void reset() {
+        portalUrls.clear();
+    }
 
     @Override
     public String getConsoleApiPath() {
@@ -68,7 +81,7 @@ public class InstallationAccessQueryServiceInMemory implements InstallationAcces
 
     @Override
     public String getPortalUrl(final String environmentId) {
-        return null;
+        return portalUrls.get(environmentId);
     }
 
     @Override

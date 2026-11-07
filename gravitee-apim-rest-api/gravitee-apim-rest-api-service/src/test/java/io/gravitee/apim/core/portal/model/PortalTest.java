@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.URI;
 import java.net.URL;
@@ -47,34 +48,43 @@ class PortalTest {
     class Factories {
 
         @Test
-        void create_default_builds_a_default_portal_with_the_placeholder_url() {
-            var portal = Portal.createDefault("env", "org", "Developer Portal");
+        void create_default_builds_a_default_portal_with_the_given_url() {
+            var portal = Portal.createDefault("env", "org", "Developer Portal", url("https://portal.example/next"));
 
             assertThat(portal.getId()).isNotNull();
             assertThat(portal.getName()).isEqualTo("Developer Portal");
             assertThat(portal.isDefault()).isTrue();
-            assertThat(portal.getUrl()).isEqualTo(Portal.URL_PLACEHOLDER);
+            assertThat(portal.getUrl()).isEqualTo(url("https://portal.example/next"));
         }
 
         @Test
-        void create_builds_a_non_default_portal_with_the_placeholder_url() {
-            var portal = Portal.create("env", "org", "Portal");
+        void create_builds_a_non_default_portal_with_the_given_url() {
+            var portal = Portal.create("env", "org", "Portal", url("https://portal.example/next"));
 
             assertThat(portal.isDefault()).isFalse();
-            assertThat(portal.getUrl()).isEqualTo(Portal.URL_PLACEHOLDER);
+            assertThat(portal.getUrl()).isEqualTo(url("https://portal.example/next"));
         }
 
         @Test
-        void of_builds_a_non_default_portal_with_the_placeholder_url() {
-            var portal = Portal.of(PORTAL_ID, "env", "org", "Portal");
+        void create_and_create_default_refuse_a_missing_url() {
+            assertThatThrownBy(() -> Portal.createDefault("env", "org", "Developer Portal", null)).isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> Portal.create("env", "org", "Portal", null)).isInstanceOf(NullPointerException.class);
+        }
 
+        @Test
+        void create_with_an_id_builds_a_non_default_portal_with_that_id_and_url() {
+            var portal = Portal.create(PORTAL_ID, "env", "org", "Portal", url("https://portal.example/next"));
+
+            assertThat(portal.getId()).isEqualTo(PORTAL_ID);
+            assertThat(portal.getName()).isEqualTo("Portal");
             assertThat(portal.isDefault()).isFalse();
-            assertThat(portal.getUrl()).isEqualTo(Portal.URL_PLACEHOLDER);
+            assertThat(portal.getNavigationStructure().isEmpty()).isTrue();
+            assertThat(portal.getUrl()).isEqualTo(url("https://portal.example/next"));
         }
 
         @Test
-        void placeholder_url_is_the_to_be_implemented_example() {
-            assertThat(Portal.URL_PLACEHOLDER).hasToString("https://example.com/to-be-implemented");
+        void create_with_an_id_refuses_a_missing_url() {
+            assertThatThrownBy(() -> Portal.create(PORTAL_ID, "env", "org", "Portal", null)).isInstanceOf(NullPointerException.class);
         }
 
         @Test
@@ -110,11 +120,34 @@ class PortalTest {
 
         @Test
         void update_with_null_navigation_sets_an_empty_structure() {
-            var portal = Portal.of(PORTAL_ID, "env", "org", "Portal", STRUCTURE);
+            var portal = Portal.of(PORTAL_ID, "env", "org", "Portal", STRUCTURE, null, false, url("https://portal.example"));
 
             portal.update("Portal", null, null);
 
             assertThat(portal.getNavigationStructure().isEmpty()).isTrue();
+        }
+    }
+
+    @Nested
+    class ChangeUrl {
+
+        @Test
+        void should_change_url() {
+            var portal = aDefaultPortalWithUrl();
+
+            portal.changeUrl(url("https://portal.acme.io/next"));
+
+            assertThat(portal.getUrl()).hasToString("https://portal.acme.io/next");
+            assertThat(portal.isDefault()).isTrue();
+            assertThat(portal.getName()).isEqualTo("Portal");
+        }
+
+        @Test
+        void should_reject_null_url() {
+            var portal = aDefaultPortalWithUrl();
+
+            assertThatThrownBy(() -> portal.changeUrl(null)).isInstanceOf(NullPointerException.class);
+            assertThat(portal.getUrl()).hasToString("https://portal.example");
         }
     }
 

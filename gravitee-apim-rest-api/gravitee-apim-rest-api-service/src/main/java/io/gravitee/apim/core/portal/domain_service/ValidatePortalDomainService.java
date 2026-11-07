@@ -18,8 +18,8 @@ package io.gravitee.apim.core.portal.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.model.NavigationPath;
-import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.validation.NavigationPathValidator;
 import io.gravitee.apim.core.validation.Validator;
@@ -37,16 +37,34 @@ import lombok.RequiredArgsConstructor;
 public class ValidatePortalDomainService implements Validator<ValidatePortalDomainService.Input> {
 
     private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
+    private final PortalUrlDomainService portalUrlDomainService;
 
-    public record Input(AuditInfo auditInfo, Portal portal, PortalNavigationStructure structure) implements Validator.Input {}
+    public record Input(AuditInfo auditInfo, PortalId portalId, PortalNavigationStructure structure) implements Validator.Input {}
 
     @Override
     public Result<Input> validateAndSanitize(Input input) {
         var errors = new ArrayList<Error>();
-        errors.addAll(portalAutomationScopeEnforcer.validate(input.auditInfo(), input.portal().getId(), "hrid"));
+        errors.addAll(portalAutomationScopeEnforcer.validate(input.auditInfo(), input.portalId(), "hrid"));
+        if (isNewPortalWithoutResolvableUrl(input)) {
+            errors.add(
+                Error.severe(
+                    "Portal [%s] cannot be created: the portal URL of environment [%s] is not set or is not an absolute http(s) URL without credentials",
+                    input.portalId(),
+                    input.auditInfo().environmentId()
+                )
+            );
+        }
         var structure = input.structure() == null ? PortalNavigationStructure.empty() : input.structure();
         structure.areas().forEach((area, paths) -> errors.addAll(validateArea(area, paths)));
         return Result.ofBoth(input, errors);
+    }
+
+    /** A portal is only created with a real URL; an existing one keeps its stored URL. */
+    private boolean isNewPortalWithoutResolvableUrl(Input input) {
+        return (
+            !portalAutomationScopeEnforcer.portalExistsInEnvironment(input.auditInfo(), input.portalId()) &&
+            portalUrlDomainService.resolveDefaultPortalUrl(input.auditInfo().environmentId()).isEmpty()
+        );
     }
 
     private static List<Error> validateArea(PortalArea area, List<NavigationPath> paths) {

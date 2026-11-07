@@ -33,6 +33,7 @@ import inmemory.CategoryQueryServiceInMemory;
 import inmemory.EnvironmentCrudServiceInMemory;
 import inmemory.GroupCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
+import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.KafkaPortRangeCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.NewtAIProviderInMemory;
@@ -205,6 +206,7 @@ import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal_listing.domain_service.ValidatePortalListingDomainService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
@@ -2009,7 +2011,10 @@ public class ResourceContextConfiguration {
 
     @Bean
     public ValidatePortalDomainService validatePortalDomainService(PortalAutomationScopeDomainService portalAutomationScopeDomainService) {
-        return new ValidatePortalDomainService(portalAutomationScopeDomainService);
+        return new ValidatePortalDomainService(
+            portalAutomationScopeDomainService,
+            new PortalUrlDomainService(new InstallationAccessQueryServiceInMemory())
+        );
     }
 
     @Bean

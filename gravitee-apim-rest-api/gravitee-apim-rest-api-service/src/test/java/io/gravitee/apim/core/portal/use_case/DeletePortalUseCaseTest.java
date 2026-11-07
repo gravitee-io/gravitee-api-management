@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import fixtures.core.model.PortalFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalListingCrudServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
@@ -35,6 +36,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanExecutor;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
@@ -103,8 +105,13 @@ class DeletePortalUseCaseTest {
         var scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService, () -> false);
         var themeQueryService = new ThemeQueryServiceInMemory(themeCrudService);
         var currentThemeDomainService = new CurrentThemeDomainService(themeQueryService, themeCrudService);
+        var portalUrlDomainService = new PortalUrlDomainService(
+            new InstallationAccessQueryServiceInMemory()
+                .withPortalUrl("environment-id", "https://portal.acme.io")
+                .withPortalUrl("other-env", "https://other.acme.io")
+        );
         setupUseCase = new CreateOrUpdatePortalUseCase(
-            new ValidatePortalDomainService(scopeEnforcer),
+            new ValidatePortalDomainService(scopeEnforcer, portalUrlDomainService),
             portalCrudService,
             navSync,
             pageContentQueryService,
@@ -116,7 +123,8 @@ class DeletePortalUseCaseTest {
             ),
             scopeEnforcer,
             themeCrudService,
-            currentThemeDomainService
+            currentThemeDomainService,
+            portalUrlDomainService
         );
         useCase = new DeletePortalUseCase(portalCrudService, navSync, themeCrudService, currentThemeDomainService);
     }
@@ -171,10 +179,12 @@ class DeletePortalUseCaseTest {
         setupUseCase.execute(
             new CreateOrUpdatePortalUseCase.Input(
                 AUDIT_INFO,
-                portal,
+                portal.getId(),
+                portal.getName(),
                 PortalNavigationStructure.ofTopNavbar(
                     List.of(new NavigationPath("/projects/alpha", null), new NavigationPath("/projects/beta", null))
-                )
+                ),
+                null
             )
         );
         assertThat(navCrudService.storage()).as("setup should materialize folders").isNotEmpty();
@@ -193,7 +203,7 @@ class DeletePortalUseCaseTest {
             .actor(AUDIT_INFO.actor())
             .build();
         var portalA = PortalFixtures.aPortal();
-        var portalB = Portal.of(
+        var portalB = PortalFixtures.aPortal(
             PortalId.of("00000000-0000-0000-0000-0000000000a2"),
             otherEnvAudit.environmentId(),
             otherEnvAudit.organizationId(),
@@ -202,15 +212,19 @@ class DeletePortalUseCaseTest {
         setupUseCase.execute(
             new CreateOrUpdatePortalUseCase.Input(
                 AUDIT_INFO,
-                portalA,
-                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/alpha", null)))
+                portalA.getId(),
+                portalA.getName(),
+                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/alpha", null))),
+                null
             )
         );
         setupUseCase.execute(
             new CreateOrUpdatePortalUseCase.Input(
                 otherEnvAudit,
-                portalB,
-                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/beta", null)))
+                portalB.getId(),
+                portalB.getName(),
+                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/beta", null))),
+                null
             )
         );
         assertThat(navCrudService.storage()).hasSize(2);
@@ -299,8 +313,10 @@ class DeletePortalUseCaseTest {
         setupUseCase.execute(
             new CreateOrUpdatePortalUseCase.Input(
                 AUDIT_INFO,
-                portal,
-                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/projects/alpha", null)))
+                portal.getId(),
+                portal.getName(),
+                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/projects/alpha", null))),
+                null
             )
         );
         var folder = (PortalNavigationFolder) navCrudService

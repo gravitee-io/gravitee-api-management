@@ -16,19 +16,13 @@
 package io.gravitee.apim.core.portal.model;
 
 import jakarta.annotation.Nonnull;
-import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 @Getter
 public class Portal {
-
-    private static final String URL_PLACEHOLDER_VALUE = "https://example.com/to-be-implemented";
-
-    /** Stored until portals get a real URL; the column is mandatory, so it cannot stay empty. */
-    public static final URL URL_PLACEHOLDER = placeholderUrl();
 
     @Nonnull
     private final PortalId id;
@@ -47,7 +41,7 @@ public class Portal {
 
     private String activeThemeId;
 
-    // Update methods for the default marker and the URL are added with the portal update stories.
+    // The update method for the default marker is added with the portal update stories.
     @Getter(AccessLevel.NONE)
     private boolean defaultPortal;
 
@@ -74,43 +68,36 @@ public class Portal {
         this.url = url;
     }
 
-    /** New portal with a random id and no navigation. */
-    public static Portal create(String environmentId, String organizationId, String name) {
-        return newPortal(environmentId, organizationId, name, false);
+    /** New portal served at {@code url}, with a random id and no navigation. */
+    public static Portal create(String environmentId, String organizationId, String name, @Nonnull URL url) {
+        return newPortal(environmentId, organizationId, name, false, url);
     }
 
-    /** New default portal of the environment, with a random id and no navigation. */
-    public static Portal createDefault(String environmentId, String organizationId, String name) {
-        return newPortal(environmentId, organizationId, name, true);
+    /** New default portal of the environment, served at {@code url}, with a random id and no navigation. */
+    public static Portal createDefault(String environmentId, String organizationId, String name, @Nonnull URL url) {
+        return newPortal(environmentId, organizationId, name, true, url);
     }
 
-    private static Portal newPortal(String environmentId, String organizationId, String name, boolean defaultPortal) {
+    /** New portal with a known id (HRID-derived), served at {@code url}, with no navigation. */
+    public static Portal create(PortalId id, String environmentId, String organizationId, String name, @Nonnull URL url) {
+        return newPortal(id, environmentId, organizationId, name, false, url);
+    }
+
+    private static Portal newPortal(String environmentId, String organizationId, String name, boolean defaultPortal, URL url) {
+        return newPortal(PortalId.random(), environmentId, organizationId, name, defaultPortal, url);
+    }
+
+    private static Portal newPortal(PortalId id, String environmentId, String organizationId, String name, boolean defaultPortal, URL url) {
         return new Portal(
-            PortalId.random(),
+            id,
             environmentId,
             organizationId,
             name,
             PortalNavigationStructure.empty(),
             null,
             defaultPortal,
-            URL_PLACEHOLDER
+            Objects.requireNonNull(url, "url")
         );
-    }
-
-    /** Reconstitute a portal from a known id (HRID-derived, persistence, etc.). */
-    public static Portal of(PortalId id, String environmentId, String organizationId, String name) {
-        return new Portal(id, environmentId, organizationId, name, PortalNavigationStructure.empty(), null, false, URL_PLACEHOLDER);
-    }
-
-    /** Reconstitute a portal with a persisted navigation structure. */
-    public static Portal of(
-        PortalId id,
-        String environmentId,
-        String organizationId,
-        String name,
-        PortalNavigationStructure navigationStructure
-    ) {
-        return new Portal(id, environmentId, organizationId, name, navigationStructure, null, false, URL_PLACEHOLDER);
     }
 
     /** Reconstitute a persisted portal with all its fields. */
@@ -135,6 +122,10 @@ public class Portal {
         this.name = name;
         this.navigationStructure = orEmpty(navigationStructure);
         this.activeThemeId = activeThemeId;
+    }
+
+    public void changeUrl(@Nonnull URL url) {
+        this.url = Objects.requireNonNull(url, "url");
     }
 
     /** @deprecated Portal is a mutable entity: use {@link #update(String, PortalNavigationStructure, String)}. */
@@ -169,14 +160,6 @@ public class Portal {
 
     private static PortalNavigationStructure orEmpty(PortalNavigationStructure navigationStructure) {
         return navigationStructure == null ? PortalNavigationStructure.empty() : navigationStructure;
-    }
-
-    private static URL placeholderUrl() {
-        try {
-            return URI.create(URL_PLACEHOLDER_VALUE).toURL();
-        } catch (MalformedURLException e) {
-            throw new ExceptionInInitializerError(e);
-        }
     }
 
     @Override

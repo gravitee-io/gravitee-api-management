@@ -18,6 +18,7 @@ package io.gravitee.apim.core.theme.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import fixtures.core.model.PortalFixtures;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.ThemeCrudServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
@@ -79,7 +80,7 @@ class DeletePortalThemeUseCaseTest {
     @Test
     void rejects_delete_when_portal_active_theme_id_matches() {
         themeCrudService.initWith(List.of(anEnvironmentTheme(THEME_ID)));
-        var portal = Portal.of(
+        var portal = PortalFixtures.aPortal(
             PortalId.of("11111111-1111-1111-1111-111111111111"),
             AUDIT_INFO.environmentId(),
             AUDIT_INFO.organizationId(),
@@ -97,7 +98,7 @@ class DeletePortalThemeUseCaseTest {
     @Test
     void allows_delete_when_portals_reference_other_themes() {
         themeCrudService.initWith(List.of(anEnvironmentTheme(THEME_ID), anEnvironmentTheme("other")));
-        var portal = Portal.of(
+        var portal = PortalFixtures.aPortal(
             PortalId.of("11111111-1111-1111-1111-111111111111"),
             AUDIT_INFO.environmentId(),
             AUDIT_INFO.organizationId(),
