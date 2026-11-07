@@ -39,6 +39,9 @@
                 "request-id": {
                     "type": "keyword"
                 },
+                "decision-id": {
+                    "type": "keyword"
+                },
                 "plan-id": {
                     "type": "keyword"
                 },
