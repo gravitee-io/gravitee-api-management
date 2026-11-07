@@ -457,3 +457,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_14_0/06_add_expires_at_to_events_latest.yml
     - include:
         - file: liquibase/changelogs/v4_14_0/07_create_guardians_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_14_0/08_create_secrets_table.yml
