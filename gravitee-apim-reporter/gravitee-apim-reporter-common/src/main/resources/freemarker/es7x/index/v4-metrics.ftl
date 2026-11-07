@@ -34,6 +34,9 @@
   <#if metrics.getTransactionId()??>
   ,"transaction-id":"${metrics.getTransactionId()}"
   </#if>
+  <#if metrics.getDecisionId()?? && metrics.getDecisionId()?has_content>
+  ,"decision-id":[<#list metrics.getDecisionId() as decisionId>"${decisionId?j_string}"<#sep>,</#sep></#list>]
+  </#if>
   <#if metrics.getApiId()??>
   ,"api-id":"${metrics.getApiId()}"
   </#if>

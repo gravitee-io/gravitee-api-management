@@ -17,7 +17,10 @@ package io.gravitee.gateway.handlers.guardian.policy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -28,12 +31,16 @@ import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardian.Guardian;
 import io.gravitee.gateway.handlers.guardian.ReactableGuardian;
+import io.gravitee.gateway.handlers.guardian.decision.GuardianDecisionReporter;
+import io.gravitee.gateway.handlers.guardian.decision.GuardianVerdicts;
 import io.gravitee.gateway.handlers.guardian.reactor.GuardianReactor;
 import io.gravitee.gateway.handlers.guardian.registry.GuardianRegistry;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.core.context.interruption.InterruptionException;
+import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Set;
@@ -45,6 +52,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -67,11 +75,15 @@ class GuardianPolicyTest {
     @Mock
     private ReactableApi<?> callingApi;
 
+    @Mock
+    private GuardianDecisionReporter reporter;
+
     private GuardianPolicy cut;
 
     @BeforeEach
     void setUp() {
         lenient().when(executionContext.getComponent(GuardianRegistry.class)).thenReturn(guardianRegistry);
+        lenient().when(executionContext.getComponent(GuardianDecisionReporter.class)).thenReturn(reporter);
         lenient().when(callingApi.getEnvironmentId()).thenReturn(ENVIRONMENT_ID);
         lenient().when(executionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API)).thenReturn(callingApi);
         lenient().when(guardianReactor.reactableGuardian()).thenReturn(guardianFor(Guardian.Phase.REQUEST, null));
@@ -89,14 +101,14 @@ class GuardianPolicyTest {
     @Test
     void should_execute_guardian_right_before_the_endpoint_request() {
         when(guardianRegistry.get(GUARDIAN_ID, ENVIRONMENT_ID)).thenReturn(guardianReactor);
-        when(guardianReactor.execute(executionContext, cut)).thenReturn(Completable.complete());
+        when(guardianReactor.execute(eq(executionContext), eq(cut), any())).thenReturn(Completable.complete());
 
         cut.onRequest(executionContext).test().assertComplete();
-        verify(guardianReactor, never()).execute(any(), any());
+        verify(guardianReactor, never()).execute(any(), any(), any());
 
         endpointRequestAction().apply(executionContext).test().assertComplete();
 
-        verify(guardianReactor).execute(executionContext, cut);
+        verify(guardianReactor).execute(eq(executionContext), eq(cut), any());
         verify(executionContext, never()).addActionOnEntrypointResponse(any(), any());
     }
 
@@ -104,14 +116,14 @@ class GuardianPolicyTest {
     void should_execute_guardian_right_before_the_entrypoint_response() {
         when(guardianRegistry.get(GUARDIAN_ID, ENVIRONMENT_ID)).thenReturn(guardianReactor);
         when(guardianReactor.reactableGuardian()).thenReturn(guardianFor(Guardian.Phase.RESPONSE, null));
-        when(guardianReactor.execute(executionContext, cut)).thenReturn(Completable.complete());
+        when(guardianReactor.execute(eq(executionContext), eq(cut), any())).thenReturn(Completable.complete());
 
         cut.onResponse(executionContext).test().assertComplete();
-        verify(guardianReactor, never()).execute(any(), any());
+        verify(guardianReactor, never()).execute(any(), any(), any());
 
         entrypointResponseAction().apply(executionContext).test().assertComplete();
 
-        verify(guardianReactor).execute(executionContext, cut);
+        verify(guardianReactor).execute(eq(executionContext), eq(cut), any());
         verify(executionContext, never()).addActionOnEndpointRequest(any(), any());
     }
 
@@ -119,11 +131,11 @@ class GuardianPolicyTest {
     void should_resolve_the_guardian_of_the_api_environment_whatever_the_environment_attribute() {
         lenient().when(executionContext.getAttribute(ContextAttributes.ATTR_ENVIRONMENT)).thenReturn("another-env");
         when(guardianRegistry.get(GUARDIAN_ID, ENVIRONMENT_ID)).thenReturn(guardianReactor);
-        when(guardianReactor.execute(executionContext, cut)).thenReturn(Completable.complete());
+        when(guardianReactor.execute(eq(executionContext), eq(cut), any())).thenReturn(Completable.complete());
 
         runOnEndpointRequest();
 
-        verify(guardianReactor).execute(executionContext, cut);
+        verify(guardianReactor).execute(eq(executionContext), eq(cut), any());
         verify(guardianRegistry, never()).get(GUARDIAN_ID, "another-env");
     }
 
@@ -158,7 +170,7 @@ class GuardianPolicyTest {
         cut.onRequest(executionContext).test().assertComplete();
         endpointRequestAction().apply(executionContext).test().assertComplete();
 
-        verify(guardianReactor, never()).execute(any(), any());
+        verify(guardianReactor, never()).execute(any(), any(), any());
         assertNotDeployedInterruption();
     }
 
@@ -170,8 +182,100 @@ class GuardianPolicyTest {
         cut.onResponse(executionContext).test().assertComplete();
         entrypointResponseAction().apply(executionContext).test().assertComplete();
 
-        verify(guardianReactor, never()).execute(any(), any());
+        verify(guardianReactor, never()).execute(any(), any(), any());
         assertNotDeployedInterruption();
+    }
+
+    @Nested
+    class Decision {
+
+        private final ReactableGuardian guardian = guardianFor(Guardian.Phase.REQUEST, null);
+
+        @BeforeEach
+        void setUp() {
+            when(guardianRegistry.get(GUARDIAN_ID, ENVIRONMENT_ID)).thenReturn(guardianReactor);
+            when(guardianReactor.reactableGuardian()).thenReturn(guardian);
+        }
+
+        @Test
+        void should_report_the_collector_the_reactor_received_when_the_run_completes() {
+            when(guardianReactor.execute(eq(executionContext), eq(cut), any())).thenReturn(Completable.complete());
+
+            runOnEndpointRequest();
+
+            ArgumentCaptor<GuardianVerdicts> verdicts = ArgumentCaptor.forClass(GuardianVerdicts.class);
+            ArgumentCaptor<Long> duration = ArgumentCaptor.forClass(Long.class);
+            verify(guardianReactor).execute(eq(executionContext), eq(cut), verdicts.capture());
+            verify(reporter).decided(
+                eq(executionContext),
+                eq("my-guardian-step"),
+                eq(guardian),
+                eq(Guardian.Phase.REQUEST),
+                same(verdicts.getValue()),
+                duration.capture()
+            );
+            assertThat(duration.getValue()).isPositive();
+        }
+
+        @Test
+        void should_report_the_response_phase() {
+            ReactableGuardian responseGuardian = guardianFor(Guardian.Phase.RESPONSE, null);
+            when(guardianReactor.reactableGuardian()).thenReturn(responseGuardian);
+            when(guardianReactor.execute(eq(executionContext), eq(cut), any())).thenReturn(Completable.complete());
+
+            cut.onResponse(executionContext).test().assertComplete();
+            entrypointResponseAction().apply(executionContext).test().assertComplete();
+
+            verify(reporter).decided(any(), any(), eq(responseGuardian), eq(Guardian.Phase.RESPONSE), any(), anyLong());
+        }
+
+        @Test
+        void should_report_a_denial_and_keep_the_interruption_going() {
+            ExecutionFailure failure = new ExecutionFailure(403).key("RULE_MATCHED");
+            InterruptionFailureException interruption = new InterruptionFailureException(failure);
+            when(guardianReactor.execute(eq(executionContext), eq(cut), any())).thenReturn(Completable.error(interruption));
+
+            cut.onRequest(executionContext).test().assertComplete();
+            endpointRequestAction().apply(executionContext).test().assertError(interruption);
+
+            verify(reporter).denied(any(), any(), eq(guardian), eq(Guardian.Phase.REQUEST), any(), same(failure), anyLong());
+            verify(reporter, never()).decided(any(), any(), any(), any(), any(), anyLong());
+        }
+
+        @Test
+        void should_report_an_interruption_without_failure_as_a_chain_that_ended() {
+            InterruptionException interruption = new InterruptionException();
+            when(guardianReactor.execute(eq(executionContext), eq(cut), any())).thenReturn(Completable.error(interruption));
+
+            cut.onRequest(executionContext).test().assertComplete();
+            endpointRequestAction().apply(executionContext).test().assertError(interruption);
+
+            verify(reporter).decided(any(), any(), eq(guardian), eq(Guardian.Phase.REQUEST), any(), anyLong());
+            verify(reporter, never()).failed(any(), any(), any(), any(), any(), any(), anyLong());
+        }
+
+        @Test
+        void should_report_a_failure_and_keep_the_error_going() {
+            IllegalStateException error = new IllegalStateException("resource down");
+            when(guardianReactor.execute(eq(executionContext), eq(cut), any())).thenReturn(Completable.error(error));
+
+            cut.onRequest(executionContext).test().assertComplete();
+            endpointRequestAction().apply(executionContext).test().assertError(error);
+
+            verify(reporter).failed(any(), any(), eq(guardian), eq(Guardian.Phase.REQUEST), any(), same(error), anyLong());
+        }
+    }
+
+    @Test
+    void should_report_not_ready_before_interrupting_when_the_guardian_is_not_deployed() {
+        when(guardianRegistry.get(GUARDIAN_ID, ENVIRONMENT_ID)).thenReturn(null);
+        when(executionContext.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
+
+        runOnEndpointRequest();
+
+        InOrder order = inOrder(reporter, executionContext);
+        order.verify(reporter).notReady(executionContext, "my-guardian-step", GUARDIAN_ID, Guardian.Phase.REQUEST);
+        order.verify(executionContext).interruptWith(any(ExecutionFailure.class));
     }
 
     private void assertNotDeployedInterruption() {
@@ -197,7 +301,7 @@ class GuardianPolicyTest {
             cut.onResponse(executionContext).test().assertComplete();
             entrypointResponseAction().apply(executionContext).test().assertComplete();
 
-            verify(guardianReactor, never()).execute(any(), any());
+            verify(guardianReactor, never()).execute(any(), any(), any());
             assertIncompatiblePhaseInterruption("Guardian 'guardian-id' runs on the REQUEST phase, not on the RESPONSE phase");
         }
 
@@ -207,8 +311,30 @@ class GuardianPolicyTest {
 
             runOnEndpointRequest();
 
-            verify(guardianReactor, never()).execute(any(), any());
+            verify(guardianReactor, never()).execute(any(), any(), any());
             assertIncompatiblePhaseInterruption("Guardian 'guardian-id' runs on the RESPONSE phase, not on the REQUEST phase");
+        }
+
+        @Test
+        void should_report_the_incompatible_phase_before_interrupting() {
+            runOnResponse();
+
+            InOrder order = inOrder(reporter, executionContext);
+            order
+                .verify(reporter)
+                .incompatible(
+                    eq(executionContext),
+                    eq("my-guardian-step"),
+                    any(),
+                    eq(Guardian.Phase.RESPONSE),
+                    eq("GUARDIAN_INCOMPATIBLE_PHASE")
+                );
+            order.verify(executionContext).interruptWith(any(ExecutionFailure.class));
+        }
+
+        private void runOnResponse() {
+            cut.onResponse(executionContext).test().assertComplete();
+            entrypointResponseAction().apply(executionContext).test().assertComplete();
         }
 
         private void assertIncompatiblePhaseInterruption(String detail) {
@@ -227,7 +353,7 @@ class GuardianPolicyTest {
         @BeforeEach
         void setUp() {
             when(guardianRegistry.get(GUARDIAN_ID, ENVIRONMENT_ID)).thenReturn(guardianReactor);
-            lenient().when(guardianReactor.execute(executionContext, cut)).thenReturn(Completable.complete());
+            lenient().when(guardianReactor.execute(eq(executionContext), eq(cut), any())).thenReturn(Completable.complete());
             lenient().when(executionContext.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
         }
 
@@ -240,7 +366,7 @@ class GuardianPolicyTest {
 
             runOnEndpointRequest();
 
-            verify(guardianReactor).execute(executionContext, cut);
+            verify(guardianReactor).execute(eq(executionContext), eq(cut), any());
             verify(executionContext, never()).interruptWith(any(ExecutionFailure.class));
         }
 
@@ -250,7 +376,7 @@ class GuardianPolicyTest {
 
             runOnEndpointRequest();
 
-            verify(guardianReactor).execute(executionContext, cut);
+            verify(guardianReactor).execute(eq(executionContext), eq(cut), any());
         }
 
         @Test
@@ -260,13 +386,33 @@ class GuardianPolicyTest {
 
             runOnEndpointRequest();
 
-            verify(guardianReactor, never()).execute(any(), any());
+            verify(guardianReactor, never()).execute(any(), any(), any());
             ArgumentCaptor<ExecutionFailure> failure = ArgumentCaptor.forClass(ExecutionFailure.class);
             verify(executionContext).interruptWith(failure.capture());
             assertThat(failure.getValue().statusCode()).isEqualTo(500);
             assertThat(failure.getValue().key()).isEqualTo("GUARDIAN_INCOMPATIBLE_API_TYPE");
             assertThat(failure.getValue().message()).isEqualTo("Internal Server Error");
             assertThat(failure.getValue().cause()).hasMessage("Guardian 'guardian-id' supports API types [llm-proxy], not mcp-proxy");
+        }
+
+        @Test
+        void should_report_the_incompatible_api_type_before_interrupting() {
+            when(guardianReactor.reactableGuardian()).thenReturn(guardianFor(Guardian.Phase.REQUEST, Set.of(ApiType.LLM_PROXY)));
+            when(executionContext.getComponent(Api.class)).thenReturn(callingApi(ApiType.MCP_PROXY));
+
+            runOnEndpointRequest();
+
+            InOrder order = inOrder(reporter, executionContext);
+            order
+                .verify(reporter)
+                .incompatible(
+                    eq(executionContext),
+                    eq("my-guardian-step"),
+                    any(),
+                    eq(Guardian.Phase.REQUEST),
+                    eq("GUARDIAN_INCOMPATIBLE_API_TYPE")
+                );
+            order.verify(executionContext).interruptWith(any(ExecutionFailure.class));
         }
 
         @Test
@@ -277,7 +423,7 @@ class GuardianPolicyTest {
             cut.onResponse(executionContext).test().assertComplete();
             entrypointResponseAction().apply(executionContext).test().assertComplete();
 
-            verify(guardianReactor, never()).execute(any(), any());
+            verify(guardianReactor, never()).execute(any(), any(), any());
             ArgumentCaptor<ExecutionFailure> failure = ArgumentCaptor.forClass(ExecutionFailure.class);
             verify(executionContext).interruptWith(failure.capture());
             assertThat(failure.getValue().message()).isEqualTo("Internal Server Error");
