@@ -986,6 +986,12 @@ api:
   properties:
     encryption:
       secret: vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6
+  # Environment secrets. Secret values are encrypted with AES-256-GCM under this key.
+  # Without a valid key the Management API still starts, but creating or rotating a secret fails.
+  # Generate a key with: openssl rand -base64 32
+  #secrets:
+  #  encryption:
+  #    key: <base64 of 32 random bytes>
 
 # Scoring
 scoring:
@@ -993,15 +999,6 @@ scoring:
 
 gamma:
   enabled: false
-
-# Gamma platform module secrets. Secret values are encrypted with AES-256-GCM under this key.
-# Without a valid key the module still starts, but creating or rotating a secret fails.
-# Generate a key with: openssl rand -base64 32
-#modules:
-#  platform:
-#    secrets:
-#      encryption:
-#        key: <base64 of 32 random bytes>
 
 # Gamma authorization entity store (FGA). Tuning knobs for the AM -> entity store sync and the
 # cascade guard. All optional; the values shown are the defaults applied when left unset.
