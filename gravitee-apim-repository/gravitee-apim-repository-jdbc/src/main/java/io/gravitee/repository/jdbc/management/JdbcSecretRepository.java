@@ -51,9 +51,11 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class JdbcSecretRepository extends TransactionalRepository implements SecretRepository {
 
     private static final String KEY = escapeReservedWord("key");
+    private static final String IN_SCOPE = " WHERE organization_id = ? AND environment_id = ?";
 
     private final String tableName;
     private final String columns;
+    private final String selectFrom;
 
     /** On PostgreSQL a failed statement aborts the whole transaction, so a duplicate insert runs in a savepoint of the caller's transaction. */
     private final TransactionTemplate savepoint;
@@ -67,6 +69,7 @@ public class JdbcSecretRepository extends TransactionalRepository implements Sec
     ) {
         this.tableName = tablePrefix + "secrets";
         this.columns = "id, organization_id, environment_id, " + KEY + ", key_hash, encrypted_value, created_at, updated_at";
+        this.selectFrom = "SELECT " + columns + " FROM " + tableName;
         this.savepoint = new TransactionTemplate(transactionManager);
         this.savepoint.setPropagationBehavior(TransactionDefinition.PROPAGATION_NESTED);
     }
@@ -112,13 +115,7 @@ public class JdbcSecretRepository extends TransactionalRepository implements Sec
         log.debug("JdbcSecretRepository.findById({}, {}, {})", organizationId, environmentId, id);
         try {
             return jdbcTemplate
-                .query(
-                    "SELECT " + columns + " FROM " + tableName + " WHERE id = ? AND organization_id = ? AND environment_id = ?",
-                    JdbcSecretRepository::toSecret,
-                    id,
-                    organizationId,
-                    environmentId
-                )
+                .query(selectFrom + IN_SCOPE + " AND id = ?", JdbcSecretRepository::toSecret, organizationId, environmentId, id)
                 .stream()
                 .findFirst();
         } catch (Exception ex) {
@@ -132,7 +129,7 @@ public class JdbcSecretRepository extends TransactionalRepository implements Sec
         try {
             return jdbcTemplate
                 .query(
-                    "SELECT " + columns + " FROM " + tableName + " WHERE organization_id = ? AND environment_id = ? AND key_hash = ?",
+                    selectFrom + IN_SCOPE + " AND key_hash = ?",
                     JdbcSecretRepository::toSecret,
                     organizationId,
                     environmentId,
@@ -151,14 +148,12 @@ public class JdbcSecretRepository extends TransactionalRepository implements Sec
         int updated;
         try {
             updated = jdbcTemplate.update(
-                "UPDATE " +
-                    tableName +
-                    " SET encrypted_value = ?, updated_at = ?, created_at = created_at WHERE id = ? AND organization_id = ? AND environment_id = ?",
+                "UPDATE " + tableName + " SET encrypted_value = ?, updated_at = ?, created_at = created_at" + IN_SCOPE + " AND id = ?",
                 secret.getEncryptedValue(),
                 timestamp(secret.getUpdatedAt()),
-                secret.getId(),
                 secret.getOrganizationId(),
-                secret.getEnvironmentId()
+                secret.getEnvironmentId(),
+                secret.getId()
             );
         } catch (Exception ex) {
             throw new TechnicalException("Failed to update secret " + secret.getId(), ex);
@@ -175,12 +170,7 @@ public class JdbcSecretRepository extends TransactionalRepository implements Sec
     public void delete(String organizationId, String environmentId, String id) throws TechnicalException {
         log.debug("JdbcSecretRepository.delete({}, {}, {})", organizationId, environmentId, id);
         try {
-            jdbcTemplate.update(
-                "DELETE FROM " + tableName + " WHERE id = ? AND organization_id = ? AND environment_id = ?",
-                id,
-                organizationId,
-                environmentId
-            );
+            jdbcTemplate.update("DELETE FROM " + tableName + IN_SCOPE + " AND id = ?", organizationId, environmentId, id);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to delete secret " + id, ex);
         }
@@ -191,7 +181,7 @@ public class JdbcSecretRepository extends TransactionalRepository implements Sec
         log.debug("JdbcSecretRepository.search({}, {})", organizationId, environmentId);
         try {
             var total = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM " + tableName + " WHERE organization_id = ? AND environment_id = ?",
+                "SELECT COUNT(*) FROM " + tableName + IN_SCOPE,
                 Long.class,
                 organizationId,
                 environmentId
@@ -201,14 +191,7 @@ public class JdbcSecretRepository extends TransactionalRepository implements Sec
             }
             // id breaks ties: MySQL, MariaDB and SQL Server collate keys that differ only by case as equal.
             var content = jdbcTemplate.query(
-                "SELECT " +
-                    columns +
-                    " FROM " +
-                    tableName +
-                    " WHERE organization_id = ? AND environment_id = ? ORDER BY " +
-                    KEY +
-                    ", id " +
-                    createPagingClause(pageable.pageSize(), pageable.from()),
+                selectFrom + IN_SCOPE + " ORDER BY " + KEY + ", id " + createPagingClause(pageable.pageSize(), pageable.from()),
                 JdbcSecretRepository::toSecret,
                 organizationId,
                 environmentId
