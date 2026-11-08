@@ -24,15 +24,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-/** Gives the organization ADMIN system role of an existing installation the {@code SECRET} permission. */
+/** Gives the environment ADMIN system role of an existing installation the {@code SECRET} permission. */
 @Component
-public class OrganizationSecretPermissionUpgrader implements Upgrader {
+public class SecretPermissionUpgrader implements Upgrader {
 
     private final RoleService roleService;
     private final OrganizationRepository organizationRepository;
 
     @Autowired
-    public OrganizationSecretPermissionUpgrader(RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
+    public SecretPermissionUpgrader(RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
         this.roleService = roleService;
         this.organizationRepository = organizationRepository;
     }
@@ -49,6 +49,6 @@ public class OrganizationSecretPermissionUpgrader implements Upgrader {
 
     @Override
     public int getOrder() {
-        return UpgraderOrder.ORGANIZATION_SECRET_PERMISSION_UPGRADER;
+        return UpgraderOrder.SECRET_PERMISSION_UPGRADER;
     }
 }

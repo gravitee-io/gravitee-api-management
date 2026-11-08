@@ -37,10 +37,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class OrganizationSecretPermissionUpgraderTest {
+class SecretPermissionUpgraderTest {
 
     @InjectMocks
-    OrganizationSecretPermissionUpgrader upgrader;
+    SecretPermissionUpgrader upgrader;
 
     @Mock
     RoleService roleService;
@@ -70,7 +70,7 @@ class OrganizationSecretPermissionUpgraderTest {
 
     @Test
     void should_run_after_the_existing_permission_upgraders() {
-        assertThat(upgrader.getOrder()).isEqualTo(UpgraderOrder.ORGANIZATION_SECRET_PERMISSION_UPGRADER);
+        assertThat(upgrader.getOrder()).isEqualTo(UpgraderOrder.SECRET_PERMISSION_UPGRADER);
     }
 
     private static Organization organization(String id) {
