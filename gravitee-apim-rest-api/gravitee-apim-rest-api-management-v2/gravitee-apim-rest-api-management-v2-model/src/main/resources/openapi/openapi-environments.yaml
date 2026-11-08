@@ -38,6 +38,8 @@ tags:
     description: Everything about APIs scoring
   - name: Clusters
     description: Everything about clusters
+  - name: Secrets
+    description: Everything about environment secrets
   - name: Newt Ai
     description: Everything about Newt Ai
   - name: Subscription Forms
@@ -931,6 +933,111 @@ paths:
       responses:
         "204":
           description: Ownership has been transferred successfully
+        default:
+          $ref: "#/components/responses/Error"
+
+  # Secret
+  /secrets:
+    post:
+      tags:
+        - Secrets
+      summary: Create a secret
+      description: |-
+        Create a secret in the environment. The response never carries the value.
+
+        User must have the ENVIRONMENT_SECRET[CREATE] permission.
+      operationId: createSecret
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSecret"
+        required: true
+      responses:
+        "201":
+          description: Secret created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Secret"
+        "409":
+          description: A secret with this key already exists in the environment.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+    get:
+      tags:
+        - Secrets
+      summary: List secrets
+      description: |-
+        List the secrets of the environment, sorted by key. A page holds at most 100 secrets.
+
+        User must have the ENVIRONMENT_SECRET[READ] permission.
+      operationId: listSecrets
+      parameters:
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/perPageParam"
+      responses:
+        "200":
+          $ref: "#/components/responses/SecretsResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /secrets/{secretId}:
+    parameters:
+      - $ref: "#/components/parameters/secretId"
+    get:
+      tags:
+        - Secrets
+      summary: Get a secret
+      description: |-
+        User must have the ENVIRONMENT_SECRET[READ] permission.
+      operationId: getSecret
+      responses:
+        "200":
+          description: Secret found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Secret"
+        default:
+          $ref: "#/components/responses/Error"
+    put:
+      tags:
+        - Secrets
+      summary: Rotate a secret
+      description: |-
+        Replace the value of a secret. The key does not change.
+
+        User must have the ENVIRONMENT_SECRET[UPDATE] permission.
+      operationId: updateSecret
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSecret"
+        required: true
+      responses:
+        "200":
+          description: Secret rotated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Secret"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      tags:
+        - Secrets
+      summary: Delete a secret
+      description: |-
+        User must have the ENVIRONMENT_SECRET[DELETE] permission.
+      operationId: deleteSecret
+      responses:
+        "204":
+          description: Secret deleted
         default:
           $ref: "#/components/responses/Error"
 
@@ -2310,6 +2417,46 @@ components:
           type: string
         configuration:
           type: object
+    CreateSecret:
+      type: object
+      required:
+        - key
+        - value
+      properties:
+        key:
+          type: string
+          description: 1 to 128 letters, digits, `.`, `_` or `-`, starting with a letter or a digit. Case-sensitive.
+          example: db-password
+        value:
+          type: string
+          description: The secret value, at most 64 KiB once encoded as UTF-8.
+          writeOnly: true
+    UpdateSecret:
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          type: string
+          description: The new secret value, at most 64 KiB once encoded as UTF-8.
+          writeOnly: true
+    Secret:
+      type: object
+      properties:
+        id:
+          type: string
+        key:
+          type: string
+        path:
+          type: string
+          description: The path an expression uses to reference the secret.
+          example: /gravitee/db-password
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
     ClusterGroups:
       type: array
       items:
@@ -3971,6 +4118,15 @@ components:
         type: string
         format: uuid
 
+    # Secret
+    secretId:
+      name: secretId
+      in: path
+      description: The unique ID of the secret
+      required: true
+      schema:
+        type: string
+
     # Cluster
     clusterId:
       name: clusterId
@@ -4149,6 +4305,24 @@ components:
                 type: array
                 items:
                   $ref: "#/components/schemas/SharedPolicyGroup"
+              pagination:
+                $ref: "#/components/schemas/Pagination"
+              links:
+                $ref: "#/components/schemas/Links"
+
+    # Secret
+    SecretsResponse:
+      description: Page of secrets
+      content:
+        application/json:
+          schema:
+            title: "SecretsResponse"
+            properties:
+              data:
+                description: List of secrets.
+                type: array
+                items:
+                  $ref: "#/components/schemas/Secret"
               pagination:
                 $ref: "#/components/schemas/Pagination"
               links:
