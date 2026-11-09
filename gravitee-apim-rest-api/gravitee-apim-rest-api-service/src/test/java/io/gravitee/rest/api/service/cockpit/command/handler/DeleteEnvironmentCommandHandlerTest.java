@@ -17,7 +17,9 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -82,6 +84,7 @@ import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.api.ScoringFunctionRepository;
 import io.gravitee.repository.management.api.ScoringReportRepository;
 import io.gravitee.repository.management.api.ScoringRulesetRepository;
+import io.gravitee.repository.management.api.SecretRepository;
 import io.gravitee.repository.management.api.SharedPolicyGroupHistoryRepository;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
 import io.gravitee.repository.management.api.SubscriptionFormRepository;
@@ -381,6 +384,9 @@ public class DeleteEnvironmentCommandHandlerTest {
     @Mock
     private SubscriptionFormRepository subscriptionFormRepository;
 
+    @Mock
+    private SecretRepository secretRepository;
+
     private DeleteEnvironmentCommandHandler cut;
 
     @BeforeEach
@@ -512,6 +518,7 @@ public class DeleteEnvironmentCommandHandlerTest {
             scoringReportRepository,
             scoringRulesetRepository,
             scoringFunctionRepository,
+            secretRepository,
             sharedPolicyGroupRepository,
             sharedPolicyGroupHistoryRepository,
             subscriptionFormRepository,
@@ -629,6 +636,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(qualityRuleRepository).deleteByReferenceIdAndReferenceType(ENV_ID, QualityRule.ReferenceType.ENVIRONMENT);
         verify(clusterRepository).deleteByEnvironmentId(ENV_ID);
         verify(subscriptionFormRepository).deleteByEnvironmentId(ENV_ID);
+        verify(secretRepository).deleteByEnvironmentId(ENV_ID);
     }
 
     @Test
@@ -669,6 +677,18 @@ public class DeleteEnvironmentCommandHandlerTest {
             .blockingGet();
 
         assertEquals(CommandStatus.ERROR, reply.getCommandStatus());
+    }
+
+    @Test
+    public void should_keep_the_environment_when_its_secrets_cannot_be_deleted() throws Exception {
+        doThrow(new TechnicalException("delete failed")).when(secretRepository).deleteByEnvironmentId(ENV_ID);
+
+        DeleteEnvironmentReply reply = cut
+            .handle(new DeleteEnvironmentCommand(new DeleteEnvironmentCommandPayload("delete-env", ENV_ID, COCKPIT_USER_ID)))
+            .blockingGet();
+
+        assertEquals(CommandStatus.ERROR, reply.getCommandStatus());
+        verify(environmentService, never()).delete(ENV_ID);
     }
 
     @Test

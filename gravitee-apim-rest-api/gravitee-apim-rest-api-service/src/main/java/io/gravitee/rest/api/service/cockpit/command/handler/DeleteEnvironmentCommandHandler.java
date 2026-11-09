@@ -78,6 +78,7 @@ import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.api.ScoringFunctionRepository;
 import io.gravitee.repository.management.api.ScoringReportRepository;
 import io.gravitee.repository.management.api.ScoringRulesetRepository;
+import io.gravitee.repository.management.api.SecretRepository;
 import io.gravitee.repository.management.api.SharedPolicyGroupHistoryRepository;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
 import io.gravitee.repository.management.api.SubscriptionFormRepository;
@@ -195,6 +196,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final SharedPolicyGroupRepository sharedPolicyGroupRepository;
     private final SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository;
     private final SubscriptionFormRepository subscriptionFormRepository;
+    private final SecretRepository secretRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final ThemeRepository themeRepository;
     private final TicketRepository ticketRepository;
@@ -256,6 +258,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         @Lazy ScoringReportRepository scoringReportRepository,
         @Lazy ScoringRulesetRepository scoringRulesetRepository,
         @Lazy ScoringFunctionRepository scoringFunctionRepository,
+        @Lazy SecretRepository secretRepository,
         @Lazy SharedPolicyGroupRepository sharedPolicyGroupRepository,
         @Lazy SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository,
         @Lazy SubscriptionFormRepository subscriptionFormRepository,
@@ -338,6 +341,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.sharedPolicyGroupRepository = sharedPolicyGroupRepository;
         this.sharedPolicyGroupHistoryRepository = sharedPolicyGroupHistoryRepository;
         this.subscriptionFormRepository = subscriptionFormRepository;
+        this.secretRepository = secretRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.themeRepository = themeRepository;
         this.ticketRepository = ticketRepository;
@@ -474,6 +478,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         asyncJobRepository.deleteByEnvironmentId(environment.getId());
         mediaRepository.deleteByEnvironment(environment.getId());
         metadataRepository.deleteByReferenceIdAndReferenceType(environment.getId(), MetadataReferenceType.ENVIRONMENT);
+        secretRepository.deleteByEnvironmentId(environment.getId());
         environmentService.delete(environment.getId());
         auditRepository.deleteByReferenceIdAndReferenceType(environment.getId(), Audit.AuditReferenceType.ENVIRONMENT);
         clientRegistrationProviderRepository.deleteByEnvironmentId(environment.getId());

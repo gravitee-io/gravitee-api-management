@@ -102,4 +102,9 @@ public class NoOpManagementRepositoryConfiguration {
     public SubscriptionFormRepository subscriptionFormRepository() {
         return new NoOpSubscriptionFormRepository();
     }
+
+    @Bean
+    public SecretRepository secretRepository() {
+        return new NoOpSecretRepository();
+    }
 }
