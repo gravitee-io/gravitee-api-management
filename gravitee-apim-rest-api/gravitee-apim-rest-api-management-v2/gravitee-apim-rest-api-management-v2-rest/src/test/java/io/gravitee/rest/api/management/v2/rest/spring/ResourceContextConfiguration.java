@@ -666,7 +666,8 @@ public class ResourceContextConfiguration {
         ParametersQueryService parametersQueryService,
         PolicyValidationDomainService policyValidationDomainService,
         PageCrudService pageCrudService,
-        CRDMembersDomainServiceInMemory crdMembersDomainService
+        CRDMembersDomainServiceInMemory crdMembersDomainService,
+        PlanCrudService planCrudService
     ) {
         ValidateGroupsDomainService groupsValidator = new ValidateGroupsDomainService(groupQueryService);
         return new ValidateApiCRDUseCase(
@@ -684,7 +685,8 @@ public class ResourceContextConfiguration {
                     pageCrudService
                 ),
                 new ValidatePlanDomainService(
-                    new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService)
+                    new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService),
+                    planCrudService
                 ),
                 new ValidatePortalNotificationDomainService(groupsValidator),
                 new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
