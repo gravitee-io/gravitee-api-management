@@ -35,7 +35,7 @@ jest.mock('../../../shared/notify', () => ({
 }));
 
 jest.mock('../utils/apiScoreDetailPath', () => ({
-    apiScoreDetailPath: (_pathname: string, apiId: string) => `/environments/default/apim/apis/${apiId}/api-score`,
+    apiScoreDetailPath: (_pathname: string, api: { id: string }) => `/environments/default/apim/apis/${api.id}/api-score`,
 }));
 
 const mockUseScoringOverview = jest.mocked(useScoringOverview);
