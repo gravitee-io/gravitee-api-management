@@ -32,6 +32,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentS
 import io.gravitee.rest.api.management.v2.rest.resource.environment.PortalCategoriesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.PortalNavigationItemsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.PortalPageContentsResource;
+import io.gravitee.rest.api.management.v2.rest.resource.environment.PortalsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.SharedPolicyGroupsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.SubscriptionFormsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.group.GroupsResource;
@@ -125,6 +126,11 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/instances")
     public InstancesResource getInstancesResource() {
         return resourceContext.getResource(InstancesResource.class);
+    }
+
+    @Path("/portals")
+    public PortalsResource getPortalsResource() {
+        return resourceContext.getResource(PortalsResource.class);
     }
 
     @Path("/portal-navigation-items")
