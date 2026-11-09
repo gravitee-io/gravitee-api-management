@@ -63,11 +63,17 @@ public class UpdateGuardianUseCase {
         // after the merge, not before: the identity it needs comes from the path
         validateGuardian.validateDefinition(guardianToUpdate.getDefinition());
 
-        // after validateDefinition, which is what refuses a missing name: UpdateGuardianCommand declares
-        // the definition @NotNull but not @Valid, so a body omitting the name reaches here with one, and
-        // asking the store about a null name answered 500 where the payload deserved a 400. Excludes the
-        // Guardian being renamed, so keeping its own name is not a clash with itself.
-        validateGuardian.validateNameIsAvailable(input.auditInfo().environmentId(), guardianToUpdate.getName(), input.guardianId());
+        // Only a rename is checked. An edit that leaves the name alone cannot newly break the rule, and
+        // checking it anyway would make a Guardian unsaveable whenever the store already holds a case
+        // variant of its name — "Foo" beside "foo", from data that predates the rule or from two creates
+        // that raced past it. Nothing else about that Guardian could then be edited.
+        //
+        // After validateDefinition, which is what refuses a missing name: UpdateGuardianCommand declares
+        // the definition @NotNull but not @Valid, so a body omitting the name reaches here carrying one,
+        // and asking the store about a null name answered 500 where the payload deserved a 400.
+        if (!guardianToUpdate.getName().equalsIgnoreCase(existingGuardian.getName())) {
+            validateGuardian.validateNameIsAvailable(input.auditInfo().environmentId(), guardianToUpdate.getName(), input.guardianId());
+        }
 
         validateGuardian
             .validateAndSanitize(new ValidateGuardianDomainService.Input(guardianToUpdate))

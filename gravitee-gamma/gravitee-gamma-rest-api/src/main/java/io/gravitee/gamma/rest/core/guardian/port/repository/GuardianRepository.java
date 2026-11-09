@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.core.guardian.port.repository;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianSearchQuery;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -44,12 +45,16 @@ public interface GuardianRepository {
     void delete(String guardianId);
 
     /**
-     * The Guardian of this environment carrying this name, ignoring case; empty when none does.
+     * Every Guardian of this environment carrying this name, ignoring case; empty when none does.
      *
      * <p>Ignoring case because that is the rule: two Guardians of one environment may not share a
      * name, and a difference of case is not a different name to the person reading the list.
+     *
+     * <p>All of them, not the first: the unique indexes compare exactly, so a store can still hold
+     * "Foo" and "foo". A caller has to exclude itself from the answer, and one row cannot tell "the
+     * only match is me" from "one of the matches is me".
      */
-    Optional<Guardian> findByEnvironmentIdAndName(String environmentId, String name);
+    List<Guardian> findByEnvironmentIdAndName(String environmentId, String name);
 
     Page<Guardian> search(GuardianSearchQuery query);
 }

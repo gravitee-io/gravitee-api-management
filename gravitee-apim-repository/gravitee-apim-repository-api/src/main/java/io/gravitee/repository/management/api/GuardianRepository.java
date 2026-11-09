@@ -22,7 +22,6 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Guardian;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author GraviteeSource Team
@@ -39,17 +38,25 @@ public interface GuardianRepository extends CrudRepository<Guardian, String> {
     Page<Guardian> search(GuardianCriteria criteria, Pageable pageable, Sortable sortable) throws TechnicalException;
 
     /**
-     * The Guardian of this environment whose name matches, ignoring case.
+     * Every Guardian of this environment whose name matches, ignoring case.
      *
      * <p>Ignoring case because that is the rule the domain enforces: two Guardians of one environment
      * may not share a name, and "Credential leakage" and "credential leakage" are the same name to a
      * person reading a list.
      *
+     * <p>All of them, not the first. Whether the unique index catches two case variants depends on the
+     * store: PostgreSQL and MongoDB compare exactly, so "Foo" and "foo" can sit side by side, while
+     * MySQL, MariaDB and SQL Server refuse the second under their default case-insensitive collations.
+     * Either way a store can hold several matches — data that predates the rule, or two creates that
+     * raced past it. A caller asking whether a name is free has to exclude itself from the answer, and
+     * with one row it could not tell "the only match is me" from "one of the matches is me", which
+     * would make the answer depend on which row the store happened to return.
+     *
      * @param environmentId the environment to look in, never {@code null}
      * @param name the name to match, compared without regard to case
-     * @return the Guardian with that name, or empty when the environment has none
+     * @return the Guardians with that name, empty when the environment has none
      */
-    Optional<Guardian> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name) throws TechnicalException;
+    List<Guardian> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name) throws TechnicalException;
 
     /**
      * Delete every Guardian of an environment.

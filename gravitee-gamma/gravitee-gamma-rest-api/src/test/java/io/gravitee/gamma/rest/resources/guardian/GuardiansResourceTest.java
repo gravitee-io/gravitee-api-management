@@ -525,6 +525,38 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
 
         /**
+         * Two case variants can already sit in one environment: the unique indexes compare exactly, so
+         * "Foo" beside "foo" survives data that predates this rule or two creates that raced past it.
+         * Editing either must still work — otherwise neither Guardian could ever be saved again — and
+         * the answer must not depend on which row the store returns first.
+         */
+        @Test
+        void should_let_a_guardian_be_edited_while_a_case_variant_of_its_name_exists() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+            guardianRepository.givenGuardian(guardian("variant-id", ENVIRONMENT, "credential leakage"));
+
+            Response response = rootTarget("/" + GUARDIAN_ID)
+                .request()
+                .put(Entity.entity(payloadWith("name", "Credential leakage"), MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        /** But renaming onto a name a case variant holds is still refused, whichever row comes back. */
+        @Test
+        void should_refuse_a_rename_onto_a_name_a_case_variant_holds() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+            guardianRepository.givenGuardian(guardian("variant-id", ENVIRONMENT, "credential leakage"));
+            guardianRepository.givenGuardian(guardian("third-id", ENVIRONMENT, "Prompt injection"));
+
+            Response response = rootTarget("/third-id")
+                .request()
+                .put(Entity.entity(payloadWith("name", "CREDENTIAL LEAKAGE"), MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CONFLICT_409);
+        }
+
+        /**
          * A body with no name is a malformed body, not a server fault. The uniqueness check reads the
          * name before the definition is validated, so it must not be the thing that fails first.
          */

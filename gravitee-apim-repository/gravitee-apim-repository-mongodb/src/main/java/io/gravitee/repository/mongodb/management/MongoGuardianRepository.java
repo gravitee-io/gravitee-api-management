@@ -57,15 +57,11 @@ public class MongoGuardianRepository implements GuardianRepository {
     }
 
     @Override
-    public Optional<Guardian> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name) throws TechnicalException {
+    public List<Guardian> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name) throws TechnicalException {
         Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
         Objects.requireNonNull(name, "Name must not be null");
-        log.debug("Find guardian by environment [{}] and name", environmentId);
-        return internalGuardianMongoRepo
-            .findByEnvironmentIdAndNameIgnoreCase(environmentId, name)
-            .stream()
-            .findFirst()
-            .map(this::mapGuardian);
+        log.debug("Find guardians by environment [{}] and name", environmentId);
+        return internalGuardianMongoRepo.findByEnvironmentIdAndNameIgnoreCase(environmentId, name).stream().map(this::mapGuardian).toList();
     }
 
     @Override

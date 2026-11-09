@@ -32,6 +32,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianSearchQuery;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -63,6 +64,21 @@ class GammaGuardianRepositoryAdapterTest {
         return aGuardian().definition(aGuardianDefinition().id(id).build()).build();
     }
 
+    /** A stored row carrying the fixture's name, as the name lookup would return it. */
+    private static io.gravitee.repository.management.model.Guardian aStoredRowNamedLikeTheFixture(String id) {
+        var row = new io.gravitee.repository.management.model.Guardian();
+        row.setId(id);
+        row.setEnvironmentId(ENVIRONMENT_ID);
+        row.setName("Credential leakage");
+        row.setDefinition(
+            "{\"id\":\"%s\",\"environmentId\":\"%s\",\"name\":\"Credential leakage\",\"phase\":\"REQUEST\",\"apiTypes\":[\"llm-proxy\"]}".formatted(
+                id,
+                ENVIRONMENT_ID
+            )
+        );
+        return row;
+    }
+
     @Nested
     class Create {
 
@@ -86,12 +102,91 @@ class GammaGuardianRepositoryAdapterTest {
                 .hasMessageContaining("taken");
         }
 
+        /**
+         * Two unique keys can refuse the write and the store does not say which, so the name decides.
+         * Another Guardian holding it means the name, which is a 409 and not the id's 400.
+         */
+        @Test
+        void should_refuse_a_clashing_name_as_a_conflict_rather_than_a_taken_id() throws Exception {
+            when(spi.create(any())).thenThrow(new DuplicateKeyException("E11000 duplicate key"));
+            when(spi.findByEnvironmentIdAndNameIgnoreCase(ENVIRONMENT_ID, "Credential leakage")).thenReturn(
+                List.of(aStoredRowNamedLikeTheFixture("another-guardian"))
+            );
+
+            assertThatThrownBy(() -> adapter.create(aGuardianWithId("taken")))
+                .isInstanceOf(GuardianNameAlreadyExistsException.class)
+                .hasMessageContaining("Credential leakage");
+        }
+
+        /** The row holding the name is the one being written, so the id is the only explanation left. */
+        @Test
+        void should_report_a_taken_id_when_the_only_name_match_is_the_guardian_itself() throws Exception {
+            when(spi.create(any())).thenThrow(new DuplicateKeyException("E11000 duplicate key"));
+            when(spi.findByEnvironmentIdAndNameIgnoreCase(ENVIRONMENT_ID, "Credential leakage")).thenReturn(
+                List.of(aStoredRowNamedLikeTheFixture("taken"))
+            );
+
+            assertThatThrownBy(() -> adapter.create(aGuardianWithId("taken")))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("taken");
+        }
+
+        /**
+         * The name lookup is a second guess at a failure already in hand. Letting its own failure out
+         * would turn a 400 into a 500, so the refusal the caller deserves survives it.
+         */
+        @Test
+        void should_keep_the_refusal_when_the_name_lookup_itself_fails() throws Exception {
+            when(spi.create(any())).thenThrow(new DuplicateKeyException("E11000 duplicate key"));
+            when(spi.findByEnvironmentIdAndNameIgnoreCase(any(), any())).thenThrow(new TechnicalException("connection reset"));
+
+            assertThatThrownBy(() -> adapter.create(aGuardianWithId("taken")))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("taken");
+        }
+
         @Test
         void should_still_report_a_genuine_technical_failure_as_technical() throws Exception {
             // the guard must not swallow an unrelated failure into a 400
             when(spi.create(any())).thenThrow(new TechnicalException("connection reset"));
 
             assertThatThrownBy(() -> adapter.create(aGuardian().build())).isInstanceOf(TechnicalDomainException.class);
+        }
+    }
+
+    /**
+     * A rename can break the unique name as readily as a creation can, so the update path translates a
+     * refused write too. Unlike a creation it cannot clash on the id, which the path fixes.
+     */
+    @Nested
+    class Update {
+
+        @Test
+        void should_refuse_a_clashing_name_as_a_conflict() throws Exception {
+            when(spi.update(any())).thenThrow(new DuplicateKeyException("E11000 duplicate key"));
+            when(spi.findByEnvironmentIdAndNameIgnoreCase(ENVIRONMENT_ID, "Credential leakage")).thenReturn(
+                List.of(aStoredRowNamedLikeTheFixture("another-guardian"))
+            );
+
+            assertThatThrownBy(() -> adapter.update(aGuardianWithId(GUARDIAN_ID)))
+                .isInstanceOf(GuardianNameAlreadyExistsException.class)
+                .hasMessageContaining("Credential leakage");
+        }
+
+        /** No other Guardian holds the name, so this is not a name clash and must not read as one. */
+        @Test
+        void should_rethrow_a_duplicate_key_that_is_not_a_name_clash() throws Exception {
+            when(spi.update(any())).thenThrow(new TechnicalException("update failed", new DuplicateKeyException("pk_guardians")));
+            when(spi.findByEnvironmentIdAndNameIgnoreCase(any(), any())).thenReturn(List.of());
+
+            assertThatThrownBy(() -> adapter.update(aGuardianWithId(GUARDIAN_ID))).isInstanceOf(TechnicalDomainException.class);
+        }
+
+        @Test
+        void should_still_report_a_genuine_technical_failure_as_technical() throws Exception {
+            when(spi.update(any())).thenThrow(new TechnicalException("connection reset"));
+
+            assertThatThrownBy(() -> adapter.update(aGuardianWithId(GUARDIAN_ID))).isInstanceOf(TechnicalDomainException.class);
         }
     }
 

@@ -24,7 +24,6 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Guardian;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author GraviteeSource Team
@@ -37,8 +36,8 @@ public class NoOpGuardianRepository extends AbstractNoOpManagementRepository<Gua
     }
 
     @Override
-    public Optional<Guardian> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name) {
-        return Optional.empty();
+    public List<Guardian> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name) {
+        return List.of();
     }
 
     @Override

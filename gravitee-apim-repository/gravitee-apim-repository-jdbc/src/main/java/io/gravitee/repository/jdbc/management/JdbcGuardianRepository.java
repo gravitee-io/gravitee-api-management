@@ -109,7 +109,7 @@ public class JdbcGuardianRepository extends JdbcAbstractCrudRepository<Guardian,
     }
 
     @Override
-    public Optional<Guardian> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name) throws TechnicalException {
+    public List<Guardian> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name) throws TechnicalException {
         Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
         Objects.requireNonNull(name, "Name must not be null");
         log.debug("JdbcGuardianRepository.findByEnvironmentIdAndNameIgnoreCase({})", environmentId);
@@ -124,7 +124,7 @@ public class JdbcGuardianRepository extends JdbcAbstractCrudRepository<Guardian,
                 // "I" to a dotless "i" under a Turkish locale and stop matching the stored row.
                 name.toLowerCase(Locale.ROOT)
             );
-            return rows.stream().findFirst();
+            return rows;
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find a Guardian by name", ex);
         }

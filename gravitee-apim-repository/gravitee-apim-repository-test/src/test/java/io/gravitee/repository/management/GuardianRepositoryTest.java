@@ -26,6 +26,7 @@ import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Guardian;
 import io.gravitee.repository.management.model.GuardianLifecycleState;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -175,12 +176,10 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
             );
 
             assertThat(guardianRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "Credential Leakage"))
-                .isPresent()
-                .get()
                 .extracting(Guardian::getId)
-                .isEqualTo("id_name_lookup");
-            assertThat(guardianRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "credential leakage")).isPresent();
-            assertThat(guardianRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "CREDENTIAL LEAKAGE")).isPresent();
+                .containsExactly("id_name_lookup");
+            assertThat(guardianRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "credential leakage")).hasSize(1);
+            assertThat(guardianRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "CREDENTIAL LEAKAGE")).hasSize(1);
         }
 
         @Test
@@ -201,7 +200,7 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
             );
 
             assertThat(guardianRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "Scoped name")).isEmpty();
-            assertThat(guardianRepository.findByEnvironmentIdAndNameIgnoreCase("anotherEnvironment", "Scoped name")).isPresent();
+            assertThat(guardianRepository.findByEnvironmentIdAndNameIgnoreCase("anotherEnvironment", "Scoped name")).hasSize(1);
         }
 
         @Test

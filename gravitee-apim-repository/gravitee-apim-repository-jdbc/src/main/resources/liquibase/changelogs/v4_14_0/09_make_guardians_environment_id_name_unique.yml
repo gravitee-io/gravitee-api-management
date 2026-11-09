@@ -6,14 +6,31 @@ databaseChangeLog:
   # and has run on every dev box, every CI database and every 4.14.0 snapshot install, so editing it
   # would change nothing on any of them — its validCheckSum: ANY suppresses the warning without
   # causing a re-run. Dropping and recreating reaches a migrated schema and a fresh one alike.
+  #
+  # The sqlCheck refuses the whole changeSet when the table already holds a duplicate, which it can:
+  # nothing prevented one before this release. Two reasons it is a precondition and not a failure left
+  # to createIndex. It names the problem instead of surfacing a driver's unique-violation, and it runs
+  # before the drop — MySQL and MariaDB do not make DDL transactional, so a createIndex that failed
+  # after the dropIndex succeeded would leave the table with no index on (environment_id, name) at all.
   - changeSet:
       id: 4.14.0_make_guardians_environment_id_name_unique
       author: GraviteeSource Team
       preConditions:
-        - onFail: MARK_RAN
+        - onFail: HALT
+        - onFailMessage: >-
+            Cannot make the Guardian (environment_id, name) index unique. Either the index is missing,
+            or the table holds two Guardians of one environment with the same name. Find them with:
+            SELECT environment_id, name, count(*) FROM guardians GROUP BY environment_id, name HAVING
+            count(*) > 1 — then rename or delete the extra rows and start again.
         - indexExists:
             tableName: ${gravitee_prefix}guardians
             indexName: idx_${gravitee_prefix}guardians_environment_id_name
+        - sqlCheck:
+            expectedResult: 0
+            # environment_id rather than 1: SQL Server refuses a derived table whose column has no name.
+            sql: >-
+              SELECT count(*) FROM (SELECT environment_id FROM ${gravitee_prefix}guardians GROUP BY
+              environment_id, name HAVING count(*) > 1) duplicated_names
       changes:
         - dropIndex:
             tableName: ${gravitee_prefix}guardians

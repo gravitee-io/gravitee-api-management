@@ -95,12 +95,15 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
      *     the store.
      */
     public void validateNameIsAvailable(String environmentId, String name, String guardianIdToExclude) {
-        guardianRepository
+        // every match, then exclude this one: with a single row, "the only match is me" and "one of the
+        // matches is me" are indistinguishable, and the answer would depend on which row came back
+        boolean takenByAnother = guardianRepository
             .findByEnvironmentIdAndName(environmentId, name)
-            .filter(existing -> !existing.getId().equals(guardianIdToExclude))
-            .ifPresent(existing -> {
-                throw new GuardianNameAlreadyExistsException(name);
-            });
+            .stream()
+            .anyMatch(existing -> !existing.getId().equals(guardianIdToExclude));
+        if (takenByAnother) {
+            throw new GuardianNameAlreadyExistsException(name);
+        }
     }
 
     private static <C> void refuseViolations(C command) {
