@@ -16,10 +16,13 @@
 import { LayoutSlotsProvider } from '@gravitee/graphene-core';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { http, HttpResponse } from 'msw';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 
 import { AppRoutes } from './AppRoutes';
 import { LocalDevShell } from './LocalDevShell';
+import { TEST_V2_BASE } from '../testing/factories';
+import { server } from '../testing/server';
 
 const PORTAL_ID = '00f8c9e7-78fc-4907-b8c9-e778fc790750';
 const MODULE_ROOT = '/environments/dev/portals';
@@ -44,6 +47,16 @@ function renderModule(path: string, federated = false) {
 }
 
 describe('AppRoutes', () => {
+    it.each(['portals', 'portals/_stats'])('does not retry a denied %s request with the production query client', async endpoint => {
+        const request = jest.fn(() => HttpResponse.json({ message: 'Forbidden' }, { status: 403 }));
+        server.use(http.get(`${TEST_V2_BASE}/${endpoint}`, request));
+
+        renderModule('/');
+
+        expect(await screen.findByText('Access denied')).toBeInTheDocument();
+        expect(request).toHaveBeenCalledTimes(1);
+    });
+
     it('opens the dashboard and provides working standalone sidebar links', async () => {
         const user = userEvent.setup();
         renderModule('/');
