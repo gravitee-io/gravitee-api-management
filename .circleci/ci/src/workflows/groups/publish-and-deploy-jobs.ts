@@ -23,7 +23,7 @@ import {
   TriggerSaasDockerImagesJob,
 } from '../../jobs';
 import { CircleCIEnvironment } from '../../pipelines';
-import { isMasterBranch } from '../../utils';
+import { isMasterBranch, triggersSaasDockerImages } from '../../utils';
 import { config } from '../../config';
 
 /**
@@ -50,8 +50,12 @@ export function publishAndDeployJobs(dynamicConfig: Config, environment: CircleC
     dynamicConfig.addJob(deployOnNextGenIntegrationJob);
   }
 
+  // Master and the two newest support lines only: nothing deploys an older line on SaaS.
+  const triggerSaas = triggersSaasDockerImages(environment.branch, environment.supportBranches);
   const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create({ ...environment, isDryRun: false }, 'dev');
-  dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
+  if (triggerSaas) {
+    dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
+  }
 
   const productImages = [
     'Build APIM Management API docker image',
@@ -73,15 +77,20 @@ export function publishAndDeployJobs(dynamicConfig: Config, environment: CircleC
   ];
 
   return [
-    new workflow.WorkflowJob(runTriggerSaasDockerImagesJob, {
-      context: [...config.jobContext, 'keeper-orb-publishing'],
-      name: 'Trigger SaaS Docker images creation',
-      requires: productImages,
-    }),
+    ...(triggerSaas
+      ? [
+          new workflow.WorkflowJob(runTriggerSaasDockerImagesJob, {
+            context: [...config.jobContext, 'keeper-orb-publishing'],
+            name: 'Trigger SaaS Docker images creation',
+            requires: productImages,
+          }),
+        ]
+      : []),
     new workflow.WorkflowJob(releaseHelmDryRunJob, {
       name: 'Publish Helm chart (internal repo)',
       context: config.jobContext,
-      requires: ['Trigger SaaS Docker images creation'],
+      // Without the SaaS trigger, the chart waits on what the trigger itself would have waited on.
+      requires: triggerSaas ? ['Trigger SaaS Docker images creation'] : productImages,
     }),
     new workflow.WorkflowJob(publishSnapshotJob, {
       name: 'Publish snapshot',

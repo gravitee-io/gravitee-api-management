@@ -34,7 +34,7 @@ import {
   TriggerSaasDockerImagesJob,
 } from '../jobs';
 import { CircleCIEnvironment } from '../pipelines';
-import { DISTRIBUTION_TAG_FILTER } from '../utils';
+import { DISTRIBUTION_TAG_FILTER, triggersSaasDockerImages } from '../utils';
 import { config } from '../config';
 
 export class DistributionReleaseWorkflow {
@@ -100,14 +100,21 @@ export class DistributionReleaseWorkflow {
     const releaseNoteApimJob = ReleaseNotesApimJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(releaseNoteApimJob);
 
+    // The two newest lines only: an older one is not deployed on SaaS any more.
+    const triggerSaas = triggersSaasDockerImages(environment.branch, environment.supportBranches);
     const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create(environment, 'prod');
-    dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
+    if (triggerSaas) {
+      dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
+    }
 
-    const runTriggerSaasChainguardDockerImagesJob = TriggerSaasDockerImagesJob.create(environment, 'prod', 'chainguard');
-    dynamicConfig.addJob(runTriggerSaasChainguardDockerImagesJob);
-
-    const runTriggerSaasChainguardFipsDockerImagesJob = TriggerSaasDockerImagesJob.create(environment, 'prod', 'chainguard-fips');
-    dynamicConfig.addJob(runTriggerSaasChainguardFipsDockerImagesJob);
+    const productImages = [
+      `Build APIM Portal docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+      `Build APIM Console docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+      `Build APIM Management API docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+      `Build APIM Gateway docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+    ];
+    // Without the SaaS trigger, the Helm chart and the docs wait on what the trigger itself would have waited on.
+    const afterImagesPublished = triggerSaas ? ['Trigger SaaS Docker images creation'] : productImages;
 
     const triggerApimApiDocsPipelineJob = TriggerApimApiDocsPipelineJob.create(environment);
     dynamicConfig.addJob(triggerApimApiDocsPipelineJob);
@@ -310,43 +317,15 @@ export class DistributionReleaseWorkflow {
         requires: ['Package bundle'],
       }),
 
-      // Trigger SaaS Docker images creation
-      new workflow.WorkflowJob(runTriggerSaasDockerImagesJob, {
-        context: [...config.jobContext, 'keeper-orb-publishing'],
-        name: 'Trigger SaaS Docker images creation',
-        requires: [
-          `Build APIM Portal docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
-          `Build APIM Console docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
-          `Build APIM Management API docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
-          `Build APIM Gateway docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
-        ],
-      }),
-
-      // Trigger SaaS Chainguard Docker images creation (built from the chainguard component images)
-      new workflow.WorkflowJob(runTriggerSaasChainguardDockerImagesJob, {
-        context: [...config.jobContext, 'keeper-orb-publishing'],
-        name: 'Trigger SaaS Chainguard Docker images creation',
-        requires: [
-          `Build APIM Portal chainguard docker image for APIM ${environment.graviteeioVersion}`,
-          `Build APIM Console chainguard docker image for APIM ${environment.graviteeioVersion}`,
-          `Build Gamma Console chainguard docker image for APIM ${environment.graviteeioVersion}`,
-          `Build APIM Management API chainguard docker image for APIM ${environment.graviteeioVersion}`,
-          `Build APIM Gateway chainguard docker image for APIM ${environment.graviteeioVersion}`,
-        ],
-      }),
-
-      // Trigger SaaS Chainguard FIPS Docker images creation
-      new workflow.WorkflowJob(runTriggerSaasChainguardFipsDockerImagesJob, {
-        context: [...config.jobContext, 'keeper-orb-publishing'],
-        name: 'Trigger SaaS Chainguard FIPS Docker images creation',
-        requires: [
-          `Build APIM Management API chainguard-fips docker image for APIM ${environment.graviteeioVersion}`,
-          `Build APIM Gateway chainguard-fips docker image for APIM ${environment.graviteeioVersion}`,
-          `Build APIM Portal chainguard-fips docker image for APIM ${environment.graviteeioVersion}`,
-          `Build APIM Console chainguard-fips docker image for APIM ${environment.graviteeioVersion}`,
-          `Build Gamma Console chainguard-fips docker image for APIM ${environment.graviteeioVersion}`,
-        ],
-      }),
+      ...(triggerSaas
+        ? [
+            new workflow.WorkflowJob(runTriggerSaasDockerImagesJob, {
+              context: [...config.jobContext, 'keeper-orb-publishing'],
+              name: 'Trigger SaaS Docker images creation',
+              requires: productImages,
+            }),
+          ]
+        : []),
 
       // Trigger gravitee-apim-api-docs ingestion (fire-and-forget; the docs
       // pipeline resolves the jars from the Azure feed on its side).
@@ -355,14 +334,14 @@ export class DistributionReleaseWorkflow {
         name: 'Trigger APIM API docs ingestion',
         // Not the core's publication, which is another lane's now: the docs pipeline resolves
         // the jars from the feed itself, so it only has to be told once this release is real.
-        requires: ['Trigger SaaS Docker images creation'],
+        requires: afterImagesPublished,
       }),
 
       // Release Helm chart
       new workflow.WorkflowJob(releaseHelmJob, {
         context: config.jobContext,
         name: 'Release Helm Chart',
-        requires: ['Trigger SaaS Docker images creation'],
+        requires: afterImagesPublished,
       }),
 
       // Create Release note pull request
