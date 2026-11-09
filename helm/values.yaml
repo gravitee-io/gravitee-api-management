@@ -375,9 +375,13 @@ es:
     number_of_replicas: 1
     refresh_interval: 5s
   security:
+    # Enables basic authentication with username and password.
     enabled: false
     username: example
     password: example
+    # Elasticsearch API key (the "encoded" value), e.g. for Elastic Cloud Serverless.
+    # When set, it is rendered whatever the value of `enabled`, and username and password are not.
+    apiKey: ""
   lifecycle:
     enabled: false
     policyPropertyName: index.lifecycle.name   #for Opensearch, use 'index.plugins.index_state_management.policy_id' instead of 'index.lifecycle.name'
@@ -1191,6 +1195,9 @@ api:
       # security:
       #   username: elastic
       #   password: changeme
+      #   # Or an API key (the "encoded" value), e.g. for Elastic Cloud Serverless. When set, it is
+      #   # rendered instead of username and password.
+      #   apiKey: <encoded API key>
       # ssl:
       #   keystore:
       #     type: jks            # jks, pkcs12 or pem
@@ -1229,6 +1236,9 @@ api:
       # security:
       #   username: elastic
       #   password: changeme
+      #   # Or an API key (the "encoded" value), e.g. for Elastic Cloud Serverless. When set, it is
+      #   # rendered instead of username and password.
+      #   apiKey: <encoded API key>
       # ssl:
       #   keystore:
       #     type: jks            # jks, pkcs12 or pem

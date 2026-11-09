@@ -758,7 +758,10 @@ data:
             event_metrics: {{ .Values.es.lifecycle.policies.eventMetrics }}
             decisions: {{ .Values.es.lifecycle.policies.decisions }}
         {{- end }}
-        {{- if (eq .Values.es.security.enabled true) }}
+        {{- if .Values.es.security.apiKey }}
+        security:
+          api_key: {{ .Values.es.security.apiKey }}
+        {{- else if (eq .Values.es.security.enabled true) }}
         security:
           username: {{ .Values.es.security.username }}
           password: {{ .Values.es.security.password }}

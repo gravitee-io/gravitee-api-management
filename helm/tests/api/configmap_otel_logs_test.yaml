@@ -96,6 +96,26 @@ tests:
           path: data["gravitee.yml"]
           pattern: "password: changeme"
 
+  - it: Type elasticsearch renders only the API key when one is set
+    template: api/api-configmap.yaml
+    set:
+      api:
+        otelLogs:
+          type: elasticsearch
+          elasticsearch:
+            index: logs-apim.otel-{orgId}
+            endpoints:
+              - http://es.example.com:9200
+            security:
+              apiKey: encoded-key
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "otel-logs:[\\s\\S]*security:\n\\s+api_key: encoded-key\n"
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "otel-logs:[\\s\\S]*security:\n\\s+(username|password):"
+
   - it: Type elasticsearch renders the SSL keystore block when set
     template: api/api-configmap.yaml
     set:

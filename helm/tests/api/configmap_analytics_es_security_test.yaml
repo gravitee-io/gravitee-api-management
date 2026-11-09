@@ -1,0 +1,64 @@
+suite: Test Management API configmap for the Elasticsearch analytics credentials
+templates:
+  - "api/api-configmap.yaml"
+tests:
+  - it: Render only the Elasticsearch API key when one is set
+    template: api/api-configmap.yaml
+    set:
+      es:
+        security:
+          enabled: true
+          apiKey: encoded-key
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "security:\n\\s+api_key: encoded-key\n"
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "username: example"
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "password: example"
+
+  - it: Render the Elasticsearch basic credentials when no API key is set
+    template: api/api-configmap.yaml
+    set:
+      es:
+        security:
+          enabled: true
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "security:\n\\s+username: example\n\\s+password: example\n"
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "api_key:"
+
+  - it: Render the Elasticsearch API key even when basic authentication is disabled
+    template: api/api-configmap.yaml
+    set:
+      es:
+        security:
+          enabled: false
+          apiKey: encoded-key
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "security:\n\\s+api_key: encoded-key\n"
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "username: example"
+
+  - it: Render no Elasticsearch credentials when security is disabled and no API key is set
+    template: api/api-configmap.yaml
+    set:
+      es:
+        security:
+          enabled: false
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "api_key:"
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "username: example"

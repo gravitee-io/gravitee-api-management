@@ -107,7 +107,10 @@ data:
             timeout: {{ .Values.es.http.timeout }}
             {{- end }}
           {{- end }}
-          {{- if (eq .Values.es.security.enabled true) }}
+          {{- if .Values.es.security.apiKey }}
+          security:
+            api_key: {{ .Values.es.security.apiKey }}
+          {{- else if (eq .Values.es.security.enabled true) }}
           security:
             username: {{ .Values.es.security.username }}
             password: {{ .Values.es.security.password }}
@@ -146,8 +149,12 @@ data:
           {{- end }}
           {{- if .Values.api.otelTraces.elasticsearch.security }}
           security:
+            {{- if .Values.api.otelTraces.elasticsearch.security.apiKey }}
+            api_key: {{ .Values.api.otelTraces.elasticsearch.security.apiKey }}
+            {{- else }}
             username: {{ .Values.api.otelTraces.elasticsearch.security.username }}
             password: {{ .Values.api.otelTraces.elasticsearch.security.password }}
+            {{- end }}
           {{- end }}
           {{- if .Values.api.otelTraces.elasticsearch.ssl }}
           ssl:
@@ -181,8 +188,12 @@ data:
           {{- end }}
           {{- if .Values.api.otelLogs.elasticsearch.security }}
           security:
+            {{- if .Values.api.otelLogs.elasticsearch.security.apiKey }}
+            api_key: {{ .Values.api.otelLogs.elasticsearch.security.apiKey }}
+            {{- else }}
             username: {{ .Values.api.otelLogs.elasticsearch.security.username }}
             password: {{ .Values.api.otelLogs.elasticsearch.security.password }}
+            {{- end }}
           {{- end }}
           {{- if .Values.api.otelLogs.elasticsearch.ssl }}
           ssl:
