@@ -57,15 +57,16 @@ public class EventLatestQueryServiceImpl implements EventLatestQueryService {
         }
         try {
             // The ids go into the criteria as a collection, which both stores turn into an IN rather than a
-            // single-value comparison, so the store returns this page's events and not the environment's.
+            // single-value comparison, so the store returns this page's events and not the environment's. The
+            // explicit size keeps a store's default page (ten rows on JDBC) from truncating the batch.
             List<io.gravitee.repository.management.model.Event> events = eventLatestRepository.search(
                 EventCriteria.builder()
                     .types(List.of(EventType.valueOf(eventType.name())))
                     .properties(Map.of(propertyKey.getLabel(), entityIds))
                     .build(),
                 io.gravitee.repository.management.model.Event.EventProperties.valueOf(propertyKey.name()),
-                null,
-                null
+                0L,
+                (long) entityIds.size()
             );
             return events.stream().map(EventAdapter.INSTANCE::map).toList();
         } catch (Exception e) {
