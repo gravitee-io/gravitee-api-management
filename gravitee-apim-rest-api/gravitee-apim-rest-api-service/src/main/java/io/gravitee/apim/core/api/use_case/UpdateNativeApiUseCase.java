@@ -27,8 +27,6 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
-import io.gravitee.definition.model.v4.property.Property;
-import java.util.List;
 import java.util.function.UnaryOperator;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -79,6 +77,7 @@ public class UpdateNativeApiUseCase {
 
     public record Output(Api updatedApi, PrimaryOwnerEntity primaryOwnerEntity) {}
 
+<<<<<<< HEAD
     static UnaryOperator<Api> update(UpdateNativeApi updateNativeApi, List<Property> properties) {
         return currentApi ->
             currentApi
@@ -110,5 +109,15 @@ public class UpdateNativeApiUseCase {
                         : null
                 )
                 .build();
+=======
+    private UnaryOperator<Api> rejectPlainDowngradeThenUpdate(UpdateNativeApi updateApi) {
+        return existingApi -> {
+            propertyDomainService.validateClassification(existingApi.getApiDefinitionValue(), updateApi.getProperties());
+            var existingDefinition = existingApi.getApiDefinitionValue();
+            var existingProperties = existingDefinition instanceof NativeApi nativeApi ? nativeApi.getProperties() : null;
+            var encryptedProperties = propertyDomainService.encryptProperties(existingProperties, updateApi.getProperties());
+            return updateApi.applyTo(existingApi, encryptedProperties);
+        };
+>>>>>>> cfb10d6 (fix(automation): make the API dry run refuse what the import refuses)
     }
 }
