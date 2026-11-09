@@ -57,6 +57,18 @@ public class MongoGuardianRepository implements GuardianRepository {
     }
 
     @Override
+    public Optional<Guardian> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name) throws TechnicalException {
+        Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
+        Objects.requireNonNull(name, "Name must not be null");
+        log.debug("Find guardian by environment [{}] and name", environmentId);
+        return internalGuardianMongoRepo
+            .findByEnvironmentIdAndNameIgnoreCase(environmentId, name)
+            .stream()
+            .findFirst()
+            .map(this::mapGuardian);
+    }
+
+    @Override
     public Guardian create(Guardian item) throws TechnicalException {
         log.debug("Create guardian with id [{}]", item.getId());
         final GuardianMongo created = internalGuardianMongoRepo.insert(mapGuardian(item));

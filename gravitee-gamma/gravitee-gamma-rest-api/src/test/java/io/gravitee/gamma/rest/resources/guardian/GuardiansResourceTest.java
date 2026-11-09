@@ -475,6 +475,95 @@ class GuardiansResourceTest extends AbstractResourceTest {
     }
 
     /**
+     * Two Guardians of one environment may not share a name. A 409 rather than a 400: the request is
+     * well formed and the caller can retry it with another name.
+     */
+    @Nested
+    class NameUniqueness {
+
+        @Test
+        void should_refuse_a_creation_whose_name_is_taken_with_409() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+
+            Response response = post(payloadWith("name", "Credential leakage"));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CONFLICT_409);
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("message").asText()).contains("Credential leakage");
+            // the documented Error shape of this surface is message + http_status and nothing else; the
+            // two-argument ConflictDomainException would add a parameters.id holding the name
+            assertThat(body.has("parameters")).isFalse();
+            assertThat(body.get("http_status").asInt()).isEqualTo(HttpStatusCode.CONFLICT_409);
+        }
+
+        /** The rule ignores case: a difference of case is not a different name in a list. */
+        @Test
+        void should_refuse_a_name_that_differs_only_by_case_with_409() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+
+            assertThat(post(payloadWith("name", "CREDENTIAL LEAKAGE")).getStatus()).isEqualTo(HttpStatusCode.CONFLICT_409);
+        }
+
+        /** A Guardian is scoped to its environment, so the name is only taken inside one. */
+        @Test
+        void should_allow_the_same_name_in_another_environment() {
+            guardianRepository.givenGuardian(guardian("other-id", OTHER_ENVIRONMENT, "Credential leakage"));
+
+            assertThat(post(payloadWith("name", "Credential leakage")).getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
+        }
+
+        @Test
+        void should_refuse_renaming_a_guardian_onto_a_taken_name_with_409() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+            guardianRepository.givenGuardian(guardian("second-id", ENVIRONMENT, "Prompt injection"));
+
+            Response response = rootTarget("/second-id")
+                .request()
+                .put(Entity.entity(payloadWith("name", "Credential leakage"), MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CONFLICT_409);
+        }
+
+        /**
+         * A body with no name is a malformed body, not a server fault. The uniqueness check reads the
+         * name before the definition is validated, so it must not be the thing that fails first.
+         */
+        @Test
+        void should_refuse_an_update_body_without_a_name_with_400() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+            var noName = new HashMap<String, Object>(PAYLOAD);
+            noName.remove("name");
+
+            Response response = rootTarget("/" + GUARDIAN_ID).request().put(Entity.entity(noName, MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        /** The one case a naive check gets wrong: a Guardian clashing with itself. */
+        @Test
+        void should_let_a_guardian_keep_its_own_name_on_update() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+
+            Response response = rootTarget("/" + GUARDIAN_ID)
+                .request()
+                .put(Entity.entity(payloadWith("name", "Credential leakage"), MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        @Test
+        void should_let_a_guardian_keep_its_own_name_in_another_case_on_update() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+
+            Response response = rootTarget("/" + GUARDIAN_ID)
+                .request()
+                .put(Entity.entity(payloadWith("name", "credential leakage"), MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+    }
+
+    /**
      * The wire format of the three timestamps. Worth its own class because the shape does not come from
      * this module: the inherited rest-api mapper enables {@code WRITE_DATES_AS_TIMESTAMPS}, so without
      * {@code @JsonFormat} on the DTO these come out as fractional {@code <epoch_seconds>.<nanos>}

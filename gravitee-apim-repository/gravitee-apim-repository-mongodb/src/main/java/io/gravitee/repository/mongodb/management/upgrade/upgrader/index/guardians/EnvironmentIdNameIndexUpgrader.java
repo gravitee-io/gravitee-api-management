@@ -23,6 +23,13 @@ import org.springframework.stereotype.Component;
  * Guardians are always looked up inside an environment, and listed or searched by name, so the
  * environment is the prefix every query shares.
  *
+ * <p>Unique, because two Guardians of one environment may not share a name. It is a backstop, not the
+ * enforcement: the rule users meet is the domain check, which refuses a duplicate with a 409 and
+ * ignores case, while this index is exact and case-sensitive. It also only reaches a store that does
+ * not already carry the non-unique version of it — {@link IndexUpgrader} skips a creation that
+ * conflicts with an existing index of the same key pattern (error 85) rather than replacing it, so a
+ * store created before this change keeps the index it has.
+ *
  * @author GraviteeSource Team
  */
 @Component("GuardianEnvironmentIdNameIndexUpgrader")
@@ -35,6 +42,7 @@ public class EnvironmentIdNameIndexUpgrader extends IndexUpgrader {
             .name("e1n1")
             .key("environmentId", ascending())
             .key("name", ascending())
+            .unique(true)
             .build();
     }
 }

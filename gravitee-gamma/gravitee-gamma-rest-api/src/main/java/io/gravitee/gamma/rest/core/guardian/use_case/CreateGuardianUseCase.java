@@ -78,6 +78,8 @@ public class CreateGuardianUseCase {
         // UUID that satisfies the pattern, while anything else the caller sent is still refused
         validateGuardian.validateStructure(payload);
 
+        validateGuardian.validateNameIsAvailable(input.auditInfo().environmentId(), payload.getName(), payload.getId());
+
         var guardianToCreate = Guardian.from(payload, input.auditInfo().environmentId())
             .toBuilder()
             .lifecycleState(GuardianLifecycleState.UNDEPLOYED)

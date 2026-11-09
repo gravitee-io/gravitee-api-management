@@ -63,6 +63,12 @@ public class UpdateGuardianUseCase {
         // after the merge, not before: the identity it needs comes from the path
         validateGuardian.validateDefinition(guardianToUpdate.getDefinition());
 
+        // after validateDefinition, which is what refuses a missing name: UpdateGuardianCommand declares
+        // the definition @NotNull but not @Valid, so a body omitting the name reaches here with one, and
+        // asking the store about a null name answered 500 where the payload deserved a 400. Excludes the
+        // Guardian being renamed, so keeping its own name is not a clash with itself.
+        validateGuardian.validateNameIsAvailable(input.auditInfo().environmentId(), guardianToUpdate.getName(), input.guardianId());
+
         validateGuardian
             .validateAndSanitize(new ValidateGuardianDomainService.Input(guardianToUpdate))
             .severe()

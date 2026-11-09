@@ -65,7 +65,7 @@ class UpdateGuardianUseCaseTest {
     void setUp() {
         guardianRepository.reset();
         guardianRepository.givenGuardian(aGuardian().deployedAt(DEPLOYED_AT).build());
-        useCase = new UpdateGuardianUseCase(guardianRepository, new ValidateGuardianDomainService(), auditDomainService);
+        useCase = new UpdateGuardianUseCase(guardianRepository, new ValidateGuardianDomainService(guardianRepository), auditDomainService);
     }
 
     private UpdateGuardianUseCase.Output update(String environmentId, UpdateGuardianCommand command) {

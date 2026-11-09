@@ -122,7 +122,7 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
             final Optional<Guardian> optional = guardianRepository.findById("id_find-by-id_test");
             assertThat(optional).isPresent();
             assertThat(optional.get().getEnvironmentId()).isEqualTo("environmentId");
-            assertThat(optional.get().getName()).isEqualTo("name");
+            assertThat(optional.get().getName()).isEqualTo("name crud find by id");
             assertThat(optional.get().getPhase()).isEqualTo(Guardian.Phase.RESPONSE);
             assertThat(optional.get().getDefinition()).isEqualTo("definition");
             assertThat(optional.get().getLifecycleState()).isEqualTo(GuardianLifecycleState.DEPLOYED);
@@ -154,6 +154,59 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
                 guardianRepository.findAll();
                 fail("An exception must be thrown");
             });
+        }
+
+        @Test
+        public void should_find_by_environment_id_and_name_ignoring_case() throws TechnicalException {
+            // the domain refuses a duplicate name ignoring case, so the store has to answer the same
+            // question; a case-sensitive lookup would let "credential leakage" past the check
+            var date = new Date();
+            guardianRepository.create(
+                Guardian.builder()
+                    .id("id_name_lookup")
+                    .environmentId("environmentId")
+                    .name("Credential Leakage")
+                    .phase(Guardian.Phase.REQUEST)
+                    .definition("definition")
+                    .lifecycleState(GuardianLifecycleState.UNDEPLOYED)
+                    .createdAt(date)
+                    .updatedAt(date)
+                    .build()
+            );
+
+            assertThat(guardianRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "Credential Leakage"))
+                .isPresent()
+                .get()
+                .extracting(Guardian::getId)
+                .isEqualTo("id_name_lookup");
+            assertThat(guardianRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "credential leakage")).isPresent();
+            assertThat(guardianRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "CREDENTIAL LEAKAGE")).isPresent();
+        }
+
+        @Test
+        public void should_not_find_a_name_belonging_to_another_environment() throws TechnicalException {
+            // a Guardian is defined per environment, so the same name is free in the next one
+            var date = new Date();
+            guardianRepository.create(
+                Guardian.builder()
+                    .id("id_name_other_env")
+                    .environmentId("anotherEnvironment")
+                    .name("Scoped name")
+                    .phase(Guardian.Phase.REQUEST)
+                    .definition("definition")
+                    .lifecycleState(GuardianLifecycleState.UNDEPLOYED)
+                    .createdAt(date)
+                    .updatedAt(date)
+                    .build()
+            );
+
+            assertThat(guardianRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "Scoped name")).isEmpty();
+            assertThat(guardianRepository.findByEnvironmentIdAndNameIgnoreCase("anotherEnvironment", "Scoped name")).isPresent();
+        }
+
+        @Test
+        public void should_return_empty_when_no_guardian_carries_the_name() throws TechnicalException {
+            assertThat(guardianRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "nothing carries this")).isEmpty();
         }
 
         @Test
@@ -242,16 +295,19 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
 
         @Test
         public void should_page_without_repeating_or_skipping_when_the_sort_values_tie() throws TechnicalException {
-            // A Guardian's phase takes one of two values and its deployedAt is null, so a single sort key
-            // leaves equal rows in an undefined order and offset paging can serve one twice while never
-            // serving another. A unique secondary key makes the order total.
+            // A Guardian's phase takes one of two values, so a single sort key leaves equal rows in an
+            // undefined order and offset paging can serve one twice while never serving another. A
+            // unique secondary key makes the order total.
+            //
+            // The tie is on the phase rather than on the name: a name is unique within an environment,
+            // so two rows of one environment can no longer tie on it.
             var date = new Date();
             for (int i = 0; i < 6; i++) {
                 guardianRepository.create(
                     Guardian.builder()
                         .id("id_tie_%d".formatted(i))
                         .environmentId("tieEnvironment")
-                        .name("same name")
+                        .name("tie %d".formatted(i))
                         .phase(Guardian.Phase.REQUEST)
                         .definition("definition")
                         .lifecycleState(GuardianLifecycleState.UNDEPLOYED)
@@ -267,7 +323,7 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
                     .search(
                         GuardianCriteria.builder().environmentId("tieEnvironment").build(),
                         new PageableBuilder().pageNumber(page).pageSize(2).build(),
-                        new SortableBuilder().field("name").setAsc(true).build()
+                        new SortableBuilder().field("phase").setAsc(true).build()
                     )
                     .getContent()
                     .forEach(g -> seen.add(g.getId()));

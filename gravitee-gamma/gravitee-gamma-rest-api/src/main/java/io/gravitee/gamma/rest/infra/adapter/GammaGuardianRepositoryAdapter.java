@@ -19,6 +19,7 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianSearchQuery;
@@ -69,19 +70,14 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
                 "Failed to create guardian '%s'".formatted(guardian.getId())
             );
         } catch (RuntimeException e) {
-            if (clashesOnTheId(e)) {
-                // Deliberately "not available" and not "already exists": the primary key is global, so
-                // asserting existence would describe a Guardian the caller may have no access to.
-                throw new ValidationDomainException("Id '%s' is not available.".formatted(guardian.getId()));
-            }
-            throw e;
+            throw refusalFor(e, guardian, true);
         }
     }
 
     /**
-     * Whether a failed write is a clash on the caller-supplied id rather than the store's fault.
-     * Narrowed to a duplicate key on purpose: a NOT NULL or a length violation is not "this id is
-     * taken", and reporting it as a 400 would be as misleading as the 500 it replaced.
+     * Whether a failed write broke a unique key rather than being the store's fault. Narrowed to a
+     * duplicate key on purpose: a NOT NULL or a length violation is neither a taken id nor a taken
+     * name, and reporting it as a 400 would be as misleading as the 500 it replaced.
      *
      * <p>The two backends do not report it the same way: Mongo lets Spring's unchecked
      * {@link DuplicateKeyException} out of {@code insert()}, while JDBC wraps it in the
@@ -89,7 +85,7 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
      * {@link TechnicalDomainException} by the time it reaches here. Walking the cause chain covers
      * both without this adapter having to know which backend is wired.
      */
-    private static boolean clashesOnTheId(Throwable failure) {
+    private static boolean clashesOnDuplicateKey(Throwable failure) {
         for (var cause = failure; cause != null && cause != cause.getCause(); cause = cause.getCause()) {
             if (cause instanceof DuplicateKeyException) {
                 return true;
@@ -108,11 +104,65 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
     }
 
     @Override
-    public Guardian update(Guardian guardian) {
+    public Optional<Guardian> findByEnvironmentIdAndName(String environmentId, String name) {
         return RepositoryCalls.wrap(
-            () -> toCore(guardianRepository.update(toRepository(guardian))),
-            "Failed to update guardian '%s'".formatted(guardian.getId())
-        );
+            () -> guardianRepository.findByEnvironmentIdAndNameIgnoreCase(environmentId, name),
+            "Failed to fetch guardian named '%s' for environment '%s'".formatted(name, environmentId)
+        ).map(GammaGuardianRepositoryAdapter::toCore);
+    }
+
+    @Override
+    public Guardian update(Guardian guardian) {
+        try {
+            return RepositoryCalls.wrap(
+                () -> toCore(guardianRepository.update(toRepository(guardian))),
+                "Failed to update guardian '%s'".formatted(guardian.getId())
+            );
+        } catch (RuntimeException e) {
+            // A rename can break the unique name as readily as a creation can. The domain refuses a
+            // duplicate first, so reaching here means two writers renamed onto one name at once; the
+            // loser deserves the same 409 as the create path rather than a technical failure.
+            throw refusalFor(e, guardian, false);
+        }
+    }
+
+    /**
+     * What to raise for a write the store refused.
+     *
+     * <p>Two unique keys can refuse one now: the primary key, and (environmentId, name) since the
+     * Guardian name became unique. The store does not say which, so the name is looked up — taken by
+     * another Guardian means the name, and nothing else leaves the id as the only explanation on a
+     * creation. An update cannot clash on the id, which the path fixes, so its only other answer is
+     * the original failure.
+     */
+    private RuntimeException refusalFor(RuntimeException failure, Guardian guardian, boolean idCouldClash) {
+        if (!clashesOnDuplicateKey(failure)) {
+            return failure;
+        }
+        if (nameIsTakenByAnother(guardian)) {
+            return new GuardianNameAlreadyExistsException(guardian.getName());
+        }
+        // Deliberately "not available" and not "already exists": the primary key is global, so
+        // asserting existence would describe a Guardian the caller may have no access to.
+        return idCouldClash ? new ValidationDomainException("Id '%s' is not available.".formatted(guardian.getId())) : failure;
+    }
+
+    /**
+     * Whether another Guardian of the environment already carries this name.
+     *
+     * <p>Excluding this one: a creation refused on its primary key finds the row holding that id, and
+     * reporting its name would hide the id clash the caller actually hit. A failure of this read is
+     * swallowed on purpose — it is a second guess at an error already in hand, and letting it out
+     * would replace a 400 or a 409 with a 500.
+     */
+    private boolean nameIsTakenByAnother(Guardian guardian) {
+        try {
+            return findByEnvironmentIdAndName(guardian.getEnvironmentId(), guardian.getName())
+                .filter(existing -> !existing.getId().equals(guardian.getId()))
+                .isPresent();
+        } catch (RuntimeException ignored) {
+            return false;
+        }
     }
 
     @Override

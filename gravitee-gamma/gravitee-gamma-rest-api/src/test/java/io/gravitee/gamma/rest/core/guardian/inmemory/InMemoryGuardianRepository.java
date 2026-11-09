@@ -66,6 +66,17 @@ public class InMemoryGuardianRepository implements GuardianRepository {
     }
 
     @Override
+    public Optional<Guardian> findByEnvironmentIdAndName(String environmentId, String name) {
+        // Both real implementations require a name, so this one does too: a double that tolerated null
+        // would answer empty where the store throws, and hide the caller that passes one.
+        Objects.requireNonNull(name, "Name must not be null");
+        return guardians
+            .stream()
+            .filter(g -> Objects.equals(g.getEnvironmentId(), environmentId) && name.equalsIgnoreCase(g.getName()))
+            .findFirst();
+    }
+
+    @Override
     public Guardian update(Guardian guardian) {
         guardians.removeIf(g -> Objects.equals(g.getId(), guardian.getId()));
         guardians.add(guardian);
