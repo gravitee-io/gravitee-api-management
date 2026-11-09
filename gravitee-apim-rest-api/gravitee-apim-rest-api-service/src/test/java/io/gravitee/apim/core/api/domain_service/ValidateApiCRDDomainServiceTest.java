@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -33,6 +34,12 @@ import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
+<<<<<<< HEAD
+=======
+import inmemory.ClusterQueryServiceInMemory;
+import inmemory.EventLatestQueryServiceInMemory;
+import inmemory.PlanQueryServiceInMemory;
+>>>>>>> cfb10d6 (fix(automation): make the API dry run refuse what the import refuses)
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
 import io.gravitee.apim.core.api.exception.ApiPropertyNotCiphertextException;
@@ -42,15 +49,24 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.common.util.DataEncryptor;
+<<<<<<< HEAD
+=======
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.DefinitionContext;
+import io.gravitee.definition.model.cluster.ClusterType;
+>>>>>>> cfb10d6 (fix(automation): make the API dry run refuse what the import refuses)
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -97,6 +113,10 @@ class ValidateApiCRDDomainServiceTest {
 
     ValidatePortalNotificationDomainService portalNotificationValidator = mock(ValidatePortalNotificationDomainService.class);
 
+    FlowValidationDomainService flowValidator = mock(FlowValidationDomainService.class);
+
+    UpdateApiDomainService updateApiDomainService = mock(UpdateApiDomainService.class);
+
     ValidateHealthCheckScheduleDomainService healthCheckScheduleValidator = new ValidateHealthCheckScheduleDomainService(
         new ObjectMapper()
     );
@@ -122,7 +142,24 @@ class ValidateApiCRDDomainServiceTest {
         healthCheckScheduleValidator,
         new ApiCRDTargetDomainService(apiQueryService, apiCrudService),
         new PropertyDomainService(dataEncryptor),
+<<<<<<< HEAD
         membersDomainService
+=======
+        membersDomainService,
+        new ValidateKafkaClusterBindingDomainService(
+            new DeployedClustersDomainService(eventLatestQueryService, OBJECT_MAPPER),
+            OBJECT_MAPPER
+        ),
+        new ClusterBindingPermissionDomainService(clusterQueryService, permissionDomainService, new ObjectMapper()),
+        new ValidateApiClusterBindingService(clusterQueryService, OBJECT_MAPPER),
+        mock(ApiPrimaryOwnerFactory.class),
+        mock(ValidateApiDomainService.class),
+        updateApiDomainService,
+        flowValidator,
+        new PlanQueryServiceInMemory(),
+        mock(ApiPrimaryOwnerDomainService.class),
+        mock(ApiFolderConflictsDomainService.class)
+>>>>>>> cfb10d6 (fix(automation): make the API dry run refuse what the import refuses)
     );
 
     PortalNotificationConfigEntity consoleNotificationConfiguration = new PortalNotificationConfigEntity();
@@ -131,6 +168,9 @@ class ValidateApiCRDDomainServiceTest {
     void setUp() {
         reset(categoryIdsValidator);
         when(pathValidator.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        lenient()
+            .when(flowValidator.validateAndSanitizeHttpV4(any(), any(), any()))
+            .thenAnswer(call -> call.getArgument(1));
         consoleNotificationConfiguration.setConfigType(NotificationConfigType.PORTAL);
     }
 
@@ -204,9 +244,15 @@ class ValidateApiCRDDomainServiceTest {
     void should_not_check_the_members_of_an_api_to_create() {
         membersDomainService.denyApiMembersUpdate("api-to-create");
         givenEveryValidatorAccepts();
+        // A spec the import can create: the validation of its writes runs too
         var spec = ApiCRDFixtures.newBaseSpec()
             .id("api-to-create")
             .crossId("api-to-create-cross-id")
+            .type("PROXY")
+            .lifecycleState("CREATED")
+            .visibility("PRIVATE")
+            .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
+            .properties(List.of())
             .consoleNotificationConfiguration(consoleNotificationConfiguration)
             .build();
 
@@ -263,6 +309,42 @@ class ValidateApiCRDDomainServiceTest {
             .toList();
     }
 
+<<<<<<< HEAD
+=======
+    private ApiCRDSpec aMessageSpecBoundTo(String connectionCrossId) {
+        var definition = ApiFixtures.aMessageApiBoundToCluster(
+            "api-id",
+            ENV_ID,
+            Api.LifecycleState.STARTED,
+            "prod",
+            connectionCrossId
+        ).getApiDefinitionHttpV4();
+        return ApiCRDFixtures.newBaseSpec()
+            .type("MESSAGE")
+            .endpointGroups(definition.getEndpointGroups())
+            .consoleNotificationConfiguration(consoleNotificationConfiguration)
+            .build();
+    }
+
+    private ApiCRDSpec aNativeSpecBoundTo(String connectionCrossId) {
+        var definition = ApiFixtures.aNativeApiBoundToCluster(
+            "api-id",
+            ENV_ID,
+            Api.LifecycleState.STARTED,
+            "prod",
+            connectionCrossId
+        ).getApiDefinitionNativeV4();
+        // A spec the import can update: the validation of its writes runs too
+        return ApiCRDFixtures.newBaseNativeSpec()
+            .id("api-id")
+            .lifecycleState("CREATED")
+            .visibility("PRIVATE")
+            .endpointGroups(definition.getEndpointGroups())
+            .consoleNotificationConfiguration(consoleNotificationConfiguration)
+            .build();
+    }
+
+>>>>>>> cfb10d6 (fix(automation): make the API dry run refuse what the import refuses)
     private void givenEveryValidatorAccepts() {
         when(categoryIdsValidator.validateAndSanitize(any(ValidateCategoryIdsDomainService.Input.class))).thenAnswer(call ->
             Validator.Result.ofValue(call.getArgument(0))
