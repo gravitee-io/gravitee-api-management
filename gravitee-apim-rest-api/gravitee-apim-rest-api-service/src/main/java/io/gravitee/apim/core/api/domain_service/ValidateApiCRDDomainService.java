@@ -19,7 +19,6 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
-import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
@@ -85,7 +84,7 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
 
     private final ValidateHealthCheckScheduleDomainService healthCheckScheduleValidator;
 
-    private final ApiQueryService apiQueryService;
+    private final ApiCRDTargetDomainService apiCRDTargetDomainService;
 
     private final PropertyDomainService propertyDomainService;
 
@@ -99,7 +98,7 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
 
     @Override
     public Validator.Result<ValidateApiCRDDomainService.Input> validateAndSanitize(ValidateApiCRDDomainService.Input input) {
-        var existingApi = apiQueryService.findByEnvironmentIdAndCrossId(input.auditInfo().environmentId(), input.spec().getCrossId());
+        var existingApi = apiCRDTargetDomainService.findExistingApi(input.auditInfo().environmentId(), input.spec());
         existingApi.ifPresent(api -> validateAgainstExistingApi(api, input.spec()));
 
         var errors = new ArrayList<Error>();

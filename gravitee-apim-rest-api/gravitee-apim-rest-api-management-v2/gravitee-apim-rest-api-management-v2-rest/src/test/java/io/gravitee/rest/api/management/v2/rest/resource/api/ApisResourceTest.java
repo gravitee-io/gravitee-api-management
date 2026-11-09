@@ -99,6 +99,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -845,6 +846,19 @@ class ApisResourceTest extends AbstractResourceTest {
             var crdStatus = doImport("/crd/with-unknown-category.json", true);
 
             Assertions.assertThat(crdStatus.getId()).isEqualTo(existing.getId());
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = { false, true })
+        void should_return_400_when_the_id_names_an_api_of_another_environment(boolean dryRun) {
+            apiCrudService.initWith(
+                List.of(aProxyApiV4().toBuilder().id("63cb34e5-e5cb-40cf-94ca-4687e7813473").environmentId("other-environment").build())
+            );
+
+            var response = target.queryParam("dryRun", dryRun).request().put(Entity.json(readJSON("/crd/with-unknown-category.json")));
+
+            assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasMessageContaining("belongs to another environment");
+            Assertions.assertThat(apiCrudService.storage()).extracting(Api::getEnvironmentId).containsExactly("other-environment");
         }
 
         private Api givenExistingApi() {

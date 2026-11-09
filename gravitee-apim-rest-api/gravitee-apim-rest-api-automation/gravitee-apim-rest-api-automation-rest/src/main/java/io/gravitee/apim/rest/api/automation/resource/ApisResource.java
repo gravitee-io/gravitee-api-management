@@ -18,11 +18,11 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
+import io.gravitee.apim.core.api.domain_service.ApiCRDTargetDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
-import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.utils.CollectionUtils;
@@ -64,7 +64,7 @@ public class ApisResource extends AbstractResource {
     private ValidateApiCRDDomainService validateApiCRDDomainService;
 
     @Inject
-    private ApiQueryService apiQueryService;
+    private ApiCRDTargetDomainService apiCRDTargetDomainService;
 
     @Context
     private ResourceContext resourceContext;
@@ -113,7 +113,7 @@ public class ApisResource extends AbstractResource {
 
         apiCRDSpec.setIgnoreGroups(ignoreGroups);
 
-        authorizeImport(apiCRDSpec.getCrossId(), auditInfo.environmentId());
+        authorizeImport(apiCRDSpec, auditInfo.environmentId());
 
         if (dryRun) {
             var statusBuilder = ApiCRDStatus.builder();
@@ -137,9 +137,9 @@ public class ApisResource extends AbstractResource {
         return Response.ok(ApiMapper.INSTANCE.apiV4SpecAndStatusToApiV4State(spec, apiCRDStatus)).build();
     }
 
-    private void authorizeImport(String crossId, String environmentId) {
+    private void authorizeImport(ApiCRDSpec spec, String environmentId) {
         // The same lookup as the import: authorize against the API it would update
-        var existing = apiQueryService.findByEnvironmentIdAndCrossId(environmentId, crossId);
+        var existing = apiCRDTargetDomainService.findExistingApi(environmentId, spec);
         requireCreateOrUpdate(RolePermission.ENVIRONMENT_API, RolePermission.API_DEFINITION, existing.map(Api::getId).orElse(null));
     }
 

@@ -80,6 +80,7 @@ import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.ValidateResourceDomainServiceInMemory;
 import inmemory.WorkflowCrudServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.ApiCRDTargetDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
@@ -240,6 +241,7 @@ class ImportApiCRDUseCaseTest {
     PolicyValidationDomainService policyValidationDomainService = mock(PolicyValidationDomainService.class);
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
+    ApiCRDTargetDomainService apiCRDTargetDomainService = new ApiCRDTargetDomainService(apiQueryService, apiCrudService);
     PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
@@ -412,7 +414,7 @@ class ImportApiCRDUseCaseTest {
             new ValidatePlanDomainService(planValidatorService, verifyPlanPortRanges),
             new ValidatePortalNotificationDomainService(new ValidateGroupsDomainService(groupQueryService)),
             new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
-            apiQueryService,
+            apiCRDTargetDomainService,
             propertyDomainService,
             crdMembersDomainService,
             mock(ValidateKafkaClusterBindingDomainService.class),
@@ -485,7 +487,7 @@ class ImportApiCRDUseCaseTest {
 
         useCase = new ImportApiCRDUseCase(
             apiCrudService,
-            apiQueryService,
+            apiCRDTargetDomainService,
             apiPrimaryOwnerFactory,
             validateApiDomainService,
             createApiDomainService,
