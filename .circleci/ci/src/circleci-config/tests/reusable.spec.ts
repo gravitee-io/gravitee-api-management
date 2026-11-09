@@ -49,7 +49,7 @@ describe('ReusedCommand', () => {
   });
 
   it('emits name mapped to its arguments otherwise', () => {
-    const keeper = new OrbImport('keeper', 'gravitee-io', 'keeper', '0.7.0', undefined, {
+    const keeper = new OrbImport('keeper', 'gravitee-io', 'keeper', '0.7.3', undefined, {
       commands: { 'env-export': new CustomParametersList([new CustomParameter('var-name', 'string')]) },
     });
     expect(new ReusedCommand(keeper.commands['env-export'], { 'var-name': 'TOKEN' }).generate()).toStrictEqual({
