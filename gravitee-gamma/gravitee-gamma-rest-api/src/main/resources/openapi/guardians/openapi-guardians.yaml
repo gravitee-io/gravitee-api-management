@@ -210,7 +210,13 @@ paths:
                 **A `PUT` replaces, it does not patch.** A property the payload omits is left out of
                 the stored definition too, so a client that edits one setting sends back everything
                 it read — sending only `name` answers 400, because `phase` and `apiTypes` are
-                required. Only the identity and `deployedAt` are kept back from the caller.
+                required.
+
+                **The response of `GET /guardians/{guardianId}` is a valid body here.** The fields only
+                the store owns — `id`, `lifecycleState`, `deployedAt`, `createdAt`, `updatedAt` — are
+                read and dropped, so a client need not strip them. They cannot be set this way: the id
+                comes from the path, the lifecycle and the deployment stamp belong to a deployment, and
+                the timestamps are the store's.
             operationId: updateGuardian
             requestBody:
                 required: true
@@ -478,9 +484,38 @@ components:
                 setting sends back everything it read.
 
                 `id` is not a property — the path owns it, and a second one in the body could only
-                disagree. Rejects any key it does not declare.
+                disagree.
+
+                Rejects any key it does not declare. The five `readOnly` properties below are
+                declared for exactly that reason: they are what a `GET` returns and only the store
+                writes them, so they are accepted here and ignored rather than refused, and the
+                response of a `GET` can be sent straight back.
             additionalProperties: false
             properties:
+                id:
+                    type: string
+                    readOnly: true
+                    description: Ignored — the path owns the identity.
+                lifecycleState:
+                    allOf:
+                        - $ref: "#/components/schemas/GuardianLifecycleState"
+                    readOnly: true
+                    description: Ignored — only a deployment moves the lifecycle.
+                deployedAt:
+                    allOf:
+                        - $ref: "#/components/schemas/Timestamp"
+                    readOnly: true
+                    description: Ignored — only a deployment writes the stamp.
+                createdAt:
+                    allOf:
+                        - $ref: "#/components/schemas/Timestamp"
+                    readOnly: true
+                    description: Ignored — the store owns it.
+                updatedAt:
+                    allOf:
+                        - $ref: "#/components/schemas/Timestamp"
+                    readOnly: true
+                    description: Ignored — the store owns it.
                 name:
                     type: string
                     maxLength: 512
