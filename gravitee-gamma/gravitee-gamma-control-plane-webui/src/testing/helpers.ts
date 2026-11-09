@@ -23,6 +23,7 @@ import { useAuthStore } from '../features/auth/auth.store';
 import type { CurrentUser } from '../features/auth/auth.types';
 import { useEnvironmentStore } from '../features/environment/environment.store';
 import { useModulesStore } from '../features/modules/modules.store';
+import { useHumanApprovalsStore } from '../pages/tasks/humanApprovals';
 import { useBootstrapStore } from '../shared/config/bootstrap.store';
 import type { BootstrapConfig } from '../shared/config/bootstrap.store';
 
@@ -97,6 +98,7 @@ export function resetAllStores() {
     });
     useEnvironmentStore.getState().reset();
     useModulesStore.setState({ modules: [], moduleLoadStatuses: {}, listStatus: 'loaded', listRequest: 0 });
+    useHumanApprovalsStore.getState().reset();
     permissionService.reset();
     localStorage.clear();
 }
@@ -125,6 +127,20 @@ export function seedUser(overrides: Partial<CurrentUser> = {}) {
         initialized: true,
         oauthRedirectUrl: null,
     });
+}
+
+/** Pre-populates the modules store as if the platform listed these modules, each shipping a UI. */
+export function seedModules(...ids: string[]) {
+    useModulesStore.setState({
+        modules: ids.map(id => ({ id, name: id, version: '1.0.0', remoteName: id, exposedModule: 'Module' })),
+        listStatus: 'loaded',
+    });
+}
+
+/** A user who may decide human approvals in an environment where the aim module is installed. */
+export function seedHumanApprovalDecider() {
+    seedModules('aim');
+    permissionService.load('environment', ['environment-hitl_decisions-r', 'environment-hitl_decisions-u']);
 }
 
 /** Pre-populates the environment store as if `initialize` succeeded with {@link TEST_ENVIRONMENTS}. */

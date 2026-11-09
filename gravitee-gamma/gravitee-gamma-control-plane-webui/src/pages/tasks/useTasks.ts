@@ -15,7 +15,8 @@
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { toTaskView } from './tasks.mapping';
+import { useHumanApprovals, type HumanApprovals } from './humanApprovals';
+import { humanApprovalsInboxPath, humanApprovalToTaskView, toTaskView } from './tasks.mapping';
 import type { TasksResponse, TaskView } from './tasks.types';
 import { useEnvironmentStore } from '../../features/environment/environment.store';
 import { getPrimaryHrid } from '../../features/environment/environment.utils';
@@ -70,11 +71,25 @@ function useTasksPollIntervalMs(enabled: boolean): number {
     return intervalMs;
 }
 
+export interface ApprovalsOverflow {
+    readonly listed: number;
+    readonly total: number;
+    readonly inboxPath: string;
+    readonly environmentName: string | undefined;
+}
+
 export interface UseTasksResult {
     readonly tasks: TaskView[];
     readonly totalCount: number;
+    /** `/user/tasks` only: `humanApprovals` settles on its own. */
     readonly loading: boolean;
     readonly error: Error | null;
+    readonly humanApprovals: HumanApprovals;
+    /** Set when AIM holds more approvals than `tasks` lists; the rest are read in its inbox. */
+    readonly approvalsOverflow: ApprovalsOverflow | null;
+    /** The environment the approvals are read in, unlike the other tasks, which span every environment. */
+    readonly approvalsEnvironmentName: string | undefined;
+    readonly refreshing: boolean;
     readonly reload: () => void;
     readonly processPromotion: (promotionId: string, accepted: boolean) => Promise<void>;
 }
@@ -82,16 +97,21 @@ export interface UseTasksResult {
 function useTasksResponse({ poll }: { poll: boolean }): {
     response: TasksResponse | null;
     loading: boolean;
+    reloading: boolean;
     error: Error | null;
     reload: () => void;
 } {
     const [response, setResponse] = useState<TasksResponse | null>(null);
     const [loading, setLoading] = useState(true);
+    const [reloading, setReloading] = useState(false);
     const [error, setError] = useState<Error | null>(null);
     const [tick, setTick] = useState(0);
     const intervalMs = useTasksPollIntervalMs(poll);
 
-    const reload = useCallback(() => setTick(t => t + 1), []);
+    const reload = useCallback(() => {
+        setReloading(true);
+        setTick(t => t + 1);
+    }, []);
 
     useEffect(() => {
         let cancelled = false;
@@ -113,6 +133,7 @@ function useTasksResponse({ poll }: { poll: boolean }): {
                 .finally(() => {
                     if (!cancelled) {
                         setLoading(false);
+                        setReloading(false);
                     }
                 });
 
@@ -138,14 +159,16 @@ function useTasksResponse({ poll }: { poll: boolean }): {
         };
     }, [tick, poll, intervalMs]);
 
-    return { response, loading, error, reload };
+    return { response, loading, reloading, error, reload };
 }
 
 export function useTasks(): UseTasksResult {
     // The sheet also opens from an account module, whose address has no environment.
     const envHrid = useCurrentEnvHrid();
     const environments = useEnvironmentStore(s => s.environments);
-    const { response, loading, error, reload } = useTasksResponse({ poll: false });
+    const environmentName = useEnvironmentStore(s => s.currentEnvironment?.name);
+    const { response, loading, reloading, error, reload: reloadUserTasks } = useTasksResponse({ poll: false });
+    const { humanApprovals, refreshing: refreshingHumanApprovals, refresh: refreshHumanApprovals } = useHumanApprovals();
 
     const resolveEnvHrid = useCallback(
         (environmentId?: string): string => {
@@ -158,28 +181,67 @@ export function useTasks(): UseTasksResult {
         [environments, envHrid],
     );
 
-    const tasks = useMemo(
+    const userTasks = useMemo(
         () => (response ? response.data.map(entity => toTaskView(entity, response.metadata, resolveEnvHrid)) : []),
         [response, resolveEnvHrid],
     );
 
-    const totalCount = response?.page?.total_elements ?? tasks.length;
+    const approvalTasks = useMemo(
+        () =>
+            humanApprovals.status === 'loaded'
+                ? humanApprovals.items.map(approval => humanApprovalToTaskView(approval, resolveEnvHrid(humanApprovals.environmentId)))
+                : [],
+        [humanApprovals, resolveEnvHrid],
+    );
+
+    const tasks = useMemo(() => [...approvalTasks, ...userTasks], [approvalTasks, userTasks]);
+
+    const approvalsCount = humanApprovals.status === 'loaded' ? humanApprovals.totalCount : 0;
+    const totalCount = (response?.page?.total_elements ?? userTasks.length) + approvalsCount;
+
+    const approvalsOverflow =
+        humanApprovals.status === 'loaded' && humanApprovals.totalCount > humanApprovals.items.length
+            ? {
+                  listed: humanApprovals.items.length,
+                  total: humanApprovals.totalCount,
+                  inboxPath: humanApprovalsInboxPath(resolveEnvHrid(humanApprovals.environmentId)),
+                  environmentName,
+              }
+            : null;
+
+    const reload = useCallback(() => {
+        reloadUserTasks();
+        refreshHumanApprovals();
+    }, [reloadUserTasks, refreshHumanApprovals]);
 
     const processPromotion = useCallback(
         async (promotionId: string, accepted: boolean) => {
             await requestProcessPromotion(promotionId, accepted);
-            reload();
+            reloadUserTasks();
         },
-        [reload],
+        [reloadUserTasks],
     );
 
-    return { tasks, totalCount, loading, error, reload, processPromotion };
+    return {
+        tasks,
+        totalCount,
+        loading,
+        error,
+        humanApprovals,
+        approvalsOverflow,
+        approvalsEnvironmentName: environmentName,
+        refreshing: reloading || refreshingHumanApprovals,
+        reload,
+        processPromotion,
+    };
 }
 
 export function usePendingTaskCount(): number | null {
     const { response } = useTasksResponse({ poll: true });
-    if (!response) {
+    const { humanApprovals } = useHumanApprovals();
+    const approvalsCount = humanApprovals.status === 'loaded' ? humanApprovals.totalCount : null;
+    if (!response && approvalsCount === null) {
         return null;
     }
-    return response.page?.total_elements ?? response.data.length;
+    return (response ? (response.page?.total_elements ?? response.data.length) : 0) + (approvalsCount ?? 0);
 }
