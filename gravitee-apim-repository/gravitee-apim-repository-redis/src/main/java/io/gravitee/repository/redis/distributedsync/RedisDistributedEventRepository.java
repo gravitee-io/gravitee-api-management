@@ -26,6 +26,7 @@ import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.gravitee.repository.redis.vertx.RedisClient;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.Future;
 import io.vertx.redis.client.RedisAPI;
@@ -182,6 +183,17 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
                     UPDATE_MAX_CONCURRENCY
                 );
         });
+    }
+
+    @Override
+    public Maybe<DistributedEvent> find(final String clusterId, final DistributedEventType type, final String id) {
+        if (clusterId == null || clusterId.isBlank()) {
+            return Maybe.error(new IllegalArgumentException(CLUSTER_ID_PARAMETER_REQUIRED_MESSAGE));
+        }
+        String key = buildEventKey(DistributedEvent.builder().clusterId(clusterId).type(type).id(id).build());
+        return send(redisAPI -> redisAPI.hgetall(key))
+            .filter(response -> response.type() == ResponseType.MULTI && response.size() != 0)
+            .map(this::mapSearchResponse);
     }
 
     private Completable createOrUpdateKey(final String key, final DistributedEvent distributedEvent) {

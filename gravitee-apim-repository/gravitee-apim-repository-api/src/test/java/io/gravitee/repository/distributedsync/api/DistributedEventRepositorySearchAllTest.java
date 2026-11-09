@@ -23,6 +23,7 @@ import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -41,6 +42,11 @@ class DistributedEventRepositorySearchAllTest {
 
     private DistributedEventRepository repositoryOf(final List<DistributedEvent> events) {
         return new DistributedEventRepository() {
+            @Override
+            public Maybe<DistributedEvent> find(String clusterId, DistributedEventType type, String id) {
+                return Maybe.empty();
+            }
+
             @Override
             public Flowable<DistributedEvent> search(DistributedEventCriteria criteria, Long page, Long size) {
                 searchCalls.incrementAndGet();

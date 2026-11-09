@@ -41,4 +41,9 @@ public class DistributedSyncState {
     private String nodeVersion;
     private Long from;
     private Long to;
+    private DistributedSyncStatus status;
+    /** Who asked for the latest pause or resume. Confirmations by the primary leave it unchanged. */
+    private String statusRequestedBy;
+    private String statusRequestReason;
+    private Long statusRequestedAt;
 }

@@ -21,6 +21,7 @@ import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -30,6 +31,17 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author GraviteeSource Team
  */
 public interface DistributedEventRepository {
+    /**
+     * Find the {@link DistributedEvent} that has no reference to another event, from its identity.
+     *
+     * @param clusterId cluster identifier used to scope distributed events
+     * @param type {@link DistributedEventType} of the event
+     * @param id identifier of the event
+     *
+     * @return the {@link DistributedEvent} found or not.
+     */
+    Maybe<DistributedEvent> find(final String clusterId, final DistributedEventType type, final String id);
+
     /**
      * Search for {@link DistributedEvent} matching the corresponding criteria.
      *

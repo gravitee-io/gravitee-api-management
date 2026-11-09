@@ -19,6 +19,7 @@ import static io.gravitee.repository.redis.distributedsync.RedisDistributedSyncR
 
 import io.gravitee.repository.distributedsync.api.DistributedSyncStateRepository;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
+import io.gravitee.repository.distributedsync.model.DistributedSyncStatus;
 import io.gravitee.repository.redis.vertx.RedisClient;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -84,6 +85,23 @@ public class RedisDistributedSyncStateRepository implements DistributedSyncState
                 if (toResponse != null) {
                     distributedSyncStateBuilder.to(toResponse.toLong());
                 }
+                // Get status
+                Response statusResponse = item.get(DistributedSyncState.Fields.status);
+                if (statusResponse != null) {
+                    distributedSyncStateBuilder.status(DistributedSyncStatus.valueOf(statusResponse.toString()));
+                }
+                Response requestedByResponse = item.get(DistributedSyncState.Fields.statusRequestedBy);
+                if (requestedByResponse != null) {
+                    distributedSyncStateBuilder.statusRequestedBy(requestedByResponse.toString());
+                }
+                Response reasonResponse = item.get(DistributedSyncState.Fields.statusRequestReason);
+                if (reasonResponse != null && !reasonResponse.toString().isEmpty()) {
+                    distributedSyncStateBuilder.statusRequestReason(reasonResponse.toString());
+                }
+                Response requestedAtResponse = item.get(DistributedSyncState.Fields.statusRequestedAt);
+                if (requestedAtResponse != null) {
+                    distributedSyncStateBuilder.statusRequestedAt(requestedAtResponse.toLong());
+                }
                 return distributedSyncStateBuilder.build();
             });
     }
@@ -108,6 +126,63 @@ public class RedisDistributedSyncStateRepository implements DistributedSyncState
                                 String.valueOf(distributedSyncState.getFrom()),
                                 DistributedSyncState.Fields.to,
                                 String.valueOf(distributedSyncState.getTo())
+                            )
+                        )
+                    )
+                    .toCompletionStage()
+            )
+        );
+    }
+
+    @Override
+    public Completable updateStatus(final String clusterId, final DistributedSyncStatus status) {
+        return Completable.defer(() ->
+            Completable.fromCompletionStage(
+                redisClient
+                    .redisApi()
+                    .flatMap(redisAPI ->
+                        redisAPI.hset(
+                            List.of(
+                                REDIS_KEY_PREFIX + clusterId,
+                                DistributedSyncState.Fields.clusterId,
+                                clusterId,
+                                DistributedSyncState.Fields.status,
+                                status.name()
+                            )
+                        )
+                    )
+                    .toCompletionStage()
+            )
+        );
+    }
+
+    @Override
+    public Completable requestStatus(
+        final String clusterId,
+        final DistributedSyncStatus status,
+        final String requestedBy,
+        final String reason,
+        final long requestedAt
+    ) {
+        return Completable.defer(() ->
+            Completable.fromCompletionStage(
+                redisClient
+                    .redisApi()
+                    .flatMap(redisAPI ->
+                        redisAPI.hset(
+                            List.of(
+                                REDIS_KEY_PREFIX + clusterId,
+                                DistributedSyncState.Fields.clusterId,
+                                clusterId,
+                                DistributedSyncState.Fields.status,
+                                status.name(),
+                                DistributedSyncState.Fields.statusRequestedBy,
+                                requestedBy,
+                                // A hash field cannot hold null, and an empty value must replace the previous reason.
+                                DistributedSyncState.Fields.statusRequestReason,
+                                reason == null ? "" : reason,
+                                DistributedSyncState.Fields.statusRequestedAt,
+                                String.valueOf(requestedAt)
                             )
                         )
                     )

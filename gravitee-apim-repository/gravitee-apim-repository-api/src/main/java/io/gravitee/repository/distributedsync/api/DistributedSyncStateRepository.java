@@ -16,6 +16,7 @@
 package io.gravitee.repository.distributedsync.api;
 
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
+import io.gravitee.repository.distributedsync.model.DistributedSyncStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 
@@ -42,4 +43,31 @@ public interface DistributedSyncStateRepository {
      * @return the {@link DistributedSyncState} created or updated
      */
     Completable createOrUpdate(final DistributedSyncState distributedSyncState);
+
+    /**
+     * Updates only the status, so the stored sync window stays available as the point to resume from.
+     *
+     * @param clusterId cluster id of the state to update
+     * @param status {@link DistributedSyncStatus} to store
+     * @return {@link Completable}
+     */
+    Completable updateStatus(final String clusterId, final DistributedSyncStatus status);
+
+    /**
+     * Updates the status with who asked for it and why, keeping the stored sync window.
+     *
+     * @param clusterId cluster id of the state to update
+     * @param status {@link DistributedSyncStatus} to store
+     * @param requestedBy who asked for the change
+     * @param reason why, or null to clear the previous reason
+     * @param requestedAt when, in milliseconds since the epoch
+     * @return {@link Completable}
+     */
+    Completable requestStatus(
+        final String clusterId,
+        final DistributedSyncStatus status,
+        final String requestedBy,
+        final String reason,
+        final long requestedAt
+    );
 }

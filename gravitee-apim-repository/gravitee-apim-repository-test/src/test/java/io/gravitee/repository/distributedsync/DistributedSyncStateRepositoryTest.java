@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.distributedsync.api.DistributedSyncStateRepository;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
+import io.gravitee.repository.distributedsync.model.DistributedSyncStatus;
 import lombok.CustomLog;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,5 +74,69 @@ public class DistributedSyncStateRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void should_not_return_state_from_wrong_clusterId() throws InterruptedException {
         distributedSyncStateRepository.findByClusterId("wrong").test().await().assertComplete();
+    }
+
+    @Test
+    public void should_update_status_and_keep_the_sync_window() throws InterruptedException {
+        distributedSyncStateRepository.updateStatus("clusterId", DistributedSyncStatus.PAUSED).test().await().assertComplete();
+
+        distributedSyncStateRepository
+            .findByClusterId("clusterId")
+            .test()
+            .await()
+            .assertValue(distributedSyncState -> {
+                assertThat(distributedSyncState.getStatus()).isEqualTo(DistributedSyncStatus.PAUSED);
+                assertThat(distributedSyncState.getFrom()).isEqualTo(1683877018L);
+                assertThat(distributedSyncState.getTo()).isEqualTo(1683877618L);
+                return true;
+            });
+    }
+
+    @Test
+    public void should_request_a_status_with_its_author_and_keep_it_across_confirmations() throws InterruptedException {
+        distributedSyncStateRepository
+            .requestStatus("clusterId", DistributedSyncStatus.PAUSING, "ops", "certificate expired", 1683878000L)
+            .test()
+            .await()
+            .assertComplete();
+        distributedSyncStateRepository.updateStatus("clusterId", DistributedSyncStatus.PAUSED).test().await().assertComplete();
+
+        distributedSyncStateRepository
+            .findByClusterId("clusterId")
+            .test()
+            .await()
+            .assertValue(distributedSyncState -> {
+                assertThat(distributedSyncState.getStatus()).isEqualTo(DistributedSyncStatus.PAUSED);
+                assertThat(distributedSyncState.getStatusRequestedBy()).isEqualTo("ops");
+                assertThat(distributedSyncState.getStatusRequestReason()).isEqualTo("certificate expired");
+                assertThat(distributedSyncState.getStatusRequestedAt()).isEqualTo(1683878000L);
+                assertThat(distributedSyncState.getFrom()).isEqualTo(1683877018L);
+                return true;
+            });
+    }
+
+    @Test
+    public void should_clear_the_previous_reason_when_a_request_has_none() throws InterruptedException {
+        distributedSyncStateRepository
+            .requestStatus("clusterId", DistributedSyncStatus.PAUSING, "ops", "certificate expired", 1683878000L)
+            .test()
+            .await()
+            .assertComplete();
+
+        distributedSyncStateRepository
+            .requestStatus("clusterId", DistributedSyncStatus.RESUMING, "lead", null, 1683879000L)
+            .test()
+            .await()
+            .assertComplete();
+
+        distributedSyncStateRepository
+            .findByClusterId("clusterId")
+            .test()
+            .await()
+            .assertValue(distributedSyncState -> {
+                assertThat(distributedSyncState.getStatusRequestedBy()).isEqualTo("lead");
+                assertThat(distributedSyncState.getStatusRequestReason()).isNull();
+                return true;
+            });
     }
 }

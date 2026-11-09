@@ -446,4 +446,29 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
                 return true;
             });
     }
+
+    @Test
+    public void should_find_event_by_identity() throws InterruptedException {
+        distributedEventRepository
+            .find("test-cluster", DistributedEventType.API, "1")
+            .test()
+            .await()
+            .assertValue(event -> {
+                assertThat(event.getId()).isEqualTo("1");
+                assertThat(event.getType()).isEqualTo(DistributedEventType.API);
+                assertThat(event.getPayload()).isEqualTo("payload");
+                assertThat(event.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
+                return true;
+            });
+    }
+
+    @Test
+    public void should_not_find_event_with_unknown_identity() throws InterruptedException {
+        distributedEventRepository
+            .find("test-cluster", DistributedEventType.API, "unknown")
+            .test()
+            .await()
+            .assertNoValues()
+            .assertComplete();
+    }
 }
