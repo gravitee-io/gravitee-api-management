@@ -15,7 +15,7 @@
  */
 import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
 import { SidebarNavigation, useLayoutConfig } from '@gravitee/graphene-core';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 
@@ -23,8 +23,9 @@ import { useModuleBreadcrumbs } from './useModuleBreadcrumbs';
 import { useModuleNavigation } from './useModuleNavigation';
 import { getActiveNavKey, PORTALS_ROUTE_CONFIG, ROUTES } from '../config/routes';
 import { PortalOverviewPlaceholderPage } from '../features/portals/pages/PortalOverviewPlaceholderPage';
-import { PortalsDashboardPlaceholderPage } from '../features/portals/pages/PortalsDashboardPlaceholderPage';
+import { PortalsDashboardPage } from '../features/portals/pages/PortalsDashboardPage';
 import { PortalsListPlaceholderPage } from '../features/portals/pages/PortalsListPlaceholderPage';
+import { createPortalsQueryClient } from '../shared/api/queryClient';
 
 function ModuleLayout() {
     const routing = useModuleRouting(PORTALS_ROUTE_CONFIG);
@@ -45,13 +46,13 @@ function ModuleLayout() {
 }
 
 export function AppRoutes() {
-    const [queryClient] = useState(() => new QueryClient());
+    const [queryClient] = useState(createPortalsQueryClient);
 
     return (
         <QueryClientProvider client={queryClient}>
             <Routes>
                 <Route element={<ModuleLayout />}>
-                    <Route index element={<PortalsDashboardPlaceholderPage />} />
+                    <Route index element={<PortalsDashboardPage />} />
                     <Route path={ROUTES.portals.path} element={<PortalsListPlaceholderPage />} />
                     <Route path=":portalId">
                         <Route index element={<Navigate to="overview" replace />} />
