@@ -19,13 +19,15 @@ import { TasksBody } from './TasksBody';
 import { useTasks } from '../useTasks';
 
 function TasksSheetContent({ onClose }: { onClose: () => void }) {
-    const { tasks, loading, error, reload, processPromotion } = useTasks();
+    const { tasks, loading, error, humanApprovals, approvalsOverflow, reload, processPromotion } = useTasks();
     return (
         <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
             <TasksBody
                 tasks={tasks}
                 loading={loading}
                 error={error}
+                humanApprovals={humanApprovals}
+                approvalsOverflow={approvalsOverflow}
                 reload={reload}
                 compact
                 onNavigate={onClose}

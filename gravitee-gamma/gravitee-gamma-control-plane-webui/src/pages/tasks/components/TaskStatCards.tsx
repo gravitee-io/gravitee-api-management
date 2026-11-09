@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 import { Card, CardContent, Skeleton } from '@gravitee/graphene-core';
-import { CloudUploadIcon, EyeIcon, InboxIcon, KeyIcon } from '@gravitee/graphene-core/icons';
+import { CloudUploadIcon, EyeIcon, InboxIcon, KeyIcon, ShieldCheckIcon } from '@gravitee/graphene-core/icons';
 import type { LucideIcon } from '@gravitee/graphene-core/icons';
 
-function StatCard({ Icon, title, total }: { Icon: LucideIcon; title: string; total: number | null }) {
+/** `null` is still loading; `unavailable` could not be read, which no number or endless skeleton would say. */
+export type StatValue = number | null | 'unavailable';
+
+function StatCard({ Icon, title, total }: { Icon: LucideIcon; title: string; total: StatValue }) {
     return (
         <Card className="flex-1">
             <CardContent className="pt-5 pb-5">
@@ -29,6 +32,11 @@ function StatCard({ Icon, title, total }: { Icon: LucideIcon; title: string; tot
                 </div>
                 {total === null ? (
                     <Skeleton className="h-7 w-14 rounded" />
+                ) : total === 'unavailable' ? (
+                    <p className="text-2xl font-semibold tracking-tight text-muted-foreground">
+                        <span aria-hidden>—</span>
+                        <span className="sr-only">{title} unavailable</span>
+                    </p>
                 ) : (
                     <p className="text-2xl font-semibold tracking-tight">{total.toLocaleString()}</p>
                 )}
@@ -38,15 +46,26 @@ function StatCard({ Icon, title, total }: { Icon: LucideIcon; title: string; tot
 }
 
 interface TaskStatCardsProps {
-    readonly total: number | null;
+    /** Absent when the user has no human approvals to count. */
+    readonly approvals?: StatValue;
+    /** AIM lists approvals per environment, unlike the other tasks, which span them all. */
+    readonly approvalsEnvironmentName?: string;
+    readonly total: StatValue;
     readonly subscriptions: number | null;
     readonly reviews: number | null;
     readonly promotions: number | null;
 }
 
-export function TaskStatCards({ total, subscriptions, reviews, promotions }: TaskStatCardsProps) {
+export function TaskStatCards({ approvals, approvalsEnvironmentName, total, subscriptions, reviews, promotions }: TaskStatCardsProps) {
     return (
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-4">
+            {approvals !== undefined && (
+                <StatCard
+                    Icon={ShieldCheckIcon}
+                    title={approvalsEnvironmentName ? `Approvals in ${approvalsEnvironmentName}` : 'Approvals'}
+                    total={approvals}
+                />
+            )}
             <StatCard Icon={InboxIcon} title="Pending tasks" total={total} />
             <StatCard Icon={KeyIcon} title="Subscriptions" total={subscriptions} />
             <StatCard Icon={EyeIcon} title="API reviews" total={reviews} />

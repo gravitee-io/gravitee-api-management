@@ -22,6 +22,7 @@ import type { TaskCategory } from '../tasks.types';
 export type TaskFilterValue = TaskCategory | 'all';
 
 const CATEGORY_ORDER: readonly { key: TaskCategory; label: string }[] = [
+    { key: 'HUMAN_APPROVAL', label: 'Approval' },
     { key: 'SUBSCRIPTION', label: 'Subscription' },
     { key: 'API_REVIEW', label: 'API Review' },
     { key: 'CHANGES_REQUESTED', label: 'Changes' },
@@ -46,6 +47,8 @@ const ACTIVE_CHIP_STYLE: CSSProperties = {
 interface TaskToolbarProps {
     readonly counts: Record<TaskCategory, number>;
     readonly total: number;
+    /** Without approvals read there is nothing to filter, and a count would read as none. */
+    readonly approvalsLoaded: boolean;
     readonly filter: TaskFilterValue;
     readonly onFilterChange: (value: TaskFilterValue) => void;
     readonly sort: TaskSortOrder;
@@ -53,10 +56,23 @@ interface TaskToolbarProps {
     readonly compact?: boolean;
 }
 
-export function TaskToolbar({ counts, total, filter, onFilterChange, sort, onSortChange, compact = false }: TaskToolbarProps) {
+export function TaskToolbar({
+    counts,
+    total,
+    approvalsLoaded,
+    filter,
+    onFilterChange,
+    sort,
+    onSortChange,
+    compact = false,
+}: TaskToolbarProps) {
     const filterOptions: { key: TaskFilterValue; label: string; count: number }[] = [
         { key: 'all', label: 'All', count: total },
-        ...CATEGORY_ORDER.map(category => ({ key: category.key, label: category.label, count: counts[category.key] })),
+        ...CATEGORY_ORDER.filter(category => category.key !== 'HUMAN_APPROVAL' || approvalsLoaded).map(category => ({
+            key: category.key,
+            label: category.label,
+            count: counts[category.key],
+        })),
     ];
 
     if (compact) {

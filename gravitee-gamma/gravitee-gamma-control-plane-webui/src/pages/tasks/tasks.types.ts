@@ -13,15 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type TaskType = 'SUBSCRIPTION_APPROVAL' | 'IN_REVIEW' | 'REQUEST_FOR_CHANGES' | 'USER_REGISTRATION_APPROVAL' | 'PROMOTION_APPROVAL';
+export type UserTaskType =
+    | 'SUBSCRIPTION_APPROVAL'
+    | 'IN_REVIEW'
+    | 'REQUEST_FOR_CHANGES'
+    | 'USER_REGISTRATION_APPROVAL'
+    | 'PROMOTION_APPROVAL';
+
+export type TaskType = UserTaskType | 'HUMAN_APPROVAL';
 
 export interface TaskEntity {
-    readonly type: TaskType;
+    readonly type: UserTaskType;
     readonly data: Record<string, unknown>;
     readonly created_at: number;
 }
 
 export type TaskMetadata = Record<string, Record<string, unknown> | undefined>;
+
+/** The fields of AIM's `Approval` (`openapi-approval.yaml`, in the AIM repository) that a task shows. */
+export interface HumanApproval {
+    readonly id: string;
+    readonly status: string;
+    readonly toolName: string;
+    readonly caller: { readonly applicationId: string; readonly applicationName?: string | null };
+    readonly rule: { readonly name: string };
+    readonly createdAt: string;
+}
 
 export interface TasksResponse {
     readonly data: TaskEntity[];
@@ -29,16 +46,16 @@ export interface TasksResponse {
     readonly page?: { readonly total_elements?: number };
 }
 
-export type TaskCategory = 'SUBSCRIPTION' | 'API_REVIEW' | 'CHANGES_REQUESTED' | 'USER_REGISTRATION' | 'API_PROMOTION';
+export type TaskCategory = 'SUBSCRIPTION' | 'API_REVIEW' | 'CHANGES_REQUESTED' | 'USER_REGISTRATION' | 'API_PROMOTION' | 'HUMAN_APPROVAL';
 
-export type TaskAreaKey = 'apim' | 'esm' | 'mcp' | 'ai' | 'llm' | 'kafka' | 'users';
+export type TaskAreaKey = 'apim' | 'esm' | 'mcp' | 'ai' | 'llm' | 'kafka' | 'users' | 'aim';
 
 export interface TaskArea {
     readonly key: TaskAreaKey;
     readonly label: string;
 }
 
-export type TaskIconKey = 'subscription' | 'review' | 'changes' | 'registration' | 'promotion';
+export type TaskIconKey = 'subscription' | 'review' | 'changes' | 'registration' | 'promotion' | 'approval';
 
 export interface PromotionReviewData {
     readonly promotionId: string;
@@ -66,5 +83,6 @@ export interface TaskView {
     readonly createdAt: number;
     readonly to: string | null;
     readonly toModuleId: string | null;
-    readonly entity: TaskEntity;
+    /** What `/user/tasks` served; a human approval comes from the aim module. */
+    readonly entity?: TaskEntity;
 }
