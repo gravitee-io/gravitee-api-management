@@ -989,9 +989,17 @@ api:
   properties:
     encryption:
       secret: vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6
-  # Environment secrets. Secret values are encrypted with AES-256-GCM under this key.
-  # Without a valid key the Management API still starts, but creating or rotating a secret fails.
-  # Generate a key with: openssl rand -base64 32
+  # Environment secrets use envelope encryption. Each organization gets its own random data key, stored in the
+  # database wrapped by this key encryption key (KEK), and secret values are encrypted with AES-256-GCM under the data key.
+  # The KEK never goes to the database, so a database dump without it cannot decrypt any value.
+  # - Generate a KEK with: openssl rand -base64 32
+  # - Set it here or with the GRAVITEE_API_SECRETS_ENCRYPTION_KEY environment variable. Keep it apart from
+  #   api.properties.encryption.secret, and give every Management API node the same value.
+  # - Keep a copy somewhere safe: if the KEK is lost, every stored secret is lost with it.
+  # Without a valid KEK, or with a KEK other than the one that encrypted the stored secrets, the Management API still
+  # starts and logs an error naming the problem (never the key), and every secrets call fails with that error.
+  # Warning: DEBUG on the org.mongodb.driver logger writes whole commands and replies, encrypted secret values included,
+  # to the logs. The Gravitee and Spring loggers never log a value, up to TRACE.
   #secrets:
   #  encryption:
   #    key: <base64 of 32 random bytes>
