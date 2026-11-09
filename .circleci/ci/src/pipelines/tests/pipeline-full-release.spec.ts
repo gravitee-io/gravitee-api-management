@@ -39,6 +39,7 @@ describe('Full release tests', () => {
         branch,
         isDryRun,
         dockerTagAsLatest,
+        supportBranches: ['4.2.x', '4.1.x'],
       });
 
       const expected = fs.readFileSync(`./src/pipelines/tests/resources/full-release/${expectedResult}`, 'utf-8');
@@ -59,6 +60,7 @@ describe('Full release tests', () => {
         baseBranch: '4.2.x',
         isDryRun: false,
         apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
+        supportBranches: ['4.2.x', '4.1.x'],
       }).stringify();
 
     const scannedImagesOf = (version: string): string[] =>
@@ -101,11 +103,42 @@ describe('Full release tests', () => {
       baseBranch: 'master',
       isDryRun: false,
       apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
+      supportBranches: ['4.2.x', '4.1.x'],
     });
 
     const stringified = result.stringify();
     expect(stringified).toContain('full_release');
     // The version bump commit is pushed to the very branch that triggered the release.
     expect(stringified).toContain('apim-1234-dev');
+  });
+
+  describe('SaaS triggers', () => {
+    // The line comes from the version, since a release can be started from any branch.
+    const releaseConfigOf = (version: string, supportBranches: string[]): string =>
+      generateFullReleaseConfig({
+        action: 'full_release',
+        sha1: '784ff35ca',
+        changedFiles: [],
+        buildNum: '1234',
+        buildId: '1234',
+        graviteeioVersion: version,
+        branch: 'apim-1234-dev',
+        baseBranch: 'master',
+        isDryRun: false,
+        apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
+        supportBranches,
+      }).stringify();
+
+    it('should trigger the SaaS pipeline for the debian flavor alone, on one of the two newest lines', () => {
+      const generated = releaseConfigOf('4.2.3', ['4.2.x', '4.1.x']);
+
+      expect(generated.match(/os-distribution/g)).toHaveLength(1);
+      expect(generated).toContain('"os-distribution":"debian"');
+      expect(generated).toContain('name: Trigger SaaS Docker images creation');
+    });
+
+    it('should neither trigger nor wait on the SaaS pipelines for an older line', () => {
+      expect(releaseConfigOf('4.1.5', ['4.3.x', '4.2.x', '4.1.x'])).not.toContain('SaaS');
+    });
   });
 });

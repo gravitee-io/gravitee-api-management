@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { changedFiles, diffRef, isBlank, isSupportBranchOrMaster, remoteSupportBranches, remoteTags } from './utils';
+import { changedFiles, diffRef, isBlank, isSupportBranch, isSupportBranchOrMaster, remoteSupportBranches, remoteTags } from './utils';
 import { argv } from 'node:process';
 import { buildCIPipeline, CircleCIEnvironment } from './pipelines';
 import * as fs from 'fs';
@@ -53,8 +53,10 @@ const action = CI_ACTION ?? 'pull_requests';
  * action only.
  */
 const isBridgeRun = action === 'bridge_compatibility_tests';
+/** Only the newest lines trigger the SaaS Docker images pipeline, and which ones those are is a question for the remote. */
+const triggersSaas = (action === 'pull_requests' && isSupportBranch(CIRCLE_BRANCH)) || action === 'full_release';
 const releasedTags = isBridgeRun ? remoteTags() : Promise.resolve(undefined);
-const supportBranches = isBridgeRun ? remoteSupportBranches() : Promise.resolve(undefined);
+const supportBranches = isBridgeRun || triggersSaas ? remoteSupportBranches() : Promise.resolve(undefined);
 
 Promise.all([changed, releasedTags, supportBranches])
   .then(

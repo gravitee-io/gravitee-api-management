@@ -15,6 +15,7 @@
  */
 import * as fs from 'fs';
 import { isBlank } from './string';
+import { isMasterBranch, isSupportBranch } from './branch';
 import { CircleCIEnvironment } from '../pipelines';
 
 export interface GraviteeioVersion {
@@ -159,6 +160,39 @@ export function bridgeClientTags(version: string, supportBranches: string[] | un
     const last = supported.includes(line) ? `${line}.x-latest` : `graviteeio@${line}`;
     return [last, `graviteeio@${line}.0`];
   });
+}
+
+/** How many support lines, beside master, hand their images to the SaaS pipeline: the two newest. */
+const SAAS_SUPPORT_LINES = 2;
+
+/**
+ * Whether a push to `branch` triggers the SaaS Docker images pipeline.
+ *
+ * Master always does, and so do the two newest support lines; an older line still builds and
+ * publishes, but nothing deploys it on SaaS any more. Read from the branches the remote carries
+ * rather than from the tags, because a line counts from the moment its branch is cut: once
+ * `4.14.x` exists, it and `4.13.x` trigger, and `4.12.x` stops — before `4.14.0` is released.
+ *
+ * @param branch the branch the pipeline runs on
+ * @param supportBranches the support branches the repository carries, which `index.ts` reads for the actions that need them
+ */
+export function triggersSaasDockerImages(branch: string, supportBranches: string[] | undefined): boolean {
+  if (isMasterBranch(branch)) {
+    return true;
+  }
+  if (!isSupportBranch(branch)) {
+    return false;
+  }
+  if (supportBranches === undefined) {
+    throw new Error('triggersSaasDockerImages - the support branches are missing; index.ts reads them for the actions that need them');
+  }
+
+  const recentLines = [...new Set([...supportBranches, branch])]
+    .filter(isSupportBranch)
+    .map((supportBranch) => supportBranch.replace(/\.x$/, ''))
+    .sort(newestFirst)
+    .slice(0, SAAS_SUPPORT_LINES);
+  return recentLines.includes(branch.replace(/\.x$/, ''));
 }
 
 export function validateGraviteeioVersion(graviteeioVersion: string) {

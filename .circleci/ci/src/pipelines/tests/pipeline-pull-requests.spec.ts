@@ -22,6 +22,7 @@ describe('Pull requests workflow tests', () => {
     baseBranch         | branch                          | changedFiles                           | expectedFileName
     ${'master'}        | ${'master'}                     | ${['pom.xml']}                         | ${'pull-requests-master.yml'}
     ${'4.1.x'}         | ${'4.1.x'}                      | ${['pom.xml']}                         | ${'pull-requests-4-1-x.yml'}
+    ${'4.1.x'}         | ${'4.1.x'}                      | ${['pom.xml']}                         | ${'pull-requests-4-1-x-outdated.yml'}
     ${'4.0.x'}         | ${'mergify/bp/4.0.x/pr-1234'}   | ${['pom.xml']}                         | ${'pull-requests-mergify.yml'}
     ${'master'}        | ${'APIM-1234-run-e2e'}          | ${['pom.xml']}                         | ${'pull-requests-run-e2e.yml'}
     ${'origin/master'} | ${'APIM-1234-my-custom-branch'} | ${['pom.xml']}                         | ${'pull-requests-custom-branch.yml'}
@@ -53,6 +54,8 @@ describe('Pull requests workflow tests', () => {
         buildId: '1234',
         graviteeioVersion: '',
         isDryRun: false,
+        // 4.1.x is one of the two newest lines in the first fixture, and the third in the other.
+        supportBranches: expectedFileName === 'pull-requests-4-1-x-outdated.yml' ? ['4.3.x', '4.2.x', '4.1.x'] : ['4.1.x', '4.0.x'],
       });
 
       const expected = fs.readFileSync(`./src/pipelines/tests/resources/pull-requests/${expectedFileName}`, 'utf-8');

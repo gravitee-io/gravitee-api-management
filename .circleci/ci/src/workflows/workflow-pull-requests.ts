@@ -16,7 +16,7 @@
 import { commands, Config, Job, workflow, Workflow } from '@circleci/circleci-config-sdk';
 
 import { CircleCIEnvironment } from '../pipelines';
-import { isE2EBranch, isMasterBranch, isSupportBranchOrMaster } from '../utils';
+import { isE2EBranch, isMasterBranch, isSupportBranchOrMaster, triggersSaasDockerImages } from '../utils';
 import { config } from '../config';
 import { BaseExecutor } from '../executors';
 import {
@@ -705,6 +705,8 @@ export class PullRequestsWorkflow {
       dynamicConfig.addJob(deployOnNextGenIntegrationJob);
     }
 
+    // Master and the two newest support lines only: nothing deploys an older line on SaaS.
+    const triggerSaas = triggersSaasDockerImages(environment.branch, environment.supportBranches);
     const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create(
       {
         ...environment,
@@ -712,7 +714,16 @@ export class PullRequestsWorkflow {
       },
       'dev',
     );
-    dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
+    if (triggerSaas) {
+      dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
+    }
+
+    const productImages = [
+      'Build APIM Management API docker image',
+      'Build APIM Gateway docker image',
+      'Build APIM Console docker image',
+      'Build APIM Portal docker image',
+    ];
 
     const buildDockerChainguardImageJob = BuildDockerChainguardImageJob.create(dynamicConfig, environment, false);
     dynamicConfig.addJob(buildDockerChainguardImageJob);
@@ -768,21 +779,20 @@ export class PullRequestsWorkflow {
       //   name: 'Check build as Community user',
       //   context: config.jobContext,
       // }),
-      // Trigger SaaS Docker images creation
-      new workflow.WorkflowJob(runTriggerSaasDockerImagesJob, {
-        context: [...config.jobContext, 'keeper-orb-publishing'],
-        name: 'Trigger SaaS Docker images creation',
-        requires: [
-          'Build APIM Management API docker image',
-          'Build APIM Gateway docker image',
-          'Build APIM Console docker image',
-          'Build APIM Portal docker image',
-        ],
-      }),
+      ...(triggerSaas
+        ? [
+            new workflow.WorkflowJob(runTriggerSaasDockerImagesJob, {
+              context: [...config.jobContext, 'keeper-orb-publishing'],
+              name: 'Trigger SaaS Docker images creation',
+              requires: productImages,
+            }),
+          ]
+        : []),
       new workflow.WorkflowJob(releaseHelmDryRunJob, {
         name: 'Publish Helm chart (internal repo)',
         context: config.jobContext,
-        requires: ['Trigger SaaS Docker images creation'],
+        // Without the SaaS trigger, the chart waits on what the trigger itself would have waited on.
+        requires: triggerSaas ? ['Trigger SaaS Docker images creation'] : productImages,
       }),
       new workflow.WorkflowJob(publishSnapshotJob, {
         name: 'Publish snapshot',

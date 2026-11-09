@@ -21,10 +21,10 @@ import { computeDockerTagSuffix } from '../utils';
 
 export class TriggerSaasDockerImagesJob {
   private static jobName: string = 'job-trigger-saas-docker-images';
-  public static create(environment: CircleCIEnvironment, distribution: 'dev' | 'prod', osDistribution: string = 'debian'): Job {
-    // Distinct job name per os-distribution so several SaaS triggers can coexist in a workflow.
-    const jobName =
-      osDistribution === 'debian' ? TriggerSaasDockerImagesJob.jobName : `${TriggerSaasDockerImagesJob.jobName}-${osDistribution}`;
+  /** This line runs on SaaS from its debian images alone, so it is the one flavor its pipeline is asked to build. */
+  private static osDistribution: string = 'debian';
+
+  public static create(environment: CircleCIEnvironment, distribution: 'dev' | 'prod'): Job {
     const steps: Command[] = [
       new commands.Run({
         name: 'Trigger SaaS Docker images pipeline',
@@ -36,7 +36,7 @@ export class TriggerSaasDockerImagesJob {
           environment.branch
         }", "sha1":"${computeDockerTagSuffix(environment.sha1)}", "release-version":"${environment.graviteeioVersion}", "dry-run":${
           environment.isDryRun
-        }, "os-distribution":"${osDistribution}"}}' | jq -r '.id')
+        }, "os-distribution":"${TriggerSaasDockerImagesJob.osDistribution}"}}' | jq -r '.id')
 if [[ -z "$PIPELINE_ID" || "$PIPELINE_ID" == "null" ]]; then
     echo "Failed to trigger the SaaS Docker images pipeline."
     exit 1
@@ -79,6 +79,6 @@ waitForPipelineCompletion() {
 waitForPipelineCompletion`,
       }),
     ];
-    return new Job(jobName, BaseExecutor.create(), steps);
+    return new Job(TriggerSaasDockerImagesJob.jobName, BaseExecutor.create(), steps);
   }
 }
