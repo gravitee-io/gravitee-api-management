@@ -106,4 +106,21 @@ describe('Full release tests', () => {
     // The version bump commit is pushed to the very branch that triggered the release.
     expect(stringified).toContain('apim-1234-dev');
   });
+
+  it('should not trigger the SaaS Docker images pipeline, which runs the newest lines only', () => {
+    const result = generateFullReleaseConfig({
+      action: 'full_release',
+      sha1: '784ff35ca',
+      changedFiles: [],
+      buildNum: '1234',
+      buildId: '1234',
+      graviteeioVersion: '4.1.0',
+      branch: '4.1.x',
+      baseBranch: '4.1.x',
+      isDryRun: false,
+      apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
+    });
+
+    expect(result.stringify()).not.toContain('SaaS');
+  });
 });

@@ -32,4 +32,3 @@ export * from './job-setup';
 export * from './job-slack-announcement';
 export * from './job-sonarcloud-analysis';
 export * from './job-trigger-apim-api-docs-pipeline';
-export * from './job-trigger-saas-docker-images';
