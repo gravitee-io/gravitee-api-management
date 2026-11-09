@@ -46,10 +46,12 @@ import io.gravitee.repository.management.api.LicenseRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.api.NotificationTemplateRepository;
+import io.gravitee.repository.management.api.OrganizationKeyRepository;
 import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.api.PortalListingRepository;
 import io.gravitee.repository.management.api.PortalNotificationRepository;
 import io.gravitee.repository.management.api.RoleRepository;
+import io.gravitee.repository.management.api.SecretRepository;
 import io.gravitee.repository.management.api.TagRepository;
 import io.gravitee.repository.management.api.TenantRepository;
 import io.gravitee.repository.management.api.TokenRepository;
@@ -185,6 +187,12 @@ public class DeleteOrganizationCommandHandlerTest {
     private PortalListingRepository portalListingRepository;
 
     @Mock
+    private SecretRepository secretRepository;
+
+    @Mock
+    private OrganizationKeyRepository organizationKeyRepository;
+
+    @Mock
     private DeleteEnvironmentCommandHandler deleteEnvironmentCommandHandler;
 
     private DeleteOrganizationCommandHandler cut;
@@ -228,6 +236,8 @@ public class DeleteOrganizationCommandHandlerTest {
             clusterRepository,
             dashboardRepository,
             portalListingRepository,
+            secretRepository,
+            organizationKeyRepository,
             accessPointService,
             environmentService,
             identityProviderActivationService,
@@ -371,6 +381,8 @@ public class DeleteOrganizationCommandHandlerTest {
         );
         verify(clusterRepository).deleteByOrganizationId(executionContext.getOrganizationId());
         verify(portalListingRepository).deleteByOrganizationId(executionContext.getOrganizationId());
+        verify(secretRepository).deleteByOrganizationId(executionContext.getOrganizationId());
+        verify(organizationKeyRepository).deleteByOrganizationId(executionContext.getOrganizationId());
         verify(amConnectionRepository).delete(executionContext.getOrganizationId());
     }
 
