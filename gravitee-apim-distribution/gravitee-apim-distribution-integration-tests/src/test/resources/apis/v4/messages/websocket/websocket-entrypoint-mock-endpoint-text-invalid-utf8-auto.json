@@ -1,0 +1,69 @@
+{
+  "id": "websocket-mock-text-invalid-utf8-auto",
+  "name": "websocket-mock-text-invalid-utf8-auto",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "api v4 using Websocket entrypoint and Mock endpoint",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/text-invalid-utf8-auto"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "websocket",
+          "qos": "auto",
+          "configuration": {
+            "subscriber": {
+              "enabled": true,
+              "frameType": "TEXT"
+            },
+            "publisher": {
+              "enabled": false
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "mock",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "mock",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "messageInterval": 10,
+            "messageContent": "message",
+            "messageCount": 5
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "Invalid UTF-8 message",
+      "enabled": true,
+      "subscribe": [
+        {
+          "name": "Invalid UTF-8 message",
+          "description": "Replace one message with bytes that are not valid UTF-8",
+          "enabled": true,
+          "policy": "invalid-utf8-message"
+        }
+      ]
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}

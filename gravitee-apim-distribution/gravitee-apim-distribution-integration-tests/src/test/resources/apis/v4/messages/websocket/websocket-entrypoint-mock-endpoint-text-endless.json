@@ -1,0 +1,68 @@
+{
+  "id": "websocket-mock-text-endless",
+  "name": "websocket-mock-text-endless",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "api v4 using Websocket entrypoint and Mock endpoint",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/text-endless"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "websocket",
+          "qos": "none",
+          "configuration": {
+            "subscriber": {
+              "enabled": true,
+              "frameType": "TEXT"
+            },
+            "publisher": {
+              "enabled": false
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "mock",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "mock",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "messageInterval": 10,
+            "messageContent": "message"
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "Message flow release",
+      "enabled": true,
+      "subscribe": [
+        {
+          "name": "Message flow release",
+          "description": "Count the subscribed and released message flows",
+          "enabled": true,
+          "policy": "message-flow-release"
+        }
+      ]
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}
