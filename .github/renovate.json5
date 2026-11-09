@@ -118,8 +118,10 @@
             "allowedVersions": "/-beta\\./"
         },
         {
-            "description": "The gbuddy pin pull request opens at once, so the update workflow can report on it.",
+            "description": "The gbuddy pin pull request opens at once, so the update workflow can report on it, and does not wait behind the shared limit on Renovate branches.",
             "matchDepNames": ["@gravitee-io/gbuddy"],
+            "prConcurrentLimit": 0,
+            "prHourlyLimit": 0,
             "fetchChangeLogs": "off",
             "prBodyDefinitions": { "Package": "`{{{depName}}}`" },
             "prCreation": "immediate",

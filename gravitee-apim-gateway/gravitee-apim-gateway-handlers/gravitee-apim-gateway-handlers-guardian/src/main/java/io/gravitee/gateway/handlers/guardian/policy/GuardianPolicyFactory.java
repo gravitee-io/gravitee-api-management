@@ -61,7 +61,8 @@ public class GuardianPolicyFactory extends HttpPolicyFactory {
             // Without an id, every call would answer that the Guardian is not deployed, pointing to the sync rather than to the step.
             throw new IllegalArgumentException(String.format("Guardian step [%s] has no guardianId", policyMetadata.getName()));
         }
-        HttpPolicy policy = new GuardianPolicy(policyMetadata.getName(), configuration);
+        String stepName = (String) policyMetadata.metadata().get(PolicyMetadata.MetadataKeys.STEP_NAME);
+        HttpPolicy policy = new GuardianPolicy(policyMetadata.getName(), stepName, configuration);
         return decoratePolicy(policyMetadata, policy);
     }
 }

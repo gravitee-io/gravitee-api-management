@@ -29,7 +29,11 @@
       "id": "p2#0",
       "name": "deny\"quote",
       "version": "rev\"1",
-      "effect": "FORBID"
+      "effect": "FORBID",
+      "annotations": {
+        "guardrail": "my \"step\"",
+        "location": "messages[1].user"
+      }
     }
   ],
   "request-id": "req-2",

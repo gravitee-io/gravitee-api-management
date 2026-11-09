@@ -22,6 +22,7 @@ import {
   nextDevelopmentVersion,
   parse,
   supportLineOf,
+  triggersSaasDockerImages,
   validateGraviteeioVersion,
 } from '../versions';
 import { CircleCIEnvironment } from '../../pipelines';
@@ -364,5 +365,31 @@ describe('isLatestRelease', function () {
     `('reads $expected from $version', ({ version, expected }) => {
       expect(supportLineOf(version)).toEqual(expected);
     });
+  });
+});
+
+describe('triggersSaasDockerImages', () => {
+  const today = ['4.9.x', '4.10.x', '4.11.x', '4.12.x', '4.13.x'];
+
+  it.each`
+    branch                          | supportBranches                      | expected
+    ${'master'}                     | ${undefined}                         | ${true}
+    ${'4.13.x'}                     | ${today}                             | ${true}
+    ${'4.12.x'}                     | ${today}                             | ${true}
+    ${'4.11.x'}                     | ${today}                             | ${false}
+    ${'4.9.x'}                      | ${today}                             | ${false}
+    ${'4.14.x'}                     | ${[...today, '4.14.x']}              | ${true}
+    ${'4.13.x'}                     | ${[...today, '4.14.x']}              | ${true}
+    ${'4.12.x'}                     | ${[...today, '4.14.x']}              | ${false}
+    ${'5.0.x'}                      | ${[...today, '5.0.x']}               | ${true}
+    ${'4.12.x'}                     | ${[...today, '5.0.x']}               | ${false}
+    ${'4.12.x'}                     | ${['4.12.x', 'renovate/lodash-4.x']} | ${true}
+    ${'APIM-1234-my-custom-branch'} | ${undefined}                         | ${false}
+  `('$branch among $supportBranches triggers: $expected', ({ branch, supportBranches, expected }) => {
+    expect(triggersSaasDockerImages(branch, supportBranches)).toEqual(expected);
+  });
+
+  it('refuses to decide for a support branch without the list of support branches', () => {
+    expect(() => triggersSaasDockerImages('4.12.x', undefined)).toThrow(/support branches are missing/);
   });
 });

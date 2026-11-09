@@ -74,5 +74,6 @@ public class PolicyMetadata {
     public enum MetadataKeys {
         STAGE,
         EXECUTION_MODE,
+        STEP_NAME,
     }
 }

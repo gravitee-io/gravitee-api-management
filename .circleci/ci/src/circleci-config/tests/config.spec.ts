@@ -24,7 +24,7 @@ import { Workflow, WorkflowJob } from '../workflow';
 
 function buildConfig(): Config {
   const config = new Config();
-  const keeper = new OrbImport('keeper', 'gravitee-io', 'keeper', '0.7.0');
+  const keeper = new OrbImport('keeper', 'gravitee-io', 'keeper', '0.7.3');
   const setupJob = new Job('job-setup', new DockerExecutor('cimg/base:stable', 'small'), [new Checkout()]);
 
   config.defineParameter('dry_run', 'boolean', true, 'Run in dry run mode?');
@@ -74,7 +74,7 @@ describe('Config', () => {
           jobs: [{ 'job-setup': { name: 'Setup', context: ['cicd-orchestrator'] } }],
         },
       },
-      orbs: { keeper: 'gravitee-io/keeper@0.7.0' },
+      orbs: { keeper: 'gravitee-io/keeper@0.7.3' },
     });
   });
 

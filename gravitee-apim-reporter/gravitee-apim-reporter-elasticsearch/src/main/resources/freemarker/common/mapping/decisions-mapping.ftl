@@ -167,7 +167,13 @@
             "id": { "type": "keyword" },
             "name": { "type": "keyword" },
             "version": { "type": "keyword" },
-            "effect": { "type": "keyword" }
+            "effect": { "type": "keyword" },
+            "annotations": {
+                "properties": {
+                    "guardrail": { "type": "keyword" },
+                    "location": { "type": "keyword" }
+                }
+            }
         }
     },
     "transformed": {

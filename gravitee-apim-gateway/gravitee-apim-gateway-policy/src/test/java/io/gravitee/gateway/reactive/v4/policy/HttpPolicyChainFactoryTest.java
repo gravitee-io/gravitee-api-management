@@ -79,6 +79,7 @@ class HttpPolicyChainFactoryTest {
         when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class))).thenReturn(policy);
 
         when(step1.getPolicy()).thenReturn("policy-step1");
+        when(step1.getName()).thenReturn("name-step1");
         when(step1.getConfiguration()).thenReturn("config-step1");
         when(step1.getCondition()).thenReturn("condition-step1");
 
@@ -88,6 +89,10 @@ class HttpPolicyChainFactoryTest {
 
         final HttpPolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.REQUEST);
         assertNotNull(policyChain);
+        verify(policyManager).create(
+            eq(ExecutionPhase.REQUEST),
+            argThat(metadata -> "name-step1".equals(metadata.metadata().get(PolicyMetadata.MetadataKeys.STEP_NAME)))
+        );
 
         verify(policyManager, times(1)).create(
             eq(ExecutionPhase.REQUEST),

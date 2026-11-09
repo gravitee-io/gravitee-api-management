@@ -93,6 +93,7 @@ public class HttpPolicyChainFactory extends AbstractPolicyChainFactory<HttpPolic
     protected PolicyMetadata buildPolicyMetadata(Step step) {
         final PolicyMetadata policyMetadata = new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition());
         policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.EXECUTION_MODE, ExecutionMode.V4_EMULATION_ENGINE);
+        policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.STEP_NAME, step.getName());
 
         return policyMetadata;
     }

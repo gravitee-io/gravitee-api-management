@@ -692,7 +692,7 @@ jobs:
       - run:
           name: Trigger SaaS Docker images pipeline
           command: |-
-            PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"dev", "branch-version":"4.1.x", "sha1":"784ff35", "release-version":"", "dry-run":false, "os-distribution":"debian"}}' | jq -r '.id')
+            PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"dev", "branch-version":"4.1.x", "sha1":"784ff35", "release-version":"", "dry-run":false, "os-distribution":"chainguard"}}' | jq -r '.id')
             if [[ -z "$PIPELINE_ID" || "$PIPELINE_ID" == "null" ]]; then
                 echo "Failed to trigger the SaaS Docker images pipeline."
                 exit 1
@@ -898,18 +898,19 @@ workflows:
           context:
             - cicd-orchestrator
             - keeper-orb-publishing
-          name: Trigger SaaS Docker images creation
+          name: Trigger SaaS Chainguard Docker images creation
           requires:
-            - Build APIM Management API docker image
-            - Build APIM Gateway docker image
-            - Build APIM Console docker image
-            - Build APIM Portal docker image
+            - Build APIM Management API chainguard docker image
+            - Build APIM Gateway chainguard docker image
+            - Build APIM Console chainguard docker image
+            - Build APIM Portal chainguard docker image
+            - Build Gamma Console chainguard docker image
       - job-release-helm:
           name: Publish Helm chart (internal repo)
           context:
             - cicd-orchestrator
           requires:
-            - Trigger SaaS Docker images creation
+            - Trigger SaaS Chainguard Docker images creation
       - job-publish-snapshot:
           name: Publish snapshot
           context:
@@ -937,7 +938,7 @@ workflows:
             - Build APIM Management API docker image
             - Build APIM Gateway docker image
 orbs:
-  keeper: gravitee-io/keeper@0.7.1
+  keeper: gravitee-io/keeper@0.7.3
   slack: circleci/slack@4.12.5
   helm: circleci/helm@3.0.0
   gh: circleci/github-cli@1.0.5

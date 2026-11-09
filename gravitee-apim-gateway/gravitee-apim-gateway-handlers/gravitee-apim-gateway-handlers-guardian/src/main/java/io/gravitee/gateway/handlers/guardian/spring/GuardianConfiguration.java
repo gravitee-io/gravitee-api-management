@@ -18,6 +18,7 @@ package io.gravitee.gateway.handlers.guardian.spring;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.api.genericevent.GenericEventRegistry;
+import io.gravitee.gateway.handlers.guardian.decision.GuardianDecisionReporter;
 import io.gravitee.gateway.handlers.guardian.manager.GuardianManager;
 import io.gravitee.gateway.handlers.guardian.manager.impl.GuardianManagerImpl;
 import io.gravitee.gateway.handlers.guardian.policy.GuardianPolicyFactory;
@@ -27,6 +28,8 @@ import io.gravitee.gateway.handlers.guardian.sync.GuardianGenericEventSubscriber
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
+import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.node.api.Node;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -62,6 +65,11 @@ public class GuardianConfiguration {
     @Bean
     public GuardianRegistry guardianRegistry() {
         return new GuardianRegistry();
+    }
+
+    @Bean
+    public GuardianDecisionReporter guardianDecisionReporter(ReporterService reporterService, Node node) {
+        return new GuardianDecisionReporter(reporterService, node);
     }
 
     @Bean

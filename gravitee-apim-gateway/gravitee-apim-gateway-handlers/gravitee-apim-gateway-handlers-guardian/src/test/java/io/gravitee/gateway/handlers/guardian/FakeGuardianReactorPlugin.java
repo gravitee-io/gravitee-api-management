@@ -21,6 +21,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
 
 import io.gravitee.common.event.EventManager;
+import io.gravitee.gateway.handlers.guardian.decision.GuardianVerdicts;
 import io.gravitee.gateway.handlers.guardian.reactor.GuardianReactor;
 import io.gravitee.gateway.handlers.guardian.registry.GuardianRegistry;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
@@ -56,7 +57,7 @@ public final class FakeGuardianReactorPlugin {
             }
 
             @Override
-            public Completable execute(HttpPlainExecutionContext ctx, BasePolicy source) {
+            public Completable execute(HttpPlainExecutionContext ctx, BasePolicy source, GuardianVerdicts verdicts) {
                 return Completable.complete();
             }
         };
