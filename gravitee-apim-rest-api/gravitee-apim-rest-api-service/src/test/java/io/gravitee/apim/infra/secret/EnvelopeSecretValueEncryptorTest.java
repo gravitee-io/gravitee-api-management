@@ -1,0 +1,340 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.apim.infra.secret;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import io.gravitee.apim.common.secret.StaticKeyEncryptionKeyProvider;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.secret.exception.SecretEncryptionUnavailableException;
+import io.gravitee.apim.core.secret.model.Secret;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
+import io.gravitee.repository.management.api.OrganizationKeyRepository;
+import io.gravitee.repository.management.model.OrganizationKey;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.slf4j.LoggerFactory;
+
+class EnvelopeSecretValueEncryptorTest {
+
+    private static final String KEK = base64Key(1);
+    private static final Instant AT = Instant.parse("2026-11-06T10:00:00Z");
+    private static final Secret SECRET = new Secret("secret-1", "org-1", "env-1", "anthropic-key", AT, AT);
+
+    private final InMemoryOrganizationKeyRepository keys = new InMemoryOrganizationKeyRepository();
+    private final EnvelopeSecretValueEncryptor encryptor = new EnvelopeSecretValueEncryptor(KEK, keys);
+
+    @Test
+    void should_decrypt_what_it_encrypted() {
+        String ciphertext = encryptor.encrypt(SECRET, "sk-ant-123");
+
+        assertThat(encryptor.decrypt(SECRET, ciphertext)).isEqualTo("sk-ant-123");
+    }
+
+    @Test
+    void should_prefix_the_ciphertext_with_the_format_version_and_the_organization_key_id() {
+        String ciphertext = encryptor.encrypt(SECRET, "sk-ant-123");
+
+        assertThat(ciphertext).startsWith("v1:" + keys.of("org-1").getId() + ":").doesNotContain("sk-ant-123");
+    }
+
+    @Test
+    void should_create_one_data_key_on_the_first_write_of_an_organization_and_reuse_it() {
+        encryptor.encrypt(SECRET, "sk-ant-123");
+        encryptor.encrypt(SECRET.toBuilder().id("secret-2").build(), "sk-ant-456");
+
+        assertThat(keys.all()).hasSize(1);
+        assertThat(keys.of("org-1").getKekId()).isEqualTo(StaticKeyEncryptionKeyProvider.fromBase64(KEK).id());
+    }
+
+    @Test
+    void should_reuse_the_stored_data_key_after_a_restart() {
+        String ciphertext = encryptor.encrypt(SECRET, "sk-ant-123");
+
+        var restarted = new EnvelopeSecretValueEncryptor(KEK, keys);
+
+        assertThat(restarted.decrypt(SECRET, ciphertext)).isEqualTo("sk-ant-123");
+        assertThat(keys.all()).hasSize(1);
+    }
+
+    @Test
+    void should_store_only_a_wrapped_data_key() {
+        String ciphertext = encryptor.encrypt(SECRET, "sk-ant-123");
+        var dataKey = encryptor.dataKeyOf("org-1");
+
+        assertThat(keys.of("org-1").getWrappedKey()).isNotEqualTo(Base64.getEncoder().encodeToString(dataKey.material()));
+        assertThat(keys.of("org-1").getId()).isEqualTo(dataKey.id());
+        assertThat(ciphertext).doesNotContain(Base64.getEncoder().encodeToString(dataKey.material()));
+    }
+
+    @Test
+    void should_give_each_organization_its_own_data_key() {
+        encryptor.encrypt(SECRET, "sk-ant-123");
+        encryptor.encrypt(SECRET.toBuilder().organizationId("org-2").build(), "sk-ant-123");
+
+        assertThat(keys.all()).hasSize(2);
+        assertThat(encryptor.dataKeyOf("org-1")).isNotEqualTo(encryptor.dataKeyOf("org-2"));
+    }
+
+    @Test
+    void should_refuse_to_decrypt_the_value_of_another_organization() {
+        String ciphertext = encryptor.encrypt(SECRET, "sk-ant-123");
+
+        var other = SECRET.toBuilder().organizationId("org-2").build();
+        encryptor.encrypt(other, "sk-ant-456");
+        assertThatThrownBy(() -> encryptor.decrypt(other, ciphertext)).isInstanceOf(TechnicalDomainException.class);
+    }
+
+    @Test
+    void should_refuse_to_decrypt_a_ciphertext_copied_onto_another_secret() {
+        String ciphertext = encryptor.encrypt(SECRET, "sk-ant-123");
+
+        var other = SECRET.toBuilder().id("secret-2").key("prod-db-password").build();
+        assertThatThrownBy(() -> encryptor.decrypt(other, ciphertext)).isInstanceOf(TechnicalDomainException.class);
+    }
+
+    @Test
+    void should_refuse_to_decrypt_a_ciphertext_copied_onto_another_environment() {
+        String ciphertext = encryptor.encrypt(SECRET, "sk-ant-123");
+
+        var other = SECRET.toBuilder().environmentId("env-2").build();
+        assertThatThrownBy(() -> encryptor.decrypt(other, ciphertext)).isInstanceOf(TechnicalDomainException.class);
+    }
+
+    @Test
+    void should_refuse_to_decrypt_a_malformed_ciphertext() {
+        encryptor.encrypt(SECRET, "sk-ant-123");
+
+        assertThatThrownBy(() -> encryptor.decrypt(SECRET, "AAAAAAAAAAAAAAAAAAAAAAAA")).isInstanceOf(TechnicalDomainException.class);
+    }
+
+    @Test
+    void should_use_the_data_key_of_the_node_that_won_a_concurrent_first_write() {
+        var otherNode = new EnvelopeSecretValueEncryptor(KEK, keys);
+        keys.beforeNextCreate(() -> otherNode.encrypt(SECRET, "sk-ant-other-node"));
+
+        String ciphertext = encryptor.encrypt(SECRET, "sk-ant-123");
+
+        assertThat(keys.all()).hasSize(1);
+        assertThat(otherNode.decrypt(SECRET, ciphertext)).isEqualTo("sk-ant-123");
+    }
+
+    @Test
+    void should_give_one_data_key_when_many_first_writes_of_one_organization_run_at_once() throws Exception {
+        int writers = 8;
+        var start = new CountDownLatch(1);
+        var pool = Executors.newFixedThreadPool(writers);
+        try {
+            List<Future<String>> results = new ArrayList<>();
+            for (int i = 0; i < writers; i++) {
+                var node = new EnvelopeSecretValueEncryptor(KEK, keys);
+                results.add(
+                    pool.submit(() -> {
+                        start.await();
+                        return node.encrypt(SECRET, "sk-ant-123");
+                    })
+                );
+            }
+            start.countDown();
+
+            Set<String> keyIds = new HashSet<>();
+            for (var result : results) {
+                String ciphertext = result.get(10, TimeUnit.SECONDS);
+                assertThat(encryptor.decrypt(SECRET, ciphertext)).isEqualTo("sk-ant-123");
+                keyIds.add(ciphertext.split(":")[1]);
+            }
+            assertThat(keys.all()).hasSize(1);
+            assertThat(keyIds).containsExactly(keys.of("org-1").getId());
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    @Nested
+    class Unavailable {
+
+        private final Logger logger = (Logger) LoggerFactory.getLogger(EnvelopeSecretValueEncryptor.class);
+        private final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+
+        Unavailable() {
+            appender.start();
+            logger.addAppender(appender);
+        }
+
+        @ParameterizedTest
+        @NullAndEmptySource
+        @ValueSource(strings = { " ", "not base64!", "c2hvcnQ=" })
+        void should_start_with_a_missing_or_invalid_key_and_refuse_every_secret_call(String kek) {
+            var unavailable = new EnvelopeSecretValueEncryptor(kek, keys);
+
+            assertThatThrownBy(() -> unavailable.encrypt(SECRET, "sk-ant-123"))
+                .isInstanceOf(SecretEncryptionUnavailableException.class)
+                .hasMessageContaining(EnvelopeSecretValueEncryptor.KEY_PROPERTY);
+            assertThatThrownBy(() -> unavailable.decrypt(SECRET, "v1:key:AAAA")).isInstanceOf(SecretEncryptionUnavailableException.class);
+            assertThat(keys.all()).isEmpty();
+        }
+
+        @Test
+        void should_log_an_invalid_key_once_at_startup_without_the_key() {
+            String shortKey = Base64.getEncoder().encodeToString(new byte[16]);
+
+            new EnvelopeSecretValueEncryptor(shortKey, keys);
+
+            assertThat(appender.list).hasSize(1);
+            assertThat(appender.list.getFirst().getFormattedMessage())
+                .contains(EnvelopeSecretValueEncryptor.KEY_PROPERTY, "must decode to 32 bytes, not 16")
+                .doesNotContain(shortKey);
+        }
+
+        @Test
+        void should_report_at_startup_a_key_that_does_not_match_the_stored_keys() {
+            encryptor.encrypt(SECRET, "sk-ant-123");
+            String wrongKek = base64Key(2);
+            var wrong = new EnvelopeSecretValueEncryptor(wrongKek, keys);
+
+            wrong.verifyStoredKeys();
+
+            assertThat(appender.list).hasSize(1);
+            assertThat(appender.list.getFirst().getFormattedMessage())
+                .contains(EnvelopeSecretValueEncryptor.KEY_PROPERTY, "does not match")
+                .doesNotContain(wrongKek, KEK);
+            assertThatThrownBy(() -> wrong.encrypt(SECRET.toBuilder().organizationId("org-2").build(), "sk-ant-456")).isInstanceOf(
+                SecretEncryptionUnavailableException.class
+            );
+            assertThat(appender.list).hasSize(1);
+        }
+
+        @Test
+        void should_pass_the_startup_check_with_the_key_that_encrypted_the_stored_keys() {
+            String ciphertext = encryptor.encrypt(SECRET, "sk-ant-123");
+            var restarted = new EnvelopeSecretValueEncryptor(KEK, keys);
+
+            restarted.verifyStoredKeys();
+
+            assertThat(appender.list).isEmpty();
+            assertThat(restarted.decrypt(SECRET, ciphertext)).isEqualTo("sk-ant-123");
+        }
+
+        @Test
+        void should_pass_the_startup_check_when_no_key_is_stored_yet() {
+            encryptor.verifyStoredKeys();
+
+            assertThat(appender.list).isEmpty();
+            assertThat(encryptor.decrypt(SECRET, encryptor.encrypt(SECRET, "sk-ant-123"))).isEqualTo("sk-ant-123");
+        }
+
+        @Test
+        void should_skip_the_startup_check_when_the_key_is_missing() {
+            var unavailable = new EnvelopeSecretValueEncryptor(null, keys);
+
+            unavailable.verifyStoredKeys();
+
+            assertThat(appender.list).hasSize(1);
+        }
+
+        @Test
+        void should_refuse_every_secret_call_when_the_key_does_not_match_the_stored_keys() {
+            String ciphertext = encryptor.encrypt(SECRET, "sk-ant-123");
+            String wrongKek = base64Key(2);
+
+            var wrong = new EnvelopeSecretValueEncryptor(wrongKek, keys);
+
+            assertThatThrownBy(() -> wrong.decrypt(SECRET, ciphertext))
+                .isInstanceOf(SecretEncryptionUnavailableException.class)
+                .hasMessageContaining("does not match");
+            assertThatThrownBy(() -> wrong.encrypt(SECRET.toBuilder().organizationId("org-2").build(), "sk-ant-456")).isInstanceOf(
+                SecretEncryptionUnavailableException.class
+            );
+            assertThat(keys.all()).hasSize(1);
+            assertThat(appender.list)
+                .extracting(ILoggingEvent::getFormattedMessage)
+                .allSatisfy(message -> assertThat(message).doesNotContain(wrongKek, KEK, "sk-ant"));
+        }
+    }
+
+    private static String base64Key(int seed) {
+        var key = new byte[32];
+        key[0] = (byte) seed;
+        return Base64.getEncoder().encodeToString(key);
+    }
+
+    private static class InMemoryOrganizationKeyRepository implements OrganizationKeyRepository {
+
+        private final Map<String, OrganizationKey> byOrganization = new ConcurrentHashMap<>();
+        private volatile Runnable beforeNextCreate;
+
+        void beforeNextCreate(Runnable action) {
+            this.beforeNextCreate = action;
+        }
+
+        OrganizationKey of(String organizationId) {
+            return byOrganization.get(organizationId);
+        }
+
+        List<OrganizationKey> all() {
+            return List.copyOf(byOrganization.values());
+        }
+
+        @Override
+        public OrganizationKey create(OrganizationKey organizationKey) throws DuplicateKeyException {
+            var action = beforeNextCreate;
+            if (action != null) {
+                beforeNextCreate = null;
+                action.run();
+            }
+            if (byOrganization.putIfAbsent(organizationKey.getOrganizationId(), organizationKey) != null) {
+                throw new DuplicateKeyException("Organization [" + organizationKey.getOrganizationId() + "] already has a key");
+            }
+            return organizationKey;
+        }
+
+        @Override
+        public Optional<OrganizationKey> findByOrganizationId(String organizationId) {
+            return Optional.ofNullable(byOrganization.get(organizationId));
+        }
+
+        @Override
+        public Set<String> findKekIds() {
+            return byOrganization.values().stream().map(OrganizationKey::getKekId).collect(Collectors.toSet());
+        }
+
+        @Override
+        public void deleteByOrganizationId(String organizationId) {
+            byOrganization.remove(organizationId);
+        }
+    }
+}

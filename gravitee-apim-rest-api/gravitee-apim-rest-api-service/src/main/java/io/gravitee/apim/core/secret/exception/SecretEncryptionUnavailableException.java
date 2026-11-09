@@ -19,7 +19,7 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 
 public class SecretEncryptionUnavailableException extends TechnicalDomainException {
 
-    public SecretEncryptionUnavailableException(String keyProperty) {
-        super("Secret values cannot be stored: " + keyProperty + " is missing or invalid.");
+    public SecretEncryptionUnavailableException(String keyProperty, String reason) {
+        super("Secret values cannot be stored or read: " + keyProperty + " " + reason + ".");
     }
 }
