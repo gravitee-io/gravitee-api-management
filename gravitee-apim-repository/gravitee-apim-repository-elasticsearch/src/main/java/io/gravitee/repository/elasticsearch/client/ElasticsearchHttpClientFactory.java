@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.CustomLog;
 import org.springframework.core.env.Environment;
+import org.springframework.util.StringUtils;
 
 /**
  * Per-scope Elasticsearch {@link HttpClient} factory — mirrors the {@code RedisConnectionFactory} pattern:
@@ -70,6 +71,8 @@ public class ElasticsearchHttpClientFactory {
         cfg.setEndpoints(readEndpoints());
         cfg.setUsername(readProperty("security.username", String.class, null));
         cfg.setPassword(readProperty("security.password", String.class, null));
+        cfg.setApiKey(readProperty("security.api_key", String.class, null));
+        rejectAmbiguousAuthentication(cfg);
         cfg.setRequestTimeout(readProperty("http.timeout", Long.class, 10_000L));
 
         cfg.setProxyType(readProperty("http.proxy.type", String.class, "HTTP"));
@@ -89,6 +92,19 @@ public class ElasticsearchHttpClientFactory {
 
         configureSsl(cfg);
         return cfg;
+    }
+
+    /**
+     * The client rejects the same conflict, but its message cannot name the scope this factory reads.
+     */
+    private void rejectAmbiguousAuthentication(HttpClientConfiguration cfg) {
+        if (StringUtils.hasText(cfg.getApiKey()) && (StringUtils.hasText(cfg.getUsername()) || StringUtils.hasText(cfg.getPassword()))) {
+            throw new IllegalArgumentException(
+                "Elasticsearch authentication is ambiguous: both '%1$ssecurity.api_key' and '%1$ssecurity.username'/'%1$ssecurity.password' are configured. Configure only one of them.".formatted(
+                    propertyPrefix
+                )
+            );
+        }
     }
 
     private void configureSsl(HttpClientConfiguration cfg) {
