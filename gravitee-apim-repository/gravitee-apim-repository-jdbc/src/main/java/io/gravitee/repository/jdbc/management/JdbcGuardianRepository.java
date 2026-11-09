@@ -84,9 +84,20 @@ public class JdbcGuardianRepository extends JdbcAbstractCrudRepository<Guardian,
         return toSnakeCase(GuardianCriteria.requireSortableField(field));
     }
 
+    /**
+     * The LIKE escape character, deliberately not a backslash.
+     *
+     * <p>MySQL and MariaDB read a backslash as an escape inside the string literal as well, so the SQL
+     * text {@code escape '\'} is an unterminated literal and a syntax error there — while PostgreSQL
+     * accepts it, which is how it reached master. {@code !} needs no escaping of its own in any flavour
+     * this module supports.
+     */
+    private static final String LIKE_ESCAPE = "!";
+
     /** Escapes the LIKE wildcards so the caller's query is matched as literal text. */
     private static String escapeLikePattern(final String value) {
-        return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+        // the escape character first, or the escapes added below would be escaped again
+        return value.replace(LIKE_ESCAPE, LIKE_ESCAPE + LIKE_ESCAPE).replace("%", LIKE_ESCAPE + "%").replace("_", LIKE_ESCAPE + "_");
     }
 
     @Override
@@ -107,7 +118,7 @@ public class JdbcGuardianRepository extends JdbcAbstractCrudRepository<Guardian,
                 // ESCAPE plus an escaped pattern: without it '%' and '_' stay LIKE wildcards, so
                 // q="nam_" would match "name" here while Mongo, which quotes the query, matches
                 // nothing. The contract says the query is literal text on both backends.
-                andWhere.add("lower(name) like ? escape '\\'");
+                andWhere.add("lower(name) like ? escape '" + LIKE_ESCAPE + "'");
                 andWhereParams.add("%" + escapeLikePattern(criteria.getQuery().toLowerCase()) + "%");
             }
             if (criteria.getLifecycleState() != null) {

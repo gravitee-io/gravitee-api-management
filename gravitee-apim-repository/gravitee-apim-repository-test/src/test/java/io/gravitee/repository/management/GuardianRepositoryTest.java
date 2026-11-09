@@ -298,6 +298,35 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
         }
 
         @Test
+        public void should_match_the_jdbc_escape_character_as_literal_text() throws TechnicalException {
+            // JDBC escapes the LIKE wildcards with a character of its own, so a name holding that
+            // character is where the choice could leak into the contract: read as an escape rather than
+            // as text, "Alert!" would find nothing here while Mongo, which quotes the query, finds the
+            // row. Whichever character the SQL side picks, this has to keep passing.
+            var date = new Date();
+            guardianRepository.create(
+                Guardian.builder()
+                    .id("id_escape_test")
+                    .environmentId("environmentId")
+                    .name("Alert! guard")
+                    .phase(Guardian.Phase.REQUEST)
+                    .definition("definition")
+                    .lifecycleState(GuardianLifecycleState.UNDEPLOYED)
+                    .createdAt(date)
+                    .updatedAt(date)
+                    .build()
+            );
+
+            final var found = guardianRepository.search(
+                GuardianCriteria.builder().environmentId("environmentId").query("Alert!").build(),
+                new PageableBuilder().pageNumber(0).pageSize(10).build(),
+                null
+            );
+
+            assertThat(found.getContent()).extracting(Guardian::getName).containsExactly("Alert! guard");
+        }
+
+        @Test
         public void should_search_page_2() throws TechnicalException {
             final var criteria = GuardianCriteria.builder().environmentId("environmentId").build();
 
