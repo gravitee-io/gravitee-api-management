@@ -20,18 +20,25 @@ import io.gravitee.definition.model.guardian.GuardianPolicyConfiguration;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardian.Guardian;
+import io.gravitee.gateway.handlers.guardian.ReactableGuardian;
+import io.gravitee.gateway.handlers.guardian.decision.GuardianDecisionReporter;
+import io.gravitee.gateway.handlers.guardian.decision.GuardianVerdicts;
 import io.gravitee.gateway.handlers.guardian.reactor.GuardianReactor;
 import io.gravitee.gateway.handlers.guardian.registry.GuardianRegistry;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
+import io.gravitee.gateway.reactive.core.context.interruption.InterruptionException;
+import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Internal policy placed in API flows to execute a deployed Guardian. The chain comes from the Guardian reactor
- * through the {@link GuardianRegistry}; when the Guardian is not deployed, the request is interrupted.
+ * through the {@link GuardianRegistry}; when the Guardian is not deployed, the request is interrupted. Every run is
+ * reported as one decision through the {@link GuardianDecisionReporter}.
  *
  * <p>An interruption gives the client a generic message only; its detail goes through the cause to the diagnostic
  * reported in the metrics, where the API publisher sees it in the Console.</p>
@@ -44,8 +51,10 @@ public class GuardianPolicy implements HttpPolicy {
     public static final String NOT_DEPLOYED_KEY = "GUARDIAN_NOT_DEPLOYED";
     public static final String INCOMPATIBLE_API_TYPE_KEY = "GUARDIAN_INCOMPATIBLE_API_TYPE";
     public static final String INCOMPATIBLE_PHASE_KEY = "GUARDIAN_INCOMPATIBLE_PHASE";
+    public static final String GUARDRAIL_UNSUPPORTED_API_TYPE_KEY = "GUARDIAN_GUARDRAIL_UNSUPPORTED_API_TYPE";
 
     private final String id;
+    private final String stepName;
     private final GuardianPolicyConfiguration configuration;
 
     public GuardianPolicy() {
@@ -57,7 +66,17 @@ public class GuardianPolicy implements HttpPolicy {
     }
 
     public GuardianPolicy(String id, GuardianPolicyConfiguration configuration) {
+        this(id, null, configuration);
+    }
+
+    /**
+     * @param id the id of the policy, the plugin id for a step of a flow.
+     * @param stepName the name of the step in the API flow, {@code null} or blank when it has none.
+     * @param configuration the configuration of the step.
+     */
+    public GuardianPolicy(String id, String stepName, GuardianPolicyConfiguration configuration) {
         this.id = id;
+        this.stepName = stepName;
         this.configuration = configuration;
     }
 
@@ -87,9 +106,11 @@ public class GuardianPolicy implements HttpPolicy {
     }
 
     private Completable execute(HttpPlainExecutionContext ctx, Guardian.Phase phase) {
+        GuardianDecisionReporter reporter = ctx.getComponent(GuardianDecisionReporter.class);
         GuardianReactor reactor = ctx.getComponent(GuardianRegistry.class).get(configuration.getGuardianId(), callingEnvironmentId(ctx));
         if (reactor == null) {
             // Letting the request through would leave it unguarded until the Guardian is synchronized: fail closed.
+            reporter.notReady(ctx, caller(), configuration.getGuardianId(), phase);
             return ctx.interruptWith(
                 new ExecutionFailure(HttpStatusCode.SERVICE_UNAVAILABLE_503)
                     .key(NOT_DEPLOYED_KEY)
@@ -97,10 +118,12 @@ public class GuardianPolicy implements HttpPolicy {
                     .cause(new GuardianFailureException(String.format("Guardian '%s' is not deployed", configuration.getGuardianId())))
             );
         }
-        Guardian guardian = reactor.reactableGuardian().getDefinition();
+        ReactableGuardian reactableGuardian = reactor.reactableGuardian();
+        Guardian guardian = reactableGuardian.getDefinition();
         if (guardian.getPhase() != phase) {
             // A Guardian is built for its own phase: run on the other one, a request Guardian would only see a request
             // already sent. Fail closed so the misplaced step is visible.
+            reporter.incompatible(ctx, caller(), reactableGuardian, phase, INCOMPATIBLE_PHASE_KEY);
             return ctx.interruptWith(
                 new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
                     .key(INCOMPATIBLE_PHASE_KEY)
@@ -121,6 +144,7 @@ public class GuardianPolicy implements HttpPolicy {
         if (!guardian.isCompatibleWith(apiType)) {
             // A declared restriction that the calling API violates never heals by itself: fail closed so the
             // misconfiguration is visible instead of silently unguarded.
+            reporter.incompatible(ctx, caller(), reactableGuardian, phase, INCOMPATIBLE_API_TYPE_KEY);
             return ctx.interruptWith(
                 new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
                     .key(INCOMPATIBLE_API_TYPE_KEY)
@@ -137,7 +161,50 @@ public class GuardianPolicy implements HttpPolicy {
                     )
             );
         }
-        return reactor.execute(ctx, this);
+        GuardianVerdicts verdicts = new GuardianVerdicts();
+        // A dispose can follow a terminal signal: only the first outcome of the run is its decision.
+        AtomicBoolean reported = new AtomicBoolean();
+        long start = System.nanoTime();
+        return reactor
+            .execute(ctx, this, verdicts)
+            .doOnComplete(() -> once(reported, () -> reporter.decided(ctx, caller(), reactableGuardian, phase, verdicts, elapsed(start))))
+            .doOnError(error ->
+                once(reported, () -> {
+                    if (error instanceof InterruptionFailureException interruption) {
+                        reporter.denied(
+                            ctx,
+                            caller(),
+                            reactableGuardian,
+                            phase,
+                            verdicts,
+                            interruption.getExecutionFailure(),
+                            elapsed(start)
+                        );
+                    } else if (error instanceof InterruptionException) {
+                        reporter.interrupted(ctx, caller(), reactableGuardian, phase, verdicts, elapsed(start));
+                    } else {
+                        reporter.failed(ctx, caller(), reactableGuardian, phase, verdicts, error, elapsed(start));
+                    }
+                })
+            )
+            .doOnDispose(() -> once(reported, () -> reporter.cancelled(ctx, caller(), reactableGuardian, phase, verdicts, elapsed(start))));
+    }
+
+    private static void once(AtomicBoolean reported, Runnable report) {
+        if (reported.compareAndSet(false, true)) {
+            report.run();
+        }
+    }
+
+    /**
+     * What a decision names as its caller: two steps of a flow share the id of the plugin, not their names.
+     */
+    private String caller() {
+        return stepName == null || stepName.isBlank() ? id : stepName;
+    }
+
+    private static long elapsed(long start) {
+        return System.nanoTime() - start;
     }
 
     /**

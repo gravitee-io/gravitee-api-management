@@ -75,6 +75,17 @@ class GuardianPolicyFactoryTest {
     }
 
     @Test
+    void should_keep_the_step_name_apart_from_the_id_of_the_policy() throws Exception {
+        PolicyMetadata metadata = new PolicyMetadata(GuardianPolicy.POLICY_ID, "{}", null);
+        metadata.metadata().put(PolicyMetadata.MetadataKeys.STEP_NAME, "my step");
+
+        HttpPolicy policy = cut.create(ExecutionPhase.REQUEST, policyManifest, configurationOf("guardian-id"), metadata);
+
+        assertThat(policy.id()).isEqualTo(GuardianPolicy.POLICY_ID);
+        assertThat(policy).extracting("stepName").isEqualTo("my step");
+    }
+
+    @Test
     void should_wrap_guardian_policy_in_a_conditional_policy_when_step_has_a_condition() {
         PolicyMetadata metadata = new PolicyMetadata("my-guardian-step", "{}", "{#request.headers['X-Guard'] != null}");
 
