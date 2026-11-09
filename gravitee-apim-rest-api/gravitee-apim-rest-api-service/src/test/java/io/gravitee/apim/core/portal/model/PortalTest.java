@@ -26,6 +26,9 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class PortalTest {
@@ -125,6 +128,32 @@ class PortalTest {
             portal.update("Portal", null, null);
 
             assertThat(portal.getNavigationStructure().isEmpty()).isTrue();
+        }
+    }
+
+    @Nested
+    class NameFilter {
+
+        @ParameterizedTest
+        @NullSource
+        @ValueSource(strings = { "", "  " })
+        void should_keep_every_portal_without_a_query(String query) {
+            assertThat(Portal.nameFilter(query)).accepts(named("Developer Portal"));
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "partner", "PARTNER", " Partner " })
+        void should_keep_a_portal_whose_name_contains_the_query_ignoring_case(String query) {
+            assertThat(Portal.nameFilter(query)).accepts(named("Partners extranet"));
+        }
+
+        @Test
+        void should_reject_a_portal_whose_name_does_not_contain_the_query() {
+            assertThat(Portal.nameFilter("partner")).rejects(named("Developer Portal"));
+        }
+
+        private static Portal named(String name) {
+            return Portal.create("env", "org", name, url("https://portal.acme.io"));
         }
     }
 
