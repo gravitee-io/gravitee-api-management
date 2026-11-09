@@ -1494,7 +1494,7 @@ workflows:
               only:
                 - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
 orbs:
-  keeper: gravitee-io/keeper@0.7.1
+  keeper: gravitee-io/keeper@0.7.3
   slack: circleci/slack@4.12.5
   aws-cli: circleci/aws-cli@5.1.2
   aws-s3: circleci/aws-s3@4.1.0
