@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.secret.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.secret.model.Secret;
 import io.gravitee.apim.core.secret.query_service.SecretQueryService;
 import io.gravitee.common.data.domain.Page;
@@ -33,6 +34,12 @@ public class SearchSecretsUseCase {
     public record Output(Page<Secret> secrets) {}
 
     public Output execute(Input input) {
+        var pageable = input.pageable();
+        if ((long) (pageable.getPageNumber() - 1) * pageable.getPageSize() > Integer.MAX_VALUE) {
+            throw new ValidationDomainException(
+                "The page is out of range: (page - 1) * perPage must not exceed " + Integer.MAX_VALUE + "."
+            );
+        }
         return new Output(secretQueryService.search(input.organizationId(), input.environmentId(), input.pageable()));
     }
 }

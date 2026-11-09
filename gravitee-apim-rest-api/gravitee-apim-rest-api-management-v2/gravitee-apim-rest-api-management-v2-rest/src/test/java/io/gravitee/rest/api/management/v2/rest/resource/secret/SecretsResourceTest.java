@@ -186,6 +186,13 @@ class SecretsResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_refuse_a_page_whose_offset_overflows() {
+            var response = rootTarget().queryParam("page", 21474838).queryParam("perPage", 100).request().get();
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        }
+
+        @Test
         void should_return_403_without_the_read_permission() {
             shouldReturn403(RolePermission.ENVIRONMENT_SECRET, ENV_ID, RolePermissionAction.READ, () -> rootTarget().request().get());
         }

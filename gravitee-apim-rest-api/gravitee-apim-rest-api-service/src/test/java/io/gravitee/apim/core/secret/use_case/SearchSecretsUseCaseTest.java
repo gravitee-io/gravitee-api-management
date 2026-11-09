@@ -17,9 +17,11 @@ package io.gravitee.apim.core.secret.use_case;
 
 import static fixtures.core.model.SecretFixtures.aSecret;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.AbstractUseCaseTest;
 import inmemory.SecretQueryServiceInMemory;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.secret.model.Secret;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import java.util.List;
@@ -65,6 +67,11 @@ class SearchSecretsUseCaseTest extends AbstractUseCaseTest {
 
         assertThat(page.getContent()).isEmpty();
         assertThat(page.getTotalElements()).isZero();
+    }
+
+    @Test
+    void should_refuse_a_page_whose_offset_does_not_fit_in_an_int() {
+        assertThatThrownBy(() -> useCase.execute(search(ORG_ID, 21474838, 100))).isInstanceOf(ValidationDomainException.class);
     }
 
     private SearchSecretsUseCase.Input search(String organizationId, int pageNumber, int pageSize) {
