@@ -17,10 +17,12 @@ package io.gravitee.apim.core.api.model;
 
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
+import io.gravitee.definition.model.v4.property.Property;
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;
@@ -45,4 +47,38 @@ public class UpdateNativeApi extends AbstractUpdateApi {
 
     @Builder.Default
     private NativeAnalytics analytics = new NativeAnalytics();
+
+    /** The API as this update leaves it, with the given properties. */
+    public Api applyTo(Api currentApi, List<Property> properties) {
+        return currentApi
+            .toBuilder()
+            .name(getName())
+            .description(getDescription())
+            .version(getApiVersion())
+            .apiLifecycleState(getLifecycleState())
+            .visibility(getVisibility())
+            .labels(getLabels())
+            .categories(getCategories())
+            .groups(getGroups())
+            .disableMembershipNotifications(isDisableMembershipNotifications())
+            .allowMultiJwtOauth2Subscriptions(isAllowMultiJwtOauth2Subscriptions())
+            .apiDefinitionValue(
+                currentApi.getApiDefinitionValue() instanceof NativeApi nativeApi
+                    ? nativeApi
+                        .toBuilder()
+                        .name(getName())
+                        .apiVersion(getApiVersion())
+                        .tags(getTags())
+                        .resources(getResources())
+                        .listeners(listeners)
+                        .endpointGroups(endpointGroups)
+                        .flows(flows)
+                        .services(services)
+                        .properties(properties)
+                        .analytics(analytics)
+                        .build()
+                    : null
+            )
+            .build();
+    }
 }

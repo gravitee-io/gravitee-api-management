@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_listing.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.api.domain_service.ApiFolderConflictsDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator;
 import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator.PendingUpdate;
@@ -45,7 +46,7 @@ import lombok.RequiredArgsConstructor;
  */
 @DomainService
 @RequiredArgsConstructor
-public class PortalListingSyncDomainService {
+public class PortalListingSyncDomainService implements ApiFolderConflictsDomainService {
 
     private final PortalPageContentQueryService portalPageContentQueryService;
     private final ApiDocumentationSyncDomainService apiDocumentationSyncDomainService;
@@ -153,6 +154,7 @@ public class PortalListingSyncDomainService {
         return new ValidationItems(subtree.creates(), updates);
     }
 
+    @Override
     public void validateApiFolderConflictsForApi(AuditInfo auditInfo, String apiId, @Nullable List<NavigationPath> desired) {
         var safeDesired = desired == null ? List.<NavigationPath>of() : desired;
         var envFolders = apiFolderSubtreeReconciler.loadAllFoldersInEnv(auditInfo.environmentId());
