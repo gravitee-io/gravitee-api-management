@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 import { waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
 
 import { permissionService } from '@gravitee/gamma-modules-sdk';
 
-import { startPermissionSync } from './permission-sync';
+import { reloadEnvironmentPermissions, startPermissionSync } from './permission-sync';
 import { buildEnvironment, buildUser, TEST_MANAGEMENT_BASE } from '../../testing/factories';
-import { respondWithError, trackHandler } from '../../testing/helpers';
+import { respondWith, respondWithError, seedUser, trackHandler } from '../../testing/helpers';
+import { server } from '../../testing/server';
 import { useAuthStore } from '../auth/auth.store';
 import { useEnvironmentStore } from '../environment/environment.store';
 
@@ -93,6 +95,132 @@ describe('permission-sync', () => {
 
         expect(permissionService.hasAnyOf(['organization-user-u'])).toBe(true);
         expect(permissionService.hasAnyOf(['organization-role-c'])).toBe(true);
+    });
+
+    describe('when an answer comes after the permissions it was asked for were dropped', () => {
+        const permissionsUrl = (environmentId: string) => `${TEST_MANAGEMENT_BASE}/environments/${environmentId}/permissions`;
+
+        interface HeldAnswer {
+            answer: (body: unknown, status?: number) => void;
+        }
+
+        function holdPermissions(environmentId: string): HeldAnswer {
+            const held: HeldAnswer = { answer: () => undefined };
+            server.use(
+                http.get(
+                    permissionsUrl(environmentId),
+                    () =>
+                        new Promise<Response>(
+                            resolve => (held.answer = (body, status) => resolve(HttpResponse.json(body as never, { status }))),
+                        ),
+                    { once: true },
+                ),
+            );
+            return held;
+        }
+
+        async function flushAnswers() {
+            await jest.runOnlyPendingTimersAsync();
+        }
+
+        beforeEach(() => {
+            jest.useFakeTimers({ advanceTimers: true });
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it('should drop the answer for an environment left since', async () => {
+            const firstEnvironment = holdPermissions('first');
+            holdPermissions('second');
+            seedUser();
+            useEnvironmentStore.getState().setCurrentEnvironment(buildEnvironment({ id: 'first' }));
+            await flushAnswers();
+            useEnvironmentStore.getState().setCurrentEnvironment(buildEnvironment({ id: 'second' }));
+
+            firstEnvironment.answer({ API: ['R'] });
+            await flushAnswers();
+
+            expect(permissionService.getLoadStatus('environment')).toBe('pending');
+            expect(permissionService.hasAnyOf(['environment-api-r'])).toBe(false);
+        });
+
+        it('should drop an answer that comes after the user signed out', async () => {
+            useEnvironmentStore.getState().setCurrentEnvironment(buildEnvironment({ id: 'staging' }));
+            const answerToSignedOutUser = holdPermissions('staging');
+            seedUser();
+            await flushAnswers();
+
+            useAuthStore.setState({ user: null });
+            answerToSignedOutUser.answer({ API: ['R'] });
+            await flushAnswers();
+
+            expect(permissionService.getLoadStatus('environment')).toBe('pending');
+            expect(permissionService.hasAnyOf(['environment-api-r'])).toBe(false);
+        });
+
+        it('should give the next user their own permissions, never those asked for the user before, in the same environment', async () => {
+            useEnvironmentStore.getState().setCurrentEnvironment(buildEnvironment({ id: 'staging' }));
+            const answerToFirstUser = holdPermissions('staging');
+            seedUser({ id: 'ada' });
+            await flushAnswers();
+            useAuthStore.setState({ user: null });
+            const answerToSecondUser = holdPermissions('staging');
+            seedUser({ id: 'bob' });
+            await flushAnswers();
+
+            answerToFirstUser.answer({ API: ['R', 'U', 'D'] });
+            await flushAnswers();
+            expect(permissionService.getLoadStatus('environment')).toBe('pending');
+
+            answerToSecondUser.answer({ API: ['R'] });
+            await flushAnswers();
+            expect(permissionService.hasAnyOf(['environment-api-r'])).toBe(true);
+            expect(permissionService.hasAnyOf(['environment-api-d'])).toBe(false);
+        });
+
+        it('should drop the failure of an environment left since', async () => {
+            const firstEnvironment = holdPermissions('first');
+            const secondEnvironment = holdPermissions('second');
+            jest.spyOn(console, 'error').mockImplementation(() => undefined);
+            seedUser();
+            useEnvironmentStore.getState().setCurrentEnvironment(buildEnvironment({ id: 'first' }));
+            await flushAnswers();
+            useEnvironmentStore.getState().setCurrentEnvironment(buildEnvironment({ id: 'second' }));
+            await flushAnswers();
+
+            firstEnvironment.answer({ message: 'boom' }, 500);
+            await flushAnswers();
+            expect(permissionService.getLoadStatus('environment')).toBe('pending');
+
+            secondEnvironment.answer({});
+            await flushAnswers();
+            expect(permissionService.getLoadStatus('environment')).toBe('loaded');
+        });
+    });
+
+    describe('when the environment permissions cannot be read', () => {
+        const permissionsUrl = (environmentId: string) => `${TEST_MANAGEMENT_BASE}/environments/${environmentId}/permissions`;
+
+        beforeEach(() => {
+            jest.spyOn(console, 'error').mockImplementation(() => undefined);
+            seedUser();
+        });
+
+        it('should say so, and read them again when asked', async () => {
+            respondWithError('get', permissionsUrl('staging'), 500);
+
+            useEnvironmentStore.getState().setCurrentEnvironment(buildEnvironment({ id: 'staging' }));
+
+            await waitFor(() => expect(permissionService.getLoadStatus('environment')).toBe('failed'));
+
+            respondWith('get', permissionsUrl('staging'), { API: ['R'] });
+            reloadEnvironmentPermissions();
+
+            await waitFor(() => expect(permissionService.getLoadStatus('environment')).toBe('loaded'));
+            expect(permissionService.hasAnyOf(['environment-api-r'])).toBe(true);
+        });
     });
 
     it('should reload environment permissions on login when environmentId does not change', async () => {
