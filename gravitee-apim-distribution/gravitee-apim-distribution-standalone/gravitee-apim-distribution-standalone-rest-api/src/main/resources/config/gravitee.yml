@@ -995,6 +995,9 @@ api:
   # - Generate a KEK with: openssl rand -base64 32
   # - Set it here or with the GRAVITEE_API_SECRETS_ENCRYPTION_KEY environment variable. Keep it apart from
   #   api.properties.encryption.secret, and give every Management API node the same value.
+  # - To read it from a Kubernetes Secret, set the environment variable with valueFrom.secretKeyRef (api.env in the
+  #   Helm chart), or point the key at a secret provider, e.g. secret://kubernetes/<secret>:<key>. A secret:// reference
+  #   that does not resolve stops the Management API at startup.
   # - Keep a copy somewhere safe: if the KEK is lost, every stored secret is lost with it.
   # Without a valid KEK, or with a KEK other than the one that encrypted the stored secrets, the Management API still
   # starts and logs an error naming the problem (never the key), and creating or updating a secret fails with that error.
