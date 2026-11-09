@@ -97,7 +97,13 @@ public class JdbcGuardianRepository extends JdbcAbstractCrudRepository<Guardian,
     /** Escapes the LIKE wildcards so the caller's query is matched as literal text. */
     private static String escapeLikePattern(final String value) {
         // the escape character first, or the escapes added below would be escaped again
-        return value.replace(LIKE_ESCAPE, LIKE_ESCAPE + LIKE_ESCAPE).replace("%", LIKE_ESCAPE + "%").replace("_", LIKE_ESCAPE + "_");
+        return value
+            .replace(LIKE_ESCAPE, LIKE_ESCAPE + LIKE_ESCAPE)
+            .replace("%", LIKE_ESCAPE + "%")
+            .replace("_", LIKE_ESCAPE + "_")
+            // SQL Server alone reads [...] as a character class. The other three take an escaped '['
+            // as a plain '[', so escaping it everywhere keeps one pattern for all four flavours.
+            .replace("[", LIKE_ESCAPE + "[");
     }
 
     @Override
