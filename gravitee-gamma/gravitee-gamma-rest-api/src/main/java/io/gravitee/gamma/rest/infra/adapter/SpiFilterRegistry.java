@@ -231,7 +231,7 @@ public class SpiFilterRegistry implements FilterRegistry {
             range,
             Set.of(Signal.ANALYTICS, Signal.LOGS),
             Set.of(),
-            new CatalogFlags(null, field.rawKey(), AdditionalMetricValueType.valueOf(field.valueType().name()), null, true)
+            new CatalogFlags(null, field.rawKey(), AdditionalMetricValueType.valueOf(field.valueType().name()), null, true, null)
         );
     }
 

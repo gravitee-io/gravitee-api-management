@@ -15,11 +15,13 @@
  */
 package io.gravitee.gamma.rest.core.observability.analytics.model;
 
+import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -50,5 +52,32 @@ public record AnalyticsDefinition(List<FamilyMetrics> families, List<DimensionDe
             .collect(Collectors.toMap(DimensionDefinition::name, Function.identity(), (first, next) -> first, LinkedHashMap::new))
             .values();
         return new AnalyticsDefinition(families, List.copyOf(dimensions));
+    }
+
+    /**
+     * The entries of {@code origins} only, metrics and dimensions each narrowed on their own: the metrics of those
+     * origins, a family left empty dropped, and the dimensions of those origins, whether or not a kept metric is
+     * grouped by them. A kept metric still names every facet it is grouped by. Every entry when no origin is asked.
+     */
+    public AnalyticsDefinition narrowedTo(Set<CatalogOrigin> origins) {
+        var narrowedFamilies = families
+            .stream()
+            .map(family ->
+                new FamilyMetrics(
+                    family.family(),
+                    family
+                        .metrics()
+                        .stream()
+                        .filter(metric -> metric.origin().keptBy(origins))
+                        .toList()
+                )
+            )
+            .filter(family -> !family.metrics().isEmpty())
+            .toList();
+        var narrowedDimensions = dimensions
+            .stream()
+            .filter(dimension -> dimension.origin().keptBy(origins))
+            .toList();
+        return new AnalyticsDefinition(narrowedFamilies, narrowedDimensions);
     }
 }

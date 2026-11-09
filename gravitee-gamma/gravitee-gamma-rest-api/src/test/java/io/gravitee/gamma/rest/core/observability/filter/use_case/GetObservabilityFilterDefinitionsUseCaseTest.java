@@ -45,6 +45,8 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
 
     private static final String ORGANIZATION = MetricDefinitionFixture.ORGANIZATION;
     private static final String ENVIRONMENT = MetricDefinitionFixture.ENVIRONMENT;
+    private static final Set<ApiType> HTTP_FAMILY = Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MESSAGE, ApiType.MCP, ApiType.A2A);
+    private static final Set<ApiType> AI_KINDS = Set.of(ApiType.LLM, ApiType.MCP, ApiType.A2A);
 
     private final MetricDefinitionFixture metricDefinitions = new MetricDefinitionFixture();
 
@@ -163,7 +165,14 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
                 assertThat(spec.apiTypes()).isEmpty();
                 assertThat(spec.takesDecimals()).isTrue();
                 assertThat(spec.catalog()).isEqualTo(
-                    new CatalogFlags(CatalogOrigin.DECLARED, "double_checkout_basket-value", AdditionalMetricValueType.DOUBLE, null, true)
+                    new CatalogFlags(
+                        CatalogOrigin.DECLARED,
+                        "double_checkout_basket-value",
+                        AdditionalMetricValueType.DOUBLE,
+                        null,
+                        true,
+                        null
+                    )
                 );
             });
             assertThat(declared(filters, "additional-metrics.keyword_fraud_verdict")).satisfies(spec -> {
@@ -251,6 +260,162 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
         }
     }
 
+    /** A dynamic entry is scoped and named by the namespace of its key (OBS-193). */
+    @Nested
+    class NamespaceScoping {
+
+        private static final Instant SEEN = Instant.parse("2026-11-09T08:05:00Z");
+
+        @Test
+        void should_tie_a_dynamic_entry_to_the_kinds_of_its_namespace_and_label_it_without_the_namespace() {
+            metricDefinitions.givenDeclared("additional-metrics.long_llm-proxy_tokens-cached");
+            metricDefinitions.ports.givenDiscovered(
+                List.of(discovered("keyword_mcp-proxy_endpoint-protocol-version", AdditionalMetricValueType.KEYWORD)),
+                false
+            );
+
+            var filters = execute(Set.of(), Set.of());
+
+            assertThat(spec(filters, "additional-metrics.long_llm-proxy_tokens-cached")).satisfies(spec -> {
+                assertThat(spec.label()).isEqualTo("Tokens cached");
+                assertThat(spec.apiTypes()).containsExactly(ApiType.LLM);
+                assertThat(spec.catalog().namespace()).isEqualTo("llm-proxy");
+                assertThat(spec.description()).isNull();
+            });
+            assertThat(spec(filters, "additional-metrics.keyword_mcp-proxy_endpoint-protocol-version")).satisfies(spec -> {
+                assertThat(spec.label()).isEqualTo("Endpoint protocol version");
+                assertThat(spec.apiTypes()).containsExactly(ApiType.MCP);
+                assertThat(spec.catalog().namespace()).isEqualTo("mcp-proxy");
+            });
+        }
+
+        @Test
+        void should_serve_no_namespace_and_no_kind_for_a_namespace_the_map_does_not_know() {
+            metricDefinitions.ports.givenDiscovered(
+                List.of(discovered("keyword_fraud-check_tier", AdditionalMetricValueType.KEYWORD)),
+                false
+            );
+
+            assertThat(spec(execute(Set.of(), Set.of()), "additional-metrics.keyword_fraud-check_tier")).satisfies(spec -> {
+                assertThat(spec.label()).isEqualTo("Fraud check tier");
+                assertThat(spec.apiTypes()).isEmpty();
+                assertThat(spec.catalog().namespace()).isNull();
+            });
+        }
+
+        @Test
+        void should_drop_the_native_kafka_keys_and_keep_the_failover_keys_for_the_ai_kinds() {
+            metricDefinitions.ports.givenDiscovered(
+                List.of(
+                    discovered("long_native-kafka_messages-in", AdditionalMetricValueType.LONG),
+                    discovered("long_failover_count", AdditionalMetricValueType.LONG),
+                    discovered("keyword_fraud-check_tier", AdditionalMetricValueType.KEYWORD)
+                ),
+                false
+            );
+
+            assertThat(dynamicNames(Set.of(), AI_KINDS)).containsExactlyInAnyOrder(
+                "additional-metrics.long_failover_count",
+                "additional-metrics.keyword_fraud-check_tier"
+            );
+            assertThat(dynamicNames(Set.of(), Set.of(ApiType.NATIVE))).containsExactlyInAnyOrder(
+                "additional-metrics.long_native-kafka_messages-in",
+                "additional-metrics.keyword_fraud-check_tier"
+            );
+            assertThat(dynamicNames(Set.of(), Set.of())).hasSize(3);
+        }
+
+        @Test
+        void should_let_a_declared_label_win_over_the_derived_one_and_serve_the_record_description() {
+            metricDefinitions.givenDescribed(
+                "additional-metrics.long_llm-proxy_tokens-cached",
+                "Cached tokens",
+                "Tokens served from the cache"
+            );
+            metricDefinitions.givenDescribed("additional-metrics.keyword_fraud-check_tier", "Risk tier", null);
+
+            var filters = execute(Set.of(), Set.of());
+
+            assertThat(spec(filters, "additional-metrics.long_llm-proxy_tokens-cached")).satisfies(spec -> {
+                assertThat(spec.label()).isEqualTo("Cached tokens");
+                assertThat(spec.description()).isEqualTo("Tokens served from the cache");
+            });
+            assertThat(spec(filters, "additional-metrics.keyword_fraud-check_tier").label()).isEqualTo("Risk tier");
+            assertThat(spec(filters, "API").description()).isNull();
+        }
+
+        @Test
+        void should_keep_the_entries_of_the_asked_origins_only_once_the_catalog_is_built() {
+            metricDefinitions.givenDeclared("additional-metrics.long_llm-proxy_tokens-cached");
+            metricDefinitions.ports
+                .givenBuiltIn("keyword_mcp-proxy_tools/call", "MCP_PROXY_TOOL")
+                .givenDiscovered(List.of(discovered("long_failover_count", AdditionalMetricValueType.LONG)), true);
+
+            var discoveredOnly = useCase.execute(
+                new GetObservabilityFilterDefinitionsUseCase.Input(
+                    ORGANIZATION,
+                    ENVIRONMENT,
+                    Set.of(),
+                    Set.of(),
+                    Set.of(CatalogOrigin.DISCOVERED)
+                )
+            );
+            var builtInOnly = useCase.execute(
+                new GetObservabilityFilterDefinitionsUseCase.Input(
+                    ORGANIZATION,
+                    ENVIRONMENT,
+                    Set.of(),
+                    Set.of(),
+                    Set.of(CatalogOrigin.BUILT_IN)
+                )
+            );
+            var declaredAndDiscovered = useCase.execute(
+                new GetObservabilityFilterDefinitionsUseCase.Input(
+                    ORGANIZATION,
+                    ENVIRONMENT,
+                    Set.of(),
+                    Set.of(),
+                    Set.of(CatalogOrigin.DECLARED, CatalogOrigin.DISCOVERED)
+                )
+            );
+
+            assertThat(discoveredOnly.filters()).extracting(FilterSpec::name).containsExactly("additional-metrics.long_failover_count");
+            assertThat(discoveredOnly.truncated()).as("the discovery pass is the same whatever origins are kept").isTrue();
+            assertThat(builtInOnly.filters()).allSatisfy(spec -> assertThat(spec.origin()).isEqualTo(CatalogOrigin.BUILT_IN));
+            assertThat(builtInOnly.filters()).extracting(FilterSpec::name).contains("API", "MCP_PROXY_TOOL");
+            assertThat(builtInOnly.truncated()).isTrue();
+            assertThat(declaredAndDiscovered.filters())
+                .extracting(FilterSpec::name)
+                .containsExactly("additional-metrics.long_llm-proxy_tokens-cached", "additional-metrics.long_failover_count");
+        }
+
+        private DiscoveredAdditionalMetric discovered(String rawKey, AdditionalMetricValueType valueType) {
+            return new DiscoveredAdditionalMetric(rawKey, valueType, SEEN);
+        }
+
+        private List<FilterSpec> execute(Set<Signal> signals, Set<ApiType> apiTypes) {
+            return useCase
+                .execute(new GetObservabilityFilterDefinitionsUseCase.Input(ORGANIZATION, ENVIRONMENT, signals, apiTypes))
+                .filters();
+        }
+
+        private List<String> dynamicNames(Set<Signal> signals, Set<ApiType> apiTypes) {
+            return execute(signals, apiTypes)
+                .stream()
+                .filter(spec -> spec.catalog() != null && spec.catalog().origin() != CatalogOrigin.BUILT_IN)
+                .map(FilterSpec::name)
+                .toList();
+        }
+
+        private FilterSpec spec(List<FilterSpec> filters, String name) {
+            return filters
+                .stream()
+                .filter(spec -> spec.name().equals(name))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No entry " + name));
+        }
+    }
+
     @Nested
     class DiscoveredEntries {
 
@@ -290,8 +455,15 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
                     null,
                     null,
                     Set.of(Signal.LOGS, Signal.ANALYTICS),
-                    Set.of(),
-                    new CatalogFlags(CatalogOrigin.DISCOVERED, "long_failover_count", AdditionalMetricValueType.LONG, SEEN, true)
+                    HTTP_FAMILY,
+                    new CatalogFlags(
+                        CatalogOrigin.DISCOVERED,
+                        "long_failover_count",
+                        AdditionalMetricValueType.LONG,
+                        SEEN,
+                        true,
+                        "failover"
+                    )
                 )
             );
             assertThat(output.truncated()).isFalse();
@@ -306,7 +478,14 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
             var tool = spec(all(), "MCP_PROXY_TOOL");
 
             assertThat(tool.catalog()).isEqualTo(
-                new CatalogFlags(CatalogOrigin.BUILT_IN, "keyword_mcp-proxy_tools/call", AdditionalMetricValueType.KEYWORD, SEEN, true)
+                new CatalogFlags(
+                    CatalogOrigin.BUILT_IN,
+                    "keyword_mcp-proxy_tools/call",
+                    AdditionalMetricValueType.KEYWORD,
+                    SEEN,
+                    true,
+                    null
+                )
             );
             assertThat(tool.label()).isEqualTo(StaticFilters.MCP_PROXY_TOOL.toSpec().label());
             assertThat(spec(all(), "API").catalog()).isNull();
@@ -368,10 +547,10 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
         }
 
         @Test
-        void should_keep_them_for_any_api_kind_and_drop_them_for_the_decisions_screen_alone() {
-            metricDefinitions.ports.givenDiscovered(List.of(discovered("long_failover_count", AdditionalMetricValueType.LONG)), false);
+        void should_keep_a_key_of_no_known_namespace_for_any_api_kind_and_drop_it_for_the_decisions_screen_alone() {
+            metricDefinitions.ports.givenDiscovered(List.of(discovered("long_fraud-check_score", AdditionalMetricValueType.LONG)), false);
 
-            assertThat(dynamicNames(Set.of(ApiType.NATIVE))).containsExactly("additional-metrics.long_failover_count");
+            assertThat(dynamicNames(Set.of(ApiType.NATIVE))).containsExactly("additional-metrics.long_fraud-check_score");
             assertThat(dynamicNames(Set.of(ApiType.AUTHZ_DECISION, ApiType.MCP))).hasSize(1);
             assertThat(dynamicNames(Set.of(ApiType.AUTHZ_DECISION))).isEmpty();
         }
@@ -427,7 +606,14 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
             assertThat(dynamic(output.filters())).isEmpty();
             assertThat(output.filters()).hasSize(StaticFilters.values().length + ExtensibleFilters.values().length);
             assertThat(spec(output.filters(), "MCP_PROXY_TOOL").catalog()).isEqualTo(
-                new CatalogFlags(CatalogOrigin.BUILT_IN, "keyword_mcp-proxy_tools/call", AdditionalMetricValueType.KEYWORD, null, true)
+                new CatalogFlags(
+                    CatalogOrigin.BUILT_IN,
+                    "keyword_mcp-proxy_tools/call",
+                    AdditionalMetricValueType.KEYWORD,
+                    null,
+                    true,
+                    null
+                )
             );
             assertThat(output.truncated()).isTrue();
         }

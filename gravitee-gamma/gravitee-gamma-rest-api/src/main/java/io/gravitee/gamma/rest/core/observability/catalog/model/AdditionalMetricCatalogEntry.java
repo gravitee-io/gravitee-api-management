@@ -23,13 +23,18 @@ import java.util.Set;
 /**
  * One entry of the environment's additional metric catalog.
  *
- * @param name     the wire name: the built-in name of a {@code BUILT_IN} entry, {@code additional-metrics.<rawKey>}
- *                 otherwise.
- * @param type     the filter type of the built-in spec serving the entry; {@code null} otherwise, the value type then
- *                 gives it.
- * @param apiTypes filled on {@code BUILT_IN} entries, empty otherwise: documents do not record which API kind wrote a key.
- * @param lastSeen {@code null} when no document carried the key in the discovery window, or when the caller may not
- *                 read the environment's traffic.
+ * @param name      the wire name: the built-in name of a {@code BUILT_IN} entry, {@code additional-metrics.<rawKey>}
+ *                  otherwise.
+ * @param type      the filter type of the built-in spec serving the entry; {@code null} otherwise, the value type then
+ *                  gives it.
+ * @param apiTypes  the kinds of the built-in on a {@code BUILT_IN} entry; on the others, the kinds the key's namespace
+ *                  ties it to ({@link AdditionalMetricNamespace}), none when it says nothing: documents do not record
+ *                  which API kind wrote a key.
+ * @param lastSeen  {@code null} when no document carried the key in the discovery window, or when the caller may not
+ *                  read the environment's traffic.
+ * @param namespace the key's namespace on a {@code DECLARED} or {@code DISCOVERED} entry, as
+ *                  {@link AdditionalMetricNamespace#of} serves it; {@code null} on a {@code BUILT_IN} entry and when
+ *                  unknown.
  *
  * @author GraviteeSource Team
  */
@@ -43,7 +48,8 @@ public record AdditionalMetricCatalogEntry(
     boolean exposed,
     Instant lastSeen,
     FilterType type,
-    Set<ApiType> apiTypes
+    Set<ApiType> apiTypes,
+    String namespace
 ) {
     public AdditionalMetricCatalogEntry {
         apiTypes = Set.copyOf(apiTypes);

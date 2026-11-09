@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.core.observability.filter.model;
 
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogFlags;
+import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import java.util.List;
 import java.util.Set;
 
@@ -31,6 +32,8 @@ import java.util.Set;
  *
  * @param name        Stable identifier echoed by the UI on filter submission.
  * @param label       Human-readable display label.
+ * @param description The record's description on a {@code DECLARED} entry; {@code null} on every other entry, the
+ *                    built-in ones included until they carry one (OBS-142).
  * @param type        Data shape — see {@link FilterType}.
  * @param operators   Supported comparison operators — see {@link FilterOperator}. Always non-empty.
  * @param enumValues  Allowed {@link EnumValue}s (stable value + display label) when {@link #type}
@@ -42,7 +45,9 @@ import java.util.Set;
  * @param apiTypes    API kinds this filter is relevant to. A filter with {@code apiTypes = {LLM}}
  *                    only surfaces for LLM APIs; use {@link ApiType#ALL} for cross-cutting filters.
  *                    The two axes are independent: applicability is the rectangle
- *                    {@code signals × apiTypes}.
+ *                    {@code signals × apiTypes}. A {@code DECLARED} or {@code DISCOVERED} entry carries the kinds
+ *                    its key's namespace ties it to, none when the namespace says nothing: it then applies to every
+ *                    API kind ({@link ApiType#admitsUnscoped}).
  * @param catalog     Catalog flags of an entry backed by an additional metric field, the one holder of its
  *                    value type; {@code null} on a built-in entry reading no additional metric.
  *
@@ -51,6 +56,7 @@ import java.util.Set;
 public record FilterSpec(
     String name,
     String label,
+    String description,
     FilterType type,
     List<FilterOperator> operators,
     List<EnumValue> enumValues,
@@ -70,7 +76,22 @@ public record FilterSpec(
         Set<Signal> signals,
         Set<ApiType> apiTypes
     ) {
-        this(name, label, type, operators, enumValues, range, signals, apiTypes, null);
+        this(name, label, null, type, operators, enumValues, range, signals, apiTypes, null);
+    }
+
+    /** An entry backed by an additional metric field, with no description. */
+    public FilterSpec(
+        String name,
+        String label,
+        FilterType type,
+        List<FilterOperator> operators,
+        List<EnumValue> enumValues,
+        Range range,
+        Set<Signal> signals,
+        Set<ApiType> apiTypes,
+        CatalogFlags catalog
+    ) {
+        this(name, label, null, type, operators, enumValues, range, signals, apiTypes, catalog);
     }
 
     /** The value type of the additional metric field this spec reads, named by its type prefix (OBS-70); null for a built-in filter. */
@@ -83,9 +104,14 @@ public record FilterSpec(
         return valueType() == AdditionalMetricValueType.DOUBLE;
     }
 
+    /** Where the catalog entry comes from: a spec with no catalog flags is a built-in one. */
+    public CatalogOrigin origin() {
+        return catalog == null ? CatalogOrigin.BUILT_IN : catalog.origin();
+    }
+
     /** This spec flagged as backed by an additional metric field. */
     public FilterSpec withCatalog(CatalogFlags catalog) {
-        return new FilterSpec(name, label, type, operators, enumValues, range, signals, apiTypes, catalog);
+        return new FilterSpec(name, label, description, type, operators, enumValues, range, signals, apiTypes, catalog);
     }
 
     /** Inclusive numeric bounds for {@link FilterType#NUMBER} filters. */

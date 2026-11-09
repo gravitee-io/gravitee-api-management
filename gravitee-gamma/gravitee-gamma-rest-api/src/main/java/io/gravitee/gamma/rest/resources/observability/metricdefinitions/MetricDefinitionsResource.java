@@ -17,8 +17,10 @@ package io.gravitee.gamma.rest.resources.observability.metricdefinitions;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gamma.rest.core.observability.catalog.exception.InvalidMetricDefinitionException;
+import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.catalog.use_case.DeclareMetricDefinitionUseCase;
 import io.gravitee.gamma.rest.core.observability.catalog.use_case.ListMetricDefinitionsUseCase;
+import io.gravitee.gamma.rest.resources.observability.EnumQueryParam;
 import io.gravitee.gamma.rest.resources.observability.metricdefinitions.dto.DeclareMetricDefinitionRequestDto;
 import io.gravitee.gamma.rest.resources.observability.metricdefinitions.dto.MetricDefinitionDto;
 import io.gravitee.gamma.rest.resources.observability.metricdefinitions.dto.MetricDefinitionsResponseDto;
@@ -33,10 +35,12 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import java.util.List;
 
 /**
  * The environment's additional metrics, mounted under
@@ -44,7 +48,8 @@ import jakarta.ws.rs.core.UriInfo;
  *
  * <h2>Endpoints</h2>
  * <ul>
- *   <li>{@code GET /} — every additional metric of the environment, built-in, declared and discovered.</li>
+ *   <li>{@code GET /?origin=} — every additional metric of the environment, built-in, declared and discovered;
+ *       {@code origin}, optional and multi-valued, keeps the entries of those origins only.</li>
  *   <li>{@code POST /} — declares a key, named in the body.</li>
  *   <li>{@code GET|PUT|DELETE /record?name=} — see {@link MetricDefinitionResource}.</li>
  * </ul>
@@ -71,9 +76,15 @@ public class MetricDefinitionsResource {
     private ResourceContext resourceContext;
 
     @GET
-    public MetricDefinitionsResponseDto list() {
+    public MetricDefinitionsResponseDto list(@QueryParam("origin") List<String> origins) {
         var ctx = GraviteeContext.getExecutionContext();
-        var output = listUseCase.execute(new ListMetricDefinitionsUseCase.Input(ctx.getOrganizationId(), ctx.getEnvironmentId()));
+        var output = listUseCase.execute(
+            new ListMetricDefinitionsUseCase.Input(
+                ctx.getOrganizationId(),
+                ctx.getEnvironmentId(),
+                EnumQueryParam.parse(origins, CatalogOrigin.class, "origin")
+            )
+        );
         return MetricDefinitionsResponseDto.from(output.catalog());
     }
 

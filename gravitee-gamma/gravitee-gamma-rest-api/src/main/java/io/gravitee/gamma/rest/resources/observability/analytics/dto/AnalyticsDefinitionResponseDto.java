@@ -21,8 +21,8 @@ import io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinitio
 import java.util.List;
 
 /**
- * Wire shape of the analytics definition: families of metrics whose facets are named only, their labels being
- * in {@code dimensions} once for all.
+ * Wire shape of the analytics definition: families of metrics whose facets are named only, their labels, namespace
+ * and kinds being in {@code dimensions} once for all.
  *
  * @param truncated whether keys may be missing from the {@code ADDITIONAL} family; see the use case
  * @author GraviteeSource Team
@@ -33,6 +33,8 @@ public record AnalyticsDefinitionResponseDto(List<MetricFamilyDto> families, Lis
     public record MetricDefinitionDto(
         String name,
         String label,
+        String description,
+        String namespace,
         String unit,
         String currency,
         List<String> apiTypes,
@@ -45,6 +47,8 @@ public record AnalyticsDefinitionResponseDto(List<MetricFamilyDto> families, Lis
             return new MetricDefinitionDto(
                 metric.name(),
                 metric.label(),
+                metric.description(),
+                metric.namespace(),
                 metric.unit(),
                 metric.currency(),
                 metric.apiTypes().stream().map(Enum::name).toList(),
@@ -56,7 +60,18 @@ public record AnalyticsDefinitionResponseDto(List<MetricFamilyDto> families, Lis
         }
     }
 
-    public record DimensionDefinitionDto(String name, String label, String origin) {}
+    /** {@code apiTypes} are sorted for a stable payload, as the filter catalog serves them. */
+    public record DimensionDefinitionDto(String name, String label, String namespace, List<String> apiTypes, String origin) {
+        static DimensionDefinitionDto from(DimensionDefinition dimension) {
+            return new DimensionDefinitionDto(
+                dimension.name(),
+                dimension.label(),
+                dimension.namespace(),
+                dimension.apiTypes().stream().map(Enum::name).sorted().toList(),
+                dimension.origin().name()
+            );
+        }
+    }
 
     public static AnalyticsDefinitionResponseDto from(AnalyticsDefinition definition, boolean truncated) {
         return new AnalyticsDefinitionResponseDto(
@@ -71,11 +86,7 @@ public record AnalyticsDefinitionResponseDto(List<MetricFamilyDto> families, Lis
                     )
                 )
                 .toList(),
-            definition
-                .dimensions()
-                .stream()
-                .map(dimension -> new DimensionDefinitionDto(dimension.name(), dimension.label(), dimension.origin().name()))
-                .toList(),
+            definition.dimensions().stream().map(DimensionDefinitionDto::from).toList(),
             truncated
         );
     }

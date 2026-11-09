@@ -31,14 +31,15 @@ import java.util.Set;
  * are emitted UPPERCASE and sorted for a stable payload so the consumer can route a filter to the
  * right panel. Optional fields ({@code enumValues}, {@code range}) are omitted when null.
  *
- * <p>{@code origin}, {@code rawKey}, {@code valueType}, {@code lastSeen} and {@code exposed} are the
- * catalog flags of the {@code CatalogEntryFlags} schema, also carried by the metric definitions. An
- * entry without {@code origin} is a built-in one.
+ * <p>{@code origin}, {@code rawKey}, {@code valueType}, {@code lastSeen}, {@code exposed} and {@code namespace}
+ * are the catalog flags of the {@code CatalogEntryFlags} schema, also carried by the metric definitions. An
+ * entry without {@code origin} is a built-in one. {@code description} is the record's, on a declared entry.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record FilterSpecDto(
     String name,
     String label,
+    String description,
     String type,
     List<String> operators,
     List<EnumValueDto> enumValues,
@@ -49,7 +50,8 @@ public record FilterSpecDto(
     String rawKey,
     String valueType,
     String lastSeen,
-    Boolean exposed
+    Boolean exposed,
+    String namespace
 ) {
     public record EnumValueDto(String value, String label) {}
 
@@ -59,6 +61,7 @@ public record FilterSpecDto(
         return new FilterSpecDto(
             spec.name(),
             spec.label(),
+            spec.description(),
             spec.type().name().toLowerCase(java.util.Locale.ROOT),
             spec.operators().stream().map(Enum::name).toList(),
             spec.enumValues() == null
@@ -75,7 +78,8 @@ public record FilterSpecDto(
             spec.catalog() == null ? null : spec.catalog().rawKey(),
             spec.catalog() == null ? null : spec.catalog().valueType().name(),
             spec.catalog() == null || spec.catalog().lastSeen() == null ? null : spec.catalog().lastSeen().toString(),
-            spec.catalog() == null ? null : spec.catalog().exposed()
+            spec.catalog() == null ? null : spec.catalog().exposed(),
+            spec.catalog() == null ? null : spec.catalog().namespace()
         );
     }
 

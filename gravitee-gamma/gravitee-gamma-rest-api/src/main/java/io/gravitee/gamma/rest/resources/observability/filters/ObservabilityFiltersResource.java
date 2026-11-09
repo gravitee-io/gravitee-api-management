@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.resources.observability.filters;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
@@ -48,11 +49,12 @@ import java.util.List;
  *
  * <h2>Endpoints</h2>
  * <ul>
- *   <li>{@code GET /definition?signal=&apiType=} — self-describing filter catalog: the built-in filters,
+ *   <li>{@code GET /definition?signal=&apiType=&origin=} — self-describing filter catalog: the built-in filters,
  *       then the exposed metric definitions of the environment as {@code DECLARED} entries. Both axes are
  *       optional and multi-valued: an absent axis is unconstrained, both absent yields the full
  *       catalog; a present axis narrows by set intersection. Each returned spec carries both axes so
- *       the consumer can route a filter to the right panel (logs table vs analytics histogram).</li>
+ *       the consumer can route a filter to the right panel (logs table vs analytics histogram).
+ *       {@code origin}, optional and multi-valued too, keeps the entries of those origins only.</li>
  *   <li>{@code GET /{filterName}/values?query=&page=&perPage=&apiProduct=} — paginated selectable values for one
  *       filter. ENUM filters return their labelled static values (optionally substring-filtered by
  *       {@code query}); other types are handled in the use case.</li>
@@ -86,7 +88,8 @@ public class ObservabilityFiltersResource {
     @Produces(MediaType.APPLICATION_JSON)
     public FilterSpecsResponseDto getFilterDefinitions(
         @QueryParam("signal") List<String> signals,
-        @QueryParam("apiType") List<String> apiTypes
+        @QueryParam("apiType") List<String> apiTypes,
+        @QueryParam("origin") List<String> origins
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         var output = getFilterDefinitionsUseCase.execute(
@@ -94,7 +97,8 @@ public class ObservabilityFiltersResource {
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
                 EnumQueryParam.parse(signals, Signal.class, "signal"),
-                EnumQueryParam.parse(apiTypes, ApiType.class, "apiType")
+                EnumQueryParam.parse(apiTypes, ApiType.class, "apiType"),
+                EnumQueryParam.parse(origins, CatalogOrigin.class, "origin")
             )
         );
         return new FilterSpecsResponseDto(output.filters().stream().map(FilterSpecDto::from).toList(), output.truncated() ? true : null);

@@ -33,6 +33,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -43,7 +44,9 @@ import lombok.AllArgsConstructor;
  *
  * <p>Filters are the exception: Gamma checks a query's conditions against its own filter registry on the
  * {@code ANALYTICS} signal, not against the catalog, so a catalog filter the registry does not serve there is
- * left out rather than offered and then refused.
+ * left out rather than offered and then refused. A facet is tied to the kinds of the filter of its name there (the
+ * catalog classifies a facet as the filter on the same field), so the dimension picker groups {@code LLM_PROXY_MODEL}
+ * under LLM without reading its name; a facet with no such filter is tied to none.
  *
  * <p>An additional metric field is in no catalog declaration: the engine measures it with
  * {@link AdditionalMetricName#MEASURES} in the request documents, where it is grouped and filtered like the built-in
@@ -87,11 +90,13 @@ public class AnalyticsDefinitionPortAdapter implements AnalyticsDefinitionPort {
             .filter(this::measuresAdditionalMetrics)
             .map(kind -> ApiType.valueOf(kind.name()))
             .toList();
+        var analyticsFilters = analyticsFilters();
         return new AdditionalMetricSupport(
             apiTypes,
             AdditionalMetricName.MEASURES.stream().map(Enum::name).toList(),
-            facetsOf(dimensionsOf.name()),
-            filtersOf(dimensionsOf.name(), analyticsFilters())
+            facetsOf(dimensionsOf.name(), analyticsFilters),
+            filtersOf(dimensionsOf.name(), analyticsFilters),
+            dimensionsOf.name().name()
         );
     }
 
@@ -106,18 +111,22 @@ public class AnalyticsDefinitionPortAdapter implements AnalyticsDefinitionPort {
         return getApiMetricSpecUseCase.execute(new GetApiMetricSpecUseCase.Input(apiKind)).specs();
     }
 
-    private Set<String> analyticsFilters() {
-        return filterRegistry.getFilters(Set.of(Signal.ANALYTICS), Set.of()).stream().map(FilterSpec::name).collect(Collectors.toSet());
+    /** The filters the registry serves on the {@code ANALYTICS} signal, with the kinds each is tied to. */
+    private Map<String, Set<ApiType>> analyticsFilters() {
+        return filterRegistry
+            .getFilters(Set.of(Signal.ANALYTICS), Set.of())
+            .stream()
+            .collect(Collectors.toMap(FilterSpec::name, spec -> spec.apiTypes() == null ? Set.of() : spec.apiTypes()));
     }
 
-    private MetricDefinition toCoreModel(MetricSpec spec, Set<String> analyticsFilters) {
+    private MetricDefinition toCoreModel(MetricSpec spec, Map<String, Set<ApiType>> analyticsFilters) {
         return new MetricDefinition(
             spec.name().name(),
             spec.label(),
             spec.unit() == null ? null : ServedMetricUnit.of(spec.unit()),
             apiTypesOf(spec),
             spec.measures().stream().map(Enum::name).toList(),
-            facetsOf(spec.name()),
+            facetsOf(spec.name(), analyticsFilters),
             filtersOf(spec.name(), analyticsFilters),
             CatalogOrigin.BUILT_IN,
             spec.unit() == null ? null : ServedMetricUnit.currencyOf(spec.unit()).orElse(null)
@@ -132,22 +141,30 @@ public class AnalyticsDefinitionPortAdapter implements AnalyticsDefinitionPort {
             .toList();
     }
 
-    private List<DimensionDefinition> facetsOf(MetricSpec.Name metric) {
+    private List<DimensionDefinition> facetsOf(MetricSpec.Name metric, Map<String, Set<ApiType>> analyticsFilters) {
         return getMetricFacetSpecUseCase
             .execute(new GetMetricFacetSpecUseCase.Input(metric.name()))
             .specs()
             .stream()
-            .map(facet -> new DimensionDefinition(facet.name().name(), facet.label(), CatalogOrigin.BUILT_IN))
+            .map(facet ->
+                new DimensionDefinition(
+                    facet.name().name(),
+                    facet.label(),
+                    null,
+                    analyticsFilters.getOrDefault(facet.name().name(), Set.of()),
+                    CatalogOrigin.BUILT_IN
+                )
+            )
             .toList();
     }
 
-    private List<String> filtersOf(MetricSpec.Name metric, Set<String> analyticsFilters) {
+    private List<String> filtersOf(MetricSpec.Name metric, Map<String, Set<ApiType>> analyticsFilters) {
         return getMetricFilterSpecUseCase
             .execute(new GetMetricFilterSpecUseCase.Input(metric.name()))
             .specs()
             .stream()
             .map(filter -> filter.name().name())
-            .filter(analyticsFilters::contains)
+            .filter(analyticsFilters::containsKey)
             .toList();
     }
 }

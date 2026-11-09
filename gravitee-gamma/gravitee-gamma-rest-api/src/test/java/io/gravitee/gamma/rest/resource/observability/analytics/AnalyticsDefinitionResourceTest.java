@@ -46,6 +46,7 @@ import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
+import java.util.LinkedHashSet;
 import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -114,6 +115,8 @@ class AnalyticsDefinitionResourceTest extends AbstractResourceTest {
         assertThat(body.get("dimensions").get(1).get("name").asText()).isEqualTo("LLM_PROXY_MODEL");
         assertThat(body.get("dimensions").get(1).get("label").asText()).isEqualTo("LLM_PROXY_MODEL label");
         assertThat(body.get("dimensions").get(1).get("origin").asText()).isEqualTo("BUILT_IN");
+        assertThat(body.get("dimensions").get(1).get("apiTypes")).isEmpty();
+        assertThat(body.get("dimensions").get(1).has("namespace")).isFalse();
     }
 
     @Test
@@ -128,6 +131,87 @@ class AnalyticsDefinitionResourceTest extends AbstractResourceTest {
         assertThat(captor.getValue().organizationId()).isEqualTo(ORGANIZATION);
         assertThat(captor.getValue().environmentId()).isEqualTo(ENVIRONMENT);
         assertThat(captor.getValue().apiTypes()).containsExactlyInAnyOrder(ApiType.HTTP_PROXY, ApiType.AUTHZ);
+        assertThat(captor.getValue().origins()).isEmpty();
+    }
+
+    @Test
+    void should_forward_the_multi_valued_case_insensitive_origins_to_the_use_case() {
+        givenDefinition();
+
+        Response response = rootTarget("definition")
+            .queryParam("apiType", "LLM")
+            .queryParam("origin", "declared")
+            .queryParam("origin", "DISCOVERED")
+            .request()
+            .get();
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        var captor = ArgumentCaptor.forClass(GetObservabilityAnalyticsDefinitionUseCase.Input.class);
+        verify(getAnalyticsDefinitionUseCase).execute(captor.capture());
+        assertThat(captor.getValue().origins()).containsExactlyInAnyOrder(CatalogOrigin.DECLARED, CatalogOrigin.DISCOVERED);
+    }
+
+    @Test
+    void should_return_400_for_an_unknown_origin() {
+        Response response = rootTarget("definition").queryParam("apiType", "LLM").queryParam("origin", "NOPE").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        assertThat(response.readEntity(JsonNode.class).get("message").asText()).isEqualTo("Unknown origin value 'NOPE'");
+        verifyNoInteractions(getAnalyticsDefinitionUseCase);
+    }
+
+    @Test
+    void should_serve_the_namespace_and_description_of_an_additional_metric_and_omit_them_when_unknown() {
+        givenDefinition(
+            new MetricDefinition(
+                "additional-metrics.long_llm-proxy_tokens-cached",
+                "Cached tokens",
+                "Tokens served from the cache",
+                "llm-proxy",
+                null,
+                List.of(ApiType.LLM),
+                List.of("AVG", "COUNT"),
+                List.of(
+                    new DimensionDefinition(
+                        "additional-metrics.bool_pii_detected",
+                        "Detected",
+                        "pii",
+                        new LinkedHashSet<>(List.of(ApiType.LLM, ApiType.HTTP_PROXY)),
+                        CatalogOrigin.DISCOVERED
+                    ),
+                    new DimensionDefinition("additional-metrics.keyword_fraud-check_tier", "Fraud check tier", CatalogOrigin.DISCOVERED)
+                ),
+                List.of("API"),
+                CatalogOrigin.DECLARED,
+                null
+            ),
+            anAdditionalMetric("additional-metrics.long_failover_count", "Failover count", null, CatalogOrigin.DISCOVERED)
+        );
+
+        JsonNode body = rootTarget("definition").queryParam("apiType", "LLM").request().get().readEntity(JsonNode.class);
+
+        JsonNode cached = body.get("families").get(0).get("metrics").get(0);
+        assertThat(cached.get("namespace").asText()).isEqualTo("llm-proxy");
+        assertThat(cached.get("description").asText()).isEqualTo("Tokens served from the cache");
+        assertThat(cached.get("apiTypes")).extracting(JsonNode::asText).containsExactly("LLM");
+        assertThat(cached.get("facets"))
+            .extracting(JsonNode::asText)
+            .containsExactly("additional-metrics.bool_pii_detected", "additional-metrics.keyword_fraud-check_tier");
+        JsonNode failover = body.get("families").get(0).get("metrics").get(1);
+        assertThat(failover.has("namespace")).isFalse();
+        assertThat(failover.has("description")).isFalse();
+        JsonNode dimension = body.get("dimensions").get(0);
+        assertThat(dimension.get("name").asText()).isEqualTo("additional-metrics.bool_pii_detected");
+        assertThat(dimension.get("namespace").asText()).isEqualTo("pii");
+        assertThat(dimension.get("apiTypes"))
+            .as("sorted, whatever order the kinds are held in")
+            .extracting(JsonNode::asText)
+            .containsExactly("HTTP_PROXY", "LLM");
+        assertThat(dimension.get("origin").asText()).isEqualTo("DISCOVERED");
+        JsonNode unscoped = body.get("dimensions").get(1);
+        assertThat(unscoped.get("name").asText()).isEqualTo("additional-metrics.keyword_fraud-check_tier");
+        assertThat(unscoped.has("namespace")).isFalse();
+        assertThat(unscoped.get("apiTypes")).isEmpty();
     }
 
     @Test

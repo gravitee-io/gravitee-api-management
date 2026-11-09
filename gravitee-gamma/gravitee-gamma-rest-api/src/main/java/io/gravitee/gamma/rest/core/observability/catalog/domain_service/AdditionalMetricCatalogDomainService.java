@@ -17,12 +17,15 @@ package io.gravitee.gamma.rest.core.observability.catalog.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AdditionalMetricSupport;
+import io.gravitee.gamma.rest.core.observability.analytics.model.DimensionDefinition;
 import io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinition;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricCatalog;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricCatalogEntry;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricDefinition;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricDiscovery;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricField;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricLabel;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricNamespace;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogFlags;
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
@@ -37,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,6 +53,8 @@ import lombok.AllArgsConstructor;
 /**
  * Merges the three origins of the environment's additional metrics into one entry per key, resolved
  * {@code BUILT_IN} › {@code DECLARED} › {@code DISCOVERED}, with the label precedence declared › built-in › derived.
+ * A declared or discovered key is tied to the API kinds its namespace names ({@link AdditionalMetricNamespace}) and
+ * served for them; a key of no known namespace is served for every kind.
  *
  * @author GraviteeSource Team
  */
@@ -86,8 +92,7 @@ public class AdditionalMetricCatalogDomainService {
                 case BUILT_IN -> builtInEntry(key.field(), key.builtInNames(), specsByName, definedByName, key.lastSeen()).ifPresent(
                     entries::add
                 );
-                case DECLARED -> entries.add(declaredEntry(key.record(), key.lastSeen()));
-                case DISCOVERED -> entries.add(discoveredEntry(key.field(), key.lastSeen()));
+                case DECLARED, DISCOVERED -> entries.add(dynamicEntry(key));
             }
         }
         return new AdditionalMetricCatalog(entries, discovery.refreshedAt(), readsTraffic && discovery.truncated());
@@ -117,8 +122,10 @@ public class AdditionalMetricCatalogDomainService {
      *       {@code DISCOVERED} entries labelled from their key.</li>
      * </ul>
      * <p>{@code lastSeen} is served on every flagged entry, to a traffic reader only. Declared and discovered entries
-     * follow {@link #admitsDynamicEntries}. A declared key keeps its origin whatever the discovery finds: a record that
-     * is not exposed hides its key from the catalog.
+     * follow {@link #admitsDynamicEntries}, then each answers the kinds asked as a built-in does: offered for the kinds
+     * its namespace ties it to, it is kept when the request shares one; tied to no kind, it is kept for any API kind.
+     * A declared key keeps its origin whatever the discovery finds: a record that is not exposed hides its key from
+     * the catalog.
      *
      * @param discovery the environment's discovery, empty when the caller may not read its traffic
      */
@@ -148,53 +155,74 @@ public class AdditionalMetricCatalogDomainService {
             return catalog;
         }
         for (Resolved key : resolved) {
-            if (key.field().valueType().isDetailOnly()) {
-                continue;
-            }
-            switch (key.origin()) {
-                case BUILT_IN -> {}
-                case DECLARED -> {
-                    if (key.record().exposed()) {
-                        catalog.add(dynamicSpec(key, key.record().effectiveLabel()));
-                    }
-                }
-                case DISCOVERED -> catalog.add(dynamicSpec(key, key.field().derivedLabel()));
+            if (key.listed() && !key.field().valueType().isDetailOnly() && servedFor(key.field().apiTypes(), apiTypes)) {
+                catalog.add(dynamicSpec(key));
             }
         }
         return catalog;
     }
 
     /**
-     * The numeric keys of the environment as metrics of the analytics definition, in the order {@link #resolve} lists
-     * them: the exposed records holding a number as {@code DECLARED} entries, then, when a discovery is given, the other
-     * discovered numeric keys as {@code DISCOVERED} entries. A key a built-in reads is never listed: the built-in metric
-     * is. Labels follow declared › derived; the unit is the record's, none otherwise. Every entry takes the same
-     * kinds, measures, facets and filters: the engine's, in {@code support}.
+     * What the environment's keys add to the analytics definition: its numeric keys as metrics of the {@code ADDITIONAL}
+     * family, its keyword and bool keys as facets, every entry carrying its namespace and the kinds it ties it to.
+     */
+    public record AdditionalAnalytics(List<MetricDefinition> metrics, List<DimensionDefinition> facets) {
+        /**
+         * The facets a metric served for {@code kinds} is grouped by: those tied to one of its kinds, and those tied
+         * to none.
+         */
+        public List<DimensionDefinition> facetsFor(List<ApiType> kinds) {
+            return facets
+                .stream()
+                .filter(facet -> facet.apiTypes().isEmpty() || facet.apiTypes().stream().anyMatch(kinds::contains))
+                .toList();
+        }
+    }
+
+    /**
+     * The environment's keys as entries of the analytics definition for some API kinds, in the order {@link #resolve}
+     * lists them: the exposed records as {@code DECLARED} entries then, when a discovery is given, the other discovered
+     * keys as {@code DISCOVERED} entries. A key a built-in reads is never listed: the built-in is. Labels follow
+     * declared › derived; the unit and the description are the record's, none otherwise.
+     *
+     * <p>A key is listed for the kinds its namespace ties it to: a numeric key for those among the kinds the engine
+     * measures such a field for ({@code support}), so the definition never promises a kind the engine refuses, and not
+     * at all when none is left; a numeric key of no known namespace for every kind the engine measures such a field
+     * for, the filter catalog serving it tied to none. Every metric takes the engine's measures and filters, and is
+     * grouped by the engine's facets then by the keys listed as facets for one of its kinds.
      *
      * @param discovery the environment's discovery, empty when the caller may not read its traffic
+     * @param apiTypes  the kinds asked; none asks for every key
      */
-    public List<MetricDefinition> metricCatalog(
+    public AdditionalAnalytics analyticsCatalog(
         Map<String, Set<String>> builtInNamesByRawKey,
         List<AdditionalMetricDefinition> records,
         Optional<AdditionalMetricDiscovery> discovery,
-        AdditionalMetricSupport support
+        AdditionalMetricSupport support,
+        Set<ApiType> apiTypes
     ) {
-        List<MetricDefinition> metrics = new ArrayList<>();
+        Map<Resolved, List<ApiType>> measured = new LinkedHashMap<>();
+        List<DimensionDefinition> facets = new ArrayList<>();
         for (Resolved key : resolve(builtInNamesByRawKey, records, discovery)) {
-            if (!key.field().valueType().isNumber()) {
+            if (!key.listed()) {
                 continue;
             }
-            switch (key.origin()) {
-                case BUILT_IN -> {}
-                case DECLARED -> {
-                    if (key.record().exposed()) {
-                        metrics.add(metric(key, key.record().effectiveLabel(), key.record().unit(), support));
-                    }
-                }
-                case DISCOVERED -> metrics.add(metric(key, key.field().derivedLabel(), null, support));
+            AdditionalMetricValueType valueType = key.field().valueType();
+            if (valueType.isNumber()) {
+                measuredKinds(key.field(), support)
+                    .filter(kinds -> servedFor(Set.copyOf(kinds), apiTypes))
+                    .ifPresent(kinds -> measured.put(key, kinds));
+            } else if (valueType.isFacet() && servedFor(key.field().apiTypes(), apiTypes)) {
+                facets.add(new DimensionDefinition(key.field().name(), key.label(), key.namespace(), key.field().apiTypes(), key.origin()));
             }
         }
-        return metrics;
+        var additional = new AdditionalAnalytics(List.of(), facets);
+        List<MetricDefinition> metrics = measured
+            .entrySet()
+            .stream()
+            .map(entry -> metric(entry.getKey(), entry.getValue(), support).groupedAlsoBy(additional.facetsFor(entry.getValue())))
+            .toList();
+        return new AdditionalAnalytics(metrics, additional.facets());
     }
 
     /**
@@ -209,7 +237,30 @@ public class AdditionalMetricCatalogDomainService {
         Set<String> builtInNames,
         AdditionalMetricDefinition record,
         Instant lastSeen
-    ) {}
+    ) {
+        /** Whether the key is served as a dynamic entry: declared and exposed, or discovered. */
+        boolean listed() {
+            return origin == CatalogOrigin.DECLARED ? record.exposed() : origin == CatalogOrigin.DISCOVERED;
+        }
+
+        /** Declared › derived. */
+        String label() {
+            return record != null ? record.effectiveLabel() : field.derivedLabel();
+        }
+
+        String description() {
+            return record != null ? record.description() : null;
+        }
+
+        String unit() {
+            return record != null ? record.unit() : null;
+        }
+
+        /** The namespace served on a dynamic entry; a built-in is scoped by its own catalog, not by its key. */
+        String namespace() {
+            return origin == CatalogOrigin.BUILT_IN ? null : field.namespace().orElse(null);
+        }
+    }
 
     /**
      * Every key once: the keys built-ins read, by key, then the records, then the discovered keys of the grammar that
@@ -250,6 +301,30 @@ public class AdditionalMetricCatalogDomainService {
         return requested == null || requested.isEmpty() || requested.stream().anyMatch(offered::contains);
     }
 
+    /**
+     * Whether a dynamic entry answers a narrowing on {@code requested}, as the filter registry decides it for a
+     * built-in: offered for some kinds, it passes when the request shares one; tied to no kind, it passes as
+     * {@link ApiType#admitsUnscoped} says.
+     */
+    private static boolean servedFor(Set<ApiType> offered, Set<ApiType> requested) {
+        return offered.isEmpty() ? ApiType.admitsUnscoped(requested) : intersects(requested, offered);
+    }
+
+    /**
+     * The kinds a numeric key is measured for, in the engine's order: those its namespace ties it to among the
+     * engine's, every one of the engine's when the namespace says nothing (the widget editor offers a metric for the
+     * kinds it carries, so a key of no kind would be offered nowhere). Empty when the namespace ties the key to kinds
+     * the engine measures no such field for: the key is then no metric of the definition.
+     */
+    private static Optional<List<ApiType>> measuredKinds(AdditionalMetricField field, AdditionalMetricSupport support) {
+        Set<ApiType> tied = field.apiTypes();
+        if (tied.isEmpty()) {
+            return Optional.of(support.apiTypes());
+        }
+        List<ApiType> kinds = support.apiTypes().stream().filter(tied::contains).toList();
+        return kinds.isEmpty() ? Optional.empty() : Optional.of(kinds);
+    }
+
     private static Map<String, Instant> lastSeen(AdditionalMetricDiscovery discovery) {
         return discovery
             .fields()
@@ -258,33 +333,37 @@ public class AdditionalMetricCatalogDomainService {
     }
 
     private static CatalogFlags flags(Resolved key) {
-        return new CatalogFlags(key.origin(), key.field().rawKey(), key.field().valueType(), key.lastSeen(), true);
+        return new CatalogFlags(key.origin(), key.field().rawKey(), key.field().valueType(), key.lastSeen(), true, key.namespace());
     }
 
-    private static FilterSpec dynamicSpec(Resolved key, String label) {
+    private static FilterSpec dynamicSpec(Resolved key) {
         return new FilterSpec(
             key.field().name(),
-            label,
+            key.label(),
+            key.description(),
             key.field().valueType().filterType().orElseThrow(),
             operators(key.field().valueType()),
             null,
             null,
             DYNAMIC_SIGNALS,
-            Set.of(),
+            key.field().apiTypes(),
             flags(key)
         );
     }
 
-    private static MetricDefinition metric(Resolved key, String label, String unit, AdditionalMetricSupport support) {
+    private static MetricDefinition metric(Resolved key, List<ApiType> apiTypes, AdditionalMetricSupport support) {
         return new MetricDefinition(
             key.field().name(),
-            label,
-            unit,
-            support.apiTypes(),
+            key.label(),
+            key.description(),
+            key.namespace(),
+            key.unit(),
+            apiTypes,
             support.measures(),
             support.facets(),
             support.filters(),
-            key.origin()
+            key.origin(),
+            null
         );
     }
 
@@ -322,13 +401,14 @@ public class AdditionalMetricCatalogDomainService {
                 description.map(Description::name).orElse(sortedNames.getFirst()),
                 field,
                 CatalogOrigin.BUILT_IN,
-                description.map(Description::label).orElseGet(field::derivedLabel),
+                description.map(Description::label).orElseGet(() -> AdditionalMetricLabel.deriveFromWholeKey(field)),
                 null,
                 null,
                 true,
                 lastSeen,
                 description.map(Description::type).orElse(null),
-                description.map(Description::apiTypes).orElse(Set.of())
+                description.map(Description::apiTypes).orElse(Set.of()),
+                null
             )
         );
     }
@@ -371,33 +451,20 @@ public class AdditionalMetricCatalogDomainService {
         }
     }
 
-    private static AdditionalMetricCatalogEntry declaredEntry(AdditionalMetricDefinition record, Instant lastSeen) {
+    /** A declared or discovered key, scoped and named by its namespace; a declared key is listed exposed or not. */
+    private static AdditionalMetricCatalogEntry dynamicEntry(Resolved key) {
         return new AdditionalMetricCatalogEntry(
-            record.field().name(),
-            record.field(),
-            CatalogOrigin.DECLARED,
-            record.effectiveLabel(),
-            record.description(),
-            record.unit(),
-            record.exposed(),
-            lastSeen,
+            key.field().name(),
+            key.field(),
+            key.origin(),
+            key.label(),
+            key.description(),
+            key.unit(),
+            key.record() == null || key.record().exposed(),
+            key.lastSeen(),
             null,
-            Set.of()
-        );
-    }
-
-    private static AdditionalMetricCatalogEntry discoveredEntry(AdditionalMetricField field, Instant lastSeen) {
-        return new AdditionalMetricCatalogEntry(
-            field.name(),
-            field,
-            CatalogOrigin.DISCOVERED,
-            field.derivedLabel(),
-            null,
-            null,
-            true,
-            lastSeen,
-            null,
-            Set.of()
+            key.field().apiTypes(),
+            key.namespace()
         );
     }
 }

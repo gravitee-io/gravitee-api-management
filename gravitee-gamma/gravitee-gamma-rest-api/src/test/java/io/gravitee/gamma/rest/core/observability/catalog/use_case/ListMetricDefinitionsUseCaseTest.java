@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -268,6 +269,95 @@ class ListMetricDefinitionsUseCaseTest {
             "double_checkout_basket-value",
             "keyword_mcp-proxy_tools/call"
         );
+    }
+
+    /** A dynamic entry carries every kind its namespace ties it to, whether or not the engine measures such a field for it (OBS-193). */
+    @Test
+    void should_serve_the_namespace_and_every_kind_it_ties_a_dynamic_key_to() {
+        fixture.givenDescribed("additional-metrics.long_llm-proxy_tokens-cached", null, "Tokens served from the cache");
+        fixture.ports.givenDiscovered(
+            List.of(
+                discovered("long_native-kafka_messages-in", AdditionalMetricValueType.LONG),
+                discovered("long_failover_count", AdditionalMetricValueType.LONG),
+                discovered("keyword_fraud-check_tier", AdditionalMetricValueType.KEYWORD)
+            ),
+            false
+        );
+
+        var entries = fixture.listed().entries();
+
+        assertThat(entry(entries, "additional-metrics.long_llm-proxy_tokens-cached")).hasValueSatisfying(entry -> {
+            assertThat(entry.label()).isEqualTo("Tokens cached");
+            assertThat(entry.description()).isEqualTo("Tokens served from the cache");
+            assertThat(entry.namespace()).isEqualTo("llm-proxy");
+            assertThat(entry.apiTypes()).containsExactly(ApiType.LLM);
+        });
+        assertThat(entry(entries, "additional-metrics.long_native-kafka_messages-in")).hasValueSatisfying(entry -> {
+            assertThat(entry.label()).isEqualTo("Messages in");
+            assertThat(entry.namespace()).isEqualTo("native-kafka");
+            assertThat(entry.apiTypes()).containsExactly(ApiType.NATIVE);
+        });
+        assertThat(entry(entries, "additional-metrics.long_failover_count")).hasValueSatisfying(entry -> {
+            assertThat(entry.label()).isEqualTo("Failover count");
+            assertThat(entry.namespace()).isEqualTo("failover");
+            assertThat(entry.apiTypes()).containsExactlyInAnyOrder(
+                ApiType.HTTP_PROXY,
+                ApiType.LLM,
+                ApiType.MESSAGE,
+                ApiType.MCP,
+                ApiType.A2A
+            );
+        });
+        assertThat(entry(entries, "additional-metrics.keyword_fraud-check_tier")).hasValueSatisfying(entry -> {
+            assertThat(entry.label()).isEqualTo("Fraud check tier");
+            assertThat(entry.namespace()).isNull();
+            assertThat(entry.apiTypes()).isEmpty();
+        });
+    }
+
+    @Test
+    void should_serve_no_namespace_on_a_built_in_entry_whatever_its_key() {
+        fixture.ports.givenBuiltIn("keyword_mcp-proxy_tools/call", "MCP_PROXY_TOOL");
+
+        assertThat(builtIn("keyword_mcp-proxy_tools/call").namespace()).isNull();
+    }
+
+    /** A built-in nothing describes is scoped by no group: its fallback label keeps the namespace. */
+    @Test
+    void should_label_an_undescribed_built_in_from_its_whole_key() {
+        fixture.ports.givenBuiltIn("keyword_edge_model", "EDGE_MODEL");
+
+        assertThat(builtIn("keyword_edge_model").label()).isEqualTo("Edge model");
+    }
+
+    @Test
+    void should_keep_the_entries_of_the_asked_origins_only_once_the_catalog_is_built() {
+        fixture.ports.givenBuiltIn("keyword_mcp-proxy_tools/call", "MCP_PROXY_TOOL");
+        fixture.givenDeclared(BASKET);
+        fixture.ports.givenDiscovered(List.of(discovered("long_failover_count", AdditionalMetricValueType.LONG)), true);
+
+        var discoveredOnly = fixture.list
+            .execute(
+                new ListMetricDefinitionsUseCase.Input(MetricDefinitionFixture.ORGANIZATION, ENVIRONMENT, Set.of(CatalogOrigin.DISCOVERED))
+            )
+            .catalog();
+        var builtInAndDeclared = fixture.list
+            .execute(
+                new ListMetricDefinitionsUseCase.Input(
+                    MetricDefinitionFixture.ORGANIZATION,
+                    ENVIRONMENT,
+                    Set.of(CatalogOrigin.BUILT_IN, CatalogOrigin.DECLARED)
+                )
+            )
+            .catalog();
+
+        assertThat(discoveredOnly.entries())
+            .extracting(AdditionalMetricCatalogEntry::name)
+            .containsExactly("additional-metrics.long_failover_count");
+        assertThat(discoveredOnly.truncated()).as("the discovery pass is the same whatever origins are kept").isTrue();
+        assertThat(discoveredOnly.refreshedAt()).isEqualTo(InMemoryCatalogPorts.REFRESHED_AT);
+        assertThat(builtInAndDeclared.entries()).extracting(AdditionalMetricCatalogEntry::name).containsExactly("MCP_PROXY_TOOL", BASKET);
+        assertThat(builtInAndDeclared.truncated()).isTrue();
     }
 
     private static DiscoveredAdditionalMetric discovered(String rawKey, AdditionalMetricValueType valueType) {

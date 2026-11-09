@@ -15,6 +15,8 @@
  */
 package io.gravitee.gamma.rest.core.observability.catalog.model;
 
+import java.util.Set;
+
 /**
  * Where a catalog entry comes from, resolved in this order so one key never yields two entries: a field the product
  * knows, a field a record of the environment describes, a field found in the environment's documents.
@@ -24,5 +26,10 @@ package io.gravitee.gamma.rest.core.observability.catalog.model;
 public enum CatalogOrigin {
     BUILT_IN,
     DECLARED,
-    DISCOVERED,
+    DISCOVERED;
+
+    /** Whether an entry of this origin is kept by a narrowing on {@code asked}: every entry is when nothing is asked. */
+    public boolean keptBy(Set<CatalogOrigin> asked) {
+        return asked == null || asked.isEmpty() || asked.contains(this);
+    }
 }

@@ -15,6 +15,10 @@
  */
 package io.gravitee.gamma.rest.core.observability.catalog.model;
 
+import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
+import java.util.Optional;
+import java.util.Set;
+
 /**
  * An additional metric field: the key a plugin or the gateway writes ({@code rawKey}, type prefix included) and its
  * value type. Its wire name is {@code additional-metrics.<rawKey>}. Names are read by the platform's parser, through
@@ -24,7 +28,7 @@ package io.gravitee.gamma.rest.core.observability.catalog.model;
  */
 public record AdditionalMetricField(String rawKey, AdditionalMetricValueType valueType) {
     public static final String NAME_PREFIX = "additional-metrics.";
-    private static final String RESERVED_SEGMENT = "custom_";
+    private static final String RESERVED_SEGMENT = AdditionalMetricNamespace.CUSTOM + "_";
 
     public String name() {
         return NAME_PREFIX + rawKey;
@@ -37,5 +41,15 @@ public record AdditionalMetricField(String rawKey, AdditionalMetricValueType val
 
     public String derivedLabel() {
         return AdditionalMetricLabel.derive(this);
+    }
+
+    /** The namespace the catalog serves for the key; see {@link AdditionalMetricNamespace#of}. */
+    public Optional<String> namespace() {
+        return AdditionalMetricNamespace.of(this);
+    }
+
+    /** The API kinds the key's namespace ties it to; see {@link AdditionalMetricNamespace#apiTypesOf}. */
+    public Set<ApiType> apiTypes() {
+        return AdditionalMetricNamespace.apiTypesOf(this);
     }
 }

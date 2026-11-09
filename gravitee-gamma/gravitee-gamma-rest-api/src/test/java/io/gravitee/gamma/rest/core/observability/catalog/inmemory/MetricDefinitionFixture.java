@@ -63,6 +63,11 @@ public class MetricDefinitionFixture {
         return givenDeclared(ENVIRONMENT, name, null, null, true);
     }
 
+    /** An exposed record of the environment with a label and a description. */
+    public AdditionalMetricDefinition givenDescribed(String name, String label, String description) {
+        return declare.execute(new DeclareMetricDefinitionUseCase.Input(ENVIRONMENT, name, label, description, null, true)).definition();
+    }
+
     public AdditionalMetricCatalog listed() {
         return list.execute(new ListMetricDefinitionsUseCase.Input(ORGANIZATION, ENVIRONMENT)).catalog();
     }

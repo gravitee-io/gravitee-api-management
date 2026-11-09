@@ -20,8 +20,9 @@ import java.util.regex.Pattern;
 
 /**
  * The label derived from an additional metric key alone, served when the key has neither a declared nor a built-in
- * label. Identical to the observability library's {@code deriveAdditionalMetricLabel}, so a label reads the same
- * whether the server or the client derived it.
+ * label, on every surface that labels the key: the filter catalog, the analytics definition and the metric
+ * definitions agree. The observability library's {@code deriveAdditionalMetricLabel} applies the same rules but the
+ * namespace one, as a fallback when no label is served.
  *
  * @author GraviteeSource Team
  */
@@ -34,17 +35,43 @@ public final class AdditionalMetricLabel {
 
     /**
      * The key without its type prefix, each run of {@code _} / {@code -} read as one space, trimmed, first character
-     * upper case and the rest as written; the key as given when nothing is left. The family segment is kept:
-     * {@code long_failover_count} reads "Failover count", not "Count". The field's value type is the one the grammar
-     * read, so no prefix is parsed here.
+     * upper case and the rest as written; the key as given when nothing is left. A namespace naming the one API kind
+     * the key is listed under is left out as well, the group naming it ({@link AdditionalMetricNamespace#namesOneKind}):
+     * {@code long_llm-proxy_tokens-cached} reads "Tokens cached". Any other namespace is kept: {@code long_failover_count}
+     * reads "Failover count", {@code keyword_fraud-check_tier} "Fraud check tier". The field's value type is the one
+     * the grammar read, so no prefix is parsed here.
      */
     public static String derive(AdditionalMetricField field) {
+        String name = nameOf(field);
+        String words = AdditionalMetricNamespace.segmentOf(field)
+            .filter(AdditionalMetricNamespace::namesOneKind)
+            .map(namespace -> words(name.substring(namespace.length() + 1)))
+            .filter(shortened -> !shortened.isEmpty())
+            .orElseGet(() -> words(name));
+        return capitalized(words, field.rawKey());
+    }
+
+    /**
+     * {@link #derive} with every namespace kept: the label of a built-in entry nothing describes, which is scoped by
+     * its own catalog, not by its key, so no group names the namespace for it.
+     */
+    public static String deriveFromWholeKey(AdditionalMetricField field) {
+        return capitalized(words(nameOf(field)), field.rawKey());
+    }
+
+    private static String nameOf(AdditionalMetricField field) {
         String rawKey = field.rawKey();
-        String name = rawKey.startsWith(field.valueType().prefix()) ? rawKey.substring(field.valueType().prefix().length()) : rawKey;
-        String words = WHITESPACE_RUNS.matcher(SEPARATOR_RUNS.matcher(name).replaceAll(" ").strip()).replaceAll(" ");
+        return rawKey.startsWith(field.valueType().prefix()) ? rawKey.substring(field.valueType().prefix().length()) : rawKey;
+    }
+
+    private static String capitalized(String words, String rawKey) {
         if (words.isEmpty()) {
             return rawKey;
         }
         return words.substring(0, 1).toUpperCase(Locale.ROOT) + words.substring(1);
+    }
+
+    private static String words(String name) {
+        return WHITESPACE_RUNS.matcher(SEPARATOR_RUNS.matcher(name).replaceAll(" ").strip()).replaceAll(" ");
     }
 }

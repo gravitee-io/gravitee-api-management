@@ -400,6 +400,71 @@ class MetricDefinitionsResourceTest extends AbstractResourceTest {
 
             assertThat(rootTarget().request().get().getStatus()).isEqualTo(HttpStatusCode.OK_200);
         }
+
+        @Test
+        void should_serve_the_namespace_and_kinds_of_a_dynamic_entry_and_none_on_an_unknown_namespace() {
+            ports.givenDiscovered(
+                List.of(
+                    new DiscoveredAdditionalMetric(
+                        "long_llm-proxy_tokens-cached",
+                        AdditionalMetricValueType.LONG,
+                        Instant.parse("2026-11-09T08:00:00Z")
+                    )
+                ),
+                false
+            );
+            declare(Map.of("name", BASKET, "description", "Amount of the basket at checkout"));
+
+            JsonNode listed = rootTarget().request().get().readEntity(JsonNode.class);
+
+            JsonNode cached = entry(listed, "additional-metrics.long_llm-proxy_tokens-cached");
+            assertThat(cached.get("label").asText()).isEqualTo("Tokens cached");
+            assertThat(cached.get("namespace").asText()).isEqualTo("llm-proxy");
+            assertThat(cached.get("apiTypes")).extracting(JsonNode::asText).containsExactly("LLM");
+            JsonNode basket = entry(listed, BASKET);
+            assertThat(basket.has("namespace")).isFalse();
+            assertThat(basket.get("apiTypes")).isEmpty();
+            assertThat(basket.get("description").asText()).isEqualTo("Amount of the basket at checkout");
+            assertThat(entry(listed, "MCP_PROXY_TOOL").has("namespace")).isFalse();
+        }
+
+        @Test
+        void should_keep_the_entries_of_the_asked_origins_only() {
+            ports.givenDiscovered(
+                List.of(
+                    new DiscoveredAdditionalMetric(
+                        "long_failover_count",
+                        AdditionalMetricValueType.LONG,
+                        Instant.parse("2026-11-09T08:00:00Z")
+                    )
+                ),
+                false
+            );
+            declare(Map.of("name", BASKET));
+
+            JsonNode discoveredOnly = rootTarget().queryParam("origin", "discovered").request().get().readEntity(JsonNode.class);
+            JsonNode builtInAndDeclared = rootTarget()
+                .queryParam("origin", "BUILT_IN")
+                .queryParam("origin", "DECLARED")
+                .request()
+                .get()
+                .readEntity(JsonNode.class);
+
+            assertThat(entries(discoveredOnly))
+                .extracting(entry -> entry.get("name").asText())
+                .containsExactly("additional-metrics.long_failover_count");
+            assertThat(entries(builtInAndDeclared))
+                .extracting(entry -> entry.get("name").asText())
+                .containsExactly("MCP_PROXY_TOOL", BASKET);
+        }
+
+        @Test
+        void should_refuse_an_unknown_origin_with_a_400() {
+            Response response = rootTarget().queryParam("origin", "NOPE").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(response.readEntity(JsonNode.class).get("message").asText()).isEqualTo("Unknown origin value 'NOPE'");
+        }
     }
 
     private static List<JsonNode> entries(JsonNode listed) {

@@ -21,15 +21,19 @@ import java.util.List;
 /**
  * How the analytics engine serves any additional metric field holding a number, the same way for every one: the API
  * kinds it is served for, its measures (the default first), the facets it is grouped by and the filters that narrow
- * it. The definition publishes each numeric field of the environment with exactly these.
+ * it. The definition publishes each numeric field of the environment with exactly these, narrowed to the kinds its
+ * namespace ties it to.
  *
+ * @param dimensionsOf the built-in metric whose facets every additional metric field takes, read like them from the
+ *                     request documents; the environment's keyword and bool keys are added to its facets as well
  * @author GraviteeSource Team
  */
 public record AdditionalMetricSupport(
     List<ApiType> apiTypes,
     List<String> measures,
     List<DimensionDefinition> facets,
-    List<String> filters
+    List<String> filters,
+    String dimensionsOf
 ) {
     public AdditionalMetricSupport {
         apiTypes = List.copyOf(apiTypes);

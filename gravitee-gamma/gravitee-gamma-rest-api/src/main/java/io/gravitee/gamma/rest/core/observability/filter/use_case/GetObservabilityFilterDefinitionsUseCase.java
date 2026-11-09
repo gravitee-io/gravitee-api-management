@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.core.observability.filter.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.gamma.rest.core.observability.catalog.domain_service.AdditionalMetricCatalogDomainService;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricDiscovery;
+import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.catalog.port.repository.AdditionalMetricDefinitionRepository;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricDiscoveryPort;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.BuiltInAdditionalMetricsPort;
@@ -47,6 +48,9 @@ import lombok.AllArgsConstructor;
  * on both yields the full catalog. The registry keeps a spec when its own non-empty axis intersects
  * the requested one (see {@link FilterRegistry#getFilters(Set, Set)}).
  *
+ * <p>{@code origins} narrows the built catalog to the entries of those origins; {@code truncated} keeps describing
+ * the discovery pass whatever origins are kept.
+ *
  * @author GraviteeSource Team
  */
 @UseCase
@@ -60,7 +64,18 @@ public class GetObservabilityFilterDefinitionsUseCase {
     private final TrafficReadPermissionPort trafficReadPermission;
     private final AdditionalMetricCatalogDomainService catalog;
 
-    public record Input(String organizationId, String environmentId, Set<Signal> signals, Set<ApiType> apiTypes) {}
+    public record Input(
+        String organizationId,
+        String environmentId,
+        Set<Signal> signals,
+        Set<ApiType> apiTypes,
+        Set<CatalogOrigin> origins
+    ) {
+        /** Every origin. */
+        public Input(String organizationId, String environmentId, Set<Signal> signals, Set<ApiType> apiTypes) {
+            this(organizationId, environmentId, signals, apiTypes, Set.of());
+        }
+    }
 
     /**
      * @param truncated {@code true} when the discovery behind the {@code DISCOVERED} entries was cut, by the cap or because
@@ -91,6 +106,14 @@ public class GetObservabilityFilterDefinitionsUseCase {
         var truncated =
             discovered.map(AdditionalMetricDiscovery::truncated).orElse(false) &&
             catalog.admitsDynamicEntries(input.signals(), input.apiTypes());
-        return new Output(filters, truncated);
+        return new Output(narrowedTo(filters, input.origins()), truncated);
+    }
+
+    /** The entries of the asked origins; every entry when none is asked. */
+    private static List<FilterSpec> narrowedTo(List<FilterSpec> filters, Set<CatalogOrigin> origins) {
+        return filters
+            .stream()
+            .filter(spec -> spec.origin().keptBy(origins))
+            .toList();
     }
 }

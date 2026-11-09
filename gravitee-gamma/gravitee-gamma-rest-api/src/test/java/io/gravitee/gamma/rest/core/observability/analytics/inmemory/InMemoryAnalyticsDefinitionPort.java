@@ -47,6 +47,9 @@ public class InMemoryAnalyticsDefinitionPort implements AnalyticsDefinitionPort 
         ApiType.EDGE
     );
 
+    /** The built-in the additional metrics take their facets from, as the engine names it. */
+    public static final String DIMENSIONS_OF = AdditionalMetricName.DIMENSIONS_OF.name();
+
     private final List<MetricDefinition> metrics = new ArrayList<>();
     private List<ApiType> additionalMetricKinds = ADDITIONAL_METRIC_KINDS;
 
@@ -81,7 +84,8 @@ public class InMemoryAnalyticsDefinitionPort implements AnalyticsDefinitionPort 
                 new DimensionDefinition("API", "API label", CatalogOrigin.BUILT_IN),
                 new DimensionDefinition("HTTP_STATUS", "HTTP_STATUS label", CatalogOrigin.BUILT_IN)
             ),
-            List.of("API", "API_TYPE")
+            List.of("API", "API_TYPE"),
+            DIMENSIONS_OF
         );
     }
 }

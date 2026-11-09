@@ -50,7 +50,7 @@ class FilterSpecDtoTest {
             null,
             Set.of(Signal.LOGS, Signal.ANALYTICS),
             Set.of(),
-            new CatalogFlags(CatalogOrigin.DECLARED, "double_checkout_basket-value", AdditionalMetricValueType.DOUBLE, null, true)
+            new CatalogFlags(CatalogOrigin.DECLARED, "double_checkout_basket-value", AdditionalMetricValueType.DOUBLE, null, true, null)
         );
 
         JsonNode json = MAPPER.valueToTree(FilterSpecDto.from(spec));
@@ -60,6 +60,8 @@ class FilterSpecDtoTest {
         assertThat(json.get("valueType").asText()).isEqualTo("DOUBLE");
         assertThat(json.get("exposed").asBoolean()).isTrue();
         assertThat(json.has("lastSeen")).isFalse();
+        assertThat(json.has("description")).isFalse();
+        assertThat(json.has("namespace")).isFalse();
         assertThat(json.get("apiTypes")).isEmpty();
     }
 
@@ -79,13 +81,36 @@ class FilterSpecDtoTest {
                 "long_failover_count",
                 AdditionalMetricValueType.LONG,
                 Instant.parse("2026-10-29T08:00:00Z"),
-                true
+                true,
+                "failover"
             )
         );
 
         JsonNode json = MAPPER.valueToTree(FilterSpecDto.from(spec));
 
         assertThat(json.get("lastSeen").asText()).isEqualTo("2026-10-29T08:00:00Z");
+        assertThat(json.get("namespace").asText()).isEqualTo("failover");
+    }
+
+    @Test
+    void should_serialize_the_description_of_a_declared_entry_and_omit_the_namespace_of_an_unknown_one() {
+        var spec = new FilterSpec(
+            "additional-metrics.double_checkout_basket-value",
+            "Basket value",
+            "Amount of the basket at checkout",
+            FilterType.NUMBER,
+            List.of(FilterOperator.EQ),
+            null,
+            null,
+            Set.of(Signal.LOGS),
+            Set.of(),
+            new CatalogFlags(CatalogOrigin.DECLARED, "double_checkout_basket-value", AdditionalMetricValueType.DOUBLE, null, true, null)
+        );
+
+        JsonNode json = MAPPER.valueToTree(FilterSpecDto.from(spec));
+
+        assertThat(json.get("description").asText()).isEqualTo("Amount of the basket at checkout");
+        assertThat(json.has("namespace")).isFalse();
     }
 
     @Test
