@@ -355,6 +355,24 @@ class ValidateApiCRDDomainServiceTest {
     }
 
     @Test
+    void should_report_a_state_other_than_started_or_stopped() {
+        givenEveryValidatorAccepts();
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        var spec = aNativeSpecBoundTo("plain").toBuilder().state("PAUSED").build();
+
+        assertThat(severeErrorsOf(systemCall, spec)).singleElement(STRING).contains("State [PAUSED] is invalid");
+    }
+
+    @Test
+    void should_accept_a_spec_without_state() {
+        givenEveryValidatorAccepts();
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        var spec = aNativeSpecBoundTo("plain").toBuilder().state(null).build();
+
+        assertThat(severeErrorsOf(systemCall, spec)).isEmpty();
+    }
+
+    @Test
     void should_not_check_the_bindings_without_an_actor() {
         givenAClusterTheUserIsNotAMemberOf();
         givenEveryValidatorAccepts();

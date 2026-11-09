@@ -198,6 +198,9 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
             apiType(sanitizedSpec),
             sanitizedSpec.getEndpointGroups()
         );
+        if (sanitizedSpec.getState() != null && !isLifecycleState(sanitizedSpec.getState())) {
+            errors.add(Error.severe("State [%s] is invalid, expected STARTED or STOPPED", sanitizedSpec.getState()));
+        }
         // The import persists the API before starting it: refuse here, or a start failure leaves it saved STARTED but not deployed
         if (Api.LifecycleState.STARTED.name().equalsIgnoreCase(sanitizedSpec.getState())) {
             try {
@@ -213,6 +216,10 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
         }
 
         return Validator.Result.ofBoth(new ValidateApiCRDDomainService.Input(input.auditInfo(), sanitizedSpec), errors);
+    }
+
+    private static boolean isLifecycleState(String state) {
+        return Arrays.stream(Api.LifecycleState.values()).anyMatch(lifecycleState -> lifecycleState.name().equals(state));
     }
 
     // The type the import reads, null for a type it refuses

@@ -632,11 +632,11 @@ class ImportApiCRDUseCaseTest {
         }
 
         @Test
-        void should_reject_a_spec_without_state_with_a_validation_error_naming_it() {
-            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().state(null).build())));
+        void should_create_a_stopped_api_when_the_spec_has_no_state() {
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().state(null).build()));
 
-            assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining("state");
-            assertThat(apiCrudService.storage()).isEmpty();
+            assertThat(apiCrudService.get(API_ID).getLifecycleState()).isEqualTo(Api.LifecycleState.STOPPED);
+            verify(apiStateDomainService, never()).start(any(), any());
         }
 
         @Test
@@ -1459,6 +1459,28 @@ class ImportApiCRDUseCaseTest {
 
             assertThat(throwable).isNull();
             assertThat(apiCrudService.get(API_ID).getLifecycleState()).isEqualTo(Api.LifecycleState.STARTED);
+            verify(apiStateDomainService, never()).start(any(), any());
+            verify(apiStateDomainService, never()).stop(any(), any());
+        }
+
+        @Test
+        void should_deploy_a_stored_started_api_when_the_spec_has_no_state() {
+            var startedApi = API_PROXY_V4.toBuilder().lifecycleState(Api.LifecycleState.STARTED).build();
+            apiQueryService.initWith(List.of(startedApi));
+            givenExistingPlans(List.of(KEYLESS));
+            when(updateApiDomainService.update(any(), any(), any())).thenReturn(startedApi);
+
+            useCase.execute(
+                new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD()
+                        .state(null)
+                        .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
+                        .build()
+                )
+            );
+
+            verify(apiStateDomainService).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
             verify(apiStateDomainService, never()).start(any(), any());
             verify(apiStateDomainService, never()).stop(any(), any());
         }
