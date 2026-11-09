@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.generic_event.use_case;
+package io.gravitee.apim.core.generic_event.domain_service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.generic_event.domain_service.GenericEventWriterDomainService;
 import io.gravitee.apim.core.generic_event.model.GenericEvent;
+import io.gravitee.apim.core.generic_event.model.PublicationOptions;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
@@ -31,53 +31,58 @@ import java.util.regex.Pattern;
 import lombok.AllArgsConstructor;
 
 /**
- * Publishes a generic event to the gateways of its environment, replacing the previous one with the same kind and id.
+ * Publishes or withdraws a generic event for the gateways of its environment, replacing the previous one with the same
+ * kind and id.
  */
-@UseCase
+@DomainService
 @AllArgsConstructor
-public class PublishGenericEventUseCase {
+public class GenericEventPublicationDomainService {
 
     static final Pattern KIND = Pattern.compile("[a-z0-9-]+(\\.[a-z0-9-]+)+");
     // Every gateway of the environment keeps each published event in memory.
     static final int MAX_PAYLOAD_BYTES = 256 * 1024;
+    public static final int MAX_DEPLOYMENT_LABEL_LENGTH = 256;
 
     private final GenericEventWriterDomainService genericEventWriterDomainService;
     private final ObjectMapper objectMapper;
 
-    /**
-     * @param historized also records this version in the events history, as API deployments do. Only set it when the feature
-     *     must be able to revert to a previous version: by default only the current version is kept.
-     */
-    public record Input(GenericEvent genericEvent, boolean historized, AuditInfo auditInfo) {
-        public Input(GenericEvent genericEvent, AuditInfo auditInfo) {
-            this(genericEvent, false, auditInfo);
+    public GenericEvent publish(GenericEvent event, PublicationOptions options, AuditInfo auditInfo) {
+        var genericEvent = scoped(event, auditInfo);
+        validate(genericEvent, options);
+        if (genericEvent.payload() == null) {
+            throw new InvalidDataException("A generic event needs a payload.");
         }
+        genericEventWriterDomainService.write(EventType.PUBLISH_GENERIC_EVENT, genericEvent, auditInfo, options);
+        return genericEvent;
     }
 
-    public record Output(GenericEvent genericEvent) {}
+    /** Withdraws the event with the same kind and id; a payload, when given, is validated like a published one. */
+    public GenericEvent withdraw(GenericEvent event, PublicationOptions options, AuditInfo auditInfo) {
+        var genericEvent = scoped(event, auditInfo);
+        validate(genericEvent, options);
+        genericEventWriterDomainService.write(EventType.UNPUBLISH_GENERIC_EVENT, genericEvent, auditInfo, options);
+        return genericEvent;
+    }
 
-    public Output execute(Input input) {
-        var auditInfo = input.auditInfo();
-        var genericEvent = input
-            .genericEvent()
+    private static GenericEvent scoped(GenericEvent event, AuditInfo auditInfo) {
+        return event
             .withEnvironmentId(auditInfo.environmentId())
             .withOrganizationId(auditInfo.organizationId())
             .withUpdatedAt(TimeProvider.instantNow());
-        validate(genericEvent);
-
-        genericEventWriterDomainService.write(EventType.PUBLISH_GENERIC_EVENT, genericEvent, auditInfo, input.historized());
-        return new Output(genericEvent);
     }
 
-    private void validate(GenericEvent genericEvent) {
+    private void validate(GenericEvent genericEvent, PublicationOptions options) {
         if (genericEvent.kind() == null || !KIND.matcher(genericEvent.kind()).matches()) {
             throw new InvalidDataException("A generic event kind must look like <feature>.<type>, got: " + genericEvent.kind());
         }
         if (genericEvent.id() == null || genericEvent.id().isBlank()) {
             throw new InvalidDataException("A generic event needs an id.");
         }
+        if (options.deploymentLabel() != null && options.deploymentLabel().length() > MAX_DEPLOYMENT_LABEL_LENGTH) {
+            throw new InvalidDataException("A deployment label must not exceed " + MAX_DEPLOYMENT_LABEL_LENGTH + " characters.");
+        }
         if (genericEvent.payload() == null) {
-            throw new InvalidDataException("A generic event needs a payload.");
+            return;
         }
         if (genericEvent.payload().getBytes(StandardCharsets.UTF_8).length > MAX_PAYLOAD_BYTES) {
             throw new InvalidDataException("A generic event payload must not exceed " + MAX_PAYLOAD_BYTES + " bytes.");
