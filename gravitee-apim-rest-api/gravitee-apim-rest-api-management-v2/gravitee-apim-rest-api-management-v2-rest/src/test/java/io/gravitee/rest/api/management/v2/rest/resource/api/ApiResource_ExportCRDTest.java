@@ -33,6 +33,8 @@ import io.gravitee.apim.infra.adapter.ApiCRDAdapter;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.repository.management.model.Parameter;
@@ -53,6 +55,8 @@ import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -122,6 +126,20 @@ public class ApiResource_ExportCRDTest extends ApiResourceTest {
         assertThat(response.getStatus()).isEqualTo(OK_200);
         var yamlNode = YAML.readTree(response.readEntity(String.class));
         assertThat(yamlNode.get("spec").get("lifecycleState").asText()).isEqualTo("UNPUBLISHED");
+    }
+
+    @ParameterizedTest
+    @EnumSource(FlowMode.class)
+    public void should_export_flow_execution_mode_as_the_enum_name(FlowMode mode) throws JsonProcessingException {
+        var flowExecution = new FlowExecution();
+        flowExecution.setMode(mode);
+        apiCRDExportDomainService.initWith(List.of(ApiCRDFixtures.newBaseSpec().id(API).flowExecution(flowExecution).build()));
+
+        Response response = rootTarget().request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        var yamlNode = YAML.readTree(response.readEntity(String.class));
+        assertThat(yamlNode.get("spec").get("flowExecution").get("mode").asText()).isEqualTo(mode.name());
     }
 
     @Test
