@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 import { act, renderHook, waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
 
 import { useGammaModules } from './useGammaModules';
 import { buildUser, TEST_GAMMA_BASE } from '../../../testing/factories';
 import { respondWith, respondWithError } from '../../../testing/helpers';
+import { server } from '../../../testing/server';
 import { useAuthStore } from '../../auth/auth.store';
+import { useModulesStore } from '../modules.store';
 
 const mockRegisterRemotes = jest.fn();
 jest.mock('@module-federation/runtime', () => ({
@@ -52,6 +55,33 @@ describe('useGammaModules', () => {
         );
     });
 
+    it('says the list is not read yet, then that it is, even when it holds no module', async () => {
+        respondWith('get', `${TEST_GAMMA_BASE}/modules`, []);
+        useModulesStore.setState({ listStatus: 'pending' });
+
+        const { result } = renderHook(() => useGammaModules());
+        expect(useModulesStore.getState().listStatus).toBe('pending');
+
+        await waitFor(() => expect(result.current.loading).toBe(false));
+        expect(useModulesStore.getState().listStatus).toBe('loaded');
+    });
+
+    it('reads the list again when a page outside the module routes asks for it', async () => {
+        let reads = 0;
+        server.use(
+            http.get(`${TEST_GAMMA_BASE}/modules`, () => {
+                reads += 1;
+                return HttpResponse.json([]);
+            }),
+        );
+        const { result } = renderHook(() => useGammaModules());
+        await waitFor(() => expect(result.current.loading).toBe(false));
+
+        act(() => useModulesStore.getState().requestList());
+
+        await waitFor(() => expect(reads).toBe(2));
+    });
+
     describe('when the list cannot be loaded', () => {
         let error: jest.SpyInstance;
 
@@ -72,6 +102,7 @@ describe('useGammaModules', () => {
             expect(result.current.error).toBeTruthy();
             expect(result.current.modules).toEqual([]);
             expect(error).not.toHaveBeenCalled();
+            expect(useModulesStore.getState().listStatus).toBe('failed');
         });
 
         it('should keep the error while a retry runs, and drop it once the list is loaded', async () => {
@@ -89,6 +120,7 @@ describe('useGammaModules', () => {
             await waitFor(() => expect(result.current.loading).toBe(false));
             expect(result.current.error).toBeNull();
             expect(result.current.modules).toHaveLength(1);
+            expect(useModulesStore.getState().listStatus).toBe('loaded');
         });
 
         it('should keep the error once a retry fails again', async () => {
