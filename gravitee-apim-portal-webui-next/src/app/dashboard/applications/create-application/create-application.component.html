@@ -151,14 +151,8 @@
                   </div>
                 }
 
-                <div class="form__field">
-                  <p class="next-gen-body" i18n="@@createApplicationClientCertificate">Client Certificate (PEM Only)</p>
-                  <p class="next-gen-small" i18n="@@createApplicationClientCertificateHint">
-                    The client_certificate of the application. This field is required to subscribe to certain mTLS plans.
-                  </p>
-                  <mat-form-field appearance="outline" class="form__field--certificate">
-                    <textarea matInput formControlName="clientCertificate" rows="6" aria-label="Client Certificate"></textarea>
-                  </mat-form-field>
+                <div class="form__field form__field--csr">
+                  <app-csr-upload formControlName="csr" />
                 </div>
 
                 @if (!isSimpleType()) {
@@ -199,6 +193,8 @@
       >
         @if (creating()) {
           <span i18n="@@createApplicationCreatingButton">Creating...</span>
+        } @else if (embedded()) {
+          <span i18n="@@subscribeCreateApplicationContinue">Create and continue</span>
         } @else {
           <span i18n="@@createApplicationCreateButton">Create</span>
         }

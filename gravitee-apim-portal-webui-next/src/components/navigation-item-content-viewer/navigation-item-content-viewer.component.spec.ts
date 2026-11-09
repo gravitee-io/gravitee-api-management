@@ -21,25 +21,35 @@ import { NavigationItemContentViewerComponent } from './navigation-item-content-
 import { NavigationItemContentViewerHarness } from './navigation-item-content-viewer.harness';
 import { ViewerEnum } from '../../entities/page/page-configuration';
 import { PortalPageContent } from '../../entities/portal-navigation/portal-page-content';
+import { ConfigService } from '../../services/config.service';
 import { RedocService } from '../../services/redoc.service';
-import { AppTestingModule } from '../../testing/app-testing.module';
+import { AppTestingModule, ConfigServiceStub } from '../../testing/app-testing.module';
 
 interface InitData {
   pageContent: PortalPageContent | null;
   imports?: TestModuleMetadata['imports'];
   providers?: TestModuleMetadata['providers'];
   clearSwaggerUI?: boolean;
+  defaultType?: string;
 }
 
 describe('NavigationItemContentViewerComponent', () => {
   let fixture: ComponentFixture<NavigationItemContentViewerComponent>;
   let harness: NavigationItemContentViewerHarness;
 
-  const init = async ({ pageContent, imports = [], providers = [], clearSwaggerUI = false }: InitData) => {
+  const init = async ({ pageContent, imports = [], providers = [], clearSwaggerUI = false, defaultType }: InitData) => {
     await TestBed.configureTestingModule({
-      imports: [NavigationItemContentViewerComponent, ...imports],
+      imports: [NavigationItemContentViewerComponent, AppTestingModule, ...imports],
       providers,
     }).compileComponents();
+
+    if (defaultType) {
+      const configService = TestBed.inject(ConfigService) as unknown as ConfigServiceStub;
+      configService.configuration = {
+        ...configService.configuration,
+        openAPIDocViewer: { openAPIDocType: { defaultType } },
+      };
+    }
 
     if (clearSwaggerUI) {
       jest.mocked(SwaggerUI).mockClear();
@@ -137,7 +147,7 @@ describe('NavigationItemContentViewerComponent', () => {
     };
 
     beforeEach(async () => {
-      await init({ pageContent, imports: [AppTestingModule], clearSwaggerUI: true });
+      await init({ pageContent, clearSwaggerUI: true });
     });
 
     it('should not reinitialize Swagger UI on unchanged change detection cycles', () => {
@@ -186,7 +196,7 @@ describe('NavigationItemContentViewerComponent', () => {
     };
 
     beforeEach(async () => {
-      await init({ pageContent, imports: [AppTestingModule], clearSwaggerUI: true });
+      await init({ pageContent, clearSwaggerUI: true });
     });
 
     it('should render swagger viewer', async () => {
@@ -196,6 +206,24 @@ describe('NavigationItemContentViewerComponent', () => {
 
     it('should not render redoc viewer', async () => {
       expect(await harness.isShowingRedocContent()).toBe(false);
+    });
+  });
+
+  describe('if page content is OPENAPI and portal defaultType is Gravitee', () => {
+    const pageContent: PortalPageContent = {
+      type: 'OPENAPI',
+      content: 'openapi: 3.0.0\ninfo:\n  title: Test\n  version: 1.0.0',
+      configuration: { viewer: ViewerEnum.Swagger },
+    };
+
+    beforeEach(async () => {
+      await init({ pageContent, defaultType: 'Gravitee' });
+    });
+
+    it('should prefer portal Gravitee default over page Swagger viewer', () => {
+      expect(fixture.componentInstance.effectiveViewer()).toBe(ViewerEnum.Gravitee);
+      expect(fixture.nativeElement.querySelector('app-page-gravitee')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('app-page-swagger')).toBeFalsy();
     });
   });
 

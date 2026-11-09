@@ -79,10 +79,16 @@ export class GvPageComponent implements OnChanges, OnDestroy {
         const { GvPageMarkdownComponent } = await import('../gv-page-markdown/gv-page-markdown.component');
         componentFactory = this.componentFactoryResolver.resolveComponentFactory(GvPageMarkdownComponent);
       } else if (this.page.type.toUpperCase() === Page.TypeEnum.SWAGGER) {
+        // Prefer portal-level defaultType at runtime (portal-gamma behavior); page viewer is an authoring preference.
         const documentationViewer =
+          this.configurationService.get('openAPIDocViewer.openAPIDocType.defaultType', '') ||
           (this.page.configuration ? this.page.configuration.viewer : '') ||
-          this.configurationService.get('openAPIDocViewer.openAPIDocType.defaultType', 'Swagger');
-        if (documentationViewer.toUpperCase() === PageConfiguration.ViewerEnum.Redoc.toUpperCase()) {
+          'Swagger';
+        if (documentationViewer.toUpperCase() === PageConfiguration.ViewerEnum.Gravitee.toUpperCase()) {
+          // Gravitee Renderer is available in the next-gen portal; classic portal falls back to Redoc.
+          const { GvPageRedocComponent } = await import('../gv-page-redoc/gv-page-redoc.component');
+          componentFactory = this.componentFactoryResolver.resolveComponentFactory(GvPageRedocComponent);
+        } else if (documentationViewer.toUpperCase() === PageConfiguration.ViewerEnum.Redoc.toUpperCase()) {
           const { GvPageRedocComponent } = await import('../gv-page-redoc/gv-page-redoc.component');
           componentFactory = this.componentFactoryResolver.resolveComponentFactory(GvPageRedocComponent);
         } else {

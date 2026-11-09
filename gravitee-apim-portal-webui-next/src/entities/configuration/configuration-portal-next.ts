@@ -30,6 +30,7 @@ export class ConfigurationPortalNext {
   };
   catalog?: {
     viewMode?: 'TABS' | 'CATEGORIES';
+    cardTemplate?: string;
     tile?: PortalCatalogTileSettings;
   };
   analytics?: {

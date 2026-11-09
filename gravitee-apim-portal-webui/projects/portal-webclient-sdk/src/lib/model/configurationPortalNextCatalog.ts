@@ -18,5 +18,9 @@ export interface ConfigurationPortalNextCatalog {
      * View mode used by the Catalog. If the value is invalid, the TABS view will be shown by default.
      */
     viewMode?: string;
+    /**
+     * Gravitee Markdown template used to render each API catalog card.
+     */
+    cardTemplate?: string;
 }
 

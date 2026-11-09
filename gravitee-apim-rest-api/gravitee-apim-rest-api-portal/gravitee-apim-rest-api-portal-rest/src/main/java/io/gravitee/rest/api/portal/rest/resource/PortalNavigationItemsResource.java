@@ -29,12 +29,14 @@ import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ApiProductMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PortalNavigationItemMapper;
+import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.model.PortalArea;
 import io.gravitee.rest.api.portal.rest.model.PortalNavigationItemsSearchResponse;
 import io.gravitee.rest.api.portal.rest.model.PortalNavigationSearchInclude;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
@@ -48,6 +50,8 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.time.OffsetDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -235,7 +239,7 @@ public class PortalNavigationItemsResource extends AbstractResource {
         );
     }
 
-    private List<io.gravitee.rest.api.portal.rest.model.Api> loadIncludedApiEntities(
+    private List<Api> loadIncludedApiEntities(
         io.gravitee.rest.api.service.common.ExecutionContext executionContext,
         List<io.gravitee.apim.core.api.model.Api> domainApis
     ) {
@@ -247,7 +251,17 @@ public class PortalNavigationItemsResource extends AbstractResource {
             .findGenericByEnvironmentAndIdIn(executionContext, ids)
             .stream()
             .map(entity -> apiMapper.convert(executionContext, entity))
+            .map(this::addApiLinks)
             .toList();
+    }
+
+    private Api addApiLinks(Api api) {
+        final OffsetDateTime updatedAt = api.getUpdatedAt();
+        Date updateDate = null;
+        if (updatedAt != null) {
+            updateDate = Date.from(updatedAt.toInstant());
+        }
+        return api.links(apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId()), updateDate));
     }
 
     @Path("{portalNavigationItemId}")

@@ -165,6 +165,7 @@ public enum Key {
         Boolean.FALSE.toString(),
         new HashSet<>(singletonList(ENVIRONMENT))
     ),
+    PORTAL_NEXT_DOCUMENTATION_DEFAULT_FOLDER_ID("portal.next.documentation.defaultFolderId", new HashSet<>(singletonList(ENVIRONMENT))),
 
     MANAGEMENT_TITLE("management.title", "Gravitee.io Management", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     MANAGEMENT_URL("management.url", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
@@ -221,6 +222,11 @@ public enum Key {
     ),
     OPEN_API_DOC_TYPE_REDOC_ENABLED(
         "open.api.doc.type.redoc.enabled",
+        "true",
+        new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
+    ),
+    OPEN_API_DOC_TYPE_GRAVITEE_ENABLED(
+        "open.api.doc.type.gravitee.enabled",
         "true",
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
@@ -508,7 +514,8 @@ public enum Key {
         new HashSet<>(singletonList(ENVIRONMENT))
     ),
     PORTAL_NEXT_CATALOG_TILE_STATUS_ENABLED("portal.next.catalog.tile.status.enabled", "true", new HashSet<>(singletonList(ENVIRONMENT))),
-    PORTAL_NEXT_CATALOG_TILE_OWNER_ENABLED("portal.next.catalog.tile.owner.enabled", "true", new HashSet<>(singletonList(ENVIRONMENT)));
+    PORTAL_NEXT_CATALOG_TILE_OWNER_ENABLED("portal.next.catalog.tile.owner.enabled", "true", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_CATALOG_CARD_TEMPLATE("portal.next.catalog.cardTemplate", new HashSet<>(singletonList(ENVIRONMENT)));
 
     final String key;
     String defaultValue;

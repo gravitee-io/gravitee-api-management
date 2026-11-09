@@ -114,6 +114,9 @@
           <mat-radio-group class="viewer-setting__options" formControlName="defaultType" aria-labelledby="default-openapi-viewer-label">
             <mat-radio-button value="Swagger" [disabled]="!isSwaggerEnabled()" data-testid="swagger-viewer"> Swagger UI </mat-radio-button>
             <mat-radio-button value="Redoc" [disabled]="!isRedocEnabled()" data-testid="redoc-viewer">Redoc</mat-radio-button>
+            <mat-radio-button value="Gravitee" [disabled]="!isGraviteeEnabled()" data-testid="gravitee-viewer">
+              Gravitee Renderer
+            </mat-radio-button>
           </mat-radio-group>
         </div>
       </mat-card-content>

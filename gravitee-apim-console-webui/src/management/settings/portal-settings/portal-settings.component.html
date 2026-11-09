@@ -401,6 +401,15 @@
               <gio-form-label>Redoc</gio-form-label>
               <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Redoc"></mat-slide-toggle>
             </gio-form-slide-toggle>
+            <gio-form-slide-toggle
+              [matTooltip]="'Configuration provided by the system'"
+              [matTooltipDisabled]="!isReadonly('open.api.doc.type.gravitee.enabled')"
+              formGroupName="gravitee"
+              class="portal__form__card__form-field"
+            >
+              <gio-form-label>Gravitee Renderer</gio-form-label>
+              <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Gravitee Renderer"></mat-slide-toggle>
+            </gio-form-slide-toggle>
           </div>
           <div class="portal__form__card__radio-tab__group">
             <mat-radio-group class="portal__form__card__radio-group radio-group" formControlName="defaultType">
@@ -414,6 +423,12 @@
                 class="portal__form__card__radio-tab__group__radio-button"
                 [disabled]="!portalForm.get('openAPIDocViewer.openAPIDocType.redoc.enabled').value"
                 [value]="'Redoc'"
+                >Set as default
+              </mat-radio-button>
+              <mat-radio-button
+                class="portal__form__card__radio-tab__group__radio-button"
+                [disabled]="!portalForm.get('openAPIDocViewer.openAPIDocType.gravitee.enabled').value"
+                [value]="'Gravitee'"
                 >Set as default
               </mat-radio-button>
             </mat-radio-group>

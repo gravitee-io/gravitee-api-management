@@ -44,6 +44,7 @@ import {
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { isCatalogCardTemplateNavId } from '../../catalog-tile/catalog-card-template.constants';
 import { PortalNavigationItemIconPipe } from '../../icon/portal-navigation-item-icon.pipe';
 
 export interface SectionNode {
@@ -258,12 +259,12 @@ export class FlatTreeComponent {
     return this.getPublishActionState(node).tooltip;
   }
 
-  isDeleteDisabled(_node: SectionNode | FlatTreeNode): boolean {
-    return false;
+  isDeleteDisabled(node: SectionNode | FlatTreeNode): boolean {
+    return isCatalogCardTemplateNavId(node.id);
   }
 
-  getDeleteDisabledTooltip(_node: SectionNode | FlatTreeNode): string {
-    return '';
+  getDeleteDisabledTooltip(node: SectionNode | FlatTreeNode): string {
+    return isCatalogCardTemplateNavId(node.id) ? 'The Catalog folder is managed by the portal' : '';
   }
 
   treeBase = viewChild<MatTree<SectionNode, string>>(MatTree);
@@ -396,6 +397,9 @@ export class FlatTreeComponent {
   }
 
   canShowMoreActions(node: FlatTreeNode): boolean {
+    if (isCatalogCardTemplateNavId(node.id)) {
+      return false;
+    }
     if ((node.type === 'FOLDER' || node.type === 'API_PRODUCT') && this.canCreate) {
       return true;
     }
@@ -409,6 +413,9 @@ export class FlatTreeComponent {
     if (!event.isPointerOverContainer || !intent) return;
 
     const nodeToMove = event.item.data as SectionNode;
+    if (isCatalogCardTemplateNavId(nodeToMove.id) || isCatalogCardTemplateNavId(intent.targetId)) {
+      return;
+    }
     const target = this.findNodeById(intent.targetId);
     if (!target) return;
 

@@ -97,6 +97,7 @@ export class PortalSettingsPageComponent implements HasUnsavedChanges {
 
   readonly isSwaggerEnabled = signal(false);
   readonly isRedocEnabled = signal(false);
+  readonly isGraviteeEnabled = signal(false);
   readonly availableKafkaMechanisms = ['PLAIN', 'SCRAM-SHA-256', 'SCRAM-SHA-512'];
 
   constructor() {
@@ -123,6 +124,7 @@ export class PortalSettingsPageComponent implements HasUnsavedChanges {
       this.formInitialValues.set(form.getRawValue());
       this.isSwaggerEnabled.set(settings.openAPIDocViewer?.openAPIDocType?.swagger?.enabled ?? false);
       this.isRedocEnabled.set(settings.openAPIDocViewer?.openAPIDocType?.redoc?.enabled ?? false);
+      this.isGraviteeEnabled.set(settings.openAPIDocViewer?.openAPIDocType?.gravitee?.enabled ?? true);
 
       onCleanup(() => registrationSubscription.unsubscribe());
     });
@@ -296,6 +298,7 @@ export class PortalSettingsPageComponent implements HasUnsavedChanges {
           defaultType: formValue.openAPIDocViewer.openAPIDocType.defaultType,
           swagger: settings.openAPIDocViewer?.openAPIDocType?.swagger ?? { enabled: false },
           redoc: settings.openAPIDocViewer?.openAPIDocType?.redoc ?? { enabled: false },
+          gravitee: settings.openAPIDocViewer?.openAPIDocType?.gravitee ?? { enabled: true },
         },
       },
     };

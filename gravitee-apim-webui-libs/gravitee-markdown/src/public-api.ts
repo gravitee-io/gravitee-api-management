@@ -28,3 +28,4 @@ export * from './lib/components/card/public-api';
 export * from './lib/components/button/public-api';
 export * from './lib/components/install-mcp/public-api';
 export * from './lib/services/gmd-form-state.store';
+export * from './lib/services/el-resolver';

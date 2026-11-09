@@ -48,6 +48,9 @@ public class OpenAPIDocViewer {
         @ParameterKey(Key.OPEN_API_DOC_TYPE_REDOC_ENABLED)
         private Enabled redoc;
 
+        @ParameterKey(Key.OPEN_API_DOC_TYPE_GRAVITEE_ENABLED)
+        private Enabled gravitee;
+
         @ParameterKey(Key.OPEN_API_DOC_TYPE_DEFAULT)
         private String defaultType;
 
@@ -65,6 +68,14 @@ public class OpenAPIDocViewer {
 
         public void setRedoc(Enabled redoc) {
             this.redoc = redoc;
+        }
+
+        public Enabled getGravitee() {
+            return gravitee;
+        }
+
+        public void setGravitee(Enabled gravitee) {
+            this.gravitee = gravitee;
         }
 
         public String getDefaultType() {

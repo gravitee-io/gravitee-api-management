@@ -18,6 +18,7 @@ import { Component, inject, Input } from '@angular/core';
 import { PageAsciidocComponent } from './page-asciidoc/page-asciidoc.component';
 import { PageAsyncApiComponent } from './page-async-api/page-async-api.component';
 import { PageMarkdownComponent } from './page-markdown/page-markdown.component';
+import { PageGraviteeComponent } from './page-gravitee/page-gravitee.component';
 import { PageRedocComponent } from './page-redoc/page-redoc.component';
 import { PageSwaggerComponent } from './page-swagger/page-swagger.component';
 import { Page } from '../../entities/page/page';
@@ -26,7 +27,14 @@ import { ConfigService } from '../../services/config.service';
 
 @Component({
   selector: 'app-page',
-  imports: [PageSwaggerComponent, PageMarkdownComponent, PageAsciidocComponent, PageAsyncApiComponent, PageRedocComponent],
+  imports: [
+    PageSwaggerComponent,
+    PageMarkdownComponent,
+    PageAsciidocComponent,
+    PageAsyncApiComponent,
+    PageRedocComponent,
+    PageGraviteeComponent,
+  ],
   templateUrl: './page.component.html',
   styleUrl: './page.component.scss',
 })
@@ -43,9 +51,18 @@ export class PageComponent {
   protected readonly viewerEnum = ViewerEnum;
 
   get effectiveViewer(): ViewerEnum {
+    // Match portal-gamma runtime behavior: portal-level defaultType wins over the page's
+    // stored viewer (page viewer remains an authoring/editor preference).
     const configuredViewer =
-      this.page.configuration?.viewer ?? this.configService.configuration.openAPIDocViewer?.openAPIDocType?.defaultType;
+      this.configService.configuration.openAPIDocViewer?.openAPIDocType?.defaultType ?? this.page.configuration?.viewer;
+    const normalized = configuredViewer?.toLowerCase();
 
-    return configuredViewer?.toLowerCase() === ViewerEnum.Redoc.toLowerCase() ? ViewerEnum.Redoc : ViewerEnum.Swagger;
+    if (normalized === ViewerEnum.Gravitee.toLowerCase()) {
+      return ViewerEnum.Gravitee;
+    }
+    if (normalized === ViewerEnum.Redoc.toLowerCase()) {
+      return ViewerEnum.Redoc;
+    }
+    return ViewerEnum.Swagger;
   }
 }

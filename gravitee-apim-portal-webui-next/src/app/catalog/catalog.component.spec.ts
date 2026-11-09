@@ -22,7 +22,7 @@ import { of } from 'rxjs';
 
 import { CatalogComponent } from './catalog.component';
 import { CatalogHarness } from './catalog.component.harness';
-import { ApiCardHarness } from '../../components/api-card/api-card.harness';
+import { CatalogApiCardHarness } from '../../components/catalog-api-card/catalog-api-card.harness';
 import { ApiProductCardHarness } from '../../components/api-product-card/api-product-card.harness';
 import { DropdownSearchComponentHarness } from '../../components/dropdown-search/dropdown-search.component.harness';
 import { PaginationHarness } from '../../components/pagination/pagination.harness';
@@ -134,7 +134,7 @@ describe('CatalogComponent', () => {
   it('should render APIs and API Products in one grid', async () => {
     await init();
 
-    const apiCards = await harnessLoader.getAllHarnesses(ApiCardHarness);
+    const apiCards = await harnessLoader.getAllHarnesses(CatalogApiCardHarness);
     const productCards = await harnessLoader.getAllHarnesses(ApiProductCardHarness);
 
     expect(apiCards).toHaveLength(2);
@@ -182,7 +182,7 @@ describe('CatalogComponent', () => {
     await init();
     const navigate = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
-    await (await harnessLoader.getAllHarnesses(ApiCardHarness))[0].select();
+    await (await harnessLoader.getAllHarnesses(CatalogApiCardHarness))[0].select();
 
     expect(navigate).toHaveBeenCalledWith(['/documentation', 'api-root-1'], {
       queryParams: { selectedId: 'api-nav-1' },
@@ -235,7 +235,7 @@ describe('CatalogComponent', () => {
     fixture.detectChanges();
 
     expect(await harnessLoader.getAllHarnesses(ApiProductCardHarness)).toHaveLength(1);
-    expect(await harnessLoader.getAllHarnesses(ApiCardHarness)).toHaveLength(0);
+    expect(await harnessLoader.getAllHarnesses(CatalogApiCardHarness)).toHaveLength(0);
   });
 
   it('should request a new page size for the mixed catalog', async () => {

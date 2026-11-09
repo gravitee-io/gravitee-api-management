@@ -103,6 +103,7 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GenericNotificationConfigService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
 import io.gravitee.rest.api.service.RoleService;
@@ -132,6 +133,8 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.HookScope;
+import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
+import io.gravitee.rest.api.service.notification.PortalHook;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.xml.bind.DatatypeConverter;
@@ -236,6 +239,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Autowired
     private MtlsSubscriptionSyncDomainService applicationCertificatesUpdateDomainService;
+
+    @Autowired
+    private NotifierService notifierService;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -573,7 +579,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 notificationConfigEntity.setConfig(userEntity.getEmail());
                 genericNotificationConfigService.create(notificationConfigEntity);
             }
-            return convert(executionContext, createdApplication, userEntity, true);
+
+            ApplicationEntity applicationEntity = convert(executionContext, createdApplication, userEntity, true);
+            notifierService.trigger(
+                executionContext,
+                PortalHook.APPLICATION_CREATED,
+                new NotificationParamsBuilder().application(applicationEntity).user(userEntity).build()
+            );
+            return applicationEntity;
         } catch (DuplicateKeyException ex) {
             throw new ClientIdAlreadyExistsException(application.getMetadata().get(METADATA_CLIENT_ID));
         } catch (TechnicalException ex) {

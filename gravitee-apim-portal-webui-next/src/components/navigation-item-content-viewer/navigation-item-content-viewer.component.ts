@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 
 import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
 
@@ -21,19 +21,45 @@ import { InnerLinkDirective } from '../../directives/inner-link.directive';
 import { Page } from '../../entities/page/page';
 import { ViewerEnum } from '../../entities/page/page-configuration';
 import { PortalPageContent } from '../../entities/portal-navigation/portal-page-content';
+import { ConfigService } from '../../services/config.service';
 import { PageAsyncApiComponent } from '../page/page-async-api/page-async-api.component';
+import { PageGraviteeComponent } from '../page/page-gravitee/page-gravitee.component';
 import { PageSwaggerComponent } from '../page/page-swagger/page-swagger.component';
 import { RedocContentViewerComponent } from '../redoc-content-viewer/redoc-content-viewer.component';
 
 @Component({
   selector: 'app-navigation-item-content-viewer',
-  imports: [GraviteeMarkdownViewerModule, InnerLinkDirective, PageAsyncApiComponent, RedocContentViewerComponent, PageSwaggerComponent],
+  imports: [
+    GraviteeMarkdownViewerModule,
+    InnerLinkDirective,
+    PageAsyncApiComponent,
+    PageGraviteeComponent,
+    RedocContentViewerComponent,
+    PageSwaggerComponent,
+  ],
   templateUrl: './navigation-item-content-viewer.component.html',
   styleUrl: './navigation-item-content-viewer.component.scss',
 })
 export class NavigationItemContentViewerComponent {
   pageContent = input.required<PortalPageContent | null>();
   protected readonly viewerEnum = ViewerEnum;
+
+  private readonly configService = inject(ConfigService);
+
+  readonly effectiveViewer = computed(() => {
+    // Match portal-gamma / app-page: portal-level defaultType wins over the page viewer.
+    const configuredViewer =
+      this.configService.configuration.openAPIDocViewer?.openAPIDocType?.defaultType ??
+      this.pageContent()?.configuration?.viewer;
+    const normalized = configuredViewer?.toLowerCase();
+    if (normalized === ViewerEnum.Gravitee.toLowerCase()) {
+      return ViewerEnum.Gravitee;
+    }
+    if (normalized === ViewerEnum.Redoc.toLowerCase()) {
+      return ViewerEnum.Redoc;
+    }
+    return ViewerEnum.Swagger;
+  });
 
   private readonly backendResolvedServerUrls = computed(() => {
     const configuration = this.pageContent()?.configuration;

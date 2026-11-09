@@ -160,6 +160,9 @@ public class PortalNext {
         @ParameterKey(Key.PORTAL_NEXT_CATALOG_VIEW_MODE)
         private String viewMode;
 
+        @ParameterKey(Key.PORTAL_NEXT_CATALOG_CARD_TEMPLATE)
+        private String cardTemplate;
+
         @ParameterKey(Key.PORTAL_NEXT_SEARCH_FUZZY)
         private Enabled fuzzySearch;
 

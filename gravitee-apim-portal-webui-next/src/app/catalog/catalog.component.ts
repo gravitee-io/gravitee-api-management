@@ -27,12 +27,12 @@ import { isEqual } from 'lodash';
 import { BehaviorSubject, catchError, distinctUntilChanged, filter, map, Observable, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { ApiCardComponent } from '../../components/api-card/api-card.component';
 import { ApiProductCardComponent } from '../../components/api-product-card/api-product-card.component';
 import { BadgeComponent } from '../../components/badge/badge.component';
 import { ButtonToggleGroupComponent } from '../../components/button-toggle-group/button-toggle-group.component';
 import { ButtonToggleOptionComponent } from '../../components/button-toggle-group/button-toggle-option.component';
 import { CardsGridComponent } from '../../components/cards-grid/cards-grid.component';
+import { CatalogApiCardComponent } from '../../components/catalog-api-card/catalog-api-card.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../components/confirm-dialog/confirm-dialog.component';
 import { DropdownSearchComponent } from '../../components/dropdown-search/dropdown-search.component';
 import { LoaderComponent } from '../../components/loader/loader.component';
@@ -40,7 +40,6 @@ import { OverflowLabelsComponent } from '../../components/overflow-labels/overfl
 import { PaginationComponent } from '../../components/pagination/pagination.component';
 import { MobileClassDirective } from '../../directives/mobile-class.directive';
 import { PortalCategory } from '../../entities/categories/portal-category';
-import { catalogTileVisibility } from '../../entities/configuration/configuration-portal-next';
 import { ConfigService } from '../../services/config.service';
 import { ApiCatalogNotificationService } from '../../services/api-catalog-notification.service';
 import { CurrentUserService } from '../../services/current-user.service';
@@ -90,12 +89,12 @@ interface CategoriesState {
   selector: 'app-catalog',
   standalone: true,
   imports: [
-    ApiCardComponent,
     ApiProductCardComponent,
     BadgeComponent,
     ButtonToggleGroupComponent,
     ButtonToggleOptionComponent,
     CardsGridComponent,
+    CatalogApiCardComponent,
     DropdownSearchComponent,
     LoaderComponent,
     MobileClassDirective,
@@ -129,7 +128,7 @@ export class CatalogComponent {
   private readonly route = inject(ActivatedRoute);
   protected readonly isMobile = this.breakpointService.isMobile;
   protected readonly isAuthenticated = this.currentUserService.isUserAuthenticated;
-  protected readonly catalogTile = catalogTileVisibility(this.configService.configuration.portalNext?.catalog?.tile);
+  protected readonly catalogCardTemplate = this.configService.configuration.portalNext?.catalog?.cardTemplate;
 
   private readonly page$ = new BehaviorSubject<number>(1);
   protected readonly query = toSignal(this.route.queryParams.pipe(map(p => p['query'] ?? '')), { initialValue: '' });

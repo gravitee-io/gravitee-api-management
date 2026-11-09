@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { CommonModule } from '@angular/common';
 import { Component, computed, DestroyRef, inject, input, OnInit, Signal, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
@@ -45,7 +44,6 @@ import { ConsumerConfigurationComponent } from '../../../components';
 import { LoaderComponent } from '../../../components/loader/loader.component';
 import { ConsumerConfigurationFormData } from '../../../components/subscription/webhook/consumer-configuration/consumer-configuration.models';
 import { CreateApplicationComponent } from '../../dashboard/applications/create-application/create-application.component';
-import { MobileClassDirective } from '../../../directives/mobile-class.directive';
 import { Api } from '../../../entities/api/api';
 import { Application, ApplicationsResponse } from '../../../entities/application/application';
 import { Page } from '../../../entities/page/page';
@@ -81,7 +79,6 @@ interface CheckoutData {
 @Component({
   selector: 'app-subscribe-to-api',
   imports: [
-    CdkTrapFocus,
     CommonModule,
     CreateApplicationComponent,
     MatCard,
@@ -92,11 +89,9 @@ interface CheckoutData {
     MatCardActions,
     MatCardContent,
     MatButton,
-    MatIconButton,
     LoaderComponent,
     MatChipsModule,
     MatIcon,
-    MobileClassDirective,
     ConsumerConfigurationComponent,
   ],
   templateUrl: './subscribe-to-api.component.html',
@@ -243,6 +238,10 @@ export class SubscribeToApiComponent implements OnInit {
   }
 
   goToPreviousStep(): void {
+    if (this.createApplicationOpen()) {
+      this.closeCreateApplication();
+      return;
+    }
     const steps = this.activeSteps();
     const currentIndex = steps.indexOf(this.currentStep());
     if (currentIndex > 0) {
@@ -280,6 +279,7 @@ export class SubscribeToApiComponent implements OnInit {
     this.applicationsQuery.next('');
     this.currentApplicationsPage.next(1);
     this.applicationsReload.next(this.applicationsReload.value + 1);
+    this.goToNextStep();
   }
 
   subscribe() {

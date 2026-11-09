@@ -1,0 +1,4 @@
+title: |
+  [${application.name}] Certificate close to expiry
+message: |
+  A client certificate for the application "${application.name}" is close to its expiry date.

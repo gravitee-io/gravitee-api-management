@@ -179,6 +179,9 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
         redoc: {
           enabled: true,
         },
+        gravitee: {
+          enabled: true,
+        },
         defaultType: 'Redoc',
       },
     },

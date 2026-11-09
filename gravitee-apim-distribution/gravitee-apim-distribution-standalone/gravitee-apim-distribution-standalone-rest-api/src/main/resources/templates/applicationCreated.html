@@ -1,0 +1,18 @@
+<html>
+	<body style="text-align: center;">
+		<header>
+			<#include "header.html" />
+		</header>
+		<div style="margin-top: 50px; color: #424e5a;">
+			<h3>Hi, a new application was just created!</h3>
+			<p>
+				The application <strong>${application.name}</strong>
+				<#if user??>
+				  has been created by ${user.displayName}.
+				<#else>
+				  has been created.
+				</#if>
+			</p>
+		</div>
+	</body>
+</html>

@@ -5877,6 +5877,11 @@ components:
                     writeOnly: true
                 api_key_mode:
                     $ref: "#/components/schemas/ApiKeyModeEnum"
+                csr:
+                    description: >
+                        PEM-encoded PKCS#10 Certificate Signing Request submitted for the application.
+                        Used by organizations with an internal CA; never forwarded to DCR.
+                    type: string
                 settings:
                     $ref: "#/components/schemas/ApplicationSettings"
                 _links:
@@ -7458,6 +7463,9 @@ components:
                     description: View mode used by the Catalog. If the value is invalid, the TABS view will be shown by default.
                     type: string
                     example: TABS
+                cardTemplate:
+                    description: Gravitee Markdown template used to render each API catalog card. Supports EL expressions such as {#api.name} and {#api.metadata['key']}.
+                    type: string
                 tile:
                     $ref: "#/components/schemas/ConfigurationPortalNextCatalogTile"
         ConfigurationPortalNextCatalogTile:
@@ -7600,12 +7608,15 @@ components:
                     $ref: "#/components/schemas/Enabled"
                 redoc:
                     $ref: "#/components/schemas/Enabled"
+                gravitee:
+                    $ref: "#/components/schemas/Enabled"
                 defaultType:
-                    description: Default OpenAPI viewer type (Swagger or Redoc)
+                    description: Default OpenAPI viewer type (Swagger, Redoc or Gravitee)
                     type: string
                     enum:
                         - Swagger
                         - Redoc
+                        - Gravitee
 
         CategorizedLinks:
             properties:
@@ -7806,6 +7817,11 @@ components:
                     type: string
                 api_key_mode:
                     $ref: "#/components/schemas/ApiKeyModeEnum"
+                csr:
+                    description: >
+                        PEM-encoded PKCS#10 Certificate Signing Request submitted for the application.
+                        Used by organizations with an internal CA; never forwarded to DCR.
+                    type: string
         MemberInput:
             properties:
                 user:

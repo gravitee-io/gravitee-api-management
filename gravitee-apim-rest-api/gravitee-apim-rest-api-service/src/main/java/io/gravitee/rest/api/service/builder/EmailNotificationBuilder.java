@@ -220,6 +220,11 @@ public class EmailNotificationBuilder {
             "supportTicketNotification.html",
             "New support Ticket by ${user.displayName}"
         ),
+        PORTAL_APPLICATION_CREATED(
+            PortalHook.APPLICATION_CREATED,
+            "applicationCreated.html",
+            "Application created - ${application.name}"
+        ),
         PORTAL_GROUP_INVITATION(PortalHook.GROUP_INVITATION, "groupInvitationNotification.html", "New group invitation - ${group.name}"),
         PORTAL_FEDERATED_APIS_INGESTION_COMPLETE(
             PortalHook.FEDERATED_APIS_INGESTION_COMPLETE,

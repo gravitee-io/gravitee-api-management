@@ -22,8 +22,10 @@
 .cards-grid {
   display: grid;
   gap: 16px;
+  align-items: stretch;
   grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: 138px;
+  // Size rows to content so GMD catalog tiles stay aligned with published fields.
+  grid-auto-rows: auto;
 
   &--narrow {
     grid-template-columns: repeat(2, 1fr);

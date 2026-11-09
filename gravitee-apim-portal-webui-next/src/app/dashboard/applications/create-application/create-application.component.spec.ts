@@ -583,21 +583,21 @@ describe('CreateApplicationComponent', () => {
       expect(routerNavigateSpy).toHaveBeenCalledWith(['/dashboard/applications', 'new-oauth-app-id']);
     });
 
-    it('should include TLS settings when client certificate is provided', async () => {
+    it('should include csr when a CSR is provided', async () => {
       const nameInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
-      await nameInput.setValue('Test App with TLS');
+      await nameInput.setValue('Test App with CSR');
 
-      const clientCertTextarea = fixture.nativeElement.querySelector('textarea[formControlName="clientCertificate"]');
-      clientCertTextarea.value = '-----BEGIN CERTIFICATE-----\nMOCK_CERT\n-----END CERTIFICATE-----';
-      clientCertTextarea.dispatchEvent(new Event('input'));
+      component.form.controls.csr.setValue(
+        '-----BEGIN CERTIFICATE REQUEST-----\nMOCK_CSR\n-----END CERTIFICATE REQUEST-----',
+      );
       fixture.detectChanges();
 
       const createButton = await harnessLoader.getHarness(MatButtonHarness.with({ text: /Create/ }));
       await createButton.click();
 
       const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications`);
-      expect(req.request.body.settings.tls).toBeDefined();
-      expect(req.request.body.settings.tls.client_certificate).toContain('BEGIN CERTIFICATE');
+      expect(req.request.body.csr).toContain('BEGIN CERTIFICATE REQUEST');
+      expect(req.request.body.settings.tls).toBeUndefined();
 
       req.flush(fakeApplication({ id: 'new-app-id' }));
     });

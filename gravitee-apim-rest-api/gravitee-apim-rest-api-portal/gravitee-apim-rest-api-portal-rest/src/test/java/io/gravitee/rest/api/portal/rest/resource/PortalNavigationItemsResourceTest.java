@@ -481,6 +481,9 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         mockApi.setId(apiId);
         mockApi.setName("Auth API");
         when(apiMapper.convert(any(), any())).thenReturn(mockApi);
+        var apiLinks = new io.gravitee.rest.api.portal.rest.model.ApiLinks();
+        apiLinks.setPicture("http://localhost/portal/environments/DEFAULT/apis/" + apiId + "/picture?");
+        when(apiMapper.computeApiLinks(any(), any())).thenReturn(apiLinks);
 
         // When
         Response response = target("/_search")
@@ -496,8 +499,12 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         assertThat(result).containsKey("metadata");
         assertThat(result).containsKey("apis");
         @SuppressWarnings("unchecked")
-        var apis = (List<Object>) result.get("apis");
+        var apis = (List<Map<String, Object>>) result.get("apis");
         assertThat(apis).hasSize(1);
+        @SuppressWarnings("unchecked")
+        var links = (Map<String, Object>) apis.getFirst().get("_links");
+        assertThat(links).containsEntry("picture", apiLinks.getPicture());
+        Mockito.verify(apiMapper).computeApiLinks(any(), any());
     }
 
     @Test

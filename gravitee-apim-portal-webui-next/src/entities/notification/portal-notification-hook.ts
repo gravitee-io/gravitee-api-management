@@ -66,6 +66,13 @@ export const SUBSCRIPTION_CLOSE_TO_EXPIRY_HOOK: PortalNotificationHook = {
   category: 'SUBSCRIPTION',
 };
 
+export const CERTIFICATE_UPLOADED_HOOK: PortalNotificationHook = {
+  id: 'CERTIFICATE_UPLOADED',
+  label: 'Certificate upload',
+  description: 'Triggered when a client certificate is uploaded for the application.',
+  category: 'CERTIFICATE',
+};
+
 export const CERTIFICATE_EXPIRY_HOOK: PortalNotificationHook = {
   id: 'CERTIFICATE_EXPIRY',
   label: 'Certificate expiry',
@@ -152,6 +159,7 @@ export const CLOSE_TO_EXPIRY_HOOK_IDS = new Set([
 
 const APPLICATION_EXTRA_HOOKS: readonly PortalNotificationHook[] = [
   SUBSCRIPTION_CLOSE_TO_EXPIRY_HOOK,
+  CERTIFICATE_UPLOADED_HOOK,
   CERTIFICATE_EXPIRY_HOOK,
   CERTIFICATE_CLOSE_TO_EXPIRY_HOOK,
 ];

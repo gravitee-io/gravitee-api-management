@@ -62,6 +62,10 @@ h1 {
           )
         );
       }
+
+      &--csr {
+        margin-top: 8px;
+      }
     }
 
     &__security {

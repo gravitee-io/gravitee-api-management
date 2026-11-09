@@ -1,0 +1,272 @@
+<!--
+    Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+    Licensed under the Apache License, Version 2.0
+-->
+@if (view(); as spec) {
+  <div #docsRoot class="gravitee-docs" data-testid="gravitee-renderer">
+    <header #docsHeader class="gravitee-docs__header">
+      <h1 class="gravitee-docs__title">{{ spec.title }}</h1>
+      @if (spec.version) {
+        <span class="gravitee-docs__version">
+          {{ spec.version }}
+          <span class="gravitee-docs__version-current">Current</span>
+        </span>
+      }
+      <button type="button" class="gravitee-docs__download" (click)="downloadSpec()">Download spec</button>
+    </header>
+
+    @if (descriptionHtml(); as description) {
+      <section class="gravitee-docs__description" [innerHTML]="description"></section>
+    }
+
+    <div class="gravitee-docs__layout">
+      <aside class="gravitee-docs__sidebar">
+        <section class="gravitee-docs__sidebar-section">
+          <h2 class="gravitee-docs__sidebar-title">Endpoints</h2>
+          <label class="gravitee-docs__endpoint-search">
+            <span class="gravitee-docs__endpoint-search-label">Search endpoints</span>
+            <input
+              class="gravitee-docs__endpoint-search-input"
+              type="search"
+              placeholder="Search endpoints"
+              [ngModel]="endpointSearch()"
+              (ngModelChange)="updateEndpointSearch($event)"
+            />
+          </label>
+          @for (group of filteredOperationsByTag(); track group.tag) {
+            <div class="gravitee-docs__tag-group">
+              <h3 class="gravitee-docs__tag-name">{{ group.tag }}</h3>
+              <nav class="gravitee-docs__nav">
+                @for (operation of group.operations; track operation.id) {
+                  <button
+                    type="button"
+                    class="gravitee-docs__nav-item"
+                    [class.gravitee-docs__nav-item--active]="activeOperation()?.id === operation.id"
+                    [attr.aria-current]="activeOperation()?.id === operation.id ? 'true' : null"
+                    (click)="selectOperation(operation.id)"
+                  >
+                    <span class="gravitee-docs__method" [attr.data-method]="operation.method">{{ operation.method }}</span>
+                    <span class="gravitee-docs__nav-label">{{ operation.summary }}</span>
+                  </button>
+                }
+              </nav>
+            </div>
+          } @empty {
+            <p class="gravitee-docs__endpoint-search-empty">No endpoints match your search.</p>
+          }
+        </section>
+
+        @if (spec.schemaNames.length) {
+          <section class="gravitee-docs__sidebar-section">
+            <button type="button" class="gravitee-docs__schemas-toggle" (click)="toggleSchemas()">
+              <span>Schemas</span>
+              <span>{{ schemasExpanded() ? '▾' : '▸' }}</span>
+            </button>
+            @if (schemasExpanded()) {
+              <ul class="gravitee-docs__schema-list">
+                @for (schema of spec.schemaNames; track schema) {
+                  <li>{{ schema }}</li>
+                }
+              </ul>
+            }
+          </section>
+        }
+      </aside>
+
+      <div class="gravitee-docs__content-area">
+        <main class="gravitee-docs__center">
+          @for (operation of spec.operations; track operation.id; let last = $last) {
+            <section
+              class="gravitee-docs__operation"
+              [class.gravitee-docs__operation--last]="last"
+              [attr.id]="operationSectionId(operation.id)"
+              [attr.data-operation-id]="operation.id"
+            >
+              <h2 class="gravitee-docs__operation-title">{{ operation.summary }}</h2>
+
+              <div class="gravitee-docs__url-bar">
+                <span class="gravitee-docs__method" [attr.data-method]="operation.method">{{ operation.method }}</span>
+                <code class="gravitee-docs__url-text">{{ operation.path }}</code>
+              </div>
+
+              @if (operation.description) {
+                <p class="gravitee-docs__operation-description">{{ operation.description }}</p>
+              }
+
+              @for (location of ['path', 'query', 'header']; track location) {
+                @if (parametersFor(operation, location); as parameters) {
+                  @if (parameters.length) {
+                    <section class="gravitee-docs__param-section">
+                      <div class="gravitee-docs__param-section-header">
+                        {{ location === 'path' ? 'Path' : location === 'query' ? 'Query' : 'Header' }} Parameters
+                      </div>
+                      <div class="gravitee-docs__param-list">
+                        @for (parameter of parameters; track parameter.name) {
+                          <div class="gravitee-docs__param-item">
+                            <div class="gravitee-docs__param-header">
+                              <span class="gravitee-docs__param-name">{{ parameter.name }}</span>
+                              <span class="gravitee-docs__param-type">{{ parameter.type }}</span>
+                              @if (parameter.required) {
+                                <span class="gravitee-docs__param-required">required</span>
+                              }
+                            </div>
+                            @if (parameter.defaultValue) {
+                              <p class="gravitee-docs__param-meta">Default: {{ parameter.defaultValue }}</p>
+                            }
+                            @if (parameter.enumValues?.length) {
+                              <p class="gravitee-docs__param-meta">Allowed values: {{ parameter.enumValues?.join(', ') }}</p>
+                            }
+                            @if (parameter.description) {
+                              <p class="gravitee-docs__param-description">{{ parameter.description }}</p>
+                            }
+                          </div>
+                        }
+                      </div>
+                    </section>
+                  }
+                }
+              }
+
+              @if (operation.hasRequestBody) {
+                <section class="gravitee-docs__param-section">
+                  <div class="gravitee-docs__param-section-header">Request Body</div>
+                  <p class="gravitee-docs__param-description">
+                    {{ operation.requestBodyDescription || 'Request payload' }}
+                  </p>
+                </section>
+              }
+
+              @if (operation.response; as response) {
+                <section class="gravitee-docs__response-section">
+                  <h3 class="gravitee-docs__response-title">Response</h3>
+                  <div class="gravitee-docs__response-status">
+                    <span class="gravitee-docs__status-dot"></span>
+                    <span>{{ response.status }} {{ response.contentType }}</span>
+                  </div>
+                  @if (response.description) {
+                    <p class="gravitee-docs__response-description">{{ response.description }}</p>
+                  }
+                  @if (response.example) {
+                    <pre class="gravitee-docs__code-block">{{ response.example }}</pre>
+                  }
+                </section>
+              }
+            </section>
+          }
+        </main>
+
+        @if (activeOperation(); as operation) {
+          <aside class="gravitee-docs__right">
+            <div class="gravitee-docs__card">
+              <div class="gravitee-docs__card-header">
+                <span class="gravitee-docs__method" [attr.data-method]="operation.method">{{ operation.method }}</span>
+                <span class="gravitee-docs__card-path">{{ operation.path }}</span>
+              </div>
+
+              <div class="gravitee-docs__try-it">
+                @if (spec.servers.length > 1 && !configuredTryItUrl()) {
+                  <label class="gravitee-docs__field">
+                    <span class="gravitee-docs__field-label">Server</span>
+                    <select class="gravitee-docs__input" [ngModel]="selectedServerUrl()" (ngModelChange)="updateServer($event)">
+                      @for (server of spec.servers; track server) {
+                        <option [value]="server">{{ server }}</option>
+                      }
+                    </select>
+                  </label>
+                }
+
+                @for (parameter of parametersFor(operation, 'path'); track parameter.name) {
+                  <label class="gravitee-docs__field">
+                    <span class="gravitee-docs__field-label">{{ parameter.name }}{{ parameter.required ? ' *' : '' }}</span>
+                    <input
+                      class="gravitee-docs__input"
+                      [ngModel]="pathValues()[parameter.name]"
+                      (ngModelChange)="updatePathValue(parameter.name, $event)"
+                    />
+                  </label>
+                }
+
+                @for (parameter of parametersFor(operation, 'query'); track parameter.name) {
+                  <label class="gravitee-docs__field">
+                    <span class="gravitee-docs__field-label">{{ parameter.name }}{{ parameter.required ? ' *' : '' }}</span>
+                    <input
+                      class="gravitee-docs__input"
+                      [ngModel]="queryValues()[parameter.name]"
+                      (ngModelChange)="updateQueryValue(parameter.name, $event)"
+                    />
+                  </label>
+                }
+
+                @for (parameter of parametersFor(operation, 'header'); track parameter.name) {
+                  <label class="gravitee-docs__field">
+                    <span class="gravitee-docs__field-label">{{ parameter.name }}{{ parameter.required ? ' *' : '' }}</span>
+                    <input
+                      class="gravitee-docs__input"
+                      [ngModel]="headerValues()[parameter.name]"
+                      (ngModelChange)="updateHeaderValue(parameter.name, $event)"
+                    />
+                  </label>
+                }
+
+                @if (operation.hasRequestBody) {
+                  <label class="gravitee-docs__field">
+                    <span class="gravitee-docs__field-label">Body</span>
+                    <textarea class="gravitee-docs__textarea" [ngModel]="body()" (ngModelChange)="updateBody($event)"></textarea>
+                  </label>
+                }
+
+                <div class="gravitee-docs__url-bar gravitee-docs__url-bar--compact">
+                  <code class="gravitee-docs__url-text">{{ requestUrl() || operation.path }}</code>
+                  <button type="button" class="gravitee-docs__copy" (click)="copyRequestUrl()">
+                    {{ copied() ? 'Copied' : 'Copy' }}
+                  </button>
+                </div>
+
+                <button type="button" class="gravitee-docs__try-it-button" [disabled]="isSending()" (click)="sendRequest()">
+                  {{ isSending() ? 'Sending…' : 'Try It!' }}
+                </button>
+              </div>
+
+              @if (tryItError()) {
+                <p class="gravitee-docs__try-it-error">{{ tryItError() }}</p>
+              }
+
+              @if (tryItResponse(); as response) {
+                <div class="gravitee-docs__try-it-response">
+                  <div class="gravitee-docs__response-meta">
+                    <span [ngClass]="response.ok ? 'gravitee-docs__status-success' : 'gravitee-docs__status-error'">
+                      {{ response.status }} {{ response.statusText }}
+                    </span>
+                    <span>{{ response.durationMs }} ms</span>
+                  </div>
+                  <pre class="gravitee-docs__code-block">{{ response.body }}</pre>
+                </div>
+              }
+            </div>
+
+            <div class="gravitee-docs__card">
+              <div class="gravitee-docs__code-sample-header">
+                <span>Code sample</span>
+                <button type="button" class="gravitee-docs__copy" (click)="copyCodeSample()">Copy</button>
+              </div>
+              <pre class="gravitee-docs__code-block">{{ codeSample() }}</pre>
+            </div>
+
+            @if (operation.response?.example) {
+              <div class="gravitee-docs__card">
+                <div class="gravitee-docs__card-title">
+                  {{ operation.response?.status }} {{ operation.response?.contentType }}
+                </div>
+                <pre class="gravitee-docs__code-block">{{ operation.response?.example }}</pre>
+              </div>
+            }
+          </aside>
+        }
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="gravitee-docs__error" data-testid="gravitee-renderer-error">
+    This OpenAPI document could not be rendered with the Gravitee Renderer.
+  </div>
+}

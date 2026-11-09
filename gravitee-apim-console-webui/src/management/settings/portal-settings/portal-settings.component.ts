@@ -28,6 +28,7 @@ import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { BrandedSender } from '../../../entities/brandedSender';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { CorsUtil } from '../../../shared/utils';
+import { unwrapQuotedSender } from '../../../shared/utils/unwrap-quoted-sender.util';
 import { Constants } from '../../../entities/Constants';
 
 interface PortalForm {
@@ -144,7 +145,10 @@ interface PortalForm {
       redoc: FormGroup<{
         enabled: FormControl<boolean>;
       }>;
-      defaultType: FormControl<'Swagger' | 'Redoc'>;
+      gravitee: FormGroup<{
+        enabled: FormControl<boolean>;
+      }>;
+      defaultType: FormControl<'Swagger' | 'Redoc' | 'Gravitee'>;
     }>;
   }>;
   cors: FormGroup<{
@@ -520,15 +524,19 @@ export class PortalSettingsComponent implements OnInit {
           swagger: new FormGroup({
             enabled: new FormControl({
               value: this.settings.openAPIDocViewer.openAPIDocType.swagger.enabled,
-              disabled:
-                this.isReadonly('open.api.doc.type.swagger.enabled') || !this.settings.openAPIDocViewer.openAPIDocType.redoc.enabled,
+              disabled: this.isReadonly('open.api.doc.type.swagger.enabled'),
             }),
           }),
           redoc: new FormGroup({
             enabled: new FormControl({
               value: this.settings.openAPIDocViewer.openAPIDocType.redoc.enabled,
-              disabled:
-                this.isReadonly('open.api.doc.type.redoc.enabled') || !this.settings.openAPIDocViewer.openAPIDocType.swagger.enabled,
+              disabled: this.isReadonly('open.api.doc.type.redoc.enabled'),
+            }),
+          }),
+          gravitee: new FormGroup({
+            enabled: new FormControl({
+              value: this.settings.openAPIDocViewer.openAPIDocType.gravitee?.enabled ?? true,
+              disabled: this.isReadonly('open.api.doc.type.gravitee.enabled'),
             }),
           }),
           defaultType: new FormControl({
@@ -585,15 +593,19 @@ export class PortalSettingsComponent implements OnInit {
           disabled: this.isReadonly('email.protocol') || !this.settings.email.enabled,
         }),
         subject: new FormControl({
-          value: this.settings.email.subject,
+          value: unwrapQuotedSender(this.settings.email.subject),
           disabled: this.isReadonly('email.subject') || !this.settings.email.enabled,
         }),
         from: new FormControl({
-          value: this.settings.email.from,
+          value: unwrapQuotedSender(this.settings.email.from),
           disabled: this.isReadonly('email.from') || !this.settings.email.enabled,
         }),
         brandedSenders: new FormControl({
-          value: this.settings.email.brandedSenders ?? [],
+          value: (this.settings.email.brandedSenders ?? []).map(sender => ({
+            ...sender,
+            from: unwrapQuotedSender(sender.from),
+            subject: unwrapQuotedSender(sender.subject),
+          })),
           disabled: this.isReadonly('email.branded_senders') || !this.settings.email.enabled,
         }),
         properties: new FormGroup({
@@ -683,30 +695,50 @@ export class PortalSettingsComponent implements OnInit {
       });
 
     this.portalForm
-      .get('openAPIDocViewer.openAPIDocType.redoc.enabled')
-      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(selectedValue => {
-        if (!selectedValue) {
-          this.portalForm.get('openAPIDocViewer.openAPIDocType.defaultType').setValue('Swagger');
-          this.portalForm.get('openAPIDocViewer.openAPIDocType.swagger.enabled').disable();
-        }
-        if (selectedValue) {
-          this.portalForm.get('openAPIDocViewer.openAPIDocType.swagger.enabled').enable();
-        }
-      });
-
-    this.portalForm
       .get('openAPIDocViewer.openAPIDocType.swagger.enabled')
       .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(selectedValue => {
-        if (!selectedValue) {
-          this.portalForm.get('openAPIDocViewer.openAPIDocType.defaultType').setValue('Redoc');
-          this.portalForm.get('openAPIDocViewer.openAPIDocType.redoc.enabled').disable();
-        }
-        if (selectedValue) {
-          this.portalForm.get('openAPIDocViewer.openAPIDocType.redoc.enabled').enable();
-        }
-      });
+      .subscribe(() => this.syncOpenApiViewerControls());
+
+    this.portalForm
+      .get('openAPIDocViewer.openAPIDocType.redoc.enabled')
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.syncOpenApiViewerControls());
+
+    this.portalForm
+      .get('openAPIDocViewer.openAPIDocType.gravitee.enabled')
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.syncOpenApiViewerControls());
+
+    this.syncOpenApiViewerControls();
+  }
+
+  private syncOpenApiViewerControls(): void {
+    const swagger = this.portalForm.get('openAPIDocViewer.openAPIDocType.swagger.enabled');
+    const redoc = this.portalForm.get('openAPIDocViewer.openAPIDocType.redoc.enabled');
+    const gravitee = this.portalForm.get('openAPIDocViewer.openAPIDocType.gravitee.enabled');
+    const defaultType = this.portalForm.get('openAPIDocViewer.openAPIDocType.defaultType');
+
+    const viewers: Array<{ control: typeof swagger; value: 'Swagger' | 'Redoc' | 'Gravitee'; readonlyKey: string }> = [
+      { control: swagger, value: 'Swagger', readonlyKey: 'open.api.doc.type.swagger.enabled' },
+      { control: redoc, value: 'Redoc', readonlyKey: 'open.api.doc.type.redoc.enabled' },
+      { control: gravitee, value: 'Gravitee', readonlyKey: 'open.api.doc.type.gravitee.enabled' },
+    ];
+
+    const enabledViewers = viewers.filter(viewer => viewer.control.value);
+    viewers.forEach(viewer => {
+      if (this.isReadonly(viewer.readonlyKey)) {
+        return;
+      }
+      if (enabledViewers.length === 1 && viewer.control.value) {
+        viewer.control.disable({ emitEvent: false });
+      } else {
+        viewer.control.enable({ emitEvent: false });
+      }
+    });
+
+    if (!enabledViewers.some(viewer => viewer.value === defaultType.value) && enabledViewers.length > 0) {
+      defaultType.setValue(enabledViewers[0].value, { emitEvent: false });
+    }
   }
 
   onSubmit() {
@@ -771,10 +803,21 @@ export class PortalSettingsComponent implements OnInit {
       },
       email: {
         ...this.settings.email,
-        ...this.portalForm.get('email').value,
+        ...this.portalForm.get('email').getRawValue(),
+        from: unwrapQuotedSender(this.portalForm.get('email.from').getRawValue() ?? this.settings.email.from),
+        subject: unwrapQuotedSender(this.portalForm.get('email.subject').getRawValue() ?? this.settings.email.subject),
+        brandedSenders: (
+          this.portalForm.get('email.brandedSenders').getRawValue() ??
+          this.settings.email.brandedSenders ??
+          []
+        ).map((sender: BrandedSender) => ({
+          ...sender,
+          from: unwrapQuotedSender(sender.from),
+          subject: unwrapQuotedSender(sender.subject),
+        })),
         properties: {
           ...this.settings.email.properties,
-          ...this.portalForm.get('email.properties').value,
+          ...this.portalForm.get('email.properties').getRawValue(),
         },
       },
       portalNext: {

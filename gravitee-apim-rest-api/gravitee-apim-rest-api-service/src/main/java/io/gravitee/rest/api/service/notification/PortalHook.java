@@ -32,6 +32,7 @@ public enum PortalHook implements Hook {
     NEW_SUPPORT_TICKET("New Support Ticket", "Triggered when a new support ticket is created", "SUPPORT"),
     FEDERATED_APIS_INGESTION_COMPLETE("Ingestion complete", "Triggered when an ingestion has completed.", "FEDERATION"),
     GROUP_INVITATION("Group invitation", "Triggered when an user is invited in a group", "GROUP"),
+    APPLICATION_CREATED("Application Created", "Triggered when an application is created", "APPLICATION"),
     MESSAGE("Message", "Used when sending a custom message to an Environment Role", null, true);
 
     private String label;

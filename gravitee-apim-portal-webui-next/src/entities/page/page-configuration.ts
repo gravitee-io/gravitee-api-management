@@ -96,8 +96,9 @@ export const DocExpansionEnum = {
   Full: 'full' as DocExpansionEnum,
   None: 'none' as DocExpansionEnum,
 };
-export type ViewerEnum = 'Swagger' | 'Redoc';
+export type ViewerEnum = 'Swagger' | 'Redoc' | 'Gravitee';
 export const ViewerEnum = {
   Swagger: 'Swagger' as ViewerEnum,
   Redoc: 'Redoc' as ViewerEnum,
+  Gravitee: 'Gravitee' as ViewerEnum,
 };

@@ -16,10 +16,12 @@
 @use '../../scss/theme' as theme;
 @use '../../scss/layout' as layout;
 
-// Full width so Redoc viewer can use full width
+// Full width so OpenAPI viewers (Swagger / Redoc / Gravitee) can use the whole main pane
 :host {
   display: block;
   width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 gmd-viewer {
@@ -44,9 +46,12 @@ gmd-viewer {
   }
 }
 
-app-redoc-content-viewer {
+app-redoc-content-viewer,
+app-page-gravitee,
+app-page-swagger {
   display: block;
   width: 100%;
+  min-width: 0;
 }
 
 .empty-state {

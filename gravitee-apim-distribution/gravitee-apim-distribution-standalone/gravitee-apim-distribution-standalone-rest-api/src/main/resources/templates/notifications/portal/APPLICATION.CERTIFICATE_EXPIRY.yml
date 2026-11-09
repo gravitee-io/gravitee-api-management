@@ -1,0 +1,4 @@
+title: |
+  [${application.name}] Certificate expired
+message: |
+  A client certificate for the application "${application.name}" has expired.

@@ -22,7 +22,11 @@
       <gmd-viewer [content]="pageContentVM.content" appInnerLink />
     }
     @case ('OPENAPI') {
-      @if (pageContentVM.configuration?.viewer === viewerEnum.Redoc) {
+      @if (effectiveViewer() === viewerEnum.Gravitee) {
+        @if (swaggerPage(); as swaggerPageVM) {
+          <app-page-gravitee [page]="swaggerPageVM" />
+        }
+      } @else if (effectiveViewer() === viewerEnum.Redoc) {
         <app-redoc-content-viewer [content]="pageContentVM.content" [tryItUrl]="tryItUrl()" />
       } @else {
         @if (swaggerPage(); as swaggerPageVM) {

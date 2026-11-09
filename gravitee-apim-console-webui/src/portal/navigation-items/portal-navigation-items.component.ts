@@ -72,6 +72,11 @@ import {
   ImportNavigationDialogResult,
 } from './import-navigation-dialog/import-navigation-dialog.component';
 
+import { CatalogCardTemplateEditorComponent } from '../catalog-tile/catalog-card-template-editor.component';
+import {
+  createCatalogCardTemplateFolder,
+  isCatalogCardTemplateNavId,
+} from '../catalog-tile/catalog-card-template.constants';
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { FlatTreeComponent, NodeMenuActionEvent, NodeMovedEvent, SectionNode } from '../components/flat-tree/flat-tree.component';
@@ -172,6 +177,7 @@ function orderApiProxyPagesForNavigationCreate(pages: Page[]): Page[] {
     GraviteeMarkdownEditorModule,
     AsyncApiEditorComponent,
     OpenApiEditorComponent,
+    CatalogCardTemplateEditorComponent,
     ReactiveFormsModule,
     EmptyStateComponent,
     GioCardEmptyStateModule,
@@ -196,6 +202,7 @@ function orderApiProxyPagesForNavigationCreate(pages: Page[]): Page[] {
 export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   private destroyRef = inject(DestroyRef);
   private readonly apiProductService = inject(ApiProductV2Service);
+  readonly catalogCardTemplateEditor = viewChild(CatalogCardTemplateEditorComponent);
 
   // UI State & Forms
   protected isReadOnly = !inject(GioPermissionService).hasAnyMatching(['environment-documentation-u']);
@@ -222,7 +229,11 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   private readonly refreshMenuList = new BehaviorSubject(1);
   readonly menuLinks$: Observable<PortalNavigationItem[]> = this.refreshMenuList.pipe(
     switchMap(() => this.portalNavigationItemsService.getNavigationItems('TOP_NAVBAR')),
-    map(response => response.items ?? []),
+    map(response => {
+      const items = response.items ?? [];
+      const withoutStaleCatalog = items.filter(item => !isCatalogCardTemplateNavId(item.id));
+      return [createCatalogCardTemplateFolder(), ...withoutStaleCatalog];
+    }),
     tap(items => {
       const currentNavId = this.navId();
 
@@ -236,7 +247,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     }),
     catchError(() => {
       this.snackBarService.error('Failed to load navigation items');
-      return of([]);
+      return of([createCatalogCardTemplateFolder()]);
     }),
     shareReplay({ bufferSize: 1, refCount: true }),
   );
@@ -246,6 +257,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     const menuLinks = this.menuLinks();
     return this.mapSelectedNavItemToNode(navId, menuLinks);
   });
+  readonly isCatalogCardTemplateSelected = computed(() => isCatalogCardTemplateNavId(this.navId()));
   readonly selectedApiId = computed(() => {
     const selectedItem = this.selectedNavigationItem()?.data;
     return selectedItem?.type === 'API' ? selectedItem.apiId : null;
@@ -362,6 +374,9 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   }
 
   hasUnsavedChanges() {
+    if (this.isCatalogCardTemplateSelected()) {
+      return this.catalogCardTemplateEditor()?.hasUnsavedChanges() ?? false;
+    }
     if (this.isLoadingPageContent()) {
       return false;
     }
@@ -464,6 +479,10 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   onNodeMenuAction(event: NodeMenuActionEvent) {
     this.checkUnsavedChangesAndRun(() => {
+      if (isCatalogCardTemplateNavId(event.node.id)) {
+        this.snackBarService.error('The Catalog folder is managed by the portal and cannot be changed here.');
+        return;
+      }
       // A fetch refreshes content without mutating the structure, so the read-only guard does not apply
       if (event.action === 'fetchAll') {
         this.executeFetch(event.node.id);
@@ -1477,6 +1496,12 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   onNodeMoved($event: NodeMovedEvent) {
     const { node, newParentId, newOrder } = $event;
+
+    if (isCatalogCardTemplateNavId(node.id) || isCatalogCardTemplateNavId(newParentId)) {
+      this.snackBarService.error('The Catalog folder cannot be moved or receive child items.');
+      this.refreshMenuList.next(1);
+      return;
+    }
 
     if (node.type === 'API_PRODUCT') {
       const validationError = this.getApiProductMoveValidationError(newParentId);

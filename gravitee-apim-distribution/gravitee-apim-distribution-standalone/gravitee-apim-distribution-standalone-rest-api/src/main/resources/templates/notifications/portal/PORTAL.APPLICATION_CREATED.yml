@@ -1,0 +1,3 @@
+title: New application created!
+message: |
+  Application "${application.name}" has been created by ${user.displayName}.

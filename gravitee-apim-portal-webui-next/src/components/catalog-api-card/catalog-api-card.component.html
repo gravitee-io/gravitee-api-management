@@ -1,0 +1,51 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<article
+  class="catalog-api-card"
+  role="button"
+  tabindex="0"
+  data-testid="catalog-api-card"
+  [attr.data-api-name]="title()"
+  [attr.data-api-type]="typeLabel() || null"
+  [attr.data-api-mcp]="isEnabledMcpServer() ? 'true' : null"
+  (click)="onCardActivate()"
+  (keydown.enter)="onCardActivate()"
+  (keydown.space)="$event.preventDefault(); onCardActivate()"
+>
+  <gmd-viewer class="catalog-api-card__viewer" [content]="resolvedContent()" />
+
+  @if (showNotificationBell()) {
+    <button
+      mat-icon-button
+      type="button"
+      class="catalog-api-card__notify"
+      [class.catalog-api-card__notify--active]="notificationsSubscribed()"
+      [disabled]="notificationBusy()"
+      [attr.aria-pressed]="notificationsSubscribed()"
+      [attr.aria-label]="notificationBellAriaLabel()"
+      [matTooltip]="notificationBellTooltip()"
+      data-testid="api-card-notify"
+      (click)="onNotifyClick($event)"
+      (keydown)="onNotifyKeydown($event)"
+    >
+      <span class="material-icons" aria-hidden="true">{{
+        notificationsSubscribed() ? 'notifications_active' : 'notifications'
+      }}</span>
+    </button>
+  }
+</article>

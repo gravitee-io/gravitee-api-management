@@ -28,6 +28,7 @@ export const MAX_CLOSE_TO_EXPIRY_DAYS = 366;
 export const SUBSCRIPTION_CLOSE_TO_EXPIRY_HOOK_ID = 'SUBSCRIPTION_CLOSE_TO_EXPIRY';
 export const SUBSCRIPTION_CLOSE_TO_EXPIRY_DAYS_PREFIX = 'SUBSCRIPTION_CLOSE_TO_EXPIRY_DAYS_';
 
+export const CERTIFICATE_UPLOADED_HOOK_ID = 'CERTIFICATE_UPLOADED';
 export const CERTIFICATE_EXPIRY_HOOK_ID = 'CERTIFICATE_EXPIRY';
 export const CERTIFICATE_CLOSE_TO_EXPIRY_HOOK_ID = 'CERTIFICATE_CLOSE_TO_EXPIRY';
 export const CERTIFICATE_CLOSE_TO_EXPIRY_DAYS_PREFIX = 'CERTIFICATE_CLOSE_TO_EXPIRY_DAYS_';
@@ -40,6 +41,14 @@ export const SUBSCRIPTION_CLOSE_TO_EXPIRY_HOOK: ApplicationNotificationHook = {
     description: 'Triggered when a subscription is close to its expiry date.',
     scope: 'APPLICATION',
     category: 'SUBSCRIPTION',
+};
+
+export const CERTIFICATE_UPLOADED_HOOK: ApplicationNotificationHook = {
+    id: CERTIFICATE_UPLOADED_HOOK_ID,
+    label: 'Certificate upload',
+    description: 'Triggered when a client certificate is uploaded for the application.',
+    scope: 'APPLICATION',
+    category: 'CERTIFICATE',
 };
 
 export const CERTIFICATE_EXPIRY_HOOK: ApplicationNotificationHook = {
@@ -136,7 +145,8 @@ function upsertHookInCategory(
 }
 
 function ensureCertificateHooks(categories: readonly ApplicationNotificationHookCategory[]): ApplicationNotificationHookCategory[] {
-    const withExpiry = upsertHookInCategory(categories, 'CERTIFICATE', CERTIFICATE_EXPIRY_HOOK);
+    const withUpload = upsertHookInCategory(categories, 'CERTIFICATE', CERTIFICATE_UPLOADED_HOOK);
+    const withExpiry = upsertHookInCategory(withUpload, 'CERTIFICATE', CERTIFICATE_EXPIRY_HOOK);
     return upsertHookInCategory(withExpiry, 'CERTIFICATE', CERTIFICATE_CLOSE_TO_EXPIRY_HOOK);
 }
 

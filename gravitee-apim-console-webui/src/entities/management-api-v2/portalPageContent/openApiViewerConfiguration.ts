@@ -16,6 +16,7 @@
 export enum OpenApiViewer {
   Swagger = 'SWAGGER',
   Redoc = 'REDOC',
+  Gravitee = 'GRAVITEE',
 }
 
 export enum OpenApiDocExpansion {

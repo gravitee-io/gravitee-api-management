@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { Component, computed, DestroyRef, inject, input, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
@@ -77,7 +76,6 @@ interface ApplicationsParams {
   selector: 'app-subscribe-to-api-product',
   imports: [
     BannerComponent,
-    CdkTrapFocus,
     ConsumerConfigurationComponent,
     CreateApplicationComponent,
     LoaderComponent,
@@ -87,7 +85,6 @@ interface ApplicationsParams {
     MatCardContent,
     MatChipsModule,
     MatIcon,
-    MatIconButton,
     MobileClassDirective,
     NarrowClassDirective,
     PlanCardComponent,
@@ -264,6 +261,10 @@ export class SubscribeToApiProductComponent {
   }
 
   goToPreviousStep(): void {
+    if (this.createApplicationOpen()) {
+      this.closeCreateApplication();
+      return;
+    }
     const steps = this.activeSteps();
     const currentIndex = steps.indexOf(this.currentStep());
     if (currentIndex > 0) {
@@ -299,6 +300,7 @@ export class SubscribeToApiProductComponent {
     this.applicationsSearchQuery.set('');
     this.currentApplicationsPage.set(1);
     this.applicationsReload.update(value => value + 1);
+    this.goToNextStep();
   }
 
   retryPlans(): void {

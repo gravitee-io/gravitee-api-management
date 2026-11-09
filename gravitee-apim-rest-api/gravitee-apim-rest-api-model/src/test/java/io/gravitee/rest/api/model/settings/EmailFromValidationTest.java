@@ -100,6 +100,14 @@ class EmailFromValidationTest {
         assertThat(emailWithFrom("  noreply@gravitee.io  ").getFrom()).isEqualTo("noreply@gravitee.io");
     }
 
+    @Test
+    void should_unwrap_literally_quoted_from_on_write() {
+        // Some environments persist From as "user@my.domain" (literal surrounding quotes).
+        // Those fail InternetAddress validation even though the inner address is valid.
+        assertThat(emailWithFrom("\"user@my.domain\"").getFrom()).isEqualTo("user@my.domain");
+        assertThat(validator.validate(emailWithFrom("\"user@my.domain\""))).isEmpty();
+    }
+
     // --- @Valid cascade through the real save graph (settings entity -> email -> from) ---
 
     @Test

@@ -26,6 +26,8 @@ export interface Application {
   description?: string;
   picture?: string;
   hasClientId?: boolean;
+  /** PEM-encoded PKCS#10 certificate signing request (PORTAL-310). */
+  csr?: string;
   owner?: ApplicationOwner;
   groups?: ApplicationGroups[];
   settings: ApplicationSettings;
@@ -157,4 +159,6 @@ export interface ApplicationInput {
   settings: ApplicationSettings;
   background?: string;
   api_key_mode?: string;
+  /** PEM-encoded PKCS#10 certificate signing request (PORTAL-310). */
+  csr?: string;
 }

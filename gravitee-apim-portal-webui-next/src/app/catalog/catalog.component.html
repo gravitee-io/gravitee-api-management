@@ -42,23 +42,18 @@
             <ng-template #cardTemplate let-item>
               @switch (item.type) {
                 @case ('API') {
-                  <app-api-card
+                  <app-catalog-api-card
                     [apiId]="item.id"
                     [title]="item.title"
                     [version]="item.version"
-                    [content]="item.content"
+                    [description]="item.content ?? ''"
                     [picture]="item.picture"
                     [isEnabledMcpServer]="item.isEnabledMcpServer"
                     [typeLabel]="item.apiTypeLabel"
                     [status]="item.status"
                     [ownerName]="item.ownerName"
-                    [showName]="catalogTile.name"
-                    [showType]="catalogTile.type"
-                    [showImage]="catalogTile.image"
-                    [showVersion]="catalogTile.version"
-                    [showDescription]="catalogTile.description"
-                    [showStatus]="catalogTile.status"
-                    [showOwner]="catalogTile.owner"
+                    [labels]="item.labels ?? []"
+                    [cardTemplate]="catalogCardTemplate"
                     [showNotificationBell]="true"
                     [notificationsSubscribed]="isApiNotificationSubscribed(item.id)"
                     [notificationBusy]="notificationBusyApiId() === item.id"

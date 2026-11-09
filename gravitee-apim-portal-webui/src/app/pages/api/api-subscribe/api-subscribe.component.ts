@@ -111,7 +111,7 @@ export class ApiSubscribeComponent implements OnInit {
   plans: any;
   application: any;
   subscribeForm: ApiSubscribeFormType;
-  availableApplications: { label: string; value: string }[];
+  availableApplications: { label: string; value: string; disabled?: boolean; title?: string }[];
   apiKeyModeOptions: { id: string; title: string; description: string }[];
   connectedApps: any[];
   apiId: string;
@@ -712,7 +712,9 @@ export class ApiSubscribeComponent implements OnInit {
   }
 
   hasAvailableApplications() {
-    return this.availableApplications && this.availableApplications.length > 0;
+    // Only eligible (non-disabled) apps count. Apps missing client_id for JWT/OAuth2
+    // stay in the list as disabled options but must not hide the create-app link.
+    return this.availableApplications?.some(application => !application.disabled) ?? false;
   }
 
   private getSubscriptions() {

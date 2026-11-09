@@ -252,10 +252,13 @@ export interface PortalSettingsOpenAPIDocViewer {
     swagger: {
       enabled: boolean;
     };
-    defaultType: 'Swagger' | 'Redoc';
     redoc: {
       enabled: boolean;
     };
+    gravitee: {
+      enabled: boolean;
+    };
+    defaultType: 'Swagger' | 'Redoc' | 'Gravitee';
   };
 }
 export interface PortalSettingsPortalNext {
@@ -285,6 +288,7 @@ export interface PortalSettingsPortalNext {
   catalog?: {
     viewMode?: string;
     fuzzySearch?: { enabled?: boolean };
+    cardTemplate?: string;
     tile?: PortalCatalogTileSettings;
   };
 }

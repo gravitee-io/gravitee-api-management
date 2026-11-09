@@ -100,12 +100,14 @@
               {{ selectedNavigationItem().label }}
             </div>
 
-            <div class="panel-header__title__badges">
-              <span [class]="selectedNavigationItemIsPublished() ? 'gio-badge-success' : 'gio-badge-warning'">
-                {{ selectedNavigationItemIsPublished() ? 'Published' : 'Unpublished' }}
-              </span>
-              <span class="gio-badge-primary">{{ selectedNavigationItem().data.visibility | titlecase }}</span>
-            </div>
+            @if (!isCatalogCardTemplateSelected()) {
+              <div class="panel-header__title__badges">
+                <span [class]="selectedNavigationItemIsPublished() ? 'gio-badge-success' : 'gio-badge-warning'">
+                  {{ selectedNavigationItemIsPublished() ? 'Published' : 'Unpublished' }}
+                </span>
+                <span class="gio-badge-primary">{{ selectedNavigationItem().data.visibility | titlecase }}</span>
+              </div>
+            }
           </div>
 
           @if (selectedApiId()) {
@@ -128,37 +130,54 @@
           }
         </div>
       }
-      <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">
-        <mat-slide-toggle data-testid="preview-toggle" [checked]="isPreviewVisible()" (change)="isPreviewVisible.set($event.checked)">
-          Preview
-        </mat-slide-toggle>
-        @if (currentPageContentType() === 'OPENAPI') {
-          <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onConfigure()">Configure</button>
-        }
-        @if (selectedNavigationItem()?.type === 'PAGE') {
-          <button [disabled]="importFileDisabled()" mat-stroked-button data-testid="import-file-button" (click)="importFileInput.click()">
-            Import file
+      @if (isCatalogCardTemplateSelected()) {
+        <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-settings-u'] }">
+          <mat-slide-toggle data-testid="preview-toggle" [checked]="isPreviewVisible()" (change)="isPreviewVisible.set($event.checked)">
+            Preview
+          </mat-slide-toggle>
+          <button
+            mat-flat-button
+            color="primary"
+            data-testid="catalog-card-save-button"
+            [disabled]="!catalogCardTemplateEditor()?.hasUnsavedChanges()"
+            (click)="catalogCardTemplateEditor()?.save()"
+          >
+            Save
           </button>
-          <input
-            #importFileInput
-            hidden
-            type="file"
-            aria-label="Import file"
-            [accept]="importFileAccept"
-            data-testid="import-file-input"
-            (change)="onImportFileSelected($event)"
-          />
-        }
-        <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onEdit()">Edit</button>
-        <span [matTooltip]="publishDisabledTooltip()" [matTooltipDisabled]="!publishDisabled()">
-          <button [disabled]="publishActionDisabled()" mat-stroked-button (click)="onPublishToggle()">
-            {{ selectedNavigationItemIsPublished() ? 'Unpublish' : 'Publish' }}
+        </div>
+      } @else {
+        <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">
+          <mat-slide-toggle data-testid="preview-toggle" [checked]="isPreviewVisible()" (change)="isPreviewVisible.set($event.checked)">
+            Preview
+          </mat-slide-toggle>
+          @if (currentPageContentType() === 'OPENAPI') {
+            <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onConfigure()">Configure</button>
+          }
+          @if (selectedNavigationItem()?.type === 'PAGE') {
+            <button [disabled]="importFileDisabled()" mat-stroked-button data-testid="import-file-button" (click)="importFileInput.click()">
+              Import file
+            </button>
+            <input
+              #importFileInput
+              hidden
+              type="file"
+              aria-label="Import file"
+              [accept]="importFileAccept"
+              data-testid="import-file-input"
+              (change)="onImportFileSelected($event)"
+            />
+          }
+          <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onEdit()">Edit</button>
+          <span [matTooltip]="publishDisabledTooltip()" [matTooltipDisabled]="!publishDisabled()">
+            <button [disabled]="publishActionDisabled()" mat-stroked-button (click)="onPublishToggle()">
+              {{ selectedNavigationItemIsPublished() ? 'Unpublish' : 'Publish' }}
+            </button>
+          </span>
+          <button mat-flat-button color="primary" [disabled]="contentControl.pristine || contentControl.invalid" (click)="onSave()">
+            Save
           </button>
-        </span>
-        <button mat-flat-button color="primary" [disabled]="contentControl.pristine || contentControl.invalid" (click)="onSave()">
-          Save
-        </button>
-      </div>
+        </div>
+      }
     </header>
 
     @if (selectedNavigationItem()) {
@@ -195,14 +214,21 @@
           }
         }
         @case ('FOLDER') {
-          @if (selectedItemSource()) {
-            <div class="source-mention" data-testid="folder-managed-by-source-banner">
-              <mat-icon class="source-mention__icon" svgIcon="gio:link" />
-              <span>Folder content from {{ selectedSourceTypeLabel() }} — read only</span>
-              <ng-container *ngTemplateOutlet="fetchNowButton"></ng-container>
-            </div>
+          @if (isCatalogCardTemplateSelected()) {
+            <portal-catalog-card-template-editor
+              [showPreview]="isPreviewVisible()"
+              data-testid="navigation-catalog-card-editor"
+            />
+          } @else {
+            @if (selectedItemSource()) {
+              <div class="source-mention" data-testid="folder-managed-by-source-banner">
+                <mat-icon class="source-mention__icon" svgIcon="gio:link" />
+                <span>Folder content from {{ selectedSourceTypeLabel() }} — read only</span>
+                <ng-container *ngTemplateOutlet="fetchNowButton"></ng-container>
+              </div>
+            }
+            <ng-container *ngTemplateOutlet="emptyEditorState"></ng-container>
           }
-          <ng-container *ngTemplateOutlet="emptyEditorState"></ng-container>
         }
         @default {
           <ng-container *ngTemplateOutlet="emptyEditorState"></ng-container>

@@ -1,0 +1,58 @@
+<!--
+
+    Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="csr-upload">
+  <p class="next-gen-body" i18n="@@csrUploadTitle">Certificate Signing Request (CSR)</p>
+  <p class="next-gen-small" i18n="@@csrUploadHint">Upload or paste your PEM-encoded CSR.</p>
+
+  <label class="csr-upload__file-label" [class.csr-upload__file-label--disabled]="disabled()">
+    <input
+      type="file"
+      accept=".csr,.req,.pem"
+      class="csr-upload__file-input"
+      [disabled]="disabled()"
+      (change)="onFileSelected($event)"
+      aria-label="Upload CSR file"
+      i18n-aria-label="@@csrUploadFileInputAriaLabel"
+      data-testid="csr-file-input"
+    />
+    <mat-icon aria-hidden="true">upload_file</mat-icon>
+    <span i18n="@@csrUploadChooseFile">Choose file (.csr, .req, .pem)</span>
+  </label>
+
+  @if (fileName(); as name) {
+    <p class="csr-upload__file-name next-gen-small" data-testid="csr-file-name">{{ name }}</p>
+  }
+
+  @if (fileError(); as error) {
+    <p class="csr-upload__error next-gen-small" role="alert" data-testid="csr-file-error">{{ error }}</p>
+  }
+
+  <mat-form-field appearance="outline" class="csr-upload__field">
+    <textarea
+      matInput
+      rows="6"
+      [ngModel]="value()"
+      (ngModelChange)="onTextareaChange($event)"
+      [disabled]="disabled()"
+      placeholder="-----BEGIN CERTIFICATE REQUEST-----&#10;...&#10;-----END CERTIFICATE REQUEST-----"
+      aria-label="PEM-encoded CSR"
+      i18n-aria-label="@@csrUploadTextareaAriaLabel"
+      data-testid="csr-pem-input"
+    ></textarea>
+  </mat-form-field>
+</div>

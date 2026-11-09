@@ -45,12 +45,6 @@ export class PortalNavigationService {
       permissions: ['environment-category-r', 'environment-category-u'],
     },
     {
-      displayName: 'Catalog',
-      routerLink: 'api-catalog',
-      icon: 'gio:dashboard-dots',
-      permissions: ['environment-settings-r', 'environment-settings-u'],
-    },
-    {
       displayName: 'Navigation',
       routerLink: 'navigation',
       icon: 'gio:page',

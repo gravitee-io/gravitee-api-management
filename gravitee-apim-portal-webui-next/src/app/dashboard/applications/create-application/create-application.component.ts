@@ -29,6 +29,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { Router } from '@angular/router';
 import { startWith } from 'rxjs';
 
+import { CsrUploadComponent } from '../../../../components/csr-upload/csr-upload.component';
 import { FormKeyValuePairsComponent } from '../../../../components/form-key-value-pairs/form-key-value-pairs.component';
 import { LoaderComponent } from '../../../../components/loader/loader.component';
 import { MobileClassDirective } from '../../../../directives/mobile-class.directive';
@@ -42,7 +43,7 @@ import { applicationListBreadcrumb } from '../application-breadcrumbs';
 type BaseControls = {
   name: FormControl<string>;
   description: FormControl<string>;
-  clientCertificate: FormControl<string>;
+  csr: FormControl<string>;
   appType: FormControl<string>;
   appClientId: FormControl<string>;
   metadata: FormControl<Record<string, string> | null>;
@@ -59,6 +60,7 @@ interface GrantTypeVM {
   selector: 'app-create-application',
   imports: [
     ApplicationTypeTranslatePipe,
+    CsrUploadComponent,
     FormKeyValuePairsComponent,
     LoaderComponent,
     MatButtonModule,
@@ -100,7 +102,7 @@ export class CreateApplicationComponent {
   readonly form = new FormGroup<BaseControls>({
     name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     description: new FormControl('', { nonNullable: true }),
-    clientCertificate: new FormControl('', { nonNullable: true }),
+    csr: new FormControl('', { nonNullable: true }),
     appType: new FormControl('', { nonNullable: true }),
     appClientId: new FormControl('', { nonNullable: true }),
     metadata: new FormControl<Record<string, string> | null>(null, { nonNullable: false }),
@@ -355,16 +357,13 @@ export class CreateApplicationComponent {
           };
         })();
 
-    if (formValue.clientCertificate?.trim()) {
-      settings.tls = {
-        client_certificate: formValue.clientCertificate.trim(),
-      };
-    }
+    const csr = formValue.csr?.trim();
 
     return {
       name: formValue.name.trim(),
       description: formValue.description?.trim() || undefined,
       settings,
+      ...(csr ? { csr } : {}),
     };
   }
 }

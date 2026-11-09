@@ -162,7 +162,20 @@ public class Email {
      */
     public void setFrom(String from) {
         final String trimmed = from == null ? null : from.trim();
-        this.from = trimmed == null || trimmed.isEmpty() ? null : trimmed;
+        if (trimmed == null || trimmed.isEmpty()) {
+            this.from = null;
+            return;
+        }
+        // Some environments store From wrapped in literal quotes (e.g. "user@my.domain").
+        // Those fail jakarta.mail InternetAddress validation even though the inner address is valid.
+        if (trimmed.length() > 2 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) {
+            final String inner = trimmed.substring(1, trimmed.length() - 1).trim();
+            if (!inner.isEmpty() && !inner.contains("\"")) {
+                this.from = inner;
+                return;
+            }
+        }
+        this.from = trimmed;
     }
 
     @JsonIgnore

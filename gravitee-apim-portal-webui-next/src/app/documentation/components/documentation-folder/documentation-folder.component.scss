@@ -32,6 +32,8 @@ app-sidenav-layout {
 .documentation-folder {
   &__main-content {
     flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
 
     &-enter {
       @include skeleton.content-reveal-fade-in;

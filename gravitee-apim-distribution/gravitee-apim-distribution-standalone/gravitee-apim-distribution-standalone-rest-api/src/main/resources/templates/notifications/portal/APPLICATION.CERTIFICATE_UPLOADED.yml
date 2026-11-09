@@ -1,0 +1,4 @@
+title: |
+  [${application.name}] Certificate uploaded
+message: |
+  A new client certificate has been uploaded for the application "${application.name}".

@@ -153,6 +153,7 @@ public class ConfigurationMapper {
         ConfigurationPortalNextCatalog configuration = new ConfigurationPortalNextCatalog();
         if (!Objects.isNull(catalog)) {
             configuration.setViewMode(catalog.getViewMode());
+            configuration.setCardTemplate(catalog.getCardTemplate());
             if (catalog.getTile() != null) {
                 configuration.setTile(convert(catalog.getTile()));
             }
@@ -341,6 +342,9 @@ public class ConfigurationMapper {
             }
             if (docType.getRedoc() != null) {
                 configDocType.setRedoc(convert(docType.getRedoc()));
+            }
+            if (docType.getGravitee() != null) {
+                configDocType.setGravitee(convert(docType.getGravitee()));
             }
             if (docType.getDefaultType() != null) {
                 try {

@@ -93,6 +93,22 @@ describe('PageComponent', () => {
     });
   });
 
+  describe('gravitee via env default', () => {
+    beforeEach(() => {
+      const configService = TestBed.inject(ConfigService) as unknown as ConfigServiceStub;
+      configService.configuration = { openAPIDocViewer: { openAPIDocType: { defaultType: 'Gravitee' } } };
+      // Page-level Swagger must not override the portal default (portal-gamma runtime behavior).
+      component.page = fakePage({ type: 'SWAGGER', configuration: { viewer: ViewerEnum.Swagger } });
+      fixture.detectChanges();
+    });
+
+    it('should show gravitee content when portal defaultType is Gravitee', () => {
+      expect(component.effectiveViewer).toBe(ViewerEnum.Gravitee);
+      expect(fixture.nativeElement.querySelector('app-page-gravitee')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('app-page-swagger')).toBeFalsy();
+    });
+  });
+
   describe('markdown', () => {
     beforeEach(() => {
       component.page = fakePage({ type: 'MARKDOWN' });
