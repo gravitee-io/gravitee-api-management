@@ -1,0 +1,5 @@
+{
+  "kind": "feature.rule",
+  "id": "class-rule",
+  "payload": { "enabled": true }
+}
