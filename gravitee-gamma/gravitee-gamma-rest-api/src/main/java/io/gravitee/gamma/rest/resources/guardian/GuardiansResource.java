@@ -21,6 +21,7 @@ import io.gravitee.gamma.rest.core.guardian.use_case.SearchGuardianUseCase;
 import io.gravitee.gamma.rest.resources.CurrentAuditInfo;
 import io.gravitee.gamma.rest.resources.guardian.dto.CreateGuardianRequestDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.GuardianDto;
+import io.gravitee.gamma.rest.resources.guardian.dto.GuardianSummaryDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.PaginatedResponseDto;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -78,7 +79,7 @@ public class GuardiansResource {
 
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.READ }) })
-    public PaginatedResponseDto<GuardianDto> list(
+    public PaginatedResponseDto<GuardianSummaryDto> list(
         @QueryParam("q") String q,
         @QueryParam("page") Integer page,
         @QueryParam("perPage") Integer perPage,
@@ -97,7 +98,7 @@ public class GuardiansResource {
 
         var guardians = output.guardians();
         return PaginatedResponseDto.of(
-            guardians.getContent().stream().map(GuardianDto::from).toList(),
+            guardians.getContent().stream().map(GuardianSummaryDto::from).toList(),
             guardians.getTotalElements(),
             (int) guardians.getPageNumber(),
             output.perPage()
