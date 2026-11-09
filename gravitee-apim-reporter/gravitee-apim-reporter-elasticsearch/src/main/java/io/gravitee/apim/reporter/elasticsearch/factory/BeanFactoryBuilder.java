@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.reporter.elasticsearch.factory;
 
+import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.factory.es7.Elastic7xBeanFactory;
 import io.gravitee.apim.reporter.elasticsearch.factory.es8.Elastic8xBeanFactory;
 import io.gravitee.apim.reporter.elasticsearch.factory.es9.Elastic9xBeanFactory;
@@ -28,6 +29,7 @@ import io.reactivex.rxjava3.core.Observable;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.CustomLog;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -38,8 +40,8 @@ public class BeanFactoryBuilder {
 
     private static final Set<Integer> SUPPORTED_OPENSEARCH_MAJOR_VERSIONS = Set.of(1, 2, 3);
 
-    public static BeanFactory buildFactory(final Client client) {
-        ElasticsearchInfo info = retrieveElasticSearchInfo(client);
+    public static BeanFactory buildFactory(final Client client, final ReporterConfiguration configuration) {
+        ElasticsearchInfo info = retrieveElasticSearchInfo(client, configuration);
         BeanFactory beanFactory = getBeanFactoryFromElasticsearchInfo(info);
         if (beanFactory == null) {
             log.error(
@@ -52,7 +54,7 @@ public class BeanFactoryBuilder {
         return beanFactory;
     }
 
-    private static ElasticsearchInfo retrieveElasticSearchInfo(final Client client) {
+    private static ElasticsearchInfo retrieveElasticSearchInfo(final Client client, final ReporterConfiguration configuration) {
         // Wait for a connection to ES and retry each 5 seconds
         return client
             .getInfo()
@@ -60,7 +62,8 @@ public class BeanFactoryBuilder {
                 error.flatMap(throwable -> {
                     if (isUnauthorized(throwable)) {
                         log.error(
-                            "Elasticsearch authentication failed (401). Please verify your 'reporters.elasticsearch.security.username' and 'reporters.elasticsearch.security.password' configuration.",
+                            "Elasticsearch authentication failed (401). Please verify your {} configuration.",
+                            authenticationSettings(configuration),
                             throwable
                         );
                         return Flowable.error(throwable);
@@ -77,6 +80,13 @@ public class BeanFactoryBuilder {
                 })
             )
             .blockingGet();
+    }
+
+    private static String authenticationSettings(final ReporterConfiguration configuration) {
+        // An empty API key counts as unset, as it does for the Elasticsearch client.
+        return StringUtils.hasText(configuration.getApiKey())
+            ? "'reporters.elasticsearch.security.api_key'"
+            : "'reporters.elasticsearch.security.username' and 'reporters.elasticsearch.security.password'";
     }
 
     static boolean isUnauthorized(Throwable throwable) {
