@@ -44,6 +44,7 @@ import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -74,6 +75,7 @@ class ApisResourceTest extends AbstractResourceTest {
         reset(validateApiCRDDomainService);
         reset(apiQueryService);
         reset(permissionService);
+        apiCrudService.reset();
     }
 
     @Nested
@@ -492,6 +494,25 @@ class ApisResourceTest extends AbstractResourceTest {
                     soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                     soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                 });
+            }
+        }
+
+        @Test
+        void should_return_400_when_the_id_names_an_api_of_another_environment() {
+            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
+                Validator.Result.ofValue(call.getArgument(0))
+            );
+            apiCrudService.initWith(List.of(Api.builder().id("api-id").environmentId("other-environment").crossId("api-cross-id").build()));
+
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .queryParam("hridContainsUUID", true)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-with-uuid.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(400);
             }
         }
 
