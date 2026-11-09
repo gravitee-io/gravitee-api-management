@@ -20,6 +20,7 @@ import {
   distributionVersionFromTag,
   isBlank,
   isLatestRelease,
+  isSupportBranch,
   isSupportBranchOrMaster,
   remoteSupportBranches,
   remoteTags,
@@ -87,10 +88,16 @@ const dockerTagAsLatest =
  * the minors before it, and a line that has a branch but no release yet contributes its branch tip
  * alone. Left undefined everywhere else, so a workflow that starts needing it says so instead of
  * quietly reading an empty list.
+ *
+ * The support branches are also read on a push to a support branch and on a distribution release:
+ * only the newest lines trigger the SaaS Docker images pipeline, and which ones those are is a
+ * question for the remote.
  */
 const isBridgeRun = action === 'bridge_compatibility_tests';
+const isSupportBranchPush = action === 'pull_requests' && isSupportBranch(CIRCLE_BRANCH);
+const isDistributionRelease = action === 'distribution_release';
 const releasedTags = isBridgeRun ? remoteTags() : Promise.resolve(undefined);
-const supportBranches = isBridgeRun ? remoteSupportBranches() : Promise.resolve(undefined);
+const supportBranches = isBridgeRun || isSupportBranchPush || isDistributionRelease ? remoteSupportBranches() : Promise.resolve(undefined);
 
 /**
  * The pipeline generation is available according to different conditions:
