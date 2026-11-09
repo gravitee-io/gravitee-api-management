@@ -270,6 +270,31 @@ describe('InnerLinkDirective with absolute paths', () => {
     expect(navigateByUrl).toHaveBeenCalledWith('/catalog');
   });
 
+  it.each([
+    ['a page outside the base href', `${window.location.origin}/catalog`],
+    ['the host root', `${window.location.origin}/`],
+  ])('should leave a full link to %s to the browser', async (_, href) => {
+    const { event, navigateByUrl } = await click({ baseHref: '/next/', href });
+
+    expect(event.defaultPrevented).toBe(false);
+    expect(navigateByUrl).not.toHaveBeenCalled();
+  });
+
+  it('should route a full link to the portal served at the host root', async () => {
+    const { event, navigateByUrl } = await click({ baseHref: '/', href: `${window.location.origin}/catalog` });
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(navigateByUrl).toHaveBeenCalledWith('/catalog');
+  });
+
+  it('should leave a relative link that resolves outside the base href to the browser', async () => {
+    window.history.replaceState({}, '', '/next/documentation/abc');
+    const { event, navigateByUrl } = await click({ baseHref: '/next/', href: '../../catalog' });
+
+    expect(event.defaultPrevented).toBe(false);
+    expect(navigateByUrl).not.toHaveBeenCalled();
+  });
+
   it('should route a dot-relative link', async () => {
     window.history.replaceState({}, '', '/');
     const { event, navigateByUrl } = await click({ baseHref: '/', href: './catalog' });
