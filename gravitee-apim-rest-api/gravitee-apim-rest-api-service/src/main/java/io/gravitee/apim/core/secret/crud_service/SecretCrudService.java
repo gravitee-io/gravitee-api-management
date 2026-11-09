@@ -19,16 +19,13 @@ import io.gravitee.apim.core.secret.exception.SecretNotFoundException;
 import io.gravitee.apim.core.secret.model.Secret;
 import java.util.Optional;
 
-/** Keys are case-sensitive. */
 public interface SecretCrudService {
-    /** Throws {@code SecretKeyAlreadyExistsException} when the environment already holds the key. */
     Secret create(Secret secret, String encryptedValue);
 
     Optional<Secret> findById(String organizationId, String environmentId, String id);
 
     Optional<Secret> findByKey(String organizationId, String environmentId, String key);
 
-    /** Stores the new value and {@code updatedAt} of the secret. */
     Secret update(Secret secret, String encryptedValue);
 
     void delete(Secret secret);
