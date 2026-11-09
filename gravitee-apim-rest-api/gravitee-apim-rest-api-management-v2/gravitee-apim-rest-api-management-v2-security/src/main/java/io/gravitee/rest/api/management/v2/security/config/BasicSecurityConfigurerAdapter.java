@@ -274,6 +274,9 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
             .permitAll()
             .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/modules", "/modules/")
             .permitAll()
+            // Gamma module endpoints that authenticate their callers themselves, such as the AI Hub's "me" page.
+            .requestMatchers(uriPrefix + "/modules/*/public/**")
+            .permitAll()
             /*
              * Management UI resources.
              */
