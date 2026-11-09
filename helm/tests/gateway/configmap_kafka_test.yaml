@@ -347,6 +347,70 @@ tests:
       - notMatchRegex:
           path: data["gravitee.yml"]
           pattern: "backendMetadataMaxAge|refreshConnectionReuse"
+  - it: Enable Kafka and set the backend login pool
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          requestTimeout: 42
+          backendLogin:
+            threads: 6
+            queueCapacity: 100
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: true
+              requestTimeout: 42
+              backendLogin:
+                threads: 6
+                queueCapacity: 100
+  - it: Enable Kafka and set only the backend login threads
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          backendLogin:
+            threads: 6
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            backendLogin:
+                threads: 6
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "queueCapacity"
+  - it: Enable Kafka and set only the backend login queue capacity
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          backendLogin:
+            queueCapacity: 100
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            backendLogin:
+                queueCapacity: 100
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "backendLogin:\\s+threads"
+  - it: Enable Kafka and keep the backend login pool unset by default
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "backendLogin"
   - it: Enable Kafka and set the client connection limit and readiness thresholds
     template: gateway/gateway-configmap.yaml
     set:
