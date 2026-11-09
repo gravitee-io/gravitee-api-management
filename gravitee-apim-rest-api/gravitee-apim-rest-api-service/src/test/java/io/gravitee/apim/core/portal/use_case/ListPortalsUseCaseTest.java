@@ -17,12 +17,10 @@ package io.gravitee.apim.core.portal.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
 import io.gravitee.apim.core.portal.domain_service.PortalSummaryDomainService;
-import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
@@ -54,11 +52,7 @@ class ListPortalsUseCaseTest {
         portalCrudService.reset();
         cut = new ListPortalsUseCase(
             portalCrudService,
-            new PortalSummaryDomainService(
-                new PortalUrlDomainService(new InstallationAccessQueryServiceInMemory()),
-                new ThemeQueryServiceInMemory(),
-                new PortalNavigationItemsQueryServiceInMemory()
-            )
+            new PortalSummaryDomainService(new ThemeQueryServiceInMemory(), new PortalNavigationItemsQueryServiceInMemory())
         );
     }
 

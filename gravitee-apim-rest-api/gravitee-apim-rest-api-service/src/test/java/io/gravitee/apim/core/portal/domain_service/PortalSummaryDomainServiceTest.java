@@ -17,7 +17,6 @@ package io.gravitee.apim.core.portal.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
 import io.gravitee.apim.core.portal.model.Portal;
@@ -54,21 +53,15 @@ class PortalSummaryDomainServiceTest {
     private static final PortalId PORTAL_ID = PortalId.of("00000000-0000-0000-0000-0000000000a1");
     private static final PortalId OTHER_PORTAL_ID = PortalId.of("00000000-0000-0000-0000-0000000000a2");
 
-    private final InstallationAccessQueryServiceInMemory installationAccessQueryService = new InstallationAccessQueryServiceInMemory();
     private final ThemeQueryServiceInMemory themeQueryService = new ThemeQueryServiceInMemory();
     private final List<PortalNavigationItem> navigationItems = new ArrayList<>();
     private PortalSummaryDomainService cut;
 
     @BeforeEach
     void setUp() {
-        installationAccessQueryService.reset();
         themeQueryService.reset();
         navigationItems.clear();
-        cut = new PortalSummaryDomainService(
-            new PortalUrlDomainService(installationAccessQueryService),
-            themeQueryService,
-            new PortalNavigationItemsQueryServiceInMemory(navigationItems)
-        );
+        cut = new PortalSummaryDomainService(themeQueryService, new PortalNavigationItemsQueryServiceInMemory(navigationItems));
     }
 
     @Nested
@@ -156,27 +149,6 @@ class PortalSummaryDomainServiceTest {
             var summaries = cut.summarize(ENV_ID, List.of(portal(PORTAL_ID, true), portal(OTHER_PORTAL_ID, false)));
 
             assertThat(summaries).extracting(PortalSummary::publishedApisCount).containsExactly(1, 2);
-        }
-    }
-
-    @Nested
-    class Url {
-
-        @Test
-        void should_resolve_the_default_portal_url_from_the_environment() {
-            installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io");
-
-            assertThat(summaryOf(portal(PORTAL_ID, true)).url()).hasToString("https://portal.acme.io/next");
-        }
-
-        @Test
-        void should_have_no_url_when_the_default_portal_url_cannot_be_resolved() {
-            assertThat(summaryOf(portal(PORTAL_ID, true)).url()).isNull();
-        }
-
-        @Test
-        void should_use_the_stored_url_of_another_portal() {
-            assertThat(summaryOf(portal(PORTAL_ID, false)).url()).hasToString("https://partners.acme.io");
         }
     }
 

@@ -18,12 +18,10 @@ package io.gravitee.apim.core.portal.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
 import io.gravitee.apim.core.portal.domain_service.PortalSummaryDomainService;
-import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
@@ -50,11 +48,7 @@ class GetPortalSummaryUseCaseTest {
         portalCrudService.reset();
         cut = new GetPortalSummaryUseCase(
             portalCrudService,
-            new PortalSummaryDomainService(
-                new PortalUrlDomainService(new InstallationAccessQueryServiceInMemory()),
-                new ThemeQueryServiceInMemory(),
-                new PortalNavigationItemsQueryServiceInMemory()
-            )
+            new PortalSummaryDomainService(new ThemeQueryServiceInMemory(), new PortalNavigationItemsQueryServiceInMemory())
         );
     }
 
@@ -66,7 +60,6 @@ class GetPortalSummaryUseCaseTest {
         var result = cut.execute(new GetPortalSummaryUseCase.Input(ENV_ID, portal.getId()));
 
         assertThat(result.portal().portal()).isEqualTo(portal);
-        assertThat(result.portal().url()).hasToString("https://partners.acme.io");
     }
 
     @Test
