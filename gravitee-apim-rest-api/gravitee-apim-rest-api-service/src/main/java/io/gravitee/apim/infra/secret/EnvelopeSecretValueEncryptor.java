@@ -104,12 +104,14 @@ public class EnvelopeSecretValueEncryptor implements SecretValueEncryptor {
         return storedDataKeyOf(organizationId).orElseGet(() -> createDataKey(organizationId));
     }
 
+    // Always read the stored key: the cache alone would miss a key deleted through another node.
     private Optional<DataKey> storedDataKeyOf(String organizationId) {
-        var cached = dataKeys.getIfPresent(organizationId);
-        if (cached != null) {
-            return Optional.of(cached);
-        }
-        return findStored(organizationId).map(this::unwrap);
+        return findStored(organizationId).map(this::dataKeyOf);
+    }
+
+    private DataKey dataKeyOf(OrganizationKey organizationKey) {
+        var cached = dataKeys.getIfPresent(organizationKey.getId());
+        return cached != null ? cached : unwrap(organizationKey);
     }
 
     private DataKey createDataKey(String organizationId) {
@@ -123,12 +125,12 @@ public class EnvelopeSecretValueEncryptor implements SecretValueEncryptor {
             .build();
         try {
             organizationKeyRepository.create(organizationKey);
-            dataKeys.put(organizationId, dataKey);
+            dataKeys.put(dataKey.id(), dataKey);
             return dataKey;
         } catch (DuplicateKeyException e) {
             // Another node created the organization's data key first: use that one.
             return findStored(organizationId)
-                .map(this::unwrap)
+                .map(this::dataKeyOf)
                 .orElseThrow(() ->
                     new TechnicalDomainException("The data key of organization " + organizationId + " could not be read", e)
                 );
@@ -161,7 +163,7 @@ public class EnvelopeSecretValueEncryptor implements SecretValueEncryptor {
         try {
             var material = kek.unwrap(organizationKey.getOrganizationId(), Base64.getDecoder().decode(organizationKey.getWrappedKey()));
             var dataKey = new DataKey(organizationKey.getId(), material);
-            dataKeys.put(organizationKey.getOrganizationId(), dataKey);
+            dataKeys.put(dataKey.id(), dataKey);
             return dataKey;
         } catch (SecretCryptoException | IllegalArgumentException e) {
             throw new TechnicalDomainException("Failed to unwrap the data key of organization " + organizationKey.getOrganizationId(), e);

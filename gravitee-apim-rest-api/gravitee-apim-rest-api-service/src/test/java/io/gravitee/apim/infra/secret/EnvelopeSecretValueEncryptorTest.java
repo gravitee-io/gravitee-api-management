@@ -111,6 +111,20 @@ class EnvelopeSecretValueEncryptorTest {
     }
 
     @Test
+    void should_create_a_new_data_key_when_the_organization_key_was_deleted_after_it_was_cached() throws Exception {
+        encryptor.encrypt(SECRET, "sk-ant-123");
+        String deletedKeyId = keys.of("org-1").getId();
+
+        keys.deleteByOrganizationId("org-1");
+        String ciphertext = encryptor.encrypt(SECRET, "sk-ant-456");
+
+        assertThat(keys.all()).hasSize(1);
+        assertThat(keys.of("org-1").getId()).isNotEqualTo(deletedKeyId);
+        assertThat(ciphertext).startsWith("v1:" + keys.of("org-1").getId() + ":");
+        assertThat(new EnvelopeSecretValueEncryptor(KEK, keys).decrypt(SECRET, ciphertext)).isEqualTo("sk-ant-456");
+    }
+
+    @Test
     void should_refuse_to_decrypt_the_value_of_another_organization() {
         String ciphertext = encryptor.encrypt(SECRET, "sk-ant-123");
 
