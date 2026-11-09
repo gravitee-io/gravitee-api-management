@@ -175,7 +175,7 @@ public class ApiCRDSpec {
             .labels(labels == null ? null : new ArrayList<>(labels))
             .type(ApiType.valueOf(type))
             .apiLifecycleState(Api.ApiLifecycleState.valueOf(lifecycleState))
-            .lifecycleState(Api.LifecycleState.valueOf(state))
+            .lifecycleState(state == null ? null : Api.LifecycleState.valueOf(state))
             .categories(categories)
             .originContext(
                 new OriginContext.Kubernetes(

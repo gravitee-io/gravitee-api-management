@@ -102,6 +102,10 @@ public class ApiModelFactory {
             .visibility(Api.Visibility.valueOf(crd.getVisibility()))
             .disableMembershipNotifications(!crd.isNotifyMembers())
             .build();
+        // A spec without state creates a stopped API, as the management API does
+        if (api.getLifecycleState() == null) {
+            api.setLifecycleState(Api.LifecycleState.STOPPED);
+        }
 
         var definition = api.isNative() ? crd.toNativeApiDefinitionBuilder().id(id).build() : crd.toApiDefinitionBuilder().id(id).build();
         api.setApiDefinitionValue(definition);
