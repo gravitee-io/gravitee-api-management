@@ -15,17 +15,26 @@
  */
 package io.gravitee.gamma.rest.core.guardian;
 
+import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
+import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
+import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
+import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.CreateGuardian;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
+import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
+import org.mockito.Mockito;
 
 /**
  * Builders the Guardian domain tests start from.
@@ -44,6 +53,24 @@ public final class GuardianFixtures {
     public static final String GUARDIAN_ID = "3f1b0f2a-6c14-4b0e-9a3f-7d2c8e5a1b40";
 
     private GuardianFixtures() {}
+
+    public static PolicyPluginProvider aPolicyPluginProvider() {
+        return aPolicyPluginProvider(() -> Map.of("data-logging-masking", new PolicyCapabilities(true, Set.of(ApiType.LLM_PROXY))));
+    }
+
+    public static PolicyPluginProvider aPolicyPluginProvider(Supplier<Map<String, PolicyCapabilities>> policies) {
+        var provider = Mockito.mock(PolicyPluginProvider.class);
+        Mockito.when(provider.findAllCapabilities()).thenAnswer(call -> policies.get());
+        return provider;
+    }
+
+    public static ValidateGuardianDomainService aGuardianValidator() {
+        return aGuardianValidator(new InMemoryGuardianRepository());
+    }
+
+    public static ValidateGuardianDomainService aGuardianValidator(GuardianRepository repository) {
+        return new ValidateGuardianDomainService(repository, aPolicyPluginProvider(), new JacksonJsonDeserializer());
+    }
 
     public static Step aPolicy() {
         return Step.builder().name("Detect credentials").policy("data-logging-masking").enabled(true).build();

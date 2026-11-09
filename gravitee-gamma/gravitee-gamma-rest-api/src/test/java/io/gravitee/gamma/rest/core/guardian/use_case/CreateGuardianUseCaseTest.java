@@ -19,6 +19,7 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ENVIRONMENT_
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aCreateGuardian;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -33,7 +34,6 @@ import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
-import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.CreateGuardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
@@ -59,7 +59,7 @@ class CreateGuardianUseCaseTest {
     @BeforeEach
     void setUp() {
         guardianRepository.reset();
-        useCase = new CreateGuardianUseCase(guardianRepository, new ValidateGuardianDomainService(guardianRepository), auditDomainService);
+        useCase = new CreateGuardianUseCase(guardianRepository, aGuardianValidator(guardianRepository), auditDomainService);
     }
 
     private CreateGuardianUseCase.Output create(CreateGuardian command) {
@@ -133,6 +133,20 @@ class CreateGuardianUseCaseTest {
         assertThat(log.event()).isEqualTo(GuardianAuditEvent.GUARDIAN_CREATED);
         assertThat(log.organizationId()).isEqualTo(ORGANIZATION_ID);
         assertThat(log.newValue()).isEqualTo(output.guardian());
+    }
+
+    @Test
+    void should_refuse_an_incompatible_guardrail_before_creating_a_guardian_or_an_audit() {
+        var policy = aPolicy();
+        policy.setConfiguration("{\"scope\":{\"protocol\":\"MCP\"}}");
+
+        assertThatThrownBy(() -> create(aCreateGuardian().policies(List.of(policy)).build()))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("Detect credentials")
+            .hasMessageContaining("llm-proxy");
+
+        assertThat(guardianRepository.storedGuardians()).as("a rejected guardrail leaves no Guardian draft").isEmpty();
+        verifyNoInteractions(auditDomainService);
     }
 
     @Test
