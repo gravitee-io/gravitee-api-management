@@ -58,8 +58,10 @@ import io.gravitee.definition.model.v4.edge.EdgeApi;
 import io.gravitee.definition.model.v4.guardian.Guardian;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
+import io.gravitee.gateway.api.genericevent.GenericEvent;
 import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.dictionary.model.Dictionary;
+import io.gravitee.gateway.genericevent.GenericEventManager;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
@@ -193,6 +195,7 @@ public class GatewayRunner {
     private final Map<SharedPolicyGroupKey, ReactableSharedPolicyGroup> deployedSharedPolicyGroupsForTestClass;
     private final Map<SharedPolicyGroupKey, ReactableSharedPolicyGroup> deployedSharedPolicyGroupsForTest;
     private final GuardianDeployments guardianDeployments;
+    private final GenericEventDeployments genericEventDeployments;
     private final Map<String, ReactableApiProduct> deployedApiProductsForTestClass;
     private final Map<String, ReactableApiProduct> deployedApiProductsForTest;
     private GatewayTestContainer gatewayContainer;
@@ -217,6 +220,9 @@ public class GatewayRunner {
         this.deployedSharedPolicyGroupsForTest = new HashMap<>();
         this.guardianDeployments = new GuardianDeployments(testInstance, () ->
             gatewayContainer.applicationContext().getBean(GuardianManager.class)
+        );
+        this.genericEventDeployments = new GenericEventDeployments(() ->
+            gatewayContainer.applicationContext().getBean(GenericEventManager.class)
         );
         this.deployedApiProductsForTestClass = new HashMap<>();
         this.deployedApiProductsForTest = new HashMap<>();
@@ -274,6 +280,8 @@ public class GatewayRunner {
             testInstance.setUndeploySharedPolicyGroupCallback(this::undeploySharedPolicyGroupFromTest);
             testInstance.setDeployGuardianCallback(guardianDeployments::deployFromTest);
             testInstance.setUndeployGuardianCallback(guardianDeployments::undeployFromTest);
+            testInstance.setDeployGenericEventCallback(genericEventDeployments::deployFromTest);
+            testInstance.setUndeployGenericEventCallback(genericEventDeployments::undeployFromTest);
             testInstance.setDeployApiProductCallback(this::deployOrRedeployApiProductFromTest);
             testInstance.setUndeployApiProductCallback(this::undeployApiProductFromTest);
 
@@ -526,6 +534,14 @@ public class GatewayRunner {
 
     public void deployGuardianForTest(String guardianDefinitionPath) throws IOException {
         guardianDeployments.deployForTest(loadResource(guardianDefinitionPath, Guardian.class));
+    }
+
+    public void deployGenericEventsForClass(String... genericEventDefinitionPaths) throws IOException {
+        genericEventDeployments.deployForClass(loadGenericEvents(genericEventDefinitionPaths));
+    }
+
+    public void deployGenericEventsForTest(String... genericEventDefinitionPaths) throws IOException {
+        genericEventDeployments.deployForTest(loadGenericEvents(genericEventDefinitionPaths));
     }
 
     public void deployApiProductForClass(String apiProductDefinitionPath) throws IOException {
@@ -812,6 +828,14 @@ public class GatewayRunner {
         guardianDeployments.undeployForTest();
     }
 
+    public void undeployGenericEventForClass() {
+        genericEventDeployments.undeployForClass();
+    }
+
+    public void undeployGenericEventForTest() {
+        genericEventDeployments.undeployForTest();
+    }
+
     public void undeployApiProductForClass() {
         deployedApiProductsForTestClass.forEach((key, value) -> undeployApiProduct(value));
         deployedApiProductsForTestClass.clear();
@@ -1063,6 +1087,14 @@ public class GatewayRunner {
             .organizationId(definition.getOrganizationId())
             .organizationHrid(definition.getOrganizationHrid())
             .build();
+    }
+
+    private List<GenericEvent> loadGenericEvents(String... genericEventDefinitionPaths) throws IOException {
+        List<GenericEvent> genericEvents = new ArrayList<>();
+        for (String path : genericEventDefinitionPaths) {
+            genericEvents.add(loadResource(path, GenericEventDefinition.class).toGenericEvent(path));
+        }
+        return genericEvents;
     }
 
     private <T> T loadResource(String resourcePath, Class<T> toClass) throws IOException {
