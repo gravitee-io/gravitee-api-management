@@ -15,20 +15,43 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
+import static io.gravitee.apim.core.member.model.SystemRole.PRIMARY_OWNER;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import fixtures.core.model.ApiCRDFixtures;
 import inmemory.ApiCRDExportDomainServiceInMemory;
+import io.gravitee.apim.core.membership.model.Role;
+import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.apim.infra.adapter.ApiCRDAdapter;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.http.Path;
+import io.gravitee.definition.model.v4.plan.PlanMode;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.repository.management.model.Parameter;
+import io.gravitee.repository.management.model.ParameterReferenceType;
+import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -100,5 +123,87 @@ public class ApiResource_ExportCRDTest extends ApiResourceTest {
         assertThat(response.getStatus()).isEqualTo(OK_200);
         var yamlNode = YAML.readTree(response.readEntity(String.class));
         assertThat(yamlNode.get("spec").get("lifecycleState").asText()).isEqualTo("UNPUBLISHED");
+    }
+
+    @Test
+    public void should_export_plans_that_the_crd_import_accepts() throws JsonProcessingException {
+        givenTheCrdImportCanRun();
+        var export = exportOfAnApiWithAPlanStoredWithoutType();
+        apiCRDExportDomainService.initWith(List.of(ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null)));
+        var exportedSpec = YAML.readTree(rootTarget().request().get(String.class)).get("spec");
+
+        var importUri = rootTarget().getUri().toString().replace(API + "/_export/crd", "_import/crd");
+        var importTarget = ClientBuilder.newClient().target(importUri);
+        try (
+            var response = importTarget
+                .queryParam("dryRun", true)
+                .request()
+                .put(Entity.json(new ObjectMapper().writeValueAsString(exportedSpec)))
+        ) {
+            var body = response.readEntity(String.class);
+            assertThat(body).doesNotContainPattern("plans\\[[^]]+\\]\\.type");
+            assertThat(response.getStatus()).as(body).isEqualTo(OK_200);
+        }
+    }
+
+    private void givenTheCrdImportCanRun() {
+        when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        parametersQueryService.define(
+            new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT, ParameterReferenceType.ENVIRONMENT, "true")
+        );
+        roleQueryService.initWith(
+            List.of(
+                Role.builder()
+                    .id("primary_owner_id")
+                    .name(PRIMARY_OWNER.name())
+                    .scope(Role.Scope.API)
+                    .referenceType(Role.ReferenceType.ORGANIZATION)
+                    .referenceId(ORGANIZATION)
+                    .build()
+            )
+        );
+    }
+
+    private static ExportApiEntity exportOfAnApiWithAPlanStoredWithoutType() {
+        return ExportApiEntity.builder()
+            .apiEntity(
+                ApiEntity.builder()
+                    .id(API)
+                    .crossId("api-cross-id")
+                    .name("api-name")
+                    .apiVersion("1.0")
+                    .type(ApiType.PROXY)
+                    .listeners(List.of(HttpListener.builder().paths(List.of(new Path("/api-path"))).build()))
+                    .endpointGroups(
+                        List.of(
+                            EndpointGroup.builder()
+                                .name("default-group")
+                                .type("http-proxy")
+                                .endpoints(
+                                    List.of(
+                                        Endpoint.builder()
+                                            .name("default")
+                                            .type("http-proxy")
+                                            .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                                            .build()
+                                    )
+                                )
+                                .build()
+                        )
+                    )
+                    .build()
+            )
+            .plans(
+                Set.of(
+                    PlanEntity.builder()
+                        .id("plan-id")
+                        .name("rt-plan")
+                        .security(PlanSecurity.builder().type("api-key").build())
+                        .status(PlanStatus.PUBLISHED)
+                        .mode(PlanMode.STANDARD)
+                        .build()
+                )
+            )
+            .build();
     }
 }
