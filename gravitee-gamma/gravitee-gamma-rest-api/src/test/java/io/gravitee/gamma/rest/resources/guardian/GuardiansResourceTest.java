@@ -411,10 +411,47 @@ class GuardiansResourceTest extends AbstractResourceTest {
             assertThat(body.has("description")).isFalse();
         }
 
+        /**
+         * The spec asks a client to send back everything it read, so the fields only the store owns are
+         * ignored rather than refused. Before AIAM-1644 the obedient client got a 400 naming {@code id}.
+         */
         @Test
-        void should_keep_the_id_out_of_the_update_body() {
-            // the path owns it, and a second one in the body could only disagree
-            assertThat(put(payloadWith("id", GUARDIAN_ID)).getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        void should_accept_its_own_get_response_as_an_update_body() {
+            JsonNode read = rootTarget("/" + GUARDIAN_ID).request().get().readEntity(JsonNode.class);
+
+            Response response = put(read);
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        @Test
+        void should_ignore_an_id_in_the_update_body_and_keep_the_path_one() {
+            // the path owns it, so a second one in the body is dropped rather than obeyed
+            Response response = put(payloadWith("id", "11111111-2222-3333-4444-555555555555"));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            assertThat(response.readEntity(JsonNode.class).get("id").asText()).isEqualTo(GUARDIAN_ID);
+        }
+
+        /** Ignored must mean dropped, not applied: a body cannot deploy a Guardian or rewrite its history. */
+        @Test
+        void should_not_let_the_update_body_set_the_fields_the_store_owns() {
+            var forged = new HashMap<String, Object>(PAYLOAD);
+            forged.put("lifecycleState", "DEPLOYED");
+            forged.put("createdAt", "1999-01-01T00:00:00Z");
+            forged.put("deployedAt", "1999-01-01T00:00:00Z");
+
+            JsonNode body = put(forged).readEntity(JsonNode.class);
+
+            assertThat(body.get("lifecycleState").asText()).isEqualTo("UNDEPLOYED");
+            assertThat(body.get("createdAt").asText()).isEqualTo("2026-02-01T20:22:02Z");
+            assertThat(body.has("deployedAt")).isFalse();
+        }
+
+        /** Only the five read-only fields are tolerated; the strictness this type exists for stays. */
+        @Test
+        void should_still_refuse_an_unknown_key_on_update_with_400() {
+            assertThat(put(payloadWith("colour", "blue")).getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         }
 
         @Test

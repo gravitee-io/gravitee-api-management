@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.resources.guardian.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian;
@@ -28,9 +29,15 @@ import java.util.Set;
  * What the console sends to update a Guardian: the whole definition again, plus the description.
  *
  * <p>A {@code PUT} replaces, it does not patch — a property this body leaves out is left out of the
- * stored Guardian too, so a client that edits one setting sends back everything it read. The id is
- * absent on purpose: it comes from the path, and a body carrying a second one could only disagree
- * with it.
+ * stored Guardian too, so a client that edits one setting sends back everything it read.
+ *
+ * <p>Which is why the fields only the store owns are ignored rather than refused. Sending back what
+ * {@code GET} returned is exactly what the paragraph above asks for, and that response carries
+ * {@code id}, {@code lifecycleState}, {@code deployedAt}, {@code createdAt} and {@code updatedAt};
+ * without this the obedient client got a 400 naming the first of them. They are read here and
+ * dropped: the id comes from the path, the lifecycle and the deployment stamp belong to a deployment,
+ * and the two timestamps are the store's. A genuinely unknown key is still refused, which is what
+ * {@link RejectUnknownProperties} is for.
  *
  * <p>Constraints live on {@link UpdateGuardianCommand}, not here; see
  * {@link CreateGuardianRequestDto}.
@@ -38,6 +45,7 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 @RejectUnknownProperties
+@JsonIgnoreProperties({ "id", "lifecycleState", "deployedAt", "createdAt", "updatedAt" })
 public record UpdateGuardianRequestDto(
     String name,
     String description,
