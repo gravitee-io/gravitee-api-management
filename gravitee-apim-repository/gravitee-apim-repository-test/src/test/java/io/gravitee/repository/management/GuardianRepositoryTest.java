@@ -298,6 +298,34 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
         }
 
         @Test
+        public void should_not_let_a_bracket_act_as_a_character_class() throws TechnicalException {
+            // SQL Server reads [...] in a LIKE pattern as a character class, which PostgreSQL and MySQL
+            // do not: left unescaped, q="[x]" would match any name containing an x there while Mongo,
+            // which quotes the query, matches nothing. Same request, different answer per backend.
+            var date = new Date();
+            guardianRepository.create(
+                Guardian.builder()
+                    .id("id_bracket_test")
+                    .environmentId("environmentId")
+                    .name("plain x guard")
+                    .phase(Guardian.Phase.REQUEST)
+                    .definition("definition")
+                    .lifecycleState(GuardianLifecycleState.UNDEPLOYED)
+                    .createdAt(date)
+                    .updatedAt(date)
+                    .build()
+            );
+
+            final var page = guardianRepository.search(
+                GuardianCriteria.builder().environmentId("environmentId").query("[x]").build(),
+                new PageableBuilder().pageNumber(0).pageSize(10).build(),
+                null
+            );
+
+            assertThat(page.getContent()).isEmpty();
+        }
+
+        @Test
         public void should_match_the_jdbc_escape_character_as_literal_text() throws TechnicalException {
             // JDBC escapes the LIKE wildcards with a character of its own, so a name holding that
             // character is where the choice could leak into the contract: read as an escape rather than
