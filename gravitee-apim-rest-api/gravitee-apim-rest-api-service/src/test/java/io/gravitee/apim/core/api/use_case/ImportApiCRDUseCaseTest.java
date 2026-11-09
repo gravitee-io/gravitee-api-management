@@ -152,6 +152,7 @@ import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -182,7 +183,13 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
+import io.gravitee.rest.api.service.exceptions.EndpointGroupNameAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
+import io.gravitee.rest.api.service.exceptions.EndpointNameAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
+import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
 import io.vertx.rxjava3.core.Vertx;
 import java.time.Clock;
 import java.time.Instant;
@@ -203,6 +210,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class ImportApiCRDUseCaseTest {
 
@@ -681,6 +691,61 @@ class ImportApiCRDUseCaseTest {
         }
 
         @Test
+<<<<<<< HEAD
+=======
+        void should_create_a_stopped_api_when_the_spec_has_no_state() {
+            // Synced from management, so a STARTED spec would start the API
+            var spec = aCRD()
+                .state(null)
+                .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
+                .build();
+
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, spec));
+
+            assertThat(apiCrudService.get(API_ID).getLifecycleState()).isEqualTo(Api.LifecycleState.STOPPED);
+            verify(apiStateDomainService, never()).start(any(), any());
+        }
+
+        @Test
+        void should_let_a_refused_endpoint_name_propagate_as_a_400() {
+            var refusal = new EndpointNameAlreadyExistsException("same");
+            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenThrow(refusal);
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build())));
+
+            assertThat(throwable).isSameAs(refusal);
+            assertThat(apiCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_store_encryptable_properties_encrypted() throws GeneralSecurityException {
+            when(dataEncryptor.encrypt("prop-value")).thenReturn("ciphertext");
+
+            useCase.execute(
+                new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD()
+                        .plans(Map.of())
+                        .properties(List.of(EncryptableProperty.builder().key("prop-key").value("prop-value").encryptable(true).build()))
+                        .build()
+                )
+            );
+
+            assertThat(apiCrudService.storage().getFirst().getApiDefinitionHttpV4().getProperties()).containsExactly(
+                Property.builder().key("prop-key").value("ciphertext").encrypted(true).build()
+            );
+            var created = auditCrudService
+                .storage()
+                .stream()
+                .filter(audit -> audit.getEvent().equals("API_CREATED"))
+                .findFirst()
+                .orElseThrow();
+            assertThat(created.getPatch()).doesNotContain("ciphertext").doesNotContain("prop-value");
+            assertThat(created.getProperties()).containsEntry("ENCRYPTED", "true");
+        }
+
+        @Test
+>>>>>>> 41ae66b (test(automation): reproduce APIM-16012 dry run accepting what the import refuses)
         void should_create_and_index_a_new_api() {
             var expected = expectedApiV4Proxy();
             expected.getApiDefinitionHttpV4().setPlans(List.of());
@@ -1388,6 +1453,18 @@ class ImportApiCRDUseCaseTest {
             assertThat(auditCrudService.storage()).isEmpty();
         }
 
+        @ParameterizedTest
+        @MethodSource("io.gravitee.apim.core.api.use_case.ImportApiCRDUseCaseTest#refusalsOfTheApiUpdate")
+        void should_let_a_4xx_refusal_of_the_api_update_propagate_without_wrapping(AbstractManagementException refusal) {
+            givenExistingApi();
+            givenExistingPlans(List.of(KEYLESS));
+            when(updateApiDomainService.update(any(), any(), any())).thenThrow(refusal);
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build())));
+
+            assertThat(throwable).isSameAs(refusal);
+        }
+
         @Test
         void should_reject_a_jwt_plan_id_of_another_api() {
             var otherApiPlan = givenAnotherApiWithAPlan(aJwtPlan("other-api-jwt-config"));
@@ -1972,6 +2049,60 @@ class ImportApiCRDUseCaseTest {
             );
         }
 
+        @Test
+        void should_refuse_a_plan_flow_with_a_wildcard_path_as_the_import_does() {
+            var wildcardFlow = Flow.builder()
+                .selectors(List.of(HttpSelector.builder().path("/**").pathOperator(Operator.STARTS_WITH).build()))
+                .build();
+            var spec = aCRD()
+                .plans(
+                    Map.of(
+                        "keyless-key",
+                        PlanCRD.builder()
+                            .id("keyless-id")
+                            .name("Keyless")
+                            .security(PlanSecurity.builder().type("KEY_LESS").build())
+                            .mode(PlanMode.STANDARD)
+                            .validation(Plan.PlanValidationType.AUTO)
+                            .status(PlanStatus.PUBLISHED)
+                            .type(Plan.PlanType.API)
+                            .flows(List.of(wildcardFlow))
+                            .build()
+                    )
+                )
+                .build();
+
+            var dryRunErrors = dryRunErrors(spec);
+            var importError = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, spec)));
+
+            assertThat(importError).isInstanceOf(InvalidFlowException.class);
+            assertThat(dryRunErrors).anyMatch(message -> message.contains(importError.getMessage()));
+        }
+
+        @Test
+        void should_refuse_a_lifecycle_state_change_the_import_refuses() {
+            apiQueryService.initWith(List.of(Update.API_PROXY_V4.toBuilder().apiLifecycleState(Api.ApiLifecycleState.DEPRECATED).build()));
+
+            assertThat(dryRunErrors(aCRD().lifecycleState("PUBLISHED").build())).anyMatch(message ->
+                message.contains(new LifecycleStateChangeNotAllowedException("PUBLISHED").getMessage())
+            );
+        }
+
+        @Test
+        void should_refuse_an_api_type_change_the_import_refuses() {
+            givenExistingApi();
+
+            assertThat(dryRunErrors(aCRD().type("MESSAGE").build())).anyMatch(message ->
+                message.contains(new ApiTypeException().getMessage())
+            );
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("io.gravitee.apim.core.api.use_case.ImportApiCRDUseCaseTest#endpointGroupsTheImportRefuses")
+        void should_refuse_endpoint_groups_the_import_refuses(String row, List<EndpointGroup> endpointGroups, String importMessage) {
+            assertThat(dryRunErrors(aCRD().endpointGroups(endpointGroups).build())).anyMatch(message -> message.contains(importMessage));
+        }
+
         // A dry run refuses with severe errors, or with a 4xx exception the resource maps to an error response
         private List<String> dryRunErrors(ApiCRDSpec spec) {
             try {
@@ -2294,6 +2425,67 @@ class ImportApiCRDUseCaseTest {
                             .build()
                     )
                     .build()
+            )
+            .build();
+    }
+
+    // 400s the legacy API validation throws on the import (APIM-16012, GKO-3435)
+    static Stream<AbstractManagementException> refusalsOfTheApiUpdate() {
+        return Stream.of(
+            new EndpointNameAlreadyExistsException("same"),
+            new LifecycleStateChangeNotAllowedException("PUBLISHED"),
+            new ApiTypeException()
+        );
+    }
+
+    // Rows of GKO-3435, with the message of the exception EndpointGroupsValidationServiceImpl throws on the import
+    static Stream<Arguments> endpointGroupsTheImportRefuses() {
+        return Stream.of(
+            Arguments.of(
+                "group and endpoint share a name",
+                List.of(anEndpointGroup("same", "same")),
+                new EndpointNameAlreadyExistsException("same").getMessage()
+            ),
+            Arguments.of(
+                "two endpoints with one name",
+                List.of(anEndpointGroup("group", "endpoint", "endpoint")),
+                new EndpointNameAlreadyExistsException("endpoint").getMessage()
+            ),
+            Arguments.of(
+                "same endpoint name in two groups",
+                List.of(anEndpointGroup("group-1", "endpoint"), anEndpointGroup("group-2", "endpoint")),
+                new EndpointNameAlreadyExistsException("endpoint").getMessage()
+            ),
+            Arguments.of(
+                "two groups with one name",
+                List.of(anEndpointGroup("group", "endpoint-1"), anEndpointGroup("group", "endpoint-2")),
+                new EndpointGroupNameAlreadyExistsException("group").getMessage()
+            ),
+            Arguments.of(
+                "endpoint name with a colon",
+                List.of(anEndpointGroup("group", "end:point")),
+                new EndpointNameInvalidException("end:point").getMessage()
+            ),
+            Arguments.of("group without endpoints", List.of(anEndpointGroup("group")), new EndpointMissingException().getMessage())
+        );
+    }
+
+    private static EndpointGroup anEndpointGroup(String name, String... endpointNames) {
+        return EndpointGroup.builder()
+            .name(name)
+            .type("http-proxy")
+            .sharedConfiguration("{}")
+            .endpoints(
+                Arrays.stream(endpointNames)
+                    .<Endpoint>map(endpointName ->
+                        Endpoint.builder()
+                            .name(endpointName)
+                            .type("http-proxy")
+                            .inheritConfiguration(true)
+                            .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                            .build()
+                    )
+                    .toList()
             )
             .build();
     }
