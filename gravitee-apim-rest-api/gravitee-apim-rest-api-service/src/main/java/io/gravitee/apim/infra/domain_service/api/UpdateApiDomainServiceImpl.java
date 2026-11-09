@@ -52,6 +52,12 @@ public class UpdateApiDomainServiceImpl implements UpdateApiDomainService {
     }
 
     @Override
+    public void validate(String apiId, ApiCRDSpec crd, AuditInfo auditInfo) {
+        var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
+        delegate.validate(executionContext, apiId, ApiAdapter.INSTANCE.toUpdateApiEntity(crd), auditInfo.actor().userId());
+    }
+
+    @Override
     public Api updateV4(Api api, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
 
