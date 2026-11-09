@@ -234,14 +234,14 @@ public class SecretRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_keep_the_encrypted_value_out_of_the_debug_logs() throws Exception {
+    public void should_keep_the_encrypted_value_out_of_the_trace_logs() throws Exception {
         var appender = new ListAppender<ILoggingEvent>();
         appender.start();
         var levels = new HashMap<Logger, Level>();
         for (var name : List.of("io.gravitee", "org.springframework")) {
             var logger = (Logger) LoggerFactory.getLogger(name);
             levels.put(logger, logger.getLevel());
-            logger.setLevel(Level.DEBUG);
+            logger.setLevel(Level.TRACE);
             logger.addAppender(appender);
         }
         try {

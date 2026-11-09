@@ -45,7 +45,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
-/** {@code JdbcObjectMapper} logs every value it binds or reads, so this repository writes its own SQL to keep the encrypted value out of the logs. */
+/** {@code JdbcObjectMapper} and {@code JdbcTemplate}'s argument binding log bound values, so this repository binds its own statements to keep the encrypted value out of the logs. */
 @CustomLog
 @Repository
 public class JdbcSecretRepository extends TransactionalRepository implements SecretRepository {
@@ -78,17 +78,16 @@ public class JdbcSecretRepository extends TransactionalRepository implements Sec
         log.debug("JdbcSecretRepository.create({})", secret.getId());
         try {
             savepoint.executeWithoutResult(status ->
-                jdbcTemplate.update(
-                    "INSERT INTO " + tableName + " (" + columns + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                    secret.getId(),
-                    secret.getOrganizationId(),
-                    secret.getEnvironmentId(),
-                    secret.getKey(),
-                    keyHash(secret.getKey()),
-                    secret.getEncryptedValue(),
-                    timestamp(secret.getCreatedAt()),
-                    timestamp(secret.getUpdatedAt())
-                )
+                jdbcTemplate.update("INSERT INTO " + tableName + " (" + columns + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?)", ps -> {
+                    ps.setString(1, secret.getId());
+                    ps.setString(2, secret.getOrganizationId());
+                    ps.setString(3, secret.getEnvironmentId());
+                    ps.setString(4, secret.getKey());
+                    ps.setString(5, keyHash(secret.getKey()));
+                    ps.setString(6, secret.getEncryptedValue());
+                    ps.setTimestamp(7, timestamp(secret.getCreatedAt()));
+                    ps.setTimestamp(8, timestamp(secret.getUpdatedAt()));
+                })
             );
         } catch (org.springframework.dao.DuplicateKeyException ex) {
             throw new DuplicateKeyException(
@@ -146,13 +145,16 @@ public class JdbcSecretRepository extends TransactionalRepository implements Sec
         log.debug("JdbcSecretRepository.update({})", secret.getId());
         int updated;
         try {
+            // MariaDB gives the first TIMESTAMP column ON UPDATE CURRENT_TIMESTAMP unless the statement sets it.
             updated = jdbcTemplate.update(
                 "UPDATE " + tableName + " SET encrypted_value = ?, updated_at = ?, created_at = created_at" + IN_SCOPE + " AND id = ?",
-                secret.getEncryptedValue(),
-                timestamp(secret.getUpdatedAt()),
-                secret.getOrganizationId(),
-                secret.getEnvironmentId(),
-                secret.getId()
+                ps -> {
+                    ps.setString(1, secret.getEncryptedValue());
+                    ps.setTimestamp(2, timestamp(secret.getUpdatedAt()));
+                    ps.setString(3, secret.getOrganizationId());
+                    ps.setString(4, secret.getEnvironmentId());
+                    ps.setString(5, secret.getId());
+                }
             );
         } catch (Exception ex) {
             throw new TechnicalException("Failed to update secret " + secret.getId(), ex);
