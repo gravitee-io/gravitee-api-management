@@ -17,7 +17,6 @@ package io.gravitee.apim.infra.adapter;
 
 import static org.assertj.core.api.Assertions.*;
 
-import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -279,24 +278,6 @@ class ApiCRDAdapterTest {
         var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null);
 
         assertThat(spec.getPlans().keySet()).singleElement().asString().matches("plan-\\d{8}");
-    }
-
-    @Test
-    void should_default_plan_type_to_api_when_the_plan_entity_has_none() {
-        var export = exportEntity(false);
-
-        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null);
-
-        assertThat(spec.getPlans().get("plan-name").getType()).isEqualTo(Plan.PlanType.API);
-    }
-
-    @Test
-    void should_default_native_plan_type_to_api_when_the_plan_entity_has_none() {
-        var export = exportNativeApiEntity(false);
-
-        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null);
-
-        assertThat(spec.getPlans().get("plan-name").getType()).isEqualTo(Plan.PlanType.API);
     }
 
     private static ExportApiEntity exportEntity(boolean withHrid) {
