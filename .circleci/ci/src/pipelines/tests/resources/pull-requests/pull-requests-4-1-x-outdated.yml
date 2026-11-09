@@ -881,7 +881,7 @@ workflows:
             - Build APIM Management API docker image
             - Build APIM Gateway docker image
 orbs:
-  keeper: gravitee-io/keeper@0.7.1
+  keeper: gravitee-io/keeper@0.7.3
   slack: circleci/slack@4.12.5
   helm: circleci/helm@3.0.0
   gh: circleci/github-cli@1.0.5
