@@ -21,6 +21,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.GuardianCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.GuardianMongo;
 import io.gravitee.repository.mongodb.utils.MongoQueries;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -28,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 
 /**
  * @author GraviteeSource Team
@@ -39,6 +41,18 @@ public class GuardianMongoRepositoryImpl implements GuardianMongoRepositoryCusto
 
     @Autowired
     private MongoQueries mongoQueries;
+
+    @Override
+    public void updateUpdatedAt(String environmentId, String guardianId, Date updatedAt) {
+        Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
+        Objects.requireNonNull(guardianId, "GuardianId must not be null");
+        Objects.requireNonNull(updatedAt, "UpdatedAt must not be null");
+        mongoTemplate.updateFirst(
+            Query.query(where("environmentId").is(environmentId).and("_id").is(guardianId)),
+            new Update().max("updatedAt", updatedAt),
+            GuardianMongo.class
+        );
+    }
 
     @Override
     public Page<GuardianMongo> search(GuardianCriteria criteria, PageRequest pageRequest) {

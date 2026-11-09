@@ -194,6 +194,26 @@ public class JdbcGuardianRepository extends JdbcAbstractCrudRepository<Guardian,
     }
 
     @Override
+    public void updateUpdatedAt(String environmentId, String guardianId, Date updatedAt) throws TechnicalException {
+        Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
+        Objects.requireNonNull(guardianId, "GuardianId must not be null");
+        Objects.requireNonNull(updatedAt, "UpdatedAt must not be null");
+        try {
+            jdbcTemplate.update(
+                "update " +
+                    tableName +
+                    " set updated_at = ? where environment_id = ? and id = ? and (updated_at is null or updated_at < ?)",
+                updatedAt,
+                environmentId,
+                guardianId,
+                updatedAt
+            );
+        } catch (Exception e) {
+            throw new TechnicalException("Failed to update Guardian timestamp", e);
+        }
+    }
+
+    @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("Delete guardians by environment ID [{}]", environmentId);
         try {

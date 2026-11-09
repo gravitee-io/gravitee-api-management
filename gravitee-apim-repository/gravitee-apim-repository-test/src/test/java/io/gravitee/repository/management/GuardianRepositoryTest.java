@@ -17,6 +17,7 @@ package io.gravitee.repository.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Fail.fail;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -57,6 +58,32 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
                 .build();
             guardianRepository.create(guardian);
         }
+    }
+
+    @Test
+    void should_advance_updated_at_without_replacing_the_draft_or_crossing_environments() throws Exception {
+        var before = guardianRepository.findById("id_search_test_0").orElseThrow();
+        var withdrawnAt = new Date(before.getUpdatedAt().getTime() + 100_000);
+
+        guardianRepository.updateUpdatedAt("another-environment", before.getId(), withdrawnAt);
+        assertThat(guardianRepository.findById(before.getId())).as("foreign environment cannot touch the Guardian").contains(before);
+
+        guardianRepository.updateUpdatedAt(before.getEnvironmentId(), before.getId(), withdrawnAt);
+        var after = guardianRepository.findById(before.getId()).orElseThrow();
+        assertSoftly(softly -> {
+            softly
+                .assertThat(after)
+                .as("all draft fields preserved")
+                .usingRecursiveComparison()
+                .ignoringFields("updatedAt")
+                .isEqualTo(before);
+            softly.assertThat(after.getUpdatedAt()).as("withdrawal indexed for sorting").isEqualTo(withdrawnAt);
+        });
+
+        guardianRepository.updateUpdatedAt(before.getEnvironmentId(), before.getId(), before.getUpdatedAt());
+        assertThat(guardianRepository.findById(before.getId()).orElseThrow().getUpdatedAt())
+            .as("retry cannot move a newer draft timestamp backwards")
+            .isEqualTo(withdrawnAt);
     }
 
     /**

@@ -21,12 +21,16 @@ import io.gravitee.repository.management.api.search.GuardianCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Guardian;
+import java.util.Date;
 import java.util.List;
 
 /**
  * @author GraviteeSource Team
  */
 public interface GuardianRepository extends CrudRepository<Guardian, String> {
+    /** Atomically advances updatedAt within the environment without replacing any other field. */
+    void updateUpdatedAt(String environmentId, String guardianId, Date updatedAt) throws TechnicalException;
+
     /**
      * Search for Guardians matching the given criteria.
      *
