@@ -96,7 +96,7 @@ export function resetAllStores() {
         avatarCacheBust: 0,
     });
     useEnvironmentStore.getState().reset();
-    useModulesStore.setState({ modules: [], moduleLoadStatuses: {} });
+    useModulesStore.setState({ modules: [], moduleLoadStatuses: {}, listStatus: 'loaded', listRequest: 0 });
     permissionService.reset();
     localStorage.clear();
 }
