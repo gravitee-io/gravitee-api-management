@@ -35,7 +35,9 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,6 +57,38 @@ class EventLatestQueryServiceImplTest {
     @BeforeEach
     void setUp() {
         cut = new EventLatestQueryServiceImpl(eventLatestRepository);
+    }
+
+    @Test
+    void should_return_every_requested_publication_beyond_the_jdbc_default_page_size() throws Exception {
+        var ids = IntStream.range(0, 11)
+            .mapToObj(i -> "guardian-" + i)
+            .collect(Collectors.toSet());
+        var stored = ids
+            .stream()
+            .map(id ->
+                io.gravitee.repository.management.model.Event.builder()
+                    .id("event-" + id)
+                    .type(EventType.PUBLISH_GENERIC_EVENT)
+                    .properties(Map.of("generic_event_id", id))
+                    .build()
+            )
+            .toList();
+        when(eventLatestRepository.search(any(EventCriteria.class), any(), any(), any())).thenAnswer(invocation -> {
+            Long size = invocation.getArgument(3);
+            return stored.stream().limit(Objects.requireNonNullElse(size, 10L)).toList();
+        });
+
+        var result = cut.findLatestByEntityIds(
+            ids,
+            io.gravitee.rest.api.model.EventType.PUBLISH_GENERIC_EVENT,
+            Event.EventProperties.GENERIC_EVENT_ID
+        );
+
+        assertThat(result)
+            .as("the batch includes every latest publication, regardless of repository defaults")
+            .extracting(Event::getId)
+            .containsExactlyInAnyOrderElementsOf(stored.stream().map(io.gravitee.repository.management.model.Event::getId).toList());
     }
 
     @Test
