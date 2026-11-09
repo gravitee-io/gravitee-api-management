@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.ApiCRDFixtures;
 import fixtures.core.model.ApiFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -92,7 +93,9 @@ class ValidateApiCRDDomainServiceTest {
         new ObjectMapper()
     );
 
-    ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
+    ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+
+    ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
 
     CRDMembersDomainServiceInMemory membersDomainService = new CRDMembersDomainServiceInMemory();
 
@@ -160,6 +163,23 @@ class ValidateApiCRDDomainServiceTest {
             .build();
 
         assertThatNoException().isThrownBy(() -> cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec)));
+    }
+
+    @Test
+    void should_refuse_an_id_that_names_an_api_of_another_environment() {
+        var foreignApi = ApiFixtures.aProxyApiV4().toBuilder().environmentId("other-environment").crossId(API_CROSS_ID).build();
+        apiQueryService.initWith(List.of(foreignApi));
+        givenEveryValidatorAccepts();
+        var spec = ApiCRDFixtures.newBaseSpec()
+            .id(foreignApi.getId())
+            .crossId(API_CROSS_ID)
+            .consoleNotificationConfiguration(consoleNotificationConfiguration)
+            .build();
+
+        assertThatExceptionOfType(ValidationDomainException.class)
+            .isThrownBy(() -> cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec)))
+            .withMessageContaining(foreignApi.getId())
+            .withMessageContaining("another environment");
     }
 
     private void givenEveryValidatorAccepts() {
