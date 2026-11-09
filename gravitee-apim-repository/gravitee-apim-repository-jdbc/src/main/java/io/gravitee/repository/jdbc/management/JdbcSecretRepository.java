@@ -57,7 +57,6 @@ public class JdbcSecretRepository extends TransactionalRepository implements Sec
     private final String columns;
     private final String selectFrom;
 
-    /** On PostgreSQL a failed statement aborts the whole transaction, so a duplicate insert runs in a savepoint of the caller's transaction. */
     private final TransactionTemplate savepoint;
 
     @Autowired

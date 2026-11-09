@@ -21,7 +21,6 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Secret;
 import java.util.Optional;
 
-/** Keys are case-sensitive. */
 public interface SecretRepository {
     Secret create(Secret secret) throws TechnicalException;
 
@@ -29,12 +28,10 @@ public interface SecretRepository {
 
     Optional<Secret> findByKey(String organizationId, String environmentId, String key) throws TechnicalException;
 
-    /** Changes only {@code encryptedValue} and {@code updatedAt} of the secret that matches the id, organization and environment, and fails when none matches. */
     Secret update(Secret secret) throws TechnicalException;
 
     void delete(String organizationId, String environmentId, String id) throws TechnicalException;
 
-    /** Sorted by key. */
     Page<Secret> search(String organizationId, String environmentId, Pageable pageable) throws TechnicalException;
 
     void deleteByEnvironmentId(String environmentId) throws TechnicalException;
