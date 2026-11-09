@@ -18,15 +18,18 @@ package io.gravitee.gamma.rest.core.guardian.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
 import io.gravitee.gamma.rest.core.guardian.model.CreateGuardian;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
+import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validation;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 /**
- * The two checks a Guardian has to pass, kept apart because they answer different questions.
+ * The checks a Guardian has to pass, kept apart because they answer different questions.
  *
  * <p><strong>Structure</strong> — the required fields, the field sizes and the shape of the id —
  * is declared as bean validation constraints on {@link CreateGuardian} and
@@ -41,12 +44,20 @@ import java.util.List;
  * 4.14, so accepting any other API type would store a Guardian nothing can execute. It applies to
  * creation and to update alike, a {@code PUT} replacing the whole definition.
  *
+ * <p><strong>The name is free</strong> — two Guardians of one environment may not share a name. This
+ * is the check users meet, and the only one that reads the store; the unique index behind it is a
+ * backstop for a race, not the enforcement, and it cannot be relied on for the case-insensitive rule
+ * nor on a store that predates it.
+ *
  * @author GraviteeSource Team
  */
 @DomainService
+@RequiredArgsConstructor
 public class ValidateGuardianDomainService implements Validator<ValidateGuardianDomainService.Input> {
 
     private static final jakarta.validation.Validator BEAN_VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
+
+    private final GuardianRepository guardianRepository;
 
     private static final ApiType SUPPORTED_API_TYPE = ApiType.LLM_PROXY;
 
@@ -73,6 +84,23 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
      */
     public void validateDefinition(io.gravitee.definition.model.v4.guardian.Guardian definition) {
         refuseViolations(definition);
+    }
+
+    /**
+     * Refuses a name another Guardian of the environment already carries, ignoring case.
+     *
+     * @param guardianIdToExclude the Guardian being written, so renaming one to the name it already
+     *     has is not read as a clash with itself. On a creation it is the id about to be used, which
+     *     no stored Guardian carries — a caller-supplied id that is taken is refused on its own, by
+     *     the store.
+     */
+    public void validateNameIsAvailable(String environmentId, String name, String guardianIdToExclude) {
+        guardianRepository
+            .findByEnvironmentIdAndName(environmentId, name)
+            .filter(existing -> !existing.getId().equals(guardianIdToExclude))
+            .ifPresent(existing -> {
+                throw new GuardianNameAlreadyExistsException(name);
+            });
     }
 
     private static <C> void refuseViolations(C command) {

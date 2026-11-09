@@ -59,7 +59,7 @@ class CreateGuardianUseCaseTest {
     @BeforeEach
     void setUp() {
         guardianRepository.reset();
-        useCase = new CreateGuardianUseCase(guardianRepository, new ValidateGuardianDomainService(), auditDomainService);
+        useCase = new CreateGuardianUseCase(guardianRepository, new ValidateGuardianDomainService(guardianRepository), auditDomainService);
     }
 
     private CreateGuardianUseCase.Output create(CreateGuardian command) {

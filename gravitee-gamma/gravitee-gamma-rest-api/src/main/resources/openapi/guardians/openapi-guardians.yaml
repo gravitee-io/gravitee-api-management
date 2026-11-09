@@ -175,6 +175,15 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Error"
+                "409":
+                    description: |
+                        Another Guardian of this environment already carries that name. Names are
+                        compared without regard to case, so `Credential leakage` and
+                        `credential leakage` are the same name here.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
                 "403":
                     $ref: "#/components/responses/Forbidden"
 
@@ -233,6 +242,15 @@ paths:
                                 $ref: "#/components/schemas/Guardian"
                 "400":
                     $ref: "#/components/responses/BadRequest"
+                "409":
+                    description: |
+                        Another Guardian of this environment already carries that name. Names are
+                        compared without regard to case, so `Credential leakage` and
+                        `credential leakage` are the same name here.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
                 "403":
                     $ref: "#/components/responses/Forbidden"
                 "404":

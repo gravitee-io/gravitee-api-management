@@ -33,7 +33,9 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import lombok.CustomLog;
@@ -104,6 +106,28 @@ public class JdbcGuardianRepository extends JdbcAbstractCrudRepository<Guardian,
             // SQL Server alone reads [...] as a character class. The other three take an escaped '['
             // as a plain '[', so escaping it everywhere keeps one pattern for all four flavours.
             .replace("[", LIKE_ESCAPE + "[");
+    }
+
+    @Override
+    public Optional<Guardian> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name) throws TechnicalException {
+        Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
+        Objects.requireNonNull(name, "Name must not be null");
+        log.debug("JdbcGuardianRepository.findByEnvironmentIdAndNameIgnoreCase({})", environmentId);
+        try {
+            // lower() on both sides rather than a collation: the four flavours this module supports do
+            // not agree on a case-insensitive one, and the domain rule is case-insensitive.
+            final var rows = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " where environment_id = ? and lower(name) = ?",
+                getOrm().getRowMapper(),
+                environmentId,
+                // Locale.ROOT, as JdbcInvitationRepository does: the default locale would lowercase
+                // "I" to a dotless "i" under a Turkish locale and stop matching the stored row.
+                name.toLowerCase(Locale.ROOT)
+            );
+            return rows.stream().findFirst();
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to find a Guardian by name", ex);
+        }
     }
 
     @Override

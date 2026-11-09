@@ -43,5 +43,13 @@ public interface GuardianRepository {
 
     void delete(String guardianId);
 
+    /**
+     * The Guardian of this environment carrying this name, ignoring case; empty when none does.
+     *
+     * <p>Ignoring case because that is the rule: two Guardians of one environment may not share a
+     * name, and a difference of case is not a different name to the person reading the list.
+     */
+    Optional<Guardian> findByEnvironmentIdAndName(String environmentId, String name);
+
     Page<Guardian> search(GuardianSearchQuery query);
 }

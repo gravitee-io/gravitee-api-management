@@ -22,6 +22,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Guardian;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author GraviteeSource Team
@@ -36,6 +37,19 @@ public interface GuardianRepository extends CrudRepository<Guardian, String> {
      * @return a page of matching Guardians
      */
     Page<Guardian> search(GuardianCriteria criteria, Pageable pageable, Sortable sortable) throws TechnicalException;
+
+    /**
+     * The Guardian of this environment whose name matches, ignoring case.
+     *
+     * <p>Ignoring case because that is the rule the domain enforces: two Guardians of one environment
+     * may not share a name, and "Credential leakage" and "credential leakage" are the same name to a
+     * person reading a list.
+     *
+     * @param environmentId the environment to look in, never {@code null}
+     * @param name the name to match, compared without regard to case
+     * @return the Guardian with that name, or empty when the environment has none
+     */
+    Optional<Guardian> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name) throws TechnicalException;
 
     /**
      * Delete every Guardian of an environment.

@@ -2,7 +2,7 @@
   {
     "id": "id_update_test",
     "environmentId": "environmentId",
-    "name": "name",
+    "name": "name crud update",
     "phase": "REQUEST",
     "definition": "definition",
     "deployedAt": 1507032062000,
@@ -14,7 +14,7 @@
   {
     "id": "id_find-by-id_test",
     "environmentId": "environmentId",
-    "name": "name",
+    "name": "name crud find by id",
     "phase": "RESPONSE",
     "definition": "definition",
     "deployedAt": 1507032062000,
@@ -26,7 +26,7 @@
   {
     "id": "id_delete_test",
     "environmentId": "environmentId",
-    "name": "name",
+    "name": "name crud delete",
     "phase": "RESPONSE",
     "definition": "definition",
     "deployedAt": 1507032062000,
@@ -38,7 +38,7 @@
   {
     "id": "id_to_be_deleted_1",
     "environmentId": "ToBeDeleted",
-    "name": "name",
+    "name": "name to be deleted 1",
     "phase": "REQUEST",
     "definition": "definition",
     "deployedAt": 1507032062000,
@@ -50,7 +50,7 @@
   {
     "id": "id_to_be_deleted_2",
     "environmentId": "ToBeDeleted",
-    "name": "name",
+    "name": "name to be deleted 2",
     "phase": "REQUEST",
     "definition": "definition",
     "deployedAt": 1507032062000,

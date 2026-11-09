@@ -28,4 +28,11 @@ import org.springframework.stereotype.Repository;
 public interface GuardianMongoRepository extends MongoRepository<GuardianMongo, String>, GuardianMongoRepositoryCustom {
     @Query(value = "{ 'environmentId': ?0 }", fields = "{ _id : 1 }", delete = true)
     List<GuardianMongo> deleteByEnvironmentId(String environmentId);
+
+    /**
+     * A list rather than an Optional on purpose: the unique index arrives with this change, so a store
+     * written before it can still hold two Guardians of one name and Spring Data would throw on the
+     * second instead of letting the caller refuse the name.
+     */
+    List<GuardianMongo> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name);
 }
