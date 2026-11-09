@@ -280,6 +280,16 @@ class ApiCRDAdapterTest {
         assertThat(spec.getPlans().keySet()).singleElement().asString().matches("plan-\\d{8}");
     }
 
+    @Test
+    void should_export_no_plans_when_the_caller_cannot_read_them() {
+        var export = exportEntity(false);
+        export.setPlans(null);
+
+        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null);
+
+        assertThat(spec.getPlans()).isEmpty();
+    }
+
     private static ExportApiEntity exportEntity(boolean withHrid) {
         return ExportApiEntity.builder()
             .apiEntity(
