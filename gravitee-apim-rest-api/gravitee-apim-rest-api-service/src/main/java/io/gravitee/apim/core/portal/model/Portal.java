@@ -17,7 +17,9 @@ package io.gravitee.apim.core.portal.model;
 
 import jakarta.annotation.Nonnull;
 import java.net.URL;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.function.Predicate;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -112,6 +114,15 @@ public class Portal {
         URL url
     ) {
         return new Portal(id, environmentId, organizationId, name, navigationStructure, activeThemeId, defaultPortal, url);
+    }
+
+    /** Keeps the portals whose name contains {@code query}, ignoring case; null or blank keeps them all. */
+    public static Predicate<Portal> nameFilter(String query) {
+        if (query == null || query.isBlank()) {
+            return portal -> true;
+        }
+        var needle = query.strip().toLowerCase(Locale.ROOT);
+        return portal -> portal.getName().toLowerCase(Locale.ROOT).contains(needle);
     }
 
     public boolean isDefault() {

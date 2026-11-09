@@ -24,7 +24,6 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -45,10 +44,11 @@ public class ListPortalsUseCase {
 
     public Output execute(Input input) {
         // The license caps an environment at a handful of portals, so filtering and paging in memory is cheap.
+        var nameFilter = Portal.nameFilter(input.query());
         var matching = portalCrudService
             .findByEnvironmentId(input.environmentId())
             .stream()
-            .filter(portal -> nameContains(portal, input.query()))
+            .filter(nameFilter)
             .sorted(DEFAULT_FIRST_THEN_BY_NAME)
             .toList();
 
@@ -58,12 +58,5 @@ public class ListPortalsUseCase {
         List<PortalSummary> content = portalSummaryDomainService.summarize(input.environmentId(), matching.subList(from, to));
 
         return new Output(new Page<>(content, pageable.getPageNumber(), content.size(), matching.size()));
-    }
-
-    private static boolean nameContains(Portal portal, String query) {
-        if (query == null || query.isBlank()) {
-            return true;
-        }
-        return portal.getName().toLowerCase(Locale.ROOT).contains(query.strip().toLowerCase(Locale.ROOT));
     }
 }
