@@ -997,7 +997,7 @@ api:
   #   api.properties.encryption.secret, and give every Management API node the same value.
   # - Keep a copy somewhere safe: if the KEK is lost, every stored secret is lost with it.
   # Without a valid KEK, or with a KEK other than the one that encrypted the stored secrets, the Management API still
-  # starts and logs an error naming the problem (never the key), and every secrets call fails with that error.
+  # starts and logs an error naming the problem (never the key), and creating or updating a secret fails with that error.
   # Warning: DEBUG on the org.mongodb.driver logger writes whole commands and replies, encrypted secret values included,
   # to the logs. The Gravitee and Spring loggers never log a value, up to TRACE.
   #secrets:
