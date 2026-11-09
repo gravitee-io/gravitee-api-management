@@ -895,7 +895,8 @@ public class ResourceContextConfiguration {
         PageCrudService pageCrudService,
         KafkaPortRangeCrudServiceInMemory kafkaPortRangeCrudService,
         DataEncryptor dataEncryptor,
-        CRDMembersDomainServiceInMemory crdMembersDomainService
+        CRDMembersDomainServiceInMemory crdMembersDomainService,
+        PlanCrudService planCrudService
     ) {
         ValidateGroupsDomainService groupsValidator = new ValidateGroupsDomainService(groupQueryService);
         return new ValidateApiCRDUseCase(
@@ -914,7 +915,8 @@ public class ResourceContextConfiguration {
                 ),
                 new ValidatePlanDomainService(
                     new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService),
-                    new VerifyPlanPortRangesDomainService(kafkaPortRangeCrudService)
+                    new VerifyPlanPortRangesDomainService(kafkaPortRangeCrudService),
+                    planCrudService
                 ),
                 new ValidatePortalNotificationDomainService(groupsValidator),
                 new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),

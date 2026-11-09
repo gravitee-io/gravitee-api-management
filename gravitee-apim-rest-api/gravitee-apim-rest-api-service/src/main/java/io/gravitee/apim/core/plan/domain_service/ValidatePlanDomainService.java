@@ -20,6 +20,7 @@ import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.NativePlanSecurityCategory;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.factory.PlanModelFactory;
@@ -28,10 +29,12 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -46,6 +49,7 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
 
     private final PlanValidatorDomainService planValidator;
     private final VerifyPlanPortRangesDomainService verifyPlanPortRangesDomainService;
+    private final PlanCrudService planCrudService;
 
     public record Input(AuditInfo auditInfo, ApiCRDSpec apiCRDSpec, Map<String, PlanCRD> plans, List<Page> pages) implements
         Validator.Input {
@@ -66,6 +70,10 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
         Map<String, PlanCRD> sanitizedPlans = new HashMap<>();
 
         input.plans.forEach((k, planCRD) -> {
+            if (belongsToAnotherReference(planCRD.getId(), input.apiCRDSpec.getId())) {
+                errors.add(Error.severe("invalid plan [%s]. Error: plan id [%s] does not belong to this API", k, planCRD.getId()));
+                return;
+            }
             try {
                 Plan plan = PlanModelFactory.fromCRDSpec(planCRD, input.apiCRDSpec);
 
@@ -105,6 +113,20 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
         }
 
         return Result.ofBoth(input.sanitized(sanitizedPlans), errors);
+    }
+
+    // Plan ids in a spec are lookup keys: an import only writes plans of the API it imports
+    private boolean belongsToAnotherReference(String planId, String apiId) {
+        if (planId == null) {
+            return false;
+        }
+        return planCrudService
+            .findById(planId)
+            .map(
+                existing ->
+                    existing.getReferenceType() != GenericPlanEntity.ReferenceType.API || !Objects.equals(existing.getReferenceId(), apiId)
+            )
+            .orElse(false);
     }
 
     /**
