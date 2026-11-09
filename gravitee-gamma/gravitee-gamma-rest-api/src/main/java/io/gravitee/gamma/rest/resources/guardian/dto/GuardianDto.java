@@ -15,13 +15,14 @@
  */
 package io.gravitee.gamma.rest.resources.guardian.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
@@ -32,7 +33,13 @@ import java.util.Set;
  *
  * <p>{@code environmentId} is the one field of the domain model left out — it is already in the path.
  * The deployment stamp is converted to a {@link ZonedDateTime} like the other two timestamps, so one
- * response does not mix an epoch number with two ISO strings.
+ * response does not mix formats.
+ *
+ * <p>The three timestamps are ISO 8601 in UTC. Both halves of that are deliberate. The shape needs
+ * {@code @JsonFormat}: the inherited rest-api mapper enables {@code WRITE_DATES_AS_TIMESTAMPS}, which
+ * would otherwise write a fractional {@code <epoch_seconds>.<nanos>} number. The zone needs
+ * {@link ZoneOffset#UTC}: read back with {@code ZoneId.systemDefault()} the offset would depend on the
+ * server's time zone, so the same instant would be written differently on two nodes.
  *
  * @author GraviteeSource Team
  */
@@ -46,9 +53,9 @@ public record GuardianDto(
     List<Step> policies,
     List<Resource> resources,
     GuardianLifecycleState lifecycleState,
-    ZonedDateTime deployedAt,
-    ZonedDateTime createdAt,
-    ZonedDateTime updatedAt
+    @JsonFormat(shape = JsonFormat.Shape.STRING) ZonedDateTime deployedAt,
+    @JsonFormat(shape = JsonFormat.Shape.STRING) ZonedDateTime createdAt,
+    @JsonFormat(shape = JsonFormat.Shape.STRING) ZonedDateTime updatedAt
 ) {
     public static GuardianDto from(Guardian guardian) {
         return new GuardianDto(
@@ -61,12 +68,17 @@ public record GuardianDto(
             guardian.getResources(),
             guardian.getLifecycleState(),
             toZonedDateTime(guardian.getDeployedAt()),
-            guardian.getCreatedAt(),
-            guardian.getUpdatedAt()
+            toUtc(guardian.getCreatedAt()),
+            toUtc(guardian.getUpdatedAt())
         );
     }
 
     private static ZonedDateTime toZonedDateTime(Date date) {
-        return date == null ? null : ZonedDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+        return date == null ? null : ZonedDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC);
+    }
+
+    /** The same instant, read in UTC, so the offset written does not depend on the server's zone. */
+    private static ZonedDateTime toUtc(ZonedDateTime dateTime) {
+        return dateTime == null ? null : dateTime.withZoneSameInstant(ZoneOffset.UTC);
     }
 }

@@ -29,7 +29,7 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import java.io.IOException;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.Optional;
@@ -220,7 +220,7 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
     }
 
     private static ZonedDateTime toZonedDateTime(Date date) {
-        return date == null ? null : ZonedDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+        return date == null ? null : ZonedDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC);
     }
 
     private static Date toDate(ZonedDateTime dateTime) {
