@@ -60,7 +60,7 @@ class BeanFactoryBuilderTest {
             var reporterConfiguration = new ReporterConfiguration();
             reporterConfiguration.setIndexMode("daily");
             when(client.getInfo()).thenReturn(Single.just(elasticsearchInfo("7.17.8")));
-            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
+            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client, reporterConfiguration);
 
             assertThat(beanFactory).isNotNull();
             assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeAndDateIndexNameGenerator.class);
@@ -72,7 +72,7 @@ class BeanFactoryBuilderTest {
             var reporterConfiguration = new ReporterConfiguration();
             reporterConfiguration.setIndexMode("ilm");
             when(client.getInfo()).thenReturn(Single.just(elasticsearchInfo("7.17.8")));
-            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
+            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client, reporterConfiguration);
 
             assertThat(beanFactory).isNotNull();
             assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeIndexNameGenerator.class);
@@ -88,7 +88,7 @@ class BeanFactoryBuilderTest {
             var reporterConfiguration = new ReporterConfiguration();
             reporterConfiguration.setIndexMode("daily");
             when(client.getInfo()).thenReturn(Single.just(elasticsearchInfo("8.5.2")));
-            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
+            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client, reporterConfiguration);
 
             assertThat(beanFactory).isNotNull();
             assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeAndDateIndexNameGenerator.class);
@@ -101,7 +101,7 @@ class BeanFactoryBuilderTest {
             reporterConfiguration.setIndexMode("ilm");
 
             when(client.getInfo()).thenReturn(Single.just(elasticsearchInfo("8.5.2")));
-            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
+            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client, reporterConfiguration);
 
             assertThat(beanFactory).isNotNull();
             assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeIndexNameGenerator.class);
@@ -117,7 +117,7 @@ class BeanFactoryBuilderTest {
             var reporterConfiguration = new ReporterConfiguration();
             reporterConfiguration.setIndexMode("daily");
             when(client.getInfo()).thenReturn(Single.just(elasticsearchInfo("9.2.1")));
-            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
+            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client, reporterConfiguration);
 
             assertThat(beanFactory).isNotNull();
             assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeAndDateIndexNameGenerator.class);
@@ -130,7 +130,7 @@ class BeanFactoryBuilderTest {
             reporterConfiguration.setIndexMode("ilm");
 
             when(client.getInfo()).thenReturn(Single.just(elasticsearchInfo("9.2.1")));
-            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
+            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client, reporterConfiguration);
 
             assertThat(beanFactory).isNotNull();
             assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeIndexNameGenerator.class);
@@ -148,7 +148,7 @@ class BeanFactoryBuilderTest {
             var reporterConfiguration = new ReporterConfiguration();
             reporterConfiguration.setIndexMode("daily");
             when(client.getInfo()).thenReturn(Single.just(opensearchInfo(version)));
-            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
+            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client, reporterConfiguration);
 
             assertThat(beanFactory).isNotNull();
             assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeAndDateIndexNameGenerator.class);
@@ -165,7 +165,7 @@ class BeanFactoryBuilderTest {
             reporterConfiguration.setIndexMode("ilm");
 
             when(client.getInfo()).thenReturn(Single.just(opensearchInfo(version)));
-            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
+            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client, reporterConfiguration);
 
             assertThat(beanFactory).isNotNull();
             assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeIndexNameGenerator.class);
@@ -178,11 +178,15 @@ class BeanFactoryBuilderTest {
     @Nested
     class AuthenticationError {
 
+        private final ReporterConfiguration reporterConfiguration = new ReporterConfiguration();
+
         @Test
         void should_fail_immediately_on_401_unauthorized() {
             when(client.getInfo()).thenReturn(Single.error(new ElasticsearchException("Unauthorized", 401)));
 
-            assertThatThrownBy(() -> BeanFactoryBuilder.buildFactory(client)).isInstanceOf(ElasticsearchException.class);
+            assertThatThrownBy(() -> BeanFactoryBuilder.buildFactory(client, reporterConfiguration)).isInstanceOf(
+                ElasticsearchException.class
+            );
 
             verify(client, times(1)).getInfo();
         }
@@ -191,7 +195,9 @@ class BeanFactoryBuilderTest {
         void should_fail_immediately_on_403_forbidden() {
             when(client.getInfo()).thenReturn(Single.error(new ElasticsearchException("Forbidden", 403)));
 
-            assertThatThrownBy(() -> BeanFactoryBuilder.buildFactory(client)).isInstanceOf(ElasticsearchException.class);
+            assertThatThrownBy(() -> BeanFactoryBuilder.buildFactory(client, reporterConfiguration)).isInstanceOf(
+                ElasticsearchException.class
+            );
 
             verify(client, times(1)).getInfo();
         }
@@ -200,7 +206,7 @@ class BeanFactoryBuilderTest {
         void should_fail_immediately_on_wrapped_401() {
             when(client.getInfo()).thenReturn(Single.error(new RuntimeException(new ElasticsearchException("Unauthorized", 401))));
 
-            assertThatThrownBy(() -> BeanFactoryBuilder.buildFactory(client)).isInstanceOf(RuntimeException.class);
+            assertThatThrownBy(() -> BeanFactoryBuilder.buildFactory(client, reporterConfiguration)).isInstanceOf(RuntimeException.class);
 
             verify(client, times(1)).getInfo();
         }
@@ -209,7 +215,7 @@ class BeanFactoryBuilderTest {
         void should_fail_immediately_on_wrapped_403() {
             when(client.getInfo()).thenReturn(Single.error(new RuntimeException(new ElasticsearchException("Forbidden", 403))));
 
-            assertThatThrownBy(() -> BeanFactoryBuilder.buildFactory(client)).isInstanceOf(RuntimeException.class);
+            assertThatThrownBy(() -> BeanFactoryBuilder.buildFactory(client, reporterConfiguration)).isInstanceOf(RuntimeException.class);
 
             verify(client, times(1)).getInfo();
         }

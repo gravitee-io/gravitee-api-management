@@ -77,7 +77,7 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
             log.info("Starting Elastic reporter engine...");
             disposables = new CompositeDisposable();
 
-            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
+            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client, reporterConfiguration);
             if (beanFactory == null) {
                 log.info("Starting Elastic reporter engine... ERROR");
                 return;

@@ -42,6 +42,7 @@ public class ElasticsearchReporterConfiguration {
         clientConfiguration.setEndpoints(reporterConfiguration.getEndpoints());
         clientConfiguration.setUsername(reporterConfiguration.getUsername());
         clientConfiguration.setPassword(reporterConfiguration.getPassword());
+        clientConfiguration.setApiKey(reporterConfiguration.getApiKey());
         clientConfiguration.setRequestTimeout(reporterConfiguration.getRequestTimeout());
 
         clientConfiguration.setProxyType(reporterConfiguration.getProxyType());

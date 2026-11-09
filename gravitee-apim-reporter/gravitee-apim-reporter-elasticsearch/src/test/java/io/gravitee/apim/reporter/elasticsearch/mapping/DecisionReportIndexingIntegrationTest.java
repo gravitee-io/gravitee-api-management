@@ -75,7 +75,7 @@ class DecisionReportIndexingIntegrationTest {
     void report_a_forbidden_decision() throws Exception {
         var configuration = new ReporterConfiguration();
         configuration.setIndexName(INDEX_NAME);
-        var beanFactory = BeanFactoryBuilder.buildFactory(client);
+        var beanFactory = BeanFactoryBuilder.buildFactory(client, configuration);
         beanFactory
             .createIndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, client)
             .prepare()

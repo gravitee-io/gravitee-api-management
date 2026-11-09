@@ -103,6 +103,12 @@ public class ReporterConfiguration {
     private String password;
 
     /**
+     * Elasticsearch API key, sent instead of the basic credentials.
+     */
+    @Value("${reporters.elasticsearch.security.api_key:#{null}}")
+    private String apiKey;
+
+    /**
      * Elasticsearch ssl keystore path.
      */
     @Value("${reporters.elasticsearch.ssl.keystore.type:#{null}}")
@@ -330,6 +336,14 @@ public class ReporterConfiguration {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
     }
 
     public String getSslKeystoreType() {

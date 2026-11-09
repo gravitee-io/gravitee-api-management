@@ -17,6 +17,7 @@ package io.gravitee.apim.reporter.elasticsearch;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
@@ -28,6 +29,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -45,12 +47,15 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.templating.FreeMarkerComponent;
 import io.gravitee.elasticsearch.client.Client;
+import io.gravitee.elasticsearch.exception.ElasticsearchException;
 import io.gravitee.node.api.Node;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -331,6 +336,94 @@ class ElasticsearchReporterSetupTest {
         assertNoNullPointerExceptionLogged();
     }
 
+    @Test
+    void should_authenticate_with_the_api_key_when_only_an_api_key_is_configured() throws Exception {
+        startReporter(Map.of("reporters.elasticsearch.security.api_key", "encoded-key"));
+        awaitReporterLog(Level.INFO, "Starting Elastic reporter engine... DONE");
+
+        assertThat(authorizationHeadersOfInfoRequests()).isNotEmpty().containsOnly("ApiKey encoded-key");
+    }
+
+    @Test
+    void should_authenticate_with_basic_credentials_when_only_username_and_password_are_configured() throws Exception {
+        startReporter(Map.of("reporters.elasticsearch.security.username", "user", "reporters.elasticsearch.security.password", "secret"));
+        awaitReporterLog(Level.INFO, "Starting Elastic reporter engine... DONE");
+
+        assertThat(authorizationHeadersOfInfoRequests())
+            .isNotEmpty()
+            .containsOnly("Basic " + Base64.getEncoder().encodeToString("user:secret".getBytes(StandardCharsets.UTF_8)));
+    }
+
+    @Test
+    void should_not_authenticate_when_no_credentials_are_configured() throws Exception {
+        startReporter(Map.of());
+        awaitReporterLog(Level.INFO, "Starting Elastic reporter engine... DONE");
+
+        assertThat(elasticsearch.findAll(getRequestedFor(urlEqualTo("/"))))
+            .isNotEmpty()
+            .allSatisfy(request -> assertThat(request.containsHeader("Authorization")).isFalse());
+    }
+
+    @Test
+    void should_not_start_when_both_an_api_key_and_basic_credentials_are_configured() {
+        assertThatThrownBy(() ->
+            startReporter(
+                Map.of(
+                    "reporters.elasticsearch.security.api_key",
+                    "encoded-key",
+                    "reporters.elasticsearch.security.username",
+                    "user",
+                    "reporters.elasticsearch.security.password",
+                    "secret"
+                )
+            )
+        )
+            .rootCause()
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("apiKey")
+            .hasMessageContaining("username/password");
+        assertThat(reporter).isNull();
+        elasticsearch.verify(0, getRequestedFor(urlEqualTo("/")));
+    }
+
+    @Test
+    void should_name_the_api_key_setting_when_elasticsearch_rejects_the_api_key() {
+        elasticsearch.stubFor(get(urlEqualTo("/")).willReturn(aResponse().withStatus(401)));
+
+        assertThatThrownBy(() -> startReporter(Map.of("reporters.elasticsearch.security.api_key", "revoked-key"))).isInstanceOfSatisfying(
+            ElasticsearchException.class,
+            exception -> assertThat(exception.getStatusCode()).isEqualTo(401)
+        );
+
+        assertThat(reporterMessages(Level.ERROR))
+            .singleElement()
+            .satisfies(message ->
+                assertThat(message)
+                    .contains("(401)")
+                    .contains("'reporters.elasticsearch.security.api_key'")
+                    .doesNotContain("security.username")
+            );
+    }
+
+    @Test
+    void should_name_the_basic_credentials_settings_when_elasticsearch_rejects_them() {
+        elasticsearch.stubFor(get(urlEqualTo("/")).willReturn(aResponse().withStatus(401)));
+
+        assertThatThrownBy(() ->
+            startReporter(Map.of("reporters.elasticsearch.security.username", "user", "reporters.elasticsearch.security.password", "wrong"))
+        ).isInstanceOfSatisfying(ElasticsearchException.class, exception -> assertThat(exception.getStatusCode()).isEqualTo(401));
+
+        assertThat(reporterMessages(Level.ERROR))
+            .singleElement()
+            .satisfies(message ->
+                assertThat(message)
+                    .contains("(401)")
+                    .contains("'reporters.elasticsearch.security.username'")
+                    .contains("'reporters.elasticsearch.security.password'")
+                    .doesNotContain("security.api_key")
+            );
+    }
+
     private void startReporter(Map<String, Object> properties) throws Exception {
         final Map<String, Object> allProperties = new HashMap<>();
         allProperties.put("reporters.elasticsearch.endpoints[0]", elasticsearch.baseUrl());
@@ -362,6 +455,14 @@ class ElasticsearchReporterSetupTest {
         metrics.setProxyResponseTimeMs(51);
         metrics.setProxyLatencyMs(1);
         return metrics;
+    }
+
+    private List<String> authorizationHeadersOfInfoRequests() {
+        return elasticsearch
+            .findAll(getRequestedFor(urlEqualTo("/")))
+            .stream()
+            .map(request -> request.getHeader("Authorization"))
+            .toList();
     }
 
     private String awaitBulkBody() {
