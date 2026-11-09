@@ -27,7 +27,6 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiProductMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzEntityMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzPolicyMapper;
-import io.gravitee.gateway.services.sync.process.distributed.mapper.CredentialMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.GenericEventMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
@@ -42,7 +41,6 @@ import io.gravitee.gateway.services.sync.process.distributed.synchronizer.apikey
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.apiproduct.DistributedApiProductSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.authz.DistributedAuthzEntitySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.authz.DistributedAuthzPolicySynchronizer;
-import io.gravitee.gateway.services.sync.process.distributed.synchronizer.credential.DistributedCredentialSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.dictionary.DistributedDictionarySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.genericevent.DistributedGenericEventSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.license.DistributedLicenseSynchronizer;
@@ -113,11 +111,6 @@ public class DistributedSyncConfiguration {
     @Bean
     public AuthzPolicyMapper distributedAuthzPolicyMapper(ObjectMapper objectMapper) {
         return new AuthzPolicyMapper(objectMapper);
-    }
-
-    @Bean
-    public CredentialMapper distributedCredentialMapper(ObjectMapper objectMapper) {
-        return new CredentialMapper(objectMapper);
     }
 
     @Bean
@@ -337,23 +330,6 @@ public class DistributedSyncConfiguration {
     }
 
     @Bean
-    public DistributedCredentialSynchronizer distributedCredentialSynchronizer(
-        DistributedEventFetcher distributedEventFetcher,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
-        DeployerFactory deployerFactory,
-        CredentialMapper credentialMapper
-    ) {
-        return new DistributedCredentialSynchronizer(
-            distributedEventFetcher,
-            syncFetcherExecutor,
-            syncDeployerExecutor,
-            deployerFactory,
-            credentialMapper
-        );
-    }
-
-    @Bean
     public DistributedGenericEventSynchronizer distributedGenericEventSynchronizer(
         DistributedEventFetcher distributedEventFetcher,
         @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
@@ -408,7 +384,6 @@ public class DistributedSyncConfiguration {
         final AuthzEntityMapper authzEntityMapper,
         final AuthzPolicyMapper authzPolicyMapper,
         final ApiProductMapper apiProductMapper,
-        final CredentialMapper credentialMapper,
         final GenericEventMapper genericEventMapper
     ) {
         return new DefaultDistributedSyncService(
@@ -429,7 +404,6 @@ public class DistributedSyncConfiguration {
             authzEntityMapper,
             authzPolicyMapper,
             apiProductMapper,
-            credentialMapper,
             genericEventMapper
         );
     }

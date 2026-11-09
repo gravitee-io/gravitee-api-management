@@ -22,12 +22,10 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.dictionary.DictionaryManager;
-import io.gravitee.gateway.handlers.api.manager.CredentialResolver;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
 import io.gravitee.gateway.reactive.handlers.api.el.ApiTemplateVariableProvider;
-import io.gravitee.gateway.reactive.handlers.api.el.CredentialsTemplateVariableProvider;
 import io.gravitee.gateway.reactive.handlers.common.AbstractReactorFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
@@ -40,9 +38,7 @@ import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 import lombok.CustomLog;
-import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.context.ApplicationContext;
 
 @CustomLog
@@ -134,14 +130,6 @@ public abstract class AbstractApiReactorFactory<T extends ReactableApi<? extends
     protected List<TemplateVariableProvider> commonTemplateVariableProviders(T reactableApi) {
         final List<TemplateVariableProvider> apiTemplateVariableProviders = new ArrayList<>();
         apiTemplateVariableProviders.add(new ApiTemplateVariableProvider(reactableApi));
-        Stream.of(BeanFactoryUtils.beanNamesForTypeIncludingAncestors(applicationContext, CredentialResolver.class))
-            .findFirst()
-            .map(name -> applicationContext.getBean(name, CredentialResolver.class))
-            .ifPresent(credentialResolver ->
-                apiTemplateVariableProviders.add(
-                    new CredentialsTemplateVariableProvider(reactableApi.getEnvironmentId(), reactableApi.getId(), credentialResolver)
-                )
-            );
         return environmentTemplateVariableProviders(reactableApi.getEnvironmentId(), apiTemplateVariableProviders);
     }
 }

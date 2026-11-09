@@ -29,7 +29,6 @@ import io.gravitee.gateway.genericevent.spring.GenericEventConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.spring.AccessPointConfiguration;
 import io.gravitee.gateway.handlers.api.spring.ApiHandlerConfiguration;
 import io.gravitee.gateway.handlers.api.spring.ApiProductConfiguration;
-import io.gravitee.gateway.handlers.api.spring.CredentialConfiguration;
 import io.gravitee.gateway.handlers.cluster.spring.ClusterConfiguration;
 import io.gravitee.gateway.handlers.guardian.spring.GuardianConfiguration;
 import io.gravitee.gateway.handlers.sharedpolicygroup.spring.SharedPolicyGroupConfiguration;
@@ -68,7 +67,6 @@ import org.springframework.context.annotation.Primary;
         GuardianConfiguration.class,
         ClusterConfiguration.class,
         ApiProductConfiguration.class,
-        CredentialConfiguration.class,
         DictionaryConfiguration.class,
         GenericEventConfiguration.class,
         PolicyConfiguration.class,

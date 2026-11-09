@@ -143,25 +143,4 @@ class EnvironmentServiceTest {
 
         assertThatThrownBy(() -> cut.fill(ENV_ID, reactableApi)).isInstanceOf(SyncException.class);
     }
-
-    @Test
-    void should_return_the_organization_of_an_environment() throws TechnicalException {
-        when(environmentRepository.findById(ENV_ID)).thenReturn(Optional.of(environment()));
-
-        assertThat(cut.organizationIdOf(ENV_ID)).isEqualTo(ORG_ID);
-    }
-
-    @Test
-    void should_return_no_organization_for_an_unknown_environment() throws TechnicalException {
-        when(environmentRepository.findById(ENV_ID)).thenReturn(Optional.empty());
-
-        assertThat(cut.organizationIdOf(ENV_ID)).isNull();
-    }
-
-    @Test
-    void should_return_no_organization_without_an_environment() {
-        assertThat(cut.organizationIdOf(null)).isNull();
-
-        verifyNoInteractions(environmentRepository, organizationRepository);
-    }
 }
