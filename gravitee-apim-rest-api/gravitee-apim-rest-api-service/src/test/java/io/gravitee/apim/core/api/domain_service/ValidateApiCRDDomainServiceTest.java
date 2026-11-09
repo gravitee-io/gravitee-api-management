@@ -110,7 +110,7 @@ class ValidateApiCRDDomainServiceTest {
         planValidator,
         portalNotificationValidator,
         healthCheckScheduleValidator,
-        apiQueryService,
+        new ApiCRDTargetDomainService(apiQueryService, apiCrudService),
         membersDomainService
     );
 
