@@ -16,6 +16,7 @@
 package io.gravitee.gateway.handlers.guardian.reactor;
 
 import io.gravitee.gateway.handlers.guardian.ReactableGuardian;
+import io.gravitee.gateway.handlers.guardian.decision.GuardianVerdicts;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
 import io.reactivex.rxjava3.core.Completable;
@@ -43,6 +44,7 @@ public interface GuardianReactor {
      *
      * @param ctx the execution context of the calling API.
      * @param source the policy of the API flow executing the Guardian.
+     * @param verdicts the collector of this run, where the guardrails of the Guardian record what they concluded.
      */
-    Completable execute(HttpPlainExecutionContext ctx, BasePolicy source);
+    Completable execute(HttpPlainExecutionContext ctx, BasePolicy source, GuardianVerdicts verdicts);
 }

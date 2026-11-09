@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.definition.model.v4.guardian.Guardian;
 import io.gravitee.gateway.handlers.guardian.ReactableGuardian;
+import io.gravitee.gateway.handlers.guardian.decision.GuardianVerdicts;
 import io.gravitee.gateway.handlers.guardian.reactor.GuardianReactor;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
@@ -107,7 +108,7 @@ class GuardianRegistryTest {
             }
 
             @Override
-            public Completable execute(HttpPlainExecutionContext ctx, BasePolicy source) {
+            public Completable execute(HttpPlainExecutionContext ctx, BasePolicy source, GuardianVerdicts verdicts) {
                 return Completable.complete();
             }
         };
