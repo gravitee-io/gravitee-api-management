@@ -147,16 +147,60 @@ class GuardiansResourceTest extends AbstractResourceTest {
             assertThat(body.get("pagination").get("totalCount").asLong()).isEqualTo(1L);
         }
 
+        /**
+         * A row is a summary, not a Guardian. The sequence and the resources are the bulk of the
+         * definition and no column renders one, so a page of twenty must not carry twenty copies of
+         * them; {@code guardrailCount} is what a row says about the sequence instead.
+         */
         @Test
-        void should_expose_the_whole_definition_and_hide_only_the_environment() {
+        void should_return_a_summary_row_without_the_guardrail_sequence() {
             guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
 
-            JsonNode dto = rootTarget().request().get().readEntity(JsonNode.class).get("data").get(0);
+            JsonNode row = rootTarget().request().get().readEntity(JsonNode.class).get("data").get(0);
+
+            assertThat(row.has("policies")).isFalse();
+            assertThat(row.has("resources")).isFalse();
+            assertThat(row.get("guardrailCount").asInt()).isEqualTo(1);
+        }
+
+        @Test
+        void should_carry_everything_a_list_column_renders() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+
+            JsonNode row = rootTarget().request().get().readEntity(JsonNode.class).get("data").get(0);
+
+            assertThat(row.get("id").asText()).isEqualTo(GUARDIAN_ID);
+            assertThat(row.get("name").asText()).isEqualTo("Credential leakage");
+            assertThat(row.get("description").asText()).isEqualTo("Blocks a reply that echoes an API key.");
+            assertThat(row.get("phase").asText()).isEqualTo("REQUEST");
+            assertThat(row.get("apiTypes").get(0).asText()).isEqualTo("llm-proxy");
+            assertThat(row.get("lifecycleState").asText()).isEqualTo("UNDEPLOYED");
+            assertThat(row.get("createdAt").asText()).isEqualTo("2026-02-01T20:22:02Z");
+            assertThat(row.get("updatedAt").asText()).isEqualTo("2026-02-02T20:22:02Z");
+            // already in the path, so repeating it in every row says nothing
+            assertThat(row.has("environmentId")).isFalse();
+        }
+
+        /** The whole definition is still one request away. */
+        @Test
+        void should_still_expose_the_whole_definition_on_a_single_read() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+
+            JsonNode dto = rootTarget("/" + GUARDIAN_ID).request().get().readEntity(JsonNode.class);
 
             assertThat(dto.get("policies")).hasSize(1);
-            assertThat(dto.get("apiTypes").get(0).asText()).isEqualTo("llm-proxy");
-            // already in the path, so repeating it in every row says nothing
             assertThat(dto.has("environmentId")).isFalse();
+        }
+
+        @Test
+        void should_count_an_empty_sequence_as_zero() {
+            guardianRepository.givenGuardian(
+                GuardianFixtures.aGuardian(d -> d.id(GUARDIAN_ID).environmentId(ENVIRONMENT).policies(List.of())).build()
+            );
+
+            JsonNode row = rootTarget().request().get().readEntity(JsonNode.class).get("data").get(0);
+
+            assertThat(row.get("guardrailCount").asInt()).isZero();
         }
 
         @Test

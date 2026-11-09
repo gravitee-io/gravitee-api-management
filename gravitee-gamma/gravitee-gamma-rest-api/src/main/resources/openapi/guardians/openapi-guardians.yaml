@@ -368,6 +368,60 @@ components:
                 createdAt: "2026-11-07T10:00:01.119Z"
                 updatedAt: "2026-11-07T10:00:01.119Z"
 
+        GuardianSummary:
+            type: object
+            description: |
+                One row of the Guardian list: what a list screen shows, and nothing it does not.
+
+                The guardrail sequence (`policies`) and the `resources` are deliberately absent —
+                they are the bulk of a Guardian, and a page of twenty would carry twenty copies of
+                them for columns that never render one. Read `GET /guardians/{guardianId}` for the
+                whole definition.
+
+                `guardrailCount` stands in for the one thing a row says about the sequence: its
+                length.
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                phase:
+                    $ref: "#/components/schemas/GuardianPhase"
+                apiTypes:
+                    $ref: "#/components/schemas/ApiTypes"
+                lifecycleState:
+                    $ref: "#/components/schemas/GuardianLifecycleState"
+                guardrailCount:
+                    type: integer
+                    format: int32
+                    description: How many guardrails the sequence holds.
+                createdAt:
+                    $ref: "#/components/schemas/Timestamp"
+                updatedAt:
+                    $ref: "#/components/schemas/Timestamp"
+            required:
+                - id
+                - name
+                - phase
+                - apiTypes
+                - lifecycleState
+                - guardrailCount
+                - createdAt
+                - updatedAt
+            example:
+                id: cd7e491c-5398-483d-b24e-208d6ac197f1
+                name: Credential leakage guard
+                description: Blocks a reply that echoes an API key.
+                phase: RESPONSE
+                apiTypes:
+                    - llm-proxy
+                lifecycleState: UNDEPLOYED
+                guardrailCount: 1
+                createdAt: "2026-11-07T10:00:01.119Z"
+                updatedAt: "2026-11-07T10:00:01.119Z"
+
         CreateGuardian:
             type: object
             description: |
@@ -464,7 +518,7 @@ components:
                 data:
                     type: array
                     items:
-                        $ref: "#/components/schemas/Guardian"
+                        $ref: "#/components/schemas/GuardianSummary"
                 pagination:
                     $ref: "#/components/schemas/Pagination"
             required:
