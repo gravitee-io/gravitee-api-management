@@ -292,4 +292,4 @@ workflows:
           requires:
             - Commit and prepare next version
 orbs:
-  keeper: gravitee-io/keeper@0.7.1
+  keeper: gravitee-io/keeper@0.7.3

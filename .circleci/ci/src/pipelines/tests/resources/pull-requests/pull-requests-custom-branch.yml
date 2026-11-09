@@ -1052,6 +1052,6 @@ workflows:
             - Lint & test Gamma Console
             - Build Gamma Console
 orbs:
-  keeper: gravitee-io/keeper@0.7.1
+  keeper: gravitee-io/keeper@0.7.3
   helm: circleci/helm@3.0.0
   slack: circleci/slack@4.12.5

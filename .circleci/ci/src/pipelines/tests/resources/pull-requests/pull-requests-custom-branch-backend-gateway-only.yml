@@ -424,5 +424,5 @@ workflows:
             - Test gateway
             - Integration tests
 orbs:
-  keeper: gravitee-io/keeper@0.7.1
+  keeper: gravitee-io/keeper@0.7.3
   slack: circleci/slack@4.12.5
