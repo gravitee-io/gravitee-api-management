@@ -39,7 +39,8 @@ public record MetricDefinitionEntryDto(
     String rawKey,
     String valueType,
     String lastSeen,
-    Boolean exposed
+    Boolean exposed,
+    String namespace
 ) {
     public static MetricDefinitionEntryDto from(AdditionalMetricCatalogEntry entry) {
         return new MetricDefinitionEntryDto(
@@ -56,7 +57,8 @@ public record MetricDefinitionEntryDto(
             entry.field().rawKey(),
             entry.field().valueType().name(),
             entry.lastSeen() == null ? null : entry.lastSeen().toString(),
-            entry.exposed()
+            entry.exposed(),
+            entry.namespace()
         );
     }
 }

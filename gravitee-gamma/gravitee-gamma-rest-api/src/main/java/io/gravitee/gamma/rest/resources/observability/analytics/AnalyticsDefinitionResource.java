@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.resources.observability.analytics;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.GetObservabilityAnalyticsDefinitionUseCase;
+import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.resources.observability.EnumQueryParam;
@@ -41,7 +42,8 @@ import java.util.List;
 
 /**
  * The analytics definition the widget editor is built from, under
- * {@code /gamma/organizations/{orgId}/environments/{envId}/observability/analytics/definition}.
+ * {@code /gamma/organizations/{orgId}/environments/{envId}/observability/analytics/definition}. {@code apiType},
+ * required, names the kinds described; {@code origin}, optional, keeps the entries of those origins only.
  *
  * <h2>Authorization</h2>
  * A login only, like the filter catalog: the built-in metrics and the environment's records hold no traffic data.
@@ -67,6 +69,7 @@ public class AnalyticsDefinitionResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAnalyticsDefinition(
         @QueryParam("apiType") List<String> apiTypes,
+        @QueryParam("origin") List<String> origins,
         @Context Request request,
         @Context Providers providers
     ) {
@@ -75,7 +78,8 @@ public class AnalyticsDefinitionResource {
             new GetObservabilityAnalyticsDefinitionUseCase.Input(
                 ctx.getOrganizationId(),
                 ctx.getEnvironmentId(),
-                EnumQueryParam.parse(apiTypes, ApiType.class, InvalidObservabilityQueryException::notAnApiKind)
+                EnumQueryParam.parse(apiTypes, ApiType.class, InvalidObservabilityQueryException::notAnApiKind),
+                EnumQueryParam.parse(origins, CatalogOrigin.class, "origin")
             )
         );
         var body = AnalyticsDefinitionResponseDto.from(output.definition(), output.truncated());

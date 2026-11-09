@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.core.observability.catalog.model;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The additional metrics of an environment, built-in, declared and discovered, one entry per key.
@@ -29,5 +30,20 @@ import java.util.List;
 public record AdditionalMetricCatalog(List<AdditionalMetricCatalogEntry> entries, Instant refreshedAt, boolean truncated) {
     public AdditionalMetricCatalog {
         entries = List.copyOf(entries);
+    }
+
+    /**
+     * The entries of {@code origins} only, every entry when none is asked. {@code refreshedAt} and
+     * {@code truncated} still describe the discovery pass, whatever origins are kept.
+     */
+    public AdditionalMetricCatalog narrowedTo(Set<CatalogOrigin> origins) {
+        return new AdditionalMetricCatalog(
+            entries
+                .stream()
+                .filter(entry -> entry.origin().keptBy(origins))
+                .toList(),
+            refreshedAt,
+            truncated
+        );
     }
 }

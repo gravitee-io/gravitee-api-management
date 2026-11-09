@@ -21,10 +21,20 @@ import java.time.Instant;
  * The catalog flags of an entry backed by an additional metric (the {@code CatalogEntryFlags} of the observability
  * OpenAPI).
  *
- * @param origin   {@code null} on the spec the filter registry gives a name read in a query, where only the key's
- *                 grammar matters, not where the field comes from.
- * @param lastSeen {@code null} when unknown or not served to the caller.
+ * @param origin    {@code null} on the spec the filter registry gives a name read in a query, where only the key's
+ *                  grammar matters, not where the field comes from.
+ * @param lastSeen  {@code null} when unknown or not served to the caller.
+ * @param namespace the namespace of the key on a {@code DECLARED} or {@code DISCOVERED} entry, as
+ *                  {@link AdditionalMetricNamespace#of} serves it; {@code null} on a built-in entry, and when the
+ *                  namespace is unknown.
  *
  * @author GraviteeSource Team
  */
-public record CatalogFlags(CatalogOrigin origin, String rawKey, AdditionalMetricValueType valueType, Instant lastSeen, boolean exposed) {}
+public record CatalogFlags(
+    CatalogOrigin origin,
+    String rawKey,
+    AdditionalMetricValueType valueType,
+    Instant lastSeen,
+    boolean exposed,
+    String namespace
+) {}

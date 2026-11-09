@@ -83,13 +83,24 @@ class BuiltInAdditionalMetricCatalogTest {
     @Test
     void should_label_and_scope_every_built_in_entry_from_the_filter_catalog_or_the_analytics_definition_but_the_undescribed() {
         var byName = builtIns.stream().collect(Collectors.toMap(AdditionalMetricCatalogEntry::name, Function.identity()));
+        var filterCatalogLabels = new SpiFilterRegistry()
+            .getFilters(Set.of(), Set.of())
+            .stream()
+            .collect(Collectors.toMap(FilterSpec::name, FilterSpec::label));
 
         assertThat(byName.keySet()).containsAll(UNDESCRIBED);
+        assertThat(byName.get("EDGE_MODEL").label()).as("an undescribed built-in keeps its namespace in the label").isEqualTo("Edge model");
         assertThat(byName.values())
             .filteredOn(entry -> !UNDESCRIBED.contains(entry.name()))
             .allSatisfy(entry -> {
                 assertThat(entry.apiTypes()).as(entry.name()).isNotEmpty();
-                assertThat(entry.label()).as(entry.name()).isNotEqualTo(entry.field().derivedLabel());
+                // The filter catalog's label, which may read like the derived one ("Operation"); else the analytics
+                // definition's, which never does.
+                if (filterCatalogLabels.containsKey(entry.name())) {
+                    assertThat(entry.label()).as(entry.name()).isEqualTo(filterCatalogLabels.get(entry.name()));
+                } else {
+                    assertThat(entry.label()).as(entry.name()).isNotEqualTo(entry.field().derivedLabel());
+                }
             });
         assertThat(byName.get("MCP_PROXY_TOOL").label()).isEqualTo("MCP Tool");
         assertThat(byName.get("MCP_PROXY_TOOL").type()).isNotNull();
@@ -133,7 +144,7 @@ class BuiltInAdditionalMetricCatalogTest {
             .extracting(spec -> spec.catalog().rawKey())
             .containsExactly("long_failover_count");
         assertThat(byName.get("MCP_PROXY_TOOL").catalog()).isEqualTo(
-            new CatalogFlags(CatalogOrigin.BUILT_IN, "keyword_mcp-proxy_tools/call", AdditionalMetricValueType.KEYWORD, seen, true)
+            new CatalogFlags(CatalogOrigin.BUILT_IN, "keyword_mcp-proxy_tools/call", AdditionalMetricValueType.KEYWORD, seen, true, null)
         );
         assertThat(byName.get("NATIVE_CLIENT_SOFTWARE_VERSION").catalog().rawKey()).isEqualTo(
             "keyword_native-kafka_client-software-version"
@@ -165,12 +176,15 @@ class BuiltInAdditionalMetricCatalogTest {
         );
         assertThat(builtInNamesByRawKey).containsKeys("long_llm-proxy_tokens-sent", "double_llm-proxy_sent-cost");
 
-        var metrics = new AdditionalMetricCatalogDomainService(keys).metricCatalog(
-            builtInNamesByRawKey,
-            List.of(),
-            Optional.of(discovery),
-            new InMemoryCatalogPorts().additionalMetricSupport()
-        );
+        var metrics = new AdditionalMetricCatalogDomainService(keys)
+            .analyticsCatalog(
+                builtInNamesByRawKey,
+                List.of(),
+                Optional.of(discovery),
+                new InMemoryCatalogPorts().additionalMetricSupport(),
+                Set.of()
+            )
+            .metrics();
 
         assertThat(metrics).extracting(MetricDefinition::name).containsExactly("additional-metrics.long_failover_count");
     }

@@ -47,6 +47,11 @@ public enum AdditionalMetricValueType {
         return this == LONG || this == INT || this == DOUBLE;
     }
 
+    /** Holds a term the analytics engine groups by, at any level of a {@code by}: a keyword or a boolean. */
+    public boolean isFacet() {
+        return this == KEYWORD || this == BOOL;
+    }
+
     /** Stored as text: shown in the log detail, never filtered, faceted or measured. */
     public boolean isDetailOnly() {
         return this == STRING || this == JSON;

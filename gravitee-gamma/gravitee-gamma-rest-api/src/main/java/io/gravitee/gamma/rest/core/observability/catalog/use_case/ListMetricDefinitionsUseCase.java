@@ -22,6 +22,7 @@ import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider
 import io.gravitee.gamma.rest.core.observability.catalog.domain_service.AdditionalMetricCatalogDomainService;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricCatalog;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricDiscovery;
+import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.catalog.port.repository.AdditionalMetricDefinitionRepository;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricDiscoveryPort;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.BuiltInAdditionalMetricsPort;
@@ -36,7 +37,8 @@ import lombok.AllArgsConstructor;
 
 /**
  * Lists the environment's additional metrics: built-in, declared and, for a caller who reads the environment's
- * traffic, discovered, each with its {@code lastSeen}.
+ * traffic, discovered, each with its {@code lastSeen}. {@code origins} narrows the built list to the entries of those
+ * origins; {@code truncated} keeps describing the discovery pass whatever origins are kept.
  *
  * @author GraviteeSource Team
  */
@@ -52,7 +54,12 @@ public class ListMetricDefinitionsUseCase {
     private final AnalyticsDefinitionPort analyticsDefinition;
     private final AdditionalMetricCatalogDomainService catalog;
 
-    public record Input(String organizationId, String environmentId) {}
+    public record Input(String organizationId, String environmentId, Set<CatalogOrigin> origins) {
+        /** Every origin. */
+        public Input(String organizationId, String environmentId) {
+            this(organizationId, environmentId, Set.of());
+        }
+    }
 
     public record Output(AdditionalMetricCatalog catalog) {}
 
@@ -65,14 +72,16 @@ public class ListMetricDefinitionsUseCase {
             ? discovery.discover(input.organizationId(), input.environmentId(), catalog.keysListedElsewhere(builtInNamesByRawKey, records))
             : AdditionalMetricDiscovery.empty(TimeProvider.instantNow());
         return new Output(
-            catalog.merge(
-                builtInNamesByRawKey,
-                filterRegistry.getFilters(Set.of(), Set.of()),
-                builtInMetrics().values(),
-                records,
-                discovered,
-                readsTraffic
-            )
+            catalog
+                .merge(
+                    builtInNamesByRawKey,
+                    filterRegistry.getFilters(Set.of(), Set.of()),
+                    builtInMetrics().values(),
+                    records,
+                    discovered,
+                    readsTraffic
+                )
+                .narrowedTo(input.origins())
         );
     }
 

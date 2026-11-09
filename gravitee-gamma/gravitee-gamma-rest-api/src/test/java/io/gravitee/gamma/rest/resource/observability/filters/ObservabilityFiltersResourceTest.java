@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.filter.exception.ObservabilityFilterNotFoundException;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
@@ -176,6 +177,36 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
             assertThat(captor.getValue().environmentId()).isEqualTo(ENVIRONMENT);
             assertThat(captor.getValue().signals()).containsExactlyInAnyOrder(Signal.LOGS, Signal.ANALYTICS);
             assertThat(captor.getValue().apiTypes()).containsExactly(ApiType.LLM);
+            assertThat(captor.getValue().origins()).isEmpty();
+        }
+
+        @Test
+        void should_forward_the_multi_valued_case_insensitive_origins_to_the_use_case() {
+            when(getFilterDefinitionsUseCase.execute(any())).thenReturn(
+                new GetObservabilityFilterDefinitionsUseCase.Output(List.of(), false)
+            );
+
+            Response response = rootTarget("definition")
+                .queryParam("origin", "declared")
+                .queryParam("origin", "DISCOVERED")
+                .request()
+                .get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            ArgumentCaptor<GetObservabilityFilterDefinitionsUseCase.Input> captor = ArgumentCaptor.forClass(
+                GetObservabilityFilterDefinitionsUseCase.Input.class
+            );
+            Mockito.verify(getFilterDefinitionsUseCase).execute(captor.capture());
+            assertThat(captor.getValue().origins()).containsExactlyInAnyOrder(CatalogOrigin.DECLARED, CatalogOrigin.DISCOVERED);
+        }
+
+        @Test
+        void should_return_400_for_an_unknown_origin_value() {
+            Response response = rootTarget("definition").queryParam("origin", "NOPE").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(response.readEntity(JsonNode.class).get("message").asText()).isEqualTo("Unknown origin value 'NOPE'");
+            Mockito.verifyNoInteractions(getFilterDefinitionsUseCase);
         }
 
         @Test

@@ -163,8 +163,11 @@ paths:
                 and `valueType`. The built-in filters are followed by the environment's metric definitions
                 (see Metric definitions) as `DECLARED` entries: those with `exposed: true` and a `keyword`,
                 `number` or `boolean` type, labelled by their record or else by the label derived from
-                their key, for the `LOGS` and `ANALYTICS` signals. They carry no `apiTypes`: a narrowing
-                `apiType` keeps them for any API kind and drops them for `AUTHZ_DECISION` alone.
+                their key, with the record's `description`, for the `LOGS` and `ANALYTICS` signals. Such an
+                entry carries the `namespace` of its key and the `apiTypes` that namespace ties it to (see
+                `CatalogEntryFlags.namespace`): a narrowing `apiType` keeps it when the request shares one.
+                An entry of no known namespace carries no `apiTypes`: a narrowing `apiType` keeps it for any
+                API kind and drops it for `AUTHZ_DECISION` alone.
 
                 For a caller who reads the environment's traffic (`API_ANALYTICS[READ]` or `API_LOG[READ]`
                 on one of its APIs, or `ENVIRONMENT_PLATFORM[READ]`), the additional metric fields found
@@ -175,6 +178,9 @@ paths:
                 appears after the next refresh. When the pass fails, the catalog is served without them and
                 `truncated` is `true`.
                 Any other caller gets no `DISCOVERED` entry and no `lastSeen`: a login is enough for the rest.
+
+                `origin` keeps the entries of the asked origins only, once the catalog is built: `truncated`
+                keeps describing the discovery pass, whatever origins are kept.
             operationId: getObservabilityFilterDefinitions
             parameters:
                 - name: signal
@@ -195,6 +201,7 @@ paths:
                       type: array
                       items:
                           $ref: "#/components/schemas/ApiType"
+                - $ref: "#/components/parameters/catalogOriginsParam"
             responses:
                 "200":
                     description: The filter catalog narrowed by the requested axes.
@@ -1564,12 +1571,24 @@ paths:
                 as the analytics endpoints accept them: the exposed records as `DECLARED` entries,
                 with the record's label and unit, then, for a caller who may read the environment's
                 traffic, the keys recently found in its documents as `DISCOVERED` entries, with a label
-                derived from the key and no unit. A key a built-in metric
-                reads is listed under that built-in only. Every entry of the family is served for the
-                same kinds, with the same measures, facets and filters: those the engine accepts on any
-                numeric field (see `POST /analytics/measures`), the kinds being those whose requests it
-                measures such a field in (the HTTP family and `EDGE`). The family comes only when a
-                requested kind is one of those; `truncated` says when `DISCOVERED` entries may be missing.
+                derived from the key and no unit, each with the record's `description` and the `namespace`
+                of its key when the catalog knows it. A key a built-in metric reads is listed under that
+                built-in only. Every entry of the family takes the same measures and filters: those the
+                engine accepts on any numeric field (see `POST /analytics/measures`). Its `apiTypes` are
+                the kinds its namespace ties it to, among those whose requests the engine measures such a
+                field in (the HTTP family and `EDGE`); an entry of no known namespace carries every one of
+                those kinds (the filter catalog serves the same key tied to none). An entry is listed when
+                a requested kind is one of its; a namespace tying a key to kinds the engine measures no
+                such field for (`native-kafka`, `authz`) lists it as no metric at all. The family comes
+                only when a requested kind is one the engine measures such a field for; `truncated` says
+                when `DISCOVERED` entries may be missing.
+
+                The environment's `keyword_` and `bool_` keys, exposed records and discovered keys alike,
+                come as facets under the same kind rule: in `dimensions` with their origin, and among the
+                `facets` of every metric served for one of the facet's kinds, `HTTP_REQUESTS` (the built-in
+                every additional metric takes its facets from) and the metrics of the `ADDITIONAL` family
+                alike; a facet of no known namespace goes with every one of them. The analytics endpoints
+                accept them in `by` at any level.
 
                 Names and labels of the built-ins are those of the analytics engine catalog, the one
                 the analytics endpoints validate metrics, measures and facets against. A metric's
@@ -1586,6 +1605,13 @@ paths:
                 to revalidate on every use and never share between callers. It carries an `ETag`
                 hashing the body, and a request sending it back in `If-None-Match` is answered
                 `304 Not Modified`.
+
+                `origin` keeps the entries of the asked origins only, once the definition is built, metrics
+                and dimensions each narrowed on their own: the metrics of those origins, a family left empty
+                dropped, and the dimensions of those origins, whether or not a kept metric is grouped by
+                them. A kept metric still names every facet it is grouped by, so under `origin` a facet may
+                be named by a metric and absent from `dimensions`. `truncated` keeps describing the
+                discovery pass, whatever origins are kept.
             operationId: getObservabilityAnalyticsDefinition
             parameters:
                 - name: apiType
@@ -1601,6 +1627,7 @@ paths:
                       minItems: 1
                       items:
                           $ref: "#/components/schemas/ApiType"
+                - $ref: "#/components/parameters/catalogOriginsParam"
             responses:
                 "200":
                     description: The analytics definition of the requested API kinds.
@@ -1623,7 +1650,7 @@ paths:
                                             unit: "COUNT"
                                             apiTypes: ["HTTP_PROXY", "LLM", "MESSAGE", "MCP", "A2A"]
                                             measures: ["COUNT"]
-                                            facets: ["API", "HTTP_STATUS"]
+                                            facets: ["API", "HTTP_STATUS", "additional-metrics.keyword_mcp-proxy_endpoint-protocol-version"]
                                             filters: ["API", "API_TYPE", "HTTP_STATUS"]
                                             origin: "BUILT_IN"
                                     - name: "LLM"
@@ -1651,28 +1678,46 @@ paths:
                                       metrics:
                                           - name: "additional-metrics.double_checkout_basket-value"
                                             label: "Basket value"
+                                            description: "Amount of the basket at checkout"
                                             unit: "€"
                                             apiTypes: ["HTTP_PROXY", "MESSAGE", "LLM", "MCP", "A2A", "EDGE"]
                                             measures: ["AVG", "SUM", "MIN", "MAX", "P50", "P90", "P95", "P99", "COUNT"]
-                                            facets: ["API", "HTTP_STATUS"]
+                                            facets: ["API", "HTTP_STATUS", "additional-metrics.keyword_mcp-proxy_endpoint-protocol-version"]
                                             filters: ["API", "API_TYPE", "HTTP_STATUS"]
                                             origin: "DECLARED"
-                                          - name: "additional-metrics.long_failover_count"
-                                            label: "Failover count"
-                                            apiTypes: ["HTTP_PROXY", "MESSAGE", "LLM", "MCP", "A2A", "EDGE"]
+                                          - name: "additional-metrics.long_llm-proxy_tokens-cached"
+                                            label: "Tokens cached"
+                                            namespace: "llm-proxy"
+                                            apiTypes: ["LLM"]
                                             measures: ["AVG", "SUM", "MIN", "MAX", "P50", "P90", "P95", "P99", "COUNT"]
                                             facets: ["API", "HTTP_STATUS"]
+                                            filters: ["API", "API_TYPE", "HTTP_STATUS"]
+                                            origin: "DISCOVERED"
+                                          - name: "additional-metrics.long_failover_count"
+                                            label: "Failover count"
+                                            namespace: "failover"
+                                            apiTypes: ["HTTP_PROXY", "MESSAGE", "LLM", "MCP", "A2A"]
+                                            measures: ["AVG", "SUM", "MIN", "MAX", "P50", "P90", "P95", "P99", "COUNT"]
+                                            facets: ["API", "HTTP_STATUS", "additional-metrics.keyword_mcp-proxy_endpoint-protocol-version"]
                                             filters: ["API", "API_TYPE", "HTTP_STATUS"]
                                             origin: "DISCOVERED"
                                 dimensions:
                                     - name: "API"
                                       label: "API"
+                                      apiTypes: ["A2A", "AUTHZ", "AUTHZ_DECISION", "EDGE", "HTTP_PROXY", "LLM", "MCP", "MESSAGE", "NATIVE"]
                                       origin: "BUILT_IN"
                                     - name: "HTTP_STATUS"
                                       label: "Status Code"
+                                      apiTypes: ["A2A", "HTTP_PROXY", "LLM", "MCP", "MESSAGE"]
                                       origin: "BUILT_IN"
+                                    - name: "additional-metrics.keyword_mcp-proxy_endpoint-protocol-version"
+                                      label: "Endpoint protocol version"
+                                      namespace: "mcp-proxy"
+                                      apiTypes: ["MCP"]
+                                      origin: "DISCOVERED"
                                     - name: "LLM_PROXY_MODEL"
                                       label: "LLM Model"
+                                      apiTypes: ["LLM"]
                                       origin: "BUILT_IN"
                                 truncated: false
                 "304":
@@ -2211,11 +2256,21 @@ paths:
 
                 Labels follow the precedence declared › built-in › derived; the derived label strips
                 `additional-metrics.` and the type prefix, reads each run of `_` / `-` as one space and
-                capitalizes the first character (`long_my-policy_score` → "My policy score").
+                capitalizes the first character (`long_my-policy_score` → "My policy score"). It also
+                strips a namespace naming the one API kind the key is listed under
+                (`long_llm-proxy_tokens-cached` → "Tokens cached"); a namespace of several kinds stays
+                (`long_failover_count` → "Failover count"), as does an unknown one. Every surface labels a
+                key the same way: this list, the filter catalog and the analytics definition.
+
+                A `DECLARED` or `DISCOVERED` entry carries the `namespace` of its key and every API kind it
+                ties the key to (see `CatalogEntryFlags.namespace`). `origin` keeps the entries of the asked
+                origins only, once the list is built; `truncated` keeps describing the discovery pass.
 
                 `DISCOVERED` entries and `lastSeen` are served only to a caller who may read the
                 environment's traffic; others get the built-in and declared entries without `lastSeen`.
             operationId: listObservabilityMetricDefinitions
+            parameters:
+                - $ref: "#/components/parameters/catalogOriginsParam"
             responses:
                 "200":
                     description: The additional metrics of the environment.
@@ -2244,15 +2299,26 @@ paths:
                                       rawKey: "double_checkout_basket-value"
                                       valueType: "DOUBLE"
                                       exposed: true
+                                    - name: "additional-metrics.long_llm-proxy_tokens-cached"
+                                      label: "Tokens cached"
+                                      type: "number"
+                                      apiTypes: ["LLM"]
+                                      origin: "DISCOVERED"
+                                      rawKey: "long_llm-proxy_tokens-cached"
+                                      valueType: "LONG"
+                                      lastSeen: "2026-10-29T08:40:00Z"
+                                      exposed: true
+                                      namespace: "llm-proxy"
                                     - name: "additional-metrics.long_failover_count"
                                       label: "Failover count"
                                       type: "number"
-                                      apiTypes: []
+                                      apiTypes: ["A2A", "HTTP_PROXY", "LLM", "MCP", "MESSAGE"]
                                       origin: "DISCOVERED"
                                       rawKey: "long_failover_count"
                                       valueType: "LONG"
                                       lastSeen: "2026-10-29T08:12:00Z"
                                       exposed: true
+                                      namespace: "failover"
                                 refreshedAt: "2026-10-29T09:45:00Z"
                                 truncated: false
         post:
@@ -2515,6 +2581,22 @@ components:
             schema:
                 type: string
                 maxLength: 256
+        catalogOriginsParam:
+            name: origin
+            in: query
+            required: false
+            description: |
+                Only keep the entries of these origins, read case-insensitively. Repeat for several
+                origins. Absent: every origin. Applied once the catalog is built, so `truncated` and the
+                discovery pass behind it are the same whatever origins are kept. A value that is not a
+                `CatalogOrigin` is refused with `400`.
+            style: form
+            explode: true
+            schema:
+                type: array
+                items:
+                    $ref: "#/components/schemas/CatalogOrigin"
+            example: [DECLARED, DISCOVERED]
     schemas:
         MessageLog:
             type: object
@@ -2683,6 +2765,18 @@ components:
                         Whether the entry is offered in filters, columns and the widget editor. The filter
                         catalog only serves exposed entries; the metric definitions also list the others. Queries ignore it: a saved widget on a field that is no longer
                         exposed keeps working.
+                namespace:
+                    type: string
+                    description: |
+                        Namespace of the key, the second segment of `<type>_<namespace>_<name>`, on a `DECLARED`
+                        or `DISCOVERED` entry: a namespace a Gravitee component writes under (`llm-proxy`,
+                        `pii`, `semantic-caching`, `mcp-proxy`, `native-kafka`, `webhook`, `edge`, `authz`,
+                        `failover`, `quota`), which ties the key to the API kinds in the entry's `apiTypes`, or
+                        `custom` for a user key (`<type>_custom_<name>`), tied to none. Absent when the namespace
+                        is none of those, the key then tied to no kind and its segment kept in the derived
+                        label, and on `BUILT_IN` entries, scoped by their own catalog. The namespaces and their
+                        kinds are a static map of the server until each plugin describes its keys (OBS-194).
+                    example: llm-proxy
 
         FilterSpec:
             type: object
@@ -2706,6 +2800,12 @@ components:
                     type: string
                     description: Human-readable display name.
                     example: Gateway Response Time
+                description:
+                    type: string
+                    description: |
+                        The record's description on a `DECLARED` entry. Absent on every other entry, the
+                        built-in ones included until they carry one.
+                    example: Amount of the basket at checkout
                 type:
                     $ref: "#/components/schemas/FilterType"
                 operators:
@@ -2731,11 +2831,13 @@ components:
                 apiTypes:
                     type: array
                     description: |
-                        API kinds this filter is relevant to. Always filled on `BUILT_IN` entries. Absent or
-                        empty on `DECLARED` and `DISCOVERED` entries, since documents do not record which API
-                        kind wrote a key: such an entry applies to the request rows of every API kind and never
-                        to the decisions screen (`AUTHZ_DECISION`). A narrowing `apiType` query keeps it for any
-                        API kind and drops it for `AUTHZ_DECISION` alone.
+                        API kinds this filter is relevant to. Always filled on `BUILT_IN` entries. On a
+                        `DECLARED` or `DISCOVERED` entry, the kinds its `namespace` ties the key to; empty when
+                        the namespace says nothing, since documents do not record which API kind wrote a key:
+                        such an entry applies to the request rows of every API kind and never to the decisions
+                        screen (`AUTHZ_DECISION`). A narrowing `apiType` query keeps an entry carrying kinds when
+                        the request shares one, and an entry carrying none for any API kind, dropping it for
+                        `AUTHZ_DECISION` alone.
                     items:
                         $ref: "#/components/schemas/ApiType"
 
@@ -2756,7 +2858,8 @@ components:
                         the others left out), or the discovery pass ran out of time or failed (the catalog is then served
                         with what it found, possibly no `DISCOVERED` entry). `BUILT_IN` and `DECLARED` entries are never
                         left out. Absent or `false` for a caller who may not read the environment's traffic, and when the
-                        request admits no `DISCOVERED` entry (`apiType=AUTHZ_DECISION` alone, `signal=TRACES`).
+                        request admits no `DISCOVERED` entry (`apiType=AUTHZ_DECISION` alone, `signal=TRACES`). `origin`
+                        does not change it: it describes the discovery pass, not the entries kept.
 
         ObservabilityCapabilities:
             type: object
@@ -3970,7 +4073,9 @@ components:
                         $ref: "#/components/schemas/MetricFamily"
                 dimensions:
                     type: array
-                    description: Every facet the returned metrics can be grouped by, with its label.
+                    description: |
+                        Every facet the returned metrics can be grouped by, with its label, the API kinds it is tied
+                        to and, on a `DECLARED` or `DISCOVERED` entry, the namespace of its key.
                     items:
                         $ref: "#/components/schemas/DimensionDefinition"
                 truncated:
@@ -3980,7 +4085,7 @@ components:
                         discovery left keys out, by its cap or because the pass ran out of time or failed, and
                         the request admits such entries. `false` for a caller who may not read the traffic, and
                         when no requested kind is served additional metrics. Same meaning as on
-                        `GET /filters/definition`.
+                        `GET /filters/definition`; `origin` does not change it.
 
         MetricFamily:
             type: object
@@ -4020,6 +4125,16 @@ components:
                 label:
                     type: string
                     example: "Gateway response time"
+                description:
+                    type: string
+                    description: The record's description on a `DECLARED` entry; absent otherwise.
+                    example: "Amount of the basket at checkout"
+                namespace:
+                    type: string
+                    description: |
+                        Namespace of the key on a `DECLARED` or `DISCOVERED` entry, as `CatalogEntryFlags.namespace`
+                        describes it; absent on a built-in and when unknown.
+                    example: "llm-proxy"
                 unit:
                     type: string
                     description: |
@@ -4039,7 +4154,11 @@ components:
                     example: "USD"
                 apiTypes:
                     type: array
-                    description: API kinds the metric exists for.
+                    description: |
+                        API kinds the metric exists for. On a `DECLARED` or `DISCOVERED` entry, the kinds its
+                        `namespace` ties the key to among those the engine measures such a field for; every one
+                        of those kinds when the namespace says nothing (unlike the filter catalog, which serves
+                        such a key tied to none): the widget editor offers a metric for the kinds it carries.
                     items:
                         $ref: "#/components/schemas/ApiType"
                 measures:
@@ -4072,8 +4191,8 @@ components:
 
         DimensionDefinition:
             type: object
-            description: A facet a metric can be grouped by, with its label.
-            required: [name, label, origin]
+            description: A facet a metric can be grouped by, with its label, its namespace and the API kinds it is tied to.
+            required: [name, label, apiTypes, origin]
             properties:
                 name:
                     type: string
@@ -4082,13 +4201,29 @@ components:
                 label:
                     type: string
                     example: "Status Code"
+                namespace:
+                    type: string
+                    description: |
+                        Namespace of the key on a `DECLARED` or `DISCOVERED` entry, as `CatalogEntryFlags.namespace`
+                        describes it; absent on a built-in and when unknown.
+                    example: "mcp-proxy"
+                apiTypes:
+                    type: array
+                    description: |
+                        API kinds the facet is tied to, sorted: the same values `GET /filters/definition` serves for
+                        the filter of the same name. On a `DECLARED` or `DISCOVERED` entry, the kinds its `namespace`
+                        ties the key to, none when the namespace says nothing; on a built-in, the kinds of the
+                        built-in filter of its name (`LLM_PROXY_MODEL` → `["LLM"]`, `HTTP_STATUS` → the HTTP family,
+                        `API` → every kind), none when no filter carries that name.
+                    items:
+                        $ref: "#/components/schemas/ApiType"
                 origin:
                     allOf:
                         - $ref: "#/components/schemas/CatalogOrigin"
                     description: |
-                        Where the entry comes from. `BUILT_IN` is the only origin served on a dimension today:
-                        the additional metrics are grouped by the built-in facets. A client must accept the
-                        other values of `CatalogOrigin` all the same.
+                        Where the entry comes from: `BUILT_IN` for a facet of the engine catalog, `DECLARED` or
+                        `DISCOVERED` for a `keyword_` or `bool_` additional metric field of the environment,
+                        named `additional-metrics.<rawKey>` as `by` accepts it.
 
         DashboardFilter:
             type: object
@@ -4353,7 +4488,8 @@ components:
             type: object
             description: |
                 One additional metric of the environment, with the catalog flags of `CatalogEntryFlags`: `origin`,
-                `rawKey`, `valueType` and `exposed` are always present here, `lastSeen` as the flags describe it.
+                `rawKey`, `valueType` and `exposed` are always present here, `lastSeen` and `namespace` as the
+                flags describe them.
                 Unlike the filter catalog, this list also serves entries with `exposed: false`.
             required: [name, label, apiTypes, origin, rawKey, valueType, exposed]
             allOf:
@@ -4388,8 +4524,10 @@ components:
                 apiTypes:
                     type: array
                     description: |
-                        API kinds of a `BUILT_IN` entry, so a module can keep those of its scope; empty on `DECLARED`
-                        and `DISCOVERED` entries, which documents do not tie to an API kind.
+                        API kinds of a `BUILT_IN` entry, so a module can keep those of its scope; on a `DECLARED`
+                        or `DISCOVERED` entry, every kind its `namespace` ties the key to, whether or not the
+                        engine measures such a field for it; empty when the namespace says nothing, documents not
+                        recording which API kind wrote a key.
                     items:
                         $ref: "#/components/schemas/ApiType"
 
@@ -4409,7 +4547,7 @@ components:
                     type: boolean
                     description: |
                         `true` when the environment's documents carry more keys than the `DISCOVERED` entries list.
-                        `BUILT_IN` and `DECLARED` entries are never left out.
+                        `BUILT_IN` and `DECLARED` entries are never left out; `origin` does not change it.
 
         MetricDefinitionRecord:
             type: object

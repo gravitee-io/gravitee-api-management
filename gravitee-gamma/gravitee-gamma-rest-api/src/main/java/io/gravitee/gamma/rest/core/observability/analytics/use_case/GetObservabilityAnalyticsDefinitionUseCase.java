@@ -21,6 +21,7 @@ import io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinitio
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.AnalyticsDefinitionPort;
 import io.gravitee.gamma.rest.core.observability.catalog.domain_service.AdditionalMetricCatalogDomainService;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricDiscovery;
+import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.catalog.port.repository.AdditionalMetricDefinitionRepository;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricDiscoveryPort;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.BuiltInAdditionalMetricsPort;
@@ -40,9 +41,13 @@ import lombok.AllArgsConstructor;
  * family, and the facets those metrics can be grouped by.
  *
  * <p>The additional metrics are the exposed records as {@code DECLARED} entries and, for a caller who reads the
- * environment's traffic, the discovered keys as {@code DISCOVERED} entries (see
- * {@link AdditionalMetricCatalogDomainService#metricCatalog}). They come only when a requested kind is one the engine
- * serves them for; no discovery runs otherwise.
+ * environment's traffic, the discovered keys as {@code DISCOVERED} entries, each for the kinds its namespace ties it
+ * to (see {@link AdditionalMetricCatalogDomainService#analyticsCatalog}). They come only when a requested kind is one
+ * the engine serves them for; no discovery runs otherwise. The environment's keyword and bool keys come along as
+ * facets: of the built-in every additional metric takes its facets from, and of every additional metric.
+ *
+ * <p>{@code origins} narrows the built definition to the entries of those origins; {@code truncated} keeps describing
+ * the discovery pass whatever origins are kept.
  *
  * @author GraviteeSource Team
  */
@@ -57,7 +62,12 @@ public class GetObservabilityAnalyticsDefinitionUseCase {
     private final TrafficReadPermissionPort trafficReadPermission;
     private final AdditionalMetricCatalogDomainService catalog;
 
-    public record Input(String organizationId, String environmentId, Set<ApiType> apiTypes) {}
+    public record Input(String organizationId, String environmentId, Set<ApiType> apiTypes, Set<CatalogOrigin> origins) {
+        /** Every origin. */
+        public Input(String organizationId, String environmentId, Set<ApiType> apiTypes) {
+            this(organizationId, environmentId, apiTypes, Set.of());
+        }
+    }
 
     /**
      * @param truncated {@code true} when the discovery behind the {@code DISCOVERED} entries was cut, by the cap or because
@@ -80,7 +90,7 @@ public class GetObservabilityAnalyticsDefinitionUseCase {
         }
         var support = analyticsDefinitionPort.additionalMetricSupport();
         if (!support.servesAnyOf(kinds)) {
-            return new Output(AnalyticsDefinition.of(metrics.values()), false);
+            return new Output(AnalyticsDefinition.of(metrics.values()).narrowedTo(input.origins()), false);
         }
         var builtInNamesByRawKey = builtInAdditionalMetrics.builtInNamesByRawKey();
         var records = metricDefinitions.findByEnvironmentId(input.environmentId());
@@ -93,9 +103,12 @@ public class GetObservabilityAnalyticsDefinitionUseCase {
                 )
             )
             : Optional.empty();
-        catalog
-            .metricCatalog(builtInNamesByRawKey, records, discovered, support)
-            .forEach(metric -> metrics.putIfAbsent(metric.name(), metric));
-        return new Output(AnalyticsDefinition.of(metrics.values()), discovered.map(AdditionalMetricDiscovery::truncated).orElse(false));
+        var additional = catalog.analyticsCatalog(builtInNamesByRawKey, records, discovered, support, kinds);
+        metrics.computeIfPresent(support.dimensionsOf(), (name, metric) -> metric.groupedAlsoBy(additional.facetsFor(metric.apiTypes())));
+        additional.metrics().forEach(metric -> metrics.putIfAbsent(metric.name(), metric));
+        return new Output(
+            AnalyticsDefinition.of(metrics.values()).narrowedTo(input.origins()),
+            discovered.map(AdditionalMetricDiscovery::truncated).orElse(false)
+        );
     }
 }

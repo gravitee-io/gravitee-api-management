@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.core.observability.analytics.model;
 
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -24,6 +25,11 @@ import java.util.List;
  * by and the filters that narrow it. Names are the ones the analytics endpoints accept: a built-in name, or the wire
  * name of an additional metric field holding a number.
  *
+ * @param description the record's description on a {@code DECLARED} metric; {@code null} otherwise
+ * @param namespace the namespace of an additional metric field, as the catalog serves it
+ *             ({@code AdditionalMetricNamespace}); {@code null} on a built-in and when unknown
+ * @param apiTypes the kinds a built-in exists for; on an additional metric field, the kinds its namespace ties it to
+ *             among those the engine measures such a field for, every one of those when the namespace says nothing
  * @param unit the unit of a built-in in Gamma's vocabulary ({@code AdditionalMetricUnit.NAMED_UNITS}, mapped from the
  *             engine's by {@code ServedMetricUnit}), the record's unit on a {@code DECLARED} field, or {@code null}
  *             when none is known
@@ -34,6 +40,8 @@ import java.util.List;
 public record MetricDefinition(
     String name,
     String label,
+    String description,
+    String namespace,
     String unit,
     List<ApiType> apiTypes,
     List<String> measures,
@@ -42,7 +50,7 @@ public record MetricDefinition(
     CatalogOrigin origin,
     String currency
 ) {
-    /** A metric served without a currency: every additional metric, and a built-in that is not a cost. */
+    /** A metric with no description, namespace or currency: a built-in that is not a cost. */
     public MetricDefinition(
         String name,
         String label,
@@ -53,11 +61,48 @@ public record MetricDefinition(
         List<String> filters,
         CatalogOrigin origin
     ) {
-        this(name, label, unit, apiTypes, measures, facets, filters, origin, null);
+        this(name, label, null, null, unit, apiTypes, measures, facets, filters, origin, null);
+    }
+
+    /** A built-in, with its currency when it is a cost. */
+    public MetricDefinition(
+        String name,
+        String label,
+        String unit,
+        List<ApiType> apiTypes,
+        List<String> measures,
+        List<DimensionDefinition> facets,
+        List<String> filters,
+        CatalogOrigin origin,
+        String currency
+    ) {
+        this(name, label, null, null, unit, apiTypes, measures, facets, filters, origin, currency);
     }
 
     /** A built-in is grouped by its API kinds; an additional metric field by its origin, under one family. */
     public MetricFamily family() {
         return origin == CatalogOrigin.BUILT_IN ? MetricFamily.of(apiTypes) : MetricFamily.ADDITIONAL;
+    }
+
+    /** This metric grouped by {@code more} facets as well, after its own. */
+    public MetricDefinition groupedAlsoBy(List<DimensionDefinition> more) {
+        if (more.isEmpty()) {
+            return this;
+        }
+        List<DimensionDefinition> grouped = new ArrayList<>(facets);
+        grouped.addAll(more);
+        return new MetricDefinition(
+            name,
+            label,
+            description,
+            namespace,
+            unit,
+            apiTypes,
+            measures,
+            List.copyOf(grouped),
+            filters,
+            origin,
+            currency
+        );
     }
 }
