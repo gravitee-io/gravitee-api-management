@@ -16,9 +16,11 @@
 package io.gravitee.apim.infra.domain_service.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -48,15 +50,21 @@ import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.MissingPermissionException;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -88,6 +96,9 @@ class ApiCRDExportDomainServiceImplTest {
     @Mock
     NotificationCRDDomainService notificationCRDDomainService;
 
+    @Mock
+    PermissionService permissionService;
+
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
 
     GroupQueryServiceInMemory groupQueryServiceInMemory = new GroupQueryServiceInMemory();
@@ -108,9 +119,60 @@ class ApiCRDExportDomainServiceImplTest {
             apiCrudService,
             userCrudService,
             groupQueryServiceInMemory,
-            notificationCRDDomainService
+            notificationCRDDomainService,
+            permissionService
         );
         lenient().when(apiCrudService.get(API_ID)).thenReturn(new Api());
+        lenient()
+            .when(
+                permissionService.hasPermission(
+                    any(ExecutionContext.class),
+                    any(),
+                    any(RolePermission.class),
+                    any(),
+                    any(RolePermissionAction[].class)
+                )
+            )
+            .thenReturn(true);
+    }
+
+    @Test
+    void should_refuse_the_export_naming_the_plan_permission_when_the_caller_cannot_read_plans() {
+        givenTheCallerIsAnApiMemberWithRole(
+            Map.of(RolePermission.API_DEFINITION, Set.of(RolePermissionAction.READ, RolePermissionAction.UPDATE))
+        );
+
+        assertThatThrownBy(() ->
+            apiCRDExportDomainService.export(
+                API_ID,
+                IDExportStrategy.ALL,
+                AuditInfo.builder()
+                    .organizationId(ORG_ID)
+                    .environmentId(ENV_ID)
+                    .actor(AuditActor.builder().userId(USER_ID).build())
+                    .build(),
+                false
+            )
+        )
+            .isInstanceOfSatisfying(MissingPermissionException.class, e -> assertThat(e.getHttpStatusCode()).isEqualTo(403))
+            .hasMessage("Missing permission API_PLAN[READ] on [api-id]");
+        verify(exportService, never()).exportApi(any(), any(), any(), any());
+    }
+
+    private void givenTheCallerIsAnApiMemberWithRole(Map<RolePermission, Set<RolePermissionAction>> role) {
+        when(
+            permissionService.hasPermission(
+                any(ExecutionContext.class),
+                eq(USER_ID),
+                any(RolePermission.class),
+                eq(API_ID),
+                any(RolePermissionAction[].class)
+            )
+        ).thenAnswer(call -> {
+            RolePermission permission = call.getArgument(2);
+            var acls = (RolePermissionAction[]) call.getRawArguments()[4];
+            return role.getOrDefault(permission, Set.of()).containsAll(Arrays.asList(acls));
+        });
     }
 
     @Test
