@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.genericevent.GenericEventManager;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
+import io.gravitee.gateway.services.sync.process.distributed.localversion.DefaultLocalVersionResolver;
+import io.gravitee.gateway.services.sync.process.distributed.localversion.LocalVersionResolver;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
@@ -432,5 +434,16 @@ public class DistributedSyncConfiguration {
             credentialMapper,
             genericEventMapper
         );
+    }
+
+    @Bean
+    public LocalVersionResolver localVersionResolver(
+        @Lazy final DistributedEventRepository distributedEventRepository,
+        final ClusterManager clusterManager,
+        final ObjectMapper objectMapper,
+        final ApiMapper apiMapper,
+        final DictionaryMapper dictionaryMapper
+    ) {
+        return new DefaultLocalVersionResolver(distributedEventRepository, clusterManager, objectMapper, apiMapper, dictionaryMapper);
     }
 }

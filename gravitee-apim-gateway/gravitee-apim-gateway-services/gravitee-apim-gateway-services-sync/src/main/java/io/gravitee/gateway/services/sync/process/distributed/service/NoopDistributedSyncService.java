@@ -30,8 +30,10 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.organiz
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.sharedpolicygroup.SharedPolicyGroupReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.subscription.SingleSubscriptionDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
+import io.gravitee.repository.distributedsync.model.DistributedSyncStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -62,6 +64,16 @@ public class NoopDistributedSyncService implements DistributedSyncService {
     @Override
     public Maybe<DistributedSyncState> state() {
         return Maybe.empty();
+    }
+
+    @Override
+    public Single<DistributedSyncStatus> status() {
+        return Single.just(DistributedSyncStatus.CONNECTED);
+    }
+
+    @Override
+    public Completable updateStatus(final DistributedSyncStatus status) {
+        return Completable.complete();
     }
 
     @Override

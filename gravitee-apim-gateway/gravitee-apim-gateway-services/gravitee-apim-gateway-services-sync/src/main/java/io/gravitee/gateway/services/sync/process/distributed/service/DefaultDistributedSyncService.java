@@ -55,10 +55,13 @@ import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
+import io.gravitee.repository.distributedsync.model.DistributedSyncStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import java.util.Date;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
@@ -80,6 +83,8 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     static final int WRITE_MAX_CONCURRENCY = 32;
 
     private final AtomicBoolean distributionFailed = new AtomicBoolean();
+    /** While paused the primary reads distributed events, and publishing them again would rewrite each one on every cycle. */
+    private final AtomicBoolean publishingSuspended = new AtomicBoolean();
 
     private final Node node;
     private final ClusterManager clusterManager;
@@ -134,6 +139,26 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     }
 
     @Override
+    public Single<DistributedSyncStatus> status() {
+        return distributedSyncStateRepository
+            .findByClusterId(clusterManager.clusterId())
+            .mapOptional(state -> Optional.ofNullable(state.getStatus()))
+            .defaultIfEmpty(DistributedSyncStatus.CONNECTED)
+            .doOnSuccess(status -> publishingSuspended.set(status == DistributedSyncStatus.PAUSED));
+    }
+
+    @Override
+    public Completable updateStatus(final DistributedSyncStatus status) {
+        return distributedSyncStateRepository
+            .updateStatus(clusterManager.clusterId(), status)
+            .doOnComplete(() -> publishingSuspended.set(status == DistributedSyncStatus.PAUSED));
+    }
+
+    private boolean isPublishing() {
+        return isPrimaryNode() && !publishingSuspended.get();
+    }
+
+    @Override
     public Maybe<DistributedSyncState> state() {
         return Maybe.defer(() -> {
             if (isPrimaryNode()) {
@@ -146,7 +171,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     @Override
     public Completable storeState(final long fromTime, final long toTime) {
         return Completable.defer(() -> {
-            if (isPrimaryNode()) {
+            if (isPublishing()) {
                 if (distributionFailed.getAndSet(false)) {
                     return Completable.error(
                         new DistributedSyncException(
@@ -172,7 +197,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     @Override
     public Completable distributeIfNeeded(final ApiReactorDeployable deployable) {
         return Completable.defer(() -> {
-            if (isPrimaryNode()) {
+            if (isPublishing()) {
                 log.debug("Node is primary, distributing API reactor event for {}", deployable.id());
                 return trackFailure(
                     distribute(apiMapper.to(deployable)).andThen(
@@ -206,7 +231,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     @Override
     public Completable distributeIfNeeded(final SingleSubscriptionDeployable deployable) {
         return Completable.defer(() -> {
-            if (isPrimaryNode()) {
+            if (isPublishing()) {
                 log.debug("Node is primary, distributing subscription event for {}", deployable.id());
                 return trackFailure(distribute(subscriptionMapper.to(deployable)), "subscription", deployable.id());
             }
@@ -218,7 +243,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     @Override
     public Completable distributeIfNeeded(final SingleApiKeyDeployable deployable) {
         return Completable.defer(() -> {
-            if (isPrimaryNode()) {
+            if (isPublishing()) {
                 log.debug("Node is primary, distributing API key event for {}", deployable.id());
                 return trackFailure(distribute(apiKeyMapper.to(deployable)), "API key", deployable.id());
             }
@@ -230,7 +255,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     @Override
     public Completable distributeIfNeeded(final OrganizationDeployable deployable) {
         return Completable.defer(() -> {
-            if (isPrimaryNode()) {
+            if (isPublishing()) {
                 log.debug("Node is primary, distributing organization event for {}", deployable.id());
                 return trackFailure(distribute(organizationMapper.to(deployable)), "organization", deployable.id());
             }
@@ -242,7 +267,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     @Override
     public Completable distributeIfNeeded(final DictionaryDeployable deployable) {
         return Completable.defer(() -> {
-            if (isPrimaryNode()) {
+            if (isPublishing()) {
                 log.debug("Node is primary, distributing dictionary event for {}", deployable.id());
                 return trackFailure(distribute(dictionaryMapper.to(deployable)), "dictionary", deployable.id());
             }
@@ -254,7 +279,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     @Override
     public Completable distributeIfNeeded(LicenseDeployable deployable) {
         return Completable.defer(() -> {
-            if (isPrimaryNode()) {
+            if (isPublishing()) {
                 log.debug("Node is primary, distributing license event for organization {}", deployable.id());
                 return trackFailure(distribute(licenseMapper.to(deployable)), "license", deployable.id());
             }
@@ -266,7 +291,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     @Override
     public Completable distributeIfNeeded(AccessPointDeployable deployable) {
         return Completable.defer(() -> {
-            if (isPrimaryNode()) {
+            if (isPublishing()) {
                 log.debug("Node is primary, distributing access point event for {}", deployable.id());
                 return trackFailure(distribute(accessPointMapper.to(deployable)), "access point", deployable.id());
             }
@@ -278,7 +303,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     @Override
     public Completable distributeIfNeeded(SharedPolicyGroupReactorDeployable deployable) {
         return Completable.defer(() -> {
-            if (isPrimaryNode()) {
+            if (isPublishing()) {
                 log.debug("Node is primary, distributing shared policy group event for {}", deployable.id());
                 return trackFailure(distribute(sharedPolicyGroupMapper.to(deployable)), "shared policy group", deployable.id());
             }
@@ -290,7 +315,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     @Override
     public Completable distributeIfNeeded(ApiProductReactorDeployable deployable) {
         return Completable.defer(() -> {
-            if (isPrimaryNode()) {
+            if (isPublishing()) {
                 log.debug("Node is primary, distributing API product event for {}", deployable.id());
                 return trackFailure(distribute(apiProductMapper.to(deployable)), "API product", deployable.id());
             }
@@ -302,7 +327,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     @Override
     public Completable distributeIfNeeded(final CredentialDeployable deployable) {
         return Completable.defer(() -> {
-            if (isPrimaryNode()) {
+            if (isPublishing()) {
                 log.debug("Node is primary, distributing credential event for {}", deployable.id());
                 return trackFailure(distribute(credentialMapper.to(deployable)), "credential", deployable.id());
             }
@@ -314,7 +339,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     @Override
     public Completable distributeIfNeeded(final GenericEventDeployable deployable) {
         return Completable.defer(() -> {
-            if (isPrimaryNode()) {
+            if (isPublishing()) {
                 log.debug("Node is primary, distributing generic event event for {}", deployable.id());
                 return trackFailure(distribute(genericEventMapper.to(deployable)), "generic event", deployable.id());
             }
@@ -326,7 +351,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     @Override
     public Completable distributeIfNeeded(final NodeMetadataDeployable deployable) {
         return Completable.defer(() -> {
-            if (isPrimaryNode()) {
+            if (isPublishing()) {
                 log.debug("Node is primary, distributing node metadata event for {}", deployable.id());
                 return trackFailure(distribute(nodeMetadataMapper.to(deployable)), "node metadata", deployable.id());
             }
@@ -338,7 +363,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     @Override
     public Completable distributeIfNeeded(final AuthzEntityReactorDeployable deployable) {
         return Completable.defer(() -> {
-            if (isPrimaryNode()) {
+            if (isPublishing()) {
                 log.debug("Node is primary, distributing authz entity event for {}", deployable.entityId());
                 return trackFailure(distribute(authzEntityMapper.to(deployable)), "authz entity", deployable.entityId());
             }
@@ -350,7 +375,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     @Override
     public Completable distributeIfNeeded(final AuthzPolicyReactorDeployable deployable) {
         return Completable.defer(() -> {
-            if (isPrimaryNode()) {
+            if (isPublishing()) {
                 log.debug("Node is primary, distributing authz policy event for {}", deployable.docId());
                 return trackFailure(distribute(authzPolicyMapper.to(deployable)), "authz policy", deployable.docId());
             }

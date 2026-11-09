@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.api;
 
 import io.gravitee.gateway.handlers.api.manager.ActionOnApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.common.SyncErrors;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiKeyDeployer;
@@ -27,8 +28,10 @@ import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.flowables.GroupedFlowable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -57,6 +60,14 @@ public abstract class AbstractApiSynchronizer {
     protected final int appenderParallelism;
 
     protected abstract int bulkEvents();
+
+    protected Maybe<ReactableApi<?>> resolveDeployment(final ReactableApi<?> api) {
+        return Maybe.just(api);
+    }
+
+    protected Maybe<String> resolveUndeployment(final String apiId, final Date eventCreatedAt) {
+        return Maybe.just(apiId);
+    }
 
     protected Flowable<ApiReactorDeployable> processEvents(
         final boolean initialSync,
@@ -108,6 +119,7 @@ public abstract class AbstractApiSynchronizer {
     ) {
         return eventsByType
             .flatMapMaybe(apiMapper::to)
+            .flatMapMaybe(this::resolveDeployment)
             .groupBy(apiManager::requiredActionFor)
             .flatMap(reactableByAction -> {
                 if (reactableByAction.getKey() == ActionOnApi.DEPLOY) {
@@ -148,7 +160,7 @@ public abstract class AbstractApiSynchronizer {
 
     private Flowable<ApiReactorDeployable> prepareForUndeployment(final Flowable<Event> eventsByType) {
         return eventsByType
-            .flatMapMaybe(apiMapper::toId)
+            .flatMapMaybe(event -> apiMapper.toId(event).flatMap(apiId -> resolveUndeployment(apiId, event.getCreatedAt())))
             .map(apiId -> ApiReactorDeployable.builder().syncAction(SyncAction.UNDEPLOY).apiId(apiId).build());
     }
 

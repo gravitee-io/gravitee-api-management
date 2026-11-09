@@ -53,6 +53,28 @@ class MultiEnvironmentDictionaryManagerTest {
     }
 
     @Nested
+    class DictionariesTest {
+
+        @Test
+        void should_return_the_dictionaries_of_every_environment() {
+            cut.deploy(dictionary("first", null, ENV, "value", 1L));
+            cut.deploy(dictionary("second", null, OTHER_ENV, "value", 1L));
+
+            assertThat(cut.dictionaries()).extracting(Dictionary::getId).containsExactlyInAnyOrder("first", "second");
+        }
+
+        @Test
+        void should_stop_returning_an_undeployed_dictionary() {
+            Dictionary dictionary = dictionary("first", null, ENV, "value", 1L);
+            cut.deploy(dictionary);
+
+            cut.undeploy(dictionary);
+
+            assertThat(cut.dictionaries()).isEmpty();
+        }
+    }
+
+    @Nested
     class DeployTest {
 
         @Test

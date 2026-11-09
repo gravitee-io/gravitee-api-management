@@ -21,6 +21,7 @@ import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory
 import io.gravitee.gateway.services.sync.process.common.deployer.DictionaryDeployer;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
+import io.gravitee.gateway.services.sync.process.distributed.localversion.LocalVersionResolver;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.DictionaryMapper;
@@ -51,6 +52,7 @@ public class DictionarySynchronizer implements RepositorySynchronizer {
     private final DeployerFactory deployerFactory;
     private final ThreadPoolExecutor syncFetcherExecutor;
     private final ThreadPoolExecutor syncDeployerExecutor;
+    private final LocalVersionResolver localVersionResolver;
 
     @Override
     public Completable synchronize(final Long from, final Long to, final Set<String> environments) {
@@ -111,6 +113,7 @@ public class DictionarySynchronizer implements RepositorySynchronizer {
     private Flowable<DictionaryDeployable> prepareForDeployment(final Flowable<Event> eventsByType) {
         return eventsByType
             .flatMapMaybe(dictionaryMapper::to)
+            .flatMapMaybe(localVersionResolver::resolveDeployment)
             .map(dictionary ->
                 DictionaryDeployable.builder().id(dictionary.getId()).dictionary(dictionary).syncAction(SyncAction.DEPLOY).build()
             );
@@ -118,7 +121,9 @@ public class DictionarySynchronizer implements RepositorySynchronizer {
 
     private Flowable<DictionaryDeployable> prepareForUndeployment(final Flowable<Event> eventsByType) {
         return eventsByType
-            .flatMapMaybe(dictionaryMapper::to)
+            .flatMapMaybe(event ->
+                dictionaryMapper.to(event).flatMap(dictionary -> localVersionResolver.resolveUndeployment(dictionary, event.getCreatedAt()))
+            )
             .map(dictionary ->
                 DictionaryDeployable.builder().id(dictionary.getId()).dictionary(dictionary).syncAction(SyncAction.UNDEPLOY).build()
             );

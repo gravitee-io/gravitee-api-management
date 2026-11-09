@@ -19,10 +19,12 @@ import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.gateway.dictionary.model.Dictionary;
 import java.security.GeneralSecurityException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.CustomLog;
 
 /**
@@ -32,7 +34,8 @@ import lombok.CustomLog;
 @CustomLog
 public class MultiEnvironmentDictionaryManager implements DictionaryManager {
 
-    private final Map<String, Map<String, Dictionary>> dictionaries = new HashMap<>();
+    /** Concurrent because {@link #dictionaries()} can iterate from another thread while the sync deploys. */
+    private final Map<String, Map<String, Dictionary>> dictionaries = new ConcurrentHashMap<>();
     private final Map<String, Map<String, Map<String, String>>> values = new HashMap<>();
     private final DataEncryptor dataEncryptor;
 
@@ -45,7 +48,7 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
         String environmentId = dictionary.getEnvironmentId();
         String key = runtimeKey(dictionary);
 
-        dictionaries.putIfAbsent(environmentId, new HashMap<>());
+        dictionaries.putIfAbsent(environmentId, new ConcurrentHashMap<>());
         values.putIfAbsent(environmentId, new HashMap<>());
 
         Dictionary existing = dictionaries.get(environmentId).get(key);
@@ -150,5 +153,14 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
     @Override
     public Map<String, Map<String, String>> getDictionaries(String environmentId) {
         return values.get(environmentId);
+    }
+
+    @Override
+    public Collection<Dictionary> dictionaries() {
+        return dictionaries
+            .values()
+            .stream()
+            .flatMap(environmentDictionaries -> environmentDictionaries.values().stream())
+            .toList();
     }
 }

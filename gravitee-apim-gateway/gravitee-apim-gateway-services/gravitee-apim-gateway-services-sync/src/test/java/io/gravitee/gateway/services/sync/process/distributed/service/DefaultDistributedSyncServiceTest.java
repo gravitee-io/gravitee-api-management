@@ -28,6 +28,7 @@ import io.gravitee.definition.model.Organization;
 import io.gravitee.gateway.api.genericevent.GenericEvent;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.dictionary.model.Dictionary;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
@@ -65,6 +66,7 @@ import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
+import io.gravitee.repository.distributedsync.model.DistributedSyncStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.List;
@@ -483,5 +485,73 @@ class DefaultDistributedSyncServiceTest {
             SyncAction.DEPLOY,
             new GenericEvent("aihub.hub", "hub-1", "env-1", "org-1", null, null, "{}")
         );
+    }
+
+    @Nested
+    class SyncStatus {
+
+        private final DictionaryDeployable deployable = DictionaryDeployable.builder()
+            .id("dictionary")
+            .dictionary(new Dictionary())
+            .syncAction(SyncAction.DEPLOY)
+            .build();
+
+        @BeforeEach
+        void setUp() {
+            lenient().when(distributedEventRepository.createOrUpdate(any())).thenReturn(Completable.complete());
+            lenient().when(distributedSyncStateRepository.updateStatus(any(), any())).thenReturn(Completable.complete());
+        }
+
+        private void givenStoredStatus(final DistributedSyncStatus status) {
+            when(distributedSyncStateRepository.findByClusterId("clusterId")).thenReturn(
+                Maybe.just(DistributedSyncState.builder().clusterId("clusterId").status(status).build())
+            );
+        }
+
+        @Test
+        void should_be_connected_when_no_state_is_stored() {
+            when(distributedSyncStateRepository.findByClusterId("clusterId")).thenReturn(Maybe.empty());
+
+            cut.status().test().assertValue(DistributedSyncStatus.CONNECTED);
+        }
+
+        @Test
+        void should_be_connected_when_the_stored_state_has_no_status() {
+            givenStoredStatus(null);
+
+            cut.status().test().assertValue(DistributedSyncStatus.CONNECTED);
+        }
+
+        @Test
+        void should_not_publish_on_a_primary_once_paused() {
+            givenStoredStatus(DistributedSyncStatus.PAUSED);
+            cut.status().test().assertValue(DistributedSyncStatus.PAUSED);
+
+            cut.distributeIfNeeded(deployable).test().assertComplete();
+
+            verify(distributedEventRepository, never()).createOrUpdate(any());
+        }
+
+        @Test
+        void should_publish_again_when_resuming() {
+            givenStoredStatus(DistributedSyncStatus.PAUSED);
+            cut.status().test().assertComplete();
+            givenStoredStatus(DistributedSyncStatus.RESUMING);
+            cut.status().test().assertComplete();
+
+            cut.distributeIfNeeded(deployable).test().assertComplete();
+
+            verify(distributedEventRepository).createOrUpdate(any());
+        }
+
+        @Test
+        void should_stop_publishing_as_soon_as_the_pause_is_confirmed() {
+            cut.updateStatus(DistributedSyncStatus.PAUSED).test().assertComplete();
+
+            cut.distributeIfNeeded(deployable).test().assertComplete();
+
+            verify(distributedSyncStateRepository).updateStatus("clusterId", DistributedSyncStatus.PAUSED);
+            verify(distributedEventRepository, never()).createOrUpdate(any());
+        }
     }
 }

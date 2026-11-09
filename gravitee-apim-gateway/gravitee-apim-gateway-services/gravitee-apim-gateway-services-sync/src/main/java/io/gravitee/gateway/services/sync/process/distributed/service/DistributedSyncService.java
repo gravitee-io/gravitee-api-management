@@ -30,8 +30,10 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.organiz
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.sharedpolicygroup.SharedPolicyGroupReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.subscription.SingleSubscriptionDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
+import io.gravitee.repository.distributedsync.model.DistributedSyncStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -47,6 +49,13 @@ public interface DistributedSyncService {
     Completable ready();
 
     Maybe<DistributedSyncState> state();
+
+    /**
+     * Reads the cluster's sync status. A node stops publishing distributed events as soon as it reads {@link DistributedSyncStatus#PAUSED}.
+     */
+    Single<DistributedSyncStatus> status();
+
+    Completable updateStatus(final DistributedSyncStatus status);
 
     Completable storeState(final long fromTime, final long toTime);
 

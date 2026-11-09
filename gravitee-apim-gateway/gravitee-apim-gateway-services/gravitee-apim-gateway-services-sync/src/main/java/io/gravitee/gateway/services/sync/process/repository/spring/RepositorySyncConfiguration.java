@@ -30,6 +30,7 @@ import io.gravitee.gateway.services.sync.process.common.deployer.ApiProductSubsc
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.distributed.DistributedSynchronizer;
+import io.gravitee.gateway.services.sync.process.distributed.localversion.LocalVersionResolver;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.DefaultSyncManager;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
@@ -233,7 +234,8 @@ public class RepositorySyncConfiguration {
         @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
         @Value(
             "${services.sync.appender.parallelism:" + io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APPENDER_PARALLELISM + "}"
-        ) int appenderParallelism
+        ) int appenderParallelism,
+        LocalVersionResolver localVersionResolver
     ) {
         return new ApiSynchronizer(
             eventsFetcher,
@@ -246,7 +248,8 @@ public class RepositorySyncConfiguration {
             deployerFactory,
             syncFetcherExecutor,
             syncDeployerExecutor,
-            appenderParallelism
+            appenderParallelism,
+            localVersionResolver
         );
     }
 
@@ -355,9 +358,17 @@ public class RepositorySyncConfiguration {
         DictionaryMapper dictionaryMapper,
         DeployerFactory deployerFactory,
         @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+        LocalVersionResolver localVersionResolver
     ) {
-        return new DictionarySynchronizer(eventsFetcher, dictionaryMapper, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
+        return new DictionarySynchronizer(
+            eventsFetcher,
+            dictionaryMapper,
+            deployerFactory,
+            syncFetcherExecutor,
+            syncDeployerExecutor,
+            localVersionResolver
+        );
     }
 
     @Bean

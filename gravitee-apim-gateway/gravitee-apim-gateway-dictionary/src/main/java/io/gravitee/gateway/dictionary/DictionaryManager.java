@@ -16,6 +16,7 @@
 package io.gravitee.gateway.dictionary;
 
 import io.gravitee.gateway.dictionary.model.Dictionary;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -30,4 +31,9 @@ public interface DictionaryManager {
     EnvironmentDictionaryTemplateVariableProvider createTemplateVariableProvider(String environmentId);
 
     Map<String, Map<String, String>> getDictionaries(String environmentId);
+
+    /**
+     * @return a snapshot of the dictionaries deployed on this node, in every environment
+     */
+    Collection<Dictionary> dictionaries();
 }

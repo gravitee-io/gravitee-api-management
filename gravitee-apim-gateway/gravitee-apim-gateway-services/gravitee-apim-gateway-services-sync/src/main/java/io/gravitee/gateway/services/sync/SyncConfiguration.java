@@ -36,6 +36,8 @@ import io.gravitee.gateway.services.sync.process.common.deployer.ApiProductSubsc
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.deployer.NoOpSubscriptionDispatcher;
+import io.gravitee.gateway.services.sync.process.distributed.localversion.LocalVersionResolver;
+import io.gravitee.gateway.services.sync.process.distributed.localversion.NoopLocalVersionResolver;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.distributed.service.NoopDistributedSyncService;
 import io.gravitee.gateway.services.sync.process.distributed.spring.DistributedSyncDisabledCondition;
@@ -243,6 +245,12 @@ public class SyncConfiguration {
     @Conditional(DistributedSyncDisabledCondition.class)
     public DistributedSyncService distributedSyncService() {
         return new NoopDistributedSyncService();
+    }
+
+    @Bean
+    @Conditional(DistributedSyncDisabledCondition.class)
+    public LocalVersionResolver localVersionResolver() {
+        return new NoopLocalVersionResolver();
     }
 
     @Bean

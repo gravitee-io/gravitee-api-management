@@ -236,4 +236,30 @@ class ApiMapperTest {
                 return true;
             });
     }
+
+    @SneakyThrows
+    @Test
+    void should_keep_a_disabled_api_and_expose_the_fields_a_local_version_changes_in_the_payload() {
+        var definition = new io.gravitee.definition.model.v4.Api();
+        definition.setId("apiId");
+        definition.setType(ApiType.PROXY);
+        var api = new io.gravitee.gateway.reactive.handlers.api.v4.Api(definition);
+        api.setEnabled(false);
+        api.setRevision("local-1");
+        api.setDeployedAt(new Date(1_000L));
+
+        String payload = objectMapper.writeValueAsString(api);
+
+        var json = objectMapper.readTree(payload);
+        assertThat(json.get("enabled").asBoolean()).isFalse();
+        assertThat(json.get("revision").asText()).isEqualTo("local-1");
+        assertThat(json.get("deployedAt").isNumber()).isTrue();
+        assertThat(json.get("deployedAt").asLong()).isEqualTo(1_000L);
+        assertThat(json.get("definition").get("id").asText()).isEqualTo("apiId");
+
+        cut
+            .to(DistributedEvent.builder().id("apiId").payload(payload).syncAction(DistributedSyncAction.DEPLOY).build())
+            .test()
+            .assertValue(deployable -> !deployable.reactableApi().enabled() && "local-1".equals(deployable.reactableApi().getRevision()));
+    }
 }

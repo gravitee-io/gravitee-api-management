@@ -18,8 +18,10 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.api;
 import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
 
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
+import io.gravitee.gateway.services.sync.process.distributed.localversion.LocalVersionResolver;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
@@ -27,8 +29,10 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -51,6 +55,7 @@ public class ApiSynchronizer extends AbstractApiSynchronizer implements Reposito
     );
     private static final Set<EventType> MEMBER_API_RESYNC_EVENT_TYPES = INCREMENTAL_EVENT_TYPES;
     private final LatestEventFetcher eventsFetcher;
+    private final LocalVersionResolver localVersionResolver;
 
     public ApiSynchronizer(
         final LatestEventFetcher eventsFetcher,
@@ -63,7 +68,8 @@ public class ApiSynchronizer extends AbstractApiSynchronizer implements Reposito
         final DeployerFactory deployerFactory,
         final ThreadPoolExecutor syncFetcherExecutor,
         final ThreadPoolExecutor syncDeployerExecutor,
-        final int appenderParallelism
+        final int appenderParallelism,
+        final LocalVersionResolver localVersionResolver
     ) {
         super(
             apiManager,
@@ -78,6 +84,17 @@ public class ApiSynchronizer extends AbstractApiSynchronizer implements Reposito
             appenderParallelism
         );
         this.eventsFetcher = eventsFetcher;
+        this.localVersionResolver = localVersionResolver;
+    }
+
+    @Override
+    protected Maybe<ReactableApi<?>> resolveDeployment(final ReactableApi<?> api) {
+        return localVersionResolver.resolveDeployment(api);
+    }
+
+    @Override
+    protected Maybe<String> resolveUndeployment(final String apiId, final Date eventCreatedAt) {
+        return localVersionResolver.resolveUndeployment(apiId, eventCreatedAt);
     }
 
     @Override

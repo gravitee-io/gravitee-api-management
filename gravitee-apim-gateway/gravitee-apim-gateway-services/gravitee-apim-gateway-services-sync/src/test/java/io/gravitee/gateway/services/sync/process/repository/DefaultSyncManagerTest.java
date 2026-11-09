@@ -25,10 +25,13 @@ import io.gravitee.gateway.services.sync.process.distributed.service.NoopDistrib
 import io.gravitee.gateway.services.sync.process.repository.handler.SyncHandler;
 import io.gravitee.node.api.Node;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
+import io.gravitee.repository.distributedsync.model.DistributedSyncStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
+import io.reactivex.rxjava3.subjects.CompletableSubject;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import java.util.ArrayList;
@@ -36,10 +39,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
@@ -69,7 +75,7 @@ class DefaultSyncManagerTest {
 
     @BeforeEach
     public void beforeEach() {
-        when(node.metadata()).thenReturn(Map.of(Node.META_ENVIRONMENTS, Set.of("env")));
+        lenient().when(node.metadata()).thenReturn(Map.of(Node.META_ENVIRONMENTS, Set.of("env")));
         when(router.get(any())).thenReturn(route);
         when(route.produces(any())).thenReturn(route);
         cut = new DefaultSyncManager(router, node, synchronizers, null, new NoopDistributedSyncService(), 5, TimeUnit.SECONDS, 1);
@@ -92,6 +98,7 @@ class DefaultSyncManagerTest {
     @Test
     void should_perform_full_initial_sync_on_primary_cold_start_even_with_existing_distributed_state() throws Exception {
         DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
+        when(distributedSyncService.status()).thenReturn(Single.just(DistributedSyncStatus.CONNECTED));
         when(distributedSyncService.isEnabled()).thenReturn(true);
         when(distributedSyncService.isPrimaryNode()).thenReturn(true);
         when(distributedSyncService.ready()).thenReturn(Completable.complete());
@@ -121,6 +128,7 @@ class DefaultSyncManagerTest {
             RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
 
             DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
+            when(distributedSyncService.status()).thenReturn(Single.just(DistributedSyncStatus.CONNECTED));
             when(distributedSyncService.isEnabled()).thenReturn(true);
             // Node starts as secondary (doStart + first cycle), then gets promoted to primary.
             when(distributedSyncService.isPrimaryNode()).thenReturn(false, false, false, true);
@@ -163,6 +171,7 @@ class DefaultSyncManagerTest {
     @Test
     void should_perform_full_initial_sync_when_secondary_is_promoted_before_completing_any_sync() throws Exception {
         DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
+        when(distributedSyncService.status()).thenReturn(Single.just(DistributedSyncStatus.CONNECTED));
         when(distributedSyncService.isEnabled()).thenReturn(true);
         // Node starts as secondary but the primary dies before the first sync cycle runs.
         when(distributedSyncService.isPrimaryNode()).thenReturn(false, true);
@@ -328,6 +337,134 @@ class DefaultSyncManagerTest {
             inOrder.verify(synchronizer2).synchronize(argThat(from -> from != -1L), any(), anySet());
         } finally {
             RxJavaPlugins.reset();
+        }
+    }
+
+    @Nested
+    class Pause {
+
+        private final TestScheduler testScheduler = new TestScheduler();
+        private DistributedSyncService distributedSyncService;
+        private DistributedSynchronizer distributedSynchronizer;
+        private RepositorySynchronizer synchronizer;
+
+        @BeforeEach
+        void setUp() {
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+            RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
+            distributedSyncService = mock(DistributedSyncService.class);
+            lenient().when(distributedSyncService.isEnabled()).thenReturn(true);
+            lenient().when(distributedSyncService.isPrimaryNode()).thenReturn(true);
+            lenient().when(distributedSyncService.ready()).thenReturn(Completable.complete());
+            lenient().when(distributedSyncService.storeState(anyLong(), anyLong())).thenReturn(Completable.complete());
+            lenient().when(distributedSyncService.updateStatus(any())).thenReturn(Completable.complete());
+            synchronizer = spy(new FakeSynchronizer(Completable.complete(), 1));
+            synchronizers.add(synchronizer);
+            distributedSynchronizer = mock(DistributedSynchronizer.class);
+            lenient().when(distributedSynchronizer.synchronize(any(), any())).thenReturn(Completable.complete());
+            cut = new DefaultSyncManager(
+                router,
+                node,
+                synchronizers,
+                new ArrayList<>(List.of(distributedSynchronizer)),
+                distributedSyncService,
+                5,
+                TimeUnit.SECONDS,
+                1
+            );
+        }
+
+        @AfterEach
+        void tearDown() {
+            RxJavaPlugins.reset();
+        }
+
+        @Test
+        void should_read_distributed_events_on_a_paused_primary_and_keep_the_stored_state() throws Exception {
+            when(distributedSyncService.status()).thenReturn(Single.just(DistributedSyncStatus.PAUSED));
+
+            cut.start();
+
+            verify(distributedSynchronizer).synchronize(eq(-1L), any());
+            verify(synchronizer, never()).synchronize(any(), any(), anySet());
+            verify(distributedSyncService, never()).storeState(anyLong(), anyLong());
+            assertThat(cut.syncDone()).isTrue();
+        }
+
+        @Test
+        void should_confirm_the_pause_on_the_primary() throws Exception {
+            when(distributedSyncService.status()).thenReturn(Single.just(DistributedSyncStatus.PAUSING));
+
+            cut.start();
+
+            verify(distributedSyncService).updateStatus(DistributedSyncStatus.PAUSED);
+            verify(synchronizer, never()).synchronize(any(), any(), anySet());
+        }
+
+        @Test
+        void should_not_confirm_the_pause_on_a_secondary() throws Exception {
+            when(distributedSyncService.isPrimaryNode()).thenReturn(false);
+            when(distributedSyncService.status()).thenReturn(Single.just(DistributedSyncStatus.PAUSING));
+
+            cut.start();
+
+            verify(distributedSyncService, never()).updateStatus(any());
+            verify(distributedSynchronizer).synchronize(eq(-1L), any());
+        }
+
+        @Test
+        void should_cancel_a_running_cycle_when_a_pause_is_requested() throws Exception {
+            CompletableSubject stuckCycle = CompletableSubject.create();
+            RepositorySynchronizer stuck = spy(new FakeSynchronizer(stuckCycle, 2));
+            synchronizers.add(stuck);
+            when(distributedSyncService.status()).thenReturn(
+                Single.just(DistributedSyncStatus.CONNECTED),
+                Single.just(DistributedSyncStatus.PAUSING)
+            );
+            AtomicBoolean stateStored = new AtomicBoolean();
+            when(distributedSyncService.storeState(anyLong(), anyLong())).thenReturn(Completable.fromAction(() -> stateStored.set(true)));
+
+            cut.start();
+            assertThat(stuckCycle.hasObservers()).isTrue();
+
+            testScheduler.advanceTimeBy(DefaultSyncManager.PAUSE_POLL_DELAY_MS, TimeUnit.MILLISECONDS);
+
+            assertThat(stuckCycle.hasObservers()).isFalse();
+            assertThat(stateStored).isFalse();
+        }
+
+        @Test
+        void should_replay_from_the_stored_window_with_a_margin_then_reconnect_when_resuming() throws Exception {
+            when(distributedSyncService.status()).thenReturn(Single.just(DistributedSyncStatus.RESUMING));
+            long storedFrom = 10_000_000L;
+            when(distributedSyncService.state()).thenReturn(Maybe.just(DistributedSyncState.builder().from(storedFrom).to(2L).build()));
+
+            AtomicBoolean reconnected = new AtomicBoolean();
+            when(distributedSyncService.updateStatus(DistributedSyncStatus.CONNECTED)).thenReturn(
+                Completable.fromAction(() -> reconnected.set(true))
+            );
+
+            cut.start();
+
+            verify(synchronizer).synchronize(eq(storedFrom - DefaultSyncManager.RESUME_MARGIN_MS), any(), anySet());
+            assertThat(reconnected).isTrue();
+        }
+
+        @Test
+        void should_stay_resuming_when_the_replay_fails() throws Exception {
+            synchronizers.clear();
+            synchronizers.add(new FakeSynchronizer(Completable.error(new RuntimeException("control plane unreachable")), 1));
+            when(distributedSyncService.status()).thenReturn(Single.just(DistributedSyncStatus.RESUMING));
+            when(distributedSyncService.state()).thenReturn(Maybe.just(DistributedSyncState.builder().from(10_000_000L).to(2L).build()));
+            AtomicBoolean reconnected = new AtomicBoolean();
+            when(distributedSyncService.updateStatus(DistributedSyncStatus.CONNECTED)).thenReturn(
+                Completable.fromAction(() -> reconnected.set(true))
+            );
+
+            cut.start();
+            testScheduler.advanceTimeBy(DefaultSyncManager.RETRY_DELAY_MS * 2L, TimeUnit.MILLISECONDS);
+
+            assertThat(reconnected).isFalse();
         }
     }
 }
