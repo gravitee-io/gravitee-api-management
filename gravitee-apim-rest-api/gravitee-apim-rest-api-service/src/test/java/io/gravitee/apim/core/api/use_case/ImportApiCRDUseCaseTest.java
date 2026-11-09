@@ -411,7 +411,7 @@ class ImportApiCRDUseCaseTest {
             new ValidateGroupsDomainService(groupQueryService),
             validateResourceDomainService,
             new ValidatePagesDomainService(pageSourceValidator, accessControlValidator, validationDomainService, pageCrudService),
-            new ValidatePlanDomainService(planValidatorService, verifyPlanPortRanges),
+            new ValidatePlanDomainService(planValidatorService, verifyPlanPortRanges, planCrudService),
             new ValidatePortalNotificationDomainService(new ValidateGroupsDomainService(groupQueryService)),
             new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
             apiQueryService,
@@ -1507,6 +1507,23 @@ class ImportApiCRDUseCaseTest {
         }
 
         @Test
+        void should_reject_a_jwt_plan_id_of_another_api() {
+            var otherApiPlan = givenAnotherApiWithAPlan(aJwtPlan("other-api-jwt-config"));
+
+            var throwable = catchThrowable(() ->
+                useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRDWithPlanId(aJwtPlan("b-jwt-config"), otherApiPlan.getId())))
+            );
+
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining(otherApiPlan.getId());
+            assertThat(planCrudService.storage())
+                .filteredOn(plan -> plan.getId().equals(otherApiPlan.getId()))
+                .singleElement()
+                .satisfies(plan -> assertThat(plan.getPlanSecurity().getConfiguration()).contains("other-api-jwt-config"));
+            verify(updateApiDomainService, never()).update(any(), any(), any());
+            assertThat(auditCrudService.storage()).isEmpty();
+        }
+
+        @Test
         void should_let_domain_exceptions_propagate_without_wrapping_in_technical_management_exception() {
             givenExistingApi();
             givenExistingPlans(List.of(KEYLESS));
@@ -2174,6 +2191,15 @@ class ImportApiCRDUseCaseTest {
             assertThat(dryRunErrors(aCRDWithPlanId(otherApiPlan.getId()))).anyMatch(message -> message.contains(otherApiPlan.getId()));
         }
 
+        @Test
+        void should_refuse_a_jwt_plan_id_of_another_api() {
+            var otherApiPlan = givenAnotherApiWithAPlan(aJwtPlan("other-api-jwt-config"));
+
+            assertThat(dryRunErrors(aCRDWithPlanId(aJwtPlan("b-jwt-config"), otherApiPlan.getId()))).anyMatch(message ->
+                message.contains(otherApiPlan.getId())
+            );
+        }
+
         // A dry run refuses with severe errors, or with a 4xx exception the resource maps to an error response
         private List<String> dryRunErrors(ApiCRDSpec spec) {
             try {
@@ -2534,15 +2560,45 @@ class ImportApiCRDUseCaseTest {
 
     // API_PROXY_V4 owns KEYLESS; another API of the environment owns an API key plan
     Plan givenAnotherApiWithAPlan() {
+        return givenAnotherApiWithAPlan(Update.API_KEY);
+    }
+
+    // API_PROXY_V4 owns KEYLESS; another API of the environment owns the given plan
+    Plan givenAnotherApiWithAPlan(Plan plan) {
         var otherApi = Update.API_PROXY_V4.toBuilder().id("other-api-id").crossId("other-api-cross-id").name("other-api").build();
         apiQueryService.initWith(List.of(Update.API_PROXY_V4, otherApi));
-        var otherApiPlan = Update.API_KEY.toBuilder().id("other-api-plan-id").apiId(otherApi.getId()).referenceId(otherApi.getId()).build();
+        var otherApiPlan = plan.toBuilder().id("other-api-plan-id").apiId(otherApi.getId()).referenceId(otherApi.getId()).build();
         givenExistingPlans(List.of(Update.KEYLESS, otherApiPlan));
         return otherApiPlan;
     }
 
+    private static Plan aJwtPlan(String resolverParameter) {
+        return PlanFixtures.HttpV4.aKeyless()
+            .toBuilder()
+            .id("jwt")
+            .name("JWT")
+            .planDefinitionHttpV4(
+                fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4()
+                    .toBuilder()
+                    .id("jwt")
+                    .name("JWT")
+                    .security(
+                        PlanSecurity.builder()
+                            .type("jwt")
+                            .configuration("{\"signature\":\"HMAC_HS256\",\"resolverParameter\":\"%s\"}".formatted(resolverParameter))
+                            .build()
+                    )
+                    .build()
+            )
+            .build();
+    }
+
     private static ApiCRDSpec aCRDWithPlanId(String planId) {
-        return aCRD().plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(Update.KEYLESS).toBuilder().id(planId).build())).build();
+        return aCRDWithPlanId(Update.KEYLESS, planId);
+    }
+
+    private static ApiCRDSpec aCRDWithPlanId(Plan plan, String planId) {
+        return aCRD().plans(Map.of("b-plan", PlanAdapter.INSTANCE.toCRD(plan).toBuilder().id(planId).build())).build();
     }
 
     BaseApplicationEntity givenExistingApplication(BaseApplicationEntity application) {
