@@ -986,6 +986,12 @@ api:
   properties:
     encryption:
       secret: vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6
+  # Environment secrets. Secret values are encrypted with AES-256-GCM under this key.
+  # Without a valid key the Management API still starts, but creating or rotating a secret fails.
+  # Generate a key with: openssl rand -base64 32
+  #secrets:
+  #  encryption:
+  #    key: <base64 of 32 random bytes>
 
 # Scoring
 scoring:

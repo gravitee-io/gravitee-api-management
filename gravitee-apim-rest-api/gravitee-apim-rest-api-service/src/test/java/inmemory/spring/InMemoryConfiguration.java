@@ -641,6 +641,21 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public SecretCrudServiceInMemory secretCrudService() {
+        return new SecretCrudServiceInMemory();
+    }
+
+    @Bean
+    public SecretQueryServiceInMemory secretQueryService() {
+        return new SecretQueryServiceInMemory();
+    }
+
+    @Bean
+    public SecretValueEncryptorInMemory secretValueEncryptor() {
+        return new SecretValueEncryptorInMemory();
+    }
+
+    @Bean
     public PortalCategoryCrudServiceInMemory portalCategoryCrudService() {
         return new PortalCategoryCrudServiceInMemory();
     }

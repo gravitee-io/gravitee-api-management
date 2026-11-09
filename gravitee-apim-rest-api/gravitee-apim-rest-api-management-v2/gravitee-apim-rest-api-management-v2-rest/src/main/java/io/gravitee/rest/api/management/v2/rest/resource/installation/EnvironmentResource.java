@@ -37,6 +37,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.environment.Subscription
 import io.gravitee.rest.api.management.v2.rest.resource.group.GroupsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.kafka_console.ProxyKafkaConsoleResource;
 import io.gravitee.rest.api.management.v2.rest.resource.observability.ObservabilityResource;
+import io.gravitee.rest.api.management.v2.rest.resource.secret.SecretsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.ui.PortalMenuLinksResource;
 import io.gravitee.rest.api.management.v2.rest.resource.ui.ThemesResource;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -99,6 +100,11 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/clusters")
     public ClustersResource getClustersResource() {
         return resourceContext.getResource(ClustersResource.class);
+    }
+
+    @Path("/secrets")
+    public SecretsResource getSecretsResource() {
+        return resourceContext.getResource(SecretsResource.class);
     }
 
     @Path("/scoring")
