@@ -31,6 +31,8 @@ import io.gravitee.secrets.api.discovery.Definition;
 import io.gravitee.secrets.api.discovery.DefinitionMetadata;
 import io.gravitee.secrets.api.event.SecretDiscoveryEvent;
 import io.gravitee.secrets.api.event.SecretDiscoveryEventType;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,16 +48,26 @@ import lombok.CustomLog;
 @CustomLog
 public class GuardianManagerImpl implements GuardianManager {
 
+    private static final String DEPLOYMENT_FAILURES = "guardian_deployment_failures";
+
     private final Map<GuardianKey, ReactableGuardian> guardians = new ConcurrentHashMap<>();
+    private final Map<String, Counter> deploymentFailures = new ConcurrentHashMap<>();
 
     private final EventManager eventManager;
     private final LicenseManager licenseManager;
     private final GuardianRegistry guardianRegistry;
+    private final MeterRegistry meterRegistry;
 
-    public GuardianManagerImpl(EventManager eventManager, LicenseManager licenseManager, GuardianRegistry guardianRegistry) {
+    public GuardianManagerImpl(
+        EventManager eventManager,
+        LicenseManager licenseManager,
+        GuardianRegistry guardianRegistry,
+        MeterRegistry meterRegistry
+    ) {
         this.eventManager = eventManager;
         this.licenseManager = licenseManager;
         this.guardianRegistry = guardianRegistry;
+        this.meterRegistry = meterRegistry;
 
         subscribeToSecretValueChanges();
     }
@@ -111,8 +123,7 @@ public class GuardianManagerImpl implements GuardianManager {
 
         ReactableGuardian deployedGuardian = get(guardian.getId(), guardian.getEnvironmentId());
         if (deployedGuardian == null) {
-            deploy(guardian);
-            return true;
+            return deploy(guardian);
         }
         if (deployedGuardian.getDeployedAt().before(guardian.getDeployedAt())) {
             return update(guardian, deployedGuardian);
@@ -143,30 +154,46 @@ public class GuardianManagerImpl implements GuardianManager {
         return guardians.get(new GuardianKey(guardianId, environmentId));
     }
 
-    private void deploy(ReactableGuardian guardian) {
+    private boolean deploy(ReactableGuardian guardian) {
         log.debug("Deployment of {}", guardian);
         discoverSecrets(guardian);
         guardians.put(guardian.key(), guardian);
-        eventManager.publishEvent(ReactorEvent.DEPLOY, guardian);
+        var startup = startReactor(ReactorEvent.DEPLOY, guardian);
+        if (!startup.running()) {
+            guardians.remove(guardian.key());
+            revokeSecrets(guardian);
+            countFailure(guardian);
+            log.error(
+                "Guardian [{}] of environment [{}] could not start revision [{}]",
+                guardian.getId(),
+                guardian.getEnvironmentId(),
+                guardian.getRevision(),
+                startup.failure()
+            );
+            return false;
+        }
         log.info("Guardian [{}] of environment [{}] has been deployed", guardian.getId(), guardian.getEnvironmentId());
+        return true;
     }
 
     private boolean update(ReactableGuardian guardian, ReactableGuardian previousGuardian) {
         log.debug("Updating {}", guardian);
         discoverSecrets(guardian);
         guardians.put(guardian.key(), guardian);
-        eventManager.publishEvent(ReactorEvent.UPDATE, guardian);
-        if (!isRunning(guardian)) {
+        var startup = startReactor(ReactorEvent.UPDATE, guardian);
+        if (!startup.running()) {
             // The reactor handler registry keeps the previous handler when the new one fails to start: revoking the
             // previous secrets would leave the running revision without them.
             guardians.put(previousGuardian.key(), previousGuardian);
             revokeSecrets(guardian);
+            countFailure(guardian);
             log.error(
                 "Guardian [{}] of environment [{}] could not start revision [{}]: revision [{}] keeps running",
                 guardian.getId(),
                 guardian.getEnvironmentId(),
                 guardian.getRevision(),
-                previousGuardian.getRevision()
+                previousGuardian.getRevision(),
+                startup.failure()
             );
             return false;
         }
@@ -174,6 +201,28 @@ public class GuardianManagerImpl implements GuardianManager {
         log.info("Guardian [{}] of environment [{}] has been updated", guardian.getId(), guardian.getEnvironmentId());
         return true;
     }
+
+    private ReactorStartup startReactor(ReactorEvent event, ReactableGuardian guardian) {
+        try {
+            eventManager.publishEvent(event, guardian);
+            return new ReactorStartup(isRunning(guardian), null);
+        } catch (RuntimeException e) {
+            return new ReactorStartup(false, e);
+        }
+    }
+
+    private void countFailure(ReactableGuardian guardian) {
+        deploymentFailures
+            .computeIfAbsent(guardian.getEnvironmentId(), environmentId ->
+                Counter.builder(DEPLOYMENT_FAILURES)
+                    .description("Guardian revisions the gateway refused to start")
+                    .tag("environment", environmentId)
+                    .register(meterRegistry)
+            )
+            .increment();
+    }
+
+    private record ReactorStartup(boolean running, RuntimeException failure) {}
 
     private boolean isRunning(ReactableGuardian guardian) {
         GuardianReactor reactor = guardianRegistry.get(guardian.getId(), guardian.getEnvironmentId());
