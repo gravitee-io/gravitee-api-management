@@ -179,6 +179,7 @@ See [MongoDB replicaset](https://artifacthub.io/packages/helm/bitnami/mongodb) f
 | `es.security.enabled`        | Elasticsearch username and password enabled       | false                                                                  |
 | `es.security.username`       | Elasticsearch username                            | `example`                                                              |
 | `es.security.password`       | Elasticsearch password                            | `example`                                                              |
+| `es.security.apiKey`         | Elasticsearch API key, rendered when set whatever `es.security.enabled`, instead of username and password | `""`   |
 | `es.tls.enabled`             | Elasticsearch TLS enabled                         | false                                                                  |
 | `es.tls.keystore.type`       | Elasticsearch TLS keystore type (jks, pem or pfx) | `null`                                                                 |
 | `es.tls.keystore.path`       | Elasticsearch TLS keystore path (jks, pfx)        | `null`                                                                 |
