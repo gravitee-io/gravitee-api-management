@@ -243,7 +243,7 @@
     <gravitee-reactor-a2a-proxy.version>2.1.5</gravitee-reactor-a2a-proxy.version>
     <gravitee-reactor-authz.version>3.0.2</gravitee-reactor-authz.version>
     <gravitee-reactor-edge.version>2.0.0-alpha.8</gravitee-reactor-edge.version>
-    <gravitee-reactor-guardian.version>1.0.0-alpha.1</gravitee-reactor-guardian.version>
+    <gravitee-reactor-guardian.version>1.0.0-alpha.2</gravitee-reactor-guardian.version>
     <gravitee-resource-ai-vector-store-redis.version>2.0.0</gravitee-resource-ai-vector-store-redis.version>
     <gravitee-resource-ai-vector-store-aws-s3.version>2.0.0</gravitee-resource-ai-vector-store-aws-s3.version>
     <gravitee-resource-ai-model-text-embedding.version>2.0.1</gravitee-resource-ai-model-text-embedding.version>
