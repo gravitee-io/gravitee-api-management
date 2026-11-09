@@ -55,4 +55,7 @@ public class NoOpSecretRepository implements SecretRepository {
 
     @Override
     public void deleteByEnvironmentId(String environmentId) throws TechnicalException {}
+
+    @Override
+    public void deleteByOrganizationId(String organizationId) throws TechnicalException {}
 }

@@ -279,6 +279,16 @@ public class SecretRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(secretRepository.search("org-1", "env-2", pageable).getContent()).extracting(Secret::getId).containsExactly("secret-4");
     }
 
+    @Test
+    public void should_delete_only_the_secrets_of_the_organization() throws Exception {
+        secretRepository.deleteByOrganizationId("org-1");
+
+        var pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
+        assertThat(secretRepository.search("org-1", "env-1", pageable).getContent()).isEmpty();
+        assertThat(secretRepository.search("org-1", "env-2", pageable).getContent()).isEmpty();
+        assertThat(secretRepository.search("org-2", "env-9", pageable).getContent()).extracting(Secret::getId).containsExactly("secret-5");
+    }
+
     private static Secret.SecretBuilder aSecret(String id) {
         return Secret.builder()
             .id(id)

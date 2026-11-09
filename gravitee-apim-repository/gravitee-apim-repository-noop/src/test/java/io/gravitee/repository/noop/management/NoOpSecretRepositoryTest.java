@@ -48,5 +48,6 @@ public class NoOpSecretRepositoryTest extends AbstractNoOpRepositoryTest {
     public void should_delete_without_error() {
         assertThatCode(() -> cut.delete("org-1", "env-1", "secret-1")).doesNotThrowAnyException();
         assertThatCode(() -> cut.deleteByEnvironmentId("env-1")).doesNotThrowAnyException();
+        assertThatCode(() -> cut.deleteByOrganizationId("org-1")).doesNotThrowAnyException();
     }
 }
