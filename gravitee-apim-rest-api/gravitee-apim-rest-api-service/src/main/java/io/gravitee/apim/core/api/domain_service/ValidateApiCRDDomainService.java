@@ -42,6 +42,7 @@ import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -168,8 +169,15 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
         existingApi.ifPresent(api ->
             membersDomainService.checkApiMembersUpdate(input.auditInfo(), api.getId(), sanitizedSpec.getMembers())
         );
+        if (sanitizedSpec.getState() != null && !isLifecycleState(sanitizedSpec.getState())) {
+            errors.add(Error.severe("State [%s] is invalid, expected STARTED or STOPPED", sanitizedSpec.getState()));
+        }
 
         return Validator.Result.ofBoth(new ValidateApiCRDDomainService.Input(input.auditInfo(), sanitizedSpec), errors);
+    }
+
+    private static boolean isLifecycleState(String state) {
+        return Arrays.stream(Api.LifecycleState.values()).anyMatch(lifecycleState -> lifecycleState.name().equals(state));
     }
 
     private void validateAgainstExistingApi(Api existingApi, ApiCRDSpec spec) {

@@ -252,7 +252,7 @@ public class ImportApiCRDUseCase {
                 input.spec.getConsoleNotificationConfiguration()
             );
 
-            if (shouldDeploy(input.spec())) {
+            if (shouldDeploy(input.spec(), input.spec().getState())) {
                 // This will also DEPLOYS the API because it is the first time it has been started
                 apiStateDomainService.start(createdApi, input.auditInfo);
             }
@@ -310,7 +310,7 @@ public class ImportApiCRDUseCase {
                             input.spec().getDefinitionContext().getSyncFrom().toUpperCase()
                         )
                     )
-                    .lifecycleState(Api.LifecycleState.valueOf(input.spec().getState()))
+                    .lifecycleState(lifecycleStateToUpdate(input.spec(), existingApi))
                     .portalNavigation(input.spec().getPortalNavigation())
                     .build()
             );
@@ -356,7 +356,7 @@ public class ImportApiCRDUseCase {
     }
 
     private void handleLifeCycle(Input input, Api existingApi, Api api) {
-        if (shouldDeploy(input.spec())) {
+        if (shouldDeploy(input.spec(), api.getLifecycleState().name())) {
             apiStateDomainService.deploy(api, "Updated by GKO", input.auditInfo);
         }
 
@@ -541,10 +541,15 @@ public class ImportApiCRDUseCase {
             });
     }
 
-    private static boolean shouldDeploy(ApiCRDSpec spec) {
+    // A spec without state keeps the stored one, so the API is neither started nor stopped
+    private static Api.LifecycleState lifecycleStateToUpdate(ApiCRDSpec spec, Api existingApi) {
+        return spec.getState() == null ? existingApi.getLifecycleState() : Api.LifecycleState.valueOf(spec.getState());
+    }
+
+    private static boolean shouldDeploy(ApiCRDSpec spec, String lifecycleState) {
         return (
             spec.getDefinitionContext().isSyncFromManagement() &&
-            Api.LifecycleState.STARTED.name().equalsIgnoreCase(spec.getState()) &&
+            Api.LifecycleState.STARTED.name().equalsIgnoreCase(lifecycleState) &&
             spec
                 .getPlans()
                 .values()

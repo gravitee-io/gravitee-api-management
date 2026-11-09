@@ -35,6 +35,7 @@ import inmemory.CRDMembersDomainServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
 import io.gravitee.apim.core.api.exception.ApiPropertyNotCiphertextException;
+import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
@@ -207,6 +208,39 @@ class ValidateApiCRDDomainServiceTest {
             .build();
 
         assertThatNoException().isThrownBy(() -> cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec)));
+    }
+
+    @Test
+    void should_report_a_state_other_than_started_or_stopped() {
+        givenEveryValidatorAccepts();
+
+        assertThat(severeErrorMessages(aSpecToCreate().state("PAUSED").build())).anyMatch(message ->
+            message.contains("State [PAUSED] is invalid")
+        );
+    }
+
+    @Test
+    void should_accept_a_spec_without_state() {
+        givenEveryValidatorAccepts();
+
+        assertThat(severeErrorMessages(aSpecToCreate().state(null).build())).noneMatch(message -> message.contains("State"));
+    }
+
+    private ApiCRDSpec.ApiCRDSpecBuilder aSpecToCreate() {
+        return ApiCRDFixtures.newBaseSpec()
+            .id("api-to-create")
+            .crossId("api-to-create-cross-id")
+            .consoleNotificationConfiguration(consoleNotificationConfiguration);
+    }
+
+    private List<String> severeErrorMessages(ApiCRDSpec spec) {
+        return cut
+            .validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))
+            .severe()
+            .orElseGet(List::of)
+            .stream()
+            .map(Validator.Error::getMessage)
+            .toList();
     }
 
     private void givenEveryValidatorAccepts() {
