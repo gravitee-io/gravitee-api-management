@@ -23,8 +23,13 @@ info:
 
         **A Guardian is its definition.** Creation and update both carry the whole thing — name,
         phase, API types, guardrail sequence and resources — and a `PUT` replaces it rather than
-        patching it. Only the identity, which comes from the path, and `deployedAt`, which only a
-        deployment writes, are kept back from the caller.
+        patching it. Five fields are the store's and not the caller's: `id`, which comes from the
+        path, `lifecycleState` and `deployedAt`, which only a deployment writes, and `createdAt` and
+        `updatedAt`. An update accepts all five and ignores them, so the response of a `GET` can be
+        sent straight back.
+
+        **A name is unique within an environment**, compared without regard to case: a creation or a
+        rename onto a name another Guardian of the environment carries answers 409.
 
         **Only `llm-proxy` guardians can be written** in 4.14; any other value in `apiTypes` is
         refused. Reads accept every API type the platform knows, so a row written by another writer
@@ -501,8 +506,8 @@ components:
                 leaves out is left out of the stored definition too, so a client that edits one
                 setting sends back everything it read.
 
-                `id` is not a property — the path owns it, and a second one in the body could only
-                disagree.
+                `id` is accepted only to be ignored: the path owns the identity, so a value in the body
+                is never applied and never has to be stripped.
 
                 Rejects any key it does not declare. The five `readOnly` properties below are
                 declared for exactly that reason: they are what a `GET` returns and only the store

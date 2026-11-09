@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
@@ -70,7 +71,7 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
                 "Failed to create guardian '%s'".formatted(guardian.getId())
             );
         } catch (RuntimeException e) {
-            throw refusalFor(e, guardian, true);
+            throw refusalForCreate(e, guardian);
         }
     }
 
@@ -104,11 +105,14 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
     }
 
     @Override
-    public Optional<Guardian> findByEnvironmentIdAndName(String environmentId, String name) {
+    public List<Guardian> findByEnvironmentIdAndName(String environmentId, String name) {
         return RepositoryCalls.wrap(
             () -> guardianRepository.findByEnvironmentIdAndNameIgnoreCase(environmentId, name),
-            "Failed to fetch guardian named '%s' for environment '%s'".formatted(name, environmentId)
-        ).map(GammaGuardianRepositoryAdapter::toCore);
+            "Failed to fetch guardians named '%s' for environment '%s'".formatted(name, environmentId)
+        )
+            .stream()
+            .map(GammaGuardianRepositoryAdapter::toCore)
+            .toList();
     }
 
     @Override
@@ -122,20 +126,18 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
             // A rename can break the unique name as readily as a creation can. The domain refuses a
             // duplicate first, so reaching here means two writers renamed onto one name at once; the
             // loser deserves the same 409 as the create path rather than a technical failure.
-            throw refusalFor(e, guardian, false);
+            throw refusalForUpdate(e, guardian);
         }
     }
 
     /**
-     * What to raise for a write the store refused.
+     * What to raise for a creation the store refused.
      *
-     * <p>Two unique keys can refuse one now: the primary key, and (environmentId, name) since the
-     * Guardian name became unique. The store does not say which, so the name is looked up — taken by
-     * another Guardian means the name, and nothing else leaves the id as the only explanation on a
-     * creation. An update cannot clash on the id, which the path fixes, so its only other answer is
-     * the original failure.
+     * <p>Two unique keys can refuse one: the primary key, and (environmentId, name) since the Guardian
+     * name became unique. The store does not say which, so the name is looked up — taken by another
+     * Guardian means the name, and nothing else leaves the id as the only explanation.
      */
-    private RuntimeException refusalFor(RuntimeException failure, Guardian guardian, boolean idCouldClash) {
+    private RuntimeException refusalForCreate(RuntimeException failure, Guardian guardian) {
         if (!clashesOnDuplicateKey(failure)) {
             return failure;
         }
@@ -144,7 +146,18 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
         }
         // Deliberately "not available" and not "already exists": the primary key is global, so
         // asserting existence would describe a Guardian the caller may have no access to.
-        return idCouldClash ? new ValidationDomainException("Id '%s' is not available.".formatted(guardian.getId())) : failure;
+        return new ValidationDomainException("Id '%s' is not available.".formatted(guardian.getId()));
+    }
+
+    /**
+     * What to raise for an update the store refused. Only the name can clash: the id comes from the
+     * path and already names a stored Guardian, so anything else is the store's own failure.
+     */
+    private RuntimeException refusalForUpdate(RuntimeException failure, Guardian guardian) {
+        if (clashesOnDuplicateKey(failure) && nameIsTakenByAnother(guardian)) {
+            return new GuardianNameAlreadyExistsException(guardian.getName());
+        }
+        return failure;
     }
 
     /**
@@ -158,8 +171,8 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
     private boolean nameIsTakenByAnother(Guardian guardian) {
         try {
             return findByEnvironmentIdAndName(guardian.getEnvironmentId(), guardian.getName())
-                .filter(existing -> !existing.getId().equals(guardian.getId()))
-                .isPresent();
+                .stream()
+                .anyMatch(existing -> !existing.getId().equals(guardian.getId()));
         } catch (RuntimeException ignored) {
             return false;
         }
