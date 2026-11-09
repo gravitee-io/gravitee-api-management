@@ -60,6 +60,7 @@ import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFilterSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ResolveFilterLabelsUseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.domain_service.ApiCRDTargetDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
@@ -846,6 +847,14 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public ApiCRDTargetDomainService apiCRDTargetDomainService(
+        ApiQueryServiceInMemory apiQueryService,
+        ApiCrudServiceInMemory apiCrudService
+    ) {
+        return new ApiCRDTargetDomainService(apiQueryService, apiCrudService);
+    }
+
+    @Bean
     public ValidateApiCRDUseCase validateApiCRDUseCase(
         CategoryQueryServiceInMemory categoryQueryService,
         UserDomainServiceInMemory userDomainService,
@@ -862,7 +871,8 @@ public class ResourceContextConfiguration {
         PageCrudService pageCrudService,
         KafkaPortRangeCrudServiceInMemory kafkaPortRangeCrudService,
         CRDMembersDomainServiceInMemory crdMembersDomainService,
-        PlanCrudService planCrudService
+        PlanCrudService planCrudService,
+        ApiCRDTargetDomainService apiCRDTargetDomainService
     ) {
         ValidateGroupsDomainService groupsValidator = new ValidateGroupsDomainService(groupQueryService);
         return new ValidateApiCRDUseCase(
@@ -886,7 +896,7 @@ public class ResourceContextConfiguration {
                 ),
                 new ValidatePortalNotificationDomainService(groupsValidator),
                 new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
-                apiQueryService,
+                apiCRDTargetDomainService,
                 crdMembersDomainService
             )
         );

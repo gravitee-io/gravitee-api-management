@@ -21,6 +21,7 @@ import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.domain_service.ApiCRDTargetDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
@@ -34,7 +35,6 @@ import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
-import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
@@ -81,7 +81,7 @@ import lombok.CustomLog;
 @CustomLog
 public class ImportApiCRDUseCase {
 
-    private final ApiQueryService apiQueryService;
+    private final ApiCRDTargetDomainService apiCRDTargetDomainService;
     private final ApiPrimaryOwnerFactory apiPrimaryOwnerFactory;
     private final ValidateApiDomainService validateApiDomainService;
     private final CreateApiDomainService createApiDomainService;
@@ -108,7 +108,7 @@ public class ImportApiCRDUseCase {
 
     public ImportApiCRDUseCase(
         ApiCrudService apiCrudService,
-        ApiQueryService apiQueryService,
+        ApiCRDTargetDomainService apiCRDTargetDomainService,
         ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
         ValidateApiDomainService validateApiDomainService,
         CreateApiDomainService createApiDomainService,
@@ -133,7 +133,7 @@ public class ImportApiCRDUseCase {
         PortalListingSyncDomainService portalListingSyncDomainService
     ) {
         this.apiCrudService = apiCrudService;
-        this.apiQueryService = apiQueryService;
+        this.apiCRDTargetDomainService = apiCRDTargetDomainService;
         this.apiPrimaryOwnerFactory = apiPrimaryOwnerFactory;
         this.validateApiDomainService = validateApiDomainService;
         this.createApiDomainService = createApiDomainService;
@@ -181,7 +181,7 @@ public class ImportApiCRDUseCase {
         var warnings = validationResult.warning().orElseGet(List::of);
         var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
 
-        var api = apiQueryService.findByEnvironmentIdAndCrossId(sanitizedInput.auditInfo.environmentId(), sanitizedInput.spec.getCrossId());
+        var api = apiCRDTargetDomainService.findExistingApi(sanitizedInput.auditInfo.environmentId(), sanitizedInput.spec);
 
         var status = api.map(exiting -> this.update(sanitizedInput, exiting)).orElseGet(() -> this.create(sanitizedInput));
         status.setErrors(ApiCRDStatus.Errors.fromErrorList(warnings));
