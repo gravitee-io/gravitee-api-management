@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalSummary;
 import io.gravitee.rest.api.management.v2.rest.model.Portal;
 import io.gravitee.rest.api.management.v2.rest.utils.ManagementApiLinkHelper;
@@ -43,5 +45,14 @@ public interface PortalMapper {
             .stream()
             .map(summary -> map(summary, uriInfo))
             .toList();
+    }
+
+    default PortalId toPortalId(String portalId) {
+        try {
+            return PortalId.of(portalId);
+        } catch (IllegalArgumentException e) {
+            // No portal can have an id that is not a UUID.
+            throw new PortalNotFoundException(portalId);
+        }
     }
 }
