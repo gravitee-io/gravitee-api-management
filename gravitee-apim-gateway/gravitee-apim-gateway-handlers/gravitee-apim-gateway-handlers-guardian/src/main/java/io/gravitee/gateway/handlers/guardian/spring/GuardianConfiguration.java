@@ -33,6 +33,9 @@ import io.gravitee.node.api.Node;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
+import io.vertx.core.Vertx;
+import io.vertx.micrometer.backends.BackendRegistries;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -73,8 +76,21 @@ public class GuardianConfiguration {
     }
 
     @Bean
-    public GuardianManager guardianManager(EventManager eventManager, LicenseManager licenseManager, GuardianRegistry guardianRegistry) {
-        return new GuardianManagerImpl(eventManager, licenseManager, guardianRegistry);
+    public GuardianManager guardianManager(
+        EventManager eventManager,
+        LicenseManager licenseManager,
+        GuardianRegistry guardianRegistry,
+        Vertx vertx
+    ) {
+        // Typed rather than @DependsOn: VertxFactory builds Vert.x, and with it the metrics registry, only when a bean
+        // asks for the Vertx object itself, which this parameter does.
+        var registry = BackendRegistries.getDefaultNow();
+        return new GuardianManagerImpl(
+            eventManager,
+            licenseManager,
+            guardianRegistry,
+            registry == null ? new CompositeMeterRegistry() : registry
+        );
     }
 
     @Bean(destroyMethod = "cancel")
