@@ -144,6 +144,34 @@ public class PlanMapperTest {
     }
 
     @Test
+    public void should_keep_the_stored_plan_type() {
+        Plan plan = storedKeylessPlan();
+        plan.setType(Plan.PlanType.CATALOG);
+
+        assertEquals(PlanType.CATALOG, planMapper.toEntity(plan, List.of()).getType());
+        assertEquals(PlanType.CATALOG, planMapper.toNativeEntity(plan, List.of()).getType());
+    }
+
+    @Test
+    public void should_default_the_plan_type_to_api_when_none_is_stored() {
+        Plan plan = storedKeylessPlan();
+
+        assertEquals(PlanType.API, planMapper.toEntity(plan, List.of()).getType());
+        assertEquals(PlanType.API, planMapper.toNativeEntity(plan, List.of()).getType());
+    }
+
+    private static Plan storedKeylessPlan() {
+        Plan plan = new Plan();
+        plan.setId("plan-id");
+        plan.setValidation(Plan.PlanValidationType.AUTO);
+        plan.setMode(Plan.PlanMode.STANDARD);
+        plan.setSecurity(Plan.PlanSecurityType.KEY_LESS);
+        plan.setReferenceId("api1");
+        plan.setReferenceType(Plan.PlanReferenceType.API);
+        return plan;
+    }
+
+    @Test
     public void shouldConvertPushPlanToPlanEntity() {
         Plan plan = new Plan();
         plan.setId("123123-1531-4563456166");

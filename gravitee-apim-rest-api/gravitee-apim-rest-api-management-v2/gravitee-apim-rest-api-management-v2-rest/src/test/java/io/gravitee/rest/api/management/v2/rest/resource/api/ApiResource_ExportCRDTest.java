@@ -35,18 +35,16 @@ import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
-import io.gravitee.definition.model.v4.plan.PlanMode;
-import io.gravitee.definition.model.v4.plan.PlanSecurity;
-import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
+import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
@@ -76,6 +74,7 @@ public class ApiResource_ExportCRDTest extends ApiResourceTest {
     @AfterEach
     public void tearDown() {
         apiCRDExportDomainService.reset();
+        super.tearDown();
     }
 
     @Test
@@ -128,7 +127,7 @@ public class ApiResource_ExportCRDTest extends ApiResourceTest {
     @Test
     public void should_export_plans_that_the_crd_import_accepts() throws JsonProcessingException {
         givenTheCrdImportCanRun();
-        var export = exportOfAnApiWithAPlanStoredWithoutType();
+        var export = exportOfAnApiWithAStoredPlan();
         apiCRDExportDomainService.initWith(List.of(ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null)));
         var exportedSpec = YAML.readTree(rootTarget().request().get(String.class)).get("spec");
 
@@ -164,7 +163,7 @@ public class ApiResource_ExportCRDTest extends ApiResourceTest {
         );
     }
 
-    private static ExportApiEntity exportOfAnApiWithAPlanStoredWithoutType() {
+    private static ExportApiEntity exportOfAnApiWithAStoredPlan() {
         return ExportApiEntity.builder()
             .apiEntity(
                 ApiEntity.builder()
@@ -195,13 +194,20 @@ public class ApiResource_ExportCRDTest extends ApiResourceTest {
             )
             .plans(
                 Set.of(
-                    PlanEntity.builder()
-                        .id("plan-id")
-                        .name("rt-plan")
-                        .security(PlanSecurity.builder().type("api-key").build())
-                        .status(PlanStatus.PUBLISHED)
-                        .mode(PlanMode.STANDARD)
-                        .build()
+                    new PlanMapper().toEntity(
+                        Plan.builder()
+                            .id("plan-id")
+                            .name("rt-plan")
+                            .type(Plan.PlanType.API)
+                            .security(Plan.PlanSecurityType.API_KEY)
+                            .validation(Plan.PlanValidationType.AUTO)
+                            .status(Plan.Status.PUBLISHED)
+                            .mode(Plan.PlanMode.STANDARD)
+                            .referenceId(API)
+                            .referenceType(Plan.PlanReferenceType.API)
+                            .build(),
+                        List.of()
+                    )
                 )
             )
             .build();
