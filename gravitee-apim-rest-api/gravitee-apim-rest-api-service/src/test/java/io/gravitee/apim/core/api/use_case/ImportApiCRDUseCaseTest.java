@@ -121,6 +121,7 @@ import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
+import io.gravitee.apim.core.exception.AbstractDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
@@ -190,6 +191,7 @@ import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.vertx.rxjava3.core.Vertx;
 import java.security.GeneralSecurityException;
@@ -284,6 +286,9 @@ class ImportApiCRDUseCaseTest {
     NotificationCRDDomainService notificationCRDService = mock(NotificationCRDDomainService.class);
 
     ImportApiCRDUseCase useCase;
+
+    // What the Automation API dry run runs (ApisResource, dryRun=true)
+    ValidateApiCRDDomainService crdValidator;
 
     @BeforeAll
     static void beforeAll() {
@@ -403,7 +408,7 @@ class ImportApiCRDUseCaseTest {
 
         propertyDomainService = new PropertyDomainService(dataEncryptor);
 
-        var crdValidator = new ValidateApiCRDDomainService(
+        crdValidator = new ValidateApiCRDDomainService(
             new ValidateCategoryIdsDomainService(categoryQueryService),
             verifyApiPathDomainService,
             verifyApiHostsDomainService,
@@ -1542,6 +1547,22 @@ class ImportApiCRDUseCaseTest {
         }
 
         @Test
+        void should_reject_a_plan_id_of_another_api() {
+            var otherApiPlan = givenAnotherApiWithAPlan();
+
+            var throwable = catchThrowable(() ->
+                useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRDWithPlanId(otherApiPlan.getId())))
+            );
+
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining(otherApiPlan.getId());
+            assertThat(planCrudService.storage())
+                .filteredOn(plan -> plan.getId().equals(otherApiPlan.getId()))
+                .containsExactly(otherApiPlan);
+            verify(updateApiDomainService, never()).update(any(), any(), any());
+            assertThat(auditCrudService.storage()).isEmpty();
+        }
+
+        @Test
         void should_let_domain_exceptions_propagate_without_wrapping_in_technical_management_exception() {
             givenExistingApi();
             givenExistingPlans(List.of(KEYLESS));
@@ -2199,6 +2220,37 @@ class ImportApiCRDUseCaseTest {
         }
     }
 
+    @Nested
+    class DryRun {
+
+        @Test
+        void should_refuse_a_plan_id_of_another_api() {
+            var otherApiPlan = givenAnotherApiWithAPlan();
+
+            assertThat(dryRunErrors(aCRDWithPlanId(otherApiPlan.getId()))).anyMatch(message -> message.contains(otherApiPlan.getId()));
+        }
+
+        // A dry run refuses with severe errors, or with a 4xx exception the resource maps to an error response
+        private List<String> dryRunErrors(ApiCRDSpec spec) {
+            try {
+                return crdValidator
+                    .validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))
+                    .severe()
+                    .orElseGet(List::of)
+                    .stream()
+                    .map(Validator.Error::getMessage)
+                    .toList();
+            } catch (AbstractDomainException e) {
+                return List.of(e.getMessage());
+            } catch (AbstractManagementException e) {
+                if (e.getHttpStatusCode() >= 500) {
+                    throw e;
+                }
+                return List.of(e.getMessage());
+            }
+        }
+    }
+
     @Test
     void should_save_metadata() {
         var metadata = List.of(
@@ -2534,6 +2586,19 @@ class ImportApiCRDUseCaseTest {
 
     void givenExistingPlans(List<Plan> plans) {
         planCrudService.initWith(plans);
+    }
+
+    // API_PROXY_V4 owns KEYLESS; another API of the environment owns an API key plan
+    Plan givenAnotherApiWithAPlan() {
+        var otherApi = Update.API_PROXY_V4.toBuilder().id("other-api-id").crossId("other-api-cross-id").name("other-api").build();
+        apiQueryService.initWith(List.of(Update.API_PROXY_V4, otherApi));
+        var otherApiPlan = Update.API_KEY.toBuilder().id("other-api-plan-id").apiId(otherApi.getId()).referenceId(otherApi.getId()).build();
+        givenExistingPlans(List.of(Update.KEYLESS, otherApiPlan));
+        return otherApiPlan;
+    }
+
+    private static ApiCRDSpec aCRDWithPlanId(String planId) {
+        return aCRD().plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(Update.KEYLESS).toBuilder().id(planId).build())).build();
     }
 
     BaseApplicationEntity givenExistingApplication(BaseApplicationEntity application) {
