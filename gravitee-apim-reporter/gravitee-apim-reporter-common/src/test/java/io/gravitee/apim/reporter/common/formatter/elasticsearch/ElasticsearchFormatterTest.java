@@ -55,6 +55,7 @@ class ElasticsearchFormatterTest extends AbstractFormatterTest {
             "message metrics with connection dimensions, v4.metric.MessageMetrics, v4/message-metrics-with-connection-dimensions.json, elasticsearch/v4/message-metrics-with-connection-dimensions.json",
             "message log, v4.log.MessageLog, v4/message-log.json, elasticsearch/v4/message-log.json",
             "v4 metrics with warnings, v4.metric.Metrics, v4/metrics-with-warnings.json, elasticsearch/v4/metrics-with-warnings.json",
+            "v4 metrics with decisions, v4.metric.Metrics, v4/metrics-with-decisions.json, elasticsearch/v4/metrics-with-decisions.json",
             "v4 metrics with additional, v4.metric.Metrics, v4/metrics-with-additional.json, elasticsearch/v4/metrics-with-additional.json",
             "message metrics with additional, v4.metric.MessageMetrics, v4/message-metrics-with-additional.json, elasticsearch/v4/message-metrics-with-additional.json",
             "message metrics with apostrophe in json additional, v4.metric.MessageMetrics, v4/message-metrics-with-apostrophe-in-json-additional.json, elasticsearch/v4/message-metrics-with-apostrophe-in-json-additional.json",

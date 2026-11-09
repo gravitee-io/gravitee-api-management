@@ -73,6 +73,7 @@
         <#if r.name()??>,"name": "${r.name()?json_string}"</#if>
         <#if r.version()??>,"version": "${r.version()?json_string}"</#if>
         <#if r.effect()??>,"effect": "${r.effect()?json_string}"</#if>
+        <#if r.annotations()?? && r.annotations()?has_content>,"annotations": {<#list r.annotations() as k, v>"${k?json_string}": "${(v!"")?json_string}"<#sep>,</#sep></#list>}</#if>
     }<#sep>,</#sep></#list>]
 </#if>
 <#if report.getTransformed()??>
