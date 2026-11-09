@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.14.0_10_create_organization_keys_table
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}organization_keys
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}organization_keys" } }
+              - column: {name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: wrapped_key, type: nvarchar(1024), constraints: { nullable: false } }
+              - column: {name: kek_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+        - addUniqueConstraint:
+            constraintName: uk_${gravitee_prefix}organization_keys_organization_id
+            tableName: ${gravitee_prefix}organization_keys
+            columnNames: organization_id

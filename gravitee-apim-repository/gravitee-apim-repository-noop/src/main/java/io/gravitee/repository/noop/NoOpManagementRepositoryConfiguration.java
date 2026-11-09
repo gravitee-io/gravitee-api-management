@@ -107,4 +107,9 @@ public class NoOpManagementRepositoryConfiguration {
     public SecretRepository secretRepository() {
         return new NoOpSecretRepository();
     }
+
+    @Bean
+    public OrganizationKeyRepository organizationKeyRepository() {
+        return new NoOpOrganizationKeyRepository();
+    }
 }

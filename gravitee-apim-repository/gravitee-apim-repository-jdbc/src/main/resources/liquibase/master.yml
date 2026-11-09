@@ -462,4 +462,6 @@ databaseChangeLog:
     - include:
         - file: liquibase/changelogs/v4_14_0/09_make_guardians_environment_id_name_unique.yml
     - include:
+        - file: liquibase/changelogs/v4_14_0/10_create_organization_keys_table.yml
+    - include:
         - file: liquibase/changelogs/v4_14_0/11_add_flow_execution_to_api_products.yml

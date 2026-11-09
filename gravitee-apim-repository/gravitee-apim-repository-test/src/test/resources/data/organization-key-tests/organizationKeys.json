@@ -1,0 +1,23 @@
+[
+  {
+    "id": "key-1",
+    "organizationId": "org-1",
+    "wrappedKey": "d3JhcHBlZC1rZXktMQ==",
+    "kekId": "kek-a",
+    "createdAt": 1753711100000
+  },
+  {
+    "id": "key-2",
+    "organizationId": "org-2",
+    "wrappedKey": "d3JhcHBlZC1rZXktMg==",
+    "kekId": "kek-a",
+    "createdAt": 1753711200000
+  },
+  {
+    "id": "key-3",
+    "organizationId": "org-3",
+    "wrappedKey": "d3JhcHBlZC1rZXktMw==",
+    "kekId": "kek-b",
+    "createdAt": 1753711300000
+  }
+]
