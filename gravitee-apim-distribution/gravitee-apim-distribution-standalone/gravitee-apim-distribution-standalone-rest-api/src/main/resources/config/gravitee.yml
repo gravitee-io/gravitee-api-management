@@ -252,6 +252,7 @@ repositories:
 #      security:
 #        username: user
 #        password: secret
+#        api_key: <encoded API key> # Instead of username/password, e.g. for Elastic Cloud Serverless. Do not set both.
 #      http:
 #        timeout: 10000 # in milliseconds
 #        proxy:
@@ -294,6 +295,7 @@ repositories:
 #      security:
 #        username: user
 #        password: secret
+#        api_key: <encoded API key> # Instead of username/password, e.g. for Elastic Cloud Serverless. Do not set both.
 #      ssl:
 #        keystore:
 #          type: jks # jks, pkcs12 or pem
@@ -346,6 +348,7 @@ repositories:
 #      security:
 #        username: user
 #        password: secret
+#        api_key: <encoded API key> # Instead of username/password, e.g. for Elastic Cloud Serverless. Do not set both.
 #      ssl:
 #        keystore:
 #          type: jks # jks, pkcs12 or pem
