@@ -632,6 +632,14 @@ class ImportApiCRDUseCaseTest {
         }
 
         @Test
+        void should_reject_a_spec_without_state_with_a_validation_error_naming_it() {
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().state(null).build())));
+
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining("state");
+            assertThat(apiCrudService.storage()).isEmpty();
+        }
+
+        @Test
         void should_store_encryptable_properties_encrypted() throws GeneralSecurityException {
             when(dataEncryptor.encrypt("prop-value")).thenReturn("ciphertext");
 
@@ -1423,6 +1431,36 @@ class ImportApiCRDUseCaseTest {
             assertThat(apiCrudService.get(otherApi.getId()).getName()).isEqualTo("other-api");
             assertThat(apiCrudService.get(API_ID).getName()).isEqualTo(NATIVE_API.getName());
             verifyNoInteractions(apiStateDomainService);
+        }
+
+        @Test
+        void should_keep_the_stored_state_when_the_spec_has_no_state() {
+            var stoppedApi = API_PROXY_V4.toBuilder().lifecycleState(Api.LifecycleState.STOPPED).build();
+            apiQueryService.initWith(List.of(stoppedApi));
+            givenExistingPlans(List.of(KEYLESS));
+            when(updateApiDomainService.update(any(), any(), any())).thenReturn(stoppedApi);
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().state(null).build())));
+
+            assertThat(throwable).isNull();
+            assertThat(apiCrudService.get(API_ID).getLifecycleState()).isEqualTo(Api.LifecycleState.STOPPED);
+            verify(apiStateDomainService, never()).start(any(), any());
+            verify(apiStateDomainService, never()).stop(any(), any());
+        }
+
+        @Test
+        void should_keep_a_stored_started_state_when_the_spec_has_no_state() {
+            var startedApi = API_PROXY_V4.toBuilder().lifecycleState(Api.LifecycleState.STARTED).build();
+            apiQueryService.initWith(List.of(startedApi));
+            givenExistingPlans(List.of(KEYLESS));
+            when(updateApiDomainService.update(any(), any(), any())).thenReturn(startedApi);
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().state(null).build())));
+
+            assertThat(throwable).isNull();
+            assertThat(apiCrudService.get(API_ID).getLifecycleState()).isEqualTo(Api.LifecycleState.STARTED);
+            verify(apiStateDomainService, never()).start(any(), any());
+            verify(apiStateDomainService, never()).stop(any(), any());
         }
 
         @Test
