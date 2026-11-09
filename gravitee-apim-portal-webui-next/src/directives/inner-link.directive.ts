@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Location } from '@angular/common';
+import { Location, LocationStrategy } from '@angular/common';
 import { AfterViewInit, Directive, ElementRef, HostListener, inject, OnDestroy } from '@angular/core';
 import { Router, Routes } from '@angular/router';
 
@@ -24,6 +24,7 @@ import { Router, Routes } from '@angular/router';
 export class InnerLinkDirective implements AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly location = inject(Location);
+  private readonly locationStrategy = inject(LocationStrategy);
   private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
   private pendingFragment: string | null = null;
@@ -58,7 +59,7 @@ export class InnerLinkDirective implements AfterViewInit, OnDestroy {
 
     // Normalizing the browser-resolved path strips the base href, so the router does not prepend it a second time.
     const appPath = this.location.normalize(anchor.pathname) || '/';
-    if (this.matchesTopLevelRoute(appPath, this.router.config)) {
+    if (this.isInsidePortal(href, anchor.pathname) && this.matchesTopLevelRoute(appPath, this.router.config)) {
       event.preventDefault();
       void this.router.navigateByUrl(`${appPath}${anchor.search}${anchor.hash}`);
     }
@@ -84,6 +85,18 @@ export class InnerLinkDirective implements AfterViewInit, OnDestroy {
       (!!target && target !== '_self') ||
       anchor.origin !== this.hostElement.ownerDocument.defaultView?.location.origin
     );
+  }
+
+  /**
+   * A root-relative href ("/catalog") is read as relative to the portal, as the portal's own generated links are.
+   * Any other href (a full URL, "../x") names a path on the host, so it belongs to the portal only under its base href.
+   */
+  private isInsidePortal(href: string, pathname: string): boolean {
+    if (href.startsWith('/') && !href.startsWith('//')) {
+      return true;
+    }
+    const baseHref = this.locationStrategy.getBaseHref().replace(/\/?$/, '/');
+    return `${pathname}/`.startsWith(baseHref);
   }
 
   /** Paths outside the router config (another app on the same host) must reach the server, not the portal's 404 route. */
