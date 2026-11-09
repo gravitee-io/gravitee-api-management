@@ -29,11 +29,11 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_VISIBILITY;
 
 import com.google.common.base.Strings;
+import io.gravitee.apim.core.api.domain_service.ApiCRDTargetDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
-import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.use_case.CreateHttpApiUseCase;
 import io.gravitee.apim.core.api.use_case.CreateNativeApiUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
@@ -157,7 +157,7 @@ public class ApisResource extends AbstractResource {
     private ValidateApiCRDUseCase validateApiCRDUseCase;
 
     @Inject
-    private ApiQueryService apiQueryService;
+    private ApiCRDTargetDomainService apiCRDTargetDomainService;
 
     @Inject
     private ImportApiDefinitionUseCase importApiDefinitionUseCase;
@@ -241,16 +241,16 @@ public class ApisResource extends AbstractResource {
     public Response createApiWithCRD(@Valid ApiCRDSpec crd, @QueryParam("dryRun") boolean dryRun) {
         var input = new ImportApiCRDUseCase.Input(getAuditInfo(), ApiMapper.INSTANCE.map(crd));
 
-        authorizeImport(input.spec().getCrossId(), input.auditInfo().environmentId());
+        authorizeImport(input.spec(), input.auditInfo().environmentId());
 
         return dryRun
             ? Response.ok(validateApiCRDUseCase.execute(input).status()).build()
             : Response.ok(importCRDUseCase.execute(input).status()).build();
     }
 
-    private void authorizeImport(String crossId, String environmentId) {
+    private void authorizeImport(io.gravitee.apim.core.api.model.crd.ApiCRDSpec spec, String environmentId) {
         // The same lookup as the import: authorize against the API it would update
-        var existing = apiQueryService.findByEnvironmentIdAndCrossId(environmentId, crossId);
+        var existing = apiCRDTargetDomainService.findExistingApi(environmentId, spec);
         requireCreateOrUpdate(RolePermission.ENVIRONMENT_API, RolePermission.API_DEFINITION, existing.map(Api::getId).orElse(null));
     }
 

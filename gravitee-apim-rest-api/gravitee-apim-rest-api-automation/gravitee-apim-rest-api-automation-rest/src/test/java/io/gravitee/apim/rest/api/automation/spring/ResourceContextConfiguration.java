@@ -51,6 +51,7 @@ import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFilterSpecUseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.domain_service.ApiCRDTargetDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
@@ -692,6 +693,11 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiQueryService apiQueryService() {
         return mock(ApiQueryService.class);
+    }
+
+    @Bean
+    public ApiCRDTargetDomainService apiCRDTargetDomainService(ApiQueryService apiQueryService, ApiCrudServiceInMemory apiCrudService) {
+        return new ApiCRDTargetDomainService(apiQueryService, apiCrudService);
     }
 
     @Bean

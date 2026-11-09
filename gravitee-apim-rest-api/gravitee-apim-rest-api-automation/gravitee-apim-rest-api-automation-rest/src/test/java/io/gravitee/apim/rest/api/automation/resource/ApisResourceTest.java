@@ -136,6 +136,26 @@ class ApisResourceTest extends AbstractResourceTest {
             verify(importApiCRDUseCase).execute(any());
         }
 
+        @ParameterizedTest
+        @ValueSource(booleans = { false, true })
+        void should_return_403_when_the_caller_cannot_update_the_api_named_by_the_id_of_a_spec_without_cross_id(boolean dryRun) {
+            apiCrudService.initWith(List.of(Api.builder().id("api-id").environmentId(ENVIRONMENT).build()));
+            when(permissionService.hasPermission(any(), eq(API_DEFINITION), eq("api-id"), eq(UPDATE))).thenReturn(false);
+
+            assertThat(statusWithUuidAndNoCrossId(dryRun)).isEqualTo(403);
+            verify(importApiCRDUseCase, never()).execute(any());
+            verify(validateApiCRDDomainService, never()).validateAndSanitize(any());
+        }
+
+        @Test
+        void should_update_the_api_named_by_the_id_of_a_spec_without_cross_id_with_update_on_it() {
+            apiCrudService.initWith(List.of(Api.builder().id("api-id").environmentId(ENVIRONMENT).build()));
+            when(permissionService.hasPermission(any(), eq(ENVIRONMENT_API), eq(ENVIRONMENT), eq(CREATE))).thenReturn(false);
+
+            assertThat(statusWithUuidAndNoCrossId(false)).isEqualTo(200);
+            verify(importApiCRDUseCase).execute(any());
+        }
+
         private void givenExistingApi() {
             var crossId = HRIDToUUID.api()
                 .context(AuditInfo.builder().organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build())
@@ -153,6 +173,20 @@ class ApisResourceTest extends AbstractResourceTest {
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
                     .put(Entity.json(readJSON("api-with-hrid.json")))
+            ) {
+                return response.getStatus();
+            }
+        }
+
+        private int statusWithUuidAndNoCrossId(boolean dryRun) {
+            var spec = readJSON("api-with-uuid.json").replace("\"crossId\": \"api-cross-id\",", "");
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .queryParam("hridContainsUUID", true)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(spec))
             ) {
                 return response.getStatus();
             }
