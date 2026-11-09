@@ -15,9 +15,15 @@
  */
 package io.gravitee.gamma.rest.core.guardian.domain_service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.json.JsonDeserializer;
+import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.GuardrailProtocol;
+import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
 import io.gravitee.gamma.rest.core.guardian.model.CreateGuardian;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
@@ -25,11 +31,15 @@ import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validation;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 /**
- * The checks a Guardian has to pass, kept apart because they answer different questions.
+ * Validates Guardian structure, supported API types and the protocols declared by its guardrails.
  *
  * <p><strong>Structure</strong> — the required fields, the field sizes and the shape of the id —
  * is declared as bean validation constraints on {@link CreateGuardian} and
@@ -42,7 +52,8 @@ import lombok.RequiredArgsConstructor;
  *
  * <p><strong>The product rule</strong> — the gateway only runs a Guardian on an {@code llm-proxy} in
  * 4.14, so accepting any other API type would store a Guardian nothing can execute. It applies to
- * creation and to update alike, a {@code PUT} replacing the whole definition.
+ * creation and to update alike, a {@code PUT} replacing the whole definition. Enabled guardrails
+ * must also support those API types in their plugin metadata and any explicit scope protocol.
  *
  * <p><strong>The name is free</strong> — two Guardians of one environment may not share a name. This
  * is the check users meet, and the only one that reads the store; the unique index behind it is a
@@ -60,6 +71,8 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
     private final GuardianRepository guardianRepository;
 
     private static final ApiType SUPPORTED_API_TYPE = ApiType.LLM_PROXY;
+    private final PolicyPluginProvider policyPluginProvider;
+    private final JsonDeserializer jsonDeserializer;
 
     public record Input(Guardian guardian) implements Validator.Input {}
 
@@ -133,6 +146,88 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
                 )
             );
         }
-        return Result.ofValue(input);
+        return Result.ofBoth(input, validatePolicyProtocols(input.guardian().getPolicies(), apiTypes));
+    }
+
+    private List<Error> validatePolicyProtocols(List<Step> steps, Set<ApiType> apiTypes) {
+        if (steps != null && steps.stream().anyMatch(Objects::isNull)) {
+            return List.of(Error.severe("Guardian policies must not contain null steps."));
+        }
+        if (steps == null || steps.stream().noneMatch(Step::isEnabled)) {
+            return List.of();
+        }
+        var policies = policyPluginProvider.findAllCapabilities();
+        var errors = new ArrayList<Error>();
+        for (var step : steps) {
+            if (!step.isEnabled()) {
+                continue;
+            }
+            var policy = policies.get(step.getPolicy());
+            if (policy == null) {
+                errors.add(Error.severe("Step [%s] references policy [%s], which is not installed.", step.getName(), step.getPolicy()));
+            } else if (policy.guardrail()) {
+                if (!policy.supportedApiTypes().containsAll(apiTypes)) {
+                    errors.add(incompatibleProtocol(step, apiTypes));
+                } else {
+                    validateScopeProtocol(step, apiTypes, errors);
+                }
+            }
+        }
+        return errors;
+    }
+
+    private void validateScopeProtocol(Step step, Set<ApiType> apiTypes, List<Error> errors) {
+        if (step.getConfiguration() == null || step.getConfiguration().isBlank()) {
+            return;
+        }
+        try {
+            JsonNode configuration = jsonDeserializer.deserialize(step.getConfiguration(), JsonNode.class);
+            if (configuration == null || !configuration.isObject()) {
+                errors.add(Error.severe("Guardrail step [%s] has an invalid configuration.", step.getName()));
+                return;
+            }
+            var scope = configuration.get("scope");
+            if (scope == null || scope.isNull()) {
+                return;
+            }
+            if (!scope.isObject()) {
+                errors.add(Error.severe("Guardrail step [%s] has an invalid scope configuration.", step.getName()));
+                return;
+            }
+            var protocol = scope.get("protocol");
+            if (protocol == null) {
+                return;
+            }
+            ApiType scopeApiType = protocol.isTextual()
+                ? GuardrailProtocol.fromScope(protocol.textValue()).map(GuardrailProtocol::apiType).orElse(null)
+                : null;
+            if (scopeApiType == null) {
+                errors.add(Error.severe("Guardrail step [%s] has an invalid scope protocol.", step.getName()));
+            } else if (apiTypes.stream().anyMatch(apiType -> apiType != scopeApiType)) {
+                errors.add(
+                    Error.severe(
+                        "Guardrail step [%s] declares scope protocol [%s], incompatible with Guardian API types [%s].",
+                        step.getName(),
+                        protocol.textValue(),
+                        labels(apiTypes)
+                    )
+                );
+            }
+        } catch (JsonProcessingException e) {
+            errors.add(Error.severe("Guardrail step [%s] has an invalid configuration.", step.getName()));
+        }
+    }
+
+    private static Error incompatibleProtocol(Step step, Set<ApiType> apiTypes) {
+        return Error.severe(
+            "Guardrail step [%s] using policy [%s] does not support Guardian API types [%s].",
+            step.getName(),
+            step.getPolicy(),
+            labels(apiTypes)
+        );
+    }
+
+    private static String labels(Set<ApiType> apiTypes) {
+        return apiTypes.stream().map(ApiType::getLabel).sorted().collect(Collectors.joining(", "));
     }
 }
