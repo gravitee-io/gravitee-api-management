@@ -23,7 +23,7 @@ import {
   TriggerSaasDockerImagesJob,
 } from '../../jobs';
 import { CircleCIEnvironment } from '../../pipelines';
-import { isMasterBranch } from '../../utils';
+import { isMasterBranch, triggersSaasDockerImages } from '../../utils';
 import { config } from '../../config';
 
 /**
@@ -50,20 +50,17 @@ export function publishAndDeployJobs(dynamicConfig: Config, environment: CircleC
     dynamicConfig.addJob(deployOnNextGenIntegrationJob);
   }
 
+  // Master and the two newest support lines only: nothing deploys an older line on SaaS.
+  const triggerSaas = triggersSaasDockerImages(environment.branch, environment.supportBranches);
   const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create({ ...environment, isDryRun: false }, 'dev');
-  dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
+  if (triggerSaas) {
+    dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
+  }
 
-  const productImages = [
-    'Build APIM Management API docker image',
-    'Build APIM Gateway docker image',
-    'Build APIM Console docker image',
-    'Build APIM Portal docker image',
-  ];
-
-  // What the cluster actually pulls. The deployment is a rollout restart: it never names a tag,
-  // so it cannot fail on an image that was not pushed yet — the pods come back up on whatever
+  // What the cluster and the SaaS actually pull. The deployment is a rollout restart: it never names
+  // a tag, so it cannot fail on an image that was not pushed yet — the pods come back up on whatever
   // the tag pointed at before. The standard variants are absent on purpose: they are built for
-  // the end-to-end suites and the SaaS trigger, not for this environment.
+  // the end-to-end suites, not for these environments.
   const environmentImages = [
     'Build APIM Management API chainguard docker image',
     'Build APIM Gateway chainguard docker image',
@@ -73,15 +70,20 @@ export function publishAndDeployJobs(dynamicConfig: Config, environment: CircleC
   ];
 
   return [
-    new workflow.WorkflowJob(runTriggerSaasDockerImagesJob, {
-      context: [...config.jobContext, 'keeper-orb-publishing'],
-      name: 'Trigger SaaS Docker images creation',
-      requires: productImages,
-    }),
+    ...(triggerSaas
+      ? [
+          new workflow.WorkflowJob(runTriggerSaasDockerImagesJob, {
+            context: [...config.jobContext, 'keeper-orb-publishing'],
+            name: 'Trigger SaaS Chainguard Docker images creation',
+            requires: environmentImages,
+          }),
+        ]
+      : []),
     new workflow.WorkflowJob(releaseHelmDryRunJob, {
       name: 'Publish Helm chart (internal repo)',
       context: config.jobContext,
-      requires: ['Trigger SaaS Docker images creation'],
+      // Without the SaaS trigger, the chart waits on what the trigger itself would have waited on.
+      requires: triggerSaas ? ['Trigger SaaS Chainguard Docker images creation'] : environmentImages,
     }),
     new workflow.WorkflowJob(publishSnapshotJob, {
       name: 'Publish snapshot',
@@ -98,7 +100,7 @@ export function publishAndDeployJobs(dynamicConfig: Config, environment: CircleC
           new workflow.WorkflowJob(deployOnNextGenIntegrationJob, {
             name: 'Deploy on NextGen Integration environment',
             context: config.jobContext,
-            requires: ['Trigger SaaS Docker images creation', 'Publish Helm chart (internal repo)'],
+            requires: ['Trigger SaaS Chainguard Docker images creation', 'Publish Helm chart (internal repo)'],
           }),
         ]
       : []),
