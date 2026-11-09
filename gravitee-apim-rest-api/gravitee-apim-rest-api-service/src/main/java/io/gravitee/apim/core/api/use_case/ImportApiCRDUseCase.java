@@ -39,7 +39,6 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
-import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.factory.PageModelFactory;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
@@ -63,6 +62,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Date;
 import java.util.HashMap;
@@ -243,10 +243,8 @@ public class ImportApiCRDUseCase {
                 .state(createdApi.getLifecycleState().name())
                 .plans(planNameIdMapping)
                 .build();
-        } catch (AbstractDomainException e) {
-            throw e;
         } catch (Exception e) {
-            throw new TechnicalManagementException(e);
+            throw importFailure(e);
         }
     }
 
@@ -310,8 +308,19 @@ public class ImportApiCRDUseCase {
                 .plans(planKeyIdMapping)
                 .build();
         } catch (Exception e) {
-            throw new TechnicalManagementException(e);
+            throw importFailure(e);
         }
+    }
+
+    // A refusal keeps its declared 4xx status; anything else is a technical failure
+    private static RuntimeException importFailure(Exception e) {
+        if (e instanceof AbstractDomainException domainException) {
+            return domainException;
+        }
+        if (e instanceof AbstractManagementException managementException && managementException.getHttpStatusCode() < 500) {
+            return managementException;
+        }
+        return new TechnicalManagementException(e);
     }
 
     private void handleLifeCycle(Input input, Api existingApi, Api api) {
@@ -467,9 +476,6 @@ public class ImportApiCRDUseCase {
         pages.forEach(page -> {
             page.setReferenceId(apiId);
             page.setReferenceType(Page.ReferenceType.API);
-            if (page.getParentId() != null) {
-                validatePageParent(pages, page.getParentId());
-            }
 
             pageCrudService
                 .findById(page.getId())
@@ -485,6 +491,7 @@ public class ImportApiCRDUseCase {
         });
     }
 
+<<<<<<< HEAD
     private void validatePageParent(List<Page> pages, String parentId) {
         pages
             .stream()
@@ -498,6 +505,14 @@ public class ImportApiCRDUseCase {
     }
 
     private static boolean shouldDeploy(ApiCRDSpec spec) {
+=======
+    // A spec without state keeps the stored one, so the API is neither started nor stopped
+    private static Api.LifecycleState lifecycleStateToUpdate(ApiCRDSpec spec, Api existingApi) {
+        return spec.getState() == null ? existingApi.getLifecycleState() : Api.LifecycleState.valueOf(spec.getState());
+    }
+
+    private static boolean shouldDeploy(ApiCRDSpec spec, String lifecycleState) {
+>>>>>>> cfb10d6 (fix(automation): make the API dry run refuse what the import refuses)
         return (
             spec.getDefinitionContext().isSyncFromManagement() &&
             Api.LifecycleState.STARTED.name().equalsIgnoreCase(spec.getState()) &&

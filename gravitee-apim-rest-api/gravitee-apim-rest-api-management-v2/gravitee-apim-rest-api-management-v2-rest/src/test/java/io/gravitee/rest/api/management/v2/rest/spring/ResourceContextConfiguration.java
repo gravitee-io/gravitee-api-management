@@ -54,6 +54,7 @@ import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFilterSpecUseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiFolderConflictsDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
@@ -114,6 +115,11 @@ import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessCont
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.environment.domain_service.ValidateEnvironmentInOrganizationDomainService;
+<<<<<<< HEAD
+=======
+import io.gravitee.apim.core.environment.service_provider.EnvironmentTemplateModelProvider;
+import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
+>>>>>>> cfb10d6 (fix(automation): make the API dry run refuse what the import refuses)
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.group.crud_service.GroupCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
@@ -129,6 +135,8 @@ import io.gravitee.apim.core.logs_engine.query_service.LogsDefinitionQueryServic
 import io.gravitee.apim.core.logs_engine.use_case.GetLogsFilterDefinitionsUseCase;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
 import io.gravitee.apim.core.notification.crud_service.NotificationConfigCrudService;
@@ -667,7 +675,22 @@ public class ResourceContextConfiguration {
         PolicyValidationDomainService policyValidationDomainService,
         PageCrudService pageCrudService,
         CRDMembersDomainServiceInMemory crdMembersDomainService,
+<<<<<<< HEAD
         PlanCrudService planCrudService
+=======
+        ValidateKafkaClusterBindingDomainService validateKafkaClusterBindingDomainService,
+        ClusterBindingPermissionDomainService clusterBindingPermissionDomainService,
+        ValidateApiClusterBindingService validateApiClusterBindingService,
+        ApiCRDTargetDomainService apiCRDTargetDomainService,
+        PlanCrudService planCrudService,
+        ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
+        ValidateApiDomainService validateApiDomainService,
+        UpdateApiDomainService updateApiDomainService,
+        FlowValidationDomainService flowValidationDomainService,
+        io.gravitee.apim.core.plan.query_service.PlanQueryService planQueryService,
+        ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
+        ApiFolderConflictsDomainService apiFolderConflictsDomainService
+>>>>>>> cfb10d6 (fix(automation): make the API dry run refuse what the import refuses)
     ) {
         ValidateGroupsDomainService groupsValidator = new ValidateGroupsDomainService(groupQueryService);
         return new ValidateApiCRDUseCase(
@@ -690,8 +713,24 @@ public class ResourceContextConfiguration {
                 ),
                 new ValidatePortalNotificationDomainService(groupsValidator),
                 new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
+<<<<<<< HEAD
                 apiQueryService,
                 crdMembersDomainService
+=======
+                apiCRDTargetDomainService,
+                new PropertyDomainService(dataEncryptor),
+                crdMembersDomainService,
+                validateKafkaClusterBindingDomainService,
+                clusterBindingPermissionDomainService,
+                validateApiClusterBindingService,
+                apiPrimaryOwnerFactory,
+                validateApiDomainService,
+                updateApiDomainService,
+                flowValidationDomainService,
+                planQueryService,
+                apiPrimaryOwnerDomainService,
+                apiFolderConflictsDomainService
+>>>>>>> cfb10d6 (fix(automation): make the API dry run refuse what the import refuses)
             )
         );
     }

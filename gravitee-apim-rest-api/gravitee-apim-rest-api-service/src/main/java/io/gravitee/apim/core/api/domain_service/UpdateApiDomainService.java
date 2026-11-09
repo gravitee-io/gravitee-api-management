@@ -26,5 +26,8 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 public interface UpdateApiDomainService {
     Api update(String apiId, ApiCRDSpec crd, AuditInfo auditInfo);
 
+    /** Runs the validation of {@link #update(String, ApiCRDSpec, AuditInfo)}, without writing. */
+    void validate(String apiId, ApiCRDSpec crd, AuditInfo auditInfo);
+
     Api updateV4(Api api, AuditInfo auditInfo);
 }
