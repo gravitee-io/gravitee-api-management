@@ -19,7 +19,7 @@
   "enforced": "DENY",
   "verdict": "FORBID",
   "reasons": ["denied because \"reason\"", "line1\nline2"],
-  "matchedRules": [{ "id": "p2#0", "name": "deny\"quote", "version": "rev\"1", "effect": "FORBID" }],
+  "matchedRules": [{ "id": "p2#0", "name": "deny\"quote", "version": "rev\"1", "effect": "FORBID", "annotations": { "guardrail": "my \"step\"", "location": "messages[1].user" } }],
   "requestId": "req-2",
   "status": "success",
   "durationNanos": 12
