@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
-import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
-import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.use_case.GetPortalSummaryUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalMapper;
@@ -42,17 +40,8 @@ public class PortalResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ) })
     public Portal getPortal(@PathParam("portalId") String portalId) {
         var output = getPortalSummaryUseCase.execute(
-            new GetPortalSummaryUseCase.Input(GraviteeContext.getCurrentEnvironment(), parsePortalId(portalId))
+            new GetPortalSummaryUseCase.Input(GraviteeContext.getCurrentEnvironment(), PortalMapper.INSTANCE.toPortalId(portalId))
         );
         return PortalMapper.INSTANCE.map(output.portal(), uriInfo);
-    }
-
-    private static PortalId parsePortalId(String portalId) {
-        try {
-            return PortalId.of(portalId);
-        } catch (IllegalArgumentException e) {
-            // No portal can have an id that is not a UUID.
-            throw new PortalNotFoundException(portalId);
-        }
     }
 }
