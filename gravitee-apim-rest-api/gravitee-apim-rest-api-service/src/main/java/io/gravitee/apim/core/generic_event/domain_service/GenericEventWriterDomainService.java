@@ -23,6 +23,7 @@ import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.generic_event.model.GenericEvent;
+import io.gravitee.apim.core.generic_event.model.PublicationOptions;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -42,9 +43,12 @@ public class GenericEventWriterDomainService {
     private final EventLatestCrudService eventLatestCrudService;
     private final ObjectMapper objectMapper;
 
-    public void write(EventType type, GenericEvent genericEvent, AuditInfo auditInfo, boolean historized) {
+    public void write(EventType type, GenericEvent genericEvent, AuditInfo auditInfo, PublicationOptions options) {
         var properties = properties(genericEvent, auditInfo);
-        var event = historized
+        if (options.deploymentLabel() != null) {
+            properties.put(Event.EventProperties.DEPLOYMENT_LABEL, options.deploymentLabel());
+        }
+        var event = options.historized()
             ? eventCrudService.createEvent(
                 auditInfo.organizationId(),
                 auditInfo.environmentId(),
