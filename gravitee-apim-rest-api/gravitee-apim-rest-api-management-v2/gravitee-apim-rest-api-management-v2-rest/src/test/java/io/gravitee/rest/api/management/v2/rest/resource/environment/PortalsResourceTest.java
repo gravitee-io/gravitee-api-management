@@ -20,7 +20,6 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
@@ -65,9 +64,6 @@ class PortalsResourceTest extends AbstractResourceTest {
     @Inject
     private ThemeQueryServiceInMemory themeQueryService;
 
-    @Inject
-    private InstallationAccessQueryServiceInMemory installationAccessQueryService;
-
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/portals";
@@ -84,12 +80,11 @@ class PortalsResourceTest extends AbstractResourceTest {
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-        installationAccessQueryService.withPortalUrl(ENVIRONMENT, "https://portal.acme.io");
         portalCrudService.initWith(
             List.of(
-                portal(PARTNERS_PORTAL_ID, ENVIRONMENT, "Partners", false),
-                portal(DEFAULT_PORTAL_ID, ENVIRONMENT, "Developer Portal", true),
-                portal(PortalId.random(), "other-env", "Elsewhere", false)
+                portal(PARTNERS_PORTAL_ID, ENVIRONMENT, "Partners", false, "https://partners.acme.io"),
+                portal(DEFAULT_PORTAL_ID, ENVIRONMENT, "Developer Portal", true, "https://portal.acme.io/next"),
+                portal(PortalId.random(), "other-env", "Elsewhere", false, "https://elsewhere.acme.io")
             )
         );
         portalNavigationItemsCrudService.initWith(
@@ -104,7 +99,6 @@ class PortalsResourceTest extends AbstractResourceTest {
         portalCrudService.reset();
         portalNavigationItemsCrudService.reset();
         themeQueryService.reset();
-        installationAccessQueryService.reset();
     }
 
     @Nested
@@ -264,7 +258,7 @@ class PortalsResourceTest extends AbstractResourceTest {
     }
 
     @SneakyThrows
-    private static Portal portal(PortalId id, String environmentId, String name, boolean defaultPortal) {
+    private static Portal portal(PortalId id, String environmentId, String name, boolean defaultPortal, String url) {
         return Portal.of(
             id,
             environmentId,
@@ -273,7 +267,7 @@ class PortalsResourceTest extends AbstractResourceTest {
             PortalNavigationStructure.empty(),
             null,
             defaultPortal,
-            URI.create("https://partners.acme.io").toURL()
+            URI.create(url).toURL()
         );
     }
 }

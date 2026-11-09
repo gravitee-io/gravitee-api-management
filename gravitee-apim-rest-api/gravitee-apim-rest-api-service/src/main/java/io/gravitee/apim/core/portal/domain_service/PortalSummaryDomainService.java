@@ -40,7 +40,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PortalSummaryDomainService {
 
-    private final PortalUrlDomainService portalUrlDomainService;
     private final ThemeQueryService themeQueryService;
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
 
@@ -54,14 +53,7 @@ public class PortalSummaryDomainService {
         var publishedApiIdsByPortal = publishedApiIdsByPortal(environmentId);
         return portals
             .stream()
-            .map(portal ->
-                new PortalSummary(
-                    portal,
-                    portalUrlDomainService.resolveUrl(portal).orElse(null),
-                    hasLogo,
-                    publishedApiIdsByPortal.getOrDefault(portal.getId(), Set.of()).size()
-                )
-            )
+            .map(portal -> new PortalSummary(portal, hasLogo, publishedApiIdsByPortal.getOrDefault(portal.getId(), Set.of()).size()))
             .toList();
     }
 
