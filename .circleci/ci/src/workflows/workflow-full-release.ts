@@ -30,7 +30,6 @@ import {
   SetupJob,
   SlackAnnouncementJob,
   TriggerApimApiDocsPipelineJob,
-  TriggerSaasDockerImagesJob,
 } from '../jobs';
 import { CircleCIEnvironment } from '../pipelines';
 import { config } from '../config';
@@ -77,8 +76,12 @@ export class FullReleaseWorkflow {
     const publishReleaseJob = PublishReleaseJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(publishReleaseJob);
 
-    const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create(environment, 'prod');
-    dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
+    const productImages = [
+      `Build APIM Portal docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+      `Build APIM Console docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+      `Build APIM Management API docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+      `Build APIM Gateway docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+    ];
 
     const triggerApimApiDocsPipelineJob = TriggerApimApiDocsPipelineJob.create(environment);
     dynamicConfig.addJob(triggerApimApiDocsPipelineJob);
@@ -166,23 +169,11 @@ export class FullReleaseWorkflow {
         requires: ['Package bundle'],
       }),
 
-      // Trigger SaaS Docker images creation
-      new workflow.WorkflowJob(runTriggerSaasDockerImagesJob, {
-        context: [...config.jobContext, 'keeper-orb-publishing'],
-        name: 'Trigger SaaS Docker images creation',
-        requires: [
-          `Build APIM Portal docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
-          `Build APIM Console docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
-          `Build APIM Management API docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
-          `Build APIM Gateway docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
-        ],
-      }),
-
       // Publish release
       new workflow.WorkflowJob(publishReleaseJob, {
         context: config.jobContext,
         name: 'Publish release',
-        requires: ['Trigger SaaS Docker images creation'],
+        requires: productImages,
       }),
 
       // Trigger gravitee-apim-api-docs ingestion (fire-and-forget; the docs
@@ -197,7 +188,7 @@ export class FullReleaseWorkflow {
       new workflow.WorkflowJob(releaseHelmJob, {
         context: config.jobContext,
         name: 'Release Helm Chart',
-        requires: ['Trigger SaaS Docker images creation'],
+        requires: productImages,
       }),
 
       // Create Release note pull request

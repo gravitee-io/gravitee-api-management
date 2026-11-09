@@ -54,6 +54,9 @@ describe('Pull requests workflow tests', () => {
         isDryRun: false,
       });
 
+      // The SaaS Docker images pipeline runs the newest lines only, and this one is not among them.
+      expect(result.stringify()).not.toContain('SaaS');
+
       const expected = fs.readFileSync(`./src/pipelines/tests/resources/pull-requests/${expectedFileName}`, 'utf-8');
       expect(result.stringify()).toStrictEqual(expected);
     },
