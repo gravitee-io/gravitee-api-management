@@ -73,16 +73,6 @@ export class InnerLinkDirective implements AfterViewInit, OnDestroy {
     }
   }
 
-<<<<<<< HEAD
-=======
-  public ngAfterViewInit(): void {
-    this.syncFragmentFromUrl();
-  }
-
-  public ngOnDestroy(): void {
-    this.mutationObserver?.disconnect();
-  }
-
   private isLeftToBrowser(event: MouseEvent, anchor: HTMLAnchorElement): boolean {
     const target = anchor.getAttribute('target');
     return (
@@ -128,7 +118,6 @@ export class InnerLinkDirective implements AfterViewInit, OnDestroy {
     });
   }
 
->>>>>>> 7bb280b (fix(portal): leave out-of-app absolute links in markdown to the browser)
   private syncFragmentFromUrl(): void {
     this.pendingFragment = this.getCurrentFragment();
     this.observePendingFragment();
