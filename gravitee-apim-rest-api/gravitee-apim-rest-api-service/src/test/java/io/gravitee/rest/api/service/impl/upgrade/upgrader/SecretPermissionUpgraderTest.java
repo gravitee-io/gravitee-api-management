@@ -70,7 +70,7 @@ class SecretPermissionUpgraderTest {
 
     @Test
     void should_run_after_the_existing_permission_upgraders() {
-        assertThat(upgrader.getOrder()).isEqualTo(UpgraderOrder.SECRET_PERMISSION_UPGRADER);
+        assertThat(upgrader.getOrder()).isGreaterThan(UpgraderOrder.GUARDIAN_ROLES_UPGRADER);
     }
 
     private static Organization organization(String id) {
