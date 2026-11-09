@@ -212,7 +212,7 @@ class EnvelopeSecretValueEncryptorTest {
         @ParameterizedTest
         @NullAndEmptySource
         @ValueSource(strings = { " ", "not base64!", "c2hvcnQ=" })
-        void should_start_with_a_missing_or_invalid_key_and_refuse_every_secret_call(String kek) {
+        void should_start_with_a_missing_or_invalid_key_and_refuse_to_encrypt_or_decrypt(String kek) {
             var unavailable = new EnvelopeSecretValueEncryptor(kek, keys);
 
             assertThatThrownBy(() -> unavailable.encrypt(SECRET, "sk-ant-123"))
@@ -253,6 +253,26 @@ class EnvelopeSecretValueEncryptorTest {
         }
 
         @Test
+        void should_report_at_startup_stored_keys_that_another_key_also_encrypted() {
+            var otherNode = new EnvelopeSecretValueEncryptor(base64Key(2), keys);
+            encryptor.verifyStoredKeys();
+            otherNode.verifyStoredKeys();
+            encryptor.encrypt(SECRET, "sk-ant-123");
+            otherNode.encrypt(SECRET.toBuilder().organizationId("org-2").build(), "sk-ant-456");
+            var restarted = new EnvelopeSecretValueEncryptor(KEK, keys);
+
+            restarted.verifyStoredKeys();
+
+            assertThat(appender.list)
+                .extracting(ILoggingEvent::getFormattedMessage)
+                .containsExactly(
+                    EnvelopeSecretValueEncryptor.KEY_PROPERTY +
+                        " does not match the key that encrypted the stored secrets: secrets cannot be stored or read until it is fixed."
+                );
+            assertThatThrownBy(() -> restarted.encrypt(SECRET, "sk-ant-789")).isInstanceOf(SecretEncryptionUnavailableException.class);
+        }
+
+        @Test
         void should_pass_the_startup_check_with_the_key_that_encrypted_the_stored_keys() {
             String ciphertext = encryptor.encrypt(SECRET, "sk-ant-123");
             var restarted = new EnvelopeSecretValueEncryptor(KEK, keys);
@@ -281,7 +301,7 @@ class EnvelopeSecretValueEncryptorTest {
         }
 
         @Test
-        void should_refuse_every_secret_call_when_the_key_does_not_match_the_stored_keys() {
+        void should_refuse_to_encrypt_or_decrypt_when_the_key_does_not_match_the_stored_keys() {
             String ciphertext = encryptor.encrypt(SECRET, "sk-ant-123");
             String wrongKek = base64Key(2);
 

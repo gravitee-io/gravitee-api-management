@@ -45,7 +45,7 @@ import org.springframework.stereotype.Service;
 /**
  * Envelope encryption: each organization's secret values are encrypted under its own data key, stored wrapped by the
  * key encryption key. A missing, invalid or mismatched key encryption key never stops the Management API: it disables
- * the secrets feature and every secret call fails with the reason.
+ * the secrets feature, and every encrypt or decrypt fails with the reason.
  */
 @CustomLog
 @Service
@@ -192,7 +192,8 @@ public class EnvelopeSecretValueEncryptor implements SecretValueEncryptor {
     private void checkStoredKeys() {
         try {
             var kekIds = organizationKeyRepository.findKekIds();
-            if (!kekIds.isEmpty() && !kekIds.contains(kek.id())) {
+            // One stored id from another key is enough: reading that organization would disable secrets on this node.
+            if (kekIds.stream().anyMatch(id -> !id.equals(kek.id()))) {
                 disable(MISMATCH);
             }
             storedKeysChecked = true;
