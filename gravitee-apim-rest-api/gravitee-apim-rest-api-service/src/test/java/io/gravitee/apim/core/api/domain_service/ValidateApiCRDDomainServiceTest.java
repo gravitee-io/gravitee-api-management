@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.InstanceOfAssertFactories.STRING;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -38,6 +39,7 @@ import inmemory.ApiQueryServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.ClusterQueryServiceInMemory;
 import inmemory.EventLatestQueryServiceInMemory;
+import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
 import io.gravitee.apim.core.api.exception.ApiPropertyNotCiphertextException;
@@ -56,10 +58,13 @@ import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
@@ -67,6 +72,7 @@ import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainServi
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
@@ -120,6 +126,10 @@ class ValidateApiCRDDomainServiceTest {
 
     ValidatePortalNotificationDomainService portalNotificationValidator = mock(ValidatePortalNotificationDomainService.class);
 
+    FlowValidationDomainService flowValidator = mock(FlowValidationDomainService.class);
+
+    UpdateApiDomainService updateApiDomainService = mock(UpdateApiDomainService.class);
+
     ValidateHealthCheckScheduleDomainService healthCheckScheduleValidator = new ValidateHealthCheckScheduleDomainService(
         new ObjectMapper()
     );
@@ -157,7 +167,14 @@ class ValidateApiCRDDomainServiceTest {
             OBJECT_MAPPER
         ),
         new ClusterBindingPermissionDomainService(clusterQueryService, permissionDomainService, new ObjectMapper()),
-        new ValidateApiClusterBindingService(clusterQueryService, OBJECT_MAPPER)
+        new ValidateApiClusterBindingService(clusterQueryService, OBJECT_MAPPER),
+        mock(ApiPrimaryOwnerFactory.class),
+        mock(ValidateApiDomainService.class),
+        updateApiDomainService,
+        flowValidator,
+        new PlanQueryServiceInMemory(),
+        mock(ApiPrimaryOwnerDomainService.class),
+        mock(ApiFolderConflictsDomainService.class)
     );
 
     PortalNotificationConfigEntity consoleNotificationConfiguration = new PortalNotificationConfigEntity();
@@ -166,6 +183,9 @@ class ValidateApiCRDDomainServiceTest {
     void setUp() {
         reset(categoryIdsValidator);
         when(pathValidator.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        lenient()
+            .when(flowValidator.validateAndSanitizeHttpV4(any(), any(), any()))
+            .thenAnswer(call -> call.getArgument(1));
         consoleNotificationConfiguration.setConfigType(NotificationConfigType.PORTAL);
     }
 
@@ -239,9 +259,15 @@ class ValidateApiCRDDomainServiceTest {
     void should_not_check_the_members_of_an_api_to_create() {
         membersDomainService.denyApiMembersUpdate("api-to-create");
         givenEveryValidatorAccepts();
+        // A spec the import can create: the validation of its writes runs too
         var spec = ApiCRDFixtures.newBaseSpec()
             .id("api-to-create")
             .crossId("api-to-create-cross-id")
+            .type("PROXY")
+            .lifecycleState("CREATED")
+            .visibility("PRIVATE")
+            .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
+            .properties(List.of())
             .consoleNotificationConfiguration(consoleNotificationConfiguration)
             .build();
 
@@ -564,8 +590,11 @@ class ValidateApiCRDDomainServiceTest {
             "prod",
             connectionCrossId
         ).getApiDefinitionNativeV4();
+        // A spec the import can update: the validation of its writes runs too
         return ApiCRDFixtures.newBaseNativeSpec()
             .id("api-id")
+            .lifecycleState("CREATED")
+            .visibility("PRIVATE")
             .endpointGroups(definition.getEndpointGroups())
             .consoleNotificationConfiguration(consoleNotificationConfiguration)
             .build();

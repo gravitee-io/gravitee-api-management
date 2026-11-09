@@ -646,6 +646,13 @@ class ApisResourceTest extends AbstractResourceTest {
             parametersQueryService.define(
                 new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), "fake-env", ParameterReferenceType.ENVIRONMENT, "true")
             );
+            // The dry run resolves the primary owner of an API to create, as the import does
+            parametersQueryService.define(
+                new Parameter(Key.API_PRIMARY_OWNER_MODE.key(), ENVIRONMENT, ParameterReferenceType.ENVIRONMENT, "USER")
+            );
+            userCrudService.initWith(
+                List.of(BaseUserEntity.builder().id(USER_NAME).firstname("John").lastname("Doe").email("john.doe@gravitee.io").build())
+            );
             when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
             roleQueryService.initWith(
                 List.of(

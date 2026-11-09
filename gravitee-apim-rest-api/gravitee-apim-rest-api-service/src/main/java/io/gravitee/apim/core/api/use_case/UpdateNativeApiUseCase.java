@@ -27,8 +27,6 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
-import io.gravitee.definition.model.v4.property.Property;
-import java.util.List;
 import java.util.function.UnaryOperator;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -81,41 +79,7 @@ public class UpdateNativeApiUseCase {
             var existingDefinition = existingApi.getApiDefinitionValue();
             var existingProperties = existingDefinition instanceof NativeApi nativeApi ? nativeApi.getProperties() : null;
             var encryptedProperties = propertyDomainService.encryptProperties(existingProperties, updateApi.getProperties());
-            return update(updateApi, encryptedProperties).apply(existingApi);
+            return updateApi.applyTo(existingApi, encryptedProperties);
         };
-    }
-
-    static UnaryOperator<Api> update(UpdateNativeApi updateNativeApi, List<Property> properties) {
-        return currentApi ->
-            currentApi
-                .toBuilder()
-                .name(updateNativeApi.getName())
-                .description(updateNativeApi.getDescription())
-                .version(updateNativeApi.getApiVersion())
-                .apiLifecycleState(updateNativeApi.getLifecycleState())
-                .visibility(updateNativeApi.getVisibility())
-                .labels(updateNativeApi.getLabels())
-                .categories(updateNativeApi.getCategories())
-                .groups(updateNativeApi.getGroups())
-                .disableMembershipNotifications(updateNativeApi.isDisableMembershipNotifications())
-                .allowMultiJwtOauth2Subscriptions(updateNativeApi.isAllowMultiJwtOauth2Subscriptions())
-                .apiDefinitionValue(
-                    currentApi.getApiDefinitionValue() instanceof NativeApi nativeApi
-                        ? nativeApi
-                            .toBuilder()
-                            .name(updateNativeApi.getName())
-                            .apiVersion(updateNativeApi.getApiVersion())
-                            .tags(updateNativeApi.getTags())
-                            .resources(updateNativeApi.getResources())
-                            .listeners(updateNativeApi.getListeners())
-                            .endpointGroups(updateNativeApi.getEndpointGroups())
-                            .flows(updateNativeApi.getFlows())
-                            .services(updateNativeApi.getServices())
-                            .properties(properties)
-                            .analytics(updateNativeApi.getAnalytics())
-                            .build()
-                        : null
-                )
-                .build();
     }
 }
