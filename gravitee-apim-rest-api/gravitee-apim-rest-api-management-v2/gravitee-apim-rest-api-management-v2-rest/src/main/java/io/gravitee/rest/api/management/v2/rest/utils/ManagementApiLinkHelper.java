@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.utils;
 
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.scoring.model.EnvironmentApiScoringReport;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -67,6 +68,10 @@ public final class ManagementApiLinkHelper {
             "background",
             null != api.getUpdatedAt() ? api.getUpdatedAt().toInstant().toEpochMilli() : null
         );
+    }
+
+    public static String portalLogoURL(UriBuilder baseUriBuilder, PortalId portalId) {
+        return resourcesURL(baseUriBuilder, portalId.toString(), "portals", null, "logo", null);
     }
 
     public static String apiPictureURL(UriBuilder baseUriBuilder, EnvironmentApiScoringReport report) {
