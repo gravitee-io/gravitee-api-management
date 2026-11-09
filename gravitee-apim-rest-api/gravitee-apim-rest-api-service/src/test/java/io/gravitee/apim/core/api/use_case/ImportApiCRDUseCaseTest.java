@@ -632,6 +632,19 @@ class ImportApiCRDUseCaseTest {
         }
 
         @Test
+        void should_refuse_an_id_that_names_an_api_of_another_environment() {
+            // An export of another environment carries that API's id and cross id
+            var foreignApi = aProxyApiV4().toBuilder().id(API_ID).environmentId("other-environment-id").crossId(API_CROSS_ID).build();
+            apiCrudService.initWith(List.of(foreignApi));
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build())));
+
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining(API_ID);
+            assertThat(apiCrudService.storage()).containsExactly(foreignApi);
+            verifyNoInteractions(apiStateDomainService);
+        }
+
+        @Test
         void should_create_a_stopped_api_when_the_spec_has_no_state() {
             // Synced from management, so a STARTED spec would start the API
             var spec = aCRD()
@@ -1437,6 +1450,20 @@ class ImportApiCRDUseCaseTest {
             assertThat(apiCrudService.get(otherApi.getId()).getName()).isEqualTo("other-api");
             assertThat(apiCrudService.get(API_ID).getName()).isEqualTo(NATIVE_API.getName());
             verifyNoInteractions(apiStateDomainService);
+        }
+
+        @Test
+        void should_update_the_api_named_by_the_id_when_the_spec_has_no_cross_id() {
+            // Stored first, so a lookup by a null cross id finds it instead of the API the id names
+            var apiWithoutCrossId = API_PROXY_V4.toBuilder().id("api-without-cross-id").crossId(null).name("without-cross-id").build();
+            apiQueryService.initWith(List.of(apiWithoutCrossId, API_PROXY_V4));
+            givenExistingPlans(List.of(KEYLESS));
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().crossId(null).build())));
+
+            assertThat(throwable).isNull();
+            verify(updateApiDomainService).update(eq(API_ID), any(), any());
+            assertThat(apiCrudService.get(apiWithoutCrossId.getId())).isEqualTo(apiWithoutCrossId);
         }
 
         @Test

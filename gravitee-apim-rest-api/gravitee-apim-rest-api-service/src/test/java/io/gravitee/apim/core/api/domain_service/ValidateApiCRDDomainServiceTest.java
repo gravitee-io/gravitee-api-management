@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.ApiCRDFixtures;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.ClusterQueryServiceInMemory;
@@ -123,7 +124,9 @@ class ValidateApiCRDDomainServiceTest {
         new ObjectMapper()
     );
 
-    ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
+    ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+
+    ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
 
     DataEncryptor dataEncryptor = mock(DataEncryptor.class);
 
@@ -243,6 +246,23 @@ class ValidateApiCRDDomainServiceTest {
             .build();
 
         assertThatNoException().isThrownBy(() -> cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec)));
+    }
+
+    @Test
+    void should_refuse_an_id_that_names_an_api_of_another_environment() {
+        var foreignApi = ApiFixtures.aProxyApiV4().toBuilder().environmentId("other-environment").crossId(API_CROSS_ID).build();
+        apiQueryService.initWith(List.of(foreignApi));
+        givenEveryValidatorAccepts();
+        var spec = ApiCRDFixtures.newBaseSpec()
+            .id(foreignApi.getId())
+            .crossId(API_CROSS_ID)
+            .consoleNotificationConfiguration(consoleNotificationConfiguration)
+            .build();
+
+        assertThatExceptionOfType(ValidationDomainException.class)
+            .isThrownBy(() -> cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec)))
+            .withMessageContaining(foreignApi.getId())
+            .withMessageContaining("another environment");
     }
 
     @Test
