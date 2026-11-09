@@ -17,9 +17,9 @@ info:
         request and response bodies are hand-written Java records and this file is documentation
         kept in step with them by hand. If the two ever disagree, the records are the truth.
 
-        **Timestamps are epoch seconds as a number**, not RFC 3339 strings — `1793889043.331` and
-        not `2026-11-05T11:30:43Z`. That is what the host's object mapper produces for
-        `ZonedDateTime` on this surface, and a client parsing it as a string will fail.
+        **Timestamps are ISO 8601 strings in UTC** — `"2026-11-07T10:00:01.119Z"`. The host's object
+        mapper would write a `ZonedDateTime` as a fractional epoch number, so the DTOs of this surface
+        set the format themselves; the offset is always `Z`, never the server's.
 
         **A Guardian is its definition.** Creation and update both carry the whole thing — name,
         phase, API types, guardrail sequence and resources — and a `PUT` replaces it rather than
@@ -340,11 +340,11 @@ components:
                 lifecycleState:
                     $ref: "#/components/schemas/GuardianLifecycleState"
                 deployedAt:
-                    $ref: "#/components/schemas/EpochSeconds"
+                    $ref: "#/components/schemas/Timestamp"
                 createdAt:
-                    $ref: "#/components/schemas/EpochSeconds"
+                    $ref: "#/components/schemas/Timestamp"
                 updatedAt:
-                    $ref: "#/components/schemas/EpochSeconds"
+                    $ref: "#/components/schemas/Timestamp"
             required:
                 - id
                 - name
@@ -365,8 +365,8 @@ components:
                       policy: data-logging-masking
                       enabled: true
                 lifecycleState: UNDEPLOYED
-                createdAt: 1793889043.331
-                updatedAt: 1793889043.331
+                createdAt: "2026-11-07T10:00:01.119Z"
+                updatedAt: "2026-11-07T10:00:01.119Z"
 
         CreateGuardian:
             type: object
@@ -573,12 +573,13 @@ components:
                 - UNDEPLOYED
                 - PENDING
 
-        EpochSeconds:
-            type: number
-            format: double
+        Timestamp:
+            type: string
+            format: date-time
             description: |
-                Seconds since the Unix epoch, with a fractional part — **not** an RFC 3339 string.
-            example: 1793889043.331
+                An instant as an ISO 8601 string in UTC, so the offset does not depend on the server's
+                time zone.
+            example: "2026-11-07T10:00:01.119Z"
 
         Error:
             type: object

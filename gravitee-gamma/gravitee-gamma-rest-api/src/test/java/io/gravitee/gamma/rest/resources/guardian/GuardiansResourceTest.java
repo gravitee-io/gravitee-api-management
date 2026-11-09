@@ -34,6 +34,9 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -387,6 +390,79 @@ class GuardiansResourceTest extends AbstractResourceTest {
         @Test
         void should_refuse_a_missing_update_body_with_400() {
             assertThat(put("null").getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+    }
+
+    /**
+     * The wire format of the three timestamps. Worth its own class because the shape does not come from
+     * this module: the inherited rest-api mapper enables {@code WRITE_DATES_AS_TIMESTAMPS}, so without
+     * {@code @JsonFormat} on the DTO these come out as fractional {@code <epoch_seconds>.<nanos>}
+     * numbers, which is the defect AIAM-1644 reports. A number here also silently breaks the console,
+     * whose wire types declare strings.
+     */
+    @Nested
+    class Timestamps {
+
+        private static final String CREATED_AT = "2026-02-01T20:22:02Z";
+        private static final String UPDATED_AT = "2026-02-02T20:22:02Z";
+
+        @BeforeEach
+        void seed() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+        }
+
+        @Test
+        void should_write_the_timestamps_as_iso_8601_strings_in_utc() {
+            JsonNode dto = rootTarget("/" + GUARDIAN_ID).request().get().readEntity(JsonNode.class);
+
+            assertThat(dto.get("createdAt").asText()).isEqualTo(CREATED_AT);
+            assertThat(dto.get("updatedAt").asText()).isEqualTo(UPDATED_AT);
+        }
+
+        /** The regression guard: an epoch number parses as text too, so assert the JSON type itself. */
+        @Test
+        void should_not_write_the_timestamps_as_numbers() {
+            JsonNode dto = rootTarget("/" + GUARDIAN_ID).request().get().readEntity(JsonNode.class);
+
+            assertThat(dto.get("createdAt").isTextual()).isTrue();
+            assertThat(dto.get("createdAt").isNumber()).isFalse();
+            assertThat(dto.get("updatedAt").isTextual()).isTrue();
+            assertThat(dto.get("updatedAt").isNumber()).isFalse();
+        }
+
+        /**
+         * Stored in another zone, written in UTC: otherwise the offset would depend on the server's time
+         * zone and two nodes would describe the same instant differently.
+         */
+        @Test
+        void should_write_an_instant_from_another_zone_in_utc() {
+            guardianRepository.reset();
+            guardianRepository.givenGuardian(
+                GuardianFixtures.aGuardian(d -> d.id(GUARDIAN_ID).environmentId(ENVIRONMENT))
+                    .createdAt(ZonedDateTime.parse("2026-02-01T21:22:02+01:00"))
+                    .build()
+            );
+
+            JsonNode dto = rootTarget("/" + GUARDIAN_ID).request().get().readEntity(JsonNode.class);
+
+            // the same instant as 20:22:02Z
+            assertThat(dto.get("createdAt").asText()).isEqualTo(CREATED_AT);
+        }
+
+        /** The deployment stamp comes off the store as a {@code Date}, down a different path. */
+        @Test
+        void should_write_the_deployment_stamp_as_an_iso_8601_string_in_utc() {
+            guardianRepository.reset();
+            guardianRepository.givenGuardian(
+                GuardianFixtures.aGuardian(d -> d.id(GUARDIAN_ID).environmentId(ENVIRONMENT))
+                    .deployedAt(Date.from(Instant.parse("2026-02-03T20:22:02Z")))
+                    .build()
+            );
+
+            JsonNode dto = rootTarget("/" + GUARDIAN_ID).request().get().readEntity(JsonNode.class);
+
+            assertThat(dto.get("deployedAt").isTextual()).isTrue();
+            assertThat(dto.get("deployedAt").asText()).isEqualTo("2026-02-03T20:22:02Z");
         }
     }
 
