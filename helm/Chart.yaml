@@ -29,4 +29,6 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: 
+  artifacthub.io/changes: |
+    - kind: added
+      description: 'Add gateway.kafka.backendLogin.threads and gateway.kafka.backendLogin.queueCapacity, rendered as kafka.backendLogin.* in the gateway gravitee.yml'

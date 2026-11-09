@@ -293,6 +293,16 @@ data:
       {{- if hasKey .Values.gateway.kafka "backendMetadataMaxAge" }}
       backendMetadataMaxAge: {{ .Values.gateway.kafka.backendMetadataMaxAge }}
       {{- end}}
+      {{- $kafkaBackendLogin := .Values.gateway.kafka.backendLogin | default dict }}
+      {{- if or (hasKey $kafkaBackendLogin "threads") (hasKey $kafkaBackendLogin "queueCapacity") }}
+      backendLogin:
+        {{- if hasKey $kafkaBackendLogin "threads" }}
+        threads: {{ $kafkaBackendLogin.threads }}
+        {{- end}}
+        {{- if hasKey $kafkaBackendLogin "queueCapacity" }}
+        queueCapacity: {{ $kafkaBackendLogin.queueCapacity }}
+        {{- end}}
+      {{- end}}
       {{- $kafkaMesh := .Values.gateway.kafka.mesh | default dict }}
       {{- if hasKey $kafkaMesh "refreshConnectionReuse" }}
       mesh:
