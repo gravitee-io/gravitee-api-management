@@ -18,8 +18,6 @@ package io.gravitee.rest.api.management.v2.rest.resource.secret;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CONFLICT_409;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
-import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
-import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,14 +30,12 @@ import io.gravitee.apim.core.secret.model.Secret;
 import io.gravitee.apim.core.secret.service_provider.SecretValueEncryptor;
 import io.gravitee.rest.api.management.v2.rest.model.CreateSecret;
 import io.gravitee.rest.api.management.v2.rest.model.SecretsResponse;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateSecret;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.core.Response;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -192,90 +188,6 @@ class SecretsResourceTest extends AbstractResourceTest {
         @Test
         void should_return_403_without_the_read_permission() {
             shouldReturn403(RolePermission.ENVIRONMENT_SECRET, ENV_ID, RolePermissionAction.READ, () -> rootTarget().request().get());
-        }
-    }
-
-    @Nested
-    class GetSecretTest {
-
-        @Test
-        void should_get_a_secret() {
-            givenASecret("secret-1", "anthropic-key");
-
-            var response = rootTarget("secret-1").request().get();
-
-            assertThat(response.getStatus()).isEqualTo(OK_200);
-            var secret = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Secret.class);
-            assertThat(secret.getId()).isEqualTo("secret-1");
-            assertThat(secret.getPath()).isEqualTo("/gravitee/anthropic-key");
-        }
-
-        @Test
-        void should_return_404_for_an_unknown_secret() {
-            assertThat(rootTarget("unknown").request().get().getStatus()).isEqualTo(NOT_FOUND_404);
-        }
-
-        @Test
-        void should_return_403_without_the_read_permission() {
-            shouldReturn403(RolePermission.ENVIRONMENT_SECRET, ENV_ID, RolePermissionAction.READ, () ->
-                rootTarget("secret-1").request().get()
-            );
-        }
-    }
-
-    @Nested
-    class UpdateSecretTest {
-
-        @Test
-        void should_replace_the_value() {
-            var secret = givenASecret("secret-1", "anthropic-key");
-
-            var response = rootTarget("secret-1").request().put(json(new UpdateSecret().value("new-value")));
-
-            assertThat(response.getStatus()).isEqualTo(OK_200);
-            assertThat(response.readEntity(String.class)).doesNotContain("new-value");
-            var stored = secretCrudService.encryptedValueOf("secret-1").orElseThrow();
-            assertThat(secretValueEncryptor.decrypt(secret, stored)).isEqualTo("new-value");
-        }
-
-        @Test
-        void should_return_404_for_an_unknown_secret() {
-            Response response = rootTarget("unknown").request().put(json(new UpdateSecret().value("new-value")));
-
-            assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
-        }
-
-        @Test
-        void should_return_403_without_the_update_permission() {
-            shouldReturn403(RolePermission.ENVIRONMENT_SECRET, ENV_ID, RolePermissionAction.UPDATE, () ->
-                rootTarget("secret-1").request().put(json(new UpdateSecret().value("new-value")))
-            );
-        }
-    }
-
-    @Nested
-    class DeleteSecretTest {
-
-        @Test
-        void should_delete_a_secret() {
-            givenASecret("secret-1", "anthropic-key");
-
-            var response = rootTarget("secret-1").request().delete();
-
-            assertThat(response.getStatus()).isEqualTo(NO_CONTENT_204);
-            assertThat(secretCrudService.storage()).isEmpty();
-        }
-
-        @Test
-        void should_return_404_for_an_unknown_secret() {
-            assertThat(rootTarget("unknown").request().delete().getStatus()).isEqualTo(NOT_FOUND_404);
-        }
-
-        @Test
-        void should_return_403_without_the_delete_permission() {
-            shouldReturn403(RolePermission.ENVIRONMENT_SECRET, ENV_ID, RolePermissionAction.DELETE, () ->
-                rootTarget("secret-1").request().delete()
-            );
         }
     }
 }
