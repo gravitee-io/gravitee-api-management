@@ -31,12 +31,15 @@ import io.gravitee.gamma.rest.core.observability.catalog.inmemory.InMemoryAdditi
 import io.gravitee.gamma.rest.core.observability.catalog.inmemory.InMemoryCatalogPorts;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricCatalogEntry;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricDiscovery;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricField;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogFlags;
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.catalog.model.DiscoveredAdditionalMetric;
 import io.gravitee.gamma.rest.core.observability.catalog.use_case.ListMetricDefinitionsUseCase;
+import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
+import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.BuiltInAdditionalMetricKeys;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import java.time.Instant;
@@ -129,8 +132,11 @@ class BuiltInAdditionalMetricCatalogTest {
             false
         );
 
+        var registry = new SpiFilterRegistry();
         var catalog = new AdditionalMetricCatalogDomainService(keys).filterCatalog(
-            new SpiFilterRegistry().getFilters(Set.of(), Set.of()),
+            registry.getFilters(Set.of(), Set.of()),
+            filterNames(registry),
+            analyticsPort(registry).builtInMetrics(),
             builtInNamesByRawKey,
             List.of(),
             Optional.of(discovery),
@@ -152,7 +158,94 @@ class BuiltInAdditionalMetricCatalogTest {
         assertThat(byName.get("LLM_PROXY_MODEL").catalog().rawKey()).isEqualTo("keyword_llm-proxy_model");
         assertThat(catalog)
             .filteredOn(spec -> spec.catalog() != null && spec.catalog().origin() == CatalogOrigin.BUILT_IN)
-            .allSatisfy(spec -> assertThat(builtInNamesByRawKey.get(spec.catalog().rawKey())).as(spec.name()).contains(spec.name()));
+            .allSatisfy(spec -> {
+                if (spec.name().startsWith(AdditionalMetricField.NAME_PREFIX)) {
+                    assertThat(spec.name()).isEqualTo(AdditionalMetricField.NAME_PREFIX + spec.catalog().rawKey());
+                } else {
+                    assertThat(builtInNamesByRawKey.get(spec.catalog().rawKey())).as(spec.name()).contains(spec.name());
+                }
+            });
+    }
+
+    /**
+     * The filter catalog on the same real set: the numeric keys the built-in metrics read, and no built-in filter
+     * reads, are filters under their dynamic name with the metric's label and kinds, an Edge one on the analytics
+     * signal only; the keyword keys the facets read are not; {@code metric-definitions} keeps listing every key under
+     * its built-in name (OBS-193, second PR).
+     */
+    @Test
+    void should_list_the_numeric_keys_the_built_in_metrics_read_as_filters_and_keep_the_metric_definitions_rows() {
+        var registry = new SpiFilterRegistry();
+        var builtInPort = platformBuiltIns();
+        var keys = new MetricDefinitionKeyDomainService(new AdditionalMetricGrammarPortAdapter(), builtInPort);
+        var metricsByName = analyticsPort(registry)
+            .builtInMetrics()
+            .stream()
+            .collect(Collectors.toMap(MetricDefinition::name, Function.identity()));
+
+        var catalog = new AdditionalMetricCatalogDomainService(keys).filterCatalog(
+            registry.getFilters(Set.of(), Set.of()),
+            filterNames(registry),
+            metricsByName.values(),
+            builtInPort.builtInNamesByRawKey(),
+            List.of(),
+            Optional.empty(),
+            Set.of(),
+            Set.of()
+        );
+
+        var builtInKeyFilters = catalog
+            .stream()
+            .filter(spec -> spec.origin() == CatalogOrigin.BUILT_IN && spec.name().startsWith(AdditionalMetricField.NAME_PREFIX))
+            .collect(Collectors.toMap(FilterSpec::name, Function.identity()));
+        assertThat(builtInKeyFilters.keySet()).containsExactlyInAnyOrder(
+            "additional-metrics.long_llm-proxy_tokens-sent",
+            "additional-metrics.long_llm-proxy_tokens-received",
+            "additional-metrics.double_llm-proxy_sent-cost",
+            "additional-metrics.double_llm-proxy_received-cost",
+            "additional-metrics.long_edge_tokens_in",
+            "additional-metrics.long_edge_tokens_out",
+            "additional-metrics.long_edge_count"
+        );
+        assertThat(builtInKeyFilters.get("additional-metrics.long_llm-proxy_tokens-sent")).satisfies(spec -> {
+            assertThat(spec.label()).isEqualTo(metricsByName.get("LLM_PROMPT_TOKEN_SENT").label());
+            assertThat(spec.apiTypes()).containsExactly(ApiType.LLM);
+            assertThat(spec.signals()).containsExactlyInAnyOrder(Signal.LOGS, Signal.ANALYTICS);
+            assertThat(spec.catalog().rawKey()).isEqualTo("long_llm-proxy_tokens-sent");
+        });
+        assertThat(builtInKeyFilters.get("additional-metrics.double_llm-proxy_sent-cost").takesDecimals()).isTrue();
+        assertThat(builtInKeyFilters.values())
+            .filteredOn(spec -> spec.apiTypes().equals(Set.of(ApiType.EDGE)))
+            .hasSize(3)
+            .allSatisfy(spec -> assertThat(spec.signals()).containsExactly(Signal.ANALYTICS));
+        assertThat(catalog)
+            .extracting(FilterSpec::name)
+            .doesNotHaveDuplicates()
+            .doesNotContain("additional-metrics.keyword_edge_model", "additional-metrics.keyword_llm-proxy_model");
+        var registryNames = filterNames(registry);
+        assertThat(registryNames)
+            .as("no registry filter under the dynamic form: the entries come from the keys, never from StaticFilters")
+            .noneMatch(name -> name.startsWith(AdditionalMetricField.NAME_PREFIX));
+        builtInKeyFilters
+            .values()
+            .forEach(spec ->
+                assertThat(builtInPort.builtInNamesByRawKey().get(spec.catalog().rawKey()))
+                    .as(spec.name() + " is read by no registry filter")
+                    .noneMatch(registryNames::contains)
+            );
+        assertThat(builtIns)
+            .as("the metric-definitions rows keep the built-in names")
+            .extracting(AdditionalMetricCatalogEntry::name)
+            .noneMatch(name -> name.startsWith(AdditionalMetricField.NAME_PREFIX));
+        assertThat(builtIns)
+            .extracting(entry -> entry.field().rawKey())
+            .containsAll(
+                builtInKeyFilters
+                    .values()
+                    .stream()
+                    .map(spec -> spec.catalog().rawKey())
+                    .toList()
+            );
     }
 
     /**
@@ -196,8 +289,22 @@ class BuiltInAdditionalMetricCatalogTest {
         return new BuiltInAdditionalMetricsPortAdapter(new BuiltInAdditionalMetricsQueryServiceImpl(analyticsRepository));
     }
 
-    private static List<AdditionalMetricCatalogEntry> builtInEntries() {
+    private static Set<String> filterNames(SpiFilterRegistry registry) {
+        return registry.getFilters(Set.of(), Set.of()).stream().map(FilterSpec::name).collect(Collectors.toSet());
+    }
+
+    private static AnalyticsDefinitionPortAdapter analyticsPort(SpiFilterRegistry filterRegistry) {
         var definition = new AnalyticsDefinitionYAMLQueryService();
+        return new AnalyticsDefinitionPortAdapter(
+            new GetApiMetricSpecUseCase(definition),
+            new GetMetricFacetSpecUseCase(definition),
+            new GetMetricFilterSpecUseCase(definition),
+            filterRegistry,
+            AnalyticsEngineRouting.provider()
+        );
+    }
+
+    private static List<AdditionalMetricCatalogEntry> builtInEntries() {
         var filterRegistry = new SpiFilterRegistry();
         var platform = new InMemoryCatalogPorts();
         var builtInPort = platformBuiltIns();
@@ -207,13 +314,7 @@ class BuiltInAdditionalMetricCatalogTest {
             platform,
             platform,
             filterRegistry,
-            new AnalyticsDefinitionPortAdapter(
-                new GetApiMetricSpecUseCase(definition),
-                new GetMetricFacetSpecUseCase(definition),
-                new GetMetricFilterSpecUseCase(definition),
-                filterRegistry,
-                AnalyticsEngineRouting.provider()
-            ),
+            analyticsPort(filterRegistry),
             new AdditionalMetricCatalogDomainService(
                 new MetricDefinitionKeyDomainService(new AdditionalMetricGrammarPortAdapter(), builtInPort)
             )

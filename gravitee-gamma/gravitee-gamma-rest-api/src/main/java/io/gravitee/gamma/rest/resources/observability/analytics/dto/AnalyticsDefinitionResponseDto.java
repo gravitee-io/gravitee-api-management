@@ -21,8 +21,8 @@ import io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinitio
 import java.util.List;
 
 /**
- * Wire shape of the analytics definition: families of metrics whose facets are named only, their labels, namespace
- * and kinds being in {@code dimensions} once for all.
+ * Wire shape of the analytics definition: families of metrics whose facets are named only, their labels, description,
+ * namespace, kinds and last sighting being in {@code dimensions} once for all.
  *
  * @param truncated whether keys may be missing from the {@code ADDITIONAL} family; see the use case
  * @author GraviteeSource Team
@@ -41,7 +41,8 @@ public record AnalyticsDefinitionResponseDto(List<MetricFamilyDto> families, Lis
         List<String> measures,
         List<String> facets,
         List<String> filters,
-        String origin
+        String origin,
+        String lastSeen
     ) {
         static MetricDefinitionDto from(MetricDefinition metric) {
             return new MetricDefinitionDto(
@@ -55,20 +56,31 @@ public record AnalyticsDefinitionResponseDto(List<MetricFamilyDto> families, Lis
                 metric.measures(),
                 metric.facets().stream().map(DimensionDefinition::name).toList(),
                 metric.filters(),
-                metric.origin().name()
+                metric.origin().name(),
+                metric.lastSeen() == null ? null : metric.lastSeen().toString()
             );
         }
     }
 
     /** {@code apiTypes} are sorted for a stable payload, as the filter catalog serves them. */
-    public record DimensionDefinitionDto(String name, String label, String namespace, List<String> apiTypes, String origin) {
+    public record DimensionDefinitionDto(
+        String name,
+        String label,
+        String description,
+        String namespace,
+        List<String> apiTypes,
+        String origin,
+        String lastSeen
+    ) {
         static DimensionDefinitionDto from(DimensionDefinition dimension) {
             return new DimensionDefinitionDto(
                 dimension.name(),
                 dimension.label(),
+                dimension.description(),
                 dimension.namespace(),
                 dimension.apiTypes().stream().map(Enum::name).sorted().toList(),
-                dimension.origin().name()
+                dimension.origin().name(),
+                dimension.lastSeen() == null ? null : dimension.lastSeen().toString()
             );
         }
     }

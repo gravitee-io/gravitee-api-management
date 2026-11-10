@@ -43,6 +43,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
@@ -117,6 +118,8 @@ public class AdditionalMetricCatalogDomainService {
      * The filter catalog of the environment, one entry per key:
      * <ul>
      *   <li>the built-in specs, those reading an additional metric flagged {@code BUILT_IN} with its key and value type;</li>
+     *   <li>the numeric keys a built-in metric reads and no built-in filter reads, as {@code BUILT_IN} entries under
+     *       their dynamic name, labelled and scoped by the metric ({@link #builtInKeyFilter});</li>
      *   <li>the exposed records of a filterable value type, as {@code DECLARED} entries;</li>
      *   <li>for a caller who reads the environment's traffic, the other discovered keys of a filterable value type, as
      *       {@code DISCOVERED} entries labelled from their key.</li>
@@ -127,10 +130,16 @@ public class AdditionalMetricCatalogDomainService {
      * A declared key keeps its origin whatever the discovery finds: a record that is not exposed hides its key from
      * the catalog.
      *
-     * @param discovery the environment's discovery, empty when the caller may not read its traffic
+     * @param builtInSpecs       the built-in specs the registry serves for the narrowing
+     * @param builtInFilterNames every name of the registry, whatever the narrowing: a filter narrowed out still reads
+     *                           its key
+     * @param builtInMetrics     the analytics definition's built-ins, every kind
+     * @param discovery          the environment's discovery, empty when the caller may not read its traffic
      */
     public List<FilterSpec> filterCatalog(
         List<FilterSpec> builtInSpecs,
+        Set<String> builtInFilterNames,
+        Collection<MetricDefinition> builtInMetrics,
         Map<String, Set<String>> builtInNamesByRawKey,
         List<AdditionalMetricDefinition> records,
         Optional<AdditionalMetricDiscovery> discovery,
@@ -151,6 +160,16 @@ public class AdditionalMetricCatalogDomainService {
                     .orElse(spec)
             )
         );
+        Map<String, MetricDefinition> metricsByName = builtInMetrics
+            .stream()
+            .collect(Collectors.toMap(MetricDefinition::name, Function.identity(), (first, next) -> first));
+        for (Resolved key : resolved) {
+            if (key.origin() == CatalogOrigin.BUILT_IN) {
+                builtInKeyFilter(key, builtInFilterNames, metricsByName)
+                    .filter(spec -> intersects(signals, spec.signals()) && servedFor(spec.apiTypes(), apiTypes))
+                    .ifPresent(catalog::add);
+            }
+        }
         if (!admitsDynamicEntries(signals, apiTypes)) {
             return catalog;
         }
@@ -213,7 +232,17 @@ public class AdditionalMetricCatalogDomainService {
                     .filter(kinds -> servedFor(Set.copyOf(kinds), apiTypes))
                     .ifPresent(kinds -> measured.put(key, kinds));
             } else if (valueType.isFacet() && servedFor(key.field().apiTypes(), apiTypes)) {
-                facets.add(new DimensionDefinition(key.field().name(), key.label(), key.namespace(), key.field().apiTypes(), key.origin()));
+                facets.add(
+                    new DimensionDefinition(
+                        key.field().name(),
+                        key.label(),
+                        key.description(),
+                        key.namespace(),
+                        key.field().apiTypes(),
+                        key.lastSeen(),
+                        key.origin()
+                    )
+                );
             }
         }
         var additional = new AdditionalAnalytics(List.of(), facets);
@@ -336,6 +365,50 @@ public class AdditionalMetricCatalogDomainService {
         return new CatalogFlags(key.origin(), key.field().rawKey(), key.field().valueType(), key.lastSeen(), true, key.namespace());
     }
 
+    /**
+     * A numeric key a built-in metric reads and no built-in filter reads, as a filter under its dynamic name: the
+     * metric's label and kinds, {@code BUILT_IN} with the key's flags, the operators of its value type (a {@code double_}
+     * key takes decimals), served on the analytics signal and, when the logs search serves one of its kinds, on the
+     * logs signal. A keyword key a built-in facet reads is not a filter: nothing lists its values. Judged on every
+     * name of the registry: a filter narrowed out of the request still reads the key.
+     */
+    private static Optional<FilterSpec> builtInKeyFilter(
+        Resolved key,
+        Set<String> builtInFilterNames,
+        Map<String, MetricDefinition> metricsByName
+    ) {
+        AdditionalMetricField field = key.field();
+        if (!field.valueType().isNumber() || key.builtInNames().stream().anyMatch(builtInFilterNames::contains)) {
+            return Optional.empty();
+        }
+        return key
+            .builtInNames()
+            .stream()
+            .sorted()
+            .map(metricsByName::get)
+            .filter(Objects::nonNull)
+            .findFirst()
+            .map(metric ->
+                new FilterSpec(
+                    field.name(),
+                    metric.label(),
+                    null,
+                    field.valueType().filterType().orElseThrow(),
+                    operators(field.valueType()),
+                    null,
+                    null,
+                    signalsFor(metric.apiTypes()),
+                    Set.copyOf(metric.apiTypes()),
+                    flags(key)
+                )
+            );
+    }
+
+    /** The logs signal only for kinds the logs search serves; the analytics signal always. */
+    private static Set<Signal> signalsFor(Collection<ApiType> kinds) {
+        return kinds.stream().anyMatch(ApiType.SEARCHED_ON_LOGS::contains) ? DYNAMIC_SIGNALS : Set.of(Signal.ANALYTICS);
+    }
+
     private static FilterSpec dynamicSpec(Resolved key) {
         return new FilterSpec(
             key.field().name(),
@@ -363,7 +436,8 @@ public class AdditionalMetricCatalogDomainService {
             support.facets(),
             support.filters(),
             key.origin(),
-            null
+            null,
+            key.lastSeen()
         );
     }
 

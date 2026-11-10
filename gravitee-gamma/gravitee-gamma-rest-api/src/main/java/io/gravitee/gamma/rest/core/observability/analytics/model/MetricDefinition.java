@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.core.observability.analytics.model;
 
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +36,9 @@ import java.util.List;
  *             when none is known
  * @param currency the ISO 4217 code of a built-in whose unit is {@code CURRENCY}; {@code null} on every other metric,
  *             a declared record in {@code CURRENCY} included, its currency being unknown
+ * @param lastSeen when a document of the environment last carried the key of a {@code DECLARED} or {@code DISCOVERED}
+ *             metric, as the filter catalog serves it: to a traffic reader only, {@code null} otherwise and on a
+ *             built-in
  * @author GraviteeSource Team
  */
 public record MetricDefinition(
@@ -48,7 +52,8 @@ public record MetricDefinition(
     List<DimensionDefinition> facets,
     List<String> filters,
     CatalogOrigin origin,
-    String currency
+    String currency,
+    Instant lastSeen
 ) {
     /** A metric with no description, namespace or currency: a built-in that is not a cost. */
     public MetricDefinition(
@@ -61,7 +66,7 @@ public record MetricDefinition(
         List<String> filters,
         CatalogOrigin origin
     ) {
-        this(name, label, null, null, unit, apiTypes, measures, facets, filters, origin, null);
+        this(name, label, null, null, unit, apiTypes, measures, facets, filters, origin, null, null);
     }
 
     /** A built-in, with its currency when it is a cost. */
@@ -76,7 +81,7 @@ public record MetricDefinition(
         CatalogOrigin origin,
         String currency
     ) {
-        this(name, label, null, null, unit, apiTypes, measures, facets, filters, origin, currency);
+        this(name, label, null, null, unit, apiTypes, measures, facets, filters, origin, currency, null);
     }
 
     /** A built-in is grouped by its API kinds; an additional metric field by its origin, under one family. */
@@ -102,7 +107,8 @@ public record MetricDefinition(
             List.copyOf(grouped),
             filters,
             origin,
-            currency
+            currency,
+            lastSeen
         );
     }
 }

@@ -49,6 +49,17 @@ public abstract class AnalyticsDefinitionPortContractTest {
         }
     }
 
+    /** The catalogs read every built-in once: a metric shared by several kinds is listed under the first. */
+    @Test
+    void should_list_every_built_in_metric_once_across_kinds() {
+        var names = port().builtInMetrics().stream().map(MetricDefinition::name).toList();
+
+        assertThat(names).doesNotHaveDuplicates();
+        for (var kind : ApiType.API_KINDS) {
+            assertThat(names).containsAll(port().metricsOf(kind).stream().map(MetricDefinition::name).toList());
+        }
+    }
+
     @Test
     void should_list_each_metric_once_per_kind() {
         for (var kind : ApiType.API_KINDS) {
