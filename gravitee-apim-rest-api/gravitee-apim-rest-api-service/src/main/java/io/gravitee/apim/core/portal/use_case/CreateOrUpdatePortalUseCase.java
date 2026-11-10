@@ -40,10 +40,12 @@ import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
 @RequiredArgsConstructor
+@CustomLog
 public class CreateOrUpdatePortalUseCase {
 
     private final ValidatePortalDomainService validator;
@@ -91,12 +93,23 @@ public class CreateOrUpdatePortalUseCase {
         var resolvedActiveThemeId = resolveActiveThemeId(input, existing.map(Portal::getActiveThemeId).orElse(null));
         var portalToSave = existing.orElseGet(() -> newPortal(input));
         portalToSave.update(input.name(), sanitized.structure(), resolvedActiveThemeId);
+        var replacedDefault = portalAutomationScopeEnforcer.findReplaceableDefault(input.auditInfo(), sanitized.portalId());
         var saved = existing.isPresent() ? portalCrudService.update(portalToSave) : portalCrudService.create(portalToSave);
         if (existing.isEmpty()) {
-            // Any new portal adopts the orphans, onto the default portal, else the only one: an environment the upgrade
-            // skipped for lack of a portal gets them on its first portal
-            portalContentOwnershipDomainService.moveOrphans(input.auditInfo().environmentId());
+            // Deleted only once the new portal is stored, so a failed creation leaves the environment its default portal
+            replacedDefault.ifPresent(defaultPortal -> {
+                portalCrudService.delete(defaultPortal.getId());
+                log.info(
+                    "Default portal [{}] of environment [{}] replaced by Automation API portal [{}]",
+                    defaultPortal.getId(),
+                    input.auditInfo().environmentId(),
+                    saved.getId()
+                );
+            });
         }
+        // On every write, onto the default portal, else the only one: adopts what a replaced default portal or a skipped
+        // upgrade left behind, and retries an interrupted move
+        portalContentOwnershipDomainService.moveOrphans(input.auditInfo().environmentId());
         var portalExists = portalAutomationScopeEnforcer.portalExistsInEnvironment(input.auditInfo(), saved.getId());
         if (portalExists) {
             portalNavigationSyncDomainService.sync(input.auditInfo(), saved.getId(), previouslyPersisted, sanitized.structure());

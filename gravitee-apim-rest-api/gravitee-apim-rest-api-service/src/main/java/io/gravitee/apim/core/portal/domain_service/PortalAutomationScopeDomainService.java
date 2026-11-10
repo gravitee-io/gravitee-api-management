@@ -18,9 +18,11 @@ package io.gravitee.apim.core.portal.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
+import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -44,6 +46,30 @@ public class PortalAutomationScopeDomainService {
             return List.of(Validator.Error.severe("%s does not match the established portal for this environment", fieldName));
         }
         return List.of();
+    }
+
+    /**
+     * {@link #validate} for a write of the portal itself, the only one allowed to take over a lone default portal:
+     * a listing, a page or a link naming another portal has nothing to replace it with.
+     */
+    public List<Validator.Error> validatePortal(AuditInfo auditInfo, PortalId portalId, String fieldName) {
+        return findReplaceableDefault(auditInfo, portalId).isPresent() ? List.of() : validate(auditInfo, portalId, fieldName);
+    }
+
+    /**
+     * The default portal that the first Automation API portal of this environment takes over from.
+     *
+     * @return the environment's only portal, when it is the default one and is not {@code portalId}; the default
+     *     marker is enough to recognize it, since an Automation API portal is never default
+     */
+    public Optional<Portal> findReplaceableDefault(AuditInfo auditInfo, PortalId portalId) {
+        var portals = portalCrudService.findByEnvironmentId(auditInfo.environmentId());
+        if (portals.size() != 1) {
+            return Optional.empty();
+        }
+        return Optional.of(portals.getFirst())
+            .filter(Portal::isDefault)
+            .filter(portal -> !portal.getId().equals(portalId));
     }
 
     private boolean hasEstablishedPortalConflict(AuditInfo auditInfo, PortalId portalId) {

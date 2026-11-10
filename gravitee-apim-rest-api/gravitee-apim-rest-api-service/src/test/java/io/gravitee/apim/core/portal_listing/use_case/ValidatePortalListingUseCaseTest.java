@@ -23,6 +23,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+import fixtures.core.model.PortalFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
@@ -30,7 +31,9 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
+import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal_listing.domain_service.ValidatePortalListingDomainService;
 import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
 import io.gravitee.apim.core.portal_listing.model.PortalListingId;
@@ -97,6 +100,39 @@ class ValidatePortalListingUseCaseTest {
         );
 
         assertThat(output.errors()).isEmpty();
+    }
+
+    @Test
+    void should_refuse_a_listing_on_another_portal_while_the_default_portal_is_alone() {
+        var portals = new PortalCrudServiceInMemory();
+        portals.initWith(
+            List.of(
+                Portal.of(
+                    PortalId.of("00000000-0000-0000-0000-0000000000d1"),
+                    AUDIT_INFO.environmentId(),
+                    AUDIT_INFO.organizationId(),
+                    "Developer Portal",
+                    PortalNavigationStructure.empty(),
+                    null,
+                    true,
+                    PortalFixtures.PORTAL_URL
+                )
+            )
+        );
+        var withADefaultPortal = new ValidatePortalListingUseCase(
+            new ValidatePortalListingDomainService(new PortalAutomationScopeDomainService(portals, () -> false), apiCrud)
+        );
+
+        var output = withADefaultPortal.execute(
+            new CreateOrUpdatePortalListingUseCase.Input(
+                AUDIT_INFO,
+                LISTING_ID,
+                PORTAL_ID,
+                List.of(new PortalListingApiEntry("pets-api", "/projects/alpha", 1))
+            )
+        );
+
+        assertThat(output.errors()).anyMatch(e -> e.getMessage().contains("established portal"));
     }
 
     @Test
