@@ -114,6 +114,14 @@ export async function updateApiProductResources(
     });
 }
 
+export async function deployApiProduct(environmentId: string, productId: string): Promise<void> {
+    await apimFetchJsonV2(environmentId, `/api-products/${encodeURIComponent(productId)}/deployments`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({}),
+    });
+}
+
 export async function deleteApiProduct(environmentId: string, productId: string): Promise<void> {
     return apimFetchJsonV2<void>(environmentId, `/api-products/${productId}`, { method: 'DELETE' });
 }

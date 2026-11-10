@@ -19,6 +19,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
 import { usePlanStatusCounts, usePlanTransition, useReorderPlan, useUpdatePlan } from './usePlans';
+import { apiProductKeys } from '../../api-products/utils/queryKeys';
 import { listPlans, transitionPlan, updatePlan } from '../services/plans';
 import { EMPTY_GENERAL, EMPTY_RESTRICTIONS, EMPTY_SECURITY } from '../types/plan';
 import type { ManagedPlan, ManagedPlanPage, PlanContext, PlanFormValue, PlanStatus } from '../types/plan';
@@ -36,6 +37,7 @@ const mockListPlans = jest.mocked(listPlans);
 const mockTransitionPlan = jest.mocked(transitionPlan);
 
 const CTX: PlanContext = { type: 'api', entityId: 'api-1' };
+const PRODUCT_CTX: PlanContext = { type: 'api-product', entityId: 'product-1' };
 
 const RENAMED_PLAN: ManagedPlan = {
     id: 'plan-1',
@@ -104,6 +106,16 @@ describe('useUpdatePlan once the mutation settles', () => {
             expect(invalidateQueries).not.toHaveBeenCalledWith(apiDetailInvalidation);
         }
     });
+
+    // A product's deployment state covers its plans, so its Deploy banner depends on the product detail.
+    it('invalidates the API Product detail for an API Product plan', async () => {
+        const { result, invalidateQueries } = renderUpdatePlanHook(PRODUCT_CTX);
+
+        result.current.mutate({ planId: 'plan-1', form: FORM, definitionVersion: 'V4' });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+        expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: apiProductKeys.detail('DEFAULT', 'product-1') });
+    });
 });
 
 function renderReorderPlanHook() {
@@ -145,11 +157,11 @@ describe('useReorderPlan', () => {
 
 const DEPRECATED_PLAN: ManagedPlan = { ...RENAMED_PLAN, status: 'DEPRECATED' };
 
-function renderPlanTransitionHook() {
+function renderPlanTransitionHook(ctx: PlanContext = CTX) {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
     const invalidateQueries = jest.spyOn(queryClient, 'invalidateQueries');
     const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
-    const { result } = renderHook(() => usePlanTransition(CTX), { wrapper });
+    const { result } = renderHook(() => usePlanTransition(ctx), { wrapper });
     return { result, queryClient, invalidateQueries };
 }
 
@@ -178,6 +190,18 @@ describe('usePlanTransition once the transition succeeds', () => {
         expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['api-plans', 'api', 'api-1'] });
         expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: apiDetailKeys.detail('DEFAULT', 'api-1') });
     });
+
+    it.each(['publish', 'deprecate', 'close'] as const)(
+        'invalidates the API Product detail after a %s of an API Product plan',
+        async action => {
+            const { result, invalidateQueries } = renderPlanTransitionHook(PRODUCT_CTX);
+
+            result.current.mutate({ planId: 'plan-1', action });
+
+            await waitFor(() => expect(result.current.isSuccess).toBe(true));
+            expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: apiProductKeys.detail('DEFAULT', 'product-1') });
+        },
+    );
 });
 
 describe('plan changes and the plans offered by Create Subscription', () => {
