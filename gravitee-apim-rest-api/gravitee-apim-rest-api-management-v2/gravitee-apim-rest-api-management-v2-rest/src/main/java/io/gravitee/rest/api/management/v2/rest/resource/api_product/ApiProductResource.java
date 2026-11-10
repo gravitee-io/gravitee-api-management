@@ -15,16 +15,24 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.isEmpty;
+
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProductKindFilter;
 import io.gravitee.apim.core.api_product.model.UpdateApiProduct;
 import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeployApiProductUseCase;
+import io.gravitee.apim.core.api_product.use_case.GetApiProductFlowsUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
+import io.gravitee.apim.core.api_product.use_case.UpdateApiProductFlowsUseCase;
 import io.gravitee.apim.core.api_product.use_case.UpdateApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductDeployUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductExistsUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.rest.api.management.v2.rest.mapper.ApiProductMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ApiProductFlows;
+import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiProductDeploymentResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -47,6 +55,7 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import lombok.CustomLog;
 
 @CustomLog
@@ -72,6 +81,12 @@ public class ApiProductResource extends AbstractResource {
 
     @Inject
     private VerifyApiProductDeployUseCase verifyApiProductDeployUseCase;
+
+    @Inject
+    private GetApiProductFlowsUseCase getApiProductFlowsUseCase;
+
+    @Inject
+    private UpdateApiProductFlowsUseCase updateApiProductFlowsUseCase;
 
     @Context
     private ResourceContext resourceContext;
@@ -143,6 +158,34 @@ public class ApiProductResource extends AbstractResource {
         return Response.ok(output.apiProduct()).build();
     }
 
+    @GET
+    @Path("/flows")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.READ }) })
+    public ApiProductFlows getApiProductFlows() {
+        requireClassicApiProductInCurrentEnvironment();
+        var executionContext = GraviteeContext.getExecutionContext();
+        var output = getApiProductFlowsUseCase.execute(
+            new GetApiProductFlowsUseCase.Input(executionContext.getEnvironmentId(), apiProductId)
+        );
+        return ApiProductMapper.INSTANCE.map(output.apiProductFlows());
+    }
+
+    @PUT
+    @Path("/flows")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
+    public ApiProductFlows updateApiProductFlows(@Valid @NotNull ApiProductFlows apiProductFlows) {
+        requireClassicApiProductInCurrentEnvironment();
+        rejectNativeSteps(apiProductFlows.getFlows());
+        var output = updateApiProductFlowsUseCase.execute(
+            new UpdateApiProductFlowsUseCase.Input(apiProductId, ApiProductMapper.INSTANCE.map(apiProductFlows), getAuditInfo())
+        );
+        log.debug("Updated the flows of API Product [{}]", apiProductId);
+        return ApiProductMapper.INSTANCE.map(output.apiProductFlows());
+    }
+
     @Path("/apis")
     public ApiProductApisResource getApiProductApisResource() {
         return resourceContext.getResource(ApiProductApisResource.class);
@@ -170,6 +213,25 @@ public class ApiProductResource extends AbstractResource {
     public ApiProductNotificationSettingsResource getApiProductNotificationSettingsResource() {
         requireClassicApiProductInCurrentEnvironment();
         return resourceContext.getResource(ApiProductNotificationSettingsResource.class);
+    }
+
+    /**
+     * The HTTP flow model the product stores has no entrypoint connect or interact phase, so such steps would be
+     * dropped without a word when mapped; they are refused instead, like the publish and subscribe steps the use case
+     * refuses.
+     */
+    private static void rejectNativeSteps(List<FlowV4> flows) {
+        flows
+            .stream()
+            .filter(flow -> !isEmpty(flow.getEntrypointConnect()) || !isEmpty(flow.getInteract()))
+            .findFirst()
+            .ifPresent(flow -> {
+                throw new ValidationDomainException(
+                    "Flow '" +
+                        flow.getName() +
+                        "' has entrypoint connect or interact steps; API Product flows only run in the request and response phases"
+                );
+            });
     }
 
     /** Existence alone, for a read: this surface does not manage every kind, but it may report on them. */

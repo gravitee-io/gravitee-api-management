@@ -35,17 +35,25 @@ import assertions.MAPIAssertions;
 import fixtures.core.model.LicenseFixtures;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.model.ApiProductFlows;
 import io.gravitee.apim.core.api_product.model.ApiProductKind;
 import io.gravitee.apim.core.api_product.model.ApiProductKindFilter;
 import io.gravitee.apim.core.api_product.model.UpdateApiProduct;
 import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeployApiProductUseCase;
+import io.gravitee.apim.core.api_product.use_case.GetApiProductFlowsUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
+import io.gravitee.apim.core.api_product.use_case.UpdateApiProductFlowsUseCase;
 import io.gravitee.apim.core.api_product.use_case.UpdateApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductDeployUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductExistsUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -93,6 +101,12 @@ class ApiProductResourceTest extends AbstractResourceTest {
     private VerifyApiProductDeployUseCase verifyApiProductDeployUseCase;
 
     @Inject
+    private GetApiProductFlowsUseCase getApiProductFlowsUseCase;
+
+    @Inject
+    private UpdateApiProductFlowsUseCase updateApiProductFlowsUseCase;
+
+    @Inject
     private LicenseManager licenseManager;
 
     @Override
@@ -132,7 +146,9 @@ class ApiProductResourceTest extends AbstractResourceTest {
             deployApiProductUseCase,
             updateApiProductUseCase,
             verifyApiProductExistsUseCase,
-            verifyApiProductDeployUseCase
+            verifyApiProductDeployUseCase,
+            getApiProductFlowsUseCase,
+            updateApiProductFlowsUseCase
         );
         when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
@@ -168,6 +184,25 @@ class ApiProductResourceTest extends AbstractResourceTest {
                 () -> assertThat(result.getVersion()).isEqualTo("1.0.0"),
                 () -> assertThat(result.getEnvironmentId()).isEqualTo(ENV_ID)
             );
+        }
+
+        @Test
+        void should_not_expose_the_flow_mode_which_has_its_own_endpoint() {
+            var flowExecution = new FlowExecution();
+            flowExecution.setMode(FlowMode.BEST_MATCH);
+            var apiProduct = ApiProduct.builder()
+                .id(API_PRODUCT_ID)
+                .environmentId(ENV_ID)
+                .name("My API Product")
+                .version("1.0.0")
+                .flowExecution(flowExecution)
+                .build();
+            when(getApiProductByIdUseCase.execute(any())).thenReturn(GetApiProductsUseCase.Output.single(Optional.of(apiProduct)));
+
+            final Response response = rootTarget().request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            assertThat(response.readEntity(String.class)).doesNotContain("flowExecution").doesNotContain("best-match");
         }
 
         @Test
@@ -566,6 +601,164 @@ class ApiProductResourceTest extends AbstractResourceTest {
             shouldReturn403(RolePermission.API_PRODUCT_DEFINITION, API_PRODUCT_ID, RolePermissionAction.READ, () ->
                 rootTarget().path("deployments/_verify").request().get()
             );
+        }
+    }
+
+    @Nested
+    class ApiProductFlowsTest {
+
+        @Test
+        void should_get_the_flows_and_the_flow_mode() {
+            var flowExecution = new FlowExecution();
+            flowExecution.setMode(FlowMode.BEST_MATCH);
+            flowExecution.setMatchRequired(true);
+            when(getApiProductFlowsUseCase.execute(new GetApiProductFlowsUseCase.Input(ENV_ID, API_PRODUCT_ID))).thenReturn(
+                new GetApiProductFlowsUseCase.Output(
+                    new ApiProductFlows(flowExecution, List.of(Flow.builder().name("first").build(), Flow.builder().name("second").build()))
+                )
+            );
+
+            final Response response = rootTarget().path("flows").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.ApiProductFlows.class);
+            assertThat(body.getFlowExecution().getMode()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.FlowMode.BEST_MATCH);
+            assertThat(body.getFlowExecution().getMatchRequired()).isTrue();
+            assertThat(body.getFlows()).extracting(FlowV4::getName).containsExactly("first", "second");
+        }
+
+        @Test
+        void should_return_404_when_getting_the_flows_of_an_unknown_product() {
+            when(getApiProductFlowsUseCase.execute(any())).thenThrow(new ApiProductNotFoundException(API_PRODUCT_ID));
+
+            final Response response = rootTarget().path("flows").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+        }
+
+        @Test
+        void should_return_404_when_getting_the_flows_of_a_product_of_another_environment() {
+            doThrow(new ApiProductNotFoundException(API_PRODUCT_ID)).when(verifyApiProductExistsUseCase).execute(any());
+
+            final Response response = rootTarget().path("flows").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+            verify(getApiProductFlowsUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_403_when_reading_flows_without_permission() {
+            shouldReturn403(RolePermission.API_PRODUCT_DEFINITION, API_PRODUCT_ID, RolePermissionAction.READ, () ->
+                rootTarget().path("flows").request().get()
+            );
+        }
+
+        @Test
+        void should_replace_the_flows_and_the_flow_mode() {
+            when(updateApiProductFlowsUseCase.execute(any())).thenAnswer(invocation ->
+                new UpdateApiProductFlowsUseCase.Output(invocation.<UpdateApiProductFlowsUseCase.Input>getArgument(0).apiProductFlows())
+            );
+
+            final Response response = rootTarget()
+                .path("flows")
+                .request()
+                .put(
+                    json(
+                        Map.of(
+                            "flowExecution",
+                            Map.of("mode", "BEST_MATCH", "matchRequired", true),
+                            "flows",
+                            List.of(
+                                Map.of("name", "first", "request", List.of(Map.of("policy", "transform-headers"))),
+                                Map.of("name", "second")
+                            )
+                        )
+                    )
+                );
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var captor = ArgumentCaptor.forClass(UpdateApiProductFlowsUseCase.Input.class);
+            verify(updateApiProductFlowsUseCase).execute(captor.capture());
+            var input = captor.getValue();
+            assertThat(input.apiProductId()).isEqualTo(API_PRODUCT_ID);
+            assertThat(input.auditInfo().environmentId()).isEqualTo(ENV_ID);
+            assertThat(input.apiProductFlows().flowExecution().getMode()).isEqualTo(FlowMode.BEST_MATCH);
+            assertThat(input.apiProductFlows().flowExecution().isMatchRequired()).isTrue();
+            assertThat(input.apiProductFlows().flows()).extracting(Flow::getName).containsExactly("first", "second");
+            assertThat(input.apiProductFlows().flows().get(0).getRequest()).extracting("policy").containsExactly("transform-headers");
+            var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.ApiProductFlows.class);
+            assertThat(body.getFlows()).extracting(FlowV4::getName).containsExactly("first", "second");
+        }
+
+        @Test
+        void should_store_the_default_mode_when_the_mode_is_left_out() {
+            when(updateApiProductFlowsUseCase.execute(any())).thenAnswer(invocation ->
+                new UpdateApiProductFlowsUseCase.Output(invocation.<UpdateApiProductFlowsUseCase.Input>getArgument(0).apiProductFlows())
+            );
+
+            rootTarget().path("flows").request().put(json(Map.of("flowExecution", Map.of("matchRequired", true), "flows", List.of())));
+
+            var captor = ArgumentCaptor.forClass(UpdateApiProductFlowsUseCase.Input.class);
+            verify(updateApiProductFlowsUseCase).execute(captor.capture());
+            assertThat(captor.getValue().apiProductFlows().flowExecution().getMode()).isEqualTo(FlowMode.DEFAULT);
+            assertThat(captor.getValue().apiProductFlows().flows()).isEmpty();
+        }
+
+        @Test
+        void should_return_400_when_the_flows_are_left_out() {
+            final Response response = rootTarget().path("flows").request().put(json(Map.of("flowExecution", Map.of("mode", "DEFAULT"))));
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+            verify(updateApiProductFlowsUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_400_for_an_interact_step() {
+            final Response response = rootTarget()
+                .path("flows")
+                .request()
+                .put(json(Map.of("flows", List.of(Map.of("name", "native", "interact", List.of(Map.of("policy", "transform-headers")))))));
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+            verify(updateApiProductFlowsUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_400_when_the_use_case_refuses_the_flows() {
+            when(updateApiProductFlowsUseCase.execute(any())).thenThrow(new ValidationDomainException("Flow 'x' has publish steps"));
+
+            final Response response = rootTarget().path("flows").request().put(json(Map.of("flows", List.of(Map.of("name", "x")))));
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_404_when_replacing_the_flows_of_a_product_of_another_environment() {
+            doThrow(new ApiProductNotFoundException(API_PRODUCT_ID)).when(verifyApiProductExistsUseCase).execute(any());
+
+            final Response response = rootTarget().path("flows").request().put(json(Map.of("flows", List.of())));
+
+            assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+            verify(updateApiProductFlowsUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_403_when_the_license_does_not_allow_api_products() {
+            when(updateApiProductFlowsUseCase.execute(any())).thenThrow(
+                new io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException("api-product")
+            );
+
+            final Response response = rootTarget().path("flows").request().put(json(Map.of("flows", List.of())));
+
+            assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
+        }
+
+        @Test
+        void should_return_403_when_replacing_flows_without_permission() {
+            shouldReturn403(RolePermission.API_PRODUCT_DEFINITION, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
+                rootTarget().path("flows").request().put(json(Map.of("flows", List.of())))
+            );
+            verify(updateApiProductFlowsUseCase, never()).execute(any());
         }
     }
 }
