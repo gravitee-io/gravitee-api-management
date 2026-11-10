@@ -61,7 +61,9 @@ class GetPortalsStatsUseCaseTest {
     void setUp() {
         portalCrudService.reset();
         navigationItems.clear();
-        when(licenseManager.getOrganizationLicenseOrPlatform(ORG_ID)).thenReturn(LicenseFixtures.aLicenseOfTier("universe"));
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORG_ID)).thenReturn(
+            LicenseFixtures.aLicenseWithAttribute("apim-portals-max", 10)
+        );
         cut = new GetPortalsStatsUseCase(
             portalCrudService,
             new PortalQuotaDomainService(licenseManager, portalCrudService),

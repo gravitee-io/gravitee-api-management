@@ -49,6 +49,10 @@ public class Theme {
         return automationMetadata != null;
     }
 
+    public boolean hasLogo() {
+        return logo != null && !logo.isBlank();
+    }
+
     public enum ReferenceType {
         ENVIRONMENT,
     }

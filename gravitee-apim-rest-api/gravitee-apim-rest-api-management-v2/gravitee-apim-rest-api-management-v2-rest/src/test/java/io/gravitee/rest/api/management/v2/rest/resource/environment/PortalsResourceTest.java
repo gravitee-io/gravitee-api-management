@@ -246,6 +246,9 @@ class PortalsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_the_quota_and_the_published_apis_of_every_portal() {
+            when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION)).thenReturn(
+                LicenseFixtures.aLicenseWithAttribute("apim-portals-max", 10)
+            );
             portalNavigationItemsCrudService.initWith(
                 List.of(
                     publishedApi(PARTNERS_PORTAL_ID, "api-1"),
@@ -263,9 +266,7 @@ class PortalsResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_allow_one_portal_below_the_universe_tier() {
-            when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION)).thenReturn(LicenseFixtures.anOssLicense());
-
+        void should_allow_one_portal_when_the_license_sets_no_portal_limit() {
             var body = rootTarget("_stats").request().get().readEntity(PortalsStats.class);
 
             assertThat(body.getQuota()).isEqualTo(new PortalQuota().used(2).limit(1));

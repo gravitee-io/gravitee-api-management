@@ -37,8 +37,8 @@ public class PortalLogoDomainService {
             .findByThemeTypeAndEnvironmentId(ThemeType.PORTAL_NEXT, environmentId)
             .stream()
             .filter(Theme::isEnabled)
+            .filter(Theme::hasLogo)
             .map(Theme::getLogo)
-            .filter(logo -> logo != null && !logo.isBlank())
             .findFirst();
     }
 }

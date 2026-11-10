@@ -19,15 +19,16 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.model.PortalQuota;
 import io.gravitee.node.api.license.LicenseManager;
+import java.util.OptionalInt;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
+@CustomLog
 @DomainService
 @RequiredArgsConstructor
 public class PortalQuotaDomainService {
 
-    private static final String UNIVERSE_TIER = "universe";
-    private static final int UNIVERSE_LIMIT = 10;
-    // Trial licenses have no tier of their own, so they land here too, which is their intended limit.
+    private static final String PORTALS_MAX_ATTRIBUTE = "apim-portals-max";
     private static final int DEFAULT_LIMIT = 1;
 
     private final LicenseManager licenseManager;
@@ -39,6 +40,31 @@ public class PortalQuotaDomainService {
 
     private int limit(String organizationId) {
         var license = licenseManager.getOrganizationLicenseOrPlatform(organizationId);
-        return license != null && UNIVERSE_TIER.equals(license.getTier()) ? UNIVERSE_LIMIT : DEFAULT_LIMIT;
+        if (license == null) {
+            return DEFAULT_LIMIT;
+        }
+        var value = license.getAttributes().get(PORTALS_MAX_ATTRIBUTE);
+        if (value == null) {
+            return DEFAULT_LIMIT;
+        }
+        return parseCount(value).orElseGet(() -> {
+            log.warn(
+                "Ignoring the license attribute {} of organization {}: [{}] is not a portal count, allowing {} portal",
+                PORTALS_MAX_ATTRIBUTE,
+                organizationId,
+                value,
+                DEFAULT_LIMIT
+            );
+            return DEFAULT_LIMIT;
+        });
+    }
+
+    private static OptionalInt parseCount(Object value) {
+        try {
+            int count = value instanceof Number number ? number.intValue() : Integer.parseInt(value.toString().trim());
+            return count >= 0 ? OptionalInt.of(count) : OptionalInt.empty();
+        } catch (NumberFormatException e) {
+            return OptionalInt.empty();
+        }
     }
 }
