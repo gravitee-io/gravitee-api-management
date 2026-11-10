@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.module.platform.rest.resource.dto.credential;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.gravitee.gamma.module.platform.core.credential.model.CredentialStrategy;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -72,19 +73,20 @@ public final class CredentialDtos {
     /** @param managed whether Gravitee stores the value behind the reference */
     public record SecretReferenceResponse(String reference, boolean managed) {}
 
+    /** The host mapper writes dates as epoch seconds, so each timestamp asks for an ISO 8601 string instead. */
     public record CredentialResponse(
         String id,
         String name,
         CredentialStrategy strategy,
         String serviceId,
         String ownerId,
-        ZonedDateTime expiresAt,
+        @JsonFormat(shape = JsonFormat.Shape.STRING) ZonedDateTime expiresAt,
         Map<String, Object> configuration,
         Map<String, SecretReferenceResponse> secretReferences,
         boolean managed,
-        ZonedDateTime createdAt,
-        ZonedDateTime updatedAt,
-        ZonedDateTime rotatedAt
+        @JsonFormat(shape = JsonFormat.Shape.STRING) ZonedDateTime createdAt,
+        @JsonFormat(shape = JsonFormat.Shape.STRING) ZonedDateTime updatedAt,
+        @JsonFormat(shape = JsonFormat.Shape.STRING) ZonedDateTime rotatedAt
     ) {}
 
     public record CredentialsResponse(List<CredentialResponse> data, Pagination pagination) {
