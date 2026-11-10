@@ -25,9 +25,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
-import io.gravitee.apim.core.theme.model.Theme;
-import io.gravitee.apim.core.theme.model.ThemeType;
-import io.gravitee.apim.core.theme.query_service.ThemeQueryService;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PortalSummaryDomainService {
 
-    private final ThemeQueryService themeQueryService;
+    private final PortalLogoDomainService portalLogoDomainService;
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
 
     /** Summaries of {@code portals}, all of {@code environmentId}, in the same order. */
@@ -48,21 +45,12 @@ public class PortalSummaryDomainService {
         if (portals.isEmpty()) {
             return List.of();
         }
-        // Until PORTAL-319 gives each portal its own theme, every portal shows the environment's next-gen theme logo.
-        var hasLogo = enabledNextGenThemeHasLogo(environmentId);
+        var hasLogo = portalLogoDomainService.findLogo(environmentId).isPresent();
         var publishedApiIdsByPortal = publishedApiIdsByPortal(environmentId);
         return portals
             .stream()
             .map(portal -> new PortalSummary(portal, hasLogo, publishedApiIdsByPortal.getOrDefault(portal.getId(), Set.of()).size()))
             .toList();
-    }
-
-    private boolean enabledNextGenThemeHasLogo(String environmentId) {
-        return themeQueryService
-            .findByThemeTypeAndEnvironmentId(ThemeType.PORTAL_NEXT, environmentId)
-            .stream()
-            .filter(Theme::isEnabled)
-            .anyMatch(theme -> theme.getLogo() != null && !theme.getLogo().isBlank());
     }
 
     private Map<PortalId, Set<String>> publishedApiIdsByPortal(String environmentId) {

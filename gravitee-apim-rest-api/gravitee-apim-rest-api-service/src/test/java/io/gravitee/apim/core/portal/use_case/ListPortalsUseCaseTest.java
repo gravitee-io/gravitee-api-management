@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
+import io.gravitee.apim.core.portal.domain_service.PortalLogoDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalSummaryDomainService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
@@ -52,7 +53,10 @@ class ListPortalsUseCaseTest {
         portalCrudService.reset();
         cut = new ListPortalsUseCase(
             portalCrudService,
-            new PortalSummaryDomainService(new ThemeQueryServiceInMemory(), new PortalNavigationItemsQueryServiceInMemory())
+            new PortalSummaryDomainService(
+                new PortalLogoDomainService(new ThemeQueryServiceInMemory()),
+                new PortalNavigationItemsQueryServiceInMemory()
+            )
         );
     }
 

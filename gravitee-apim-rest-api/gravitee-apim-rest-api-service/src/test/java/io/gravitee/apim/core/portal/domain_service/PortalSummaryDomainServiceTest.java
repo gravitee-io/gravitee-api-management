@@ -61,7 +61,10 @@ class PortalSummaryDomainServiceTest {
     void setUp() {
         themeQueryService.reset();
         navigationItems.clear();
-        cut = new PortalSummaryDomainService(themeQueryService, new PortalNavigationItemsQueryServiceInMemory(navigationItems));
+        cut = new PortalSummaryDomainService(
+            new PortalLogoDomainService(themeQueryService),
+            new PortalNavigationItemsQueryServiceInMemory(navigationItems)
+        );
     }
 
     @Nested
@@ -163,27 +166,8 @@ class PortalSummaryDomainServiceTest {
         }
 
         @Test
-        void should_have_no_logo_when_the_next_gen_theme_is_disabled() {
+        void should_have_no_logo_when_the_environment_has_no_portal_logo() {
             themeQueryService.initWith(List.of(theme(ThemeType.PORTAL_NEXT, ENV_ID, false, "data:image/png;base64,AAA")));
-
-            assertThat(summaryOf(portal(PORTAL_ID, false)).hasLogo()).isFalse();
-        }
-
-        @Test
-        void should_have_no_logo_when_the_enabled_next_gen_theme_has_none() {
-            themeQueryService.initWith(List.of(theme(ThemeType.PORTAL_NEXT, ENV_ID, true, " ")));
-
-            assertThat(summaryOf(portal(PORTAL_ID, false)).hasLogo()).isFalse();
-        }
-
-        @Test
-        void should_ignore_the_classic_portal_theme_and_other_environments() {
-            themeQueryService.initWith(
-                List.of(
-                    theme(ThemeType.PORTAL, ENV_ID, true, "data:image/png;base64,AAA"),
-                    theme(ThemeType.PORTAL_NEXT, OTHER_ENV_ID, true, "data:image/png;base64,AAA")
-                )
-            );
 
             assertThat(summaryOf(portal(PORTAL_ID, false)).hasLogo()).isFalse();
         }
