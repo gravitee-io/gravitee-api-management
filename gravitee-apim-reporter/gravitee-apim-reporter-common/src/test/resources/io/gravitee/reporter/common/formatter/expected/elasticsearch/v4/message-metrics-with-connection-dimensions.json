@@ -1,6 +1,6 @@
 {
   "gateway": "gateway-id",
-  "_id": "10e949d4-fa38-4ff4-a139-1358bbacd127-endpoint",
+  "_id": "<generated>",
   "type": "v4-message-metrics",
   "date": "2023.08.23",
   "@timestamp": "2023-08-23T13:12:01.153Z",
