@@ -116,7 +116,8 @@ class ImportPortalNavigationUseCaseTest {
             queryService,
             crudService,
             pageContentCrudService,
-            pageContentQueryService
+            pageContentQueryService,
+            navigationPortals
         );
         useCase = new ImportPortalNavigationUseCase(
             validatorService,
@@ -163,7 +164,8 @@ class ImportPortalNavigationUseCaseTest {
             queryService,
             crudService,
             pageContentCrudService,
-            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage())
+            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
+            navigationPortals
         );
         return bulkImportDomainService.importSubtree((PortalNavigationFolder) queryService.findByIdAndEnvironmentId(ENV_ID, rootId));
     }

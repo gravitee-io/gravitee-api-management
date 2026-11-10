@@ -1617,7 +1617,8 @@ public class ResourceContextConfiguration {
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
         PortalNavigationItemCrudService portalNavigationItemCrudService,
         PortalPageContentCrudService portalPageContentCrudService,
-        PortalPageContentQueryService portalPageContentQueryService
+        PortalPageContentQueryService portalPageContentQueryService,
+        NavigationPortalDomainService navigationPortalDomainService
     ) {
         return new PortalNavigationBulkImportDomainService(
             portalNavigationItemSourceDomainService,
@@ -1626,7 +1627,8 @@ public class ResourceContextConfiguration {
             portalNavigationItemsQueryService,
             portalNavigationItemCrudService,
             portalPageContentCrudService,
-            portalPageContentQueryService
+            portalPageContentQueryService,
+            navigationPortalDomainService
         );
     }
 

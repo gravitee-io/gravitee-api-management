@@ -20,6 +20,9 @@ import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService
 import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
+import java.net.URI;
+import java.net.URL;
+import lombok.SneakyThrows;
 
 /**
  * The real resolver over in-memory portals, where every environment has a portal URL: an environment
@@ -61,6 +64,19 @@ public class NavigationPortalDomainServiceInMemory extends NavigationPortalDomai
     /** The id of the environment's default portal, once a console write created it. */
     public PortalId defaultPortalIdOf(String environmentId) {
         return portalCrudService.findDefaultByEnvironmentId(environmentId).orElseThrow().getId();
+    }
+
+    public PortalId givenDefaultPortal(String organizationId, String environmentId) {
+        return portalCrudService.create(Portal.createDefault(environmentId, organizationId, "Developer Portal", portalUrl())).getId();
+    }
+
+    public PortalId givenAutomationPortal(String organizationId, String environmentId) {
+        return portalCrudService.create(Portal.create(environmentId, organizationId, "Automation Portal", portalUrl())).getId();
+    }
+
+    @SneakyThrows
+    private static URL portalUrl() {
+        return URI.create(PORTAL_URL + "/next").toURL();
     }
 
     private static InstallationAccessQueryServiceInMemory everyEnvironmentHasAPortalUrl() {

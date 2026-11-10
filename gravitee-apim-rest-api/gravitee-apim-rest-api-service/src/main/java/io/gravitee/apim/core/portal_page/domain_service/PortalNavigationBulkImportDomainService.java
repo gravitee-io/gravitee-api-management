@@ -16,12 +16,15 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
+import io.gravitee.apim.core.portal.exception.NavigationPortalNotResolvedException;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ValidationDepth;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.ImportedFileContentType;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -66,10 +69,19 @@ public class PortalNavigationBulkImportDomainService {
     private final PortalNavigationItemCrudService crudService;
     private final PortalPageContentCrudService pageContentCrudService;
     private final PortalPageContentQueryService pageContentQueryService;
+    private final NavigationPortalDomainService navigationPortalDomainService;
 
     public BulkImportResult importSubtree(PortalNavigationFolder rootFolder) {
         var source = importManagedSourceOf(rootFolder);
         source.registerFetchAttempt();
+
+        final NavigationItemReference owner;
+        try {
+            owner = ownerOfImportedItems(rootFolder);
+        } catch (NavigationPortalNotResolvedException e) {
+            log.warn("Cannot import below portal navigation folder [id={}]: {}", rootFolder.getId().json(), e.getMessage());
+            return failListing(rootFolder, e.getMessage());
+        }
 
         final List<String> files;
         try {
@@ -134,7 +146,7 @@ public class PortalNavigationBulkImportDomainService {
         }
 
         var touchedItemIds = new HashSet<PortalNavigationItemId>();
-        var results = importEntries(rootFolder, entries, touchedItemIds, resolved.fromManifest());
+        var results = importEntries(rootFolder, owner, entries, touchedItemIds, resolved.fromManifest());
         if (results.isEmpty()) {
             // Every mirrored entry turned out not to be a document once fetched — a repository whose
             // only JSON and YAML are package.json, lock files and CI workflows. Same wipe risk as an
@@ -167,6 +179,18 @@ public class PortalNavigationBulkImportDomainService {
         return new BulkImportResult(List.copyOf(results));
     }
 
+    /**
+     * A folder imported before PORTAL-342 is still on the zero UUID: its new children are stored on the
+     * environment's default portal, resolved once so that a refusal fails the whole run before anything is
+     * written. PORTAL-345 removes the zero UUID and this fallback with it.
+     */
+    private NavigationItemReference ownerOfImportedItems(PortalNavigationFolder rootFolder) {
+        if (NavigationItemReference.PortalReference.DEFAULT.equals(rootFolder.getReference())) {
+            return navigationPortalDomainService.findReference(rootFolder.getEnvironmentId());
+        }
+        return rootFolder.getReference();
+    }
+
     private PortalNavigationItemSource importManagedSourceOf(PortalNavigationFolder rootFolder) {
         var source = rootFolder.getSource();
         if (source == null) {
@@ -189,6 +213,7 @@ public class PortalNavigationBulkImportDomainService {
 
     private List<BulkImportResult.FileImportResult> importEntries(
         PortalNavigationFolder rootFolder,
+        NavigationItemReference owner,
         List<ImportEntry> entries,
         Set<PortalNavigationItemId> touchedItemIds,
         boolean fromManifest
@@ -213,7 +238,7 @@ public class PortalNavigationBulkImportDomainService {
                 );
                 continue;
             }
-            var result = importEntry(rootFolder, entry, folderIdsByPath, touchedItemIds, fromManifest);
+            var result = importEntry(rootFolder, owner, entry, folderIdsByPath, touchedItemIds, fromManifest);
             if (result != null) {
                 results.add(result);
             }
@@ -294,6 +319,7 @@ public class PortalNavigationBulkImportDomainService {
     @Nullable
     private BulkImportResult.FileImportResult importEntry(
         PortalNavigationFolder rootFolder,
+        NavigationItemReference owner,
         ImportEntry entry,
         Map<String, PortalNavigationItemId> folderIdsByPath,
         Set<PortalNavigationItemId> touchedItemIds,
@@ -335,7 +361,7 @@ public class PortalNavigationBulkImportDomainService {
                 return null;
             }
 
-            var parentId = resolveTargetFolder(rootFolder, entry.destinationPath(), folderIdsByPath, touchedItemIds);
+            var parentId = resolveTargetFolder(rootFolder, owner, entry.destinationPath(), folderIdsByPath, touchedItemIds);
             var existingPage = findChildPageByTitle(rootFolder.getEnvironmentId(), parentId, entry.title());
             if (existingPage != null) {
                 touchedItemIds.add(existingPage.getId());
@@ -343,7 +369,7 @@ public class PortalNavigationBulkImportDomainService {
                 return BulkImportResult.FileImportResult.success(existingPage.getId().id(), entry.title());
             }
 
-            var createdPage = createPage(rootFolder, parentId, entry.title(), contentType, content);
+            var createdPage = createPage(rootFolder, owner, parentId, entry.title(), contentType, content);
             touchedItemIds.add(createdPage.getId());
             return BulkImportResult.FileImportResult.success(createdPage.getId().id(), entry.title());
         } catch (Exception e) {
@@ -354,6 +380,7 @@ public class PortalNavigationBulkImportDomainService {
 
     private PortalNavigationItemId resolveTargetFolder(
         PortalNavigationFolder rootFolder,
+        NavigationItemReference owner,
         String destinationPath,
         Map<String, PortalNavigationItemId> folderIdsByPath,
         Set<PortalNavigationItemId> touchedItemIds
@@ -371,7 +398,7 @@ public class PortalNavigationBulkImportDomainService {
                 currentParentId = knownFolderId;
                 continue;
             }
-            var folderId = findOrCreateChildFolder(rootFolder, currentParentId, pathElement);
+            var folderId = findOrCreateChildFolder(rootFolder, owner, currentParentId, pathElement);
             folderIdsByPath.put(currentPath, folderId);
             touchedItemIds.add(folderId);
             currentParentId = folderId;
@@ -381,6 +408,7 @@ public class PortalNavigationBulkImportDomainService {
 
     private PortalNavigationItemId findOrCreateChildFolder(
         PortalNavigationFolder rootFolder,
+        NavigationItemReference owner,
         PortalNavigationItemId parentId,
         String title
     ) {
@@ -401,7 +429,7 @@ public class PortalNavigationBulkImportDomainService {
                 .type(PortalNavigationItemType.FOLDER)
                 .area(rootFolder.getArea())
                 .parentId(parentId)
-                .reference(rootFolder.getReference())
+                .reference(owner)
                 .visibility(rootFolder.getVisibility())
                 .published(rootFolder.getPublished())
                 .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
@@ -439,6 +467,7 @@ public class PortalNavigationBulkImportDomainService {
 
     private PortalNavigationItem createPage(
         PortalNavigationFolder rootFolder,
+        NavigationItemReference owner,
         PortalNavigationItemId parentId,
         String title,
         PortalPageContentType contentType,
@@ -453,21 +482,27 @@ public class PortalNavigationBulkImportDomainService {
             null
         );
         var createdContent = pageContentCrudService.create(pageContent);
-        return itemDomainService.create(
-            rootFolder.getOrganizationId(),
-            rootFolder.getEnvironmentId(),
-            CreatePortalNavigationItem.builder()
-                .title(title)
-                .type(PortalNavigationItemType.PAGE)
-                .area(rootFolder.getArea())
-                .parentId(parentId)
-                .reference(rootFolder.getReference())
-                .visibility(rootFolder.getVisibility())
-                .published(rootFolder.getPublished())
-                .contentType(contentType)
-                .portalPageContentId(createdContent.getId())
-                .build()
-        );
+        try {
+            return itemDomainService.create(
+                rootFolder.getOrganizationId(),
+                rootFolder.getEnvironmentId(),
+                CreatePortalNavigationItem.builder()
+                    .title(title)
+                    .type(PortalNavigationItemType.PAGE)
+                    .area(rootFolder.getArea())
+                    .parentId(parentId)
+                    .reference(owner)
+                    .visibility(rootFolder.getVisibility())
+                    .published(rootFolder.getPublished())
+                    .contentType(contentType)
+                    .portalPageContentId(createdContent.getId())
+                    .build()
+            );
+        } catch (RuntimeException e) {
+            // Only the page points to its content: without the page, nothing would ever read or delete it
+            pageContentCrudService.delete(createdContent.getId());
+            throw e;
+        }
     }
 
     /**

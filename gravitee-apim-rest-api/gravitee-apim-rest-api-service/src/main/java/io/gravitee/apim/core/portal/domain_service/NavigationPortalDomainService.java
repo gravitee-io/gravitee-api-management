@@ -57,4 +57,28 @@ public class NavigationPortalDomainService {
     public NavigationItemReference.PortalReference resolveReference(String organizationId, String environmentId) {
         return new NavigationItemReference.PortalReference(resolve(organizationId, environmentId).getId());
     }
+
+    /**
+     * Like {@link #resolveReference}, but never creates the default portal: the auto-fetch scheduler calls it on a
+     * thread whose cached parameters are keyed by name only, so a portal URL read there may be another
+     * environment's.
+     *
+     * @throws NavigationPortalNotResolvedException when the environment has no default portal yet, when its only
+     *     portal comes from the Automation API, or when it has several portals
+     */
+    public NavigationItemReference.PortalReference findReference(String environmentId) {
+        try {
+            defaultPortalDomainService.checkSinglePortal(environmentId);
+        } catch (SeveralPortalsInEnvironmentException e) {
+            throw NavigationPortalNotResolvedException.severalPortals(environmentId, e);
+        }
+        return portalCrudService
+            .findDefaultByEnvironmentId(environmentId)
+            .map(portal -> new NavigationItemReference.PortalReference(portal.getId()))
+            .orElseThrow(() ->
+                portalCrudService.findByEnvironmentId(environmentId).isEmpty()
+                    ? NavigationPortalNotResolvedException.defaultPortalPostponed(environmentId)
+                    : NavigationPortalNotResolvedException.managedByAutomation(environmentId)
+            );
+    }
 }

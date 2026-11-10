@@ -60,6 +60,7 @@ class FetchPortalNavigationItemUseCaseTest {
     private PortalNavigationItemsQueryServiceInMemory queryService;
     private PortalPageContentCrudServiceInMemory pageContentCrudService;
     private PortalNavigationItemSourceDomainServiceInMemory sourceDomainService;
+    private NavigationPortalDomainServiceInMemory navigationPortals;
     private FetchPortalNavigationItemUseCase useCase;
 
     @BeforeEach
@@ -69,6 +70,7 @@ class FetchPortalNavigationItemUseCaseTest {
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
         pageContentCrudService = new PortalPageContentCrudServiceInMemory();
         sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();
+        navigationPortals = new NavigationPortalDomainServiceInMemory();
 
         var domainService = new PortalNavigationItemDomainService(
             crudService,
@@ -78,7 +80,7 @@ class FetchPortalNavigationItemUseCaseTest {
             new ApiCrudServiceInMemory(),
             sourceDomainService,
             new ApiOwnedNavigationDomainService(queryService, crudService),
-            new NavigationPortalDomainServiceInMemory()
+            navigationPortals
         );
         var bulkImportDomainService = new PortalNavigationBulkImportDomainService(
             sourceDomainService,
@@ -87,7 +89,8 @@ class FetchPortalNavigationItemUseCaseTest {
             queryService,
             crudService,
             pageContentCrudService,
-            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage())
+            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
+            navigationPortals
         );
         useCase = new FetchPortalNavigationItemUseCase(
             queryService,
@@ -243,6 +246,7 @@ class FetchPortalNavigationItemUseCaseTest {
 
         @Test
         void should_reimport_the_subtree_of_an_import_managed_folder() {
+            navigationPortals.givenDefaultPortal(ORG_ID, ENV_ID);
             var folder = aFolder("Imported Docs", null, aSource().subtreeImport(true).build());
             sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
 
