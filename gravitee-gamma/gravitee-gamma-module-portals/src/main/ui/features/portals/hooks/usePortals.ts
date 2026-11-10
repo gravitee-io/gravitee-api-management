@@ -21,7 +21,7 @@ import { listPortals } from '../services/portals';
 import type { PortalListParams } from '../types/portal';
 import { portalKeys } from '../utils/queryKeys';
 
-export function usePortals({ query = '', page = 1, perPage = 10 }: PortalListParams = {}) {
+export function usePortals({ query = '', page = 1, perPage = 10 }: PortalListParams = {}, options: { keepPreviousData?: boolean } = {}) {
     const environmentId = useEnvironment()?.id ?? '';
     const search = query.trim();
 
@@ -29,5 +29,8 @@ export function usePortals({ query = '', page = 1, perPage = 10 }: PortalListPar
         queryKey: portalKeys.list(environmentId, search, page, perPage),
         queryFn: () => listPortals(environmentId, { query: search, page, perPage }),
         enabled: Boolean(environmentId),
+        placeholderData: options.keepPreviousData
+            ? (previousData, previousQuery) => (previousQuery?.queryKey[1] === environmentId ? previousData : undefined)
+            : undefined,
     });
 }

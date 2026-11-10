@@ -171,4 +171,30 @@ describe('AppRoutes', () => {
         await user.click(portalsCrumb);
         expect(screen.getByRole('heading', { name: /^Portals$/ })).toBeInTheDocument();
     });
+    it.each([false, true])('opens the full list and its row overview with complete breadcrumbs (federated=%s)', async federated => {
+        const user = userEvent.setup();
+        const root = federated ? MODULE_ROOT : '';
+        renderModule(`${root}/list`, federated);
+        expect(screen.getByRole('heading', { name: /^Portals$/ })).toBeVisible();
+        expect(screen.getByRole('textbox', { name: 'Search portals' })).toBeVisible();
+        const portal = await screen.findByText('Developer Portal');
+        const listCrumbs = screen.getByRole('navigation', { name: /breadcrumb/i });
+        expect(
+            within(listCrumbs)
+                .getAllByRole('listitem')
+                .map(item => item.textContent),
+        ).toEqual(['Developer Portals', 'Portals']);
+        await user.click(portal);
+        expect(screen.getByLabelText('Current path')).toHaveTextContent(`${root}/${PORTAL_ID}/overview`);
+        const detailCrumbs = screen.getByRole('navigation', { name: /breadcrumb/i });
+        expect(
+            within(detailCrumbs)
+                .getAllByRole('listitem')
+                .map(item => item.textContent),
+        ).toEqual(['Developer Portals', 'Portals', PORTAL_ID]);
+        const listLink = within(detailCrumbs).getByRole('link', { name: 'Portals' });
+        expect(listLink).toHaveAttribute('href', `${federated ? '/console' : ''}${root}/list`);
+        await user.click(listLink);
+        expect(screen.getByRole('textbox', { name: 'Search portals' })).toBeVisible();
+    });
 });

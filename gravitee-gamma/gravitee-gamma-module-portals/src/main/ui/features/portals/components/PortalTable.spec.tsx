@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
 import { PortalTable } from './PortalTable';
@@ -75,5 +76,44 @@ describe('PortalTable', () => {
         expect(screen.getByRole('link', { name: 'View Portal: Alpha' })).toHaveAttribute('href', 'https://a.example.com');
         expect(screen.getByRole('link', { name: 'Configure Zulu' })).toHaveAttribute('href', '/z/overview');
         expect(screen.getByRole('link', { name: 'Configure Alpha' })).toHaveAttribute('href', '/a/overview');
+    });
+    it('keeps dashboard rows passive when row navigation is not requested', () => {
+        render(
+            <MemoryRouter>
+                <PortalTable portals={portals} canConfigure={false} getOverviewPath={id => `${id}/overview`} />
+            </MemoryRouter>,
+        );
+        expect(screen.getByText('Zulu').closest('tr')).not.toHaveAttribute('tabindex');
+    });
+
+    it('supports row click and Enter while ignoring nested link and unavailable-button events', async () => {
+        const user = userEvent.setup();
+        const onRowClick = jest.fn();
+        render(
+            <MemoryRouter>
+                <PortalTable
+                    portals={[...portals, createPortal({ id: 'missing', name: 'Missing' })]}
+                    canConfigure={false}
+                    getOverviewPath={id => `${id}/overview`}
+                    onRowClick={onRowClick}
+                />
+            </MemoryRouter>,
+        );
+        await user.click(screen.getByText('Zulu'));
+        expect(onRowClick).toHaveBeenLastCalledWith(portals[0]);
+        onRowClick.mockClear();
+        const row = screen.getByText('Zulu').closest('tr');
+        act(() => row?.focus());
+        await user.keyboard('{Enter}');
+        expect(onRowClick).toHaveBeenCalledTimes(1);
+        onRowClick.mockClear();
+        const link = screen.getByRole('link', { name: 'View Portal: Zulu' });
+        await user.click(link);
+        act(() => link.focus());
+        await user.keyboard('{Enter}');
+        const unavailable = screen.getByRole('button', { name: 'View Portal: Missing' });
+        await user.click(unavailable);
+        await user.keyboard('{Enter} ');
+        expect(onRowClick).not.toHaveBeenCalled();
     });
 });
