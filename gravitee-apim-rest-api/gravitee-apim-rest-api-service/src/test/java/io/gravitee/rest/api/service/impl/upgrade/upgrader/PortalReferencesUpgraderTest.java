@@ -50,6 +50,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -273,7 +274,8 @@ class PortalReferencesUpgraderTest {
         givenEnvironments(ENV_A);
         givenPortal(PORTAL_A, ENV_A, true);
         var failingListings = mock(PortalListingCrudService.class);
-        when(failingListings.updateOrphanPortalIds(any(), any(), any())).thenThrow(new TechnicalManagementException("boom"));
+        when(failingListings.findReferencedPortalIds(any())).thenReturn(Set.of(PortalId.ZERO));
+        when(failingListings.updatePortalIds(any(), any(), any())).thenThrow(new TechnicalManagementException("boom"));
         var failing = new PortalReferencesUpgrader(
             environmentRepository,
             new PortalContentOwnershipDomainService(portalCrudService, navigationItemCrudService, failingListings)

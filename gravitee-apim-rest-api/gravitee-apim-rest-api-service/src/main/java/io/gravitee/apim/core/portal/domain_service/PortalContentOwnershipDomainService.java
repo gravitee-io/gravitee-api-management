@@ -18,10 +18,13 @@ package io.gravitee.apim.core.portal.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_listing.crud_service.PortalListingCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -42,9 +45,16 @@ public class PortalContentOwnershipDomainService {
     private final PortalNavigationItemCrudService portalNavigationItemCrudService;
     private final PortalListingCrudService portalListingCrudService;
 
+    /**
+     * The portal references found in an environment. They are read before its portals: a portal created
+     * after that read has no row among them, so its content is never taken for orphan content.
+     */
+    private record References(Set<PortalId> navigationItems, Set<PortalId> listings) {}
+
     /** Moves the orphan content of the portal's environment onto {@code portal}, which must already be stored. */
     public Moved moveOrphansTo(Portal portal) {
-        return moveOrphansTo(portal, portalCrudService.findByEnvironmentId(portal.getEnvironmentId()));
+        var references = referencesOf(portal.getEnvironmentId());
+        return moveOrphansTo(portal, references, portalCrudService.findByEnvironmentId(portal.getEnvironmentId()));
     }
 
     /**
@@ -53,8 +63,16 @@ public class PortalContentOwnershipDomainService {
      * @return what was moved, empty when the environment has no portal, or several and none is the default one
      */
     public Optional<Moved> moveOrphans(String environmentId) {
+        var references = referencesOf(environmentId);
         var portals = portalCrudService.findByEnvironmentId(environmentId);
-        return targetAmong(portals).map(target -> moveOrphansTo(target, portals));
+        return targetAmong(portals).map(target -> moveOrphansTo(target, references, portals));
+    }
+
+    private References referencesOf(String environmentId) {
+        return new References(
+            portalNavigationItemCrudService.findReferencedPortalIds(environmentId),
+            portalListingCrudService.findReferencedPortalIds(environmentId)
+        );
     }
 
     private static Optional<Portal> targetAmong(List<Portal> portals) {
@@ -65,12 +83,23 @@ public class PortalContentOwnershipDomainService {
             .or(() -> portals.size() == 1 ? Optional.of(portals.getFirst()) : Optional.empty());
     }
 
-    private Moved moveOrphansTo(Portal target, List<Portal> portalsOfEnvironment) {
-        var existingPortalIds = portalsOfEnvironment.stream().map(Portal::getId).toList();
+    private Moved moveOrphansTo(Portal target, References references, List<Portal> portalsOfEnvironment) {
         var environmentId = target.getEnvironmentId();
+        var existingPortalIds = portalsOfEnvironment.stream().map(Portal::getId).collect(Collectors.toSet());
+        var deadInNavigation = without(references.navigationItems(), existingPortalIds);
+        var deadInListings = without(references.listings(), existingPortalIds);
         return new Moved(
-            portalNavigationItemCrudService.updateOrphanPortalReferences(environmentId, existingPortalIds, target.getId()),
-            portalListingCrudService.updateOrphanPortalIds(environmentId, existingPortalIds, target.getId())
+            deadInNavigation.isEmpty()
+                ? 0
+                : portalNavigationItemCrudService.updatePortalReferences(environmentId, deadInNavigation, target.getId()),
+            deadInListings.isEmpty() ? 0 : portalListingCrudService.updatePortalIds(environmentId, deadInListings, target.getId())
         );
+    }
+
+    private static Set<PortalId> without(Set<PortalId> referenced, Set<PortalId> existing) {
+        return referenced
+            .stream()
+            .filter(portalId -> !existing.contains(portalId))
+            .collect(Collectors.toSet());
     }
 }

@@ -26,6 +26,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class PortalNavigationItemsCrudServiceInMemory
     implements InMemoryAlternative<PortalNavigationItem>, PortalNavigationItemCrudService {
@@ -74,18 +77,30 @@ public class PortalNavigationItemsCrudServiceInMemory
     }
 
     @Override
-    public long updateOrphanPortalReferences(String environmentId, Collection<PortalId> existingPortalIds, PortalId portalId) {
-        var orphans = storage
+    public Set<PortalId> findReferencedPortalIds(String environmentId) {
+        return storage
+            .stream()
+            .filter(item -> environmentId.equals(item.getEnvironmentId()))
+            .map(PortalNavigationItem::getReference)
+            .flatMap(reference ->
+                reference instanceof NavigationItemReference.PortalReference portal ? Stream.of(portal.portalId()) : Stream.empty()
+            )
+            .collect(Collectors.toSet());
+    }
+
+    @Override
+    public long updatePortalReferences(String environmentId, Collection<PortalId> fromPortalIds, PortalId toPortalId) {
+        var moved = storage
             .stream()
             .filter(item -> environmentId.equals(item.getEnvironmentId()))
             .filter(
                 item ->
                     item.getReference() instanceof NavigationItemReference.PortalReference portal &&
-                    !existingPortalIds.contains(portal.portalId())
+                    fromPortalIds.contains(portal.portalId())
             )
             .toList();
-        orphans.forEach(item -> item.changeOwner(new NavigationItemReference.PortalReference(portalId)));
-        return orphans.size();
+        moved.forEach(item -> item.changeOwner(new NavigationItemReference.PortalReference(toPortalId)));
+        return moved.size();
     }
 
     @Override

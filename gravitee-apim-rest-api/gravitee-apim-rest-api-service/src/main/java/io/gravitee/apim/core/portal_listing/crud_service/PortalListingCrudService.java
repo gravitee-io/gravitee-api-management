@@ -21,6 +21,7 @@ import io.gravitee.apim.core.portal_listing.model.PortalListingId;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface PortalListingCrudService {
     PortalListing create(PortalListing portalListing);
@@ -31,13 +32,15 @@ public interface PortalListingCrudService {
 
     List<PortalListing> findAllByPortalIdAndEnvironmentId(PortalId portalId, String environmentId);
 
+    /** @return the distinct portals that the environment's listings reference */
+    Set<PortalId> findReferencedPortalIds(String environmentId);
+
     /**
-     * Points every listing of the environment whose portal is outside {@code existingPortalIds} at {@code portalId}.
+     * Points every listing of the environment whose portal is one of {@code fromPortalIds} at {@code toPortalId}.
      *
-     * @param existingPortalIds the portals of the environment, never empty
      * @return the number of listings changed
      */
-    long updateOrphanPortalIds(String environmentId, Collection<PortalId> existingPortalIds, PortalId portalId);
+    long updatePortalIds(String environmentId, Collection<PortalId> fromPortalIds, PortalId toPortalId);
 
     void delete(PortalListingId portalListingId);
 }

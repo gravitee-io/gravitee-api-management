@@ -304,6 +304,62 @@ class PortalContentOwnershipDomainServiceTest {
         assertThat(listingPortals(OTHER_ENV_ID)).containsOnly(PortalId.ZERO);
     }
 
+    /** Another node creates a portal and writes its content right after the environment's portals are read. */
+    private PortalCrudServiceInMemory portalsRacingWith(PortalId concurrentPortalId) {
+        return new PortalCrudServiceInMemory() {
+            private boolean raced;
+
+            @Override
+            public List<Portal> findByEnvironmentId(String environmentId) {
+                var portals = super.findByEnvironmentId(environmentId);
+                if (!raced) {
+                    raced = true;
+                    create(aPortal(concurrentPortalId, false));
+                    storedFolder(ENV_ID, onPortal(concurrentPortalId));
+                    storedListing(ENV_ID, concurrentPortalId);
+                }
+                return portals;
+            }
+        };
+    }
+
+    private List<NavigationItemReference> navigationReferences() {
+        return navigationItemCrudService.storage().stream().map(PortalNavigationItem::getReference).toList();
+    }
+
+    @Test
+    void should_leave_the_content_of_a_portal_created_meanwhile_on_that_portal() {
+        var concurrentPortalId = PortalId.of("33333333-3333-3333-3333-333333333333");
+        var portals = portalsRacingWith(concurrentPortalId);
+        portals.initWith(List.of(aPortal(DEFAULT_PORTAL_ID, true)));
+        var racingCut = new PortalContentOwnershipDomainService(portals, navigationItemCrudService, listingCrudService);
+        storedFolder(ENV_ID, ON_ZERO_UUID);
+        storedListing(ENV_ID, PortalId.ZERO);
+
+        var moved = racingCut.moveOrphans(ENV_ID);
+
+        assertThat(moved).contains(new Moved(1, 1));
+        assertThat(navigationReferences()).containsExactlyInAnyOrder(onPortal(DEFAULT_PORTAL_ID), onPortal(concurrentPortalId));
+        assertThat(listingPortals(ENV_ID)).containsExactlyInAnyOrder(DEFAULT_PORTAL_ID, concurrentPortalId);
+    }
+
+    @Test
+    void should_leave_the_content_of_a_portal_created_meanwhile_on_that_portal_when_given_the_target() {
+        var concurrentPortalId = PortalId.of("33333333-3333-3333-3333-333333333333");
+        var target = aPortal(DEFAULT_PORTAL_ID, true);
+        var portals = portalsRacingWith(concurrentPortalId);
+        portals.initWith(List.of(target));
+        var racingCut = new PortalContentOwnershipDomainService(portals, navigationItemCrudService, listingCrudService);
+        storedFolder(ENV_ID, ON_ZERO_UUID);
+        storedListing(ENV_ID, PortalId.ZERO);
+
+        var moved = racingCut.moveOrphansTo(target);
+
+        assertThat(moved).isEqualTo(new Moved(1, 1));
+        assertThat(navigationReferences()).containsExactlyInAnyOrder(onPortal(DEFAULT_PORTAL_ID), onPortal(concurrentPortalId));
+        assertThat(listingPortals(ENV_ID)).containsExactlyInAnyOrder(DEFAULT_PORTAL_ID, concurrentPortalId);
+    }
+
     @Test
     void should_change_nothing_on_a_second_run() {
         portalCrudService.initWith(List.of(aPortal(DEFAULT_PORTAL_ID, true)));

@@ -22,6 +22,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface PortalNavigationItemCrudService {
     PortalNavigationItem create(PortalNavigationItem portalNavigationItem);
@@ -42,14 +43,16 @@ public interface PortalNavigationItemCrudService {
         PortalNavigationItemSource.FetchState fetchState
     );
 
+    /** @return the distinct portals that the environment's items attached to a portal reference */
+    Set<PortalId> findReferencedPortalIds(String environmentId);
+
     /**
-     * Points every item of the environment attached to a portal outside {@code existingPortalIds} at
-     * {@code portalId}. Items attached to an API are left alone.
+     * Points every item of the environment attached to one of the portals {@code fromPortalIds} at
+     * {@code toPortalId}. Items attached to an API are left alone.
      *
-     * @param existingPortalIds the portals of the environment, never empty
      * @return the number of items changed
      */
-    long updateOrphanPortalReferences(String environmentId, Collection<PortalId> existingPortalIds, PortalId portalId);
+    long updatePortalReferences(String environmentId, Collection<PortalId> fromPortalIds, PortalId toPortalId);
 
     void delete(PortalNavigationItemId portalNavigationItemId);
 

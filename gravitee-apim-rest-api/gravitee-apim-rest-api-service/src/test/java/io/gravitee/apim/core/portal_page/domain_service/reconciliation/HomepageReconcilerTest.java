@@ -124,7 +124,7 @@ class HomepageReconcilerTest {
         var moved = homepage(UNATTACHED_ID, NavigationItemReference.defaultReference(), contentId);
         navItemCrud.create(moved);
         var portalId = PortalId.of(PORTAL_ID);
-        navItemCrud.updateOrphanPortalReferences(ENV_ID, List.of(portalId), portalId);
+        navItemCrud.updatePortalReferences(ENV_ID, List.of(PortalId.ZERO), portalId);
 
         assertThat(reconciler.findStaleHomepages(ENV_ID, PORTAL_ID, ACTIVE_ID)).containsExactly(moved);
     }

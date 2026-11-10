@@ -222,9 +222,23 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
     }
 
     @Override
-    public long updateOrphanPortalReferences(String environmentId, Collection<String> existingPortalIds, String portalId)
+    public Set<String> findPortalReferenceIdsByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("Find portal references of environment [{}]", environmentId);
+        try {
+            var query = new Query(where("environmentId").is(environmentId).and("referenceType").is(PortalNavigationReferenceType.PORTAL));
+            return Set.copyOf(mongoTemplate.findDistinct(query, "referenceId", PortalNavigationItemMongo.class, String.class));
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to find the portal references of environment " + environmentId, ex);
+        }
+    }
+
+    @Override
+    public long updatePortalReferences(String environmentId, Collection<String> fromPortalIds, String toPortalId)
         throws TechnicalException {
-        log.debug("Update orphan portal references of environment [{}] to portal [{}]", environmentId, portalId);
+        log.debug("Update portal references {} of environment [{}] to portal [{}]", fromPortalIds, environmentId, toPortalId);
+        if (fromPortalIds.isEmpty()) {
+            return 0;
+        }
         try {
             var query = new Query(
                 where("environmentId")
@@ -232,13 +246,13 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
                     .and("referenceType")
                     .is(PortalNavigationReferenceType.PORTAL)
                     .and("referenceId")
-                    .nin(existingPortalIds)
+                    .in(fromPortalIds)
             );
             return mongoTemplate
-                .updateMulti(query, Update.update("referenceId", portalId), PortalNavigationItemMongo.class)
+                .updateMulti(query, Update.update("referenceId", toPortalId), PortalNavigationItemMongo.class)
                 .getModifiedCount();
         } catch (Exception ex) {
-            throw new TechnicalException("Failed to update the orphan portal references of environment " + environmentId, ex);
+            throw new TechnicalException("Failed to update the portal references of environment " + environmentId, ex);
         }
     }
 

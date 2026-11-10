@@ -263,7 +263,7 @@ class DeletePortalUseCaseTest {
             .visibility(PortalVisibility.PUBLIC)
             .build();
         navCrudService.create(consoleRow);
-        navCrudService.updateOrphanPortalReferences(AUDIT_INFO.environmentId(), List.of(portal.getId()), portal.getId());
+        navCrudService.updatePortalReferences(AUDIT_INFO.environmentId(), List.of(PortalId.ZERO), portal.getId());
         assertThat(consoleRow.getReference()).isEqualTo(new NavigationItemReference.PortalReference(portal.getId()));
 
         useCase.execute(new DeletePortalUseCase.Input(AUDIT_INFO, portal.getId()));

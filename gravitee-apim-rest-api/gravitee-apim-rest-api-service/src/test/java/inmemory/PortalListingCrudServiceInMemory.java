@@ -26,7 +26,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 public class PortalListingCrudServiceInMemory implements PortalListingCrudService, InMemoryAlternative<PortalListing> {
 
@@ -65,14 +67,29 @@ public class PortalListingCrudServiceInMemory implements PortalListingCrudServic
     }
 
     @Override
-    public long updateOrphanPortalIds(String environmentId, Collection<PortalId> existingPortalIds, PortalId portalId) {
+    public Set<PortalId> findReferencedPortalIds(String environmentId) {
+        return storage
+            .stream()
+            .filter(listing -> environmentId.equals(listing.getEnvironmentId()))
+            .map(PortalListing::getPortalId)
+            .collect(Collectors.toSet());
+    }
+
+    @Override
+    public long updatePortalIds(String environmentId, Collection<PortalId> fromPortalIds, PortalId toPortalId) {
         var changed = new AtomicLong();
         storage.replaceAll(listing -> {
-            if (!environmentId.equals(listing.getEnvironmentId()) || existingPortalIds.contains(listing.getPortalId())) {
+            if (!environmentId.equals(listing.getEnvironmentId()) || !fromPortalIds.contains(listing.getPortalId())) {
                 return listing;
             }
             changed.incrementAndGet();
-            return PortalListing.of(listing.getId(), listing.getEnvironmentId(), listing.getOrganizationId(), portalId, listing.getApis());
+            return PortalListing.of(
+                listing.getId(),
+                listing.getEnvironmentId(),
+                listing.getOrganizationId(),
+                toPortalId,
+                listing.getApis()
+            );
         });
         return changed.get();
     }

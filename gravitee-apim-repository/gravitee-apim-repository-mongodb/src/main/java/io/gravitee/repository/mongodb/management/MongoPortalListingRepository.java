@@ -65,14 +65,27 @@ public class MongoPortalListingRepository implements PortalListingRepository {
     }
 
     @Override
-    public long updateOrphanPortalIds(String environmentId, Collection<String> existingPortalIds, String portalId)
-        throws TechnicalException {
-        log.debug("Update orphan portal ids of environment [{}] to portal [{}]", environmentId, portalId);
+    public Set<String> findPortalIdsByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("Find portal ids of the listings of environment [{}]", environmentId);
         try {
-            var query = new Query(where("environmentId").is(environmentId).and("portalId").nin(existingPortalIds));
-            return mongoTemplate.updateMulti(query, Update.update("portalId", portalId), PortalListingMongo.class).getModifiedCount();
+            var query = new Query(where("environmentId").is(environmentId));
+            return Set.copyOf(mongoTemplate.findDistinct(query, "portalId", PortalListingMongo.class, String.class));
         } catch (Exception e) {
-            throw new TechnicalException("An error occurred when updating the orphan portal ids of environment [" + environmentId + "]", e);
+            throw new TechnicalException("An error occurred when finding the portal ids of environment [" + environmentId + "]", e);
+        }
+    }
+
+    @Override
+    public long updatePortalIds(String environmentId, Collection<String> fromPortalIds, String toPortalId) throws TechnicalException {
+        log.debug("Update portal ids {} of environment [{}] to portal [{}]", fromPortalIds, environmentId, toPortalId);
+        if (fromPortalIds.isEmpty()) {
+            return 0;
+        }
+        try {
+            var query = new Query(where("environmentId").is(environmentId).and("portalId").in(fromPortalIds));
+            return mongoTemplate.updateMulti(query, Update.update("portalId", toPortalId), PortalListingMongo.class).getModifiedCount();
+        } catch (Exception e) {
+            throw new TechnicalException("An error occurred when updating the portal ids of environment [" + environmentId + "]", e);
         }
     }
 

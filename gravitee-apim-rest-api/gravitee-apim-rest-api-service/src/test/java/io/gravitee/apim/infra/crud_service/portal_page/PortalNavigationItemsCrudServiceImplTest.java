@@ -41,6 +41,7 @@ import io.gravitee.repository.management.api.PortalNavigationItemRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -519,27 +520,53 @@ class PortalNavigationItemsCrudServiceImplTest {
     }
 
     @Nested
-    class UpdateOrphanPortalReferences {
+    class FindReferencedPortalIds {
 
-        private final PortalId existing = PortalId.of("11111111-1111-1111-1111-111111111111");
+        @Test
+        void should_return_the_portal_references_of_the_environment() throws TechnicalException {
+            when(repository.findPortalReferenceIdsByEnvironmentId("env")).thenReturn(
+                Set.of("00000000-0000-0000-0000-000000000000", "11111111-1111-1111-1111-111111111111")
+            );
+
+            assertThat(service.findReferencedPortalIds("env")).containsExactlyInAnyOrder(
+                PortalId.ZERO,
+                PortalId.of("11111111-1111-1111-1111-111111111111")
+            );
+        }
+
+        @Test
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
+            when(repository.findPortalReferenceIdsByEnvironmentId(any())).thenThrow(new TechnicalException("boom"));
+
+            assertThatThrownBy(() -> service.findReferencedPortalIds("env"))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while finding the portals referenced by the navigation items of environment env")
+                .hasCauseInstanceOf(TechnicalException.class);
+        }
+    }
+
+    @Nested
+    class UpdatePortalReferences {
+
+        private final PortalId dead = PortalId.of("11111111-1111-1111-1111-111111111111");
         private final PortalId target = PortalId.of("22222222-2222-2222-2222-222222222222");
 
         @Test
         void should_pass_the_portal_ids_as_strings_and_return_the_rows_changed() throws TechnicalException {
             when(
-                repository.updateOrphanPortalReferences("env", List.of(existing.toString(), target.toString()), target.toString())
+                repository.updatePortalReferences("env", List.of(PortalId.ZERO.toString(), dead.toString()), target.toString())
             ).thenReturn(4L);
 
-            assertThat(service.updateOrphanPortalReferences("env", List.of(existing, target), target)).isEqualTo(4L);
+            assertThat(service.updatePortalReferences("env", List.of(PortalId.ZERO, dead), target)).isEqualTo(4L);
         }
 
         @Test
         void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
-            when(repository.updateOrphanPortalReferences(any(), any(), any())).thenThrow(new TechnicalException("boom"));
+            when(repository.updatePortalReferences(any(), any(), any())).thenThrow(new TechnicalException("boom"));
 
-            assertThatThrownBy(() -> service.updateOrphanPortalReferences("env", List.of(target), target))
+            assertThatThrownBy(() -> service.updatePortalReferences("env", List.of(dead), target))
                 .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while moving the orphan navigation items of environment env to portal " + target)
+                .hasMessage("An error occurred while moving the navigation items of environment env to portal " + target)
                 .hasCauseInstanceOf(TechnicalException.class);
         }
     }

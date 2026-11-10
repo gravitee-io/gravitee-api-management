@@ -26,6 +26,8 @@ import io.gravitee.repository.management.api.PortalListingRepository;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -104,19 +106,38 @@ public class PortalListingCrudServiceImpl implements PortalListingCrudService {
     }
 
     @Override
-    public long updateOrphanPortalIds(String environmentId, Collection<PortalId> existingPortalIds, PortalId portalId) {
+    public Set<PortalId> findReferencedPortalIds(String environmentId) {
         try {
-            return portalListingRepository.updateOrphanPortalIds(
+            return portalListingRepository
+                .findPortalIdsByEnvironmentId(environmentId)
+                .stream()
+                .map(PortalId::of)
+                .collect(Collectors.toSet());
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format(
+                    "An error occurred while finding the portals referenced by the Portal Listings of environment (%s)",
+                    environmentId
+                ),
+                e
+            );
+        }
+    }
+
+    @Override
+    public long updatePortalIds(String environmentId, Collection<PortalId> fromPortalIds, PortalId toPortalId) {
+        try {
+            return portalListingRepository.updatePortalIds(
                 environmentId,
-                existingPortalIds.stream().map(PortalId::toString).toList(),
-                portalId.toString()
+                fromPortalIds.stream().map(PortalId::toString).toList(),
+                toPortalId.toString()
             );
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
                 String.format(
-                    "An error occurred while moving the orphan Portal Listings of environment (%s) to portal (%s)",
+                    "An error occurred while moving the Portal Listings of environment (%s) to portal (%s)",
                     environmentId,
-                    portalId
+                    toPortalId
                 ),
                 e
             );

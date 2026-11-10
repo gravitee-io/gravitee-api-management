@@ -622,7 +622,7 @@ class PortalNavigationSyncDomainServiceTest {
         var renamed = List.of(new NavigationPath("/a", "Renamed"));
         syncService.sync(AUDIT_INFO, PORTAL_ID, PortalNavigationStructure.empty(), PortalNavigationStructure.ofTopNavbar(original));
         crud.storage().forEach(item -> item.changeOwner(NavigationItemReference.defaultReference()));
-        crud.updateOrphanPortalReferences(AUDIT_INFO.environmentId(), List.of(PORTAL_ID), PORTAL_ID);
+        crud.updatePortalReferences(AUDIT_INFO.environmentId(), List.of(PortalId.ZERO), PORTAL_ID);
 
         syncService.sync(
             AUDIT_INFO,

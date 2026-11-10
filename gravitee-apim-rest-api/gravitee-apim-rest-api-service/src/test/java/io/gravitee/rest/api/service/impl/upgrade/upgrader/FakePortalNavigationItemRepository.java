@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 class FakePortalNavigationItemRepository implements PortalNavigationItemRepository {
 
@@ -167,8 +168,25 @@ class FakePortalNavigationItemRepository implements PortalNavigationItemReposito
     }
 
     @Override
-    public long updateOrphanPortalReferences(String environmentId, Collection<String> existingPortalIds, String portalId) {
-        return 0;
+    public Set<String> findPortalReferenceIdsByEnvironmentId(String environmentId) {
+        return items
+            .stream()
+            .filter(item -> environmentId.equals(item.getEnvironmentId()))
+            .filter(item -> item.getReferenceType() == PortalNavigationReferenceType.PORTAL)
+            .map(PortalNavigationItem::getReferenceId)
+            .collect(Collectors.toSet());
+    }
+
+    @Override
+    public long updatePortalReferences(String environmentId, Collection<String> fromPortalIds, String toPortalId) {
+        var moved = items
+            .stream()
+            .filter(item -> environmentId.equals(item.getEnvironmentId()))
+            .filter(item -> item.getReferenceType() == PortalNavigationReferenceType.PORTAL)
+            .filter(item -> fromPortalIds.contains(item.getReferenceId()))
+            .toList();
+        moved.forEach(item -> item.setReferenceId(toPortalId));
+        return moved.size();
     }
 
     @Override

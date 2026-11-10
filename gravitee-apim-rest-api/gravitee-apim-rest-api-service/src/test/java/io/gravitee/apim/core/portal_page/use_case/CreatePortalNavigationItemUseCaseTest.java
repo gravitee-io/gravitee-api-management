@@ -45,6 +45,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
@@ -177,7 +178,7 @@ class CreatePortalNavigationItemUseCaseTest {
                 .visibility(PortalVisibility.PUBLIC)
                 .build()
         );
-        crudService.updateOrphanPortalReferences(ENV_ID, List.of(portalId), portalId);
+        crudService.updatePortalReferences(ENV_ID, List.of(PortalId.ZERO), portalId);
 
         var secondHomepage = CreatePortalNavigationItem.builder()
             .type(PortalNavigationItemType.FOLDER)
