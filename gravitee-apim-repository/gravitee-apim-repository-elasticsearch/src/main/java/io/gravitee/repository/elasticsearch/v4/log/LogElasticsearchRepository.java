@@ -27,6 +27,7 @@ import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchConn
 import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchConnectionLogDetailResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.message.SearchMessageLogQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.message.SearchMessageLogResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.shared.ConnectionOpeningClause;
 import io.gravitee.repository.log.v4.api.LogRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail;
@@ -70,7 +71,7 @@ public class LogElasticsearchRepository extends AbstractElasticsearchRepository 
             List.of(DefinitionVersion.V2, DefinitionVersion.V4)
         );
 
-        return this.client.search(indexes, null, SearchConnectionLogDetailQueryAdapter.adapt(query))
+        return this.client.search(indexes, null, ConnectionOpeningClause.excludeFrom(SearchConnectionLogDetailQueryAdapter.adapt(query)))
             .map(SearchConnectionLogDetailResponseAdapter::adapt)
             .blockingGet();
     }
