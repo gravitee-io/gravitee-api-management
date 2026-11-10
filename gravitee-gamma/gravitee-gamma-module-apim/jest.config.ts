@@ -38,8 +38,8 @@ export default {
         '^@gravitee/gamma-ui-shared/api$': '<rootDir>/../gamma-ui-shared/src/api/index.ts',
     },
     transform: {
-        '^(?!.*\\.(js|jsx|ts|tsx|css|json)$)': '@nx/react/plugins/jest',
-        '^.+\\.[tj]sx?$': ['babel-jest', { presets: ['@nx/react/babel'] }],
+        '^(?!.*\\.(js|jsx|mjs|ts|tsx|css|json)$)': '@nx/react/plugins/jest',
+        '^.+\\.(mjs|[tj]sx?)$': ['babel-jest', { presets: ['@nx/react/babel'] }],
     },
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
     coverageDirectory: '<rootDir>/coverage',
