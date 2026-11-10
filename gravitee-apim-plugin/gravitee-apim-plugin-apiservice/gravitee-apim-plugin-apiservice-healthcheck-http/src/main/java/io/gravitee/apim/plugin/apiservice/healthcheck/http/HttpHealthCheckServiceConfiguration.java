@@ -23,7 +23,11 @@ import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.reactive.api.apiservice.ApiServiceConfiguration;
 import java.util.List;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -36,6 +40,8 @@ import lombok.*;
 @Setter
 public class HttpHealthCheckServiceConfiguration implements ApiServiceConfiguration {
 
+    public static final String DEFAULT_ASSERTION = "{#response.status == 200}";
+
     @JsonProperty("schedule")
     private String schedule;
 
@@ -43,7 +49,8 @@ public class HttpHealthCheckServiceConfiguration implements ApiServiceConfigurat
     private String target;
 
     @JsonProperty("method")
-    private HttpMethod method;
+    @Builder.Default
+    private HttpMethod method = HttpMethod.GET;
 
     @JsonProperty("headers")
     private List<HttpHeader> headers;
@@ -51,15 +58,35 @@ public class HttpHealthCheckServiceConfiguration implements ApiServiceConfigurat
     @JsonProperty("body")
     private String body;
 
+    // Omitted JSON keeps this initializer (true); applyRuntimeDefaults() cannot tell omitted from explicit false on a primitive boolean.
     @JsonProperty("overrideEndpointPath")
-    private boolean overrideEndpointPath;
+    @Builder.Default
+    private boolean overrideEndpointPath = true;
 
     @JsonProperty("successThreshold")
+    @Builder.Default
     private int successThreshold = DEFAULT_SUCCESS_THRESHOLD;
 
     @JsonProperty("failureThreshold")
+    @Builder.Default
     private int failureThreshold = DEFAULT_FAILURE_THRESHOLD;
 
     @JsonProperty("assertion")
-    private String assertion;
+    @Builder.Default
+    private String assertion = DEFAULT_ASSERTION;
+
+    public void applyRuntimeDefaults() {
+        if (method == null) {
+            method = HttpMethod.GET;
+        }
+        if (assertion == null || assertion.isBlank()) {
+            assertion = DEFAULT_ASSERTION;
+        }
+        if (successThreshold <= 0) {
+            successThreshold = DEFAULT_SUCCESS_THRESHOLD;
+        }
+        if (failureThreshold <= 0) {
+            failureThreshold = DEFAULT_FAILURE_THRESHOLD;
+        }
+    }
 }
