@@ -17,6 +17,7 @@ package io.gravitee.gamma.module.platform.core.credential.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.secret.model.Secret;
 import io.gravitee.gamma.module.platform.core.credential.exception.CredentialRotationIncompleteException;
 import io.gravitee.gamma.module.platform.core.credential.model.Credential;
 import io.gravitee.gamma.module.platform.core.credential.model.SecretReference;
@@ -88,6 +89,6 @@ public class CredentialSecretsDomainService {
     }
 
     private static String key(Credential credential, String field) {
-        return "credential." + credential.id() + "." + field;
+        return Secret.CREDENTIAL_KEY_PREFIX + credential.id() + "." + field;
     }
 }

@@ -34,13 +34,20 @@ public class DeleteSecretUseCase {
     private final SecretCrudService secretCrudService;
     private final AuditDomainService auditService;
 
-    public record Input(String secretId, AuditInfo auditInfo) {}
+    /** {@code credential} is set only by the credential API, which owns the secrets that hold credential values. */
+    public record Input(String secretId, AuditInfo auditInfo, boolean credential) {
+        /** The input of a user, who may not change the secrets that hold credential values. */
+        public Input(String secretId, AuditInfo auditInfo) {
+            this(secretId, auditInfo, false);
+        }
+    }
 
     public record Output() {}
 
     public Output execute(Input input) {
         var auditInfo = input.auditInfo();
         var secret = secretCrudService.get(auditInfo.organizationId(), auditInfo.environmentId(), input.secretId());
+        secret.requireChangeableBy(input.credential());
         secretCrudService.delete(secret);
         createAuditLog(secret, auditInfo);
         return new Output();

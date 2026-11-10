@@ -27,6 +27,7 @@ import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.secret.exception.InvalidSecretKeyException;
 import io.gravitee.apim.core.secret.exception.InvalidSecretValueException;
+import io.gravitee.apim.core.secret.exception.SecretKeptForCredentialException;
 import io.gravitee.apim.core.secret.exception.SecretKeyAlreadyExistsException;
 import io.gravitee.apim.core.secret.model.SecretAuditEvent;
 import io.gravitee.apim.core.secret.model.SecretValue;
@@ -144,6 +145,28 @@ class CreateSecretUseCaseTest extends AbstractUseCaseTest {
         assertThat(new SecretValue("v".repeat(65536)).plaintext()).hasSize(65536);
         assertThatThrownBy(() -> new SecretValue("v".repeat(65537))).isInstanceOf(InvalidSecretValueException.class);
         assertThatThrownBy(() -> new SecretValue("é".repeat(32769))).isInstanceOf(InvalidSecretValueException.class);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "credential.cred-1.token", "credential." })
+    void should_keep_the_keys_that_start_with_credential_for_credentials(String key) {
+        assertThatThrownBy(() -> useCase.execute(create(key, "sk-ant-123"))).isInstanceOf(SecretKeptForCredentialException.class);
+        assertThat(secretCrudService.storage()).isEmpty();
+        assertThat(auditCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_let_a_credential_store_its_value() {
+        var secret = useCase
+            .execute(new CreateSecretUseCase.Input("credential.cred-1.token", new SecretValue("sk-ant-123"), AUDIT_INFO, true))
+            .secret();
+
+        assertThat(secret.key()).isEqualTo("credential.cred-1.token");
+    }
+
+    @Test
+    void should_accept_a_key_that_only_contains_credential() {
+        assertThat(useCase.execute(create("my-credential.token", "v")).secret().key()).isEqualTo("my-credential.token");
     }
 
     @Test

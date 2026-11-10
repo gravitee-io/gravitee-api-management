@@ -26,6 +26,7 @@ import inmemory.SecretValueEncryptorInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
+import io.gravitee.apim.core.secret.exception.SecretKeptForCredentialException;
 import io.gravitee.apim.core.secret.exception.SecretNotFoundException;
 import io.gravitee.apim.core.secret.model.Secret;
 import io.gravitee.apim.core.secret.model.SecretAuditEvent;
@@ -109,6 +110,28 @@ class UpdateSecretUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_not_find_an_unknown_secret() {
         assertThatThrownBy(() -> useCase.execute(update("unknown", "new-value"))).isInstanceOf(SecretNotFoundException.class);
+    }
+
+    @Test
+    void should_not_change_the_value_of_a_credential() {
+        var secret = givenASecret(aSecret().toBuilder().key("credential.cred-1.token").build());
+
+        assertThatThrownBy(() -> useCase.execute(update(secret.id(), "new-value"))).isInstanceOf(SecretKeptForCredentialException.class);
+        assertThat(secretValueEncryptor.decrypt(secret, secretCrudService.encryptedValueOf(secret.id()).orElseThrow())).isEqualTo(
+            "old-value"
+        );
+        assertThat(auditCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_let_a_credential_rotate_its_value() {
+        var secret = givenASecret(aSecret().toBuilder().key("credential.cred-1.token").build());
+
+        useCase.execute(new UpdateSecretUseCase.Input(secret.id(), new SecretValue("new-value"), AUDIT_INFO, true));
+
+        assertThat(secretValueEncryptor.decrypt(secret, secretCrudService.encryptedValueOf(secret.id()).orElseThrow())).isEqualTo(
+            "new-value"
+        );
     }
 
     private Secret givenASecret(Secret secret) {

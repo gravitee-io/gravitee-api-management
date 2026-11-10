@@ -125,7 +125,7 @@ class ApimCredentialSecretStoreTest extends AbstractUseCaseTest {
     }
 
     @Test
-    void should_delete_the_credential_when_a_user_already_deleted_its_secret() {
+    void should_delete_the_credential_when_its_secret_is_already_gone() {
         var credential = givenAnOauthCredential();
         secretCrudService.delete(
             secretCrudService

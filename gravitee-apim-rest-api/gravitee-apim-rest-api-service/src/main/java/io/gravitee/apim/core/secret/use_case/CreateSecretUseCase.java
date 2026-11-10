@@ -39,7 +39,13 @@ public class CreateSecretUseCase {
     private final SecretValueEncryptor secretValueEncryptor;
     private final AuditDomainService auditService;
 
-    public record Input(String key, SecretValue value, AuditInfo auditInfo) {}
+    /** {@code credential} is set only by the credential API, which owns the secrets that hold credential values. */
+    public record Input(String key, SecretValue value, AuditInfo auditInfo, boolean credential) {
+        /** The input of a user, who may not change the secrets that hold credential values. */
+        public Input(String key, SecretValue value, AuditInfo auditInfo) {
+            this(key, value, auditInfo, false);
+        }
+    }
 
     public record Output(Secret secret) {}
 
@@ -52,6 +58,7 @@ public class CreateSecretUseCase {
             input.key(),
             TimeProvider.instantNow()
         );
+        secret.requireChangeableBy(input.credential());
         if (secretCrudService.findByKey(secret.organizationId(), secret.environmentId(), secret.key()).isPresent()) {
             throw new SecretKeyAlreadyExistsException(secret.key());
         }

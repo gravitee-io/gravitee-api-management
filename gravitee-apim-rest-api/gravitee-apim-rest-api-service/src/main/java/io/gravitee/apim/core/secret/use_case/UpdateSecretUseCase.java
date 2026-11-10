@@ -37,13 +37,20 @@ public class UpdateSecretUseCase {
     private final SecretValueEncryptor secretValueEncryptor;
     private final AuditDomainService auditService;
 
-    public record Input(String secretId, SecretValue value, AuditInfo auditInfo) {}
+    /** {@code credential} is set only by the credential API, which owns the secrets that hold credential values. */
+    public record Input(String secretId, SecretValue value, AuditInfo auditInfo, boolean credential) {
+        /** The input of a user, who may not change the secrets that hold credential values. */
+        public Input(String secretId, SecretValue value, AuditInfo auditInfo) {
+            this(secretId, value, auditInfo, false);
+        }
+    }
 
     public record Output(Secret secret) {}
 
     public Output execute(Input input) {
         var auditInfo = input.auditInfo();
         var current = secretCrudService.get(auditInfo.organizationId(), auditInfo.environmentId(), input.secretId());
+        current.requireChangeableBy(input.credential());
         var updated = secretCrudService.update(
             current.withUpdatedAt(TimeProvider.instantNow()),
             secretValueEncryptor.encrypt(current, input.value().plaintext())

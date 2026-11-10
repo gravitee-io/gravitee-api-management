@@ -16,12 +16,15 @@
 package io.gravitee.apim.core.secret.model;
 
 import io.gravitee.apim.core.secret.exception.InvalidSecretKeyException;
+import io.gravitee.apim.core.secret.exception.SecretKeptForCredentialException;
 import java.time.Instant;
 import java.util.regex.Pattern;
 import lombok.Builder;
 
 @Builder(toBuilder = true)
 public record Secret(String id, String organizationId, String environmentId, String key, Instant createdAt, Instant updatedAt) {
+    /** Keys under this prefix hold the values of Platform credentials, which only the credential API may change. */
+    public static final String CREDENTIAL_KEY_PREFIX = "credential.";
     private static final Pattern KEY_PATTERN = Pattern.compile("[a-zA-Z0-9][a-zA-Z0-9._-]{0,127}");
 
     public static Secret create(String id, String organizationId, String environmentId, String key, Instant now) {
@@ -29,6 +32,12 @@ public record Secret(String id, String organizationId, String environmentId, Str
             throw new InvalidSecretKeyException();
         }
         return new Secret(id, organizationId, environmentId, key, now, now);
+    }
+
+    public void requireChangeableBy(boolean credential) {
+        if (!credential && key.startsWith(CREDENTIAL_KEY_PREFIX)) {
+            throw new SecretKeptForCredentialException(key);
+        }
     }
 
     public Secret withUpdatedAt(Instant now) {

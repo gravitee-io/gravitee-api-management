@@ -133,6 +133,14 @@ class SecretsResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_refuse_a_key_kept_for_credentials() {
+            var response = rootTarget().request().post(json(new CreateSecret().key("credential.cred-1.token").value("sk-ant-123")));
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+            assertThat(secretCrudService.storage()).isEmpty();
+        }
+
+        @Test
         void should_refuse_a_missing_value() {
             var response = rootTarget().request().post(json(new CreateSecret().key("anthropic-key")));
 

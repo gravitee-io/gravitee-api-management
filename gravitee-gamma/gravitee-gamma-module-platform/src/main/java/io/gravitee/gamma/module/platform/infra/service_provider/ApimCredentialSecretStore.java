@@ -36,21 +36,21 @@ public class ApimCredentialSecretStore implements CredentialSecretStore {
 
     @Override
     public StoredSecret create(String key, String value, AuditInfo auditInfo) {
-        var secret = createSecretUseCase.execute(new CreateSecretUseCase.Input(key, new SecretValue(value), auditInfo)).secret();
+        var secret = createSecretUseCase.execute(new CreateSecretUseCase.Input(key, new SecretValue(value), auditInfo, true)).secret();
         return new StoredSecret(secret.id(), secret.path());
     }
 
     @Override
     public void update(String secretId, String value, AuditInfo auditInfo) {
-        updateSecretUseCase.execute(new UpdateSecretUseCase.Input(secretId, new SecretValue(value), auditInfo));
+        updateSecretUseCase.execute(new UpdateSecretUseCase.Input(secretId, new SecretValue(value), auditInfo, true));
     }
 
     @Override
     public void delete(String secretId, AuditInfo auditInfo) {
         try {
-            deleteSecretUseCase.execute(new DeleteSecretUseCase.Input(secretId, auditInfo));
+            deleteSecretUseCase.execute(new DeleteSecretUseCase.Input(secretId, auditInfo, true));
         } catch (SecretNotFoundException e) {
-            // A user can delete the secret from the secrets page first; the credential delete must still go through.
+            // A delete that failed after removing some secrets leaves them gone; the retry must still go through.
             log.info("Secret {} of a credential was already deleted", secretId);
         }
     }
