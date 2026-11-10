@@ -21,6 +21,8 @@ import io.gravitee.apim.core.portal.exception.NavigationPortalNotResolvedExcepti
 import io.gravitee.apim.core.portal.exception.SeveralPortalsInEnvironmentException;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import java.util.Optional;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -40,20 +42,9 @@ public class NavigationPortalDomainService {
      *     API, while its default portal is postponed, or when it has several portals
      */
     public Portal resolve(String organizationId, String environmentId) {
-        try {
-            return defaultPortalDomainService
-                .ensureDefault(organizationId, environmentId)
-                .orElseThrow(() ->
-                    portalCrudService.findByEnvironmentId(environmentId).isEmpty()
-                        ? NavigationPortalNotResolvedException.defaultPortalPostponed(environmentId)
-                        : NavigationPortalNotResolvedException.managedByAutomation(environmentId)
-                );
-        } catch (SeveralPortalsInEnvironmentException e) {
-            throw NavigationPortalNotResolvedException.severalPortals(environmentId, e);
-        }
+        return defaultPortalOf(environmentId, () -> defaultPortalDomainService.ensureDefault(organizationId, environmentId));
     }
 
-    /** The reference a navigation item stores to belong to the portal {@link #resolve} returns. */
     public NavigationItemReference.PortalReference resolveReference(String organizationId, String environmentId) {
         return new NavigationItemReference.PortalReference(resolve(organizationId, environmentId).getId());
     }
@@ -67,18 +58,24 @@ public class NavigationPortalDomainService {
      *     portal comes from the Automation API, or when it has several portals
      */
     public NavigationItemReference.PortalReference findReference(String environmentId) {
-        try {
+        var portal = defaultPortalOf(environmentId, () -> {
             defaultPortalDomainService.checkSinglePortal(environmentId);
+            return defaultPortalDomainService.findDefault(environmentId);
+        });
+        return new NavigationItemReference.PortalReference(portal.getId());
+    }
+
+    private Portal defaultPortalOf(String environmentId, Supplier<Optional<Portal>> lookup) {
+        try {
+            return lookup
+                .get()
+                .orElseThrow(() ->
+                    portalCrudService.findByEnvironmentId(environmentId).isEmpty()
+                        ? NavigationPortalNotResolvedException.defaultPortalPostponed(environmentId)
+                        : NavigationPortalNotResolvedException.managedByAutomation(environmentId)
+                );
         } catch (SeveralPortalsInEnvironmentException e) {
             throw NavigationPortalNotResolvedException.severalPortals(environmentId, e);
         }
-        return portalCrudService
-            .findDefaultByEnvironmentId(environmentId)
-            .map(portal -> new NavigationItemReference.PortalReference(portal.getId()))
-            .orElseThrow(() ->
-                portalCrudService.findByEnvironmentId(environmentId).isEmpty()
-                    ? NavigationPortalNotResolvedException.defaultPortalPostponed(environmentId)
-                    : NavigationPortalNotResolvedException.managedByAutomation(environmentId)
-            );
     }
 }
