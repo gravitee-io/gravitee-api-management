@@ -2450,7 +2450,7 @@ components:
         path:
           type: string
           description: The path an expression uses to reference the secret.
-          example: /gravitee/db-password
+          example: /gravitee/db-password:value
         createdAt:
           type: string
           format: date-time
