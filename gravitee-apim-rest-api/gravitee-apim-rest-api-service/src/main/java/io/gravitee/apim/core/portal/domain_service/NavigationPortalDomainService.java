@@ -22,6 +22,7 @@ import io.gravitee.apim.core.portal.exception.SeveralPortalsInEnvironmentExcepti
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 
@@ -42,7 +43,11 @@ public class NavigationPortalDomainService {
      *     API, while its default portal is postponed, or when it has several portals
      */
     public Portal resolve(String organizationId, String environmentId) {
-        return defaultPortalOf(environmentId, () -> defaultPortalDomainService.ensureDefault(organizationId, environmentId));
+        return defaultPortalOf(
+            environmentId,
+            () -> defaultPortalDomainService.ensureDefault(organizationId, environmentId),
+            NavigationPortalNotResolvedException::defaultPortalPostponed
+        );
     }
 
     public NavigationItemReference.PortalReference resolveReference(String organizationId, String environmentId) {
@@ -58,20 +63,29 @@ public class NavigationPortalDomainService {
      *     portal comes from the Automation API, or when it has several portals
      */
     public NavigationItemReference.PortalReference findReference(String environmentId) {
-        var portal = defaultPortalOf(environmentId, () -> {
-            defaultPortalDomainService.checkSinglePortal(environmentId);
-            return defaultPortalDomainService.findDefault(environmentId);
-        });
+        var portal = defaultPortalOf(
+            environmentId,
+            () -> {
+                defaultPortalDomainService.checkSinglePortal(environmentId);
+                return defaultPortalDomainService.findDefault(environmentId);
+            },
+            NavigationPortalNotResolvedException::defaultPortalNotCreated
+        );
         return new NavigationItemReference.PortalReference(portal.getId());
     }
 
-    private Portal defaultPortalOf(String environmentId, Supplier<Optional<Portal>> lookup) {
+    /** @param noPortal the refusal when the environment has no portal at all, which depends on whether the lookup creates one */
+    private Portal defaultPortalOf(
+        String environmentId,
+        Supplier<Optional<Portal>> lookup,
+        Function<String, NavigationPortalNotResolvedException> noPortal
+    ) {
         try {
             return lookup
                 .get()
                 .orElseThrow(() ->
                     portalCrudService.findByEnvironmentId(environmentId).isEmpty()
-                        ? NavigationPortalNotResolvedException.defaultPortalPostponed(environmentId)
+                        ? noPortal.apply(environmentId)
                         : NavigationPortalNotResolvedException.managedByAutomation(environmentId)
                 );
         } catch (SeveralPortalsInEnvironmentException e) {

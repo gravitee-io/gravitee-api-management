@@ -263,7 +263,7 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
 
         assertThat(output.failed()).isEqualTo(1);
         assertThat(navigationPortals.portalCrudService().storage()).isEmpty();
-        assertThat(folder.getSource().getLastFetchError()).contains("its portal URL is not set or invalid");
+        assertThat(folder.getSource().getLastFetchError()).contains("its default portal is not created yet");
     }
 
     @Test

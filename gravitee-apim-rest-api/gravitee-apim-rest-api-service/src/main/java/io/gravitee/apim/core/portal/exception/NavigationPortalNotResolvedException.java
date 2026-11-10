@@ -44,6 +44,14 @@ public class NavigationPortalNotResolvedException extends ValidationDomainExcept
         );
     }
 
+    public static NavigationPortalNotResolvedException defaultPortalNotCreated(String environmentId) {
+        return new NavigationPortalNotResolvedException(
+            environmentId,
+            "its default portal is not created yet: save the portal settings to create it",
+            null
+        );
+    }
+
     public static NavigationPortalNotResolvedException severalPortals(String environmentId, SeveralPortalsInEnvironmentException cause) {
         return new NavigationPortalNotResolvedException(environmentId, "it has several portals", cause);
     }

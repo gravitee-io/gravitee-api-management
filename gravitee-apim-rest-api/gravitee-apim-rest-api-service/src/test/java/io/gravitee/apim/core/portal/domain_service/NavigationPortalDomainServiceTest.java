@@ -147,7 +147,7 @@ class NavigationPortalDomainServiceTest {
         assertThatThrownBy(() -> cut.findReference(ENV_ID))
             .isInstanceOf(ValidationDomainException.class)
             .hasMessageContaining("[" + ENV_ID + "]")
-            .hasMessageContaining("its portal URL is not set or invalid: fix the portal URL setting");
+            .hasMessageContaining("its default portal is not created yet: save the portal settings to create it");
         assertThat(portalCrudService.storage()).isEmpty();
     }
 
