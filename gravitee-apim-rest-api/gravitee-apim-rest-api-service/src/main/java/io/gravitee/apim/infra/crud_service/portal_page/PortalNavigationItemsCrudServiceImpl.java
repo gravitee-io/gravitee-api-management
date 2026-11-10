@@ -156,6 +156,26 @@ public class PortalNavigationItemsCrudServiceImpl implements PortalNavigationIte
     }
 
     @Override
+    public long updateAutomationPortalReferences(String environmentId, Collection<PortalId> fromPortalIds, PortalId portalId) {
+        try {
+            return portalNavigationItemRepository.updateAutomationPortalReferences(
+                environmentId,
+                fromPortalIds.stream().map(PortalId::toString).toList(),
+                portalId.toString()
+            );
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format(
+                    "An error occurred while moving the Automation API navigation items of environment %s to portal %s",
+                    environmentId,
+                    portalId
+                ),
+                e
+            );
+        }
+    }
+
+    @Override
     public void delete(PortalNavigationItemId portalNavigationItemId) {
         try {
             portalNavigationItemRepository.delete(portalNavigationItemId.toString());

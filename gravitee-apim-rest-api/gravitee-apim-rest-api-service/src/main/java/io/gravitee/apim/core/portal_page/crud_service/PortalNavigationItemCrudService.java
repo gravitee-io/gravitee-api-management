@@ -43,7 +43,7 @@ public interface PortalNavigationItemCrudService {
         PortalNavigationItemSource.FetchState fetchState
     );
 
-    /** @return the distinct portals that the environment's items attached to a portal reference, Automation API items excluded */
+    /** @return the distinct portals that the environment's items attached to a portal reference */
     Set<PortalId> findReferencedPortalIds(String environmentId);
 
     /**
@@ -53,6 +53,14 @@ public interface PortalNavigationItemCrudService {
      * @return the number of items changed
      */
     long updatePortalReferences(String environmentId, Collection<PortalId> fromPortalIds, PortalId toPortalId);
+
+    /**
+     * Points at {@code portalId} every item of the environment that the Automation API synced for that portal and
+     * that is attached to one of the portals {@code fromPortalIds}.
+     *
+     * @return the number of items changed
+     */
+    long updateAutomationPortalReferences(String environmentId, Collection<PortalId> fromPortalIds, PortalId portalId);
 
     void delete(PortalNavigationItemId portalNavigationItemId);
 

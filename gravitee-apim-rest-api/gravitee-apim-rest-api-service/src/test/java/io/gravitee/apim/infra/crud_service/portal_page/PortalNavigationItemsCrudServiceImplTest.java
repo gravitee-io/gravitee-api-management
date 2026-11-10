@@ -570,4 +570,27 @@ class PortalNavigationItemsCrudServiceImplTest {
                 .hasCauseInstanceOf(TechnicalException.class);
         }
     }
+
+    @Nested
+    class UpdateAutomationPortalReferences {
+
+        private final PortalId portal = PortalId.of("22222222-2222-2222-2222-222222222222");
+
+        @Test
+        void should_pass_the_portal_ids_as_strings_and_return_the_rows_changed() throws TechnicalException {
+            when(repository.updateAutomationPortalReferences("env", List.of(PortalId.ZERO.toString()), portal.toString())).thenReturn(3L);
+
+            assertThat(service.updateAutomationPortalReferences("env", List.of(PortalId.ZERO), portal)).isEqualTo(3L);
+        }
+
+        @Test
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
+            when(repository.updateAutomationPortalReferences(any(), any(), any())).thenThrow(new TechnicalException("boom"));
+
+            assertThatThrownBy(() -> service.updateAutomationPortalReferences("env", List.of(PortalId.ZERO), portal))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while moving the Automation API navigation items of environment env to portal " + portal)
+                .hasCauseInstanceOf(TechnicalException.class);
+        }
+    }
 }

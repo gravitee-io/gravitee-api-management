@@ -28,9 +28,10 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Gives a real portal the navigation items of its environment that name no existing portal: the zero UUID of
- * content older than portals, or a portal since deleted. Only the reference changes. Content managed by the
- * Automation API stays where it is, items and listings alike: their ids derive from their portal's hrid, so
- * GKO and Terraform could no longer delete them once moved.
+ * content older than portals, or a portal since deleted. Only the reference changes. Console items go to the
+ * target portal. An item the Automation API synced goes only to the portal it was synced for, when that portal
+ * still exists, and listings never move: the Automation API derives their ids from their portal's hrid, so on
+ * another portal GKO and Terraform could no longer delete them.
  */
 @DomainService
 @RequiredArgsConstructor
@@ -77,9 +78,16 @@ public class PortalContentOwnershipDomainService {
     private Moved moveOrphansTo(Portal target, Set<PortalId> references, List<Portal> portalsOfEnvironment) {
         var existingPortalIds = portalsOfEnvironment.stream().map(Portal::getId).collect(Collectors.toSet());
         var dead = without(references, existingPortalIds);
-        return new Moved(
-            dead.isEmpty() ? 0 : portalNavigationItemCrudService.updatePortalReferences(target.getEnvironmentId(), dead, target.getId())
-        );
+        if (dead.isEmpty()) {
+            return new Moved(0);
+        }
+        var environmentId = target.getEnvironmentId();
+        var consoleItems = portalNavigationItemCrudService.updatePortalReferences(environmentId, dead, target.getId());
+        var automationItems = portalsOfEnvironment
+            .stream()
+            .mapToLong(portal -> portalNavigationItemCrudService.updateAutomationPortalReferences(environmentId, dead, portal.getId()))
+            .sum();
+        return new Moved(consoleItems + automationItems);
     }
 
     private static Set<PortalId> without(Set<PortalId> referenced, Set<PortalId> existing) {

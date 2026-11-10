@@ -185,14 +185,13 @@ class PortalContentOwnershipDomainServiceTest {
         assertThat(onExistingPortal.getReference()).isEqualTo(onPortal(AUTOMATION_PORTAL_ID));
     }
 
-    @Test
-    void should_leave_items_managed_by_the_automation_api_on_their_deleted_portal() {
-        portalCrudService.initWith(List.of(aPortal(DEFAULT_PORTAL_ID, true)));
-        var automationItem = PortalNavigationFolder.builder()
+    /** An item the Automation API synced for {@code syncedFor}, stored on {@code reference}. */
+    private PortalNavigationFolder storedAutomationFolder(NavigationItemReference reference, PortalId syncedFor) {
+        var folder = PortalNavigationFolder.builder()
             .id(PortalNavigationItemId.random())
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
-            .reference(onPortal(DELETED_PORTAL_ID))
+            .reference(reference)
             .title("Guides")
             .segment("guides")
             .area(PortalArea.TOP_NAVBAR)
@@ -202,19 +201,49 @@ class PortalContentOwnershipDomainServiceTest {
             .automationMetadata(
                 new AutomationMetadata(
                     AutomationMetadata.ReferenceType.PORTAL,
-                    DELETED_PORTAL_ID.toString(),
+                    syncedFor.toString(),
                     null,
                     Optional.empty(),
                     Optional.empty()
                 )
             )
             .build();
-        navigationItemCrudService.create(automationItem);
+        navigationItemCrudService.create(folder);
+        return folder;
+    }
+
+    @Test
+    void should_leave_items_managed_by_the_automation_api_on_their_deleted_portal() {
+        portalCrudService.initWith(List.of(aPortal(DEFAULT_PORTAL_ID, true)));
+        var automationItem = storedAutomationFolder(onPortal(DELETED_PORTAL_ID), DELETED_PORTAL_ID);
 
         var moved = cut.moveOrphans(ENV_ID);
 
         assertThat(moved).contains(new Moved(0));
         assertThat(automationItem.getReference()).isEqualTo(onPortal(DELETED_PORTAL_ID));
+    }
+
+    @Test
+    void should_point_zero_uuid_automation_items_at_the_portal_they_were_synced_for() {
+        portalCrudService.initWith(List.of(aPortal(DEFAULT_PORTAL_ID, true), aPortal(AUTOMATION_PORTAL_ID, false)));
+        var syncedBeforePortalsWereNamed = storedAutomationFolder(ON_ZERO_UUID, AUTOMATION_PORTAL_ID);
+        var consoleItem = storedFolder(ENV_ID, ON_ZERO_UUID);
+
+        var moved = cut.moveOrphans(ENV_ID);
+
+        assertThat(moved).contains(new Moved(2));
+        assertThat(syncedBeforePortalsWereNamed.getReference()).isEqualTo(onPortal(AUTOMATION_PORTAL_ID));
+        assertThat(consoleItem.getReference()).isEqualTo(onPortal(DEFAULT_PORTAL_ID));
+    }
+
+    @Test
+    void should_leave_zero_uuid_automation_items_of_a_deleted_portal_where_they_are() {
+        portalCrudService.initWith(List.of(aPortal(DEFAULT_PORTAL_ID, true)));
+        var item = storedAutomationFolder(ON_ZERO_UUID, DELETED_PORTAL_ID);
+
+        cut.moveOrphans(ENV_ID);
+
+        assertThat(item.getReference()).isEqualTo(ON_ZERO_UUID);
     }
 
     @Test

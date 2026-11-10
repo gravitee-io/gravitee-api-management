@@ -169,9 +169,7 @@ public class JdbcPortalNavigationItemRepository
         try {
             return new HashSet<>(
                 jdbcTemplate.queryForList(
-                    "select distinct reference_id from " +
-                        this.tableName +
-                        " where environment_id = ? and reference_type = ? and automation_metadata is null",
+                    "select distinct reference_id from " + this.tableName + " where environment_id = ? and reference_type = ?",
                     String.class,
                     environmentId,
                     PortalNavigationReferenceType.PORTAL.name()
@@ -203,6 +201,43 @@ public class JdbcPortalNavigationItemRepository
             );
         } catch (Exception ex) {
             throw new TechnicalException("Failed to update the portal references of environment " + environmentId, ex);
+        }
+    }
+
+    @Override
+    public long updateAutomationPortalReferences(String environmentId, Collection<String> fromPortalIds, String portalId)
+        throws TechnicalException {
+        log.debug(
+            "JdbcPortalNavigationItemRepository.updateAutomationPortalReferences({}, {}, {})",
+            environmentId,
+            fromPortalIds,
+            portalId
+        );
+        if (fromPortalIds.isEmpty()) {
+            return 0;
+        }
+        try {
+            var params = new ArrayList<Object>(
+                List.of(
+                    portalId,
+                    environmentId,
+                    PortalNavigationReferenceType.PORTAL.name(),
+                    AutomationTargetReferenceType.PORTAL.name(),
+                    portalId
+                )
+            );
+            params.addAll(fromPortalIds);
+            return jdbcTemplate.update(
+                "update " +
+                    this.tableName +
+                    " set reference_id = ? where environment_id = ? and reference_type = ?" +
+                    " and automation_reference_type = ? and automation_reference_id = ? and reference_id in (" +
+                    getOrm().buildInClause(fromPortalIds) +
+                    ")",
+                params.toArray()
+            );
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to update the automation portal references of environment " + environmentId, ex);
         }
     }
 

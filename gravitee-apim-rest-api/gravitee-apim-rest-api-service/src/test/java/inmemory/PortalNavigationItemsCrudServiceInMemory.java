@@ -17,6 +17,7 @@ package inmemory;
 
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -81,7 +82,6 @@ public class PortalNavigationItemsCrudServiceInMemory
         return storage
             .stream()
             .filter(item -> environmentId.equals(item.getEnvironmentId()))
-            .filter(item -> item.getAutomationMetadata() == null)
             .map(PortalNavigationItem::getReference)
             .flatMap(reference ->
                 reference instanceof NavigationItemReference.PortalReference portal ? Stream.of(portal.portalId()) : Stream.empty()
@@ -102,6 +102,27 @@ public class PortalNavigationItemsCrudServiceInMemory
             )
             .toList();
         moved.forEach(item -> item.changeOwner(new NavigationItemReference.PortalReference(toPortalId)));
+        return moved.size();
+    }
+
+    @Override
+    public long updateAutomationPortalReferences(String environmentId, Collection<PortalId> fromPortalIds, PortalId portalId) {
+        var moved = storage
+            .stream()
+            .filter(item -> environmentId.equals(item.getEnvironmentId()))
+            .filter(
+                item ->
+                    item.getAutomationMetadata() != null &&
+                    item.getAutomationMetadata().referenceType() == AutomationMetadata.ReferenceType.PORTAL &&
+                    portalId.toString().equals(item.getAutomationMetadata().referenceId())
+            )
+            .filter(
+                item ->
+                    item.getReference() instanceof NavigationItemReference.PortalReference portal &&
+                    fromPortalIds.contains(portal.portalId())
+            )
+            .toList();
+        moved.forEach(item -> item.changeOwner(new NavigationItemReference.PortalReference(portalId)));
         return moved.size();
     }
 

@@ -157,6 +157,23 @@
     "automationMetadata": { "referenceType": "PORTAL", "referenceId": "deleted-automation-portal", "location": "/links/automation" }
   },
   {
+    "id": "legacy-automation-on-zero-uuid",
+    "organizationId": "org-1",
+    "environmentId": "env-orphan-references",
+    "referenceType": "PORTAL",
+    "referenceId": "00000000-0000-0000-0000-000000000000",
+    "title": "Synced before portals were named",
+    "segment": "synced-before-portals-were-named",
+    "type": "FOLDER",
+    "area": "TOP_NAVBAR",
+    "parentId": null,
+    "rootId": "legacy-automation-on-zero-uuid",
+    "order": 5,
+    "published": true,
+    "visibility": "PUBLIC",
+    "automationMetadata": { "referenceType": "PORTAL", "referenceId": "existing-portal", "location": "/guides" }
+  },
+  {
     "id": "orphan-homepage",
     "organizationId": "org-1",
     "environmentId": "env-orphan-references",

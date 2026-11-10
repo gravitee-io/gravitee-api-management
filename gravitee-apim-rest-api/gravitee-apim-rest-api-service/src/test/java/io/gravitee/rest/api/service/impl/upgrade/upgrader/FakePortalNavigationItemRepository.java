@@ -173,7 +173,6 @@ class FakePortalNavigationItemRepository implements PortalNavigationItemReposito
             .stream()
             .filter(item -> environmentId.equals(item.getEnvironmentId()))
             .filter(item -> item.getReferenceType() == PortalNavigationReferenceType.PORTAL)
-            .filter(item -> item.getAutomationMetadata() == null)
             .map(PortalNavigationItem::getReferenceId)
             .collect(Collectors.toSet());
     }
@@ -188,6 +187,24 @@ class FakePortalNavigationItemRepository implements PortalNavigationItemReposito
             .filter(item -> fromPortalIds.contains(item.getReferenceId()))
             .toList();
         moved.forEach(item -> item.setReferenceId(toPortalId));
+        return moved.size();
+    }
+
+    @Override
+    public long updateAutomationPortalReferences(String environmentId, Collection<String> fromPortalIds, String portalId) {
+        var moved = items
+            .stream()
+            .filter(item -> environmentId.equals(item.getEnvironmentId()))
+            .filter(item -> item.getReferenceType() == PortalNavigationReferenceType.PORTAL)
+            .filter(item -> fromPortalIds.contains(item.getReferenceId()))
+            .filter(
+                item ->
+                    item.getAutomationMetadata() != null &&
+                    item.getAutomationMetadata().getReferenceType() == AutomationTargetReferenceType.PORTAL &&
+                    portalId.equals(item.getAutomationMetadata().getReferenceId())
+            )
+            .toList();
+        moved.forEach(item -> item.setReferenceId(portalId));
         return moved.size();
     }
 
