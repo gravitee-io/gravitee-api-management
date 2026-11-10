@@ -17,12 +17,15 @@ package io.gravitee.apim.rest.api.automation.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.rest.api.automation.model.ApiV4Spec;
 import io.gravitee.apim.rest.api.automation.model.BaseSelector;
 import io.gravitee.apim.rest.api.automation.model.FlowV4;
 import io.gravitee.apim.rest.api.automation.model.McpSelector;
 import io.gravitee.apim.rest.api.automation.model.NavigationPath;
+import io.gravitee.apim.rest.api.automation.model.PlanV4;
 import io.gravitee.apim.rest.api.automation.model.PortalVisibility;
 import io.gravitee.apim.rest.api.automation.model.Selector;
+import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
 import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
@@ -138,5 +141,15 @@ class ApiMapperTest {
                 assertThat(selector.getType()).isEqualTo(BaseSelector.TypeEnum.MCP);
                 assertThat(selector.getMethods()).containsExactly("tools/call");
             });
+    }
+
+    @Test
+    void should_set_each_plan_order_from_its_list_position_starting_at_1() {
+        var spec = new ApiV4Spec().plans(List.of(new PlanV4().hrid("x").name("X"), new PlanV4().hrid("y").name("Y")));
+
+        var plans = ApiMapper.INSTANCE.mapApiV4SpecPlans(spec);
+
+        assertThat(plans).containsOnlyKeys("x", "y");
+        assertThat(plans.values()).extracting(PlanCRD::getOrder).containsExactly(1, 2);
     }
 }
