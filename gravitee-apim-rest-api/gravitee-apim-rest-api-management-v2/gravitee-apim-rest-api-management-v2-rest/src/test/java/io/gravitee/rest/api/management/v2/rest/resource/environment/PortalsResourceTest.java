@@ -17,9 +17,12 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static io.gravitee.common.http.HttpStatusCode.TEMPORARY_REDIRECT_307;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.LicenseFixtures;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
@@ -33,7 +36,10 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeType;
+import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.rest.api.management.v2.rest.model.PortalQuota;
 import io.gravitee.rest.api.management.v2.rest.model.PortalsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.PortalsStats;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -41,6 +47,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import java.net.URI;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import lombok.SneakyThrows;
@@ -63,6 +70,9 @@ class PortalsResourceTest extends AbstractResourceTest {
 
     @Inject
     private ThemeQueryServiceInMemory themeQueryService;
+
+    @Inject
+    private LicenseManager licenseManager;
 
     @Override
     protected String contextPath() {
@@ -99,6 +109,7 @@ class PortalsResourceTest extends AbstractResourceTest {
         portalCrudService.reset();
         portalNavigationItemsCrudService.reset();
         themeQueryService.reset();
+        when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
     @Nested
@@ -230,14 +241,112 @@ class PortalsResourceTest extends AbstractResourceTest {
         }
     }
 
+    @Nested
+    class GetPortalsStats {
+
+        @Test
+        void should_return_the_quota_and_the_published_apis_of_every_portal() {
+            portalNavigationItemsCrudService.initWith(
+                List.of(
+                    publishedApi(PARTNERS_PORTAL_ID, "api-1"),
+                    publishedApi(DEFAULT_PORTAL_ID, "api-1"),
+                    publishedApi(DEFAULT_PORTAL_ID, "api-3")
+                )
+            );
+
+            var response = rootTarget("_stats").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            assertThat(response.readEntity(PortalsStats.class)).isEqualTo(
+                new PortalsStats().quota(new PortalQuota().used(2).limit(10)).publishedApisCount(2)
+            );
+        }
+
+        @Test
+        void should_allow_one_portal_below_the_universe_tier() {
+            when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION)).thenReturn(LicenseFixtures.anOssLicense());
+
+            var body = rootTarget("_stats").request().get().readEntity(PortalsStats.class);
+
+            assertThat(body.getQuota()).isEqualTo(new PortalQuota().used(2).limit(1));
+        }
+
+        @Test
+        void should_return_403_without_permission() {
+            shouldReturn403(RolePermission.ENVIRONMENT_DOCUMENTATION, ENVIRONMENT, RolePermissionAction.READ, () ->
+                rootTarget("_stats").request().get()
+            );
+        }
+    }
+
+    @Nested
+    class GetPortalLogo {
+
+        private static final byte[] PNG_BYTES = { (byte) 0x89, 'P', 'N', 'G' };
+
+        @Test
+        void should_return_the_next_gen_theme_logo_with_its_media_type() {
+            themeQueryService.initWith(List.of(nextGenTheme("data:image/png;base64," + Base64.getEncoder().encodeToString(PNG_BYTES))));
+
+            var response = rootTarget(DEFAULT_PORTAL_ID + "/logo").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            assertThat(response.getMediaType()).hasToString("image/png");
+            assertThat(response.readEntity(byte[].class)).isEqualTo(PNG_BYTES);
+        }
+
+        @Test
+        void should_redirect_to_a_logo_stored_as_a_url() {
+            themeQueryService.initWith(List.of(nextGenTheme("https://cdn.acme.io/logo.png")));
+
+            var response = rootTarget(DEFAULT_PORTAL_ID + "/logo").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(TEMPORARY_REDIRECT_307);
+            assertThat(response.getLocation()).isEqualTo(URI.create("https://cdn.acme.io/logo.png"));
+        }
+
+        @Test
+        void should_return_404_when_the_theme_has_no_logo() {
+            var response = rootTarget(DEFAULT_PORTAL_ID + "/logo").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+        }
+
+        @Test
+        void should_return_404_for_a_portal_of_another_environment() {
+            themeQueryService.initWith(List.of(nextGenThemeWithLogo()));
+            var otherEnvPortal = portalCrudService
+                .storage()
+                .stream()
+                .filter(portal -> portal.getEnvironmentId().equals("other-env"))
+                .findFirst()
+                .orElseThrow();
+
+            var response = rootTarget(otherEnvPortal.getId() + "/logo").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+        }
+
+        @Test
+        void should_return_403_without_permission() {
+            shouldReturn403(RolePermission.ENVIRONMENT_DOCUMENTATION, ENVIRONMENT, RolePermissionAction.READ, () ->
+                rootTarget(DEFAULT_PORTAL_ID + "/logo").request().get()
+            );
+        }
+    }
+
     private static Theme nextGenThemeWithLogo() {
+        return nextGenTheme("data:image/png;base64,AAA");
+    }
+
+    private static Theme nextGenTheme(String logo) {
         return Theme.builder()
             .id("theme-next")
             .type(ThemeType.PORTAL_NEXT)
             .referenceType(Theme.ReferenceType.ENVIRONMENT)
             .referenceId(ENVIRONMENT)
             .enabled(true)
-            .logo("data:image/png;base64,AAA")
+            .logo(logo)
             .build();
     }
 

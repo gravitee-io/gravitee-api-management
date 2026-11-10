@@ -18,7 +18,10 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalSummary;
+import io.gravitee.apim.core.portal.use_case.GetPortalsStatsUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.Portal;
+import io.gravitee.rest.api.management.v2.rest.model.PortalQuota;
+import io.gravitee.rest.api.management.v2.rest.model.PortalsStats;
 import io.gravitee.rest.api.management.v2.rest.utils.ManagementApiLinkHelper;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.List;
@@ -45,6 +48,12 @@ public interface PortalMapper {
             .stream()
             .map(summary -> map(summary, uriInfo))
             .toList();
+    }
+
+    default PortalsStats map(GetPortalsStatsUseCase.Output stats) {
+        return new PortalsStats()
+            .quota(new PortalQuota().used(stats.quota().used()).limit(stats.quota().limit()))
+            .publishedApisCount(stats.publishedApisCount());
     }
 
     default PortalId toPortalId(String portalId) {
