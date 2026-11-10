@@ -109,7 +109,7 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "/gravitee/credential.other.token:value", "/GRAVITEE/my-secret:value" })
+        @ValueSource(strings = { "/gravitee/other-secret:value", "/GRAVITEE/my-secret:value" })
         void should_require_the_secret_read_permission_to_reference_a_secret_gravitee_stores(String reference) {
             var withoutRead = fixture.ownerWithSecretAccess(SecretAccess.CREATE, SecretAccess.UPDATE, SecretAccess.DELETE);
             var command = NewCredentialCommand.builder()
@@ -123,6 +123,22 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
             )
                 .isInstanceOf(SecretPermissionRequiredException.class)
                 .hasMessageContaining("read");
+            assertThat(fixture.credentialRepository.storage()).isEmpty();
+        }
+
+        @Test
+        void should_not_reference_the_secret_of_another_credential() {
+            var command = NewCredentialCommand.builder()
+                .name("OpenAI")
+                .strategy(CredentialStrategy.BEARER)
+                .references(Map.of("token", "/gravitee/credential.other.token:value"))
+                .build();
+
+            assertThatThrownBy(() ->
+                fixture.createCredentialUseCase.execute(new CreateCredentialUseCase.Input("credential-1", fixture.admin(), command))
+            )
+                .isInstanceOf(InvalidCredentialException.class)
+                .hasMessageContaining("another credential");
             assertThat(fixture.credentialRepository.storage()).isEmpty();
         }
 

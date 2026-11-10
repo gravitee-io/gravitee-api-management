@@ -62,6 +62,27 @@ class SecretReferenceTest {
     }
 
     @ParameterizedTest
+    @ValueSource(
+        strings = {
+            "/gravitee/credential.other.token:value",
+            "/GRAVITEE/credential.other.token:value?renewable=true",
+            "/gravitee/credential.other.token",
+            "/gravitee/credential.",
+        }
+    )
+    void should_reject_a_reference_to_the_secret_of_a_credential(String reference) {
+        assertThatThrownBy(() -> SecretReference.external("token", reference))
+            .isInstanceOf(InvalidCredentialException.class)
+            .hasMessageContaining("another credential");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "/gravitee/my-credential.token:value", "/vault/credential.other.token:value", "/gravitee/Credential.x:value" })
+    void should_accept_a_reference_that_only_looks_like_a_credential_secret(String reference) {
+        assertThat(SecretReference.external("token", reference).reference()).isEqualTo(reference);
+    }
+
+    @ParameterizedTest
     @CsvSource(
         {
             "/gravitee/my-secret:value,true",

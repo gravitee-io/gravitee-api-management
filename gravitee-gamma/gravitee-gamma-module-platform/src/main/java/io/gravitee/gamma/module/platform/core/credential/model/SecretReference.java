@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.module.platform.core.credential.model;
 
+import io.gravitee.apim.core.secret.model.Secret;
 import io.gravitee.gamma.module.platform.core.credential.exception.InvalidCredentialException;
 import java.util.regex.Pattern;
 
@@ -44,7 +45,26 @@ public record SecretReference(String reference, String secretId) {
                 "The reference of " + field + " must be a secret path such as /vault/secret/name:key, with no spaces or expressions."
             );
         }
-        return new SecretReference(reference, null);
+        var external = new SecretReference(reference, null);
+        if (external.isInGraviteeStore() && external.graviteeKey().startsWith(Secret.CREDENTIAL_KEY_PREFIX)) {
+            throw new InvalidCredentialException(
+                "The reference of " +
+                    field +
+                    " points at a secret that another credential holds. Reference a secret of your own or give the value."
+            );
+        }
+        return external;
+    }
+
+    /** The secret key, read the way the gateway reads it: the path after the provider, before any query or {@code :key}. */
+    private String graviteeKey() {
+        var path = reference.substring(reference.indexOf('/', 1) + 1);
+        var query = path.indexOf('?');
+        if (query >= 0) {
+            path = path.substring(0, query);
+        }
+        var key = path.lastIndexOf(':');
+        return key > path.lastIndexOf('/') ? path.substring(0, key) : path;
     }
 
     /** Whether the reference names Gravitee's own secret store, the provider the gateway reads from its first path segment. */

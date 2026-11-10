@@ -99,9 +99,7 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
         var credential = fixture.givenACredential();
         var withoutRead = fixture.ownerWithSecretAccess(SecretAccess.CREATE, SecretAccess.UPDATE, SecretAccess.DELETE);
 
-        assertThatThrownBy(() ->
-            update(withoutRead, credential, c -> c.references(Map.of("token", "/gravitee/credential.other.token:value")))
-        )
+        assertThatThrownBy(() -> update(withoutRead, credential, c -> c.references(Map.of("token", "/gravitee/other-secret:value"))))
             .isInstanceOf(SecretPermissionRequiredException.class)
             .hasMessageContaining("read");
         assertThat(fixture.credentialRepository.storage()).containsExactly(credential);
@@ -148,6 +146,17 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
         var references = new LinkedHashMap<String, String>();
         credential.secretReferences().forEach((field, reference) -> references.put(field, reference.reference()));
         return references;
+    }
+
+    @Test
+    void should_not_point_a_credential_at_the_secret_of_another_credential() {
+        var credential = fixture.givenACredential();
+        var other = fixture.givenAManagedCredential();
+
+        assertThatThrownBy(() -> update(fixture.admin(), credential, c -> c.references(referencesOf(other))))
+            .isInstanceOf(InvalidCredentialException.class)
+            .hasMessageContaining("another credential");
+        assertThat(fixture.credentialRepository.storage()).contains(credential);
     }
 
     @Test

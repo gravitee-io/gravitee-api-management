@@ -100,7 +100,6 @@ public record Credential(
         return toBuilder().rotatedAt(now).updatedAt(now).build();
     }
 
-    /** Whether Gravitee stores the values, as opposed to the credential pointing at secrets of the user's own. */
     /**
      * A reference into Gravitee's secret store hands the secret to whoever uses the credential, so the user must be
      * allowed to read secrets. The secrets of a managed credential were written for it and need no such check.
@@ -111,6 +110,7 @@ public record Credential(
         }
     }
 
+    /** Whether Gravitee stores the values, as opposed to the credential pointing at secrets of the user's own. */
     public boolean isManaged() {
         return secretReferences.values().stream().anyMatch(SecretReference::isManaged);
     }
