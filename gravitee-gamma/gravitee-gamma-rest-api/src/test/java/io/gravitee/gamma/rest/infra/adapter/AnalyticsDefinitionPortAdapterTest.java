@@ -218,7 +218,9 @@ class AnalyticsDefinitionPortAdapterTest extends AnalyticsDefinitionPortContract
                             f.name().name(),
                             f.label(),
                             null,
+                            null,
                             analyticsFilterKinds().getOrDefault(f.name().name(), Set.of()),
+                            null,
                             CatalogOrigin.BUILT_IN
                         )
                     )

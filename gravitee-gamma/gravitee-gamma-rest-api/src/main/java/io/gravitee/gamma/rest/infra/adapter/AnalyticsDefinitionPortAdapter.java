@@ -151,7 +151,9 @@ public class AnalyticsDefinitionPortAdapter implements AnalyticsDefinitionPort {
                     facet.name().name(),
                     facet.label(),
                     null,
+                    null,
                     analyticsFilters.getOrDefault(facet.name().name(), Set.of()),
+                    null,
                     CatalogOrigin.BUILT_IN
                 )
             )

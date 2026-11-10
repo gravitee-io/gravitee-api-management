@@ -74,6 +74,13 @@ public enum ApiType {
     public static final Set<ApiType> API_KINDS = Set.copyOf(EnumSet.complementOf(EnumSet.of(AUTHZ_DECISION)));
 
     /**
+     * The kinds whose rows the logs search serves: every API kind but {@link #EDGE}, which writes no log row. The logs
+     * search narrows its scope on it, and a catalog entry tied to kinds outside it is served on the analytics signal
+     * only.
+     */
+    public static final Set<ApiType> SEARCHED_ON_LOGS = Set.of(HTTP_PROXY, LLM, MCP, A2A, MESSAGE, NATIVE, AUTHZ);
+
+    /**
      * Whether an entry tied to no API kind answers a narrowing on {@code requested}: it applies to the requests of every
      * API kind and never to the decisions screen, so it passes unless only {@link #AUTHZ_DECISION} is asked (OBS-70, §8).
      */

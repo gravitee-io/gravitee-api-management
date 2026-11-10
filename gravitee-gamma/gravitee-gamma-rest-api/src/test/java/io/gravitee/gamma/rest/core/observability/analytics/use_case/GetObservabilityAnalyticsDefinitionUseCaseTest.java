@@ -529,6 +529,49 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
                 );
         }
 
+        /** The row tooltip reads the description and the last sighting of a dynamic entry as the filter catalog serves them. */
+        @Test
+        void should_serve_the_description_and_last_seen_of_dynamic_entries_to_a_traffic_reader_only() {
+            givenBuiltIn(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF, HTTP_KINDS, "API");
+            fixture.givenDescribed(PROTOCOL_VERSION, "Protocol version", "MCP protocol version negotiated");
+            fixture.ports.givenDiscovered(
+                List.of(
+                    discovered("keyword_mcp-proxy_endpoint-protocol-version", AdditionalMetricValueType.KEYWORD),
+                    discovered("long_failover_count", AdditionalMetricValueType.LONG)
+                ),
+                false
+            );
+
+            var definition = execute(Set.of(ApiType.MCP));
+
+            assertThat(dimension(definition, PROTOCOL_VERSION)).satisfies(protocol -> {
+                assertThat(protocol.description()).isEqualTo("MCP protocol version negotiated");
+                assertThat(protocol.lastSeen()).isEqualTo(SEEN);
+            });
+            assertThat(dimension(definition, "API")).satisfies(api -> {
+                assertThat(api.description()).isNull();
+                assertThat(api.lastSeen()).isNull();
+            });
+            assertThat(additionalMetrics(definition))
+                .singleElement()
+                .satisfies(failover -> assertThat(failover.lastSeen()).isEqualTo(SEEN));
+
+            fixture.ports.givenReadsTraffic(false);
+            var blind = execute(Set.of(ApiType.MCP));
+
+            assertThat(dimension(blind, PROTOCOL_VERSION).lastSeen()).as("traffic data, to a traffic reader only").isNull();
+            assertThat(dimension(blind, PROTOCOL_VERSION).description()).isEqualTo("MCP protocol version negotiated");
+        }
+
+        private static DimensionDefinition dimension(AnalyticsDefinition definition, String name) {
+            return definition
+                .dimensions()
+                .stream()
+                .filter(dimension -> dimension.name().equals(name))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No dimension " + name));
+        }
+
         /** A facet of one kind goes with the metrics of that kind, and with those tied to none. */
         @Test
         void should_group_an_additional_metric_by_the_facets_of_its_kinds_only() {
