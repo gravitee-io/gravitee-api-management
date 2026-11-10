@@ -104,9 +104,11 @@ import io.gravitee.apim.core.api_product.use_case.CreateApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeployApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductApisUseCase;
+import io.gravitee.apim.core.api_product.use_case.GetApiProductFlowsUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.SearchApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.TransferApiProductOwnershipUseCase;
+import io.gravitee.apim.core.api_product.use_case.UpdateApiProductFlowsUseCase;
 import io.gravitee.apim.core.api_product.use_case.UpdateApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductDeployUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductExistsUseCase;
@@ -1337,6 +1339,18 @@ public class ResourceContextConfiguration {
     @Primary
     public UpdateApiProductUseCase updateApiProductUseCase() {
         return mock(UpdateApiProductUseCase.class);
+    }
+
+    @Bean
+    @Primary
+    public GetApiProductFlowsUseCase getApiProductFlowsUseCase() {
+        return mock(GetApiProductFlowsUseCase.class);
+    }
+
+    @Bean
+    @Primary
+    public UpdateApiProductFlowsUseCase updateApiProductFlowsUseCase() {
+        return mock(UpdateApiProductFlowsUseCase.class);
     }
 
     @Bean

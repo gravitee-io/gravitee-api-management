@@ -787,6 +787,81 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /environments/{envId}/api-products/{apiProductId}/flows:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+    get:
+      tags:
+        - API Product
+      summary: Get the flows of an API Product
+      description: |-
+        Get the flows the API Product runs on the requests of its APIs, in execution order, and their flow mode.
+        A product that never saved flows has none, in the `DEFAULT` mode with `matchRequired` false.
+
+        User must have the API_PRODUCT_DEFINITION[READ] permission.
+      operationId: getApiProductFlows
+      responses:
+        '200':
+          description: The flows of the API Product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiProductFlows'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - API Product
+      summary: Replace the flows of an API Product
+      description: |-
+        Replace every flow of the API Product, and its flow mode, with the ones given. Flows run in the order of
+        the list; an empty list removes every flow, and an absent `flowExecution` sets the `DEFAULT` mode with
+        `matchRequired` false. No other field of the API Product changes.
+
+        Flows are validated as flows of an HTTP proxy API and may only have `request` and `response` steps.
+        Saving does not deploy: the API Product must be deployed for the gateways to run the new flows.
+
+        User must have the API_PRODUCT_DEFINITION[UPDATE] permission.
+      operationId: updateApiProductFlows
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiProductFlows'
+      responses:
+        '200':
+          description: The flows of the API Product, as saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiProductFlows'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /environments/{envId}/api-products/{apiProductId}/plans:
     parameters:
       - $ref: "#/components/parameters/envIdParam"
@@ -2186,6 +2261,24 @@ components:
           allOf:
             - $ref: "./openapi-apis.yaml#/components/schemas/Analytics"
           description: Reporter settings governing every API this product exposes.
+
+    ApiProductFlows:
+      type: object
+      title: "ApiProductFlows"
+      description: The flows an API Product runs on the requests of its APIs, and their flow mode.
+      properties:
+        flowExecution:
+          $ref: "./openapi-apis.yaml#/components/schemas/FlowExecution"
+        flows:
+          type: array
+          nullable: true
+          description: |
+            The flows of the API Product, in execution order. Only `request` and `response` steps are allowed.
+            Required on PUT, where an empty list removes every flow.
+          items:
+            $ref: "./openapi-apis.yaml#/components/schemas/FlowV4"
+      required:
+        - flows
 
     ApiProductDeploymentState:
       type: string

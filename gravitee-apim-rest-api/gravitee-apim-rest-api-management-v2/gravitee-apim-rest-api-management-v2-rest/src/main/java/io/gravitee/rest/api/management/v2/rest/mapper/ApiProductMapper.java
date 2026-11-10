@@ -16,8 +16,11 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.rest.api.management.v2.rest.model.ApiProduct;
+import io.gravitee.rest.api.management.v2.rest.model.ApiProductFlows;
 import io.gravitee.rest.api.management.v2.rest.model.ApiProductInfo;
+import io.gravitee.rest.api.management.v2.rest.model.FlowExecution;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(uses = { DateMapper.class })
@@ -27,4 +30,22 @@ public interface ApiProductMapper {
     ApiProduct map(io.gravitee.apim.core.api_product.model.ApiProduct coreApiProduct);
 
     ApiProductInfo map(io.gravitee.apim.core.api_product.model.ApiProductInfo coreApiProductInfo);
+
+    default ApiProductFlows map(io.gravitee.apim.core.api_product.model.ApiProductFlows coreApiProductFlows) {
+        return new ApiProductFlows()
+            .flowExecution(map(coreApiProductFlows.flowExecution()))
+            .flows(FlowMapper.INSTANCE.mapFromHttpV4(coreApiProductFlows.flows()));
+    }
+
+    default io.gravitee.apim.core.api_product.model.ApiProductFlows map(ApiProductFlows apiProductFlows) {
+        return new io.gravitee.apim.core.api_product.model.ApiProductFlows(
+            map(apiProductFlows.getFlowExecution()),
+            FlowMapper.INSTANCE.mapToHttpV4(apiProductFlows.getFlows())
+        );
+    }
+
+    FlowExecution map(io.gravitee.definition.model.v4.flow.execution.FlowExecution coreFlowExecution);
+
+    @Mapping(target = "mode", defaultValue = "DEFAULT")
+    io.gravitee.definition.model.v4.flow.execution.FlowExecution map(FlowExecution flowExecution);
 }
