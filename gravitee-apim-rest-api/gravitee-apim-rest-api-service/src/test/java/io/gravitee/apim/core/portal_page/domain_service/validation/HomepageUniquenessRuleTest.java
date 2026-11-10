@@ -38,6 +38,7 @@ class HomepageUniquenessRuleTest {
 
     private static final String ENV_ID = "env-1";
     private static final String ORG_ID = "org-1";
+    private static final String DEFAULT_PORTAL_ID = "11111111-1111-1111-1111-1111111111d1";
 
     private PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService;
     private HomepageUniquenessRule rule;
@@ -98,12 +99,30 @@ class HomepageUniquenessRuleTest {
     }
 
     @Test
-    void console_owned_and_portal_attached_homepages_do_not_conflict() {
+    void should_reject_a_homepage_for_the_default_portal_when_one_is_stored_on_the_zero_uuid() {
         navigationItemsQueryService.storage().add(PortalNavigationItem.from(homepageCreateItem(null), ORG_ID, ENV_ID, null));
 
-        assertThatCode(() ->
-            rule.validate(homepageCreateItem("11111111-1111-1111-1111-1111111111a1"), ENV_ID, CreateValidationContext.empty())
-        ).doesNotThrowAnyException();
+        assertThatThrownBy(() ->
+            rule.validate(homepageCreateItem(DEFAULT_PORTAL_ID), ENV_ID, CreateValidationContext.empty())
+        ).isInstanceOf(HomepageAlreadyExistsException.class);
+    }
+
+    @Test
+    void should_reject_a_homepage_on_the_zero_uuid_when_one_is_stored_for_the_default_portal() {
+        navigationItemsQueryService.storage().add(PortalNavigationItem.from(homepageCreateItem(DEFAULT_PORTAL_ID), ORG_ID, ENV_ID, null));
+
+        assertThatThrownBy(() -> rule.validate(homepageCreateItem(null), ENV_ID, CreateValidationContext.empty())).isInstanceOf(
+            HomepageAlreadyExistsException.class
+        );
+    }
+
+    @Test
+    void should_ignore_a_zero_uuid_homepage_declared_ignorable_for_a_portal_homepage() {
+        var staleHomepage = PortalNavigationItem.from(homepageCreateItem(null), ORG_ID, ENV_ID, null);
+        navigationItemsQueryService.storage().add(staleHomepage);
+        var ctx = CreateValidationContext.replacing(Set.of(staleHomepage.getId()));
+
+        assertThatCode(() -> rule.validate(homepageCreateItem(DEFAULT_PORTAL_ID), ENV_ID, ctx)).doesNotThrowAnyException();
     }
 
     @Test

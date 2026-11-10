@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.NavigationPortalDomainServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -31,6 +32,7 @@ import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomain
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -41,6 +43,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -56,10 +59,11 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
     private static final String DEFAULT_CONTENT = "# Default content";
     private static final Instant NOW = Instant.parse("2026-08-05T12:34:56Z");
 
-    private PortalNavigationItemsCrudServiceInMemory crudService;
+    private PageCreationFailingCrudService crudService;
     private PortalNavigationItemsQueryServiceInMemory queryService;
     private PortalPageContentCrudServiceInMemory pageContentCrudService;
     private PortalNavigationItemSourceDomainServiceInMemory sourceDomainService;
+    private NavigationPortalDomainServiceInMemory navigationPortals;
     private AutoFetchPortalNavigationItemsUseCase useCase;
 
     @AfterEach
@@ -71,10 +75,11 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
     void setUp() {
         TimeProvider.overrideClock(Clock.fixed(NOW, ZoneId.systemDefault()));
         var storage = new ArrayList<PortalNavigationItem>();
-        crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
+        crudService = new PageCreationFailingCrudService(storage);
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
         pageContentCrudService = new PortalPageContentCrudServiceInMemory();
         sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();
+        navigationPortals = new NavigationPortalDomainServiceInMemory();
 
         var domainService = new PortalNavigationItemDomainService(
             crudService,
@@ -83,7 +88,8 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
             PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
             new ApiCrudServiceInMemory(),
             sourceDomainService,
-            new ApiOwnedNavigationDomainService(queryService, crudService)
+            new ApiOwnedNavigationDomainService(queryService, crudService),
+            navigationPortals
         );
         var bulkImportDomainService = new PortalNavigationBulkImportDomainService(
             sourceDomainService,
@@ -92,7 +98,8 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
             queryService,
             crudService,
             pageContentCrudService,
-            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage())
+            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
+            navigationPortals
         );
         useCase = new AutoFetchPortalNavigationItemsUseCase(queryService, sourceDomainService, domainService, bulkImportDomainService);
     }
@@ -152,6 +159,7 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
 
     @Test
     void should_reimport_folders_bound_to_a_file_listing_source() {
+        navigationPortals.givenDefaultPortal(ORG_ID, ENV_ID);
         var folder = aFolder("Imported Docs", autoFetchSource().subtreeImport(true).build());
         sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
 
@@ -212,6 +220,63 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
         assertThat(working.getSource().getLastFetchedAt()).isEqualTo(NOW);
         // Stamped even though the fetch never ran, otherwise the broken page is picked up on every tick
         assertThat(orphan.getSource().getLastFetchAttemptAt()).isEqualTo(NOW);
+    }
+
+    @Test
+    void should_import_below_a_legacy_folder_on_the_default_portal() {
+        var defaultPortalId = navigationPortals.givenDefaultPortal(ORG_ID, ENV_ID);
+        var folder = aFolder("Imported Docs", autoFetchSource().subtreeImport(true).build());
+        sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
+
+        useCase.execute();
+
+        var docsFolder = queryService.findByParentIdAndEnvironmentId(ENV_ID, folder.getId()).getFirst();
+        var guidePage = queryService.findByParentIdAndEnvironmentId(ENV_ID, docsFolder.getId()).getFirst();
+        assertThat(List.of(docsFolder, guidePage))
+            .extracting(PortalNavigationItem::getReference)
+            .containsOnly(new NavigationItemReference.PortalReference(defaultPortalId));
+    }
+
+    @Test
+    void should_fail_the_whole_import_with_its_reason_when_the_portal_of_a_legacy_folder_cannot_be_resolved() {
+        navigationPortals.givenDefaultPortal(ORG_ID, ENV_ID);
+        navigationPortals.givenAutomationPortal(ORG_ID, ENV_ID);
+        var folder = aFolder("Imported Docs", autoFetchSource().subtreeImport(true).build());
+        sourceDomainService.givenRemoteFile("/guide.md", "# Guide");
+
+        var firstRun = useCase.execute();
+        var secondRun = useCase.execute();
+
+        assertThat(List.of(firstRun.failed(), secondRun.failed())).containsExactly(1, 1);
+        assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, folder.getId())).isEmpty();
+        assertThat(pageContentCrudService.storage()).isEmpty();
+        assertThat(folder.getSource().getLastFetchError()).contains("it has several portals");
+        assertThat(folder.getSource().getLastFetchAttemptAt()).isEqualTo(NOW);
+    }
+
+    @Test
+    void should_never_create_a_portal_when_reimporting_a_legacy_folder() {
+        var folder = aFolder("Imported Docs", autoFetchSource().subtreeImport(true).build());
+        sourceDomainService.givenRemoteFile("/guide.md", "# Guide");
+
+        var output = useCase.execute();
+
+        assertThat(output.failed()).isEqualTo(1);
+        assertThat(navigationPortals.portalCrudService().storage()).isEmpty();
+        assertThat(folder.getSource().getLastFetchError()).contains("its default portal is not created yet");
+    }
+
+    @Test
+    void should_leave_no_page_content_behind_when_an_imported_page_cannot_be_created() {
+        navigationPortals.givenDefaultPortal(ORG_ID, ENV_ID);
+        aFolder("Imported Docs", autoFetchSource().subtreeImport(true).build());
+        sourceDomainService.givenRemoteFile("/guide.md", "# Guide");
+        crudService.failPageCreation = true;
+
+        var output = useCase.execute();
+
+        assertThat(output.failed()).isEqualTo(1);
+        assertThat(pageContentCrudService.storage()).isEmpty();
     }
 
     @Test
@@ -278,5 +343,23 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
             .findFirst()
             .map(content -> ((GraviteeMarkdownPageContent) content).getContent().value())
             .orElseThrow();
+    }
+
+    /** Fails the creation of navigation pages on demand, as a failing database write would. */
+    private static class PageCreationFailingCrudService extends PortalNavigationItemsCrudServiceInMemory {
+
+        private boolean failPageCreation;
+
+        PageCreationFailingCrudService(List<PortalNavigationItem> storage) {
+            super(storage);
+        }
+
+        @Override
+        public PortalNavigationItem create(PortalNavigationItem item) {
+            if (failPageCreation && item instanceof PortalNavigationPage) {
+                throw new TechnicalDomainException("Unable to create the page");
+            }
+            return super.create(item);
+        }
     }
 }

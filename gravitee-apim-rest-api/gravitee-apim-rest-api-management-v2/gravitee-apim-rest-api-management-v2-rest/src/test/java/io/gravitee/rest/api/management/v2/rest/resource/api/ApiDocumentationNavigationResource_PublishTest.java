@@ -25,9 +25,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -65,6 +65,9 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
     @Autowired
     private PortalNavigationItemsCrudServiceInMemory portalNavigationItemCrudService;
 
+    @Autowired
+    private PortalCrudServiceInMemory portalCrudService;
+
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/apis/" + API_ID + "/portal-navigation-items/_publish";
@@ -86,6 +89,7 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
     public void cleanUp() {
         GraviteeContext.cleanContext();
         portalNavigationItemCrudService.reset();
+        portalCrudService.reset();
         apiCrudService.reset();
     }
 
@@ -101,7 +105,9 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
             .hasStatus(OK_200)
             .asEntity(ApiPortalPublication.class)
             .satisfies(publication -> {
-                assertThat(publication.getPortalId()).isEqualTo(PortalId.ZERO.toString());
+                assertThat(publication.getPortalId()).isEqualTo(
+                    portalCrudService.findDefaultByEnvironmentId(ENVIRONMENT).orElseThrow().getId().toString()
+                );
                 assertThat(publication.getSectionName()).isEqualTo("APIs");
                 assertThat(publication.getPortalNavigationItem().getParentId()).isEqualTo(section.getId().id());
                 assertThat(publication.getPortalNavigationItem().getApiId()).isEqualTo(API_ID);

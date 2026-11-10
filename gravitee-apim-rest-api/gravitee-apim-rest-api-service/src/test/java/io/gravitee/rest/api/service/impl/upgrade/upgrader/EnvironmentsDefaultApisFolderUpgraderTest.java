@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -28,10 +29,15 @@ import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -64,6 +70,11 @@ class EnvironmentsDefaultApisFolderUpgraderTest {
         upgrader = new EnvironmentsDefaultApisFolderUpgrader(environmentRepository, createDefaultPortalNavigationItemsUseCase);
     }
 
+    @AfterEach
+    void cleanGraviteeContext() {
+        GraviteeContext.cleanContext();
+    }
+
     @Test
     @SneakyThrows
     void should_do_nothing_when_there_is_no_environment() {
@@ -83,6 +94,27 @@ class EnvironmentsDefaultApisFolderUpgraderTest {
 
         verify(createDefaultPortalNavigationItemsUseCase).ensureApisSection("DEFAULT", "DEFAULT");
         verify(createDefaultPortalNavigationItemsUseCase).ensureApisSection("ANOTHER_ORG", "ANOTHER_ENVIRONMENT");
+    }
+
+    @Test
+    @SneakyThrows
+    void should_not_add_the_section_with_the_portal_url_memoized_for_the_previous_environment() {
+        when(environmentRepository.findAll()).thenReturn(new LinkedHashSet<>(List.of(Environment.DEFAULT, ANOTHER_ENVIRONMENT)));
+        // ParameterService memoizes portal.url per thread by key only: simulate the value read for DEFAULT
+        doAnswer(invocation -> GraviteeContext.getCurrentParameters().put(Key.PORTAL_URL, "https://default.acme.io"))
+            .when(createDefaultPortalNavigationItemsUseCase)
+            .ensureApisSection("DEFAULT", "DEFAULT");
+        var memoizedForAnother = new AtomicReference<String>("unset");
+        doAnswer(invocation -> {
+            memoizedForAnother.set(GraviteeContext.getCurrentParameters().get(Key.PORTAL_URL));
+            return null;
+        })
+            .when(createDefaultPortalNavigationItemsUseCase)
+            .ensureApisSection("ANOTHER_ORG", "ANOTHER_ENVIRONMENT");
+
+        assertThat(upgrader.upgrade()).isTrue();
+
+        assertThat(memoizedForAnother.get()).isNull();
     }
 
     @Test

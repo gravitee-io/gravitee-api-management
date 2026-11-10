@@ -18,6 +18,8 @@ package io.gravitee.apim.core.portal_page.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
+import io.gravitee.apim.core.portal.exception.NavigationPortalNotResolvedException;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
@@ -68,8 +70,22 @@ public class PortalNavigationItemDomainService {
     private final ApiCrudService apiCrudService;
     private final PortalNavigationItemSourceDomainService sourceDomainService;
     private final ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
+    private final NavigationPortalDomainService navigationPortalDomainService;
+
+    /**
+     * Creates the items in order. The portal of the items that name none is resolved once, before anything is
+     * written, so a refusal leaves no item of the batch behind.
+     */
+    public List<PortalNavigationItem> createAll(String organizationId, String environmentId, List<CreatePortalNavigationItem> items) {
+        nameOwners(organizationId, environmentId, items);
+        return items
+            .stream()
+            .map(item -> create(organizationId, environmentId, item))
+            .toList();
+    }
 
     public PortalNavigationItem create(String organizationId, String environmentId, CreatePortalNavigationItem createPortalNavigationItem) {
+        nameOwners(organizationId, environmentId, List.of(createPortalNavigationItem));
         int sanitizedOrder = this.sanitizeOrderForInsertion(
             createPortalNavigationItem.getParentId(),
             environmentId,
@@ -196,6 +212,40 @@ public class PortalNavigationItemDomainService {
     }
 
     /**
+     * The model default reference means the caller did not name the item's portal: it is stored on the portal
+     * the console writes to, which refuses a parent of another portal. PORTAL-345 removes that default.
+     */
+    private void nameOwners(String organizationId, String environmentId, List<CreatePortalNavigationItem> items) {
+        var unnamed = items
+            .stream()
+            .filter(item -> NavigationItemReference.PortalReference.DEFAULT.equals(item.getReference()))
+            .toList();
+        if (unnamed.isEmpty()) {
+            return;
+        }
+        var portal = navigationPortalDomainService.resolveReference(organizationId, environmentId);
+        for (var item : unnamed) {
+            if (
+                item.getParentId() != null &&
+                belongsToAnotherPortal(queryService.findByIdAndEnvironmentId(environmentId, item.getParentId()), portal)
+            ) {
+                throw NavigationPortalNotResolvedException.foreignDestination(environmentId);
+            }
+        }
+        unnamed.forEach(item -> item.setReference(portal));
+    }
+
+    /** A legacy parent, still on the zero UUID, belongs to no portal in particular. */
+    private static boolean belongsToAnotherPortal(@Nullable PortalNavigationItem parent, NavigationItemReference.PortalReference portal) {
+        return (
+            parent != null &&
+            parent.getReference() instanceof NavigationItemReference.PortalReference parentPortal &&
+            !NavigationItemReference.PortalReference.DEFAULT.equals(parentPortal) &&
+            !parentPortal.equals(portal)
+        );
+    }
+
+    /**
      * At root level the sibling set must match what the navigation actually renders side by side, which
      * is every root in the area except the API subtrees spliced in elsewhere — not the rows sharing an
      * identical reference. The reference-scoped query cannot express that: it matches on exact
@@ -316,6 +366,7 @@ public class PortalNavigationItemDomainService {
         boolean ownerFixed
     ) {
         var resolved = requested.toBuilder().renderedParentId(null).reference(null).build();
+        refuseMoveToAnotherPortal(requested, existing);
         if (!apiOwnedNavigationDomainService.isDocumentation(existing)) {
             return resolved;
         }
@@ -344,12 +395,47 @@ public class PortalNavigationItemDomainService {
     }
 
     /**
+     * An API item is left to {@link #newOwnerAt}. A row still on the zero UUID belongs to the portal the console
+     * writes to, whether it is the item or its new parent: a lookup is only needed in that case.
+     */
+    private void refuseMoveToAnotherPortal(UpdatePortalNavigationItem requested, PortalNavigationItem existing) {
+        if (
+            !(existing.getReference() instanceof NavigationItemReference.PortalReference itemPortal) ||
+            requested.getParentId() == null ||
+            requested.getParentId().equals(existing.getParentId())
+        ) {
+            return;
+        }
+        var environmentId = existing.getEnvironmentId();
+        var parent = queryService.findByIdAndEnvironmentId(environmentId, requested.getParentId());
+        if (
+            parent == null ||
+            !(parent.getReference() instanceof NavigationItemReference.PortalReference parentPortal) ||
+            parentPortal.equals(itemPortal)
+        ) {
+            return;
+        }
+        var itemIsLegacy = NavigationItemReference.PortalReference.DEFAULT.equals(itemPortal);
+        var parentIsLegacy = NavigationItemReference.PortalReference.DEFAULT.equals(parentPortal);
+        if (
+            (itemIsLegacy || parentIsLegacy) &&
+            navigationPortalDomainService
+                .resolveReference(existing.getOrganizationId(), environmentId)
+                .equals(itemIsLegacy ? parentPortal : itemPortal)
+        ) {
+            return;
+        }
+        throw NavigationPortalNotResolvedException.foreignDestination(environmentId);
+    }
+
+    /**
      * @return the owner the item takes at the destination, null when it keeps the one it has. An item of the
      *         portal stays with its portal wherever it goes in the portal: only an API takes or gives an item,
-     *         and an item an API gives up joins the portal of the parent it lands under.
+     *         and an item an API gives up joins the default portal, the only one the console manages.
+     * @throws NavigationPortalNotResolvedException when that item lands under a folder of another portal
      */
     @Nullable
-    private static NavigationItemReference newOwnerAt(
+    private NavigationItemReference newOwnerAt(
         DocumentationDestination destination,
         @Nullable PortalNavigationItem parent,
         PortalNavigationItem existing
@@ -360,9 +446,11 @@ public class PortalNavigationItemDomainService {
         if (!(existing.getReference() instanceof NavigationItemReference.ApiReference)) {
             return null;
         }
-        return parent != null && parent.getReference() instanceof NavigationItemReference.PortalReference
-            ? parent.getReference()
-            : NavigationItemReference.defaultReference();
+        var defaultPortal = navigationPortalDomainService.resolveReference(existing.getOrganizationId(), existing.getEnvironmentId());
+        if (belongsToAnotherPortal(parent, defaultPortal)) {
+            throw NavigationPortalNotResolvedException.foreignDestination(existing.getEnvironmentId());
+        }
+        return defaultPortal;
     }
 
     public PortalNavigationItem update(UpdatePortalNavigationItem toUpdate, PortalNavigationItem originalItem) {
