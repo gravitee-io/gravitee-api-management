@@ -30,11 +30,14 @@ import io.gravitee.gateway.handlers.api.services.ApiKeyCacheService;
 import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
+import io.gravitee.gateway.services.sync.process.distributed.localversion.NoopLocalVersionResolver;
+import io.gravitee.gateway.services.sync.process.distributed.localversion.SubscriptionLocalVersions;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
+import io.reactivex.rxjava3.core.Single;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
@@ -95,7 +98,8 @@ class ApiProductSubscriptionRefresherTest {
             subscriptionService,
             apiKeyService,
             BULK_ITEMS,
-            CHUNK_SIZE
+            CHUNK_SIZE,
+            new NoopLocalVersionResolver()
         );
     }
 
@@ -171,6 +175,42 @@ class ApiProductSubscriptionRefresherTest {
         }
 
         @Test
+        void does_not_register_a_subscription_kept_paused_locally() throws TechnicalException {
+            var localCut = new ApiProductSubscriptionRefresher(
+                subscriptionRepository,
+                apiKeyRepository,
+                subscriptionMapper,
+                apiKeyMapper,
+                subscriptionService,
+                apiKeyService,
+                BULK_ITEMS,
+                CHUNK_SIZE,
+                new NoopLocalVersionResolver() {
+                    @Override
+                    public SubscriptionLocalVersions subscriptionLocalVersions() {
+                        return subscriptions ->
+                            Single.just(
+                                subscriptions
+                                    .stream()
+                                    .filter(s -> !"sub-paused".equals(s.getId()))
+                                    .toList()
+                            );
+                    }
+                }
+            );
+            var repoPaused = productSubscription("sub-paused", PLAN_1, ENV_1);
+            var repoOther = productSubscription(SUB_1, PLAN_1, ENV_1);
+            var gatewayOther = Subscription.builder().id(SUB_1).api(API_1).plan(PLAN_1).build();
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoPaused, repoOther));
+            when(subscriptionMapper.to(repoOther)).thenReturn(List.of(gatewayOther));
+
+            localCut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
+
+            verify(subscriptionService).register(gatewayOther);
+            verify(subscriptionMapper, never()).to(repoPaused);
+        }
+
+        @Test
         void does_not_call_api_key_repository_when_no_subscriptions() throws TechnicalException {
             when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of());
 
@@ -193,7 +233,8 @@ class ApiProductSubscriptionRefresherTest {
                 subscriptionService,
                 apiKeyService,
                 BULK_ITEMS,
-                3 // small chunk size to force chunking with 5 subs
+                3, // small chunk size to force chunking with 5 subs
+                new NoopLocalVersionResolver()
             );
 
             var repoSubs = IntStream.range(0, 5)

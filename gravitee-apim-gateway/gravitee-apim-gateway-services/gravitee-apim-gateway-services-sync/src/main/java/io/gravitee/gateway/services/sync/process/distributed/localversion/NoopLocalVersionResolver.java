@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.distributed.localversion;
 import io.gravitee.gateway.dictionary.model.Dictionary;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import java.util.Date;
 
 /**
@@ -43,5 +44,10 @@ public class NoopLocalVersionResolver implements LocalVersionResolver {
     @Override
     public Maybe<Dictionary> resolveUndeployment(final Dictionary dictionary, final Date eventCreatedAt) {
         return Maybe.just(dictionary);
+    }
+
+    @Override
+    public SubscriptionLocalVersions subscriptionLocalVersions() {
+        return Single::just;
     }
 }

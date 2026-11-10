@@ -23,6 +23,8 @@ import static io.gravitee.repository.management.model.Subscription.Status.PENDIN
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
+import io.gravitee.gateway.services.sync.process.distributed.localversion.LocalVersionResolver;
+import io.gravitee.gateway.services.sync.process.distributed.localversion.SubscriptionLocalVersions;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
@@ -46,14 +48,21 @@ public class SubscriptionAppender {
     private final SubscriptionRepository subscriptionRepository;
     private final SubscriptionMapper subscriptionMapper;
     private final int bulkItems;
+    private final LocalVersionResolver localVersionResolver;
 
-    public SubscriptionAppender(SubscriptionRepository subscriptionRepository, SubscriptionMapper subscriptionMapper, int bulkItems) {
+    public SubscriptionAppender(
+        SubscriptionRepository subscriptionRepository,
+        SubscriptionMapper subscriptionMapper,
+        int bulkItems,
+        LocalVersionResolver localVersionResolver
+    ) {
         if (bulkItems <= 0) {
             throw new IllegalArgumentException("bulkItems must be > 0 (got " + bulkItems + ")");
         }
         this.subscriptionRepository = subscriptionRepository;
         this.subscriptionMapper = subscriptionMapper;
         this.bulkItems = bulkItems;
+        this.localVersionResolver = localVersionResolver;
     }
 
     /**
@@ -118,6 +127,8 @@ public class SubscriptionAppender {
         // id only — the legacy fallback — and mismatch the (plan, id) cursor).
         var sortable = new SortableBuilder().field("plan").order(Order.ASC).build();
 
+        // A local pause must survive an API deployment or a cold start, which load subscriptions from the control plane.
+        SubscriptionLocalVersions localVersions = localVersionResolver.subscriptionLocalVersions();
         Map<String, List<Subscription>> grouped = new HashMap<>();
         SubscriptionCursor cursor = null;
         try {
@@ -131,7 +142,7 @@ public class SubscriptionAppender {
                 if (page == null || page.isEmpty()) {
                     return grouped;
                 }
-                for (io.gravitee.repository.management.model.Subscription record : page) {
+                for (io.gravitee.repository.management.model.Subscription record : localVersions.resolve(page).blockingGet()) {
                     subscriptionMapper
                         .to(record)
                         .forEach(converted -> {

@@ -20,6 +20,8 @@ import io.gravitee.gateway.services.sync.process.common.deployer.SubscriptionDep
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
+import io.gravitee.gateway.services.sync.process.distributed.localversion.LocalVersionResolver;
+import io.gravitee.gateway.services.sync.process.distributed.localversion.SubscriptionLocalVersions;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.SubscriptionFetcher;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
@@ -51,6 +53,7 @@ public class SubscriptionSynchronizer implements RepositorySynchronizer {
     private final PlanService planCache;
     private final ThreadPoolExecutor syncFetcherExecutor;
     private final ThreadPoolExecutor syncDeployerExecutor;
+    private final LocalVersionResolver localVersionResolver;
 
     @Override
     public Completable synchronize(final Long from, final Long to, final Set<String> environments) {
@@ -58,10 +61,12 @@ public class SubscriptionSynchronizer implements RepositorySynchronizer {
             return Completable.complete();
         } else {
             AtomicLong launchTime = new AtomicLong();
+            SubscriptionLocalVersions localVersions = localVersionResolver.subscriptionLocalVersions();
             return subscriptionFetcher
                 .fetchLatest(from, to, environments)
                 .subscribeOn(Schedulers.from(syncFetcherExecutor))
                 // append per page
+                .concatMapSingle(localVersions::resolve)
                 .flatMap(subscriptions ->
                     Flowable.just(subscriptions)
                         .flatMapIterable(s -> s)

@@ -271,7 +271,8 @@ public class RepositorySyncConfiguration {
         PlanService planCache,
         DeployerFactory deployerFactory,
         @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+        LocalVersionResolver localVersionResolver
     ) {
         return new SubscriptionSynchronizer(
             subscriptionFetcher,
@@ -279,7 +280,8 @@ public class RepositorySyncConfiguration {
             deployerFactory,
             planCache,
             syncFetcherExecutor,
-            syncDeployerExecutor
+            syncDeployerExecutor,
+            localVersionResolver
         );
     }
 
@@ -620,7 +622,8 @@ public class RepositorySyncConfiguration {
             "${services.sync.apikey.subscriptions_chunk_size:" +
                 io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APIKEY_SUBSCRIPTIONS_CHUNK_SIZE +
                 "}"
-        ) int subscriptionsChunkSize
+        ) int subscriptionsChunkSize,
+        LocalVersionResolver localVersionResolver
     ) {
         return new ApiProductSubscriptionRefresher(
             subscriptionRepository,
@@ -630,7 +633,8 @@ public class RepositorySyncConfiguration {
             subscriptionService,
             apiKeyService,
             bulkItems,
-            subscriptionsChunkSize
+            subscriptionsChunkSize,
+            localVersionResolver
         );
     }
 

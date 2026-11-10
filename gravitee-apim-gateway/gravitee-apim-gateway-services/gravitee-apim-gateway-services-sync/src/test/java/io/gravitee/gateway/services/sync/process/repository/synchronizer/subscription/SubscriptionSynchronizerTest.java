@@ -16,8 +16,10 @@
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.subscription;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -28,12 +30,15 @@ import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.SubscriptionDeployer;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
+import io.gravitee.gateway.services.sync.process.distributed.localversion.NoopLocalVersionResolver;
+import io.gravitee.gateway.services.sync.process.distributed.localversion.SubscriptionLocalVersions;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.SubscriptionFetcher;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.repository.management.model.Subscription;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Single;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -80,7 +85,8 @@ class SubscriptionSynchronizerTest {
             deployerFactory,
             planCache,
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
+            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+            new NoopLocalVersionResolver()
         );
         lenient().when(deployerFactory.createSubscriptionDeployer()).thenReturn(subscriptionDeployer);
         lenient().when(subscriptionDeployer.deploy(any())).thenReturn(Completable.complete());
@@ -162,6 +168,44 @@ class SubscriptionSynchronizerTest {
             verify(subscriptionDeployer, org.mockito.Mockito.times(3)).doAfterDeployment(any());
         }
 
+        @Test
+        void should_neither_deploy_nor_undeploy_a_subscription_kept_paused_locally() throws InterruptedException {
+            planCache.register(ApiReactorDeployable.builder().apiId("api").subscribablePlans(Set.of("plan")).build());
+            SubscriptionSynchronizer withLocalPause = new SubscriptionSynchronizer(
+                subscriptionFetcher,
+                new SubscriptionMapper(objectMapper, mock(ApiProductRegistry.class)),
+                deployerFactory,
+                planCache,
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new NoopLocalVersionResolver() {
+                    @Override
+                    public SubscriptionLocalVersions subscriptionLocalVersions() {
+                        return subscriptions ->
+                            Single.just(
+                                subscriptions
+                                    .stream()
+                                    .filter(s -> !"sub-paused".equals(s.getId()))
+                                    .toList()
+                            );
+                    }
+                }
+            );
+            when(subscriptionFetcher.fetchLatest(any(), any(), any())).thenReturn(
+                Flowable.just(List.of(subscription("sub-paused"), subscription("sub-other")))
+            );
+
+            withLocalPause
+                .synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of())
+                .test()
+                .await()
+                .assertComplete();
+
+            verify(subscriptionDeployer).deploy(argThat(d -> "sub-other".equals(d.subscriptions().get(0).getId())));
+            verify(subscriptionDeployer, never()).deploy(argThat(d -> "sub-paused".equals(d.subscriptions().get(0).getId())));
+            verify(subscriptionDeployer, never()).undeploy(any());
+        }
+
         private io.gravitee.repository.management.model.Subscription subscription(String id) {
             io.gravitee.repository.management.model.Subscription s = new io.gravitee.repository.management.model.Subscription();
             s.setId(id);
@@ -191,7 +235,8 @@ class SubscriptionSynchronizerTest {
                 deployerFactory,
                 planCache,
                 new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new NoopLocalVersionResolver()
             );
 
             long sameMs = 7777L;

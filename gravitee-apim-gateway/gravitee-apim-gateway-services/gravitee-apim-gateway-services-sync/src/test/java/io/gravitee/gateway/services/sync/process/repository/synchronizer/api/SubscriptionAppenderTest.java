@@ -28,11 +28,15 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
+import io.gravitee.gateway.services.sync.process.distributed.localversion.NoopLocalVersionResolver;
+import io.gravitee.gateway.services.sync.process.distributed.localversion.SubscriptionLocalVersions;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCursor;
+import io.reactivex.rxjava3.core.Single;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -73,7 +77,7 @@ class SubscriptionAppenderTest {
     @BeforeEach
     public void beforeEach() {
         SubscriptionMapper subscriptionMapper = new SubscriptionMapper(objectMapper, apiProductRegistry);
-        cut = new SubscriptionAppender(subscriptionRepository, subscriptionMapper, BULK_ITEMS);
+        cut = new SubscriptionAppender(subscriptionRepository, subscriptionMapper, BULK_ITEMS, new NoopLocalVersionResolver());
         memoryAppender.reset();
     }
 
@@ -157,6 +161,41 @@ class SubscriptionAppenderTest {
         List<ApiReactorDeployable> deployables = cut.appends(true, List.of(deployable), Set.of("env"));
         assertThat(deployables).hasSize(1);
         assertThat(deployables.get(0).subscriptions()).hasSize(3);
+    }
+
+    @Test
+    void should_not_append_a_subscription_kept_paused_locally_and_page_from_the_last_fetched_one() throws TechnicalException {
+        cut = new SubscriptionAppender(
+            subscriptionRepository,
+            new SubscriptionMapper(objectMapper, apiProductRegistry),
+            BULK_ITEMS,
+            new NoopLocalVersionResolver() {
+                @Override
+                public SubscriptionLocalVersions subscriptionLocalVersions() {
+                    return subscriptions ->
+                        Single.just(
+                            subscriptions
+                                .stream()
+                                .filter(s -> !"sub-b".equals(s.getId()))
+                                .toList()
+                        );
+                }
+            }
+        );
+        ApiReactorDeployable deployable = ApiReactorDeployable.builder()
+            .apiId("api1")
+            .reactableApi(mock(ReactableApi.class))
+            .subscribablePlans(new HashSet<>(Set.of("plan1")))
+            .apiKeyPlans(new HashSet<>(Set.of("plan1")))
+            .build();
+        when(subscriptionRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS))).thenReturn(List.of(sub("sub-a"), sub("sub-b")));
+        when(
+            subscriptionRepository.searchAfter(any(), any(), argThat(cur -> cur != null && "sub-b".equals(cur.id())), eq(BULK_ITEMS))
+        ).thenReturn(List.of(sub("sub-c")));
+
+        List<ApiReactorDeployable> deployables = cut.appends(true, List.of(deployable), Set.of("env"));
+
+        assertThat(deployables.get(0).subscriptions()).extracting(Subscription::getId).containsExactlyInAnyOrder("sub-a", "sub-c");
     }
 
     private static io.gravitee.repository.management.model.Subscription sub(String id) {

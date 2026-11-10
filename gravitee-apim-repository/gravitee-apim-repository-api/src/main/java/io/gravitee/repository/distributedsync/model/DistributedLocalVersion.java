@@ -37,7 +37,10 @@ public class DistributedLocalVersion {
 
     private static final String RECORDS_CLUSTER_ID_SUFFIX = "-break-glass";
 
-    /** {@code deployedAt} of the control plane version edited first. Only a deployment newer than this replaces the local version. */
+    /**
+     * {@code deployedAt} of the control plane version edited first. Only a deployment newer than this replaces the local version.
+     * For a subscription, the time of the local change, compared with the control plane's {@code updatedAt}.
+     */
     private long baseDeployedAt;
     /** Event payload of the control plane version, used by Restore. */
     private String originalPayload;

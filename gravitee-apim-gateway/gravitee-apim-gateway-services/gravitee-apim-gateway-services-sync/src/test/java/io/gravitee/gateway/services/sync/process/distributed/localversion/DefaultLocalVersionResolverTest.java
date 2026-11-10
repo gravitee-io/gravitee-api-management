@@ -17,9 +17,13 @@ package io.gravitee.gateway.services.sync.process.distributed.localversion;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,9 +41,14 @@ import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedLocalVersion;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
+import io.gravitee.repository.management.model.Subscription;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -70,7 +79,7 @@ class DefaultLocalVersionResolverTest {
 
     @BeforeEach
     void setUp() {
-        when(clusterManager.clusterId()).thenReturn(CLUSTER);
+        lenient().when(clusterManager.clusterId()).thenReturn(CLUSTER);
         lenient().when(repository.createOrUpdate(any())).thenReturn(Completable.complete());
         cut = new DefaultLocalVersionResolver(
             repository,
@@ -242,6 +251,110 @@ class DefaultLocalVersionResolverTest {
                 .test()
                 .assertValue(resolved -> resolved.getDeployedAt().getTime() == BASE + 1);
             verify(repository, never()).createOrUpdate(any());
+        }
+    }
+
+    @Nested
+    class SubscriptionResolution {
+
+        private Subscription subscription(final String id, final Date updatedAt) {
+            var subscription = new Subscription();
+            subscription.setId(id);
+            subscription.setStatus(Subscription.Status.ACCEPTED);
+            subscription.setUpdatedAt(updatedAt);
+            return subscription;
+        }
+
+        private void givenLocalVersions(final String... subscriptionIds) throws Exception {
+            var record = objectMapper.writeValueAsString(DistributedLocalVersion.builder().baseDeployedAt(BASE).running(false).build());
+            var events = new ArrayList<DistributedEvent>();
+            for (String id : subscriptionIds) {
+                events.add(DistributedEvent.builder().id(id).payload(record).syncAction(DistributedSyncAction.DEPLOY).build());
+            }
+            when(
+                repository.searchAll(
+                    argThat(
+                        criteria ->
+                            RECORDS_CLUSTER.equals(criteria.getClusterId()) &&
+                            criteria.getType() == DistributedEventType.SUBSCRIPTION &&
+                            Set.of(DistributedSyncAction.DEPLOY).equals(criteria.getSyncActions())
+                    ),
+                    anyLong()
+                )
+            ).thenReturn(Flowable.fromIterable(events));
+        }
+
+        @Test
+        void should_keep_every_subscription_when_there_is_no_local_version() throws Exception {
+            givenLocalVersions();
+            var subscriptions = List.of(subscription("sub-1", new Date(BASE)), subscription("sub-2", new Date(BASE)));
+
+            cut.subscriptionLocalVersions().resolve(subscriptions).test().assertValue(subscriptions);
+        }
+
+        @Test
+        void should_drop_a_subscription_the_control_plane_has_not_changed_since_the_local_change() throws Exception {
+            givenLocalVersions("sub-paused");
+            var untouched = subscription("sub-1", new Date(BASE));
+
+            cut
+                .subscriptionLocalVersions()
+                .resolve(List.of(untouched, subscription("sub-paused", new Date(BASE - 60_000))))
+                .test()
+                .assertValue(List.of(untouched));
+            verify(repository, never()).createOrUpdate(any());
+        }
+
+        @Test
+        void should_keep_a_subscription_and_close_its_local_version_when_the_control_plane_changed_it_later() throws Exception {
+            givenLocalVersions("sub-paused");
+            var changedOnControlPlane = subscription("sub-paused", new Date(BASE + 60_000));
+
+            cut.subscriptionLocalVersions().resolve(List.of(changedOnControlPlane)).test().assertValue(List.of(changedOnControlPlane));
+
+            var closed = ArgumentCaptor.forClass(DistributedEvent.class);
+            verify(repository).createOrUpdate(closed.capture());
+            assertThat(closed.getValue().getClusterId()).isEqualTo(RECORDS_CLUSTER);
+            assertThat(closed.getValue().getType()).isEqualTo(DistributedEventType.SUBSCRIPTION);
+            assertThat(closed.getValue().getId()).isEqualTo("sub-paused");
+            assertThat(closed.getValue().getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
+        }
+
+        @Test
+        void should_drop_a_subscription_with_a_local_version_when_the_control_plane_gives_no_date() throws Exception {
+            givenLocalVersions("sub-paused");
+
+            cut.subscriptionLocalVersions().resolve(List.of(subscription("sub-paused", null))).test().assertValue(List.of());
+        }
+
+        @Test
+        void should_read_local_versions_once_for_every_page_of_a_load() throws Exception {
+            givenLocalVersions("sub-paused");
+            var localVersions = cut.subscriptionLocalVersions();
+            var untouched = subscription("sub-1", new Date(BASE));
+
+            localVersions.resolve(List.of(untouched)).test().assertValue(List.of(untouched));
+            localVersions.resolve(List.of(subscription("sub-paused", new Date(BASE)))).test().assertValue(List.of());
+
+            verify(repository, times(1)).searchAll(any(), anyLong());
+        }
+
+        @Test
+        void should_not_read_local_versions_when_there_are_no_subscriptions() {
+            cut.subscriptionLocalVersions().resolve(List.of()).test().assertValue(List.of());
+
+            verifyNoInteractions(repository);
+        }
+
+        @Test
+        void should_fail_rather_than_apply_subscriptions_when_local_versions_cannot_be_read() {
+            when(repository.searchAll(any(), anyLong())).thenReturn(Flowable.error(new RuntimeException("redis down")));
+
+            cut
+                .subscriptionLocalVersions()
+                .resolve(List.of(subscription("sub-1", new Date(BASE))))
+                .test()
+                .assertError(RuntimeException.class);
         }
     }
 }

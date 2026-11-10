@@ -26,6 +26,8 @@ import io.gravitee.gateway.handlers.api.services.ApiKeyCacheService;
 import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
+import io.gravitee.gateway.services.sync.process.distributed.localversion.LocalVersionResolver;
+import io.gravitee.gateway.services.sync.process.distributed.localversion.SubscriptionLocalVersions;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
@@ -69,6 +71,7 @@ public class ApiProductSubscriptionRefresher {
     private final ApiKeyCacheService apiKeyService;
     private final int bulkItems;
     private final int subscriptionsChunkSize;
+    private final LocalVersionResolver localVersionResolver;
 
     public ApiProductSubscriptionRefresher(
         SubscriptionRepository subscriptionRepository,
@@ -78,7 +81,8 @@ public class ApiProductSubscriptionRefresher {
         SubscriptionCacheService subscriptionService,
         ApiKeyCacheService apiKeyService,
         int bulkItems,
-        int subscriptionsChunkSize
+        int subscriptionsChunkSize,
+        LocalVersionResolver localVersionResolver
     ) {
         if (bulkItems <= 0) {
             throw new IllegalArgumentException("bulkItems must be > 0 (got " + bulkItems + ")");
@@ -94,6 +98,7 @@ public class ApiProductSubscriptionRefresher {
         this.apiKeyService = apiKeyService;
         this.bulkItems = bulkItems;
         this.subscriptionsChunkSize = subscriptionsChunkSize;
+        this.localVersionResolver = localVersionResolver;
     }
 
     /**
@@ -183,6 +188,8 @@ public class ApiProductSubscriptionRefresher {
             .statuses(INCREMENTAL_STATUS)
             .build();
         var sortable = new SortableBuilder().field("plan").order(Order.ASC).build();
+        // A local pause must survive a product deployment or a cold start, which load subscriptions from the control plane.
+        SubscriptionLocalVersions localVersions = localVersionResolver.subscriptionLocalVersions();
 
         SubscriptionCursor cursor = null;
         try {
@@ -196,7 +203,9 @@ public class ApiProductSubscriptionRefresher {
                 if (page == null || page.isEmpty()) {
                     return;
                 }
-                List<Subscription> converted = page
+                List<Subscription> converted = localVersions
+                    .resolve(page)
+                    .blockingGet()
                     .stream()
                     .flatMap(record -> subscriptionMapper.to(record).stream())
                     .peek(subscription -> subscription.setForceDispatch(true))

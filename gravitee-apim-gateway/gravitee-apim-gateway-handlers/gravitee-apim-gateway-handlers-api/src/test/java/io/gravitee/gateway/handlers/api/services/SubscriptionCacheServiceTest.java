@@ -555,6 +555,47 @@ class SubscriptionCacheServiceTest {
         }
 
         @Test
+        void should_not_resolve_api_key_when_its_subscription_is_re_registered_as_paused() {
+            Subscription accepted = buildSubscription(
+                SUB_ID,
+                API_ID,
+                s -> {},
+                PLAN_ID,
+                io.gravitee.repository.management.model.Subscription.Status.ACCEPTED
+            );
+            subscriptionService.register(accepted);
+            ApiKey apiKey = new ApiKey();
+            apiKey.setSubscription(SUB_ID);
+            when(apiKeyService.getByApiAndKey(API_ID, "apiKeyValue")).thenReturn(Optional.of(apiKey));
+            SecurityToken securityToken = SecurityToken.forApiKey("apiKeyValue");
+            assertThat(subscriptionService.getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID)).contains(accepted);
+
+            Subscription paused = buildSubscription(
+                SUB_ID,
+                API_ID,
+                s -> {},
+                PLAN_ID,
+                io.gravitee.repository.management.model.Subscription.Status.PAUSED
+            );
+            subscriptionService.register(paused);
+
+            assertThat(subscriptionService.getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID)).isEmpty();
+            assertThat(subscriptionService.getById(SUB_ID)).isEmpty();
+        }
+
+        @Test
+        void should_not_resolve_client_id_when_its_subscription_is_re_registered_as_paused() {
+            subscriptionService.register(buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID));
+
+            Subscription paused = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
+            paused.setStatus(io.gravitee.repository.management.model.Subscription.Status.PAUSED.name());
+            subscriptionService.register(paused);
+
+            assertThat(subscriptionService.getByApiAndSecurityToken(API_ID, SecurityToken.forClientId(CLIENT_ID), PLAN_ID)).isEmpty();
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isEmpty();
+        }
+
+        @Test
         void should_evict_stale_client_id_when_unregister_candidate_has_different_client_id() {
             // Register with current clientId
             Subscription registered = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, "clientId-current", PLAN_ID);

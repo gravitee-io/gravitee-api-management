@@ -35,4 +35,9 @@ public interface LocalVersionResolver {
     Maybe<Dictionary> resolveDeployment(Dictionary dictionary);
 
     Maybe<Dictionary> resolveUndeployment(Dictionary dictionary, Date eventCreatedAt);
+
+    /**
+     * To call once per sync cycle or API deployment: local subscription pauses are rare, so they are read once for all its pages.
+     */
+    SubscriptionLocalVersions subscriptionLocalVersions();
 }
