@@ -17,14 +17,41 @@ package fixtures.core.model;
 
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 
 public class PortalFixtures {
 
     private PortalFixtures() {}
 
     public static final PortalId PORTAL_ID = PortalId.of("00000000-0000-0000-0000-0000000000a1");
+    public static final URL PORTAL_URL = url("https://portal.example.com/next");
 
     public static Portal aPortal() {
-        return Portal.of(PORTAL_ID, "environment-id", "organization-id", "Default Portal");
+        return aPortal(PORTAL_ID, "environment-id", "organization-id", "Default Portal");
+    }
+
+    public static Portal aPortal(PortalId id, String environmentId, String organizationId, String name) {
+        return aPortal(id, environmentId, organizationId, name, PortalNavigationStructure.empty());
+    }
+
+    public static Portal aPortal(
+        PortalId id,
+        String environmentId,
+        String organizationId,
+        String name,
+        PortalNavigationStructure navigationStructure
+    ) {
+        return Portal.of(id, environmentId, organizationId, name, navigationStructure, null, false, PORTAL_URL);
+    }
+
+    private static URL url(String value) {
+        try {
+            return URI.create(value).toURL();
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 }

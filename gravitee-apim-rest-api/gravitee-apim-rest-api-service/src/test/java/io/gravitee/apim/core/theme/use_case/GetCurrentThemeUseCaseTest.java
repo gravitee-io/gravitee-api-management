@@ -18,6 +18,7 @@ package io.gravitee.apim.core.theme.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import fixtures.core.model.PortalFixtures;
 import inmemory.InMemoryAlternative;
 import inmemory.ParametersDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
@@ -254,7 +255,12 @@ public class GetCurrentThemeUseCaseTest {
     }
 
     private Portal aPortalIn(String environmentId) {
-        return Portal.of(PortalId.of("00000000-0000-0000-0000-0000000000a1"), environmentId, "organization-id", "Default Portal");
+        return PortalFixtures.aPortal(
+            PortalId.of("00000000-0000-0000-0000-0000000000a1"),
+            environmentId,
+            "organization-id",
+            "Default Portal"
+        );
     }
 
     private Theme aPortalTheme(boolean enabled) {

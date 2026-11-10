@@ -18,7 +18,9 @@ package io.gravitee.apim.rest.api.automation.mapper;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal.use_case.ValidatePortalUseCase;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.rest.api.automation.model.Errors;
 import io.gravitee.apim.rest.api.automation.model.PortalNavigationPath;
@@ -32,8 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -50,14 +50,44 @@ public interface PortalMapper {
         String activeThemeHrid,
         List<Validator.Error> errors
     ) {
-        var state = new PortalState(
-            portal.getId() != null ? portal.getId().toString() : null,
+        return stateOf(
+            portal.getId(),
             portal.getEnvironmentId(),
             portal.getOrganizationId(),
-            toErrors(errors)
+            portal.getName(),
+            hrid,
+            structure,
+            activeThemeHrid,
+            errors
         );
+    }
+
+    default PortalState toPortalState(ValidatePortalUseCase.Output dryRun, String environmentId, String organizationId, String hrid) {
+        return stateOf(
+            dryRun.portalId(),
+            environmentId,
+            organizationId,
+            dryRun.name(),
+            hrid,
+            dryRun.structure(),
+            dryRun.activeThemeHrid(),
+            dryRun.errors()
+        );
+    }
+
+    private PortalState stateOf(
+        PortalId portalId,
+        String environmentId,
+        String organizationId,
+        String name,
+        String hrid,
+        io.gravitee.apim.core.portal.model.PortalNavigationStructure structure,
+        String activeThemeHrid,
+        List<Validator.Error> errors
+    ) {
+        var state = new PortalState(portalId != null ? portalId.toString() : null, environmentId, organizationId, toErrors(errors));
         state.setHrid(hrid);
-        mapPortalToState(portal, state);
+        state.setName(name);
         var wireStructure = new PortalNavigationStructure();
         structure.areas().forEach((area, paths) -> writeWireArea(wireStructure, area, toApiNavigation(paths)));
         state.setStructure(wireStructure);
@@ -86,16 +116,6 @@ public interface PortalMapper {
         wire.setWarning(validationErrors.stream().filter(Validator.Error::isWarning).map(Validator.Error::getMessage).toList());
         return wire;
     }
-
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "environmentId", ignore = true)
-    @Mapping(target = "organizationId", ignore = true)
-    @Mapping(target = "errors", ignore = true)
-    @Mapping(target = "hrid", ignore = true)
-    @Mapping(target = "navigation", ignore = true)
-    @Mapping(target = "structure", ignore = true)
-    @Mapping(target = "activeThemeHrid", ignore = true)
-    void mapPortalToState(Portal portal, @MappingTarget PortalState state);
 
     default io.gravitee.apim.core.portal.model.PortalNavigationStructure toCoreStructure(PortalSpec spec) {
         Map<PortalArea, List<NavigationPath>> areas = new EnumMap<>(PortalArea.class);

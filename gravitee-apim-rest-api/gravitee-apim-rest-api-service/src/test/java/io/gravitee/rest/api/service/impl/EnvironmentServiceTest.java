@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
 import io.gravitee.apim.core.shared_policy_group.use_case.InitializeSharedPolicyGroupUseCase;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -85,6 +86,9 @@ public class EnvironmentServiceTest {
 
     @Mock
     private MetadataService mockMetadataService;
+
+    @Mock
+    private DefaultPortalDomainService mockDefaultPortalDomainService;
 
     @AfterEach
     void afterEach() {
@@ -238,6 +242,40 @@ public class EnvironmentServiceTest {
         }
 
         @Test
+        void should_ensure_default_portal_when_creating_environment() throws TechnicalException {
+            when(mockEnvironmentRepository.findById("env_id")).thenReturn(Optional.empty());
+            when(mockEnvironmentRepository.create(any())).thenReturn(getEnvironment("env_id", List.of("envhrid")));
+
+            cut.createOrUpdate("DEFAULT", "env_id", anUpdateEnvironmentEntity());
+
+            verify(mockDefaultPortalDomainService).ensureDefault("DEFAULT", "env_id");
+        }
+
+        @Test
+        void should_not_ensure_default_portal_when_updating_existing_environment() throws TechnicalException {
+            when(mockEnvironmentRepository.findById("env_id")).thenReturn(Optional.of(getEnvironment("env_id", List.of("envhrid"))));
+            when(mockEnvironmentRepository.update(any())).thenReturn(getEnvironment("env_id", List.of("envhrid")));
+
+            cut.createOrUpdate("DEFAULT", "env_id", anUpdateEnvironmentEntity());
+
+            verify(mockDefaultPortalDomainService, never()).ensureDefault(any(), any());
+        }
+
+        @Test
+        void should_ensure_default_portal_only_on_the_creation_call_when_creating_environment_twice() throws TechnicalException {
+            when(mockEnvironmentRepository.findById("env_id"))
+                .thenReturn(Optional.empty())
+                .thenReturn(Optional.of(getEnvironment("env_id", List.of("envhrid"))));
+            when(mockEnvironmentRepository.create(any())).thenReturn(getEnvironment("env_id", List.of("envhrid")));
+            when(mockEnvironmentRepository.update(any())).thenReturn(getEnvironment("env_id", List.of("envhrid")));
+
+            cut.createOrUpdate("DEFAULT", "env_id", anUpdateEnvironmentEntity());
+            cut.createOrUpdate("DEFAULT", "env_id", anUpdateEnvironmentEntity());
+
+            verify(mockDefaultPortalDomainService, times(1)).ensureDefault("DEFAULT", "env_id");
+        }
+
+        @Test
         void shouldHaveBadOrganizationExceptionWhenNoOrganizationInEntity() {
             when(mockOrganizationService.findById("UNKNOWN")).thenThrow(new OrganizationNotFoundException("UNKNOWN"));
 
@@ -275,6 +313,29 @@ public class EnvironmentServiceTest {
         }
 
         @Test
+        void should_ensure_default_portal_when_initializing_default_environment() throws TechnicalException {
+            when(mockEnvironmentRepository.findById(eq(GraviteeContext.getDefaultEnvironment()))).thenReturn(Optional.empty());
+
+            cut.getDefaultOrInitialize();
+
+            verify(mockDefaultPortalDomainService).ensureDefault(
+                GraviteeContext.getDefaultOrganization(),
+                GraviteeContext.getDefaultEnvironment()
+            );
+        }
+
+        @Test
+        void should_not_ensure_default_portal_when_default_environment_exists() throws TechnicalException {
+            Environment existingDefault = new Environment();
+            existingDefault.setId(GraviteeContext.getDefaultEnvironment());
+            when(mockEnvironmentRepository.findById(eq(GraviteeContext.getDefaultEnvironment()))).thenReturn(Optional.of(existingDefault));
+
+            cut.getDefaultOrInitialize();
+
+            verify(mockDefaultPortalDomainService, never()).ensureDefault(any(), any());
+        }
+
+        @Test
         void shouldCatchExceptionIfThrow() throws TechnicalException {
             when(mockEnvironmentRepository.findById(eq(GraviteeContext.getDefaultEnvironment()))).thenThrow(new TechnicalException(""));
 
@@ -289,6 +350,13 @@ public class EnvironmentServiceTest {
         envSet.add(getEnvironment("env1", List.of("another_hrid")));
 
         return envSet;
+    }
+
+    private UpdateEnvironmentEntity anUpdateEnvironmentEntity() {
+        UpdateEnvironmentEntity entity = new UpdateEnvironmentEntity();
+        entity.setHrids(List.of("envhrid"));
+        entity.setName("env_name");
+        return entity;
     }
 
     private Environment getEnvironment(String envId, List<String> hrids) {

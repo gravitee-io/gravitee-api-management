@@ -28,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.PortalFixtures;
 import inmemory.PortalCrudServiceInMemory;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
@@ -82,7 +83,7 @@ class PortalsResourceTest extends AbstractResourceTest {
         void should_return_populated_state_without_calling_use_case() {
             when(validatePortalUseCase.execute(any())).thenAnswer(inv -> {
                 var input = (CreateOrUpdatePortalUseCase.Input) inv.getArgument(0);
-                return new CreateOrUpdatePortalUseCase.Output(input.portal(), input.structure(), null, List.of());
+                return new ValidatePortalUseCase.Output(input.portalId(), input.name(), input.structure(), null, List.of());
             });
 
             try (
@@ -110,7 +111,7 @@ class PortalsResourceTest extends AbstractResourceTest {
         void should_echo_navigation_in_dry_run() {
             when(validatePortalUseCase.execute(any())).thenAnswer(inv -> {
                 var input = (CreateOrUpdatePortalUseCase.Input) inv.getArgument(0);
-                return new CreateOrUpdatePortalUseCase.Output(input.portal(), input.structure(), null, List.of());
+                return new ValidatePortalUseCase.Output(input.portalId(), input.name(), input.structure(), null, List.of());
             });
 
             try (
@@ -152,7 +153,12 @@ class PortalsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_create_or_update_portal() {
-            var persisted = Portal.of(PortalId.of("00000000-0000-0000-0000-0000000000a1"), ENVIRONMENT, ORGANIZATION, "Default Portal");
+            var persisted = PortalFixtures.aPortal(
+                PortalId.of("00000000-0000-0000-0000-0000000000a1"),
+                ENVIRONMENT,
+                ORGANIZATION,
+                "Default Portal"
+            );
             when(createOrUpdatePortalUseCase.execute(any())).thenReturn(
                 new CreateOrUpdatePortalUseCase.Output(persisted, PortalNavigationStructure.empty(), null, List.of())
             );
@@ -175,7 +181,12 @@ class PortalsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_pass_navigation_to_use_case_and_echo_in_response() {
-            var persisted = Portal.of(PortalId.of("00000000-0000-0000-0000-0000000000a1"), ENVIRONMENT, ORGANIZATION, "Default Portal");
+            var persisted = PortalFixtures.aPortal(
+                PortalId.of("00000000-0000-0000-0000-0000000000a1"),
+                ENVIRONMENT,
+                ORGANIZATION,
+                "Default Portal"
+            );
             var echoed = List.of(
                 new NavigationPath("/projects", null),
                 new NavigationPath("/projects/alpha", "Alpha"),
@@ -214,7 +225,12 @@ class PortalsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_accept_structure_field_and_use_it_as_top_navbar() {
-            var persisted = Portal.of(PortalId.of("00000000-0000-0000-0000-0000000000a1"), ENVIRONMENT, ORGANIZATION, "Default Portal");
+            var persisted = PortalFixtures.aPortal(
+                PortalId.of("00000000-0000-0000-0000-0000000000a1"),
+                ENVIRONMENT,
+                ORGANIZATION,
+                "Default Portal"
+            );
             when(createOrUpdatePortalUseCase.execute(any())).thenAnswer(inv -> {
                 var input = (CreateOrUpdatePortalUseCase.Input) inv.getArgument(0);
                 return new CreateOrUpdatePortalUseCase.Output(persisted, input.structure(), null, List.of());
@@ -252,7 +268,12 @@ class PortalsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_echo_both_structure_and_deprecated_navigation_in_response() {
-            var persisted = Portal.of(PortalId.of("00000000-0000-0000-0000-0000000000a1"), ENVIRONMENT, ORGANIZATION, "Default Portal");
+            var persisted = PortalFixtures.aPortal(
+                PortalId.of("00000000-0000-0000-0000-0000000000a1"),
+                ENVIRONMENT,
+                ORGANIZATION,
+                "Default Portal"
+            );
             var echoed = List.of(new NavigationPath("/x", null));
             when(createOrUpdatePortalUseCase.execute(any())).thenReturn(
                 new CreateOrUpdatePortalUseCase.Output(persisted, PortalNavigationStructure.ofTopNavbar(echoed), null, List.of())
@@ -282,13 +303,15 @@ class PortalsResourceTest extends AbstractResourceTest {
         @BeforeEach
         void setUp() {
             var output = new CreateOrUpdatePortalUseCase.Output(
-                Portal.of(portalId, ENVIRONMENT, ORGANIZATION, "Default Portal"),
+                PortalFixtures.aPortal(portalId, ENVIRONMENT, ORGANIZATION, "Default Portal"),
                 PortalNavigationStructure.empty(),
                 null,
                 List.of()
             );
             when(createOrUpdatePortalUseCase.execute(any())).thenReturn(output);
-            when(validatePortalUseCase.execute(any())).thenReturn(output);
+            when(validatePortalUseCase.execute(any())).thenReturn(
+                new ValidatePortalUseCase.Output(portalId, "Default Portal", PortalNavigationStructure.empty(), null, List.of())
+            );
         }
 
         @AfterEach
@@ -395,7 +418,7 @@ class PortalsResourceTest extends AbstractResourceTest {
 
         private void givenPortal(String activeThemeId) {
             portalCrudService.initWith(
-                List.of(Portal.of(portalId, ENVIRONMENT, ORGANIZATION, "Default Portal").withActiveThemeId(activeThemeId))
+                List.of(PortalFixtures.aPortal(portalId, ENVIRONMENT, ORGANIZATION, "Default Portal").withActiveThemeId(activeThemeId))
             );
         }
 
