@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.PortalListing;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,6 +27,15 @@ import java.util.Optional;
 public interface PortalListingRepository extends CrudRepository<PortalListing, String> {
     Optional<PortalListing> findByIdAndEnvironmentId(final String portalListingId, final String environmentId) throws TechnicalException;
     List<PortalListing> findAllByPortalIdAndEnvironmentId(final String portalId, final String environmentId) throws TechnicalException;
+    /**
+     * Points every listing of the environment whose portal is outside {@code existingPortalIds} at
+     * {@code portalId}, and changes nothing else on those listings.
+     *
+     * @param existingPortalIds the portals of the environment, never empty
+     * @return the number of listings changed
+     */
+    long updateOrphanPortalIds(final String environmentId, final Collection<String> existingPortalIds, final String portalId)
+        throws TechnicalException;
     void deleteByEnvironmentId(final String environmentId) throws TechnicalException;
     void deleteByOrganizationId(final String organizationId) throws TechnicalException;
 }

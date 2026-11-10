@@ -122,7 +122,16 @@ public class PortalListingRepositoryTest extends AbstractManagementRepositoryTes
         portalListingRepository.deleteByEnvironmentId("environment1");
 
         Set<PortalListing> remaining = portalListingRepository.findAll();
-        assertThat(remaining).extracting(PortalListing::getId).containsExactlyInAnyOrder("portal-listing-4", "portal-listing-5");
+        assertThat(remaining)
+            .extracting(PortalListing::getId)
+            .containsExactlyInAnyOrder(
+                "portal-listing-4",
+                "portal-listing-5",
+                "orphan-listing-zero-uuid",
+                "orphan-listing-dead-portal",
+                "listing-on-existing-portal",
+                "orphan-listing-other-environment"
+            );
     }
 
     @Test
@@ -130,6 +139,64 @@ public class PortalListingRepositoryTest extends AbstractManagementRepositoryTes
         portalListingRepository.deleteByOrganizationId("organization1");
 
         Set<PortalListing> remaining = portalListingRepository.findAll();
-        assertThat(remaining).extracting(PortalListing::getId).containsExactly("portal-listing-5");
+        assertThat(remaining)
+            .extracting(PortalListing::getId)
+            .containsExactlyInAnyOrder(
+                "portal-listing-5",
+                "orphan-listing-zero-uuid",
+                "orphan-listing-dead-portal",
+                "listing-on-existing-portal",
+                "orphan-listing-other-environment"
+            );
+    }
+
+    //////////////////////////////////////
+    ////   ORPHAN PORTAL IDS
+    //////////////////////////////////////
+
+    private static final String ORPHANS_ENV = "environment-orphans";
+    private static final List<String> EXISTING_PORTALS = List.of("existing-portal", "target-portal");
+
+    private String portalIdOf(String listingId) throws Exception {
+        return portalListingRepository.findById(listingId).orElseThrow().getPortalId();
+    }
+
+    @Test
+    public void should_update_orphan_portal_ids() throws Exception {
+        portalListingRepository.updateOrphanPortalIds(ORPHANS_ENV, EXISTING_PORTALS, "target-portal");
+
+        assertThat(portalIdOf("orphan-listing-zero-uuid")).isEqualTo("target-portal");
+        assertThat(portalIdOf("orphan-listing-dead-portal")).isEqualTo("target-portal");
+    }
+
+    @Test
+    public void should_leave_listings_on_an_existing_portal_untouched() throws Exception {
+        portalListingRepository.updateOrphanPortalIds(ORPHANS_ENV, EXISTING_PORTALS, "target-portal");
+
+        assertThat(portalIdOf("listing-on-existing-portal")).isEqualTo("existing-portal");
+    }
+
+    @Test
+    public void should_not_touch_listings_of_another_environment() throws Exception {
+        portalListingRepository.updateOrphanPortalIds(ORPHANS_ENV, EXISTING_PORTALS, "target-portal");
+
+        assertThat(portalIdOf("orphan-listing-other-environment")).isEqualTo("00000000-0000-0000-0000-000000000000");
+    }
+
+    @Test
+    public void should_only_change_the_portal_id() throws Exception {
+        var before = portalListingRepository.findById("orphan-listing-zero-uuid").orElseThrow();
+
+        portalListingRepository.updateOrphanPortalIds(ORPHANS_ENV, EXISTING_PORTALS, "target-portal");
+
+        var after = portalListingRepository.findById("orphan-listing-zero-uuid").orElseThrow();
+        assertThat(after.getPortalId()).isEqualTo("target-portal");
+        assertThat(after).usingRecursiveComparison().ignoringFields("portalId").isEqualTo(before);
+    }
+
+    @Test
+    public void should_return_the_number_of_listings_changed_and_zero_on_a_rerun() throws Exception {
+        assertThat(portalListingRepository.updateOrphanPortalIds(ORPHANS_ENV, EXISTING_PORTALS, "target-portal")).isEqualTo(2L);
+        assertThat(portalListingRepository.updateOrphanPortalIds(ORPHANS_ENV, EXISTING_PORTALS, "target-portal")).isZero();
     }
 }

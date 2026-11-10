@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria
 import io.gravitee.repository.management.model.AutomationTargetReferenceType;
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import io.gravitee.repository.management.model.PortalNavigationReferenceType;
+import java.util.Collection;
 import java.util.List;
 
 public interface PortalNavigationItemRepository extends CrudRepository<PortalNavigationItem, String> {
@@ -60,6 +61,16 @@ public interface PortalNavigationItemRepository extends CrudRepository<PortalNav
      *   its configuration has changed since it was read
      */
     boolean updateConfigurationIfUnchanged(String id, String expectedConfiguration, String configuration) throws TechnicalException;
+
+    /**
+     * Points every item of the environment attached to a portal outside {@code existingPortalIds} at
+     * {@code portalId}, and changes nothing else on those items. Items attached to an API are left alone.
+     *
+     * @param existingPortalIds the portals of the environment, never empty
+     * @return the number of items changed
+     */
+    long updateOrphanPortalReferences(String environmentId, Collection<String> existingPortalIds, String portalId)
+        throws TechnicalException;
 
     void deleteByIds(List<String> ids) throws TechnicalException;
 

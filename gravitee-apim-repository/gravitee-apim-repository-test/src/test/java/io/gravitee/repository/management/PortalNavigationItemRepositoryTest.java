@@ -1361,4 +1361,73 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             portalNavigationItemRepository.delete("automation-reference-none");
         }
     }
+
+    //////////////////////////////////////
+    ////   ORPHAN PORTAL REFERENCES
+    //////////////////////////////////////
+
+    private static final String ORPHANS_ENV = "env-orphan-references";
+    private static final List<String> EXISTING_PORTALS = List.of("existing-portal", "target-portal");
+
+    private PortalNavigationItem storedItem(String id) throws Exception {
+        return portalNavigationItemRepository.findById(id).orElseThrow();
+    }
+
+    @Test
+    public void should_update_orphan_portal_references() throws Exception {
+        portalNavigationItemRepository.updateOrphanPortalReferences(ORPHANS_ENV, EXISTING_PORTALS, "target-portal");
+
+        assertThat(storedItem("orphan-zero-uuid").getReferenceId()).isEqualTo("target-portal");
+        assertThat(storedItem("orphan-homepage").getReferenceId()).isEqualTo("target-portal");
+        assertThat(storedItem("orphan-dead-portal").getReferenceId()).isEqualTo("target-portal");
+    }
+
+    @Test
+    public void should_leave_items_on_an_existing_portal_untouched() throws Exception {
+        portalNavigationItemRepository.updateOrphanPortalReferences(ORPHANS_ENV, EXISTING_PORTALS, "target-portal");
+
+        assertThat(storedItem("on-existing-portal").getReferenceId()).isEqualTo("existing-portal");
+    }
+
+    @Test
+    public void should_not_touch_api_references() throws Exception {
+        portalNavigationItemRepository.updateOrphanPortalReferences(ORPHANS_ENV, EXISTING_PORTALS, "target-portal");
+
+        assertThat(storedItem("on-api").getReferenceType()).isEqualTo(PortalNavigationReferenceType.API);
+        assertThat(storedItem("on-api").getReferenceId()).isEqualTo("some-api");
+    }
+
+    @Test
+    public void should_not_touch_another_environment() throws Exception {
+        portalNavigationItemRepository.updateOrphanPortalReferences(ORPHANS_ENV, EXISTING_PORTALS, "target-portal");
+
+        assertThat(storedItem("orphan-other-environment").getReferenceId()).isEqualTo("00000000-0000-0000-0000-000000000000");
+    }
+
+    @Test
+    public void should_only_change_the_reference() throws Exception {
+        var withCategories = storedItem("orphan-zero-uuid");
+        withCategories.setCategoryIds(List.of("orphan-category"));
+        portalNavigationItemRepository.update(withCategories);
+        var before = storedItem("orphan-zero-uuid");
+
+        try {
+            portalNavigationItemRepository.updateOrphanPortalReferences(ORPHANS_ENV, EXISTING_PORTALS, "target-portal");
+
+            var after = storedItem("orphan-zero-uuid");
+            assertThat(after.getReferenceId()).isEqualTo("target-portal");
+            assertThat(after).usingRecursiveComparison().ignoringFields("referenceId").isEqualTo(before);
+        } finally {
+            // Removes the category row too: the JDBC test tear-down does not empty that table.
+            portalNavigationItemRepository.delete("orphan-zero-uuid");
+        }
+    }
+
+    @Test
+    public void should_return_the_number_of_rows_changed_and_zero_on_a_rerun() throws Exception {
+        assertThat(portalNavigationItemRepository.updateOrphanPortalReferences(ORPHANS_ENV, EXISTING_PORTALS, "target-portal")).isEqualTo(
+            3L
+        );
+        assertThat(portalNavigationItemRepository.updateOrphanPortalReferences(ORPHANS_ENV, EXISTING_PORTALS, "target-portal")).isZero();
+    }
 }

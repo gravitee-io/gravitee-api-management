@@ -20,6 +20,8 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PortalListingRepository;
 import io.gravitee.repository.management.model.PortalListing;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import lombok.CustomLog;
@@ -89,6 +91,26 @@ public class JdbcPortalListingRepository extends JdbcAbstractCrudRepository<Port
                 ex,
                 String.format("Failed to find portal listings by portal id (%s) and environment id (%s)", portalId, environmentId)
             );
+        }
+    }
+
+    @Override
+    public long updateOrphanPortalIds(String environmentId, Collection<String> existingPortalIds, String portalId)
+        throws TechnicalException {
+        log.debug("JdbcPortalListingRepository.updateOrphanPortalIds({}, {})", environmentId, portalId);
+        try {
+            var params = new ArrayList<Object>(List.of(portalId, environmentId));
+            params.addAll(existingPortalIds);
+            return jdbcTemplate.update(
+                "update " +
+                    this.tableName +
+                    " set portal_id = ? where environment_id = ? and portal_id not in (" +
+                    getOrm().buildInClause(existingPortalIds) +
+                    ")",
+                params.toArray()
+            );
+        } catch (final Exception ex) {
+            throw handleException(ex, "Failed to update the orphan portal ids of environment: " + environmentId);
         }
     }
 

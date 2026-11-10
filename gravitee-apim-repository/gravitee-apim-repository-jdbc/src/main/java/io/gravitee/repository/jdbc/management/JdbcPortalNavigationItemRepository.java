@@ -32,6 +32,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -157,6 +158,26 @@ public class JdbcPortalNavigationItemRepository
             return rows == 1;
         } catch (Exception ex) {
             throw new TechnicalException("Failed to update the configuration of portal navigation item " + id, ex);
+        }
+    }
+
+    @Override
+    public long updateOrphanPortalReferences(String environmentId, Collection<String> existingPortalIds, String portalId)
+        throws TechnicalException {
+        log.debug("JdbcPortalNavigationItemRepository.updateOrphanPortalReferences({}, {})", environmentId, portalId);
+        try {
+            var params = new ArrayList<Object>(List.of(portalId, environmentId, PortalNavigationReferenceType.PORTAL.name()));
+            params.addAll(existingPortalIds);
+            return jdbcTemplate.update(
+                "update " +
+                    this.tableName +
+                    " set reference_id = ? where environment_id = ? and reference_type = ? and reference_id not in (" +
+                    getOrm().buildInClause(existingPortalIds) +
+                    ")",
+                params.toArray()
+            );
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to update the orphan portal references of environment " + environmentId, ex);
         }
     }
 

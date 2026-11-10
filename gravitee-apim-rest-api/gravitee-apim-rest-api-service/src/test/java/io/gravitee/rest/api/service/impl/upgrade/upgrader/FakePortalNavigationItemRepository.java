@@ -22,6 +22,7 @@ import io.gravitee.repository.management.model.AutomationTargetReferenceType;
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import io.gravitee.repository.management.model.PortalNavigationReferenceType;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -163,6 +164,11 @@ class FakePortalNavigationItemRepository implements PortalNavigationItemReposito
                 return true;
             })
             .orElse(false);
+    }
+
+    @Override
+    public long updateOrphanPortalReferences(String environmentId, Collection<String> existingPortalIds, String portalId) {
+        return 0;
     }
 
     @Override
