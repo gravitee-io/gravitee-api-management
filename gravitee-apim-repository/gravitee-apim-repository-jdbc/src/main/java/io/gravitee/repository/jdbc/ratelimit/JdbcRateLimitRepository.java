@@ -67,7 +67,7 @@ public class JdbcRateLimitRepository implements RateLimitRepository<RateLimit> {
     private static final int MAX_RETRIES = 5;
 
     /** Budget of a whole call, retries included, as the previous 5 seconds transaction timeout, so a request cannot block indefinitely on the row lock. */
-    private static final long TIMEOUT_NANOS = TimeUnit.SECONDS.toNanos(5);
+    private static final long TIMEOUT_SECONDS = 5;
 
     /** SQLState class 23 == integrity constraint violation; a primary-key clash on the seed lands here. */
     private static final String INTEGRITY_VIOLATION_SQLSTATE_CLASS = "23";
@@ -99,7 +99,7 @@ public class JdbcRateLimitRepository implements RateLimitRepository<RateLimit> {
         log.debug("JdbcRateLimitRepository.incrementAndGet({}, {}, {})", key, weight, supplier);
 
         try {
-            return Single.just(incrementWithRetries(key, weight, supplier, System.nanoTime() + TIMEOUT_NANOS));
+            return Single.just(incrementWithRetries(key, weight, supplier, System.nanoTime() + TimeUnit.SECONDS.toNanos(TIMEOUT_SECONDS)));
         } catch (Exception ex) {
             return Single.error(ex);
         }
@@ -251,25 +251,25 @@ public class JdbcRateLimitRepository implements RateLimitRepository<RateLimit> {
     private static int remainingSeconds(String key, long deadline) throws SQLTimeoutException {
         long remaining = deadline - System.nanoTime();
         if (remaining <= 0) {
-            throw new SQLTimeoutException("Rate limit '" + key + "' could not be incremented within the 5 seconds budget");
+            throw new SQLTimeoutException(
+                "Rate limit '" + key + "' could not be incremented within the " + TIMEOUT_SECONDS + " seconds budget"
+            );
         }
-        return (int) Math.max(1, (remaining + TimeUnit.SECONDS.toNanos(1) - 1) / TimeUnit.SECONDS.toNanos(1));
+        return (int) (TimeUnit.NANOSECONDS.toSeconds(remaining - 1) + 1);
     }
 
     private static boolean isIntegrityViolation(SQLException e) {
-        for (SQLException current = e; current != null; current = current.getNextException()) {
-            String sqlState = current.getSQLState();
-            if (sqlState != null && sqlState.startsWith(INTEGRITY_VIOLATION_SQLSTATE_CLASS)) {
-                return true;
-            }
-        }
-        return false;
+        return hasSqlStateClass(e, INTEGRITY_VIOLATION_SQLSTATE_CLASS);
     }
 
     private static boolean isTransientRollback(SQLException e) {
+        return hasSqlStateClass(e, TRANSIENT_ROLLBACK_SQLSTATE_CLASS);
+    }
+
+    private static boolean hasSqlStateClass(SQLException e, String sqlStateClass) {
         for (SQLException current = e; current != null; current = current.getNextException()) {
             String sqlState = current.getSQLState();
-            if (sqlState != null && sqlState.startsWith(TRANSIENT_ROLLBACK_SQLSTATE_CLASS)) {
+            if (sqlState != null && sqlState.startsWith(sqlStateClass)) {
                 return true;
             }
         }

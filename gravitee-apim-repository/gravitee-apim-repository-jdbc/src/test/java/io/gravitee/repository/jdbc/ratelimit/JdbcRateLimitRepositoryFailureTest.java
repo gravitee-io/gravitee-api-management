@@ -33,6 +33,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import javax.sql.DataSource;
@@ -129,6 +130,27 @@ class JdbcRateLimitRepositoryFailureTest {
     }
 
     @Test
+    void tolerates_a_duplicate_key_reported_by_a_chained_exception() {
+        database.insertFailures.add(chainedSqlException(DUPLICATE_KEY_SQLSTATE));
+
+        RateLimit rateLimit = increment();
+
+        assertThat(rateLimit.getCounter()).isEqualTo(COUNTER + 1);
+        assertThat(database.insertCount).isEqualTo(1);
+        assertThat(database.updateCount).isEqualTo(1);
+    }
+
+    @Test
+    void seeds_the_row_in_auto_commit_when_the_pool_hands_out_transactional_connections() {
+        database.autoCommitByDefault = false;
+
+        increment();
+
+        // Otherwise the seed would stay uncommitted, invisible to the locking pass.
+        assertThat(database.seededInAutoCommit).isTrue();
+    }
+
+    @Test
     void rethrows_a_seed_failure_that_is_not_a_duplicate_key() {
         database.insertFailures.add(sqlException(CONNECTION_FAILURE_SQLSTATE));
 
@@ -146,6 +168,17 @@ class JdbcRateLimitRepositoryFailureTest {
         assertThat(rateLimit.getCounter()).isEqualTo(COUNTER + 1);
         assertThat(database.selectCount).isEqualTo(2);
         assertThat(database.rollbackCount).isEqualTo(1);
+    }
+
+    @Test
+    void retries_a_deadlock_reported_by_a_chained_exception() {
+        database.rowPresent = true;
+        database.selectFailures.add(chainedSqlException(DEADLOCK_SQLSTATE));
+
+        RateLimit rateLimit = increment();
+
+        assertThat(rateLimit.getCounter()).isEqualTo(COUNTER + 1);
+        assertThat(database.selectCount).isEqualTo(2);
     }
 
     @Test
@@ -226,6 +259,13 @@ class JdbcRateLimitRepositoryFailureTest {
         return new SQLException("stubbed " + sqlState, sqlState);
     }
 
+    /** Drivers may report the meaningful SQLState only on an exception chained to a generic one. */
+    private static SQLException chainedSqlException(String sqlState) {
+        SQLException wrapper = new SQLException("stubbed wrapper");
+        wrapper.setNextException(sqlException(sqlState));
+        return wrapper;
+    }
+
     /** Unwrap the RxJava wrapper {@code blockingGet} adds around a checked exception. */
     private static SQLException rootFailureOf(ThrowingCallable callable) {
         Throwable thrown = catchThrowable(callable);
@@ -249,6 +289,8 @@ class JdbcRateLimitRepositoryFailureTest {
         private final List<Integer> queryTimeouts = new ArrayList<>();
 
         private boolean rowPresent;
+        private boolean autoCommitByDefault = true;
+        private boolean seededInAutoCommit;
         private boolean alwaysDeadlock;
         private boolean discardInserts;
         private boolean failRollbacks;
@@ -263,7 +305,8 @@ class JdbcRateLimitRepositoryFailureTest {
         @Override
         public Connection answer(InvocationOnMock invocation) throws SQLException {
             Connection connection = mock(Connection.class);
-            when(connection.getAutoCommit()).thenReturn(true);
+            AtomicBoolean autoCommit = new AtomicBoolean(autoCommitByDefault);
+            when(connection.getAutoCommit()).thenAnswer(ignored -> autoCommit.get());
             doAnswer(ignored -> {
                 rollbackCount++;
                 rolledBackBeforeFirstInsert = insertCount == 0;
@@ -274,22 +317,22 @@ class JdbcRateLimitRepositoryFailureTest {
             })
                 .when(connection)
                 .rollback();
-            if (failAutoCommitRestore) {
+            doAnswer(call -> {
+                boolean requested = call.getArgument(0);
                 // Turning auto-commit off to start the transaction works, restoring it afterwards fails.
-                doAnswer(call -> {
-                    if ((boolean) call.getArgument(0)) {
-                        throw sqlException(CONNECTION_FAILURE_SQLSTATE);
-                    }
-                    return null;
-                })
-                    .when(connection)
-                    .setAutoCommit(anyBoolean());
-            }
-            when(connection.prepareStatement(anyString())).thenAnswer(statement -> prepare(statement.getArgument(0)));
+                if (failAutoCommitRestore && requested) {
+                    throw sqlException(CONNECTION_FAILURE_SQLSTATE);
+                }
+                autoCommit.set(requested);
+                return null;
+            })
+                .when(connection)
+                .setAutoCommit(anyBoolean());
+            when(connection.prepareStatement(anyString())).thenAnswer(statement -> prepare(statement.getArgument(0), autoCommit));
             return connection;
         }
 
-        private PreparedStatement prepare(String sql) throws SQLException {
+        private PreparedStatement prepare(String sql, AtomicBoolean autoCommit) throws SQLException {
             PreparedStatement statement = mock(PreparedStatement.class);
             doAnswer(call -> queryTimeouts.add(call.getArgument(0)))
                 .when(statement)
@@ -297,7 +340,7 @@ class JdbcRateLimitRepositoryFailureTest {
             if (sql.startsWith("select")) {
                 when(statement.executeQuery()).thenAnswer(ignored -> executeSelect());
             } else if (sql.startsWith("insert")) {
-                when(statement.executeUpdate()).thenAnswer(ignored -> executeInsert());
+                when(statement.executeUpdate()).thenAnswer(ignored -> executeInsert(autoCommit.get()));
             } else {
                 when(statement.executeUpdate()).thenAnswer(ignored -> {
                     updateCount++;
@@ -325,12 +368,14 @@ class JdbcRateLimitRepositoryFailureTest {
             return resultSet;
         }
 
-        private int executeInsert() throws SQLException {
+        private int executeInsert(boolean inAutoCommit) throws SQLException {
             insertCount++;
+            seededInAutoCommit = inAutoCommit;
             if (!insertFailures.isEmpty()) {
                 SQLException failure = insertFailures.poll();
                 // A duplicate key means another seeder committed the row first.
-                rowPresent = DUPLICATE_KEY_SQLSTATE.equals(failure.getSQLState());
+                SQLException reported = failure.getNextException() != null ? failure.getNextException() : failure;
+                rowPresent = DUPLICATE_KEY_SQLSTATE.equals(reported.getSQLState());
                 throw failure;
             }
             rowPresent = !discardInserts;
