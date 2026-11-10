@@ -30,6 +30,11 @@ annotations:
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
   artifacthub.io/changes: |
+    - kind: added
+      description: "Add `gateway.kafka.backendLogin.threads` and `gateway.kafka.backendLogin.queueCapacity`, rendered as `kafka.backendLogin.*` in the gateway gravitee.yml"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/22482
     - kind: changed
       description: "The gateway readiness probe includes `kafka-readiness` only when `gateway.kafka.enabled` and `gateway.kafka.readiness.enabled` are true; liveness and startup probes are unchanged"
       links:
