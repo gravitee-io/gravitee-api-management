@@ -16,6 +16,7 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { apiProductKeys } from '../../api-products/utils/queryKeys';
 import { createPlan, deletePlan, getPlan, listPlans, transitionPlan, updatePlan } from '../services/plans';
 import type { ManagedPlan, PlanContext, PlanFormValue, PlanStatus, PlanTransitionAction } from '../types/plan';
 import { planFormToPayload } from '../utils/planTransformers';
@@ -86,8 +87,11 @@ function invalidatePlans(qc: ReturnType<typeof useQueryClient>, ctx: PlanContext
     qc.invalidateQueries({ queryKey: [apiPlanKeys.all[0], ctx.type, ctx.entityId] });
     // Create Subscription lists plans under its own key and keeps them for minutes.
     qc.invalidateQueries({ queryKey: apiSubscriptionKeys.plans(envId, ctx) });
+    // The deployment state covers the plans, so the detail drives the Deploy banner.
     if (ctx.type === 'api') {
         qc.invalidateQueries({ queryKey: apiDetailKeys.detail(envId, ctx.entityId) });
+    } else if (ctx.type === 'api-product') {
+        qc.invalidateQueries({ queryKey: apiProductKeys.detail(envId, ctx.entityId) });
     }
 }
 

@@ -13,16 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { Badge, Button, ContextSidebar, ContextToggleButton, Skeleton, useLayoutConfig } from '@gravitee/graphene-core';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Navigate, Outlet, useNavigate, useParams } from 'react-router-dom';
 
 import { ApiProductSidebarNav } from './ApiProductSidebarNav';
+import { DeployBanner, DeployConfirmDialog } from '../../../../shared/components/DeployBanner';
 import { useDetailBasePath } from '../../../../shared/hooks/useDetailBasePath';
+import { notify } from '../../../../shared/notify';
 import { ApiProductDetailContext } from '../../context/ApiProductDetailContext';
 import { useApiProductDetail } from '../../hooks/useApiProductDetail';
 import { useApiProductPermissions, useApiProductResourcePermissions } from '../../hooks/useApiProductPermissions';
+import { deployApiProduct } from '../../services/apiProduct';
 import type { ApiProductListItem } from '../../types/apiProduct';
+import { apiProductKeys } from '../../utils/queryKeys';
 import { SyncStatusBadge } from '../SyncStatusBadge';
 
 function ProductInfoHeader({ product, isLoading }: { product: ApiProductListItem | null; isLoading: boolean }) {
@@ -91,12 +97,30 @@ export function ApiProductDetailLayout() {
     const basePath = useDetailBasePath('api-products', productId);
     const { data: product, isLoading, isError } = useApiProductDetail(productId);
     const { permissionsReady } = useApiProductPermissions(productId);
-    const { canRead: canReadDefinition, isLoading: definitionPermissionsLoading } = useApiProductResourcePermissions(
-        productId,
-        'DEFINITION',
-    );
+    const {
+        canRead: canReadDefinition,
+        canUpdate: canDeploy,
+        isLoading: definitionPermissionsLoading,
+    } = useApiProductResourcePermissions(productId, 'DEFINITION');
     const showResourcesNav = permissionsReady && !definitionPermissionsLoading && canReadDefinition;
+    const env = useEnvironment();
+    const queryClient = useQueryClient();
     const [contextExpanded, setContextExpanded] = useState(true);
+    const [showDeployDialog, setShowDeployDialog] = useState(false);
+
+    const deployMutation = useMutation({
+        mutationFn: () => deployApiProduct(env!.id, productId!),
+        onSuccess: () => {
+            setShowDeployDialog(false);
+            return queryClient.invalidateQueries({ queryKey: apiProductKeys.detail(env!.id, productId!) });
+        },
+        onError: (error: unknown) => {
+            setShowDeployDialog(false);
+            notify.error(error, 'An error occurred while deploying the API Product.');
+        },
+    });
+
+    const showDeployBanner = !isError && product?.deploymentState === 'NEED_REDEPLOY' && canDeploy;
 
     useLayoutConfig(
         {
@@ -118,8 +142,12 @@ export function ApiProductDetailLayout() {
                         : 'Loading…',
                 },
             ],
+            banner: showDeployBanner ? (
+                <DeployBanner subject="API Product" onDeploy={() => setShowDeployDialog(true)} isPending={deployMutation.isPending} />
+            ) : null,
+            bannerSticky: true,
         },
-        [contextExpanded, product, isLoading, basePath, showResourcesNav],
+        [contextExpanded, product, isLoading, basePath, showResourcesNav, showDeployBanner, deployMutation.isPending],
     );
 
     if (isError) {
@@ -138,6 +166,13 @@ export function ApiProductDetailLayout() {
     return (
         <ApiProductDetailContext.Provider value={{ product: product ?? null, isLoading, permissionsReady }}>
             <Outlet />
+            <DeployConfirmDialog
+                subject="API Product"
+                open={showDeployDialog}
+                isPending={deployMutation.isPending}
+                onConfirm={() => deployMutation.mutate()}
+                onOpenChange={setShowDeployDialog}
+            />
         </ApiProductDetailContext.Provider>
     );
 }
