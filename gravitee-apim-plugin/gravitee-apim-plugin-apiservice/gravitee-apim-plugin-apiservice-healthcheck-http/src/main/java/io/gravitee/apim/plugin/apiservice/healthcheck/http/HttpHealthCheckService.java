@@ -182,7 +182,12 @@ public class HttpHealthCheckService implements ApiService {
             configuration = groupHC.getConfiguration();
         }
 
-        return pluginConfigurationHelper.readConfiguration(HttpHealthCheckServiceConfiguration.class, configuration);
+        final HttpHealthCheckServiceConfiguration hcConfiguration = pluginConfigurationHelper.readConfiguration(
+            HttpHealthCheckServiceConfiguration.class,
+            configuration
+        );
+        hcConfiguration.applyRuntimeDefaults();
+        return hcConfiguration;
     }
 
     private Disposable scheduleInBackground(ManagedEndpoint endpoint, HttpHealthCheckServiceConfiguration hcConfiguration) {
