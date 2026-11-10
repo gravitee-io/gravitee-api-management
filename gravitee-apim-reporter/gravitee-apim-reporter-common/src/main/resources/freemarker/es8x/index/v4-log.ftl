@@ -1,9 +1,11 @@
 <#-- @ftlvariable name="index" type="java.lang.String" -->
 <#-- @ftlvariable name="@timestamp" type="java.lang.String" -->
 <#-- @ftlvariable name="log" type="io.gravitee.reporter.api.v4.log.Log" -->
+<#-- @ftlvariable name="documentId" type="java.lang.String" -->
+<#-- @ftlvariable name="connectionPhase" type="java.lang.String" -->
 
 <#if index??>
-{ "index" : { "_index" : "${index}", "_id" : "${log.getRequestId()}" } }
+{ "index" : { "_index" : "${index}", "_id" : "${documentId}" } }
 </#if>
 <@compress single_line=true>
 {
@@ -11,7 +13,7 @@
   <#if !index??>
   ,"type": "v4-log"
   ,"date" : "${date}"
-  ,"_id" : "${log.getRequestId()}"
+  ,"_id" : "${documentId}"
   </#if>
   ,"api-id":"${log.getApiId()}"
   ,"api-name":"${log.getApiName()?j_string}"
@@ -49,6 +51,9 @@
   ,"error-message":"${log.getErrorMessage()?j_string}"
   </#if>
   ,"request-ended":"${log.isRequestEnded()?c}"
+  <#if connectionPhase??>
+  ,"connection-phase":"${connectionPhase}"
+  </#if>
   <#if log.getEntrypointRequest()??>
   ,"entrypoint-request": {
   "method":"${log.getEntrypointRequest().getMethod()}",

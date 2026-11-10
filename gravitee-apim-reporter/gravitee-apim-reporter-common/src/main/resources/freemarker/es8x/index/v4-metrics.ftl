@@ -15,14 +15,16 @@
 <#-- @ftlvariable name="gatewayLatencyNs" type="java.lang.Long" -->
 <#-- @ftlvariable name="requestContentLength" type="java.lang.Long" -->
 <#-- @ftlvariable name="responseContentLength" type="java.lang.Long" -->
+<#-- @ftlvariable name="documentId" type="java.lang.String" -->
+<#-- @ftlvariable name="connectionPhase" type="java.lang.String" -->
 <#if index??>
-{ "index" : { "_index" : "${index}", "_id" : "${metrics.getRequestId()}"<#if pipeline??>, "pipeline" : "${pipeline}"</#if>} }
+{ "index" : { "_index" : "${index}", "_id" : "${documentId}"<#if pipeline??>, "pipeline" : "${pipeline}"</#if>} }
 </#if>
 <@compress single_line=true>
 {
   "gateway":"${gateway}"
   <#if !index??>
-  ,"_id" : "${metrics.getRequestId()}"
+  ,"_id" : "${documentId}"
   ,"type": "v4-metrics"
   ,"date" : "${date}"
   </#if>
@@ -106,6 +108,9 @@
   ,"request-content-length":${requestContentLength}
   </#if>
   ,"request-ended":"${metrics.isRequestEnded()?c}"
+  <#if connectionPhase??>
+  ,"connection-phase":"${connectionPhase}"
+  </#if>
   <#if metrics.getEntrypointId()??>
     ,"entrypoint-id":"${metrics.getEntrypointId()?j_string}"
   </#if>
