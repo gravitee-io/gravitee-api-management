@@ -28,6 +28,7 @@ import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalLogo;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.theme.model.Theme;
+import io.gravitee.apim.core.theme.model.ThemeImageDataUri;
 import io.gravitee.apim.core.theme.model.ThemeType;
 import java.net.URI;
 import java.util.Base64;
@@ -63,10 +64,7 @@ class GetPortalLogoUseCaseTest {
 
         var logo = cut.execute(new GetPortalLogoUseCase.Input(ENV_ID, portal.getId())).logo();
 
-        assertThat(logo).isInstanceOfSatisfying(PortalLogo.Inline.class, inline -> {
-            assertThat(inline.mediaType()).isEqualTo("image/png");
-            assertThat(inline.content()).isEqualTo(PNG_BYTES);
-        });
+        assertThat(logo).isEqualTo(new PortalLogo.Inline(new ThemeImageDataUri("image/png", PNG_BYTES.clone())));
     }
 
     @Test
