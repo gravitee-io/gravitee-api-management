@@ -53,6 +53,16 @@ public class PortalSummaryDomainService {
             .toList();
     }
 
+    /** The number of distinct APIs published on at least one of {@code portals}, all of {@code environmentId}. */
+    public int countPublishedApis(String environmentId, List<Portal> portals) {
+        var publishedApiIdsByPortal = publishedApiIdsByPortal(environmentId);
+        return (int) portals
+            .stream()
+            .flatMap(portal -> publishedApiIdsByPortal.getOrDefault(portal.getId(), Set.of()).stream())
+            .distinct()
+            .count();
+    }
+
     private Map<PortalId, Set<String>> publishedApiIdsByPortal(String environmentId) {
         var items = portalNavigationItemsQueryService.search(
             PortalNavigationItemQueryCriteria.builder().environmentId(environmentId).build()
