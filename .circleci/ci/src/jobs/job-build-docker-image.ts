@@ -315,6 +315,13 @@ export function dockerTagsArgument(
       // Include qualifier name after full version
       tags.push(stub + graviteeioVersion.version.full + '-' + graviteeioVersion.qualifier.name + suffix);
     }
+
+    if (variant === 'alpine') {
+      // The unsuffixed tags will move to Debian: publish the same Alpine digest under an explicit
+      // '-alpine' suffix so users can pin it before that happens. Appended last, so the leading
+      // tags other jobs pick by index stay where they are.
+      tags.push(...tags.map((tag) => tag + '-alpine'));
+    }
   } else if (isSupportBranchOrMaster(environment.branch)) {
     // master-latest
     tags.push(`graviteeio.azurecr.io/${imageName}:${computeImagesTag(environment.branch)}${suffix}`);
