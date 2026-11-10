@@ -27,6 +27,7 @@ import io.gravitee.repository.management.model.flow.selector.FlowConditionSelect
 import io.gravitee.repository.management.model.flow.selector.FlowHttpSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowMcpSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowOperator;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -237,6 +238,40 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(1, flowUpdated.getRequest().size());
         assertEquals(1, flowUpdated.getResponse().size());
         assertEquals(5, flowUpdated.getOrder());
+    }
+
+    @Test
+    public void shouldCreateFindAndDeleteApiProductFlowsInOrder() throws TechnicalException {
+        for (int order = 0; order < 2; order++) {
+            Flow flow = new Flow();
+            flow.setId("api-product-flow-" + order);
+            flow.setName("product-flow-" + order);
+            flow.setEnabled(true);
+            flow.setReferenceType(FlowReferenceType.API_PRODUCT);
+            flow.setReferenceId("api-product-1");
+            flow.setOrder(order);
+            flow.setCreatedAt(new Date(1470157767000L));
+            flow.setUpdatedAt(new Date(1470157767000L));
+            FlowStep requestStep = new FlowStep();
+            requestStep.setName("request-step");
+            requestStep.setPolicy("policy");
+            flow.setRequest(List.of(requestStep));
+            flowRepository.create(flow);
+        }
+
+        List<Flow> found = flowRepository.findByReference(FlowReferenceType.API_PRODUCT, "api-product-1");
+        assertEquals(
+            List.of("api-product-flow-0", "api-product-flow-1"),
+            found.stream().sorted(Comparator.comparing(Flow::getOrder)).map(Flow::getId).toList()
+        );
+        assertTrue(found.stream().allMatch(flow -> flow.getReferenceType() == FlowReferenceType.API_PRODUCT));
+        assertEquals("policy", found.get(0).getRequest().get(0).getPolicy());
+        // A product flow is not mistaken for the flow of an API or a plan that happens to share the id.
+        assertEquals(0, flowRepository.findByReference(FlowReferenceType.API, "api-product-1").size());
+
+        flowRepository.deleteByReferenceIdAndReferenceType("api-product-1", FlowReferenceType.API_PRODUCT);
+
+        assertEquals(0, flowRepository.findByReference(FlowReferenceType.API_PRODUCT, "api-product-1").size());
     }
 
     @Test
