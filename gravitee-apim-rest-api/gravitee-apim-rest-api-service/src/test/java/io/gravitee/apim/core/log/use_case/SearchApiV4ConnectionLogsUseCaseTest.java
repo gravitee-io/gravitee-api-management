@@ -27,6 +27,7 @@ import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.log.use_case.SearchApiV4ConnectionLogsUseCase.Input;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -103,6 +104,22 @@ class SearchApiV4ConnectionLogsUseCaseTest {
         assertThatThrownBy(() ->
             usecase.execute(GraviteeContext.getExecutionContext(), new Input(API_ID, SearchLogsFilters.builder().build()))
         ).isInstanceOf(ApiNotFoundException.class);
+    }
+
+    @Test
+    void should_read_v4_logs_only_for_a_message_api() {
+        apiCrudService.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().id(API_ID).build()));
+
+        usecase.execute(GraviteeContext.getExecutionContext(), new Input(API_ID, SearchLogsFilters.builder().build()));
+
+        assertThat(logStorageService.searchedDefinitionVersions()).containsExactly(DefinitionVersion.V4);
+    }
+
+    @Test
+    void should_read_v2_and_v4_logs_for_a_proxy_api_which_may_have_been_migrated() {
+        usecase.execute(GraviteeContext.getExecutionContext(), new Input(API_ID, SearchLogsFilters.builder().build()));
+
+        assertThat(logStorageService.searchedDefinitionVersions()).containsExactly(DefinitionVersion.V2, DefinitionVersion.V4);
     }
 
     @Test
