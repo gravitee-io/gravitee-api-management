@@ -22,9 +22,11 @@ import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.elasticsearch.config.Endpoint;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.util.StringUtils;
 
 /**
  * Elasticsearch client reporter configuration.
@@ -73,10 +75,16 @@ public class ReporterConfiguration {
     private boolean perTypeIndex = DEFAULT_PER_TYPE_INDEX;
 
     /**
-     * Index mode normal (daily index) vs ILM (managed by ILM)
+     * Index mode normal (daily index) vs ILM (managed by ILM). Left unset, it depends on the flavor.
      */
-    @Value("${reporters.elasticsearch.index_mode:" + DEFAULT_INDEX_MODE + "}")
-    private String indexMode = DEFAULT_INDEX_MODE;
+    @Value("${reporters.elasticsearch.index_mode:#{null}}")
+    private String indexMode;
+
+    /**
+     * Kind of cluster: auto (detected from the cluster), classic or serverless.
+     */
+    @Value("${" + Flavor.SETTING + ":auto}")
+    private String flavor = "auto";
 
     /**
      * Request actions max by bulk
@@ -602,8 +610,23 @@ public class ReporterConfiguration {
         this.indexMode = indexMode;
     }
 
+    /**
+     * @return the index mode as configured, or empty when it is left to the flavor
+     */
+    public Optional<String> getConfiguredIndexMode() {
+        return StringUtils.hasText(indexMode) ? Optional.of(indexMode.trim()) : Optional.empty();
+    }
+
     public boolean isIlmManagedIndex() {
         return "ilm".equalsIgnoreCase(indexMode);
+    }
+
+    public String getFlavor() {
+        return flavor;
+    }
+
+    public void setFlavor(String flavor) {
+        this.flavor = flavor;
     }
 
     private List<String> readPropertyAsList(String property) {
