@@ -199,6 +199,12 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
             case LLM_PROXY_PROVIDER -> "additional-metrics.keyword_llm-proxy_provider";
             case AI_HUB_BUDGET -> "additional-metrics.keyword_aihub_budgets";
             case AI_HUB_USER_NAME -> "additional-metrics.keyword_aihub_user_name";
+            case AI_HUB_ROUTE -> "additional-metrics.keyword_aihub_route";
+            case AI_HUB_ROUTE_TIER -> "additional-metrics.keyword_aihub_route_tier";
+            case AI_HUB_ROUTE_ALIAS -> "additional-metrics.keyword_aihub_route_alias";
+            case AI_HUB_ROUTE_MODEL -> "additional-metrics.keyword_aihub_route_model";
+            case AI_HUB_ROUTE_CONFIDENCE -> "additional-metrics.keyword_aihub_route_confidence";
+            case AI_HUB_TEAM -> "additional-metrics.keyword_aihub_team";
             case MCP_PROXY_METHOD -> "additional-metrics.keyword_mcp-proxy_method";
             case MCP_PROXY_TOOL -> "additional-metrics.keyword_mcp-proxy_tools/call";
             case MCP_PROXY_RESOURCE -> "additional-metrics.keyword_mcp-proxy_resources/read";

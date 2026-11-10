@@ -74,6 +74,12 @@ public class HTTPFieldResolver implements FieldResolver {
             // Every budget an AI Hub call was charged to: a list, so a terms aggregation counts the call in each.
             case Filter.Name.AI_HUB_BUDGET -> "additional-metrics.keyword_aihub_budgets";
             case Filter.Name.AI_HUB_USER_NAME -> "additional-metrics.keyword_aihub_user_name";
+            case Filter.Name.AI_HUB_ROUTE -> "additional-metrics.keyword_aihub_route";
+            case Filter.Name.AI_HUB_ROUTE_TIER -> "additional-metrics.keyword_aihub_route_tier";
+            case Filter.Name.AI_HUB_ROUTE_ALIAS -> "additional-metrics.keyword_aihub_route_alias";
+            case Filter.Name.AI_HUB_ROUTE_MODEL -> "additional-metrics.keyword_aihub_route_model";
+            case Filter.Name.AI_HUB_ROUTE_CONFIDENCE -> "additional-metrics.keyword_aihub_route_confidence";
+            case Filter.Name.AI_HUB_TEAM -> "additional-metrics.keyword_aihub_team";
             case Filter.Name.MCP_PROXY_METHOD -> "additional-metrics.keyword_mcp-proxy_method";
             case Filter.Name.MCP_PROXY_TOOL -> "additional-metrics.keyword_mcp-proxy_tools/call";
             case Filter.Name.MCP_PROXY_RESOURCE -> "additional-metrics.keyword_mcp-proxy_resources/read";
@@ -122,6 +128,12 @@ public class HTTPFieldResolver implements FieldResolver {
             case LLM_PROXY_PROVIDER -> "additional-metrics.keyword_llm-proxy_provider";
             case AI_HUB_BUDGET -> "additional-metrics.keyword_aihub_budgets";
             case AI_HUB_USER_NAME -> "additional-metrics.keyword_aihub_user_name";
+            case AI_HUB_ROUTE -> "additional-metrics.keyword_aihub_route";
+            case AI_HUB_ROUTE_TIER -> "additional-metrics.keyword_aihub_route_tier";
+            case AI_HUB_ROUTE_ALIAS -> "additional-metrics.keyword_aihub_route_alias";
+            case AI_HUB_ROUTE_MODEL -> "additional-metrics.keyword_aihub_route_model";
+            case AI_HUB_ROUTE_CONFIDENCE -> "additional-metrics.keyword_aihub_route_confidence";
+            case AI_HUB_TEAM -> "additional-metrics.keyword_aihub_team";
             case MCP_PROXY_METHOD -> "additional-metrics.keyword_mcp-proxy_method";
             case MCP_PROXY_TOOL -> "additional-metrics.keyword_mcp-proxy_tools/call";
             case MCP_PROXY_RESOURCE -> "additional-metrics.keyword_mcp-proxy_resources/read";

@@ -376,7 +376,13 @@ class FilterValuesQueryServiceImplTest {
             Arguments.of(FilterSpec.Name.TRANSACTION_ID, "transaction-id"),
             // The field the analytics engine filters on (HTTPFieldResolver): `path` is declared but never written.
             Arguments.of(FilterSpec.Name.HTTP_PATH, "path-info.keyword"),
-            Arguments.of(FilterSpec.Name.URI, "uri")
+            Arguments.of(FilterSpec.Name.URI, "uri"),
+            Arguments.of(FilterSpec.Name.AI_HUB_ROUTE, "additional-metrics.keyword_aihub_route"),
+            Arguments.of(FilterSpec.Name.AI_HUB_ROUTE_TIER, "additional-metrics.keyword_aihub_route_tier"),
+            Arguments.of(FilterSpec.Name.AI_HUB_ROUTE_ALIAS, "additional-metrics.keyword_aihub_route_alias"),
+            Arguments.of(FilterSpec.Name.AI_HUB_ROUTE_MODEL, "additional-metrics.keyword_aihub_route_model"),
+            Arguments.of(FilterSpec.Name.AI_HUB_ROUTE_CONFIDENCE, "additional-metrics.keyword_aihub_route_confidence"),
+            Arguments.of(FilterSpec.Name.AI_HUB_TEAM, "additional-metrics.keyword_aihub_team")
         );
     }
 }

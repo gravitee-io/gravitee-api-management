@@ -27,6 +27,7 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 
 /**
@@ -169,6 +170,22 @@ class HTTPFieldResolverTest {
         assertThat(fieldResolver.fromFacet(Facet.MCP_PROXY_TOOL)).isEqualTo("additional-metrics.keyword_mcp-proxy_tools/call");
         assertThat(fieldResolver.fromFacet(Facet.MCP_PROXY_RESOURCE)).isEqualTo("additional-metrics.keyword_mcp-proxy_resources/read");
         assertThat(fieldResolver.fromFacet(Facet.MCP_PROXY_PROMPT)).isEqualTo("additional-metrics.keyword_mcp-proxy_prompts/get");
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        {
+            "AI_HUB_ROUTE, additional-metrics.keyword_aihub_route",
+            "AI_HUB_ROUTE_TIER, additional-metrics.keyword_aihub_route_tier",
+            "AI_HUB_ROUTE_ALIAS, additional-metrics.keyword_aihub_route_alias",
+            "AI_HUB_ROUTE_MODEL, additional-metrics.keyword_aihub_route_model",
+            "AI_HUB_ROUTE_CONFIDENCE, additional-metrics.keyword_aihub_route_confidence",
+            "AI_HUB_TEAM, additional-metrics.keyword_aihub_team",
+        }
+    )
+    void should_resolve_ai_hub_routing_filter_and_facet_to_the_field_the_gateway_tags(String name, String field) {
+        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.valueOf(name), Filter.Operator.EQ, "value"))).isEqualTo(field);
+        assertThat(fieldResolver.fromFacet(Facet.valueOf(name))).isEqualTo(field);
     }
 
     @Test

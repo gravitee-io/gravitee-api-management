@@ -1454,6 +1454,12 @@ components:
                 - LLM_PROXY_PROVIDER
                 - AI_HUB_BUDGET
                 - AI_HUB_USER_NAME
+                - AI_HUB_ROUTE
+                - AI_HUB_ROUTE_TIER
+                - AI_HUB_ROUTE_ALIAS
+                - AI_HUB_ROUTE_MODEL
+                - AI_HUB_ROUTE_CONFIDENCE
+                - AI_HUB_TEAM
                 - MCP_PROXY_METHOD
                 - MCP_PROXY_TOOL
                 - MCP_PROXY_RESOURCE
@@ -1521,6 +1527,12 @@ components:
                 - LLM_PROXY_PROVIDER
                 - AI_HUB_BUDGET
                 - AI_HUB_USER_NAME
+                - AI_HUB_ROUTE
+                - AI_HUB_ROUTE_TIER
+                - AI_HUB_ROUTE_ALIAS
+                - AI_HUB_ROUTE_MODEL
+                - AI_HUB_ROUTE_CONFIDENCE
+                - AI_HUB_TEAM
                 - MCP_PROXY_METHOD
                 - MCP_PROXY_TOOL
                 - MCP_PROXY_RESOURCE
@@ -1594,6 +1606,12 @@ components:
                 - LLM_PROXY_PROVIDER
                 - AI_HUB_BUDGET
                 - AI_HUB_USER_NAME
+                - AI_HUB_ROUTE
+                - AI_HUB_ROUTE_TIER
+                - AI_HUB_ROUTE_ALIAS
+                - AI_HUB_ROUTE_MODEL
+                - AI_HUB_ROUTE_CONFIDENCE
+                - AI_HUB_TEAM
                 - MCP_PROXY_METHOD
                 - MCP_PROXY_TOOL
                 - MCP_PROXY_RESOURCE

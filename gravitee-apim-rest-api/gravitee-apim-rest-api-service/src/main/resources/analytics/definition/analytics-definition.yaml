@@ -53,6 +53,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -86,6 +92,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -127,6 +139,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -160,6 +178,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -206,6 +230,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -238,6 +268,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -284,6 +320,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -316,6 +358,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -362,6 +410,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -394,6 +448,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -440,6 +500,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
           filters:
               - API
               - API_TYPE
@@ -467,6 +533,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -513,6 +585,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -545,6 +623,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -583,6 +667,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
           filters:
               - API
               - APPLICATION
@@ -608,6 +698,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
 
         - name: LLM_PROMPT_TOKEN_RECEIVED
           label: Received token count
@@ -641,6 +737,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
           filters:
               - API
               - APPLICATION
@@ -667,6 +769,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
 
         - name: LLM_PROMPT_TOKEN_SENT_COST
           label: Sent token cost
@@ -699,6 +807,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
           filters:
               - API
               - APPLICATION
@@ -725,6 +839,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
 
         - name: LLM_PROMPT_TOKEN_RECEIVED_COST
           label: Received token cost
@@ -757,6 +877,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
           filters:
               - API
               - APPLICATION
@@ -783,6 +909,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
 
         - name: LLM_PROMPT_TOTAL_TOKEN
           label: Total token count
@@ -816,6 +948,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
           filters:
               - API
               - APPLICATION
@@ -842,6 +980,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
 
         - name: LLM_PROMPT_TOKEN_TOTAL_COST
           label: Total token cost
@@ -875,6 +1019,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
           filters:
               - API
               - APPLICATION
@@ -901,6 +1051,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
 
         # The message index keys documents by request id and carries only the dimensions the gateway
         # stamps on a message: operation, connector, api, gateway. It has no plan-id, app-id, tenant
@@ -1049,6 +1205,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -1082,6 +1244,12 @@ spec:
               - LLM_PROXY_PROVIDER
               - AI_HUB_BUDGET
               - AI_HUB_USER_NAME
+              - AI_HUB_ROUTE
+              - AI_HUB_ROUTE_TIER
+              - AI_HUB_ROUTE_ALIAS
+              - AI_HUB_ROUTE_MODEL
+              - AI_HUB_ROUTE_CONFIDENCE
+              - AI_HUB_TEAM
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_RESOURCE
@@ -2145,6 +2313,60 @@ spec:
           apis:
               - LLM
 
+        - name: AI_HUB_ROUTE
+          label: AI Hub route
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+          apis:
+              - LLM
+
+        - name: AI_HUB_ROUTE_TIER
+          label: AI Hub route level
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+          apis:
+              - LLM
+
+        - name: AI_HUB_ROUTE_ALIAS
+          label: AI Hub model alias
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+          apis:
+              - LLM
+
+        - name: AI_HUB_ROUTE_MODEL
+          label: AI Hub routed model
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+          apis:
+              - LLM
+
+        - name: AI_HUB_ROUTE_CONFIDENCE
+          label: AI Hub route confidence
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+          apis:
+              - LLM
+
+        - name: AI_HUB_TEAM
+          label: AI Hub team
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+          apis:
+              - LLM
+
         - name: MCP_PROXY_METHOD
           label: MCP Method
           signals:
@@ -2539,6 +2761,30 @@ spec:
 
         - name: AI_HUB_USER_NAME
           label: AI Hub user
+          type: KEYWORD
+
+        - name: AI_HUB_ROUTE
+          label: AI Hub route
+          type: KEYWORD
+
+        - name: AI_HUB_ROUTE_TIER
+          label: AI Hub route level
+          type: KEYWORD
+
+        - name: AI_HUB_ROUTE_ALIAS
+          label: AI Hub model alias
+          type: KEYWORD
+
+        - name: AI_HUB_ROUTE_MODEL
+          label: AI Hub routed model
+          type: KEYWORD
+
+        - name: AI_HUB_ROUTE_CONFIDENCE
+          label: AI Hub route confidence
+          type: KEYWORD
+
+        - name: AI_HUB_TEAM
+          label: AI Hub team
           type: KEYWORD
 
         - name: MCP_PROXY_METHOD

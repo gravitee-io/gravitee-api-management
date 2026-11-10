@@ -20,13 +20,17 @@ import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.M
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.gravitee.repository.analytics.engine.api.metric.Measure;
+import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
+import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.NumberRange;
 import io.vertx.core.json.JsonObject;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -268,6 +272,42 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
 
         var nestedMeasures = groupAgg.at("/aggs/HTTP_REQUESTS#HTTP_STATUS/aggs/HTTP_REQUESTS#COUNT");
         assertThat(nestedMeasures).isNotNull();
+    }
+
+    @Test
+    void should_measure_tokens_sent_and_received_and_cost_per_routed_model_and_called_model() throws JsonProcessingException {
+        var metrics = List.of(
+            new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)),
+            new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_SENT, Set.of(Measure.COUNT)),
+            new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_RECEIVED, Set.of(Measure.COUNT)),
+            new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_TOTAL_COST, Set.of(Measure.COUNT))
+        );
+        List<FacetName> facets = List.of(Facet.valueOf("AI_HUB_ROUTE_MODEL"), Facet.LLM_PROXY_MODEL);
+
+        var query = new FacetsQuery(buildTimeRange(), buildFilters(), metrics, facets, 20);
+        var aggs = JSON.readTree(adapter.adapt(query)).at("/aggs");
+
+        for (var metric : List.of("HTTP_REQUESTS", "LLM_PROMPT_TOKEN_SENT", "LLM_PROMPT_TOKEN_RECEIVED", "LLM_PROMPT_TOKEN_TOTAL_COST")) {
+            var routedModel = aggs.at("/" + metric + "#AI_HUB_ROUTE_MODEL");
+            assertThat(routedModel.at("/terms/field").asText()).as(metric).isEqualTo("additional-metrics.keyword_aihub_route_model");
+            var calledModel = routedModel.at("/aggs/" + metric + "#LLM_PROXY_MODEL");
+            assertThat(calledModel.at("/terms/field").asText()).as(metric).isEqualTo("additional-metrics.keyword_llm-proxy_model");
+            assertThat(calledModel.at("/aggs/" + metric + "#COUNT").isMissingNode()).as(metric).isFalse();
+        }
+        assertThat(
+            aggs
+                .at(
+                    "/LLM_PROMPT_TOKEN_SENT#AI_HUB_ROUTE_MODEL/aggs/LLM_PROMPT_TOKEN_SENT#LLM_PROXY_MODEL/aggs/LLM_PROMPT_TOKEN_SENT#COUNT/sum/field"
+                )
+                .asText()
+        ).isEqualTo("additional-metrics.long_llm-proxy_tokens-sent");
+        assertThat(
+            aggs
+                .at(
+                    "/LLM_PROMPT_TOKEN_RECEIVED#AI_HUB_ROUTE_MODEL/aggs/LLM_PROMPT_TOKEN_RECEIVED#LLM_PROXY_MODEL/aggs/LLM_PROMPT_TOKEN_RECEIVED#COUNT/sum/field"
+                )
+                .asText()
+        ).isEqualTo("additional-metrics.long_llm-proxy_tokens-received");
     }
 
     /**

@@ -162,6 +162,62 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
         }
     }
 
+    /** What the AI Hub module reads to report routing results: calls, tokens sent and received, and cost per route. */
+    @Nested
+    class AiHubRouting {
+
+        private static final List<String> ROUTING_DIMENSIONS = List.of(
+            "AI_HUB_ROUTE",
+            "AI_HUB_ROUTE_TIER",
+            "AI_HUB_ROUTE_ALIAS",
+            "AI_HUB_ROUTE_MODEL",
+            "AI_HUB_ROUTE_CONFIDENCE",
+            "AI_HUB_TEAM"
+        );
+
+        private static final List<MetricSpec.Name> USAGE_METRICS = List.of(
+            MetricSpec.Name.HTTP_REQUESTS,
+            MetricSpec.Name.LLM_PROMPT_TOKEN_SENT,
+            MetricSpec.Name.LLM_PROMPT_TOKEN_RECEIVED,
+            MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST
+        );
+
+        private final AnalyticsDefinitionYAMLQueryService service = new AnalyticsDefinitionYAMLQueryService();
+
+        @Test
+        void should_offer_every_routing_dimension_as_a_facet_and_a_filter_of_the_usage_metrics() {
+            assertThat(USAGE_METRICS).allSatisfy(metric -> {
+                assertThat(
+                    service
+                        .getFacets(metric)
+                        .stream()
+                        .map(spec -> spec.name().name())
+                )
+                    .as("facets of %s", metric)
+                    .containsAll(ROUTING_DIMENSIONS);
+                assertThat(
+                    service
+                        .getFilters(metric)
+                        .stream()
+                        .map(spec -> spec.name().name())
+                )
+                    .as("filters of %s", metric)
+                    .containsAll(ROUTING_DIMENSIONS);
+            });
+        }
+
+        @Test
+        void should_filter_llm_analytics_by_one_or_several_values_of_each_routing_dimension() {
+            assertThat(ROUTING_DIMENSIONS).allSatisfy(name ->
+                assertThat(service.findFilter(FilterSpec.Name.valueOf(name))).hasValueSatisfying(spec -> {
+                    assertThat(spec.operators()).as("operators of %s", name).contains(FilterOperator.EQ, FilterOperator.IN);
+                    assertThat(spec.apis()).as("apis of %s", name).contains(ApiSpec.Name.LLM);
+                    assertThat(spec.appliesTo(Signal.ANALYTICS)).as("%s on analytics", name).isTrue();
+                })
+            );
+        }
+    }
+
     @Nested
     class Apis {
 

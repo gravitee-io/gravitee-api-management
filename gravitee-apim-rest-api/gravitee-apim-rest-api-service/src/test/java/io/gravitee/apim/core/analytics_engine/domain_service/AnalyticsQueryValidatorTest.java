@@ -563,6 +563,57 @@ class AnalyticsQueryValidatorTest {
         }
     }
 
+    /** The queries the AI Hub module runs to report routing results, validated against the real catalog. */
+    @Nested
+    class AiHubRouting {
+
+        private final AnalyticsQueryValidator catalogValidator = new AnalyticsQueryValidator(CATALOG);
+
+        private final List<FacetMetricMeasuresRequest> usage = List.of(
+            new FacetMetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT), List.of()),
+            new FacetMetricMeasuresRequest(MetricSpec.Name.LLM_PROMPT_TOKEN_SENT, List.of(MetricSpec.Measure.COUNT), List.of()),
+            new FacetMetricMeasuresRequest(MetricSpec.Name.LLM_PROMPT_TOKEN_RECEIVED, List.of(MetricSpec.Measure.COUNT), List.of()),
+            new FacetMetricMeasuresRequest(MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST, List.of(MetricSpec.Measure.COUNT), List.of())
+        );
+
+        @ParameterizedTest
+        @EnumSource(
+            value = FacetSpec.Name.class,
+            names = {
+                "AI_HUB_ROUTE", "AI_HUB_ROUTE_TIER", "AI_HUB_ROUTE_ALIAS", "AI_HUB_ROUTE_MODEL", "AI_HUB_ROUTE_CONFIDENCE", "AI_HUB_TEAM",
+            }
+        )
+        void should_accept_the_usage_faceted_and_filtered_by_a_routing_dimension(FacetSpec.Name dimension) {
+            var request = new FacetsRequest(
+                VALID_TIME_RANGE,
+                List.of(new Filter(FilterSpec.Name.valueOf(dimension.name()), FilterOperator.IN, List.of("value"))),
+                usage,
+                List.of(dimension),
+                20,
+                List.of()
+            );
+
+            assertThatCode(() -> catalogValidator.validateFacetsRequest(request)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_accept_the_usage_of_an_alias_by_routed_model_then_called_model() {
+            var request = new FacetsRequest(
+                VALID_TIME_RANGE,
+                List.of(
+                    new Filter(FilterSpec.Name.API, FilterOperator.IN, List.of("llm-api")),
+                    new Filter(FilterSpec.Name.AI_HUB_ROUTE_ALIAS, FilterOperator.EQ, "auto")
+                ),
+                usage,
+                List.of(FacetSpec.Name.AI_HUB_ROUTE_MODEL, FacetSpec.Name.LLM_PROXY_MODEL),
+                20,
+                List.of()
+            );
+
+            assertThatCode(() -> catalogValidator.validateFacetsRequest(request)).doesNotThrowAnyException();
+        }
+    }
+
     @Test
     void should_accept_an_authz_decision_facet_on_the_decisions_metric() {
         var request = new FacetsRequest(
