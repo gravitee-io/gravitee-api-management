@@ -25,6 +25,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.api_product.ApiProductsR
 import io.gravitee.rest.api.management.v2.rest.resource.application.ApplicationsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.category.CategoriesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.cluster.ClustersResource;
+import io.gravitee.rest.api.management.v2.rest.resource.credential.CredentialsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentAnalyticsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentLogsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentNewtAIResource;
@@ -106,6 +107,11 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/secrets")
     public SecretsResource getSecretsResource() {
         return resourceContext.getResource(SecretsResource.class);
+    }
+
+    @Path("/credentials")
+    public CredentialsResource getCredentialsResource() {
+        return resourceContext.getResource(CredentialsResource.class);
     }
 
     @Path("/scoring")

@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.rest.resource.credential;
+package io.gravitee.rest.api.management.v2.rest.resource.credential;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.credential.model.CredentialActor;
+import io.gravitee.apim.core.credential.model.CredentialActor.SecretAccess;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialActor;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialActor.SecretAccess;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
