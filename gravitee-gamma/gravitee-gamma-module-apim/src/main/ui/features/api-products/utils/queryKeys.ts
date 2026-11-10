@@ -33,4 +33,5 @@ export const apiProductKeys = {
     roles: () => [...apiProductKeys.all, 'roles'] as const,
     permissions: (envId: string, productId: string, userId = '') =>
         [...apiProductKeys.all, 'permissions', envId, productId, userId] as const,
+    flows: (envId: string, productId: string) => [...apiProductKeys.all, 'flows', envId, productId] as const,
 } as const;

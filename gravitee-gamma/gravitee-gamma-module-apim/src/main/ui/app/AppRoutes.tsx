@@ -43,6 +43,7 @@ import { ApiProductDeploymentConfigurationPage } from '../features/api-products/
 import { ApiProductGeneralPage } from '../features/api-products/pages/detail/general/ApiProductGeneralPage';
 import { ApiProductPlanFormPage } from '../features/api-products/pages/detail/plans/ApiProductPlanFormPage';
 import { ApiProductPlansPage } from '../features/api-products/pages/detail/plans/ApiProductPlansPage';
+import { ApiProductPolicyStudioPage } from '../features/api-products/pages/detail/policy-studio/ApiProductPolicyStudioPage';
 import { ApiProductResourcesPage } from '../features/api-products/pages/detail/resources/ApiProductResourcesPage';
 import { ApiProductResourceWizardPage } from '../features/api-products/pages/detail/resources/ApiProductResourceWizardPage';
 import { ApiProductUserPermissionsPage } from '../features/api-products/pages/detail/user-permissions/ApiProductUserPermissionsPage';
@@ -274,6 +275,7 @@ export function AppRoutes() {
                                     <Route path="new/:securityType" element={<ApiProductPlanFormPage />} />
                                     <Route path=":planId" element={<ApiProductPlanFormPage />} />
                                 </Route>
+                                <Route path="policy-studio" element={<ApiProductPolicyStudioPage />} />
                                 <Route path="consumers">
                                     <Route index element={<ApiProductConsumersPage />} />
                                     <Route path=":subscriptionId" element={<ApiProductConsumerDetailPage />} />
