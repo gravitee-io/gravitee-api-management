@@ -20,18 +20,22 @@ import io.gravitee.gamma.definition.approval.ApprovalEventKinds;
 import io.gravitee.gateway.api.genericevent.GenericEventRegistry;
 import io.gravitee.gateway.handlers.api.manager.ApprovalRuleManager;
 import io.gravitee.gateway.handlers.api.manager.ApprovalStateManager;
+import io.gravitee.gateway.handlers.api.manager.impl.ApprovalCommandWriterImpl;
 import io.gravitee.gateway.handlers.api.manager.impl.ApprovalFeature;
 import io.gravitee.gateway.handlers.api.manager.impl.ApprovalRuleEventSubscriber;
 import io.gravitee.gateway.handlers.api.manager.impl.ApprovalRuleManagerImpl;
 import io.gravitee.gateway.handlers.api.manager.impl.ApprovalStateEventSubscriber;
 import io.gravitee.gateway.handlers.api.manager.impl.ApprovalStateManagerImpl;
+import io.gravitee.node.api.Node;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.repository.management.api.CommandRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.vertx.core.Vertx;
 import io.vertx.micrometer.backends.BackendRegistries;
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 
 /**
@@ -86,5 +90,22 @@ public class ApprovalConfiguration {
             ApprovalEventKinds.STATE,
             new ApprovalStateEventSubscriber(approvalStateManager, objectMapper)
         );
+    }
+
+    // Lazy: the repositories are registered once the repository plugins are loaded, after this context starts.
+    // The unused vertx parameter makes Vertx, which creates the default metrics registry, exist before bindTo.
+    @Bean(destroyMethod = "shutdown")
+    public ApprovalCommandWriterImpl approvalCommandWriter(
+        @Lazy CommandRepository commandRepository,
+        ObjectMapper objectMapper,
+        Node node,
+        Vertx vertx
+    ) {
+        ApprovalCommandWriterImpl writer = new ApprovalCommandWriterImpl(commandRepository, objectMapper, node, Clock.systemUTC());
+        MeterRegistry registry = BackendRegistries.getDefaultNow();
+        if (registry != null) {
+            writer.bindTo(registry);
+        }
+        return writer;
     }
 }
