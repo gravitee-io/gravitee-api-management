@@ -36,6 +36,11 @@
             <artifactId>gravitee-apim-gateway-handlers-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.gamma.definition</groupId>
+            <artifactId>gravitee-gamma-definition-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- Gravitee.io dependencies -->
         <dependency>
             <groupId>io.gravitee.apim.gateway</groupId>
