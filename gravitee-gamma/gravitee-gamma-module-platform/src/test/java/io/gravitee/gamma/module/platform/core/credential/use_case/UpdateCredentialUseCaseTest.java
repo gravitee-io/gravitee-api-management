@@ -35,6 +35,7 @@ import io.gravitee.gamma.module.platform.core.credential.model.UpdateCredentialC
 import io.gravitee.gamma.module.platform.fixture.CredentialFixture;
 import io.gravitee.gamma.module.platform.fixture.RootFixture;
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 import org.junit.jupiter.api.BeforeEach;
@@ -122,6 +123,31 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
         assertThatThrownBy(() -> update(fixture.owner(), credential, c -> c.references(Map.of("token", "/vault/elsewhere"))))
             .isInstanceOf(InvalidCredentialException.class)
             .hasMessageContaining("Rotate");
+    }
+
+    @Test
+    void should_accept_the_references_of_a_credential_gravitee_stores_sent_back_unchanged() {
+        var credential = fixture.givenAManagedCredential();
+
+        var updated = update(fixture.owner(), credential, c -> c.name("Renamed").references(referencesOf(credential)));
+
+        assertThat(updated.name()).isEqualTo("Renamed");
+        assertThat(updated.secretReferences()).isEqualTo(credential.secretReferences());
+    }
+
+    @Test
+    void should_not_need_the_secret_read_permission_to_send_unchanged_references_back() {
+        var credential = fixture.givenACredential(c -> c.references(Map.of("token", "/gravitee/my-secret:value")));
+
+        var updated = update(fixture.ownerWithSecretAccess(), credential, c -> c.name("Renamed").references(referencesOf(credential)));
+
+        assertThat(updated.name()).isEqualTo("Renamed");
+    }
+
+    private static Map<String, String> referencesOf(Credential credential) {
+        var references = new LinkedHashMap<String, String>();
+        credential.secretReferences().forEach((field, reference) -> references.put(field, reference.reference()));
+        return references;
     }
 
     @Test

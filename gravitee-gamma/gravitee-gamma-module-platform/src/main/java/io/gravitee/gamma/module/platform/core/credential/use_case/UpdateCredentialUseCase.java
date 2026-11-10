@@ -48,7 +48,7 @@ public class UpdateCredentialUseCase {
             credentialOwnerDomainService.ownerFor(actor, command.ownerId());
         }
         var changed = existing.update(command, TimeProvider.instantNow());
-        if (command.references() != null) {
+        if (!changed.secretReferences().equals(existing.secretReferences())) {
             changed.requireReferencesUsableBy(actor);
         }
         var updated = credentialRepository.update(changed);

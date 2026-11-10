@@ -77,7 +77,11 @@ public record Credential(
             .ownerId(command.ownerId() == null ? ownerId : command.ownerId())
             .expiresAt(Objects.equals(command.expiresAt(), expiresAt) ? expiresAt : validExpiry(command.expiresAt(), now))
             .configuration(strategy.validateConfiguration(command.configuration()))
-            .secretReferences(command.references() == null ? secretReferences : replacedReferences(command.references()))
+            .secretReferences(
+                command.references() == null || sameReferences(command.references())
+                    ? secretReferences
+                    : replacedReferences(command.references())
+            )
             .updatedAt(now)
             .build();
     }
@@ -115,6 +119,17 @@ public record Credential(
         if (!actor.admin() && !ownerId.equals(actor.userId())) {
             throw new CredentialManagementNotAllowedException(id);
         }
+    }
+
+    /** Lets a client send back the references it read, so a credential round-trips through a form unchanged. */
+    private boolean sameReferences(Map<String, String> references) {
+        return (
+            references.size() == secretReferences.size() &&
+            secretReferences
+                .entrySet()
+                .stream()
+                .allMatch(e -> e.getValue().reference().equals(references.get(e.getKey())))
+        );
     }
 
     private Map<String, SecretReference> replacedReferences(Map<String, String> references) {
