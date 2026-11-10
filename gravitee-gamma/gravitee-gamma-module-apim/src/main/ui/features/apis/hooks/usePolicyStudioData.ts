@@ -27,7 +27,7 @@ import {
     listPublishedPlans,
     listSharedPolicyGroupPlugins,
 } from '../services/policyStudioService';
-import type { FlowExecution, FlowV2, PolicyStudioApiDetail } from '../types/policyStudio';
+import type { FlowExecution, FlowV2, PolicyPlugin, PolicyStudioApiDetail, SharedPolicyGroupPlugin } from '../types/policyStudio';
 import { mapFlowsV2ToV4, V2_DEFAULT_ENDPOINTS_INFO, V2_DEFAULT_ENTRYPOINTS_INFO } from '../utils/v2FlowAdapter';
 
 const policyStudioKeys = {
@@ -76,6 +76,30 @@ function buildEndpointsInfo(
             };
         }),
     );
+}
+
+export function toStudioPolicies(plugins: readonly PolicyPlugin[] | undefined): readonly Policy[] {
+    return (plugins ?? []).map(p => ({
+        id: p.id,
+        name: p.name,
+        description: p.description,
+        icon: p.icon,
+        category: p.category,
+        flowPhaseCompatibility: p.flowPhaseCompatibility,
+        supportsMessageCondition: p.supportsMessageCondition,
+    }));
+}
+
+export function toStudioSharedPolicyGroups(plugins: readonly SharedPolicyGroupPlugin[] | undefined): readonly SharedPolicyGroupPolicy[] {
+    return (plugins ?? []).map(s => ({
+        id: s.id,
+        name: s.name,
+        description: s.description,
+        prerequisiteMessage: s.prerequisiteMessage,
+        policyId: s.policyId,
+        phase: s.phase as SharedPolicyGroupPolicy['phase'],
+        apiType: s.apiType as SharedPolicyGroupPolicy['apiType'],
+    }));
 }
 
 export interface PolicyStudioData {
@@ -151,33 +175,9 @@ export function usePolicyStudioData(apiId: string | undefined): PolicyStudioData
     const api = apiQuery.data;
     const isV2 = api?.definitionVersion === 'V2';
 
-    const policies: readonly Policy[] = useMemo(
-        () =>
-            (policiesQuery.data ?? []).map(p => ({
-                id: p.id,
-                name: p.name,
-                description: p.description,
-                icon: p.icon,
-                category: p.category,
-                flowPhaseCompatibility: p.flowPhaseCompatibility,
-                supportsMessageCondition: p.supportsMessageCondition,
-            })),
-        [policiesQuery.data],
-    );
+    const policies = useMemo(() => toStudioPolicies(policiesQuery.data), [policiesQuery.data]);
 
-    const sharedPolicyGroups: readonly SharedPolicyGroupPolicy[] = useMemo(
-        () =>
-            (spgQuery.data ?? []).map(s => ({
-                id: s.id,
-                name: s.name,
-                description: s.description,
-                prerequisiteMessage: s.prerequisiteMessage,
-                policyId: s.policyId,
-                phase: s.phase as SharedPolicyGroupPolicy['phase'],
-                apiType: s.apiType as SharedPolicyGroupPolicy['apiType'],
-            })),
-        [spgQuery.data],
-    );
+    const sharedPolicyGroups = useMemo(() => toStudioSharedPolicyGroups(spgQuery.data), [spgQuery.data]);
 
     const plans: readonly Plan[] = useMemo(
         () =>

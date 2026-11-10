@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import type { Flow, FlowExecution } from '@gravitee/graphene-policy-studio';
+
 export type ApiProductDeploymentState = 'DEPLOYED' | 'NEED_REDEPLOY';
 
 export interface ApiProductPrimaryOwner {
@@ -81,4 +83,22 @@ export interface VerifyApiProductNameResponse {
 export interface ApiProductSearchQuery {
     query?: string;
     ids?: string[];
+}
+
+/** `GET /api-products/{id}/flows`. A product that never saved a flow mode comes back without `flowExecution`. */
+export interface ApiProductFlows {
+    flowExecution?: FlowExecution;
+    flows?: readonly Flow[];
+}
+
+/** `PUT /api-products/{id}/flows` replaces both the product flows and the flow mode. */
+export interface UpdateApiProductFlowsRequest {
+    flowExecution: FlowExecution;
+    flows: readonly Flow[];
+}
+
+/** One entry of `PUT /api-products/{id}/plans/_flows`, which replaces the flows of each plan listed. */
+export interface ApiProductPlanFlows {
+    planId: string;
+    flows: readonly Flow[];
 }

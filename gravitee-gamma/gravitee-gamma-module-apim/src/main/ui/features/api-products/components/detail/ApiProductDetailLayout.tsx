@@ -97,7 +97,7 @@ export function ApiProductDetailLayout() {
     const basePath = useDetailBasePath('api-products', productId);
     const { data: product, isLoading, isError } = useApiProductDetail(productId);
     const { permissionsReady } = useApiProductPermissions(productId);
-    const { canUpdate: canDeploy } = useApiProductResourcePermissions(productId, 'DEFINITION');
+    const { canRead: canReadDefinition, canUpdate: canDeploy } = useApiProductResourcePermissions(productId, 'DEFINITION');
     const env = useEnvironment();
     const queryClient = useQueryClient();
     const [contextExpanded, setContextExpanded] = useState(true);
@@ -123,7 +123,7 @@ export function ApiProductDetailLayout() {
             contextExpanded,
             contextSidebar: (
                 <ContextSidebar header={<ProductInfoHeader product={product ?? null} isLoading={isLoading} />}>
-                    <ApiProductSidebarNav basePath={basePath} />
+                    <ApiProductSidebarNav basePath={basePath} canReadDefinition={canReadDefinition} />
                 </ContextSidebar>
             ),
             leading: <ContextToggleButton expanded={contextExpanded} onToggle={() => setContextExpanded(v => !v)} />,
@@ -142,7 +142,7 @@ export function ApiProductDetailLayout() {
             ) : null,
             bannerSticky: true,
         },
-        [contextExpanded, product, isLoading, basePath, showDeployBanner, deployMutation.isPending],
+        [contextExpanded, product, isLoading, basePath, canReadDefinition, showDeployBanner, deployMutation.isPending],
     );
 
     if (isError) {
