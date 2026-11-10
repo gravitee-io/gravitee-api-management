@@ -33,6 +33,7 @@ import inmemory.ThemeQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationProperties;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
@@ -42,6 +43,7 @@ import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyn
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
@@ -72,12 +74,7 @@ class CreateOrUpdatePortalUseCaseTest {
         .build();
 
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
-    private final PortalAutomationScopeDomainService scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService, () -> false);
     private final InstallationAccessQueryServiceInMemory installationAccessQueryService = new InstallationAccessQueryServiceInMemory();
-    private final ValidatePortalDomainService validator = new ValidatePortalDomainService(
-        scopeEnforcer,
-        new PortalUrlDomainService(installationAccessQueryService)
-    );
     private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
     private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
         navCrudService.storage()
@@ -93,8 +90,13 @@ class CreateOrUpdatePortalUseCaseTest {
     void setUp() {
         installationAccessQueryService.withPortalUrl(AUDIT_INFO.environmentId(), "https://portal.acme.io");
         installationAccessQueryService.withPortalUrl("other-env", "https://other.acme.io");
-        useCase = new CreateOrUpdatePortalUseCase(
-            validator,
+        useCase = aUseCase(() -> false);
+    }
+
+    private CreateOrUpdatePortalUseCase aUseCase(PortalAutomationProperties properties) {
+        var scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService, properties);
+        return new CreateOrUpdatePortalUseCase(
+            new ValidatePortalDomainService(scopeEnforcer, new PortalUrlDomainService(installationAccessQueryService)),
             portalCrudService,
             new PortalNavigationSyncDomainService(
                 navQueryService,
@@ -189,6 +191,26 @@ class CreateOrUpdatePortalUseCaseTest {
         useCase.execute(inputFor(AUDIT_INFO, portal));
 
         assertThat(storedReferenceOf(legacyFolder)).isEqualTo(new NavigationItemReference.PortalReference(portal.getId()));
+    }
+
+    @Test
+    void should_give_orphan_content_to_the_default_portal_when_another_portal_is_created() throws Exception {
+        var legacyFolder = aLegacyFolder();
+        var defaultPortal = Portal.of(
+            PortalId.of("00000000-0000-0000-0000-0000000000d1"),
+            AUDIT_INFO.environmentId(),
+            AUDIT_INFO.organizationId(),
+            "Developer Portal",
+            PortalNavigationStructure.empty(),
+            null,
+            true,
+            URI.create("https://portal.acme.io/next").toURL()
+        );
+        portalCrudService.initWith(List.of(defaultPortal));
+
+        aUseCase(() -> true).execute(inputFor(AUDIT_INFO, PortalFixtures.aPortal()));
+
+        assertThat(storedReferenceOf(legacyFolder)).isEqualTo(new NavigationItemReference.PortalReference(defaultPortal.getId()));
     }
 
     @Test

@@ -93,7 +93,8 @@ public class CreateOrUpdatePortalUseCase {
         portalToSave.update(input.name(), sanitized.structure(), resolvedActiveThemeId);
         var saved = existing.isPresent() ? portalCrudService.update(portalToSave) : portalCrudService.create(portalToSave);
         if (existing.isEmpty()) {
-            // An environment the upgrade skipped for lack of a portal can get its first one here
+            // Any new portal adopts the orphans, onto the default portal, else the only one: an environment the upgrade
+            // skipped for lack of a portal gets them on its first portal
             portalContentOwnershipDomainService.moveOrphans(input.auditInfo().environmentId());
         }
         var portalExists = portalAutomationScopeEnforcer.portalExistsInEnvironment(input.auditInfo(), saved.getId());
