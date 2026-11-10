@@ -182,6 +182,14 @@
 
         <!-- Test dependencies -->
         <dependency>
+            <!-- The in-memory audit, user and secret services, so credential tests run the real host use cases. -->
+            <groupId>io.gravitee.apim.rest.api</groupId>
+            <artifactId>gravitee-apim-rest-api-service</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>

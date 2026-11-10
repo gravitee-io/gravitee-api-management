@@ -16,6 +16,7 @@
 package io.gravitee.gamma.module.platform.rest;
 
 import io.gravitee.gamma.module.platform.rest.resource.am.AmSettingsResource;
+import io.gravitee.gamma.module.platform.rest.resource.credential.CredentialsResource;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
@@ -37,5 +38,10 @@ public class PlatformRootResource {
     @Path("/am")
     public AmSettingsResource am() {
         return resourceContext.getResource(AmSettingsResource.class);
+    }
+
+    @Path("/credentials")
+    public CredentialsResource credentials() {
+        return resourceContext.getResource(CredentialsResource.class);
     }
 }
