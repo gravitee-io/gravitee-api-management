@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.repository.elasticsearch.utils.JsonNodeUtils;
 import io.gravitee.repository.log.v4.model.message.AggregatedMessageLog;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -53,18 +54,25 @@ public class SearchMessageLogResponseAdapter {
             .toList();
     }
 
+    /**
+     * Pairs each entrypoint message with the endpoint message of the same correlation id. A broker may set one
+     * correlation id on several messages: each endpoint message then pairs once, in the order both sides come in.
+     */
     public static List<AggregatedMessageLog> adapt(SearchHits entrypointHits, SearchHits endpointHits) {
+        var unpairedEndpoints = new ArrayList<>(endpointHits.getHits());
         return entrypointHits
             .getHits()
             .stream()
             .map(entrypointHit -> {
                 var entrypoint = entrypointHit.getSource();
-                return endpointHits
-                    .getHits()
+                return unpairedEndpoints
                     .stream()
                     .filter(endpointHit -> entrypoint.get("correlation-id").equals(endpointHit.getSource().get("correlation-id")))
                     .findFirst()
-                    .map(endpointHit -> aggregateFromEntrypointAndEndpoint(entrypoint, endpointHit.getSource()))
+                    .map(endpointHit -> {
+                        unpairedEndpoints.remove(endpointHit);
+                        return aggregateFromEntrypointAndEndpoint(entrypoint, endpointHit.getSource());
+                    })
                     .orElseGet(() -> {
                         log.warn(
                             "No endpoint found for entrypoint [correlation-id={}] of log [_id={}]",

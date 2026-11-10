@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.log.adapter.message;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -56,6 +57,30 @@ public class SearchMessageLogResponseAdapterTest extends AbstractAdapterTest {
         final List<AggregatedMessageLog> result = SearchMessageLogResponseAdapter.adapt(searchResponse.getSearchHits());
 
         assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    void should_pair_the_messages_of_a_connection_sharing_a_correlation_id_by_rank() throws JsonProcessingException {
+        // A broker may set the same correlation id on several messages; newest first on both sides.
+        var entrypoints = hits(messageHit("entrypoint", "order-42", "entrypoint-2"), messageHit("entrypoint", "order-42", "entrypoint-1"));
+        var endpoints = hits(messageHit("endpoint", "order-42", "endpoint-2"), messageHit("endpoint", "order-42", "endpoint-1"));
+
+        var result = SearchMessageLogResponseAdapter.adapt(entrypoints, endpoints);
+
+        assertThat(result)
+            .extracting(log -> log.getEntrypoint().getPayload(), log -> log.getEndpoint().getPayload())
+            .containsExactly(tuple("entrypoint-2", "endpoint-2"), tuple("entrypoint-1", "endpoint-1"));
+    }
+
+    private static String messageHit(String connectorType, String correlationId, String payload) {
+        return """
+        { "_id": "%s", "_source": { "api-id": "api", "request-id": "request", "connector-type": "%s", "correlation-id": "%s",
+          "operation": "subscribe", "@timestamp": "2023-11-07T15:18:56.868+01:00", "message": { "payload": "%s" } } }
+        """.formatted(payload, connectorType, correlationId, payload);
+    }
+
+    private static SearchHits hits(String... hits) throws JsonProcessingException {
+        return new ObjectMapper().readValue("{ \"hits\": [" + String.join(",", hits) + "] }", SearchHits.class);
     }
 
     @Test
