@@ -803,6 +803,46 @@ class SubscriptionCacheServiceTest {
             assertThat(subscriptionService.getByScopeId(PRODUCT_ID)).containsExactly(SUB_ID);
             assertThat(subscriptionService.getById(SUB_ID)).contains(onProduct);
         }
+
+        @Test
+        void should_evict_only_the_subscriptions_of_the_removed_plans() {
+            givenProductWithMemberApis();
+            Subscription onRemovedPlan = buildAcceptedProductSubscriptionWithClientId(SUB_ID, PRODUCT_ID, CLIENT_ID, PLAN_ID);
+            Subscription onKeptPlan = buildAcceptedProductSubscriptionWithClientId(SUB_ID_2, PRODUCT_ID, "other-client-id", PLAN_ID_2);
+            Subscription onApiPlan = buildAcceptedSubscriptionWithClientId("api-subscription", API_ID, "api-client-id", PLAN_ID);
+            subscriptionService.register(onRemovedPlan);
+            subscriptionService.register(onKeptPlan);
+            subscriptionService.register(onApiPlan);
+
+            subscriptionService.unregisterByApiProductPlans(PRODUCT_ID, Set.of(PLAN_ID));
+
+            assertThat(subscriptionService.getById(SUB_ID)).isEmpty();
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isEmpty();
+            assertThat(subscriptionService.getByApiAndClientId(API_ID, CLIENT_ID)).isEmpty();
+            assertThat(subscriptionService.getById(SUB_ID_2)).contains(onKeptPlan);
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, "other-client-id", PLAN_ID_2)).contains(onKeptPlan);
+            assertThat(subscriptionService.getByScopeId(PRODUCT_ID)).containsExactly(SUB_ID_2);
+            // Same plan id, but taken on the API itself: not the product's to evict
+            assertThat(subscriptionService.getById("api-subscription")).contains(onApiPlan);
+        }
+
+        @Test
+        void should_remove_the_certificate_of_an_evicted_plan_subscription_from_the_trust_store() {
+            givenProductWithMemberApis();
+            Subscription subscription = buildAcceptedProductSubscriptionWithClientCertificate(
+                SUB_ID,
+                PRODUCT_ID,
+                CLIENT_CERTIFICATE,
+                PLAN_ID
+            );
+            subscriptionService.register(subscription);
+
+            subscriptionService.unregisterByApiProductPlans(PRODUCT_ID, Set.of(PLAN_ID));
+
+            verify(subscriptionTrustStoreLoaderManager).unregisterSubscription(subscription);
+            assertThat(subscriptionService.getById(SUB_ID)).isEmpty();
+            assertThat(subscriptionService.getByScopeId(PRODUCT_ID)).isEmpty();
+        }
     }
 
     @Nested

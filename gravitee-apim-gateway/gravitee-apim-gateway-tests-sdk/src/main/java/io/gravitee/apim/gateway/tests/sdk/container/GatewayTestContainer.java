@@ -19,6 +19,7 @@ import io.gravitee.apim.gateway.tests.sdk.connector.fakes.MessageStorage;
 import io.gravitee.apim.gateway.tests.sdk.reporter.FakeReporter;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.SubscriptionService;
+import io.gravitee.gateway.handlers.api.services.ApiKeyCacheService;
 import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
 import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.standalone.GatewayContainer;
@@ -174,7 +175,7 @@ public class GatewayTestContainer extends GatewayContainer {
 
         @Bean
         public ApiKeyService apiKeyService() {
-            return Mockito.mock(ApiKeyService.class);
+            return Mockito.mock(ApiKeyCacheService.class);
         }
 
         @Bean

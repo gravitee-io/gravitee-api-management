@@ -16,14 +16,19 @@
 package io.gravitee.gateway.handlers.api.sharding;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -59,5 +64,35 @@ class ApiProductShardingFilterTest {
         when(gatewayConfiguration.hasMatchingTags(Set.of("internal"))).thenReturn(true);
 
         assertThat(ApiProductShardingFilter.matchesPlanTags(gatewayConfiguration, Set.of("internal"))).isTrue();
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = PlanStatus.class, names = { "PUBLISHED", "DEPRECATED" })
+    void should_serve_a_plan_open_to_calls_whose_tags_match_or_are_absent(PlanStatus status) {
+        when(gatewayConfiguration.hasMatchingTags(Set.of("internal"))).thenReturn(true);
+
+        assertThat(ApiProductShardingFilter.servesPlan(gatewayConfiguration, plan(status, Set.of("internal")))).isTrue();
+        assertThat(ApiProductShardingFilter.servesPlan(gatewayConfiguration, plan(status, null))).isTrue();
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = PlanStatus.class, names = { "PUBLISHED", "DEPRECATED" })
+    void should_not_serve_a_plan_open_to_calls_whose_tags_do_not_match(PlanStatus status) {
+        when(gatewayConfiguration.hasMatchingTags(Set.of("external"))).thenReturn(false);
+
+        assertThat(ApiProductShardingFilter.servesPlan(gatewayConfiguration, plan(status, Set.of("external")))).isFalse();
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = PlanStatus.class, names = { "STAGING", "CLOSED" })
+    void should_not_serve_a_plan_closed_to_calls_whatever_its_tags(PlanStatus status) {
+        lenient().when(gatewayConfiguration.hasMatchingTags(Set.of("internal"))).thenReturn(true);
+
+        assertThat(ApiProductShardingFilter.servesPlan(gatewayConfiguration, plan(status, Set.of("internal")))).isFalse();
+        assertThat(ApiProductShardingFilter.servesPlan(gatewayConfiguration, plan(status, null))).isFalse();
+    }
+
+    private static Plan plan(PlanStatus status, Set<String> tags) {
+        return Plan.builder().id("plan-1").status(status).tags(tags).build();
     }
 }

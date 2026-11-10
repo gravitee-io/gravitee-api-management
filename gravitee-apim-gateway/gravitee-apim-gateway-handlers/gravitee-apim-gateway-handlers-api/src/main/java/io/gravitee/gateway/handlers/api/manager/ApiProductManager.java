@@ -18,6 +18,7 @@ package io.gravitee.gateway.handlers.api.manager;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Collection;
+import java.util.function.Function;
 
 /**
  * @author Arpit Mishra (arpit.mishra at graviteesource.com)
@@ -32,16 +33,18 @@ public interface ApiProductManager {
     void register(ReactableApiProduct apiProduct);
 
     /**
-     * Register (deploy or update) an API Product, running the given Completable before emitting
+     * Register (deploy or update) an API Product, running the step built for its change before emitting
      * the change event. Use this when subscription/API key cache must be populated before
-     * the event is emitted. The Completable is chained so the event is emitted only after
+     * the event is emitted. The step is chained so the event is emitted only after
      * it completes, avoiding thread blocking.
      *
      * @param apiProduct the API Product to register
-     * @param doBeforeEmit Completable to run after product is in registry but before the event is emitted
+     * @param doBeforeEmit builds, from what the product changes against the deployed version, the step to run
+     *                     after the product is in the registry but before the event is emitted. Not called when the
+     *                     product is neither deployed nor updated.
      * @return Completable that completes when registration and event emission are done
      */
-    Completable register(ReactableApiProduct apiProduct, Completable doBeforeEmit);
+    Completable register(ReactableApiProduct apiProduct, Function<ApiProductChange, Completable> doBeforeEmit);
 
     /**
      * Unregister (undeploy) an API Product

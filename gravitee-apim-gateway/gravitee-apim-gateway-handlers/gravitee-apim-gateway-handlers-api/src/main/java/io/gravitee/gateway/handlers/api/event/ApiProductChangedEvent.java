@@ -44,4 +44,9 @@ public class ApiProductChangedEvent {
      * Set of API IDs that are part of this product and need security chain refresh
      */
     private final Set<String> apiIds;
+
+    /**
+     * Subset of the API IDs whose eligibility on this gateway may have changed, so must be resynced
+     */
+    private final Set<String> apiIdsToResync;
 }

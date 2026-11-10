@@ -34,7 +34,7 @@ import lombok.ToString;
  * @author Arpit Mishra (arpit.mishra at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter

@@ -17,7 +17,6 @@ package io.gravitee.gateway.handlers.api.registry.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.gravitee.definition.model.v4.plan.Plan;
-import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
@@ -225,14 +224,12 @@ public class ApiProductRegistryImpl implements ApiProductRegistry {
         String apiId,
         Plan plan
     ) {
-        if (plan.getStatus() != PlanStatus.PUBLISHED && plan.getStatus() != PlanStatus.DEPRECATED) {
-            return;
-        }
-        if (!ApiProductShardingFilter.matchesPlanTags(gatewayConfiguration, plan.getTags())) {
+        if (!ApiProductShardingFilter.servesPlan(gatewayConfiguration, plan)) {
             log.debug(
-                "Plan [{}] of product [{}] skipped: plan tags {} do not match gateway tags",
+                "Plan [{}] of product [{}] skipped: status {} or plan tags {} not served by this gateway",
                 plan.getId(),
                 product.getId(),
+                plan.getStatus(),
                 plan.getTags()
             );
             return;

@@ -46,16 +46,33 @@ public class PlanService {
         }
     }
 
-    public void register(final ApiProductReactorDeployable apiProductReactorDeployable) {
-        if (apiProductReactorDeployable != null && apiProductReactorDeployable.apiProductId() != null) {
-            plansPerApiProduct.put(apiProductReactorDeployable.apiProductId(), Set.copyOf(apiProductReactorDeployable.subscribablePlans()));
+    /** @return the plans now registered for the API Product, or null when nothing was registered */
+    public Set<String> register(final ApiProductReactorDeployable apiProductReactorDeployable) {
+        if (apiProductReactorDeployable == null || apiProductReactorDeployable.apiProductId() == null) {
+            return null;
         }
+        Set<String> plans = Set.copyOf(apiProductReactorDeployable.subscribablePlans());
+        plansPerApiProduct.put(apiProductReactorDeployable.apiProductId(), plans);
+        return plans;
     }
 
     public void unregister(final ApiProductReactorDeployable apiProductReactorDeployable) {
         if (apiProductReactorDeployable != null && apiProductReactorDeployable.apiProductId() != null) {
             plansPerApiProduct.remove(apiProductReactorDeployable.apiProductId());
         }
+    }
+
+    /** The plans registered for the given API Product, or null when it has none registered. */
+    public Set<String> apiProductPlans(final String apiProductId) {
+        return plansPerApiProduct.get(apiProductId);
+    }
+
+    /**
+     * Puts back the plans read with {@link #apiProductPlans(String)} before {@code registered} replaced them, or
+     * unregisters the API Product when there were none. Plans registered since are left untouched.
+     */
+    public void restoreApiProductPlans(final String apiProductId, final Set<String> registered, final Set<String> previous) {
+        plansPerApiProduct.computeIfPresent(apiProductId, (id, current) -> current == registered ? previous : current);
     }
 
     public boolean isDeployed(final String apiId, final String planId) {

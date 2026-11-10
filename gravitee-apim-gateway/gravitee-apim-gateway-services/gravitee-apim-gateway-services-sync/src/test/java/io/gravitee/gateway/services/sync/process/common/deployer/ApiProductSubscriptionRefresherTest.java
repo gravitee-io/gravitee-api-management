@@ -312,6 +312,39 @@ class ApiProductSubscriptionRefresherTest {
         }
     }
 
+    @Nested
+    class UnregisterByApiProductPlansTest {
+
+        @Test
+        void evicts_subscriptions_and_api_keys_of_the_given_plans_without_hitting_the_repository() throws TechnicalException {
+            cut.unregisterByApiProductPlans(PRODUCT_1, Set.of("plan-removed")).test().assertComplete();
+
+            verify(subscriptionService).unregisterByApiProductPlans(PRODUCT_1, Set.of("plan-removed"));
+            verify(apiKeyService).unregisterByApiProductPlans(PRODUCT_1, Set.of("plan-removed"));
+            verify(subscriptionService, never()).unregisterByApiProductId(any());
+            verify(subscriptionRepository, never()).searchAfter(any(), any(), any(), any(int.class));
+        }
+
+        @Test
+        void does_nothing_when_no_plan_was_removed() {
+            cut.unregisterByApiProductPlans(PRODUCT_1, Set.of()).test().assertComplete();
+
+            verify(subscriptionService, never()).unregisterByApiProductPlans(any(), any());
+            verify(apiKeyService, never()).unregisterByApiProductPlans(any(), any());
+        }
+
+        @Test
+        void translates_an_error_into_a_sync_exception_and_stops() {
+            var linkageError = new NoSuchFieldError("BCObjectIdentifiers.sphincsPlus_sha2_128s_r3");
+            doThrow(linkageError).when(subscriptionService).unregisterByApiProductPlans(PRODUCT_1, Set.of("plan-removed"));
+
+            var thrown = catchThrowable(() -> cut.unregisterByApiProductPlans(PRODUCT_1, Set.of("plan-removed")).blockingAwait());
+
+            assertThat(thrown).isInstanceOf(SyncException.class).hasMessageContaining(PRODUCT_1).hasCause(linkageError);
+            verify(apiKeyService, never()).unregisterByApiProductPlans(any(), any());
+        }
+    }
+
     private static io.gravitee.repository.management.model.Subscription productSubscription(String id, String plan, String env) {
         var s = new io.gravitee.repository.management.model.Subscription();
         s.setId(id);

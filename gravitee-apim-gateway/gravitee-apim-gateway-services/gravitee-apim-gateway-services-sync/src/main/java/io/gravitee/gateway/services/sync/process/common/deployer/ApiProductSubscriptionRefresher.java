@@ -158,6 +158,26 @@ public class ApiProductSubscriptionRefresher {
         );
     }
 
+    /**
+     * Evicts the subscriptions and API keys taken on the given plans of an API Product, which a redeploy removed. Its
+     * other plans keep theirs. Errors are translated as in {@link #unregisterByApiProduct(String)}.
+     */
+    public Completable unregisterByApiProductPlans(final String apiProductId, final Set<String> planIds) {
+        if (planIds.isEmpty()) {
+            return Completable.complete();
+        }
+        return Completable.fromRunnable(() ->
+            SyncIsolation.translateErrors(
+                () -> "unregister subscriptions and API keys of plans %s of API Product [%s]".formatted(planIds, apiProductId),
+                () -> {
+                    subscriptionService.unregisterByApiProductPlans(apiProductId, planIds);
+                    apiKeyService.unregisterByApiProductPlans(apiProductId, planIds);
+                    log.debug("Unregistered subscriptions and API keys of plans {} of API Product [{}]", planIds, apiProductId);
+                }
+            )
+        );
+    }
+
     private void quietly(final Runnable action, final String itemId, final String type) {
         SyncIsolation.isolate(
             () -> "deploy %s [%s]".formatted(type, itemId),

@@ -26,14 +26,20 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.event.EventManager;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
 import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
+import io.gravitee.gateway.handlers.api.manager.ApiProductChange;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -325,7 +331,7 @@ class ApiProductManagerImplTest {
             ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
             boolean[] callbackRan = { false };
 
-            manager.register(apiProduct, Completable.fromRunnable(() -> callbackRan[0] = true)).blockingAwait();
+            manager.register(apiProduct, change -> Completable.fromRunnable(() -> callbackRan[0] = true)).blockingAwait();
 
             assertThat(callbackRan[0]).isTrue();
             verify(apiProductRegistry).register(apiProduct);
@@ -338,11 +344,11 @@ class ApiProductManagerImplTest {
             Date newDate = new Date();
             ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
             ReactableApiProduct newProduct = createApiProduct("product-1", "env-1", newDate);
-            newProduct.setName("Updated");
+            newProduct.setApiIds(Set.of("api-1", "api-2", "api-3"));
             boolean[] callbackRan = { false };
 
             manager.register(oldProduct);
-            manager.register(newProduct, Completable.fromRunnable(() -> callbackRan[0] = true)).blockingAwait();
+            manager.register(newProduct, change -> Completable.fromRunnable(() -> callbackRan[0] = true)).blockingAwait();
 
             assertThat(callbackRan[0]).isTrue();
             verify(eventManager).publishEvent(eq(ApiProductEventType.UPDATE), any(ApiProductChangedEvent.class));
@@ -372,7 +378,7 @@ class ApiProductManagerImplTest {
         void should_deploy_successfully_when_no_op_beforeEmit() {
             ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
 
-            manager.register(apiProduct, Completable.complete()).blockingAwait();
+            manager.register(apiProduct, change -> Completable.complete()).blockingAwait();
 
             verify(apiProductRegistry).register(apiProduct);
             verify(eventManager).publishEvent(eq(ApiProductEventType.DEPLOY), any(ApiProductChangedEvent.class));
@@ -388,10 +394,191 @@ class ApiProductManagerImplTest {
             olderProduct.setName("Older");
             boolean[] callbackRan = { false };
 
-            manager.register(olderProduct, Completable.fromRunnable(() -> callbackRan[0] = true)).blockingAwait();
+            manager.register(olderProduct, change -> Completable.fromRunnable(() -> callbackRan[0] = true)).blockingAwait();
 
             assertThat(callbackRan[0]).isFalse();
             verify(apiProductRegistry, times(1)).register(any(ReactableApiProduct.class));
+        }
+    }
+
+    @Nested
+    class ChangeAwareUpdateTest {
+
+        private final Date oldDate = new Date(System.currentTimeMillis() - 10000);
+        private final Date newDate = new Date();
+
+        @Test
+        void should_update_only_the_index_when_only_the_name_changes() {
+            ReactableApiProduct newProduct = createApiProduct("product-1", "env-1", newDate);
+            newProduct.setName("Renamed");
+            manager.register(createApiProduct("product-1", "env-1", oldDate));
+
+            manager.register(newProduct);
+
+            assertThat(manager.get("product-1")).isSameAs(newProduct);
+            verify(apiProductRegistry).register(newProduct);
+            verify(eventManager, never()).publishEvent(eq(ApiProductEventType.UPDATE), any(ApiProductChangedEvent.class));
+        }
+
+        @Test
+        void should_notify_member_apis_without_resyncing_them_when_only_a_plan_flow_changes() {
+            ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
+            oldProduct.setPlans(List.of(plan("plan-1")));
+            Plan withFlow = plan("plan-1");
+            withFlow.setFlows(List.of(Flow.builder().name("flow").build()));
+            ReactableApiProduct newProduct = createApiProduct("product-1", "env-1", newDate);
+            newProduct.setPlans(List.of(withFlow));
+            manager.register(oldProduct);
+
+            manager.register(newProduct);
+
+            ArgumentCaptor<ApiProductChangedEvent> event = ArgumentCaptor.forClass(ApiProductChangedEvent.class);
+            verify(eventManager).publishEvent(eq(ApiProductEventType.UPDATE), event.capture());
+            assertThat(event.getValue().getApiIds()).containsExactlyInAnyOrder("api-1", "api-2");
+            assertThat(event.getValue().getApiIdsToResync()).isEmpty();
+        }
+
+        @Test
+        void should_resync_only_the_added_and_removed_apis() {
+            ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
+            oldProduct.setApiIds(Set.of("api-1", "api-2"));
+            ReactableApiProduct newProduct = createApiProduct("product-1", "env-1", newDate);
+            newProduct.setApiIds(Set.of("api-2", "api-3"));
+            manager.register(oldProduct);
+
+            manager.register(newProduct);
+
+            ArgumentCaptor<ApiProductChangedEvent> event = ArgumentCaptor.forClass(ApiProductChangedEvent.class);
+            verify(eventManager).publishEvent(eq(ApiProductEventType.UPDATE), event.capture());
+            assertThat(event.getValue().getApiIds()).containsExactlyInAnyOrder("api-1", "api-2", "api-3");
+            assertThat(event.getValue().getApiIdsToResync()).containsExactlyInAnyOrder("api-1", "api-3");
+        }
+
+        @Test
+        void should_resync_every_member_api_on_first_deployment() {
+            manager.register(createApiProduct("product-1", "env-1", newDate));
+
+            ArgumentCaptor<ApiProductChangedEvent> event = ArgumentCaptor.forClass(ApiProductChangedEvent.class);
+            verify(eventManager).publishEvent(eq(ApiProductEventType.DEPLOY), event.capture());
+            assertThat(event.getValue().getApiIdsToResync()).containsExactlyInAnyOrder("api-1", "api-2");
+        }
+
+        @Test
+        void should_hand_the_change_against_the_deployed_product_to_the_before_publish_step() {
+            ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
+            oldProduct.setPlans(List.of(plan("plan-1"), plan("plan-2")));
+            ReactableApiProduct newProduct = createApiProduct("product-1", "env-1", newDate);
+            newProduct.setPlans(List.of(plan("plan-1"), plan("plan-3")));
+            manager.register(oldProduct);
+            List<ApiProductChange> changes = new ArrayList<>();
+
+            manager.register(newProduct, change -> Completable.fromRunnable(() -> changes.add(change))).blockingAwait();
+
+            assertThat(changes).hasSize(1);
+            assertThat(changes.getFirst().planIdsToEvict()).containsExactly("plan-2");
+            assertThat(changes.getFirst().planIdsToLoadSubscriptionsFor()).containsExactly("plan-3");
+        }
+
+        @Test
+        void should_restore_the_deployed_version_when_the_before_publish_step_fails() {
+            ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
+            oldProduct.setPlans(List.of(plan("plan-1")));
+            ReactableApiProduct failedProduct = createApiProduct("product-1", "env-1", newDate);
+            failedProduct.setPlans(List.of(plan("plan-1"), plan("plan-2")));
+            manager.register(oldProduct);
+
+            manager
+                .register(failedProduct, change -> Completable.error(new IllegalStateException("repository down")))
+                .test()
+                .assertError(e -> "repository down".equals(e.getMessage()));
+
+            assertThat(manager.get("product-1")).isSameAs(oldProduct);
+            verify(apiProductRegistry, times(2)).register(oldProduct);
+            verify(eventManager, never()).publishEvent(eq(ApiProductEventType.UPDATE), any(ApiProductChangedEvent.class));
+        }
+
+        @Test
+        void should_load_again_the_plan_a_failed_update_could_not_load() {
+            ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
+            oldProduct.setPlans(List.of(plan("plan-1")));
+            ReactableApiProduct failedProduct = createApiProduct("product-1", "env-1", new Date(oldDate.getTime() + 1));
+            failedProduct.setPlans(List.of(plan("plan-1"), plan("plan-2")));
+            ReactableApiProduct nextProduct = createApiProduct("product-1", "env-1", newDate);
+            nextProduct.setPlans(List.of(plan("plan-1"), plan("plan-2")));
+            manager.register(oldProduct);
+            manager
+                .register(failedProduct, change -> Completable.error(new IllegalStateException("repository down")))
+                .test()
+                .assertError(IllegalStateException.class);
+            List<ApiProductChange> changes = new ArrayList<>();
+
+            manager.register(nextProduct, change -> Completable.fromRunnable(() -> changes.add(change))).blockingAwait();
+
+            assertThat(changes.getFirst().planIdsToLoadSubscriptionsFor()).containsExactly("plan-2");
+        }
+
+        @Test
+        void should_keep_a_newer_version_stored_while_a_failed_update_was_loading() {
+            ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
+            ReactableApiProduct failedProduct = createApiProduct("product-1", "env-1", new Date(oldDate.getTime() + 1));
+            ReactableApiProduct newerProduct = createApiProduct("product-1", "env-1", newDate);
+            manager.register(oldProduct);
+
+            manager
+                .register(failedProduct, change ->
+                    Completable.fromRunnable(() -> manager.register(newerProduct)).andThen(
+                        Completable.error(new IllegalStateException("repository down"))
+                    )
+                )
+                .test()
+                .assertError(IllegalStateException.class);
+
+            assertThat(manager.get("product-1")).isSameAs(newerProduct);
+            verify(apiProductRegistry, times(1)).register(oldProduct);
+            verify(apiProductRegistry, never()).remove("product-1", "env-1");
+        }
+
+        @Test
+        void should_forget_a_first_deployment_whose_before_publish_step_fails() {
+            ReactableApiProduct product = createApiProduct("product-1", "env-1", newDate);
+
+            manager
+                .register(product, change -> Completable.error(new IllegalStateException("repository down")))
+                .test()
+                .assertError(e -> "repository down".equals(e.getMessage()));
+
+            assertThat(manager.get("product-1")).isNull();
+            verify(apiProductRegistry).remove("product-1", "env-1");
+            verify(eventManager, never()).publishEvent(eq(ApiProductEventType.DEPLOY), any(ApiProductChangedEvent.class));
+        }
+
+        @Test
+        void should_resync_every_member_api_when_the_only_plan_is_retagged_away_from_this_gateway() {
+            when(gatewayConfiguration.hasMatchingTags(Set.of("external"))).thenReturn(false);
+            Plan internal = plan("plan-1");
+            internal.setTags(Set.of("internal"));
+            Plan external = plan("plan-1");
+            external.setTags(Set.of("external"));
+            ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
+            oldProduct.setPlans(List.of(internal));
+            ReactableApiProduct newProduct = createApiProduct("product-1", "env-1", newDate);
+            newProduct.setPlans(List.of(external));
+            manager.register(oldProduct);
+
+            manager.register(newProduct);
+
+            ArgumentCaptor<ApiProductChangedEvent> event = ArgumentCaptor.forClass(ApiProductChangedEvent.class);
+            verify(eventManager).publishEvent(eq(ApiProductEventType.UPDATE), event.capture());
+            assertThat(event.getValue().getApiIdsToResync()).containsExactlyInAnyOrder("api-1", "api-2");
+        }
+
+        private Plan plan(String id) {
+            return Plan.builder()
+                .id(id)
+                .name("Plan " + id)
+                .security(PlanSecurity.builder().type("api-key").build())
+                .status(PlanStatus.PUBLISHED)
+                .build();
         }
     }
 

@@ -203,5 +203,40 @@ class PlanServiceTest {
         void should_return_false_when_reference_type_null_for_is_deployed() {
             assertThat(cut.isDeployed("product-1", "plan-1", null)).isFalse();
         }
+
+        @Test
+        void should_put_back_the_previous_plans_of_an_api_product() {
+            Set<String> previous = cut.register(product("plan-1"));
+            Set<String> registered = cut.register(product("plan-2"));
+
+            cut.restoreApiProductPlans("product-1", registered, previous);
+
+            assertThat(cut.isDeployed("product-1", "plan-1", Plan.PlanReferenceType.API_PRODUCT)).isTrue();
+            assertThat(cut.isDeployed("product-1", "plan-2", Plan.PlanReferenceType.API_PRODUCT)).isFalse();
+        }
+
+        @Test
+        void should_unregister_an_api_product_that_had_no_plans_registered_before() {
+            Set<String> registered = cut.register(product("plan-1"));
+
+            cut.restoreApiProductPlans("product-1", registered, null);
+
+            assertThat(cut.apiProductPlans("product-1")).isNull();
+        }
+
+        @Test
+        void should_keep_plans_registered_after_the_ones_to_put_back() {
+            Set<String> previous = cut.register(product("plan-1"));
+            Set<String> registered = cut.register(product("plan-2"));
+            cut.register(product("plan-3"));
+
+            cut.restoreApiProductPlans("product-1", registered, previous);
+
+            assertThat(cut.apiProductPlans("product-1")).containsExactly("plan-3");
+        }
+
+        private ApiProductReactorDeployable product(String planId) {
+            return ApiProductReactorDeployable.builder().apiProductId("product-1").subscribablePlans(Set.of(planId)).build();
+        }
     }
 }

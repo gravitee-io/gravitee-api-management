@@ -20,17 +20,19 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
 import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
+import io.gravitee.gateway.handlers.api.manager.ApiProductChange;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.handlers.api.sharding.ApiProductShardingFilter;
 import io.gravitee.node.api.license.LicenseManager;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import lombok.CustomLog;
 
 /**
@@ -60,11 +62,11 @@ public class ApiProductManagerImpl implements ApiProductManager {
 
     @Override
     public void register(ReactableApiProduct apiProduct) {
-        register(apiProduct, Completable.complete()).blockingAwait();
+        register(apiProduct, change -> Completable.complete()).blockingAwait();
     }
 
     @Override
-    public Completable register(ReactableApiProduct apiProduct, Completable doBeforeEmit) {
+    public Completable register(ReactableApiProduct apiProduct, Function<ApiProductChange, Completable> doBeforeEmit) {
         return Completable.defer(() -> register(apiProduct, false, doBeforeEmit));
     }
 
@@ -83,7 +85,7 @@ public class ApiProductManagerImpl implements ApiProductManager {
         return apiProducts.values();
     }
 
-    private Completable register(ReactableApiProduct apiProduct, boolean force, Completable doBeforeEmit) {
+    private Completable register(ReactableApiProduct apiProduct, boolean force, Function<ApiProductChange, Completable> doBeforeEmit) {
         // License check: API Products require apim-api-products feature
         var license = licenseManager.getOrganizationLicenseOrPlatform(apiProduct.getOrganizationId());
         if (license == null || !license.isFeatureEnabled("apim-api-products")) {
@@ -129,43 +131,89 @@ public class ApiProductManagerImpl implements ApiProductManager {
         return Completable.complete();
     }
 
-    private Completable deploy(ReactableApiProduct apiProduct, Completable doBeforeEmit) {
+    private Completable deploy(ReactableApiProduct apiProduct, Function<ApiProductChange, Completable> doBeforeEmit) {
         log.debug("Deploying API Product [{}]", apiProduct.getId());
 
+        ApiProductChange change = changeAgainst(null, apiProduct);
         apiProducts.put(apiProduct.getId(), apiProduct);
         apiProductRegistry.register(apiProduct);
 
         Completable emit = Completable.fromRunnable(() -> {
             if (apiProduct.getApiIds() != null && !apiProduct.getApiIds().isEmpty()) {
-                emitApiProductChangedEvent(ApiProductEventType.DEPLOY, apiProduct);
+                emitApiProductChangedEvent(ApiProductEventType.DEPLOY, apiProduct, change.apiIdsToResync());
             }
             log.info("API Product [{}] has been deployed", apiProduct.getId());
         });
-        return (doBeforeEmit != null ? doBeforeEmit : Completable.complete()).andThen(emit);
+        return doBeforeEmit
+            .apply(change)
+            .doOnError(e -> forgetFailedDeployment(apiProduct))
+            .andThen(emit);
     }
 
-    private Completable update(ReactableApiProduct apiProduct, Completable doBeforeEmit) {
+    private Completable update(ReactableApiProduct apiProduct, Function<ApiProductChange, Completable> doBeforeEmit) {
         log.debug("Updating API Product [{}]", apiProduct.getId());
 
         ReactableApiProduct previousProduct = apiProducts.get(apiProduct.getId());
-        Set<String> previousApiIds = previousProduct != null && previousProduct.getApiIds() != null
-            ? previousProduct.getApiIds()
-            : Set.of();
+        ApiProductChange change = changeAgainst(previousProduct, apiProduct);
 
         apiProducts.put(apiProduct.getId(), apiProduct);
         apiProductRegistry.register(apiProduct);
 
-        Completable emit = Completable.fromRunnable(() -> publishApiProductUpdateEvent(apiProduct, previousApiIds));
-        return (doBeforeEmit != null ? doBeforeEmit : Completable.complete()).andThen(emit);
+        Completable emit = Completable.fromRunnable(() -> publishApiProductUpdateEvent(apiProduct, change));
+        return doBeforeEmit
+            .apply(change)
+            .doOnError(e -> restoreAfterFailedUpdate(apiProduct, previousProduct))
+            .andThen(emit);
     }
 
-    private void publishApiProductUpdateEvent(ReactableApiProduct apiProduct, Set<String> previousApiIds) {
-        Set<String> allAffectedApiIds = new HashSet<>(previousApiIds);
-        if (apiProduct.getApiIds() != null) {
-            allAffectedApiIds.addAll(apiProduct.getApiIds());
+    private ApiProductChange changeAgainst(ReactableApiProduct deployed, ReactableApiProduct incoming) {
+        return ApiProductChange.between(deployed, incoming, plan -> ApiProductShardingFilter.servesPlan(gatewayConfiguration, plan));
+    }
+
+    /**
+     * The next version is diffed against the stored one, so a version whose subscriptions failed to load must not stay
+     * stored: its plans would be taken as loaded and never loaded again.
+     */
+    private void forgetFailedDeployment(ReactableApiProduct apiProduct) {
+        if (replaceIfStillStored(apiProduct, null)) {
+            log.warn("Deployment of API Product [{}] failed, it is not kept as deployed", apiProduct.getId());
+            apiProductRegistry.remove(apiProduct.getId(), apiProduct.getEnvironmentId());
         }
-        if (!allAffectedApiIds.isEmpty()) {
-            ApiProductChangedEvent event = new ApiProductChangedEvent(apiProduct.getId(), apiProduct.getEnvironmentId(), allAffectedApiIds);
+    }
+
+    private void restoreAfterFailedUpdate(ReactableApiProduct failedProduct, ReactableApiProduct previousProduct) {
+        if (replaceIfStillStored(failedProduct, previousProduct)) {
+            log.warn("Update of API Product [{}] failed, its previous version is kept as deployed", previousProduct.getId());
+            apiProductRegistry.register(previousProduct);
+        }
+    }
+
+    /** A version stored by a later register while this one was loading wins: it is left untouched. */
+    private boolean replaceIfStillStored(ReactableApiProduct stored, ReactableApiProduct replacement) {
+        AtomicBoolean replaced = new AtomicBoolean();
+        apiProducts.computeIfPresent(stored.getId(), (id, current) -> {
+            if (current != stored) {
+                return current;
+            }
+            replaced.set(true);
+            return replacement;
+        });
+        return replaced.get();
+    }
+
+    private void publishApiProductUpdateEvent(ReactableApiProduct apiProduct, ApiProductChange change) {
+        if (!change.affectsMemberApis()) {
+            log.info("API Product [{}] has been updated, no member API affected", apiProduct.getId());
+            return;
+        }
+        Set<String> memberApiIds = change.memberApiIds();
+        if (!memberApiIds.isEmpty()) {
+            ApiProductChangedEvent event = new ApiProductChangedEvent(
+                apiProduct.getId(),
+                apiProduct.getEnvironmentId(),
+                memberApiIds,
+                change.apiIdsToResync()
+            );
             eventManager.publishEvent(ApiProductEventType.UPDATE, event);
         }
         log.info("API Product [{}] has been updated", apiProduct.getId());
@@ -178,7 +226,7 @@ public class ApiProductManagerImpl implements ApiProductManager {
 
             apiProductRegistry.remove(apiProductId, currentApiProduct.getEnvironmentId());
 
-            emitApiProductChangedEvent(ApiProductEventType.UNDEPLOY, currentApiProduct);
+            emitApiProductChangedEvent(ApiProductEventType.UNDEPLOY, currentApiProduct, Set.of());
 
             log.info("API Product [{}] has been undeployed", apiProductId);
         } else {
@@ -189,12 +237,13 @@ public class ApiProductManagerImpl implements ApiProductManager {
     /**
      * Emit API Product event to trigger security chain refresh in affected reactors.
      */
-    private void emitApiProductChangedEvent(ApiProductEventType eventType, ReactableApiProduct apiProduct) {
+    private void emitApiProductChangedEvent(ApiProductEventType eventType, ReactableApiProduct apiProduct, Set<String> apiIdsToResync) {
         try {
             ApiProductChangedEvent event = new ApiProductChangedEvent(
                 apiProduct.getId(),
                 apiProduct.getEnvironmentId(),
-                apiProduct.getApiIds()
+                apiProduct.getApiIds(),
+                apiIdsToResync
             );
             eventManager.publishEvent(eventType, event);
             log.debug("Emitted {} event for API Product [{}]", eventType, apiProduct.getId());

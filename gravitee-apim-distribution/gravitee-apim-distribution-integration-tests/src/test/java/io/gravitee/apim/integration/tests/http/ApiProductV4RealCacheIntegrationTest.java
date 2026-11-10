@@ -16,11 +16,20 @@
 package io.gravitee.apim.integration.tests.http;
 
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.PLAN_APIKEY_ID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.ApiKeyService;
@@ -32,7 +41,13 @@ import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.handlers.api.services.ApiKeyCacheService;
 import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
 import io.gravitee.gateway.security.core.SubscriptionTrustStoreLoaderManager;
+import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.vertx.rxjava3.core.http.HttpClient;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,10 +84,95 @@ class ApiProductV4RealCacheIntegrationTest extends ApiProductV4IntegrationTest.T
     private static final String REAL_PLAN_ID = "real-cache-product-plan";
     private static final String REAL_KEY = "real-cache-key";
     private static final String REAL_SUBSCRIPTION_ID = "real-cache-subscription";
+    private static final String PLAN_A = "real-cache-product-plan-a";
+    private static final String PLAN_B = "real-cache-product-plan-b";
+
+    private final List<io.gravitee.repository.management.model.Subscription> repositorySubscriptions = new ArrayList<>();
+    private final List<io.gravitee.repository.management.model.ApiKey> repositoryApiKeys = new ArrayList<>();
 
     @BeforeEach
-    void useRealCaches() {
+    void useRealCaches() throws Exception {
         useRealSubscriptionCaches();
+        serveSubscriptionsFromRepository();
+    }
+
+    /** A plan added by a redeploy has its subscriptions loaded before the product is published. */
+    @Test
+    void should_accept_a_key_of_a_plan_added_to_the_product_from_the_first_request(HttpClient client) {
+        deployProductWithPlans(Set.of(API_1_ID), PLAN_A);
+        givenRepositorySubscriptionWithKey(PLAN_B, "plan-b-key");
+        assertStatus(client, API_1_PATH, "plan-b-key", 401);
+
+        deployProductWithPlans(Set.of(API_1_ID), PLAN_A, PLAN_B);
+
+        assertStatus(client, API_1_PATH, "plan-b-key", 200);
+    }
+
+    /** A plan removed by a redeploy has its API keys evicted, while the remaining plan keeps serving. */
+    @Test
+    void should_reject_a_key_of_a_plan_removed_from_the_product(HttpClient client) {
+        givenRepositorySubscriptionWithKey(PLAN_A, "plan-a-key");
+        givenRepositorySubscriptionWithKey(PLAN_B, "plan-b-key");
+        deployProductWithPlans(Set.of(API_1_ID), PLAN_A, PLAN_B);
+        assertStatus(client, API_1_PATH, "plan-b-key", 200);
+
+        deployProductWithPlans(Set.of(API_1_ID), PLAN_A);
+
+        assertStatus(client, API_1_PATH, "plan-b-key", 401);
+        assertThat(getBean(ApiKeyService.class).getByApiAndKey(API_1_ID, "plan-b-key")).isEmpty();
+        assertStatus(client, API_1_PATH, "plan-a-key", 200);
+    }
+
+    /** An API added by a redeploy accepts the product key already cached, with no reload. */
+    @Test
+    void should_accept_the_product_key_on_an_api_added_to_the_product(HttpClient client) {
+        givenRepositorySubscriptionWithKey(PLAN_A, "plan-a-key");
+        deployProductWithPlans(Set.of(API_1_ID), PLAN_A);
+        assertStatus(client, API_2_PATH, "plan-a-key", 401);
+
+        deployProductWithPlans(Set.of(API_1_ID, API_2_ID), PLAN_A);
+
+        assertStatus(client, API_2_PATH, "plan-a-key", 200);
+        assertStatus(client, API_1_PATH, "plan-a-key", 200);
+    }
+
+    /** An update whose subscription load failed is not kept, so the next update loads its plan again. */
+    @Test
+    void should_load_on_the_next_update_a_plan_whose_load_failed(HttpClient client) throws Exception {
+        givenRepositorySubscriptionWithKey(PLAN_A, "plan-a-key");
+        givenRepositorySubscriptionWithKey(PLAN_B, "plan-b-key");
+        deployProductWithPlans(Set.of(API_1_ID), PLAN_A);
+        doThrow(new IllegalStateException("repository down"))
+            .when(getBean(SubscriptionRepository.class))
+            .searchAfter(any(), any(), any(), anyInt());
+
+        assertThatThrownBy(() -> deployProductWithPlans(Set.of(API_1_ID), PLAN_A, PLAN_B)).isInstanceOf(IllegalStateException.class);
+        assertStatus(client, API_1_PATH, "plan-b-key", 401);
+
+        serveSubscriptionsFromRepository();
+        givenRepositorySubscriptionWithKey(PLAN_A, "plan-a-key");
+        givenRepositorySubscriptionWithKey(PLAN_B, "plan-b-key");
+        deployProductWithPlans(Set.of(API_1_ID), PLAN_A, PLAN_B);
+
+        assertStatus(client, API_1_PATH, "plan-b-key", 200);
+    }
+
+    /** A plan flow update reaches no repository: the subscriptions it would reload are already cached. */
+    @Test
+    void should_reload_no_subscription_when_only_a_plan_flow_changes(HttpClient client) throws Exception {
+        givenRepositorySubscriptionWithKey(PLAN_A, "plan-a-key");
+        deployProductWithPlans(Set.of(API_1_ID), PLAN_A);
+        SubscriptionRepository subscriptionRepository = getBean(SubscriptionRepository.class);
+        clearInvocations(subscriptionRepository);
+
+        Plan withFlow = productPlan(PLAN_A, "api-key", PlanStatus.PUBLISHED);
+        withFlow.setFlows(List.of(Flow.builder().name("plan flow").build()));
+        ReactableApiProduct updated = product(REAL_PRODUCT_ID, Set.of(API_1_ID));
+        updated.setPlans(List.of(withFlow));
+        deployApiProduct(updated);
+
+        verify(subscriptionRepository, never()).searchAfter(any(), any(), any(), anyInt());
+        assertStatus(client, API_1_PATH, "plan-a-key", 200);
     }
 
     /**
@@ -230,6 +330,19 @@ class ApiProductV4RealCacheIntegrationTest extends ApiProductV4IntegrationTest.T
         })
             .when(apiKeyBean)
             .unregister(any());
+        final ApiKeyCacheService apiKeyCacheBean = getBean(ApiKeyCacheService.class);
+        doAnswer(inv -> {
+            realApiKeys.unregisterByApiProductId(inv.getArgument(0));
+            return null;
+        })
+            .when(apiKeyCacheBean)
+            .unregisterByApiProductId(any());
+        doAnswer(inv -> {
+            realApiKeys.unregisterByApiProductPlans(inv.getArgument(0), inv.getArgument(1));
+            return null;
+        })
+            .when(apiKeyCacheBean)
+            .unregisterByApiProductPlans(any(), any());
 
         // Built on the api-key bean, not on realApiKeys, so the api-key path still goes through
         // whatever the test has stubbed on it.
@@ -260,6 +373,77 @@ class ApiProductV4RealCacheIntegrationTest extends ApiProductV4IntegrationTest.T
         })
             .when(subscriptionBean)
             .unregister(any());
+        final SubscriptionCacheService subscriptionCacheBean = getBean(SubscriptionCacheService.class);
+        doAnswer(inv -> {
+            realSubscriptions.unregisterByApiProductId(inv.getArgument(0));
+            return null;
+        })
+            .when(subscriptionCacheBean)
+            .unregisterByApiProductId(any());
+        doAnswer(inv -> {
+            realSubscriptions.unregisterByApiProductPlans(inv.getArgument(0), inv.getArgument(1));
+            return null;
+        })
+            .when(subscriptionCacheBean)
+            .unregisterByApiProductPlans(any(), any());
+    }
+
+    /**
+     * Answers the subscription and API key searches the product deployer runs, from the records the test gave. The
+     * repositories are bare mocks, so without this a deploy loads nothing.
+     */
+    private void serveSubscriptionsFromRepository() throws Exception {
+        repositorySubscriptions.clear();
+        repositoryApiKeys.clear();
+        doAnswer(inv -> {
+            SubscriptionCriteria criteria = inv.getArgument(0);
+            return repositorySubscriptions
+                .stream()
+                .filter(subscription -> criteria.getPlans().contains(subscription.getPlan()))
+                .toList();
+        })
+            .when(getBean(SubscriptionRepository.class))
+            .searchAfter(any(), any(), any(), anyInt());
+        doAnswer(inv -> {
+            ApiKeyCriteria criteria = inv.getArgument(0);
+            return repositoryApiKeys
+                .stream()
+                .filter(apiKey -> apiKey.getSubscriptions().stream().anyMatch(criteria.getSubscriptions()::contains))
+                .toList();
+        })
+            .when(getBean(ApiKeyRepository.class))
+            .searchAfter(any(), any(), any(), anyInt());
+    }
+
+    private void givenRepositorySubscriptionWithKey(String planId, String key) {
+        var subscription = new io.gravitee.repository.management.model.Subscription();
+        subscription.setId("subscription-" + key);
+        subscription.setReferenceType(SubscriptionReferenceType.API_PRODUCT);
+        subscription.setReferenceId(REAL_PRODUCT_ID);
+        subscription.setPlan(planId);
+        subscription.setApplication("application-id");
+        subscription.setStatus(io.gravitee.repository.management.model.Subscription.Status.ACCEPTED);
+        subscription.setEnvironmentId(ENV_ID);
+        repositorySubscriptions.add(subscription);
+
+        var apiKey = new io.gravitee.repository.management.model.ApiKey();
+        apiKey.setId("id-" + key);
+        apiKey.setKey(key);
+        apiKey.setSubscriptions(List.of(subscription.getId()));
+        apiKey.setApplication("application-id");
+        apiKey.setEnvironmentId(ENV_ID);
+        repositoryApiKeys.add(apiKey);
+    }
+
+    private void deployProductWithPlans(Set<String> apiIds, String... planIds) {
+        ReactableApiProduct p = product(REAL_PRODUCT_ID, apiIds);
+        p.setPlans(
+            List.of(planIds)
+                .stream()
+                .map(planId -> productPlan(planId, "api-key", PlanStatus.PUBLISHED))
+                .toList()
+        );
+        deployApiProduct(p);
     }
 
     private void deployProductWithApiKeyPlan(Set<String> apiIds) {
@@ -271,10 +455,9 @@ class ApiProductV4RealCacheIntegrationTest extends ApiProductV4IntegrationTest.T
         deployApiProduct(p);
     }
 
+    /** Deploys a new version of the deployed product: an update, as a redeploy from the Console. */
     private void redeployProductWithApiKeyPlan(Set<String> apiIds) {
-        ReactableApiProduct p = product(REAL_PRODUCT_ID, apiIds);
-        p.setPlans(List.of(productPlan(REAL_PLAN_ID, "api-key", PlanStatus.PUBLISHED)));
-        redeployApiProduct(p);
+        deployProductWithApiKeyPlan(apiIds);
     }
 
     /** Registers the subscription on the product itself — the scope this PR introduces. */
