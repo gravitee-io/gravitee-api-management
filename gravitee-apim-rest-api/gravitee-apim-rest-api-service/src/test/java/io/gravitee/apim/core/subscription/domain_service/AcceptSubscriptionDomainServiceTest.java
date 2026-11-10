@@ -433,6 +433,51 @@ class AcceptSubscriptionDomainServiceTest {
     }
 
     @Test
+    void should_accept_oauth2_api_product_subscription_without_generating_an_api_key() {
+        Plan oauth2Plan = PLAN_PUBLISHED.toBuilder()
+            .id("oauth2-plan")
+            .planDefinitionHttpV4(
+                PLAN_PUBLISHED.getPlanDefinitionHttpV4()
+                    .toBuilder()
+                    .id("oauth2-plan")
+                    .security(PlanSecurity.builder().type("oauth2").build())
+                    .build()
+            )
+            .build();
+        SubscriptionEntity subscription = givenExistingSubscription(
+            SubscriptionFixtures.aSubscription()
+                .toBuilder()
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                .subscribedBy("subscriber")
+                .planId(oauth2Plan.getId())
+                .applicationId(APPLICATION_ID)
+                .status(SubscriptionEntity.Status.PENDING)
+                .build()
+        );
+
+        SubscriptionEntity accepted = accept(subscription, oauth2Plan);
+
+        assertThat(accepted.getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
+        assertThat(apiKeyCrudService.storage()).isEmpty();
+        assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
+            new SubscriptionAcceptedApiProductHookContext(API_PRODUCT_ID, APPLICATION_ID, oauth2Plan.getId(), "subscription-id", USER_ID)
+        );
+        assertThat(triggerNotificationDomainService.getApplicationNotifications()).containsExactly(
+            new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
+                new SubscriptionAcceptedApplicationHookContext(
+                    APPLICATION_ID,
+                    SubscriptionReferenceType.API_PRODUCT,
+                    API_PRODUCT_ID,
+                    oauth2Plan.getId(),
+                    "subscription-id",
+                    USER_ID
+                )
+            )
+        );
+    }
+
+    @Test
     void should_trigger_notifications_for_subscriber_when_it_has_email() {
         // Given
         SubscriptionEntity subscription = givenExistingSubscription(

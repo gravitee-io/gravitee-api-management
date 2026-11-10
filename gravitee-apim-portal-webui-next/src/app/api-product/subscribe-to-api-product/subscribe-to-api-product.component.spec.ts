@@ -44,6 +44,9 @@ describe('SubscribeToApiProductComponent', () => {
   let subscriptionService: { list: jest.Mock; subscribe: jest.Mock };
   let matDialog: { open: jest.Mock };
 
+  const disabledMessage = (name: string) =>
+    fixture.componentInstance.applicationsData().applications.find(app => app.name === name)?.disabledMessage;
+
   const apiProduct = fakeApiProduct({ id: 'api-product-id', name: 'Developer Product' });
   const apiKeyPlan = fakePlan({ id: 'api-key-plan', name: 'API Key', security: 'API_KEY', mode: 'STANDARD' });
   const application = fakeApplication({ id: 'application-id', name: 'Developer App', api_key_mode: 'EXCLUSIVE' });
@@ -171,6 +174,74 @@ describe('SubscribeToApiProductComponent', () => {
 
     const applicationCard = await harnessLoader.getHarness(RadioCardHarness.with({ title: applicationWithoutClientId.name }));
     expect(await applicationCard.isDisabled()).toBe(true);
+    expect(disabledMessage('No Client ID')).toBe('Missing Client ID');
+  });
+
+  it.each(['OAUTH2', 'JWT'] as const)('should show the same missing client id message for an %s product plan', async security => {
+    const plan = fakePlan({ id: `${security}-plan`, name: security, security });
+    const applicationWithoutClientId = fakeApplication({ id: 'no-client-id', name: 'No Client ID', hasClientId: false });
+    await init({ plans: [plan], applications: fakeApplicationsResponse({ data: [applicationWithoutClientId] }) });
+
+    await harness.selectPlan(plan.id);
+    await harness.goToNextStep();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(disabledMessage('No Client ID')).toBe('Missing Client ID');
+  });
+
+  it('should disable an application already subscribed to a JWT plan when OAuth2 is selected', async () => {
+    const oauthPlan = fakePlan({ id: 'oauth-plan', name: 'OAuth2', security: 'OAUTH2' });
+    const jwtPlan = fakePlan({ id: 'jwt-plan', name: 'JWT', security: 'JWT' });
+    const subscriptions = fakeSubscriptionResponse({
+      data: [
+        fakeSubscription({
+          api: undefined,
+          application: application.id,
+          plan: jwtPlan.id,
+          status: 'ACCEPTED',
+          reference_id: apiProduct.id,
+          reference_type: 'API_PRODUCT',
+        }),
+      ],
+      metadata: { [jwtPlan.id]: { securityType: 'JWT', planMode: 'STANDARD' } },
+    });
+    await init({ plans: [oauthPlan], subscriptions });
+
+    await harness.selectPlan(oauthPlan.id);
+    await harness.goToNextStep();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const applicationCard = await harnessLoader.getHarness(RadioCardHarness.with({ title: application.name }));
+    expect(await applicationCard.isDisabled()).toBe(true);
+    expect(disabledMessage(application.name)).toBe('Already subscribed to an OAuth2 or JWT plan for this API Product');
+  });
+
+  it('should keep an application selectable for OAuth2 when it only has an API Key product subscription', async () => {
+    const oauthPlan = fakePlan({ id: 'oauth-plan', name: 'OAuth2', security: 'OAUTH2' });
+    const subscriptions = fakeSubscriptionResponse({
+      data: [
+        fakeSubscription({
+          api: undefined,
+          application: application.id,
+          plan: apiKeyPlan.id,
+          status: 'ACCEPTED',
+          reference_id: apiProduct.id,
+          reference_type: 'API_PRODUCT',
+        }),
+      ],
+      metadata: { [apiKeyPlan.id]: { securityType: 'API_KEY', planMode: 'STANDARD' } },
+    });
+    await init({ plans: [oauthPlan], subscriptions });
+
+    await harness.selectPlan(oauthPlan.id);
+    await harness.goToNextStep();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const applicationCard = await harnessLoader.getHarness(RadioCardHarness.with({ title: application.name }));
+    expect(await applicationCard.isDisabled()).toBe(false);
   });
 
   it.each([

@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.domain_service.api_product;
 
 import io.gravitee.apim.core.api_product.domain_service.ApiProductResourceValidationDomainService;
+import io.gravitee.apim.core.api_product.model.ApiProductOAuth2ResourceTypes;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
@@ -31,19 +32,18 @@ import org.springframework.stereotype.Service;
 public class ApiProductResourceValidationDomainServiceImpl implements ApiProductResourceValidationDomainService {
 
     // Plugin ids from each plugin.properties. gravitee-resource-cache-cloud-redis is absent: no product policy uses it.
-    static final Set<String> ALLOWED_TYPES = Set.of(
-        "cache",
-        "cache-redis",
-        "oauth2",
-        "oauth2-am-resource",
-        "oauth2-auth0",
-        "oauth2-entra-id",
-        "oauth2-keycloak-resource",
-        "auth-provider-http-resource",
-        "auth-provider-inline-resource",
-        "auth-provider-ldap-resource",
-        "content-provider-inline-resource"
-    );
+    static final Set<String> ALLOWED_TYPES = allowedTypes();
+
+    private static Set<String> allowedTypes() {
+        Set<String> types = new HashSet<>();
+        types.addAll(ApiProductOAuth2ResourceTypes.IDS);
+        types.addAll(ApiProductOAuth2ResourceTypes.CACHE_IDS);
+        types.add("auth-provider-http-resource");
+        types.add("auth-provider-inline-resource");
+        types.add("auth-provider-ldap-resource");
+        types.add("content-provider-inline-resource");
+        return Set.copyOf(types);
+    }
 
     private final ResourcesValidationService resourcesValidationService;
 
