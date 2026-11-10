@@ -87,7 +87,8 @@ class PortalReferencesUpgraderTest {
     void setUp() {
         upgrader = new PortalReferencesUpgrader(
             environmentRepository,
-            new PortalContentOwnershipDomainService(portalCrudService, navigationItemCrudService, listingCrudService)
+            new PortalContentOwnershipDomainService(portalCrudService, navigationItemCrudService, listingCrudService),
+            portalCrudService
         );
         logs.start();
         logger.addAppender(logs);
@@ -200,7 +201,34 @@ class PortalReferencesUpgraderTest {
 
         assertThat(postponedItem.getReference()).isEqualTo(NavigationItemReference.defaultReference());
         assertThat(movedItem.getReference()).isEqualTo(onPortal(PORTAL_B));
-        assertThat(logLines(Level.WARN)).singleElement().asString().contains(ENV_A.getId());
+        assertThat(logLines(Level.WARN))
+            .singleElement()
+            .asString()
+            .contains(ENV_A.getId(), "no portal", "first portal")
+            .doesNotContain("several");
+    }
+
+    @Test
+    @SneakyThrows
+    void should_skip_an_environment_with_several_portals_and_no_default_and_still_succeed() {
+        givenEnvironments(ENV_A, ENV_B);
+        givenPortal(PORTAL_A, ENV_A, false);
+        givenPortal(PortalId.of("33333333-3333-3333-3333-333333333333"), ENV_A, false);
+        givenPortal(PORTAL_B, ENV_B, true);
+        var keptItem = itemOnTheZeroUuid(ENV_A);
+        listingOnTheZeroUuid(ENV_A);
+        var movedItem = itemOnTheZeroUuid(ENV_B);
+
+        assertThat(upgrader.upgrade()).isTrue();
+
+        assertThat(keptItem.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+        assertThat(listingPortals(ENV_A)).containsExactly(PortalId.ZERO);
+        assertThat(movedItem.getReference()).isEqualTo(onPortal(PORTAL_B));
+        assertThat(logLines(Level.WARN))
+            .singleElement()
+            .asString()
+            .contains(ENV_A.getId(), "several portals", "no default", "manual")
+            .doesNotContain("first portal");
     }
 
     @Test
@@ -278,7 +306,8 @@ class PortalReferencesUpgraderTest {
         when(failingListings.updatePortalIds(any(), any(), any())).thenThrow(new TechnicalManagementException("boom"));
         var failing = new PortalReferencesUpgrader(
             environmentRepository,
-            new PortalContentOwnershipDomainService(portalCrudService, navigationItemCrudService, failingListings)
+            new PortalContentOwnershipDomainService(portalCrudService, navigationItemCrudService, failingListings),
+            portalCrudService
         );
 
         assertThatThrownBy(failing::upgrade).isInstanceOf(UpgraderException.class);

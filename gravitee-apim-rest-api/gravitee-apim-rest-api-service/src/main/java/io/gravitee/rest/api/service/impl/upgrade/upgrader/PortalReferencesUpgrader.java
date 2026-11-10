@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
+import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
@@ -26,8 +27,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * Moves the navigation items and listings that name no existing portal of their environment onto its
- * portal. An environment without a usable target is skipped: without a portal, its content follows the first
- * one created; with several and none default, it stays where it is.
+ * portal. An environment without a usable target is skipped. Without a portal, its content moves when its
+ * first portal is created. With several portals and none default, its content stays where it is: nothing
+ * moves it later, so it needs a manual fix before PORTAL-345 removes the zero UUID reference.
  */
 @Component
 @CustomLog
@@ -35,13 +37,16 @@ public class PortalReferencesUpgrader implements Upgrader {
 
     private final EnvironmentRepository environmentRepository;
     private final PortalContentOwnershipDomainService portalContentOwnershipDomainService;
+    private final PortalCrudService portalCrudService;
 
     public PortalReferencesUpgrader(
         @Lazy EnvironmentRepository environmentRepository,
-        PortalContentOwnershipDomainService portalContentOwnershipDomainService
+        PortalContentOwnershipDomainService portalContentOwnershipDomainService,
+        PortalCrudService portalCrudService
     ) {
         this.environmentRepository = environmentRepository;
         this.portalContentOwnershipDomainService = portalContentOwnershipDomainService;
+        this.portalCrudService = portalCrudService;
     }
 
     @Override
@@ -59,16 +64,23 @@ public class PortalReferencesUpgrader implements Upgrader {
             var environmentId = environment.getId();
             portalContentOwnershipDomainService
                 .moveOrphans(environmentId)
-                .ifPresentOrElse(
-                    moved -> logMoved(environmentId, moved),
-                    () ->
-                        log.warn(
-                            "Environment [{}] skipped: it has no portal yet, or several portals and none is the default one. Its navigation items and listings stay as they are: without a portal, they follow the first one created; with several, they need a default portal to be set",
-                            environmentId
-                        )
-                );
+                .ifPresentOrElse(moved -> logMoved(environmentId, moved), () -> logSkipped(environmentId));
         }
         return true;
+    }
+
+    private void logSkipped(String environmentId) {
+        if (portalCrudService.findByEnvironmentId(environmentId).isEmpty()) {
+            log.warn(
+                "Environment [{}] skipped: it has no portal yet. Its navigation items and listings will move onto its first portal when it is created",
+                environmentId
+            );
+        } else {
+            log.warn(
+                "Environment [{}] skipped: it has several portals and no default one. Its navigation items and listings that name no existing portal stay as they are and need a manual fix: re-point them onto one of its portals",
+                environmentId
+            );
+        }
     }
 
     private void logMoved(String environmentId, PortalContentOwnershipDomainService.Moved moved) {
