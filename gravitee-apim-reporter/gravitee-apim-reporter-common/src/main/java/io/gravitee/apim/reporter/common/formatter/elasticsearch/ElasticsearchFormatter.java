@@ -264,6 +264,7 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
         putWhenMeasured(data, "gatewayLatencyNs", metrics.getGatewayLatencyNs());
         putWhenMeasured(data, "requestContentLength", metrics.getRequestContentLength());
         putWhenMeasured(data, "responseContentLength", metrics.getResponseContentLength());
+        putConnectionDocument(data, metrics.getRequestId(), ConnectionPhase.isOpening(metrics), ConnectionPhase.isEnd(metrics));
 
         return generateData("v4-metrics.ftl", data);
     }
@@ -292,6 +293,7 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
         addCommonFields(data, log, esOptions);
 
         data.put("log", log);
+        putConnectionDocument(data, log.getRequestId(), ConnectionPhase.isOpening(log), false);
 
         return generateData("v4-log.ftl", data);
     }
@@ -355,6 +357,18 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
             return Buffer.buffer(baos.toByteArray());
         } catch (IOException e) {
             return null;
+        }
+    }
+
+    private static void putConnectionDocument(Map<String, Object> data, String requestId, boolean opening, boolean end) {
+        if (opening) {
+            data.put("documentId", ConnectionPhase.openingDocumentId(requestId));
+            data.put("connectionPhase", ConnectionPhase.OPEN);
+            return;
+        }
+        data.put("documentId", requestId);
+        if (end) {
+            data.put("connectionPhase", ConnectionPhase.END);
         }
     }
 
