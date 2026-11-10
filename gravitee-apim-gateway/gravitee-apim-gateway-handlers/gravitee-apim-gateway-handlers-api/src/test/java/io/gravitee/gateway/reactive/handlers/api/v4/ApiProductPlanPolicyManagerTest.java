@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
@@ -76,6 +78,29 @@ class ApiProductPlanPolicyManagerTest {
     void setUp() {
         lenient().when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(List.of());
     }
+
+    @Test
+    void should_keep_the_gateway_wide_jackson_type_cache_when_stopped() throws Exception {
+        ApiProductPlanPolicyManager manager = new ApiProductPlanPolicyManager(
+            classLoader,
+            policyFactoryManager,
+            policyConfigurationFactory,
+            policyPluginManager,
+            policyClassLoaderFactory,
+            componentProvider,
+            API_ID,
+            ENV_ID,
+            apiProductRegistry
+        );
+        manager.start();
+        JavaType cachedType = TypeFactory.defaultInstance().constructType(TypeCachedByJackson.class);
+
+        manager.stop();
+
+        assertThat(TypeFactory.defaultInstance().constructType(TypeCachedByJackson.class)).isSameAs(cachedType);
+    }
+
+    private static final class TypeCachedByJackson {}
 
     @Test
     void should_return_empty_dependencies_when_registry_is_null() {

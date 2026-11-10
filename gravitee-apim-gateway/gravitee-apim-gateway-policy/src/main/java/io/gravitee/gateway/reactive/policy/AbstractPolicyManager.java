@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.reactive.policy;
 
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
@@ -74,9 +73,6 @@ public abstract class AbstractPolicyManager extends AbstractLifecycleComponent<P
 
         // Be sure to remove all references to policies.
         manifests.clear();
-
-        // This action aims to avoid memory leak by making sure that no Gravitee ClassLoader is still referenced by Jackson TypeFactory.
-        TypeFactory.defaultInstance().clearCache();
     }
 
     @Override
