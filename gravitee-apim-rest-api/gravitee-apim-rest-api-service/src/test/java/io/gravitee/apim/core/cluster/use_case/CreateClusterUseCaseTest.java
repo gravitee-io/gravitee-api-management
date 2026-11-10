@@ -49,9 +49,12 @@ import io.gravitee.rest.api.service.impl.JsonSchemaServiceImpl;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class CreateClusterUseCaseTest extends AbstractUseCaseTest {
 
@@ -285,6 +288,53 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
         var config = objectMapper.convertValue(output.cluster().getConfiguration(), Map.class);
         var connections = (List<Map<String, Object>>) config.get("connections");
         assertThat(connections.get(0).get("crossId")).isEqualTo("primary-connection");
+    }
+
+    static Stream<Map<String, Object>> saslMechanisms() {
+        return Stream.of(
+            Map.of(
+                "type",
+                "OAUTHBEARER",
+                "tokenUrl",
+                "https://idp.example.com/token",
+                "clientId",
+                "gateway",
+                "clientSecret",
+                "{#secrets.get('/vault/kafka', 'clientSecret')}",
+                "scopes",
+                "kafka",
+                "saslExtensions",
+                List.of(Map.of("extensionKey", "logicalCluster", "extensionValue", "lkc-1"))
+            ),
+            Map.of("type", "OAUTHBEARER_TOKEN", "token", "{#secrets.get('/vault/kafka', 'token')}"),
+            Map.of("type", "GSSAPI", "saslJaasConfig", "com.sun.security.auth.module.Krb5LoginModule required useKeyTab=true;"),
+            Map.of("type", "AWS_MSK_IAM", "saslJaasConfig", "software.amazon.msk.auth.iam.IAMLoginModule required;")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("saslMechanisms")
+    void should_keep_every_field_of_the_sasl_mechanism_of_a_kafka_cluster_connection(Map<String, Object> mechanism) {
+        Object configuration = Map.of(
+            "connections",
+            List.of(
+                Map.of(
+                    "name",
+                    "conn-1",
+                    "bootstrapServers",
+                    "kafka1:9092",
+                    "security",
+                    Map.of("protocol", "SASL_PLAINTEXT", "sasl", Map.of("mechanism", mechanism))
+                )
+            )
+        );
+        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER).name("Kafka Cluster").configuration(configuration).build();
+
+        var output = createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO));
+
+        var config = objectMapper.convertValue(output.cluster().getConfiguration(), Map.class);
+        var connection = ((List<Map<String, Object>>) config.get("connections")).get(0);
+        assertThat(connection).extracting("security").extracting("sasl").extracting("mechanism").isEqualTo(mechanism);
     }
 
     @Test

@@ -21,7 +21,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.cluster.KafkaClusterReactableCluster;
 import io.gravitee.definition.model.cluster.KafkaVirtualClusterReactableCluster;
 import io.gravitee.definition.model.cluster.ReactableCluster;
+import io.gravitee.definition.model.cluster.SaslMechanism;
+import io.gravitee.definition.model.cluster.SaslMechanism.SaslExtension;
 import io.gravitee.repository.management.model.Event;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -101,6 +104,62 @@ class ClusterMapperTest {
         assertThat(kafkaCluster.getConnections()).hasSize(1);
         assertThat(kafkaCluster.getConnections().get(0).getCrossId()).isEqualTo("primary");
         assertThat(kafkaCluster.getConnections().get(0).getBootstrapServers()).isEqualTo("kafka:9092");
+    }
+
+    @Test
+    void should_keep_every_field_of_the_sasl_mechanism_of_a_kafka_cluster_connection() {
+        Event event = new Event();
+        event.setId("event-id");
+        event.setPayload(
+            """
+            {
+                "id": "cluster-id",
+                "crossId": "my-kafka-cluster",
+                "name": "My Kafka Cluster",
+                "type": "KAFKA_CLUSTER",
+                "environmentId": "env-1",
+                "configuration": {
+                    "connections": [
+                        {
+                            "crossId": "oauth",
+                            "name": "OAuth",
+                            "bootstrapServers": "kafka:9093",
+                            "security": {
+                                "protocol": "SASL_SSL",
+                                "sasl": {
+                                    "mechanism": {
+                                        "type": "OAUTHBEARER",
+                                        "tokenUrl": "https://idp.example.com/token",
+                                        "clientId": "gateway",
+                                        "clientSecret": "s3cr3t",
+                                        "scopes": "kafka",
+                                        "saslExtensions": [{ "extensionKey": "logicalCluster", "extensionValue": "lkc-1" }]
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+            """
+        );
+
+        KafkaClusterReactableCluster result = (KafkaClusterReactableCluster) cut.to(event).blockingGet();
+
+        assertThat(result.getConnections().get(0).getSecurity().sasl().mechanism()).isEqualTo(
+            new SaslMechanism(
+                "OAUTHBEARER",
+                null,
+                null,
+                "https://idp.example.com/token",
+                "gateway",
+                "s3cr3t",
+                "kafka",
+                List.of(new SaslExtension("logicalCluster", "lkc-1")),
+                null,
+                null
+            )
+        );
     }
 
     @Test

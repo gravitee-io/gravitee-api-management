@@ -9,7 +9,7 @@
           "type": "string",
           "title": "Extension key",
           "description": "without 'extension_' prefix",
-          "pattern": "[A-Za-z]+"
+          "pattern": "^(extension_)?[A-Za-z]+$"
         },
         "extensionValue": {
           "type": "string",
@@ -65,7 +65,7 @@
                     "saslJaasConfig": {
                       "type": "string",
                       "title": "SASL JAAS Config  (sasl.jaas.config)",
-                      "description": "(supports EL and Secrets)",
+                      "description": "Starts with com.sun.security.auth.module.Krb5LoginModule written out; the options support EL and Secrets.",
                       "gioConfig": {
                         "el": true,
                         "banner": {
@@ -86,7 +86,7 @@
                     "tokenUrl": {
                       "type": "string",
                       "title": "OAuth token url",
-                      "description": "The OAuth token url to call to issue a new token (supports EL and Secrets).",
+                      "description": "The OAuth token url to call to issue a new token, starting with http:// or https:// written out (the rest supports EL and Secrets).",
                       "gioConfig": {
                         "el": true,
                         "banner": {
@@ -234,7 +234,7 @@
                     "saslJaasConfig": {
                       "type": "string",
                       "title": "SASL JAAS Config  (sasl.jaas.config)",
-                      "description": "(supports EL and Secrets)",
+                      "description": "Starts with software.amazon.msk.auth.iam.IAMLoginModule written out; the options support EL and Secrets.",
                       "gioConfig": {
                         "el": true,
                         "banner": {
