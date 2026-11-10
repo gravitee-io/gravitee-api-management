@@ -31,6 +31,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -115,6 +116,17 @@ class HomepageReconcilerTest {
 
         assertThat(navItemCrud.storage()).hasSize(1);
         assertThat(pageContentCrud.storage()).hasSize(1);
+    }
+
+    @Test
+    void should_find_a_homepage_moved_off_the_zero_uuid_as_a_homepage_of_its_portal() {
+        var contentId = PortalPageContentId.of("00000000-0000-0000-0000-0000000000c6");
+        var moved = homepage(UNATTACHED_ID, NavigationItemReference.defaultReference(), contentId);
+        navItemCrud.create(moved);
+        var portalId = PortalId.of(PORTAL_ID);
+        navItemCrud.updateOrphanPortalReferences(ENV_ID, List.of(portalId), portalId);
+
+        assertThat(reconciler.findStaleHomepages(ENV_ID, PORTAL_ID, ACTIVE_ID)).containsExactly(moved);
     }
 
     @Test

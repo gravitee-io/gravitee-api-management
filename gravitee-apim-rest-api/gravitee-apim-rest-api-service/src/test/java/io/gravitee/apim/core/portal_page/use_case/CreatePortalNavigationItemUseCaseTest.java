@@ -62,6 +62,7 @@ import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
@@ -157,6 +158,36 @@ class CreatePortalNavigationItemUseCaseTest {
         assertThatThrownBy(() ->
             useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, homepage.title("Another home").build()))
         ).isInstanceOf(HomepageAlreadyExistsException.class);
+    }
+
+    @Test
+    void should_still_refuse_a_second_homepage_after_the_first_was_moved_onto_the_portal() {
+        var portalId = navigationPortals.resolve(ORG_ID, ENV_ID).getId();
+        crudService.create(
+            PortalNavigationFolder.builder()
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .reference(NavigationItemReference.defaultReference())
+                .title("Home")
+                .segment("home")
+                .area(PortalArea.HOMEPAGE)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build()
+        );
+        crudService.updateOrphanPortalReferences(ENV_ID, List.of(portalId), portalId);
+
+        var secondHomepage = CreatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.FOLDER)
+            .title("Another home")
+            .area(PortalArea.HOMEPAGE)
+            .build();
+
+        assertThatThrownBy(() -> useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, secondHomepage))).isInstanceOf(
+            HomepageAlreadyExistsException.class
+        );
     }
 
     @Test

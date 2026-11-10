@@ -617,6 +617,29 @@ class PortalNavigationSyncDomainServiceTest {
     }
 
     @Test
+    void should_still_sync_folders_after_they_were_moved_onto_the_portal() {
+        var original = List.of(new NavigationPath("/a", "Original"), new NavigationPath("/b", null));
+        var renamed = List.of(new NavigationPath("/a", "Renamed"));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, PortalNavigationStructure.empty(), PortalNavigationStructure.ofTopNavbar(original));
+        crud.storage().forEach(item -> item.changeOwner(NavigationItemReference.defaultReference()));
+        crud.updateOrphanPortalReferences(AUDIT_INFO.environmentId(), List.of(PORTAL_ID), PORTAL_ID);
+
+        syncService.sync(
+            AUDIT_INFO,
+            PORTAL_ID,
+            PortalNavigationStructure.ofTopNavbar(original),
+            PortalNavigationStructure.ofTopNavbar(renamed)
+        );
+
+        assertThat(crud.storage())
+            .singleElement()
+            .satisfies(folder -> {
+                assertThat(folder.getTitle()).isEqualTo("Renamed");
+                assertThat(folder.getReference()).isEqualTo(new NavigationItemReference.PortalReference(PORTAL_ID));
+            });
+    }
+
+    @Test
     void should_still_reject_a_folder_whose_segment_a_console_folder_on_the_zero_uuid_holds() {
         var consoleFolder = PortalNavigationItemFixtures.aFolder("Docs")
             .toBuilder()
