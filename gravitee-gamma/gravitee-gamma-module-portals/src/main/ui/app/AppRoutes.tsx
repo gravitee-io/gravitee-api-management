@@ -24,7 +24,7 @@ import { useModuleNavigation } from './useModuleNavigation';
 import { getActiveNavKey, PORTALS_ROUTE_CONFIG, ROUTES } from '../config/routes';
 import { PortalOverviewPlaceholderPage } from '../features/portals/pages/PortalOverviewPlaceholderPage';
 import { PortalsDashboardPage } from '../features/portals/pages/PortalsDashboardPage';
-import { PortalsListPlaceholderPage } from '../features/portals/pages/PortalsListPlaceholderPage';
+import { PortalsListPage } from '../features/portals/pages/PortalsListPage';
 import { createPortalsQueryClient } from '../shared/api/queryClient';
 
 function ModuleLayout() {
@@ -53,7 +53,7 @@ export function AppRoutes() {
             <Routes>
                 <Route element={<ModuleLayout />}>
                     <Route index element={<PortalsDashboardPage />} />
-                    <Route path={ROUTES.portals.path} element={<PortalsListPlaceholderPage />} />
+                    <Route path={ROUTES.portals.path} element={<PortalsListPage />} />
                     <Route path=":portalId">
                         <Route index element={<Navigate to="overview" replace />} />
                         <Route path="overview" element={<PortalOverviewPlaceholderPage />} />

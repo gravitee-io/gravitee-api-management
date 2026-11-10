@@ -143,7 +143,42 @@ describe('portal queries', () => {
         }
     });
 
-    it('does not expose previous environment data while fetching a different environment', async () => {
+    it.each([false, true])('retains previous page data only when opted in (%s)', async keepPreviousData => {
+        const firstList = createPortalsResponse({ data: [createPortal({ name: 'First page' })] });
+        const secondList = createPortalsResponse({ data: [createPortal({ name: 'Second page' })] });
+        let release: () => void = () => undefined;
+        const pending = new Promise<void>(resolve => {
+            release = resolve;
+        });
+        const requestedPages: string[] = [];
+        server.use(
+            http.get(`${TEST_V2_BASE}/portals`, async ({ request }) => {
+                const page = new URL(request.url).searchParams.get('page') ?? '';
+                requestedPages.push(page);
+                if (page === '2') await pending;
+                return HttpResponse.json(page === '2' ? secondList : firstList);
+            }),
+        );
+        const { wrapper } = createQueryClientWrapper();
+        const { result, rerender } = renderHook(({ page }) => usePortals({ page }, { keepPreviousData }), {
+            wrapper,
+            initialProps: { page: 1 },
+        });
+        await waitFor(() => expect(result.current.data).toEqual(firstList));
+        try {
+            rerender({ page: 2 });
+            await waitFor(() => expect(requestedPages).toEqual(['1', '2']));
+            expect(result.current.isFetching).toBe(true);
+            expect(result.current.isPlaceholderData).toBe(keepPreviousData);
+            expect(result.current.data).toEqual(keepPreviousData ? firstList : undefined);
+        } finally {
+            release();
+        }
+        await waitFor(() => expect(result.current.data).toEqual(secondList));
+        expect(result.current.isPlaceholderData).toBe(false);
+    });
+
+    it.each([false, true])('isolates previous environment data with retention=%s', async keepPreviousData => {
         const firstList = createPortalsResponse({ data: [createPortal({ name: 'First environment' })] });
         const secondList = createPortalsResponse({ data: [createPortal({ name: 'Second environment' })] });
         const firstStats = createPortalsStats({ publishedApisCount: 1 });
@@ -155,7 +190,9 @@ describe('portal queries', () => {
             http.get(`${TEST_CONFIG.managementBaseURL}/v2/environments/second-env/portals/_stats`, () => HttpResponse.json(secondStats)),
         );
         const { wrapper, queryClient } = createQueryClientWrapper();
-        const { result, rerender } = renderHook(() => ({ list: usePortals(), stats: usePortalsStats() }), { wrapper });
+        const { result, rerender } = renderHook(() => ({ list: usePortals({}, { keepPreviousData }), stats: usePortalsStats() }), {
+            wrapper,
+        });
         await waitFor(() => {
             expect(result.current.list.data).toEqual(firstList);
             expect(result.current.stats.data).toEqual(firstStats);
