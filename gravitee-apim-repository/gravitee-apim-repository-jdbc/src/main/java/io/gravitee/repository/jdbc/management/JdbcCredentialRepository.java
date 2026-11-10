@@ -21,12 +21,14 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CredentialRepository;
+import io.gravitee.repository.management.api.search.CredentialCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Credential;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -170,14 +172,26 @@ public class JdbcCredentialRepository extends TransactionalRepository implements
     }
 
     @Override
-    public Page<Credential> search(String organizationId, String environmentId, String query, Pageable pageable) throws TechnicalException {
+    public Page<Credential> search(String organizationId, String environmentId, CredentialCriteria criteria, Pageable pageable)
+        throws TechnicalException {
         log.debug("JdbcCredentialRepository.search({}, {})", organizationId, environmentId);
         try {
             var where = new StringBuilder(IN_SCOPE);
             List<Object> params = new ArrayList<>(List.of(organizationId, environmentId));
-            if (query != null) {
+            if (criteria.getQuery() != null) {
                 where.append(" AND lower(name) LIKE ? ESCAPE '").append(LIKE_ESCAPE).append("'");
-                params.add("%" + escapeLikePattern(query.toLowerCase(Locale.ROOT)) + "%");
+                params.add("%" + escapeLikePattern(criteria.getQuery().toLowerCase(Locale.ROOT)) + "%");
+            }
+            if (criteria.getStrategies() != null && !criteria.getStrategies().isEmpty()) {
+                where
+                    .append(" AND strategy IN (")
+                    .append(String.join(", ", Collections.nCopies(criteria.getStrategies().size(), "?")))
+                    .append(")");
+                params.addAll(criteria.getStrategies());
+            }
+            if (criteria.getServiceId() != null) {
+                where.append(" AND service_id = ?");
+                params.add(criteria.getServiceId());
             }
             var total = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM " + tableName + where, Long.class, params.toArray());
             if (total == null || total == 0) {

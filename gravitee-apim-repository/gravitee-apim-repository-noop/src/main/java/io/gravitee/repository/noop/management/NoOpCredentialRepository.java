@@ -18,6 +18,7 @@ package io.gravitee.repository.noop.management;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CredentialRepository;
+import io.gravitee.repository.management.api.search.CredentialCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Credential;
 import java.util.List;
@@ -44,7 +45,8 @@ public class NoOpCredentialRepository implements CredentialRepository {
     public void delete(String organizationId, String environmentId, String id) throws TechnicalException {}
 
     @Override
-    public Page<Credential> search(String organizationId, String environmentId, String query, Pageable pageable) throws TechnicalException {
+    public Page<Credential> search(String organizationId, String environmentId, CredentialCriteria criteria, Pageable pageable)
+        throws TechnicalException {
         return new Page<>(List.of(), 0, 0, 0L);
     }
 

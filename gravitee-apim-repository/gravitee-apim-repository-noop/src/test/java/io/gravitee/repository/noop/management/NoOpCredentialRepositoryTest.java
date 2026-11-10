@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CredentialRepository;
+import io.gravitee.repository.management.api.search.CredentialCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,12 @@ public class NoOpCredentialRepositoryTest extends AbstractNoOpRepositoryTest {
 
     @Test
     public void should_search_an_empty_page() throws TechnicalException {
-        var page = cut.search("org-1", "env-1", "anthropic", new PageableBuilder().pageNumber(0).pageSize(10).build());
+        var page = cut.search(
+            "org-1",
+            "env-1",
+            CredentialCriteria.builder().query("anthropic").build(),
+            new PageableBuilder().pageNumber(0).pageSize(10).build()
+        );
 
         assertThat(page.getContent()).isEmpty();
         assertThat(page.getTotalElements()).isZero();

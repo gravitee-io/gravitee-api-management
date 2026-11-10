@@ -23,6 +23,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CredentialRepository;
+import io.gravitee.repository.management.api.search.CredentialCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Credential;
 import io.gravitee.repository.mongodb.management.internal.credential.CredentialMongoRepository;
@@ -117,20 +118,24 @@ public class MongoCredentialRepository implements CredentialRepository {
     }
 
     @Override
-    public Page<Credential> search(String organizationId, String environmentId, String query, Pageable pageable) throws TechnicalException {
+    public Page<Credential> search(String organizationId, String environmentId, CredentialCriteria criteria, Pageable pageable)
+        throws TechnicalException {
         log.debug("MongoCredentialRepository.search({}, {})", organizationId, environmentId);
         try {
-            var criteria = new Query(where("organizationId").is(organizationId).and("environmentId").is(environmentId));
-            if (query != null) {
+            var query = new Query(where("organizationId").is(organizationId).and("environmentId").is(environmentId));
+            if (criteria.getQuery() != null) {
                 // Quoted: the JDBC side matches with an escaped LIKE, so the query is literal text on both.
-                criteria.addCriteria(where("name").regex(Pattern.quote(query), "i"));
+                query.addCriteria(where("name").regex(Pattern.quote(criteria.getQuery()), "i"));
             }
-            long total = mongoTemplate.count(criteria, CredentialMongo.class);
+            if (criteria.getStrategies() != null && !criteria.getStrategies().isEmpty()) {
+                query.addCriteria(where("strategy").in(criteria.getStrategies()));
+            }
+            if (criteria.getServiceId() != null) {
+                query.addCriteria(where("serviceId").is(criteria.getServiceId()));
+            }
+            long total = mongoTemplate.count(query, CredentialMongo.class);
             var content = mongoTemplate
-                .find(
-                    criteria.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize(), Sort.by("name", "id"))),
-                    CredentialMongo.class
-                )
+                .find(query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize(), Sort.by("name", "id"))), CredentialMongo.class)
                 .stream()
                 .map(mapper::map)
                 .toList();

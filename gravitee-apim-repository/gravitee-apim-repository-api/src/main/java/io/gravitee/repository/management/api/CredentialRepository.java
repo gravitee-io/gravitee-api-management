@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.CredentialCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Credential;
 import java.util.Optional;
@@ -35,12 +36,9 @@ public interface CredentialRepository {
 
     void delete(String organizationId, String environmentId, String id) throws TechnicalException;
 
-    /**
-     * Sorted by name, with the first page as page 0.
-     *
-     * @param query matched as literal text anywhere in the name, ignoring case; {@code null} matches every credential
-     */
-    Page<Credential> search(String organizationId, String environmentId, String query, Pageable pageable) throws TechnicalException;
+    /** Sorted by name, with the first page as page 0. */
+    Page<Credential> search(String organizationId, String environmentId, CredentialCriteria criteria, Pageable pageable)
+        throws TechnicalException;
 
     void deleteByEnvironmentId(String environmentId) throws TechnicalException;
 }

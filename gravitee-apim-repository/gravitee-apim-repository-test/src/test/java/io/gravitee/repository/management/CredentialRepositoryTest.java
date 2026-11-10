@@ -20,15 +20,18 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.CredentialCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Credential;
 import java.util.Date;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 public class CredentialRepositoryTest extends AbstractManagementRepositoryTest {
 
     private static final Pageable FIRST_PAGE = new PageableBuilder().pageNumber(0).pageSize(10).build();
+    private static final CredentialCriteria ALL = CredentialCriteria.builder().build();
 
     @Override
     protected String getTestCasesPath() {
@@ -76,7 +79,7 @@ public class CredentialRepositoryTest extends AbstractManagementRepositoryTest {
     public void should_accept_two_credentials_with_the_same_name_in_one_environment() throws Exception {
         credentialRepository.create(aCredential("same-name").name("Anthropic production").build());
 
-        assertThat(credentialRepository.search("org-1", "env-1", "anthropic production", FIRST_PAGE).getContent())
+        assertThat(credentialRepository.search("org-1", "env-1", named("anthropic production"), FIRST_PAGE).getContent())
             .extracting(Credential::getId)
             .containsExactlyInAnyOrder("credential-1", "same-name");
     }
@@ -175,8 +178,8 @@ public class CredentialRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_page_the_credentials_of_one_environment_sorted_by_name() throws Exception {
-        var firstPage = credentialRepository.search("org-1", "env-1", null, new PageableBuilder().pageNumber(0).pageSize(2).build());
-        var secondPage = credentialRepository.search("org-1", "env-1", null, new PageableBuilder().pageNumber(1).pageSize(2).build());
+        var firstPage = credentialRepository.search("org-1", "env-1", ALL, new PageableBuilder().pageNumber(0).pageSize(2).build());
+        var secondPage = credentialRepository.search("org-1", "env-1", ALL, new PageableBuilder().pageNumber(1).pageSize(2).build());
 
         assertThat(firstPage.getContent()).extracting(Credential::getId).containsExactly("credential-1", "credential-3");
         assertThat(firstPage.getPageNumber()).isZero();
@@ -190,7 +193,7 @@ public class CredentialRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_match_the_query_anywhere_in_the_name_ignoring_case() throws Exception {
-        var page = credentialRepository.search("org-1", "env-1", "STAG", FIRST_PAGE);
+        var page = credentialRepository.search("org-1", "env-1", named("STAG"), FIRST_PAGE);
 
         assertThat(page.getContent()).extracting(Credential::getId).containsExactly("credential-2");
         assertThat(page.getTotalElements()).isEqualTo(1);
@@ -198,21 +201,75 @@ public class CredentialRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_match_the_query_as_literal_text() throws Exception {
-        assertThat(credentialRepository.search("org-1", "env-1", "100%_", FIRST_PAGE).getContent())
+        assertThat(credentialRepository.search("org-1", "env-1", named("100%_"), FIRST_PAGE).getContent())
             .extracting(Credential::getId)
             .containsExactly("credential-3");
-        assertThat(credentialRepository.search("org-1", "env-1", "%", FIRST_PAGE).getContent())
+        assertThat(credentialRepository.search("org-1", "env-1", named("%"), FIRST_PAGE).getContent())
             .extracting(Credential::getId)
             .containsExactly("credential-3");
-        assertThat(credentialRepository.search("org-1", "env-1", "_", FIRST_PAGE).getContent())
+        assertThat(credentialRepository.search("org-1", "env-1", named("_"), FIRST_PAGE).getContent())
             .extracting(Credential::getId)
             .containsExactly("credential-3");
-        assertThat(credentialRepository.search("org-1", "env-1", ".*", FIRST_PAGE).getContent()).isEmpty();
+        assertThat(credentialRepository.search("org-1", "env-1", named(".*"), FIRST_PAGE).getContent()).isEmpty();
+    }
+
+    @Test
+    public void should_filter_on_the_strategy() throws Exception {
+        var page = credentialRepository.search(
+            "org-1",
+            "env-1",
+            CredentialCriteria.builder().strategies(Set.of("BEARER")).build(),
+            FIRST_PAGE
+        );
+
+        assertThat(page.getContent()).extracting(Credential::getId).containsExactly("credential-3", "credential-2");
+        assertThat(page.getTotalElements()).isEqualTo(2);
+    }
+
+    @Test
+    public void should_match_any_of_the_strategies() throws Exception {
+        var page = credentialRepository.search(
+            "org-1",
+            "env-1",
+            CredentialCriteria.builder().strategies(Set.of("BEARER", "API_KEY")).build(),
+            FIRST_PAGE
+        );
+
+        assertThat(page.getContent()).extracting(Credential::getId).containsExactly("credential-1", "credential-3", "credential-2");
+    }
+
+    @Test
+    public void should_filter_on_the_service() throws Exception {
+        var page = credentialRepository.search("org-1", "env-1", CredentialCriteria.builder().serviceId("anthropic").build(), FIRST_PAGE);
+
+        assertThat(page.getContent()).extracting(Credential::getId).containsExactly("credential-1");
+        assertThat(page.getTotalElements()).isEqualTo(1);
+    }
+
+    @Test
+    public void should_match_every_filter_at_once() throws Exception {
+        assertThat(
+            credentialRepository
+                .search("org-1", "env-1", CredentialCriteria.builder().query("staging").strategies(Set.of("BEARER")).build(), FIRST_PAGE)
+                .getContent()
+        )
+            .extracting(Credential::getId)
+            .containsExactly("credential-2");
+        assertThat(
+            credentialRepository
+                .search(
+                    "org-1",
+                    "env-1",
+                    CredentialCriteria.builder().serviceId("anthropic").strategies(Set.of("BEARER")).build(),
+                    FIRST_PAGE
+                )
+                .getContent()
+        ).isEmpty();
     }
 
     @Test
     public void should_return_an_empty_page_past_the_last_one() throws Exception {
-        var page = credentialRepository.search("org-1", "env-1", null, new PageableBuilder().pageNumber(5).pageSize(2).build());
+        var page = credentialRepository.search("org-1", "env-1", ALL, new PageableBuilder().pageNumber(5).pageSize(2).build());
 
         assertThat(page.getContent()).isEmpty();
         assertThat(page.getPageNumber()).isEqualTo(5);
@@ -222,7 +279,7 @@ public class CredentialRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_return_an_empty_page_for_another_organization() throws Exception {
-        var page = credentialRepository.search("org-2", "env-1", null, FIRST_PAGE);
+        var page = credentialRepository.search("org-2", "env-1", ALL, FIRST_PAGE);
 
         assertThat(page.getContent()).isEmpty();
         assertThat(page.getTotalElements()).isZero();
@@ -232,10 +289,14 @@ public class CredentialRepositoryTest extends AbstractManagementRepositoryTest {
     public void should_delete_every_credential_of_one_environment_only() throws Exception {
         credentialRepository.deleteByEnvironmentId("env-1");
 
-        assertThat(credentialRepository.search("org-1", "env-1", null, FIRST_PAGE).getContent()).isEmpty();
-        assertThat(credentialRepository.search("org-1", "env-2", null, FIRST_PAGE).getContent())
+        assertThat(credentialRepository.search("org-1", "env-1", ALL, FIRST_PAGE).getContent()).isEmpty();
+        assertThat(credentialRepository.search("org-1", "env-2", ALL, FIRST_PAGE).getContent())
             .extracting(Credential::getId)
             .containsExactly("credential-4");
+    }
+
+    private static CredentialCriteria named(String query) {
+        return CredentialCriteria.builder().query(query).build();
     }
 
     private static Credential.CredentialBuilder aCredential(String id) {
