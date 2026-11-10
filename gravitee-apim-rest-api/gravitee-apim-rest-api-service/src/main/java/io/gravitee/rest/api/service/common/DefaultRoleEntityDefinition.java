@@ -63,6 +63,7 @@ public interface DefaultRoleEntityDefinition {
                 new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
             )
             .put(EnvironmentPermission.GUARDIAN.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .put(EnvironmentPermission.CREDENTIAL.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(EnvironmentPermission.TAG.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.GROUP.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.TENANT.getName(), new char[] { READ.getId() })
