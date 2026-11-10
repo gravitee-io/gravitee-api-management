@@ -88,6 +88,16 @@ public class DefaultPortalDomainService {
         return portalCrudService.findDefaultByEnvironmentId(environmentId);
     }
 
+    /** @return the environment's default portal, else its only portal: an environment managed by automation has no default one */
+    public Optional<Portal> findDefaultOrOnly(String environmentId) {
+        var portals = portalCrudService.findByEnvironmentId(environmentId);
+        return portals
+            .stream()
+            .filter(Portal::isDefault)
+            .findFirst()
+            .or(() -> portals.size() == 1 ? Optional.of(portals.getFirst()) : Optional.empty());
+    }
+
     public Portal getDefault(String environmentId) {
         return findDefault(environmentId).orElseThrow(() -> new DefaultPortalNotFoundException(environmentId));
     }
