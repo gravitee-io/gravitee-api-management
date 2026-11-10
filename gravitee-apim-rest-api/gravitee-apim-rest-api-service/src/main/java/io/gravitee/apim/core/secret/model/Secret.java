@@ -34,8 +34,9 @@ public record Secret(String id, String organizationId, String environmentId, Str
         return new Secret(id, organizationId, environmentId, key, now, now);
     }
 
-    public void requireChangeableBy(boolean credential) {
-        if (!credential && key.startsWith(CREDENTIAL_KEY_PREFIX)) {
+    /** Refuses the keys kept for credentials, which only the credential API may change. */
+    public static void requireUserKey(String key) {
+        if (key != null && key.startsWith(CREDENTIAL_KEY_PREFIX)) {
             throw new SecretKeptForCredentialException(key);
         }
     }

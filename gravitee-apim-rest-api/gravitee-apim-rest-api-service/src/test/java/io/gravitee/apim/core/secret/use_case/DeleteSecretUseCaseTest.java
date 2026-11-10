@@ -25,6 +25,7 @@ import inmemory.SecretValueEncryptorInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
+import io.gravitee.apim.core.secret.domain_service.SecretDomainService;
 import io.gravitee.apim.core.secret.exception.SecretKeptForCredentialException;
 import io.gravitee.apim.core.secret.exception.SecretNotFoundException;
 import io.gravitee.apim.core.secret.model.Secret;
@@ -49,7 +50,10 @@ class DeleteSecretUseCaseTest extends AbstractUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new DeleteSecretUseCase(secretCrudService, auditService);
+        useCase = new DeleteSecretUseCase(
+            secretCrudService,
+            new SecretDomainService(secretCrudService, secretValueEncryptor, auditService)
+        );
     }
 
     @Test
@@ -112,15 +116,6 @@ class DeleteSecretUseCaseTest extends AbstractUseCaseTest {
         );
         assertThat(secretCrudService.encryptedValueOf(secret.id())).isPresent();
         assertThat(auditCrudService.storage()).isEmpty();
-    }
-
-    @Test
-    void should_let_a_credential_delete_its_value() {
-        var secret = givenASecret(aSecret().toBuilder().key("credential.cred-1.token").build());
-
-        useCase.execute(new DeleteSecretUseCase.Input(secret.id(), AUDIT_INFO, true));
-
-        assertThat(secretCrudService.encryptedValueOf(secret.id())).isEmpty();
     }
 
     private Secret givenASecret(Secret secret) {

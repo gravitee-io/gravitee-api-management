@@ -26,6 +26,7 @@ import inmemory.SecretValueEncryptorInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
+import io.gravitee.apim.core.secret.domain_service.SecretDomainService;
 import io.gravitee.apim.core.secret.exception.SecretKeptForCredentialException;
 import io.gravitee.apim.core.secret.exception.SecretNotFoundException;
 import io.gravitee.apim.core.secret.model.Secret;
@@ -51,7 +52,10 @@ class UpdateSecretUseCaseTest extends AbstractUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new UpdateSecretUseCase(secretCrudService, secretValueEncryptor, auditService);
+        useCase = new UpdateSecretUseCase(
+            secretCrudService,
+            new SecretDomainService(secretCrudService, secretValueEncryptor, auditService)
+        );
     }
 
     @Test
@@ -121,17 +125,6 @@ class UpdateSecretUseCaseTest extends AbstractUseCaseTest {
             "old-value"
         );
         assertThat(auditCrudService.storage()).isEmpty();
-    }
-
-    @Test
-    void should_let_a_credential_rotate_its_value() {
-        var secret = givenASecret(aSecret().toBuilder().key("credential.cred-1.token").build());
-
-        useCase.execute(new UpdateSecretUseCase.Input(secret.id(), new SecretValue("new-value"), AUDIT_INFO, true));
-
-        assertThat(secretValueEncryptor.decrypt(secret, secretCrudService.encryptedValueOf(secret.id()).orElseThrow())).isEqualTo(
-            "new-value"
-        );
     }
 
     private Secret givenASecret(Secret secret) {

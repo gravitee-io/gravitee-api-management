@@ -25,6 +25,7 @@ import inmemory.SecretValueEncryptorInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
+import io.gravitee.apim.core.secret.domain_service.SecretDomainService;
 import io.gravitee.apim.core.secret.exception.InvalidSecretKeyException;
 import io.gravitee.apim.core.secret.exception.InvalidSecretValueException;
 import io.gravitee.apim.core.secret.exception.SecretKeptForCredentialException;
@@ -54,7 +55,7 @@ class CreateSecretUseCaseTest extends AbstractUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new CreateSecretUseCase(secretCrudService, secretValueEncryptor, auditService);
+        useCase = new CreateSecretUseCase(new SecretDomainService(secretCrudService, secretValueEncryptor, auditService));
     }
 
     @Test
@@ -153,15 +154,6 @@ class CreateSecretUseCaseTest extends AbstractUseCaseTest {
         assertThatThrownBy(() -> useCase.execute(create(key, "sk-ant-123"))).isInstanceOf(SecretKeptForCredentialException.class);
         assertThat(secretCrudService.storage()).isEmpty();
         assertThat(auditCrudService.storage()).isEmpty();
-    }
-
-    @Test
-    void should_let_a_credential_store_its_value() {
-        var secret = useCase
-            .execute(new CreateSecretUseCase.Input("credential.cred-1.token", new SecretValue("sk-ant-123"), AUDIT_INFO, true))
-            .secret();
-
-        assertThat(secret.key()).isEqualTo("credential.cred-1.token");
     }
 
     @Test
