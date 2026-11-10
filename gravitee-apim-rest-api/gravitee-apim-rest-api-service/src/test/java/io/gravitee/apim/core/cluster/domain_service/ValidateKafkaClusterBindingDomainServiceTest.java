@@ -39,6 +39,7 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -137,18 +138,47 @@ class ValidateKafkaClusterBindingDomainServiceTest {
             .hasMessageContaining("uses the SASL_SSL protocol without a SASL mechanism");
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = { "DELEGATE_TO_BROKER", "OAUTHBEARER", "OAUTHBEARER_TOKEN", "GSSAPI", "AWS_MSK_IAM" })
-    void should_reject_a_connection_using_an_unsupported_mechanism(String mechanism) {
-        deploy(kafkaCluster(ClusterType.KAFKA_CLUSTER, mechanism));
+    @Test
+    void should_reject_a_connection_delegating_the_authentication_to_the_broker() {
+        deploy(kafkaCluster(ClusterType.KAFKA_CLUSTER, "DELEGATE_TO_BROKER"));
 
         assertThatThrownBy(() -> service.validate(ENV_ID, List.of(group(CLUSTER_SHARED, endpoint("sasl", true, null)))))
             .isInstanceOf(InvalidDataException.class)
-            .hasMessageContaining(mechanism);
+            .hasMessageContaining("no client credentials to delegate to the broker");
+    }
+
+    @Test
+    void should_reject_a_connection_whose_jaas_config_loads_another_login_module() {
+        deploy(
+            kafkaCluster(
+                ClusterType.KAFKA_CLUSTER,
+                Map.of("type", "GSSAPI", "saslJaasConfig", "com.sun.security.auth.module.JndiLoginModule required;")
+            )
+        );
+
+        assertThatThrownBy(() -> service.validate(ENV_ID, List.of(group(CLUSTER_SHARED, endpoint("sasl", true, null)))))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessageContaining("must use the login module com.sun.security.auth.module.Krb5LoginModule");
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "PLAIN", "SCRAM-SHA-256", "SCRAM-SHA-512" })
+    @CsvSource(
+        delimiter = '|',
+        value = {
+            "GSSAPI | com.sun.security.auth.module.Krb5LoginModule required useKeyTab=true;",
+            "AWS_MSK_IAM | software.amazon.msk.auth.iam.IAMLoginModule required;",
+        }
+    )
+    void should_accept_a_connection_whose_jaas_config_loads_the_login_module_of_its_mechanism(String mechanism, String saslJaasConfig) {
+        deploy(kafkaCluster(ClusterType.KAFKA_CLUSTER, Map.of("type", mechanism, "saslJaasConfig", saslJaasConfig)));
+
+        assertThatCode(() ->
+            service.validate(ENV_ID, List.of(group(CLUSTER_SHARED, endpoint("sasl", true, null))))
+        ).doesNotThrowAnyException();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "PLAIN", "SCRAM-SHA-256", "SCRAM-SHA-512", "OAUTHBEARER", "OAUTHBEARER_TOKEN" })
     void should_accept_a_connection_using_a_supported_mechanism(String mechanism) {
         deploy(kafkaCluster(ClusterType.KAFKA_CLUSTER, mechanism));
 
@@ -205,7 +235,7 @@ class ValidateKafkaClusterBindingDomainServiceTest {
 
     @Test
     void should_reject_a_default_connection_using_an_unsupported_mechanism() {
-        deploy(kafkaCluster(ClusterType.KAFKA_CLUSTER, "OAUTHBEARER"));
+        deploy(kafkaCluster(ClusterType.KAFKA_CLUSTER, "DELEGATE_TO_BROKER"));
 
         assertThatThrownBy(() ->
             service.validate(
@@ -220,7 +250,7 @@ class ValidateKafkaClusterBindingDomainServiceTest {
             )
         )
             .isInstanceOf(InvalidDataException.class)
-            .hasMessageContaining("OAUTHBEARER");
+            .hasMessageContaining("no client credentials to delegate to the broker");
     }
 
     @Test
@@ -236,12 +266,12 @@ class ValidateKafkaClusterBindingDomainServiceTest {
 
     @Test
     void should_name_the_endpoint_and_what_to_do_when_its_connection_is_not_supported() {
-        deploy(kafkaCluster(ClusterType.KAFKA_CLUSTER, "OAUTHBEARER_TOKEN"));
+        deploy(kafkaCluster(ClusterType.KAFKA_CLUSTER, "DELEGATE_TO_BROKER"));
 
         assertThatThrownBy(() -> service.validate(ENV_ID, List.of(group(CLUSTER_SHARED, endpoint("sasl", true, null)))))
             .isInstanceOf(InvalidDataException.class)
             .hasMessage(
-                "Endpoint [default] of group [default-group]: connection [sasl] of Kafka cluster [my-cluster] cannot be used by Message APIs. Message APIs do not support the SASL mechanism OAUTHBEARER_TOKEN yet. Pick another connection or switch the group to Direct mode."
+                "Endpoint [default] of group [default-group]: connection [sasl] of Kafka cluster [my-cluster] cannot be used by Message APIs. A Message API has no client credentials to delegate to the broker. Pick another connection or switch the group to Direct mode."
             );
     }
 
@@ -321,6 +351,10 @@ class ValidateKafkaClusterBindingDomainServiceTest {
     }
 
     private static Cluster kafkaCluster(ClusterType type, String mechanism) {
+        return kafkaCluster(type, Map.of("type", mechanism));
+    }
+
+    private static Cluster kafkaCluster(ClusterType type, Map<String, Object> mechanism) {
         return Cluster.builder()
             .id("cluster-id")
             .crossId("my-cluster")
@@ -340,7 +374,7 @@ class ValidateKafkaClusterBindingDomainServiceTest {
                             "bootstrapServers",
                             "kafka:9093",
                             "security",
-                            Map.of("protocol", "SASL_SSL", "sasl", Map.of("mechanism", Map.of("type", mechanism)))
+                            Map.of("protocol", "SASL_SSL", "sasl", Map.of("mechanism", mechanism))
                         )
                     )
                 )

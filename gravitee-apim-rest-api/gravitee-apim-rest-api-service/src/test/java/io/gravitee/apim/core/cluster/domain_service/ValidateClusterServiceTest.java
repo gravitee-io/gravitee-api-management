@@ -199,6 +199,75 @@ class ValidateClusterServiceTest {
     }
 
     @Test
+    void should_throw_when_a_kafka_cluster_connection_jaas_config_loads_another_login_module() {
+        Cluster cluster = kafkaClusterWithMechanism(
+            Map.of("type", "GSSAPI", "saslJaasConfig", "com.sun.security.auth.module.JndiLoginModule required;")
+        );
+
+        assertThatThrownBy(() -> validateClusterService.validate(cluster))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessage(
+                "Connection [conn-1]: The JAAS configuration of GSSAPI must use the login module com.sun.security.auth.module.Krb5LoginModule, not com.sun.security.auth.module.JndiLoginModule."
+            );
+    }
+
+    @Test
+    void should_pass_when_a_kafka_cluster_connection_jaas_config_loads_the_login_module_of_its_mechanism() {
+        Cluster cluster = kafkaClusterWithMechanism(
+            Map.of("type", "AWS_MSK_IAM", "saslJaasConfig", "software.amazon.msk.auth.iam.IAMLoginModule required;")
+        );
+
+        assertThatCode(() -> validateClusterService.validate(cluster)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_throw_when_a_kafka_cluster_connection_token_endpoint_is_not_http() {
+        Cluster cluster = kafkaClusterWithMechanism(
+            Map.of("type", "OAUTHBEARER", "tokenUrl", "file:///etc/token.jwt", "clientId", "gateway", "clientSecret", "s3cr3t")
+        );
+
+        assertThatThrownBy(() -> validateClusterService.validate(cluster))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessage("Connection [conn-1]: The OAUTHBEARER token endpoint must be an http or https URL.");
+    }
+
+    @Test
+    void should_ignore_the_sasl_mechanism_of_a_kafka_cluster_connection_without_sasl() {
+        Cluster cluster = kafkaClusterWithMechanism(
+            "SSL",
+            Map.of("type", "GSSAPI", "saslJaasConfig", "com.sun.security.auth.module.JndiLoginModule required;")
+        );
+
+        assertThatCode(() -> validateClusterService.validate(cluster)).doesNotThrowAnyException();
+    }
+
+    private static Cluster kafkaClusterWithMechanism(Map<String, Object> mechanism) {
+        return kafkaClusterWithMechanism("SASL_SSL", mechanism);
+    }
+
+    private static Cluster kafkaClusterWithMechanism(String protocol, Map<String, Object> mechanism) {
+        return Cluster.builder()
+            .type(ClusterType.KAFKA_CLUSTER)
+            .name("my-kafka-cluster")
+            .configuration(
+                Map.of(
+                    "connections",
+                    List.of(
+                        Map.of(
+                            "name",
+                            "conn-1",
+                            "bootstrapServers",
+                            "kafka1:9092",
+                            "security",
+                            Map.of("protocol", protocol, "sasl", Map.of("mechanism", mechanism))
+                        )
+                    )
+                )
+            )
+            .build();
+    }
+
+    @Test
     void should_throw_when_crossId_is_not_unique_in_environment() {
         Cluster existingCluster = Cluster.builder()
             .id("existing-id")

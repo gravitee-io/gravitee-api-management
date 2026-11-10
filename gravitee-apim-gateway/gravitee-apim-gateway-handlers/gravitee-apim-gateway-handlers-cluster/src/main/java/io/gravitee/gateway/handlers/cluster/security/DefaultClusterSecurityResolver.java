@@ -54,7 +54,7 @@ public class DefaultClusterSecurityResolver implements ClusterSecurityResolver {
     private static final String SECRETS_VARIABLE = "#secrets.";
 
     /** Field names, lower-cased, by the {@code @Secret} field kind of the plugin SSL options and SASL credentials. */
-    private static final Set<String> PASSWORD_FIELDS = Set.of("password", "keypassword");
+    private static final Set<String> PASSWORD_FIELDS = Set.of("password", "keypassword", "clientsecret");
     private static final Set<String> PRIVATE_KEY_FIELDS = Set.of("keycontent");
     private static final Set<String> PUBLIC_KEY_FIELDS = Set.of("certcontent");
 
