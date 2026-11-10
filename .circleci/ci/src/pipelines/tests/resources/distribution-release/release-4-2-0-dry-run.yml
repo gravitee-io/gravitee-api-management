@@ -494,7 +494,7 @@ jobs:
             fi
             docker buildx build --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
             ${CORE_ARG} \
-            -t graviteeio/<< parameters.docker-image-name >>:4.2.0 -t graviteeio/<< parameters.docker-image-name >>:4.2 \
+            -t graviteeio/<< parameters.docker-image-name >>:4.2.0 -t graviteeio/<< parameters.docker-image-name >>:4.2 -t graviteeio/<< parameters.docker-image-name >>:4.2.0-alpine -t graviteeio/<< parameters.docker-image-name >>:4.2-alpine \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project-workdir >>
       - run:
