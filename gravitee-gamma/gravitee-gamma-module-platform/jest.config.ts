@@ -45,8 +45,8 @@ export default {
         '^@gravitee/gamma-ui-shared/observability$': '<rootDir>/../gamma-ui-shared/src/observability/index.ts',
     },
     transform: {
-        '^(?!.*\\.(js|jsx|ts|tsx|css|json)$)': '@nx/react/plugins/jest',
-        '^.+\\.[tj]sx?$': ['babel-jest', { presets: ['@nx/react/babel'] }],
+        '^(?!.*\\.(js|jsx|mjs|ts|tsx|css|json)$)': '@nx/react/plugins/jest',
+        '^.+\\.(mjs|[tj]sx?)$': ['babel-jest', { presets: ['@nx/react/babel'] }],
     },
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
     coverageDirectory: '<rootDir>/coverage',
