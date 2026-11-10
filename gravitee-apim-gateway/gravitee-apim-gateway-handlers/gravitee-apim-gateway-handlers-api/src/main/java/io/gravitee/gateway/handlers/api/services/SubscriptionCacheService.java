@@ -306,6 +306,28 @@ public class SubscriptionCacheService implements SubscriptionService {
         unregisterByScopeId(apiProductId);
     }
 
+    /**
+     * Unregisters the subscriptions taken on the given plans of an API Product, leaving its other plans' alone. Driven by
+     * a product redeploy that removes plans.
+     */
+    public void unregisterByApiProductPlans(final String apiProductId, final Set<String> planIds) {
+        Set<String> subscriptionIds = cacheIdsByScope.get(apiProductId);
+        if (subscriptionIds == null || planIds.isEmpty()) {
+            return;
+        }
+        log.debug("Unregistering subscriptions of plans {} of API Product [{}]", planIds, apiProductId);
+        subscriptionIds.forEach(subscriptionId ->
+            cacheById.computeIfPresent(subscriptionId, (id, cached) -> {
+                if (!Objects.equals(apiProductId, scopeOf(cached)) || !planIds.contains(cached.getPlan())) {
+                    return cached;
+                }
+                evictEverywhere(cached);
+                evictIdFromScope(apiProductId, id);
+                return null;
+            })
+        );
+    }
+
     private void unregisterByScopeId(final String scopeId) {
         Set<String> subscriptionIds = cacheIdsByScope.remove(scopeId);
         if (subscriptionIds == null) {

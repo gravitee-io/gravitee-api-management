@@ -143,6 +143,32 @@ public class ApiKeyCacheService implements ApiKeyService {
         unregisterByScopeId(apiProductId);
     }
 
+    /**
+     * Unregisters the API keys of the given plans of an API Product, leaving its other plans' alone. Driven by a product
+     * redeploy that removes plans.
+     */
+    public void unregisterByApiProductPlans(final String apiProductId, final Set<String> planIds) {
+        Set<String> keysByProduct = cacheApiKeysByScope.get(apiProductId);
+        if (keysByProduct == null || planIds.isEmpty()) {
+            return;
+        }
+        log.debug("Unload api-keys of plans {} of api product [api_product_id: {}]", planIds, apiProductId);
+        keysByProduct.forEach(key ->
+            // Checked and removed in one step, so a key registered again meanwhile on a kept plan stays cached
+            cacheApiKeys.computeIfPresent(buildCacheKey(apiProductId, key), (cacheKey, cached) -> {
+                if (!planIds.contains(cached.getPlan())) {
+                    return cached;
+                }
+                cacheMd5ApiKeys.remove(buildMd5CacheKey(cached));
+                cacheApiKeysByScope.computeIfPresent(apiProductId, (scope, keys) -> {
+                    keys.remove(key);
+                    return keys.isEmpty() ? null : keys;
+                });
+                return null;
+            })
+        );
+    }
+
     private void unregisterByScopeId(final String scopeId) {
         Set<String> keysByApi = cacheApiKeysByScope.remove(scopeId);
         if (keysByApi != null) {

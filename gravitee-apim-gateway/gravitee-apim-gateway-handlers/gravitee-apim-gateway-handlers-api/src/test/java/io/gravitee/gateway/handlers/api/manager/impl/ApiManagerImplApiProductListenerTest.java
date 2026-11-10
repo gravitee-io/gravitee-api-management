@@ -106,7 +106,12 @@ class ApiManagerImplApiProductListenerTest {
 
         listenerCaptor
             .getValue()
-            .onEvent(new SimpleEvent<>(ApiProductEventType.UNDEPLOY, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-test"))));
+            .onEvent(
+                new SimpleEvent<>(
+                    ApiProductEventType.UNDEPLOY,
+                    new ApiProductChangedEvent("product-1", "env-1", Set.of("api-test"), Set.of())
+                )
+            );
 
         verify(eventManager).publishEvent(ReactorEvent.UNDEPLOY, api);
         assertThat(apiManager.apis()).isEmpty();
@@ -128,7 +133,7 @@ class ApiManagerImplApiProductListenerTest {
 
         listenerCaptor
             .getValue()
-            .onEvent(new SimpleEvent<>(ApiProductEventType.UNDEPLOY, new ApiProductChangedEvent("product-1", "env-1", null)));
+            .onEvent(new SimpleEvent<>(ApiProductEventType.UNDEPLOY, new ApiProductChangedEvent("product-1", "env-1", null, Set.of())));
 
         assertThat(apiManager.apis()).hasSize(1);
     }
@@ -149,7 +154,12 @@ class ApiManagerImplApiProductListenerTest {
 
         listenerCaptor
             .getValue()
-            .onEvent(new SimpleEvent<>(ApiProductEventType.UNDEPLOY, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-test"))));
+            .onEvent(
+                new SimpleEvent<>(
+                    ApiProductEventType.UNDEPLOY,
+                    new ApiProductChangedEvent("product-1", "env-1", Set.of("api-test"), Set.of())
+                )
+            );
 
         verify(eventManager, never()).publishEvent(ReactorEvent.UNDEPLOY, api);
         assertThat(apiManager.apis()).hasSize(1);
@@ -212,7 +222,10 @@ class ApiManagerImplApiProductListenerTest {
             listenerCaptor
                 .getValue()
                 .onEvent(
-                    new SimpleEvent<>(ApiProductEventType.UNDEPLOY, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-test")))
+                    new SimpleEvent<>(
+                        ApiProductEventType.UNDEPLOY,
+                        new ApiProductChangedEvent("product-1", "env-1", Set.of("api-test"), Set.of())
+                    )
                 )
         );
         productUndeployThread.start();

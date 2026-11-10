@@ -85,6 +85,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- API Products are deployed through the synchronizer's own deployer -->
+        <dependency>
+            <groupId>io.gravitee.apim.gateway.services</groupId>
+            <artifactId>gravitee-apim-gateway-services-sync</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>io.gravitee.apim.gateway.handlers</groupId>
             <artifactId>gravitee-apim-gateway-handlers-shared-policy-group</artifactId>

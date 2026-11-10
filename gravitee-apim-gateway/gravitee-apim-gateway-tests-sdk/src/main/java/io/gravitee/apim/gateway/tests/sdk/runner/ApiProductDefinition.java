@@ -16,6 +16,9 @@
 package io.gravitee.apim.gateway.tests.sdk.runner;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.gravitee.definition.model.v4.plan.Plan;
+import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -41,4 +44,7 @@ class ApiProductDefinition {
     private String environmentHrid;
     private String organizationId;
     private String organizationHrid;
+    private List<Plan> plans;
+    private Set<String> tags;
+    private Date deployedAt;
 }

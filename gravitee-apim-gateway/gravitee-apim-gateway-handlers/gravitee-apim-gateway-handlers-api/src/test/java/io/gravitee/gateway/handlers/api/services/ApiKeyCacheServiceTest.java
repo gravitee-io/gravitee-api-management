@@ -331,6 +331,41 @@ public class ApiKeyCacheServiceTest {
             assertThat(cacheMd5ApiKeys.isEmpty()).isTrue();
             assertThat(cacheApiKeysByScope.isEmpty()).isTrue();
         }
+
+        @Test
+        void should_evict_only_the_api_keys_of_the_removed_plans() {
+            when(apiProductRegistry.getApiProductIdsForApi(MEMBER_API_ID)).thenReturn(Set.of(PRODUCT_ID));
+            ApiKey removedPlanKey = buildApiKey(PRODUCT_ID, "removed-plan-key", true);
+            removedPlanKey.setPlan("removed-plan");
+            ApiKey keptPlanKey = buildApiKey(PRODUCT_ID, "kept-plan-key", true);
+            keptPlanKey.setPlan("kept-plan");
+            ApiKey otherProductKey = buildApiKey("other-product", "other-product-key", true);
+            otherProductKey.setPlan("removed-plan");
+            apiKeyService.register(removedPlanKey);
+            apiKeyService.register(keptPlanKey);
+            apiKeyService.register(otherProductKey);
+
+            apiKeyService.unregisterByApiProductPlans(PRODUCT_ID, Set.of("removed-plan"));
+
+            assertThat(apiKeyService.getByApiAndKey(MEMBER_API_ID, "removed-plan-key")).isEmpty();
+            assertThat(apiKeyService.getByApiAndMd5Key(MEMBER_API_ID, DigestUtils.md5DigestAsHex("removed-plan-key".getBytes()))).isEmpty();
+            assertThat(apiKeyService.getByApiAndKey(MEMBER_API_ID, "kept-plan-key")).contains(keptPlanKey);
+            assertThat(cacheApiKeysByScope.get(PRODUCT_ID)).isEqualTo(Set.of("kept-plan-key"));
+            assertThat(cacheApiKeysByScope.get("other-product")).isEqualTo(Set.of("other-product-key"));
+        }
+
+        @Test
+        void should_drop_the_product_scope_once_its_last_plan_is_evicted() {
+            ApiKey apiKey = buildApiKey(PRODUCT_ID, "my-key", true);
+            apiKey.setPlan("removed-plan");
+            apiKeyService.register(apiKey);
+
+            apiKeyService.unregisterByApiProductPlans(PRODUCT_ID, Set.of("removed-plan"));
+
+            assertThat(cacheApiKeys.isEmpty()).isTrue();
+            assertThat(cacheMd5ApiKeys.isEmpty()).isTrue();
+            assertThat(cacheApiKeysByScope.isEmpty()).isTrue();
+        }
     }
 
     private ApiKey buildApiKey(String api, String key, boolean active) {

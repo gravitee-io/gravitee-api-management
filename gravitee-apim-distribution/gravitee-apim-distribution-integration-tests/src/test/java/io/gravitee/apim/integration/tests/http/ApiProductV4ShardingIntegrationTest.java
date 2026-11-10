@@ -16,6 +16,7 @@
 package io.gravitee.apim.integration.tests.http;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
@@ -25,7 +26,9 @@ import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
+import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.AfterAll;
@@ -160,6 +163,29 @@ class ApiProductV4ShardingIntegrationTest extends ApiProductV4IntegrationTest.Te
         redeployProduct(Set.of(OTHER_TAG), null);
 
         assertThat(registry().getApiProductIdsForApi(API_1_ID)).isEmpty();
+    }
+
+    /** A member API exposed only through the product follows its plan's tags, through the member API resync. */
+    @Test
+    void should_undeploy_then_redeploy_an_api_whose_only_product_plan_is_retagged_away_then_back() {
+        deployProduct(Set.of(GATEWAY_TAG), Set.of(GATEWAY_TAG));
+        await()
+            .atMost(Duration.ofSeconds(10))
+            .until(() -> apiManager().get(API_1_ID) != null);
+
+        deployProduct(Set.of(GATEWAY_TAG), Set.of(OTHER_TAG));
+        await()
+            .atMost(Duration.ofSeconds(10))
+            .until(() -> apiManager().get(API_1_ID) == null);
+
+        deployProduct(Set.of(GATEWAY_TAG), Set.of(GATEWAY_TAG));
+        await()
+            .atMost(Duration.ofSeconds(10))
+            .until(() -> apiManager().get(API_1_ID) != null);
+    }
+
+    private ApiManager apiManager() {
+        return getBean(ApiManager.class);
     }
 
     private ApiProductRegistry registry() {

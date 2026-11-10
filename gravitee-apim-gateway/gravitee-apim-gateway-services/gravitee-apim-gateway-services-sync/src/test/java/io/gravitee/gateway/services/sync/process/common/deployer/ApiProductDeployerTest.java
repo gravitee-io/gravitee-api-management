@@ -15,8 +15,11 @@
  */
 package io.gravitee.gateway.services.sync.process.common.deployer;
 
+import static io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
@@ -25,15 +28,24 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.event.EventManager;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
+import io.gravitee.gateway.handlers.api.manager.ApiProductChange;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -76,9 +88,146 @@ class ApiProductDeployerTest {
             .thenReturn(Completable.complete());
         lenient().when(subscriptionRefresher.refresh(anySet(), anySet())).thenReturn(Completable.complete());
         lenient().when(subscriptionRefresher.unregisterByApiProduct(any())).thenReturn(Completable.complete());
+        lenient().when(subscriptionRefresher.unregisterByApiProductPlans(any(), anySet())).thenReturn(Completable.complete());
+        givenDeployedVersion(null);
+    }
+
+    /** Makes the manager hand the deployer the change of the incoming product against the given deployed version. */
+    private void givenDeployedVersion(ReactableApiProduct deployed) {
         lenient()
-            .when(apiProductManager.register(any(ReactableApiProduct.class), any(Completable.class)))
-            .thenAnswer(invocation -> invocation.getArgument(1));
+            .when(apiProductManager.register(any(ReactableApiProduct.class), any()))
+            .thenAnswer(invocation -> {
+                Function<ApiProductChange, Completable> doBeforeEmit = invocation.getArgument(1);
+                return doBeforeEmit.apply(ApiProductChange.between(deployed, invocation.getArgument(0), plan -> true));
+            });
+    }
+
+    private static Plan plan(String id) {
+        return Plan.builder().id(id).security(PlanSecurity.builder().type("api-key").build()).status(PlanStatus.PUBLISHED).build();
+    }
+
+    private static ApiProductReactorDeployable deployableOf(ReactableApiProduct product) {
+        return ApiProductReactorDeployable.builder()
+            .syncAction(SyncAction.DEPLOY)
+            .apiProductId(product.getId())
+            .reactableApiProduct(product)
+            .subscribablePlans(product.getPlans().stream().map(Plan::getId).collect(Collectors.toSet()))
+            .build();
+    }
+
+    private static ReactableApiProduct productWithPlans(Date deployedAt, Plan... plans) {
+        return ReactableApiProduct.builder()
+            .id("api-product-123")
+            .name("Product")
+            .apiIds(Set.of("api-1"))
+            .environmentId("env-1")
+            .deployedAt(deployedAt)
+            .plans(List.of(plans))
+            .build();
+    }
+
+    @Nested
+    class ChangeAwareDeployTest {
+
+        private final ReactableApiProduct deployed = productWithPlans(new Date(1_000), plan("plan-1"), plan("plan-2"));
+
+        @BeforeEach
+        void givenDeployed() {
+            givenDeployedVersion(deployed);
+        }
+
+        @Test
+        void should_reload_no_subscription_when_only_a_plan_flow_changes() {
+            Plan withFlow = plan("plan-1");
+            withFlow.setFlows(List.of(Flow.builder().name("flow").build()));
+            ReactableApiProduct incoming = productWithPlans(new Date(2_000), withFlow, plan("plan-2"));
+
+            cut.deploy(deployableOf(incoming)).test().assertComplete();
+
+            verify(subscriptionRefresher, never()).refresh(argThat(plans -> !plans.isEmpty()), anySet());
+            verify(subscriptionRefresher, never()).unregisterByApiProductPlans(any(), argThat(plans -> !plans.isEmpty()));
+        }
+
+        @Test
+        void should_load_only_the_added_plan_then_evict_the_removed_one() {
+            ReactableApiProduct incoming = productWithPlans(new Date(2_000), plan("plan-1"), plan("plan-3"));
+            ApiProductReactorDeployable deployable = deployableOf(incoming);
+            List<String> executed = new ArrayList<>();
+            doAnswer(invocation -> {
+                executed.add("register plans");
+                return null;
+            })
+                .when(planService)
+                .register(deployable);
+            when(subscriptionRefresher.unregisterByApiProductPlans("api-product-123", Set.of("plan-2"))).thenReturn(
+                Completable.fromRunnable(() -> executed.add("evict plan-2"))
+            );
+            when(subscriptionRefresher.refresh(Set.of("plan-3"), Set.of("env-1"))).thenReturn(
+                Completable.fromRunnable(() -> executed.add("load plan-3"))
+            );
+
+            cut.deploy(deployable).test().assertComplete();
+
+            assertThat(executed).containsExactly("register plans", "load plan-3", "evict plan-2");
+        }
+
+        @Test
+        void should_keep_the_previous_plans_registered_and_evict_only_the_plan_it_was_loading_when_the_load_fails() {
+            PlanService realPlanService = new PlanService();
+            realPlanService.register(deployableOf(deployed));
+            ApiProductDeployer deployer = new ApiProductDeployer(
+                apiProductManager,
+                realPlanService,
+                distributedSyncService,
+                subscriptionRefresher
+            );
+            when(subscriptionRefresher.refresh(Set.of("plan-3"), Set.of("env-1"))).thenReturn(
+                Completable.error(new IllegalStateException("repository down"))
+            );
+            when(subscriptionRefresher.unregisterByApiProductPlans("api-product-123", Set.of("plan-3"))).thenReturn(Completable.complete());
+
+            deployer
+                .deploy(deployableOf(productWithPlans(new Date(2_000), plan("plan-1"), plan("plan-3"))))
+                .test()
+                .assertError(SyncException.class);
+
+            assertThat(realPlanService.isDeployed("api-product-123", "plan-2", API_PRODUCT)).isTrue();
+            assertThat(realPlanService.isDeployed("api-product-123", "plan-3", API_PRODUCT)).isFalse();
+            verify(subscriptionRefresher).unregisterByApiProductPlans("api-product-123", Set.of("plan-3"));
+            verify(subscriptionRefresher, never()).unregisterByApiProductPlans(any(), argThat(plans -> plans.contains("plan-2")));
+        }
+
+        @Test
+        void should_fail_with_the_load_error_when_evicting_the_partial_load_fails_too() {
+            when(subscriptionRefresher.refresh(Set.of("plan-3"), Set.of("env-1"))).thenReturn(
+                Completable.error(new IllegalStateException("repository down"))
+            );
+            when(subscriptionRefresher.unregisterByApiProductPlans("api-product-123", Set.of("plan-3"))).thenReturn(
+                Completable.error(new IllegalStateException("eviction failed"))
+            );
+
+            cut
+                .deploy(deployableOf(productWithPlans(new Date(2_000), plan("plan-1"), plan("plan-3"))))
+                .test()
+                .assertError(e -> e instanceof SyncException && e.getCause().getMessage().equals("repository down"));
+        }
+    }
+
+    @Test
+    void should_unregister_the_plans_of_a_first_deployment_whose_load_fails() {
+        PlanService realPlanService = new PlanService();
+        ApiProductDeployer deployer = new ApiProductDeployer(
+            apiProductManager,
+            realPlanService,
+            distributedSyncService,
+            subscriptionRefresher
+        );
+        when(subscriptionRefresher.refresh(anySet(), anySet())).thenReturn(Completable.error(new IllegalStateException("repository down")));
+
+        deployer.deploy(deployableOf(productWithPlans(new Date(1_000), plan("plan-1")))).test().assertError(SyncException.class);
+
+        assertThat(realPlanService.isDeployed("api-product-123", "plan-1", API_PRODUCT)).isFalse();
+        verify(subscriptionRefresher).unregisterByApiProductPlans("api-product-123", Set.of("plan-1"));
     }
 
     @Nested
@@ -103,7 +252,7 @@ class ApiProductDeployerTest {
                 .build();
 
             cut.deploy(deployable).test().assertComplete();
-            verify(apiProductManager).register(eq(reactableApiProduct), any(Completable.class));
+            verify(apiProductManager).register(eq(reactableApiProduct), any());
         }
 
         @Test
@@ -125,7 +274,7 @@ class ApiProductDeployerTest {
                 .build();
 
             cut.deploy(deployable).test().assertComplete();
-            verify(apiProductManager).register(eq(reactableApiProduct), any(Completable.class));
+            verify(apiProductManager).register(eq(reactableApiProduct), any());
         }
 
         @Test
@@ -159,6 +308,7 @@ class ApiProductDeployerTest {
                 .name("Updated Product")
                 .version("1.0")
                 .apiIds(Set.of("api-1"))
+                .plans(List.of(plan("plan-1")))
                 .environmentId("env-1")
                 .deployedAt(new Date())
                 .build();
@@ -169,10 +319,6 @@ class ApiProductDeployerTest {
                 .reactableApiProduct(newProduct)
                 .subscribablePlans(Set.of("plan-1"))
                 .build();
-
-            when(apiProductManager.register(any(ReactableApiProduct.class), any(Completable.class))).thenAnswer(invocation ->
-                invocation.getArgument(1)
-            );
 
             cut.deploy(deployable).test().assertComplete();
 
@@ -421,15 +567,12 @@ class ApiProductDeployerTest {
 
         @Test
         void should_invoke_registerApiProductPlans_and_subscriptionRefresher_when_callback_runs() {
-            when(apiProductManager.register(any(ReactableApiProduct.class), any(Completable.class))).thenAnswer(invocation ->
-                invocation.getArgument(1)
-            );
-
             ReactableApiProduct reactableApiProduct = ReactableApiProduct.builder()
                 .id("api-product-123")
                 .name("Test Product")
                 .version("1.0")
                 .apiIds(Set.of("api-1"))
+                .plans(List.of(plan("plan-1")))
                 .environmentId("env-id")
                 .deployedAt(new Date())
                 .build();

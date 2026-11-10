@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.handlers.api.sharding;
 
+import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import java.util.Set;
 
@@ -53,5 +55,13 @@ public final class ApiProductShardingFilter {
             return true;
         }
         return gatewayConfiguration.hasMatchingTags(planTags);
+    }
+
+    /** Whether this gateway exposes the given plan of a product it serves: a plan open to calls, with matching tags. */
+    public static boolean servesPlan(GatewayConfiguration gatewayConfiguration, Plan plan) {
+        return (
+            (plan.getStatus() == PlanStatus.PUBLISHED || plan.getStatus() == PlanStatus.DEPRECATED) &&
+            matchesPlanTags(gatewayConfiguration, plan.getTags())
+        );
     }
 }

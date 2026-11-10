@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync.process.common.deployer;
 
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
+import io.gravitee.gateway.handlers.api.manager.ApiProductChange;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
@@ -45,20 +46,9 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
         String apiProductId = deployable.apiProductId();
 
         log.debug("Deploying API Product [{}]", apiProductId);
-        Set<String> newApiIds = reactableApiProduct.getApiIds() != null ? reactableApiProduct.getApiIds() : Set.of();
-
-        // Removing an API from the product needs no subscription eviction: a product subscription is
-        // cached under the product, and the registry stops resolving the removed API to it, so the
-        // API can no longer reach it. Only the product's own undeployment evicts.
-        Completable doBeforeEmit = Completable.fromRunnable(() -> registerApiProductPlans(deployable));
-        if (!newApiIds.isEmpty()) {
-            doBeforeEmit = doBeforeEmit.andThen(
-                subscriptionRefresher.refresh(deployable.subscribablePlans(), Set.of(reactableApiProduct.getEnvironmentId()))
-            );
-        }
 
         return apiProductManager
-            .register(reactableApiProduct, doBeforeEmit)
+            .register(reactableApiProduct, change -> prepareSubscriptions(deployable, change))
             .doOnComplete(() -> log.debug("API Product [{}] deployed successfully", apiProductId))
             .onErrorResumeNext(e ->
                 Completable.error(
@@ -74,10 +64,41 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
             );
     }
 
-    private void registerApiProductPlans(ApiProductReactorDeployable deployable) {
+    /**
+     * Brings the subscription caches in line with the change before the product is published. Removing an API needs no
+     * eviction: a product subscription is cached under the product, and the registry stops resolving the removed API
+     * to it.
+     *
+     * <p>Plans are loaded before others are evicted, so a failed load leaves cached the plans of the version the
+     * manager puts back. Eviction matches each entry's current plan, so a subscription moved to a loaded plan stays.
+     * On failure the previously registered plans are registered again, and the plans the deployed version does not
+     * cache are evicted, so a partial load leaves nothing behind. The load error is the one reported.</p>
+     */
+    private Completable prepareSubscriptions(ApiProductReactorDeployable deployable, ApiProductChange change) {
         String apiProductId = deployable.apiProductId();
-        planService.register(deployable);
-        log.debug("Registered {} plans for API Product [{}]", deployable.subscribablePlans().size(), apiProductId);
+        return Completable.defer(() -> {
+            Set<String> previouslyRegisteredPlans = planService.apiProductPlans(apiProductId);
+            Set<String> registeredPlans = registerApiProductPlans(deployable);
+            return subscriptionRefresher
+                .refresh(change.planIdsToLoadSubscriptionsFor(), Set.of(deployable.reactableApiProduct().getEnvironmentId()))
+                .andThen(Completable.defer(() -> subscriptionRefresher.unregisterByApiProductPlans(apiProductId, change.planIdsToEvict())))
+                .onErrorResumeNext(e -> {
+                    planService.restoreApiProductPlans(apiProductId, registeredPlans, previouslyRegisteredPlans);
+                    return subscriptionRefresher
+                        .unregisterByApiProductPlans(apiProductId, change.planIdsToEvictIfLoadFails())
+                        .doOnError(evictionError ->
+                            log.warn("Unable to evict the partially loaded plans of API Product [{}]", apiProductId, evictionError)
+                        )
+                        .onErrorComplete()
+                        .andThen(Completable.error(e));
+                });
+        });
+    }
+
+    private Set<String> registerApiProductPlans(ApiProductReactorDeployable deployable) {
+        Set<String> registeredPlans = planService.register(deployable);
+        log.debug("Registered {} plans for API Product [{}]", deployable.subscribablePlans().size(), deployable.apiProductId());
+        return registeredPlans;
     }
 
     private void unregisterApiProductPlans(ApiProductReactorDeployable deployable) {

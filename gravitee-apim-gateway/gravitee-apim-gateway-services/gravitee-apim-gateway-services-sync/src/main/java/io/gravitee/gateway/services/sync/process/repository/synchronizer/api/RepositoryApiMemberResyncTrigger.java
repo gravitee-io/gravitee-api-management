@@ -66,7 +66,7 @@ public class RepositoryApiMemberResyncTrigger {
         eventManager.subscribeForEvents(
             event -> {
                 if (event.content() instanceof ApiProductChangedEvent productEvent) {
-                    handleProductChange(productEvent.getProductId(), productEvent.getEnvironmentId(), productEvent.getApiIds());
+                    handleProductChange(productEvent.getProductId(), productEvent.getEnvironmentId(), productEvent.getApiIdsToResync());
                 }
             },
             ApiProductEventType.DEPLOY,

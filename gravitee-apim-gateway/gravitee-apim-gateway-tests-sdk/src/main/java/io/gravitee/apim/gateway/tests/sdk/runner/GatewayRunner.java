@@ -62,7 +62,6 @@ import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.dictionary.model.Dictionary;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
-import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.handlers.guardian.manager.GuardianManager;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
@@ -196,6 +195,7 @@ public class GatewayRunner {
     private final Map<String, ReactableApiProduct> deployedApiProductsForTestClass;
     private final Map<String, ReactableApiProduct> deployedApiProductsForTest;
     private GatewayTestContainer gatewayContainer;
+    private ApiProductSyncDeployer apiProductSyncDeployer;
     private VertxEmbeddedContainer vertxContainer;
     private Path tempDir;
     private boolean isRunning = false;
@@ -208,8 +208,8 @@ public class GatewayRunner {
         this.testInstance = testInstance;
         this.v2ExecutionMode = testInstance.getClass().getAnnotation(GatewayTest.class).v2ExecutionMode();
         this.graviteeMapper = new GraviteeMapper();
-        this.deployedForTestClass = new HashMap<>();
-        this.deployedForTest = new HashMap<>();
+        this.deployedForTestClass = new ConcurrentHashMap<>();
+        this.deployedForTest = new ConcurrentHashMap<>();
         this.configuredSystemProperties = new Properties();
         this.deployedOrganizationsForTestClass = new HashMap<>();
         this.deployedOrganizationsForTest = new HashMap<>();
@@ -401,6 +401,10 @@ public class GatewayRunner {
     public void stop() throws InterruptedException {
         // unset system properties set by user to avoid conflict in tests
         configuredSystemProperties.forEach((k, v) -> System.clearProperty(k.toString()));
+        if (apiProductSyncDeployer != null) {
+            apiProductSyncDeployer.close();
+            apiProductSyncDeployer = null;
+        }
         stopServer(gatewayContainer, vertxContainer);
         testInstance.cleanUp();
     }
@@ -548,13 +552,10 @@ public class GatewayRunner {
     }
 
     private void deployApiProduct(ReactableApiProduct reactableApiProduct, Map<String, ReactableApiProduct> deployedApiProducts) {
-        ApiProductManager apiProductManager = gatewayContainer.applicationContext().getBean(ApiProductManager.class);
-
         testInstance.ensureMinimalRequirementForApiProduct(reactableApiProduct);
-        reactableApiProduct.setDeployedAt(new Date());
 
         try {
-            apiProductManager.register(reactableApiProduct);
+            apiProductSyncDeployer().deploy(reactableApiProduct);
         } catch (Exception e) {
             throw new IllegalStateException("An error occurred deploying the API Product %s".formatted(reactableApiProduct.getId()), e);
         }
@@ -676,10 +677,7 @@ public class GatewayRunner {
                 String.format(API_PRODUCT_ALREADY_DEPLOYED_MESSAGE + AT_CLASS_LEVEL, reactableApiProduct.getId())
             );
         }
-        if (deployedApiProductsForTest.containsKey(reactableApiProduct.getId())) {
-            undeployApiProduct(reactableApiProduct);
-            deployedApiProductsForTest.remove(reactableApiProduct.getId());
-        }
+        // Deploying a product the test already deployed updates it, as a redeploy from the Console does
         deployApiProduct(reactableApiProduct, deployedApiProductsForTest);
     }
 
@@ -823,8 +821,19 @@ public class GatewayRunner {
     }
 
     private void undeployApiProduct(ReactableApiProduct reactableApiProduct) {
-        ApiProductManager apiProductManager = gatewayContainer.applicationContext().getBean(ApiProductManager.class);
-        apiProductManager.unregister(reactableApiProduct.getId());
+        apiProductSyncDeployer().undeploy(reactableApiProduct);
+    }
+
+    private ApiProductSyncDeployer apiProductSyncDeployer() {
+        if (apiProductSyncDeployer == null) {
+            apiProductSyncDeployer = new ApiProductSyncDeployer(gatewayContainer.applicationContext(), this::deployedApiDefinition);
+        }
+        return apiProductSyncDeployer;
+    }
+
+    private Optional<ReactableApi<?>> deployedApiDefinition(String apiId) {
+        ReactableApi<?> api = deployedForTest.containsKey(apiId) ? deployedForTest.get(apiId) : deployedForTestClass.get(apiId);
+        return Optional.ofNullable(api);
     }
 
     /**
@@ -1062,6 +1071,9 @@ public class GatewayRunner {
             .environmentHrid(definition.getEnvironmentHrid())
             .organizationId(definition.getOrganizationId())
             .organizationHrid(definition.getOrganizationHrid())
+            .plans(definition.getPlans())
+            .tags(definition.getTags())
+            .deployedAt(definition.getDeployedAt())
             .build();
     }
 
