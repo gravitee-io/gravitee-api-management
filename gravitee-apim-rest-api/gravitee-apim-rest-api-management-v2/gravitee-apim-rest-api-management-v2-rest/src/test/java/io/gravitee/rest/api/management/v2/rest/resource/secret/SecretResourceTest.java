@@ -99,7 +99,7 @@ class SecretResourceTest extends AbstractResourceTest {
             assertThat(response.getStatus()).isEqualTo(OK_200);
             var secret = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Secret.class);
             assertThat(secret.getId()).isEqualTo(SECRET_ID);
-            assertThat(secret.getPath()).isEqualTo("/gravitee/anthropic-key");
+            assertThat(secret.getPath()).isEqualTo("/gravitee/anthropic-key:value");
         }
 
         @Test

@@ -37,6 +37,6 @@ public record Secret(String id, String organizationId, String environmentId, Str
 
     /** The reference that an expression uses to resolve the value, in the environment where the expression runs. */
     public String path() {
-        return "/gravitee/" + key;
+        return "/gravitee/" + key + ":value";
     }
 }

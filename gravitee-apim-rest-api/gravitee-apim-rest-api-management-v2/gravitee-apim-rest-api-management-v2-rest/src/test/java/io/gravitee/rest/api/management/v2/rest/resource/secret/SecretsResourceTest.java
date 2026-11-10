@@ -106,7 +106,7 @@ class SecretsResourceTest extends AbstractResourceTest {
             assertThat(response.readEntity(String.class)).doesNotContain("sk-ant-123");
             var created = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Secret.class);
             assertThat(created.getKey()).isEqualTo("anthropic-key");
-            assertThat(created.getPath()).isEqualTo("/gravitee/anthropic-key");
+            assertThat(created.getPath()).isEqualTo("/gravitee/anthropic-key:value");
 
             var stored = secretCrudService.storage().getFirst();
             assertThat(created.getId()).isEqualTo(stored.id());
