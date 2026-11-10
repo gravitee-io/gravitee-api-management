@@ -115,7 +115,7 @@ class CreateOrUpdatePortalUseCaseTest {
             themeCrudService,
             new CurrentThemeDomainService(themeQueryService, themeCrudService),
             new PortalUrlDomainService(installationAccessQueryService),
-            new PortalContentOwnershipDomainService(portalCrudService, navCrudService, portalListingCrudService)
+            new PortalContentOwnershipDomainService(portalCrudService, navCrudService)
         );
     }
 

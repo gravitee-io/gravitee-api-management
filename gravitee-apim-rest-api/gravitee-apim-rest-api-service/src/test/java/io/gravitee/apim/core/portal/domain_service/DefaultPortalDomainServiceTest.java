@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
-import inmemory.PortalListingCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import io.gravitee.apim.core.portal.exception.DefaultPortalNotFoundException;
 import io.gravitee.apim.core.portal.exception.SeveralPortalsInEnvironmentException;
@@ -29,8 +28,6 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
-import io.gravitee.apim.core.portal_listing.model.PortalListing;
-import io.gravitee.apim.core.portal_listing.model.PortalListingId;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -58,7 +55,6 @@ class DefaultPortalDomainServiceTest {
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
     private final InstallationAccessQueryServiceInMemory installationAccessQueryService = new InstallationAccessQueryServiceInMemory();
     private final PortalNavigationItemsCrudServiceInMemory navigationItemCrudService = new PortalNavigationItemsCrudServiceInMemory();
-    private final PortalListingCrudServiceInMemory listingCrudService = new PortalListingCrudServiceInMemory();
     private DefaultPortalDomainService cut;
 
     @BeforeEach
@@ -66,7 +62,6 @@ class DefaultPortalDomainServiceTest {
         portalCrudService.reset();
         installationAccessQueryService.reset();
         navigationItemCrudService.reset();
-        listingCrudService.reset();
         cut = new DefaultPortalDomainService(
             portalCrudService,
             new PortalUrlDomainService(installationAccessQueryService),
@@ -75,7 +70,7 @@ class DefaultPortalDomainServiceTest {
     }
 
     private PortalContentOwnershipDomainService contentOwnership(PortalCrudServiceInMemory portals) {
-        return new PortalContentOwnershipDomainService(portals, navigationItemCrudService, listingCrudService);
+        return new PortalContentOwnershipDomainService(portals, navigationItemCrudService);
     }
 
     private PortalNavigationFolder anItemOnTheZeroUuid() {
@@ -91,10 +86,6 @@ class DefaultPortalDomainServiceTest {
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
             .build();
-    }
-
-    private PortalListing aListingOnTheZeroUuid() {
-        return PortalListing.of(PortalListingId.random(), ENV_ID, ORG_ID, PortalId.ZERO, List.of());
     }
 
     @SneakyThrows
@@ -241,12 +232,10 @@ class DefaultPortalDomainServiceTest {
             installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io");
             var item = anItemOnTheZeroUuid();
             navigationItemCrudService.initWith(List.of(item));
-            listingCrudService.initWith(List.of(aListingOnTheZeroUuid()));
 
             var created = cut.ensureDefault(ORG_ID, ENV_ID).orElseThrow();
 
             assertThat(item.getReference()).isEqualTo(new NavigationItemReference.PortalReference(created.getId()));
-            assertThat(listingCrudService.storage()).singleElement().extracting(PortalListing::getPortalId).isEqualTo(created.getId());
         }
 
         @Test
@@ -255,24 +244,20 @@ class DefaultPortalDomainServiceTest {
             portalCrudService.initWith(List.of(aDefaultPortal(url("https://portal.acme.io/next"))));
             var item = anItemOnTheZeroUuid();
             navigationItemCrudService.initWith(List.of(item));
-            listingCrudService.initWith(List.of(aListingOnTheZeroUuid()));
 
             cut.ensureDefault(ORG_ID, ENV_ID);
 
             assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference());
-            assertThat(listingCrudService.storage()).singleElement().extracting(PortalListing::getPortalId).isEqualTo(PortalId.ZERO);
         }
 
         @Test
         void should_move_nothing_while_the_default_portal_is_postponed() {
             var item = anItemOnTheZeroUuid();
             navigationItemCrudService.initWith(List.of(item));
-            listingCrudService.initWith(List.of(aListingOnTheZeroUuid()));
 
             cut.ensureDefault(ORG_ID, ENV_ID);
 
             assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference());
-            assertThat(listingCrudService.storage()).singleElement().extracting(PortalListing::getPortalId).isEqualTo(PortalId.ZERO);
         }
     }
 

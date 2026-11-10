@@ -81,6 +81,7 @@ public class PortalNavigationItemsCrudServiceInMemory
         return storage
             .stream()
             .filter(item -> environmentId.equals(item.getEnvironmentId()))
+            .filter(item -> item.getAutomationMetadata() == null)
             .map(PortalNavigationItem::getReference)
             .flatMap(reference ->
                 reference instanceof NavigationItemReference.PortalReference portal ? Stream.of(portal.portalId()) : Stream.empty()
@@ -93,6 +94,7 @@ public class PortalNavigationItemsCrudServiceInMemory
         var moved = storage
             .stream()
             .filter(item -> environmentId.equals(item.getEnvironmentId()))
+            .filter(item -> item.getAutomationMetadata() == null)
             .filter(
                 item ->
                     item.getReference() instanceof NavigationItemReference.PortalReference portal &&

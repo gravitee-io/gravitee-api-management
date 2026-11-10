@@ -1384,6 +1384,13 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     }
 
     @Test
+    public void should_not_find_the_portal_references_of_items_managed_by_the_automation_api() throws Exception {
+        assertThat(portalNavigationItemRepository.findPortalReferenceIdsByEnvironmentId(ORPHANS_ENV)).doesNotContain(
+            "deleted-automation-portal"
+        );
+    }
+
+    @Test
     public void should_find_no_portal_reference_in_an_environment_without_items() throws Exception {
         assertThat(portalNavigationItemRepository.findPortalReferenceIdsByEnvironmentId("env-without-items")).isEmpty();
     }
@@ -1410,6 +1417,13 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
 
         assertThat(storedItem("on-api").getReferenceType()).isEqualTo(PortalNavigationReferenceType.API);
         assertThat(storedItem("on-api").getReferenceId()).isEqualTo("some-api");
+    }
+
+    @Test
+    public void should_leave_items_managed_by_the_automation_api_untouched() throws Exception {
+        portalNavigationItemRepository.updatePortalReferences(ORPHANS_ENV, List.of("deleted-automation-portal"), "target-portal");
+
+        assertThat(storedItem("automation-on-dead-portal").getReferenceId()).isEqualTo("deleted-automation-portal");
     }
 
     @Test

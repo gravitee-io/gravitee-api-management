@@ -26,7 +26,6 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.NavigationPortalDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
-import inmemory.PortalListingCrudServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -144,11 +143,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
                 new DefaultPortalDomainService(
                     new PortalCrudServiceInMemory(),
                     new PortalUrlDomainService(new InstallationAccessQueryServiceInMemory()),
-                    new PortalContentOwnershipDomainService(
-                        new PortalCrudServiceInMemory(),
-                        new PortalNavigationItemsCrudServiceInMemory(),
-                        new PortalListingCrudServiceInMemory()
-                    )
+                    new PortalContentOwnershipDomainService(new PortalCrudServiceInMemory(), new PortalNavigationItemsCrudServiceInMemory())
                 ),
                 new PortalCrudServiceInMemory()
             )

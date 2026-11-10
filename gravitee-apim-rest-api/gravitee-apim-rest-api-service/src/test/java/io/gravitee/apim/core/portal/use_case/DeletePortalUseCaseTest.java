@@ -127,7 +127,7 @@ class DeletePortalUseCaseTest {
             themeCrudService,
             currentThemeDomainService,
             portalUrlDomainService,
-            new PortalContentOwnershipDomainService(portalCrudService, navCrudService, new PortalListingCrudServiceInMemory())
+            new PortalContentOwnershipDomainService(portalCrudService, navCrudService)
         );
         useCase = new DeletePortalUseCase(portalCrudService, navSync, themeCrudService, currentThemeDomainService);
     }

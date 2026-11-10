@@ -22,7 +22,6 @@ import static org.mockito.Mockito.when;
 
 import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
-import inmemory.PortalListingCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService;
@@ -83,11 +82,7 @@ class DefaultPortalUpgraderTest {
     }
 
     private PortalContentOwnershipDomainService contentOwnership() {
-        return new PortalContentOwnershipDomainService(
-            portalCrudService,
-            new PortalNavigationItemsCrudServiceInMemory(),
-            new PortalListingCrudServiceInMemory()
-        );
+        return new PortalContentOwnershipDomainService(portalCrudService, new PortalNavigationItemsCrudServiceInMemory());
     }
 
     @AfterEach

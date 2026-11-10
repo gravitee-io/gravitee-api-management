@@ -18,7 +18,6 @@ package io.gravitee.apim.core.portal.domain_service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.PortalCrudServiceInMemory;
-import inmemory.PortalListingCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService.Moved;
 import io.gravitee.apim.core.portal.model.Portal;
@@ -27,8 +26,6 @@ import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
-import io.gravitee.apim.core.portal_listing.model.PortalListing;
-import io.gravitee.apim.core.portal_listing.model.PortalListingId;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
@@ -60,11 +57,9 @@ class PortalContentOwnershipDomainServiceTest {
 
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
     private final PortalNavigationItemsCrudServiceInMemory navigationItemCrudService = new PortalNavigationItemsCrudServiceInMemory();
-    private final PortalListingCrudServiceInMemory listingCrudService = new PortalListingCrudServiceInMemory();
     private final PortalContentOwnershipDomainService cut = new PortalContentOwnershipDomainService(
         portalCrudService,
-        navigationItemCrudService,
-        listingCrudService
+        navigationItemCrudService
     );
 
     @SneakyThrows
@@ -97,47 +92,29 @@ class PortalContentOwnershipDomainServiceTest {
         return folder;
     }
 
-    private void storedListing(String environmentId, PortalId portalId) {
-        listingCrudService.create(PortalListing.of(PortalListingId.random(), environmentId, ORG_ID, portalId, List.of()));
-    }
-
-    private List<PortalId> listingPortals(String environmentId) {
-        return listingCrudService
-            .storage()
-            .stream()
-            .filter(listing -> environmentId.equals(listing.getEnvironmentId()))
-            .map(PortalListing::getPortalId)
-            .toList();
-    }
-
     @Test
-    void should_move_zero_uuid_items_and_orphan_listings_to_the_default_portal() {
+    void should_move_zero_uuid_items_to_the_default_portal() {
         portalCrudService.initWith(List.of(aPortal(DEFAULT_PORTAL_ID, true)));
         var topNavbarItem = storedFolder(ENV_ID, ON_ZERO_UUID);
         var homepage = storedFolder(ENV_ID, ON_ZERO_UUID);
         homepage.setArea(PortalArea.HOMEPAGE);
-        storedListing(ENV_ID, PortalId.ZERO);
-        storedListing(ENV_ID, DELETED_PORTAL_ID);
 
         var moved = cut.moveOrphans(ENV_ID);
 
-        assertThat(moved).contains(new Moved(2, 2));
+        assertThat(moved).contains(new Moved(2));
         assertThat(topNavbarItem.getReference()).isEqualTo(onPortal(DEFAULT_PORTAL_ID));
         assertThat(homepage.getReference()).isEqualTo(onPortal(DEFAULT_PORTAL_ID));
-        assertThat(listingPortals(ENV_ID)).containsOnly(DEFAULT_PORTAL_ID);
     }
 
     @Test
     void should_move_them_to_the_only_portal_when_it_comes_from_the_automation_api() {
         portalCrudService.initWith(List.of(aPortal(AUTOMATION_PORTAL_ID, false)));
         var item = storedFolder(ENV_ID, ON_ZERO_UUID);
-        storedListing(ENV_ID, PortalId.ZERO);
 
         var moved = cut.moveOrphans(ENV_ID);
 
-        assertThat(moved).contains(new Moved(1, 1));
+        assertThat(moved).contains(new Moved(1));
         assertThat(item.getReference()).isEqualTo(onPortal(AUTOMATION_PORTAL_ID));
-        assertThat(listingPortals(ENV_ID)).containsOnly(AUTOMATION_PORTAL_ID);
     }
 
     @Test
@@ -155,13 +132,11 @@ class PortalContentOwnershipDomainServiceTest {
     @Test
     void should_change_nothing_when_the_environment_has_no_portal() {
         var item = storedFolder(ENV_ID, ON_ZERO_UUID);
-        storedListing(ENV_ID, PortalId.ZERO);
 
         var moved = cut.moveOrphans(ENV_ID);
 
         assertThat(moved).isEmpty();
         assertThat(item.getReference()).isEqualTo(ON_ZERO_UUID);
-        assertThat(listingPortals(ENV_ID)).containsOnly(PortalId.ZERO);
     }
 
     @Test
@@ -202,26 +177,49 @@ class PortalContentOwnershipDomainServiceTest {
         portalCrudService.initWith(List.of(aPortal(DEFAULT_PORTAL_ID, true), aPortal(AUTOMATION_PORTAL_ID, false)));
         var apiOwned = storedFolder(ENV_ID, new NavigationItemReference.ApiReference("some-api"));
         var onExistingPortal = storedFolder(ENV_ID, onPortal(AUTOMATION_PORTAL_ID));
-        storedListing(ENV_ID, AUTOMATION_PORTAL_ID);
 
         var moved = cut.moveOrphans(ENV_ID);
 
-        assertThat(moved).contains(new Moved(0, 0));
+        assertThat(moved).contains(new Moved(0));
         assertThat(apiOwned.getReference()).isEqualTo(new NavigationItemReference.ApiReference("some-api"));
         assertThat(onExistingPortal.getReference()).isEqualTo(onPortal(AUTOMATION_PORTAL_ID));
-        assertThat(listingPortals(ENV_ID)).containsOnly(AUTOMATION_PORTAL_ID);
+    }
+
+    @Test
+    void should_leave_items_managed_by_the_automation_api_on_their_deleted_portal() {
+        portalCrudService.initWith(List.of(aPortal(DEFAULT_PORTAL_ID, true)));
+        var automationItem = PortalNavigationFolder.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .reference(onPortal(DELETED_PORTAL_ID))
+            .title("Guides")
+            .segment("guides")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(1)
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .automationMetadata(
+                new AutomationMetadata(
+                    AutomationMetadata.ReferenceType.PORTAL,
+                    DELETED_PORTAL_ID.toString(),
+                    null,
+                    Optional.empty(),
+                    Optional.empty()
+                )
+            )
+            .build();
+        navigationItemCrudService.create(automationItem);
+
+        var moved = cut.moveOrphans(ENV_ID);
+
+        assertThat(moved).contains(new Moved(0));
+        assertThat(automationItem.getReference()).isEqualTo(onPortal(DELETED_PORTAL_ID));
     }
 
     @Test
     void should_change_only_the_reference() {
         portalCrudService.initWith(List.of(aPortal(DEFAULT_PORTAL_ID, true)));
-        var automationMetadata = new AutomationMetadata(
-            AutomationMetadata.ReferenceType.PORTAL,
-            AUTOMATION_PORTAL_ID.toString(),
-            null,
-            Optional.empty(),
-            Optional.empty()
-        );
         navigationItemCrudService.create(
             PortalNavigationPage.builder()
                 .id(PortalNavigationItemId.random())
@@ -237,7 +235,6 @@ class PortalContentOwnershipDomainServiceTest {
                 .portalPageContentId(PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1"))
                 .published(false)
                 .visibility(PortalVisibility.PRIVATE)
-                .automationMetadata(automationMetadata)
                 .build()
         );
         navigationItemCrudService.create(
@@ -296,12 +293,10 @@ class PortalContentOwnershipDomainServiceTest {
     void should_not_touch_another_environment() {
         portalCrudService.initWith(List.of(aPortal(DEFAULT_PORTAL_ID, true)));
         var otherEnvironmentItem = storedFolder(OTHER_ENV_ID, ON_ZERO_UUID);
-        storedListing(OTHER_ENV_ID, PortalId.ZERO);
 
         cut.moveOrphans(ENV_ID);
 
         assertThat(otherEnvironmentItem.getReference()).isEqualTo(ON_ZERO_UUID);
-        assertThat(listingPortals(OTHER_ENV_ID)).containsOnly(PortalId.ZERO);
     }
 
     /** Another node creates a portal and writes its content right after the environment's portals are read. */
@@ -316,7 +311,6 @@ class PortalContentOwnershipDomainServiceTest {
                     raced = true;
                     create(aPortal(concurrentPortalId, false));
                     storedFolder(ENV_ID, onPortal(concurrentPortalId));
-                    storedListing(ENV_ID, concurrentPortalId);
                 }
                 return portals;
             }
@@ -332,15 +326,13 @@ class PortalContentOwnershipDomainServiceTest {
         var concurrentPortalId = PortalId.of("33333333-3333-3333-3333-333333333333");
         var portals = portalsRacingWith(concurrentPortalId);
         portals.initWith(List.of(aPortal(DEFAULT_PORTAL_ID, true)));
-        var racingCut = new PortalContentOwnershipDomainService(portals, navigationItemCrudService, listingCrudService);
+        var racingCut = new PortalContentOwnershipDomainService(portals, navigationItemCrudService);
         storedFolder(ENV_ID, ON_ZERO_UUID);
-        storedListing(ENV_ID, PortalId.ZERO);
 
         var moved = racingCut.moveOrphans(ENV_ID);
 
-        assertThat(moved).contains(new Moved(1, 1));
+        assertThat(moved).contains(new Moved(1));
         assertThat(navigationReferences()).containsExactlyInAnyOrder(onPortal(DEFAULT_PORTAL_ID), onPortal(concurrentPortalId));
-        assertThat(listingPortals(ENV_ID)).containsExactlyInAnyOrder(DEFAULT_PORTAL_ID, concurrentPortalId);
     }
 
     @Test
@@ -349,26 +341,23 @@ class PortalContentOwnershipDomainServiceTest {
         var target = aPortal(DEFAULT_PORTAL_ID, true);
         var portals = portalsRacingWith(concurrentPortalId);
         portals.initWith(List.of(target));
-        var racingCut = new PortalContentOwnershipDomainService(portals, navigationItemCrudService, listingCrudService);
+        var racingCut = new PortalContentOwnershipDomainService(portals, navigationItemCrudService);
         storedFolder(ENV_ID, ON_ZERO_UUID);
-        storedListing(ENV_ID, PortalId.ZERO);
 
         var moved = racingCut.moveOrphansTo(target);
 
-        assertThat(moved).isEqualTo(new Moved(1, 1));
+        assertThat(moved).isEqualTo(new Moved(1));
         assertThat(navigationReferences()).containsExactlyInAnyOrder(onPortal(DEFAULT_PORTAL_ID), onPortal(concurrentPortalId));
-        assertThat(listingPortals(ENV_ID)).containsExactlyInAnyOrder(DEFAULT_PORTAL_ID, concurrentPortalId);
     }
 
     @Test
     void should_change_nothing_on_a_second_run() {
         portalCrudService.initWith(List.of(aPortal(DEFAULT_PORTAL_ID, true)));
         storedFolder(ENV_ID, ON_ZERO_UUID);
-        storedListing(ENV_ID, PortalId.ZERO);
         cut.moveOrphans(ENV_ID);
 
         var secondRun = cut.moveOrphans(ENV_ID);
 
-        assertThat(secondRun).contains(new Moved(0, 0));
+        assertThat(secondRun).contains(new Moved(0));
     }
 }

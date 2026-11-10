@@ -63,12 +63,16 @@ public interface PortalNavigationItemRepository extends CrudRepository<PortalNav
      */
     boolean updateConfigurationIfUnchanged(String id, String expectedConfiguration, String configuration) throws TechnicalException;
 
-    /** @return the distinct portal ids that the environment's items attached to a portal reference */
+    /**
+     * @return the distinct portal ids that the environment's items attached to a portal reference, items managed by the
+     *     Automation API excluded
+     */
     Set<String> findPortalReferenceIdsByEnvironmentId(String environmentId) throws TechnicalException;
 
     /**
      * Points every item of the environment attached to one of the portals {@code fromPortalIds} at
-     * {@code toPortalId}, and changes nothing else on those items. Items attached to an API are left alone.
+     * {@code toPortalId}, and changes nothing else on those items. Items attached to an API, and items managed by
+     * the Automation API, are left alone: the Automation API derives their ids from their portal's hrid.
      *
      * @return the number of items changed, 0 when {@code fromPortalIds} is empty
      */

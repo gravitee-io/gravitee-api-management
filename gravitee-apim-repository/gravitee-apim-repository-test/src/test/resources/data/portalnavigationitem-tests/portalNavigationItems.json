@@ -136,8 +136,25 @@
     "order": 7,
     "published": false,
     "configuration": "{ \"portalPageContentId\": \"aa0e8400-e29b-41d4-a716-446655440005\" }",
-    "visibility": "PRIVATE",
-    "automationMetadata": { "referenceType": "PORTAL", "referenceId": "automation-portal", "location": "/projects/alpha" }
+    "visibility": "PRIVATE"
+  },
+  {
+    "id": "automation-on-dead-portal",
+    "organizationId": "org-1",
+    "environmentId": "env-orphan-references",
+    "referenceType": "PORTAL",
+    "referenceId": "deleted-automation-portal",
+    "title": "Managed by the Automation API",
+    "segment": "managed-by-the-automation-api",
+    "type": "LINK",
+    "area": "TOP_NAVBAR",
+    "parentId": null,
+    "rootId": "automation-on-dead-portal",
+    "order": 4,
+    "published": true,
+    "configuration": "{ \"href\": \"https://automation.example.com\" }",
+    "visibility": "PUBLIC",
+    "automationMetadata": { "referenceType": "PORTAL", "referenceId": "deleted-automation-portal", "location": "/links/automation" }
   },
   {
     "id": "orphan-homepage",

@@ -169,7 +169,9 @@ public class JdbcPortalNavigationItemRepository
         try {
             return new HashSet<>(
                 jdbcTemplate.queryForList(
-                    "select distinct reference_id from " + this.tableName + " where environment_id = ? and reference_type = ?",
+                    "select distinct reference_id from " +
+                        this.tableName +
+                        " where environment_id = ? and reference_type = ? and automation_metadata is null",
                     String.class,
                     environmentId,
                     PortalNavigationReferenceType.PORTAL.name()
@@ -193,7 +195,8 @@ public class JdbcPortalNavigationItemRepository
             return jdbcTemplate.update(
                 "update " +
                     this.tableName +
-                    " set reference_id = ? where environment_id = ? and reference_type = ? and reference_id in (" +
+                    " set reference_id = ? where environment_id = ? and reference_type = ? and automation_metadata is null" +
+                    " and reference_id in (" +
                     getOrm().buildInClause(fromPortalIds) +
                     ")",
                 params.toArray()

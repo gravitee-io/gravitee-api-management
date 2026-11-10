@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * Moves the navigation items and listings that name no existing portal of their environment onto its
+ * Moves the navigation items that name no existing portal of their environment onto its
  * portal. An environment without a usable target is skipped. Without a portal, its content moves when its
  * first portal is created. With several portals and none default, its content stays where it is: nothing
  * moves it later, so it needs a manual fix before PORTAL-345 removes the zero UUID reference.
@@ -72,12 +72,12 @@ public class PortalReferencesUpgrader implements Upgrader {
     private void logSkipped(String environmentId) {
         if (portalCrudService.findByEnvironmentId(environmentId).isEmpty()) {
             log.warn(
-                "Environment [{}] skipped: it has no portal yet. Its navigation items and listings will move onto its first portal when it is created",
+                "Environment [{}] skipped: it has no portal yet. Its navigation items will move onto its first portal when it is created",
                 environmentId
             );
         } else {
             log.warn(
-                "Environment [{}] skipped: it has several portals and no default one. Its navigation items and listings that name no existing portal stay as they are and need a manual fix: re-point them onto one of its portals",
+                "Environment [{}] skipped: it has several portals and no default one. Its navigation items that name no existing portal stay as they are and need a manual fix: re-point them onto one of its portals",
                 environmentId
             );
         }
@@ -85,12 +85,7 @@ public class PortalReferencesUpgrader implements Upgrader {
 
     private void logMoved(String environmentId, PortalContentOwnershipDomainService.Moved moved) {
         if (!moved.isEmpty()) {
-            log.info(
-                "Moved {} navigation item(s) and {} listing(s) of environment [{}] onto its portal",
-                moved.navigationItems(),
-                moved.listings(),
-                environmentId
-            );
+            log.info("Moved {} navigation item(s) of environment [{}] onto its portal", moved.navigationItems(), environmentId);
         }
     }
 }

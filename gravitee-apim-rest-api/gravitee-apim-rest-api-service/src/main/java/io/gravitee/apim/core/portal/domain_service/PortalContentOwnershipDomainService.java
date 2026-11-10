@@ -19,7 +19,6 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
-import io.gravitee.apim.core.portal_listing.crud_service.PortalListingCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import java.util.List;
 import java.util.Optional;
@@ -28,32 +27,27 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Gives a real portal the navigation items and listings of its environment that name no existing portal:
- * the zero UUID of content older than portals, or a portal since deleted. Only the reference changes.
+ * Gives a real portal the navigation items of its environment that name no existing portal: the zero UUID of
+ * content older than portals, or a portal since deleted. Only the reference changes. Content managed by the
+ * Automation API stays where it is, items and listings alike: their ids derive from their portal's hrid, so
+ * GKO and Terraform could no longer delete them once moved.
  */
 @DomainService
 @RequiredArgsConstructor
 public class PortalContentOwnershipDomainService {
 
-    public record Moved(long navigationItems, long listings) {
+    public record Moved(long navigationItems) {
         public boolean isEmpty() {
-            return navigationItems == 0 && listings == 0;
+            return navigationItems == 0;
         }
     }
 
     private final PortalCrudService portalCrudService;
     private final PortalNavigationItemCrudService portalNavigationItemCrudService;
-    private final PortalListingCrudService portalListingCrudService;
-
-    /**
-     * The portal references found in an environment. They are read before its portals: a portal created
-     * after that read has no row among them, so its content is never taken for orphan content.
-     */
-    private record References(Set<PortalId> navigationItems, Set<PortalId> listings) {}
 
     /** Moves the orphan content of the portal's environment onto {@code portal}, which must already be stored. */
     public Moved moveOrphansTo(Portal portal) {
-        var references = referencesOf(portal.getEnvironmentId());
+        var references = portalNavigationItemCrudService.findReferencedPortalIds(portal.getEnvironmentId());
         return moveOrphansTo(portal, references, portalCrudService.findByEnvironmentId(portal.getEnvironmentId()));
     }
 
@@ -63,16 +57,9 @@ public class PortalContentOwnershipDomainService {
      * @return what was moved, empty when the environment has no portal, or several and none is the default one
      */
     public Optional<Moved> moveOrphans(String environmentId) {
-        var references = referencesOf(environmentId);
+        var references = portalNavigationItemCrudService.findReferencedPortalIds(environmentId);
         var portals = portalCrudService.findByEnvironmentId(environmentId);
         return targetAmong(portals).map(target -> moveOrphansTo(target, references, portals));
-    }
-
-    private References referencesOf(String environmentId) {
-        return new References(
-            portalNavigationItemCrudService.findReferencedPortalIds(environmentId),
-            portalListingCrudService.findReferencedPortalIds(environmentId)
-        );
     }
 
     private static Optional<Portal> targetAmong(List<Portal> portals) {
@@ -83,16 +70,15 @@ public class PortalContentOwnershipDomainService {
             .or(() -> portals.size() == 1 ? Optional.of(portals.getFirst()) : Optional.empty());
     }
 
-    private Moved moveOrphansTo(Portal target, References references, List<Portal> portalsOfEnvironment) {
-        var environmentId = target.getEnvironmentId();
+    /**
+     * {@code references} are read before {@code portalsOfEnvironment}: a portal created after that read has no row
+     * among them, so its content is never taken for orphan content.
+     */
+    private Moved moveOrphansTo(Portal target, Set<PortalId> references, List<Portal> portalsOfEnvironment) {
         var existingPortalIds = portalsOfEnvironment.stream().map(Portal::getId).collect(Collectors.toSet());
-        var deadInNavigation = without(references.navigationItems(), existingPortalIds);
-        var deadInListings = without(references.listings(), existingPortalIds);
+        var dead = without(references, existingPortalIds);
         return new Moved(
-            deadInNavigation.isEmpty()
-                ? 0
-                : portalNavigationItemCrudService.updatePortalReferences(environmentId, deadInNavigation, target.getId()),
-            deadInListings.isEmpty() ? 0 : portalListingCrudService.updatePortalIds(environmentId, deadInListings, target.getId())
+            dead.isEmpty() ? 0 : portalNavigationItemCrudService.updatePortalReferences(target.getEnvironmentId(), dead, target.getId())
         );
     }
 

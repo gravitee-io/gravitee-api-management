@@ -26,13 +26,10 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalListingFixtures;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
-import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.infra.adapter.PortalListingAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalListingRepository;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import lombok.SneakyThrows;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -175,56 +172,6 @@ class PortalListingCrudServiceImplTest {
             assertThatThrownBy(() -> service.delete(listingId))
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage("An error occurred while trying to delete the Portal Listing with id: " + listingId);
-        }
-    }
-
-    @Nested
-    class FindReferencedPortalIds {
-
-        @Test
-        void should_return_the_portal_ids_of_the_environment_listings() throws TechnicalException {
-            when(repository.findPortalIdsByEnvironmentId("env")).thenReturn(
-                Set.of("00000000-0000-0000-0000-000000000000", "11111111-1111-1111-1111-111111111111")
-            );
-
-            assertThat(service.findReferencedPortalIds("env")).containsExactlyInAnyOrder(
-                PortalId.ZERO,
-                PortalId.of("11111111-1111-1111-1111-111111111111")
-            );
-        }
-
-        @Test
-        void should_throw_when_technical_exception_occurs() throws TechnicalException {
-            when(repository.findPortalIdsByEnvironmentId(any())).thenThrow(new TechnicalException("boom"));
-
-            assertThatThrownBy(() -> service.findReferencedPortalIds("env"))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while finding the portals referenced by the Portal Listings of environment (env)")
-                .hasCauseInstanceOf(TechnicalException.class);
-        }
-    }
-
-    @Nested
-    class UpdatePortalIds {
-
-        private final PortalId dead = PortalId.of("11111111-1111-1111-1111-111111111111");
-        private final PortalId target = PortalId.of("22222222-2222-2222-2222-222222222222");
-
-        @Test
-        void should_pass_the_portal_ids_as_strings_and_return_the_rows_changed() throws TechnicalException {
-            when(repository.updatePortalIds("env", List.of(PortalId.ZERO.toString(), dead.toString()), target.toString())).thenReturn(4L);
-
-            assertThat(service.updatePortalIds("env", List.of(PortalId.ZERO, dead), target)).isEqualTo(4L);
-        }
-
-        @Test
-        void should_throw_when_technical_exception_occurs() throws TechnicalException {
-            when(repository.updatePortalIds(any(), any(), any())).thenThrow(new TechnicalException("boom"));
-
-            assertThatThrownBy(() -> service.updatePortalIds("env", List.of(dead), target))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while moving the Portal Listings of environment (env) to portal (" + target + ")")
-                .hasCauseInstanceOf(TechnicalException.class);
         }
     }
 }

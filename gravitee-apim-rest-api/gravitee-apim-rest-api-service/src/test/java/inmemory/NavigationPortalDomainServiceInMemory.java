@@ -45,11 +45,7 @@ public class NavigationPortalDomainServiceInMemory extends NavigationPortalDomai
             new DefaultPortalDomainService(
                 portalCrudService,
                 new PortalUrlDomainService(everyEnvironmentHasAPortalUrl()),
-                new PortalContentOwnershipDomainService(
-                    portalCrudService,
-                    new PortalNavigationItemsCrudServiceInMemory(),
-                    new PortalListingCrudServiceInMemory()
-                )
+                new PortalContentOwnershipDomainService(portalCrudService, new PortalNavigationItemsCrudServiceInMemory())
             ),
             portalCrudService
         );

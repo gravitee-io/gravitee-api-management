@@ -20,12 +20,8 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PortalListingRepository;
 import io.gravitee.repository.management.model.PortalListing;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
@@ -93,44 +89,6 @@ public class JdbcPortalListingRepository extends JdbcAbstractCrudRepository<Port
                 ex,
                 String.format("Failed to find portal listings by portal id (%s) and environment id (%s)", portalId, environmentId)
             );
-        }
-    }
-
-    @Override
-    public Set<String> findPortalIdsByEnvironmentId(String environmentId) throws TechnicalException {
-        log.debug("JdbcPortalListingRepository.findPortalIdsByEnvironmentId({})", environmentId);
-        try {
-            return new HashSet<>(
-                jdbcTemplate.queryForList(
-                    "select distinct portal_id from " + this.tableName + " where environment_id = ?",
-                    String.class,
-                    environmentId
-                )
-            );
-        } catch (final Exception ex) {
-            throw handleException(ex, "Failed to find the portal ids of environment: " + environmentId);
-        }
-    }
-
-    @Override
-    public long updatePortalIds(String environmentId, Collection<String> fromPortalIds, String toPortalId) throws TechnicalException {
-        log.debug("JdbcPortalListingRepository.updatePortalIds({}, {}, {})", environmentId, fromPortalIds, toPortalId);
-        if (fromPortalIds.isEmpty()) {
-            return 0;
-        }
-        try {
-            var params = new ArrayList<Object>(List.of(toPortalId, environmentId));
-            params.addAll(fromPortalIds);
-            return jdbcTemplate.update(
-                "update " +
-                    this.tableName +
-                    " set portal_id = ? where environment_id = ? and portal_id in (" +
-                    getOrm().buildInClause(fromPortalIds) +
-                    ")",
-                params.toArray()
-            );
-        } catch (final Exception ex) {
-            throw handleException(ex, "Failed to update the portal ids of environment: " + environmentId);
         }
     }
 

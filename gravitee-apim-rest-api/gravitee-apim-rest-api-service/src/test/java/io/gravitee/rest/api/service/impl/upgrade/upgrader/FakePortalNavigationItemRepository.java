@@ -173,6 +173,7 @@ class FakePortalNavigationItemRepository implements PortalNavigationItemReposito
             .stream()
             .filter(item -> environmentId.equals(item.getEnvironmentId()))
             .filter(item -> item.getReferenceType() == PortalNavigationReferenceType.PORTAL)
+            .filter(item -> item.getAutomationMetadata() == null)
             .map(PortalNavigationItem::getReferenceId)
             .collect(Collectors.toSet());
     }
@@ -183,6 +184,7 @@ class FakePortalNavigationItemRepository implements PortalNavigationItemReposito
             .stream()
             .filter(item -> environmentId.equals(item.getEnvironmentId()))
             .filter(item -> item.getReferenceType() == PortalNavigationReferenceType.PORTAL)
+            .filter(item -> item.getAutomationMetadata() == null)
             .filter(item -> fromPortalIds.contains(item.getReferenceId()))
             .toList();
         moved.forEach(item -> item.setReferenceId(toPortalId));

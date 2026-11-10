@@ -26,7 +26,6 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import inmemory.PortalCrudServiceInMemory;
-import inmemory.PortalListingCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService;
 import io.gravitee.apim.core.portal.model.Portal;
@@ -34,9 +33,7 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
-import io.gravitee.apim.core.portal_listing.crud_service.PortalListingCrudService;
-import io.gravitee.apim.core.portal_listing.model.PortalListing;
-import io.gravitee.apim.core.portal_listing.model.PortalListingId;
+import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -77,7 +74,6 @@ class PortalReferencesUpgraderTest {
 
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
     private final PortalNavigationItemsCrudServiceInMemory navigationItemCrudService = new PortalNavigationItemsCrudServiceInMemory();
-    private final PortalListingCrudServiceInMemory listingCrudService = new PortalListingCrudServiceInMemory();
     private final Logger logger = (Logger) LoggerFactory.getLogger(PortalReferencesUpgrader.class);
     private final Level originalLevel = logger.getLevel();
     private final ListAppender<ILoggingEvent> logs = new ListAppender<>();
@@ -87,7 +83,7 @@ class PortalReferencesUpgraderTest {
     void setUp() {
         upgrader = new PortalReferencesUpgrader(
             environmentRepository,
-            new PortalContentOwnershipDomainService(portalCrudService, navigationItemCrudService, listingCrudService),
+            new PortalContentOwnershipDomainService(portalCrudService, navigationItemCrudService),
             portalCrudService
         );
         logs.start();
@@ -143,21 +139,6 @@ class PortalReferencesUpgraderTest {
         return item;
     }
 
-    private void listingOnTheZeroUuid(Environment environment) {
-        listingCrudService.create(
-            PortalListing.of(PortalListingId.random(), environment.getId(), environment.getOrganizationId(), PortalId.ZERO, List.of())
-        );
-    }
-
-    private List<PortalId> listingPortals(Environment environment) {
-        return listingCrudService
-            .storage()
-            .stream()
-            .filter(listing -> environment.getId().equals(listing.getEnvironmentId()))
-            .map(PortalListing::getPortalId)
-            .toList();
-    }
-
     private List<String> logLines(Level level) {
         return logs.list
             .stream()
@@ -178,15 +159,11 @@ class PortalReferencesUpgraderTest {
         givenPortal(PORTAL_B, ENV_B, true);
         var itemA = itemOnTheZeroUuid(ENV_A);
         var itemB = itemOnTheZeroUuid(ENV_B);
-        listingOnTheZeroUuid(ENV_A);
-        listingOnTheZeroUuid(ENV_B);
 
         assertThat(upgrader.upgrade()).isTrue();
 
         assertThat(itemA.getReference()).isEqualTo(onPortal(PORTAL_A));
         assertThat(itemB.getReference()).isEqualTo(onPortal(PORTAL_B));
-        assertThat(listingPortals(ENV_A)).containsExactly(PORTAL_A);
-        assertThat(listingPortals(ENV_B)).containsExactly(PORTAL_B);
     }
 
     @Test
@@ -216,13 +193,11 @@ class PortalReferencesUpgraderTest {
         givenPortal(PortalId.of("33333333-3333-3333-3333-333333333333"), ENV_A, false);
         givenPortal(PORTAL_B, ENV_B, true);
         var keptItem = itemOnTheZeroUuid(ENV_A);
-        listingOnTheZeroUuid(ENV_A);
         var movedItem = itemOnTheZeroUuid(ENV_B);
 
         assertThat(upgrader.upgrade()).isTrue();
 
         assertThat(keptItem.getReference()).isEqualTo(NavigationItemReference.defaultReference());
-        assertThat(listingPortals(ENV_A)).containsExactly(PortalId.ZERO);
         assertThat(movedItem.getReference()).isEqualTo(onPortal(PORTAL_B));
         assertThat(logLines(Level.WARN))
             .singleElement()
@@ -264,7 +239,6 @@ class PortalReferencesUpgraderTest {
         givenEnvironments(ENV_A);
         givenPortal(PORTAL_A, ENV_A, true);
         itemOnTheZeroUuid(ENV_A);
-        listingOnTheZeroUuid(ENV_A);
         upgrader.upgrade();
         var afterFirstRun = navigationItemCrudService.storage().stream().map(PortalNavigationItem::getReference).toList();
         logs.list.clear();
@@ -272,7 +246,6 @@ class PortalReferencesUpgraderTest {
         assertThat(upgrader.upgrade()).isTrue();
 
         assertThat(navigationItemCrudService.storage()).extracting(PortalNavigationItem::getReference).isEqualTo(afterFirstRun);
-        assertThat(listingPortals(ENV_A)).containsExactly(PORTAL_A);
         assertThat(logLines(Level.INFO)).isEmpty();
     }
 
@@ -285,14 +258,14 @@ class PortalReferencesUpgraderTest {
         givenPortal(PortalId.of("33333333-3333-3333-3333-333333333333"), ENV_C, true);
         itemOnTheZeroUuid(ENV_A);
         itemOnTheZeroUuid(ENV_A);
-        listingOnTheZeroUuid(ENV_B);
+        itemOnTheZeroUuid(ENV_B);
 
         upgrader.upgrade();
 
         assertThat(logLines(Level.INFO))
             .hasSize(2)
-            .anySatisfy(line -> assertThat(line).contains("env-a").contains("2 navigation item").contains("0 listing"))
-            .anySatisfy(line -> assertThat(line).contains("env-b").contains("0 navigation item").contains("1 listing"))
+            .anySatisfy(line -> assertThat(line).contains("env-a").contains("2 navigation item"))
+            .anySatisfy(line -> assertThat(line).contains("env-b").contains("1 navigation item"))
             .noneMatch(line -> line.contains("env-c"));
     }
 
@@ -301,12 +274,12 @@ class PortalReferencesUpgraderTest {
     void should_fail_so_the_run_is_not_recorded_when_a_bulk_update_fails() {
         givenEnvironments(ENV_A);
         givenPortal(PORTAL_A, ENV_A, true);
-        var failingListings = mock(PortalListingCrudService.class);
-        when(failingListings.findReferencedPortalIds(any())).thenReturn(Set.of(PortalId.ZERO));
-        when(failingListings.updatePortalIds(any(), any(), any())).thenThrow(new TechnicalManagementException("boom"));
+        var failingNavigation = mock(PortalNavigationItemCrudService.class);
+        when(failingNavigation.findReferencedPortalIds(any())).thenReturn(Set.of(PortalId.ZERO));
+        when(failingNavigation.updatePortalReferences(any(), any(), any())).thenThrow(new TechnicalManagementException("boom"));
         var failing = new PortalReferencesUpgrader(
             environmentRepository,
-            new PortalContentOwnershipDomainService(portalCrudService, navigationItemCrudService, failingListings),
+            new PortalContentOwnershipDomainService(portalCrudService, failingNavigation),
             portalCrudService
         );
 

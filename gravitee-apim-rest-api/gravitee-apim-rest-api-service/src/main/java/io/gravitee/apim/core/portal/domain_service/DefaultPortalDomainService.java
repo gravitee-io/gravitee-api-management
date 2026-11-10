@@ -64,9 +64,8 @@ public class DefaultPortalDomainService {
             var moved = portalContentOwnershipDomainService.moveOrphansTo(created);
             if (!moved.isEmpty()) {
                 log.info(
-                    "Moved {} navigation item(s) and {} listing(s) of environment [{}] onto its new default portal [{}]",
+                    "Moved {} navigation item(s) of environment [{}] onto its new default portal [{}]",
                     moved.navigationItems(),
-                    moved.listings(),
                     environmentId,
                     created.getId()
                 );

@@ -225,7 +225,14 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
     public Set<String> findPortalReferenceIdsByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("Find portal references of environment [{}]", environmentId);
         try {
-            var query = new Query(where("environmentId").is(environmentId).and("referenceType").is(PortalNavigationReferenceType.PORTAL));
+            var query = new Query(
+                where("environmentId")
+                    .is(environmentId)
+                    .and("referenceType")
+                    .is(PortalNavigationReferenceType.PORTAL)
+                    .and("automationMetadata")
+                    .is(null)
+            );
             return Set.copyOf(mongoTemplate.findDistinct(query, "referenceId", PortalNavigationItemMongo.class, String.class));
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find the portal references of environment " + environmentId, ex);
@@ -245,6 +252,8 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
                     .is(environmentId)
                     .and("referenceType")
                     .is(PortalNavigationReferenceType.PORTAL)
+                    .and("automationMetadata")
+                    .is(null)
                     .and("referenceId")
                     .in(fromPortalIds)
             );

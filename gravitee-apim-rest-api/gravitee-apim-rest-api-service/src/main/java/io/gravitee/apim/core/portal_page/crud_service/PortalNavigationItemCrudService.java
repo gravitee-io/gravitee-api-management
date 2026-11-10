@@ -43,12 +43,12 @@ public interface PortalNavigationItemCrudService {
         PortalNavigationItemSource.FetchState fetchState
     );
 
-    /** @return the distinct portals that the environment's items attached to a portal reference */
+    /** @return the distinct portals that the environment's items attached to a portal reference, Automation API items excluded */
     Set<PortalId> findReferencedPortalIds(String environmentId);
 
     /**
      * Points every item of the environment attached to one of the portals {@code fromPortalIds} at
-     * {@code toPortalId}. Items attached to an API are left alone.
+     * {@code toPortalId}. Items attached to an API, and items managed by the Automation API, are left alone.
      *
      * @return the number of items changed
      */

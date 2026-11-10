@@ -33,33 +33,5 @@
     "organizationId": "organization2",
     "portalId": "portal4",
     "apis": "[]"
-  },
-  {
-    "id": "orphan-listing-zero-uuid",
-    "environmentId": "environment-orphans",
-    "organizationId": "organization2",
-    "portalId": "00000000-0000-0000-0000-000000000000",
-    "apis": "[{\"apiHrid\":\"orphan-api\",\"location\":\"/projects/gamma\",\"order\":3}]"
-  },
-  {
-    "id": "orphan-listing-dead-portal",
-    "environmentId": "environment-orphans",
-    "organizationId": "organization2",
-    "portalId": "deleted-portal",
-    "apis": "[]"
-  },
-  {
-    "id": "listing-on-existing-portal",
-    "environmentId": "environment-orphans",
-    "organizationId": "organization2",
-    "portalId": "existing-portal",
-    "apis": "[]"
-  },
-  {
-    "id": "orphan-listing-other-environment",
-    "environmentId": "environment-other-orphans",
-    "organizationId": "organization2",
-    "portalId": "00000000-0000-0000-0000-000000000000",
-    "apis": "[]"
   }
 ]

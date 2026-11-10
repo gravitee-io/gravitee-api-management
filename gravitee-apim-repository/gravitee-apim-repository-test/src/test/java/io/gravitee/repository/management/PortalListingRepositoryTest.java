@@ -122,16 +122,7 @@ public class PortalListingRepositoryTest extends AbstractManagementRepositoryTes
         portalListingRepository.deleteByEnvironmentId("environment1");
 
         Set<PortalListing> remaining = portalListingRepository.findAll();
-        assertThat(remaining)
-            .extracting(PortalListing::getId)
-            .containsExactlyInAnyOrder(
-                "portal-listing-4",
-                "portal-listing-5",
-                "orphan-listing-zero-uuid",
-                "orphan-listing-dead-portal",
-                "listing-on-existing-portal",
-                "orphan-listing-other-environment"
-            );
+        assertThat(remaining).extracting(PortalListing::getId).containsExactlyInAnyOrder("portal-listing-4", "portal-listing-5");
     }
 
     @Test
@@ -139,86 +130,6 @@ public class PortalListingRepositoryTest extends AbstractManagementRepositoryTes
         portalListingRepository.deleteByOrganizationId("organization1");
 
         Set<PortalListing> remaining = portalListingRepository.findAll();
-        assertThat(remaining)
-            .extracting(PortalListing::getId)
-            .containsExactlyInAnyOrder(
-                "portal-listing-5",
-                "orphan-listing-zero-uuid",
-                "orphan-listing-dead-portal",
-                "listing-on-existing-portal",
-                "orphan-listing-other-environment"
-            );
-    }
-
-    //////////////////////////////////////
-    ////   PORTAL IDS
-    //////////////////////////////////////
-
-    private static final String ORPHANS_ENV = "environment-orphans";
-    private static final String ZERO_UUID = "00000000-0000-0000-0000-000000000000";
-    private static final List<String> DEAD_PORTALS = List.of(ZERO_UUID, "deleted-portal");
-
-    private String portalIdOf(String listingId) throws Exception {
-        return portalListingRepository.findById(listingId).orElseThrow().getPortalId();
-    }
-
-    @Test
-    public void should_find_the_distinct_portal_ids_of_an_environment() throws Exception {
-        assertThat(portalListingRepository.findPortalIdsByEnvironmentId(ORPHANS_ENV)).containsExactlyInAnyOrder(
-            ZERO_UUID,
-            "deleted-portal",
-            "existing-portal"
-        );
-    }
-
-    @Test
-    public void should_find_no_portal_id_in_an_environment_without_listings() throws Exception {
-        assertThat(portalListingRepository.findPortalIdsByEnvironmentId("environment-without-listings")).isEmpty();
-    }
-
-    @Test
-    public void should_update_the_listed_portal_ids() throws Exception {
-        portalListingRepository.updatePortalIds(ORPHANS_ENV, DEAD_PORTALS, "target-portal");
-
-        assertThat(portalIdOf("orphan-listing-zero-uuid")).isEqualTo("target-portal");
-        assertThat(portalIdOf("orphan-listing-dead-portal")).isEqualTo("target-portal");
-    }
-
-    @Test
-    public void should_leave_listings_on_an_unlisted_portal_untouched() throws Exception {
-        portalListingRepository.updatePortalIds(ORPHANS_ENV, DEAD_PORTALS, "target-portal");
-
-        assertThat(portalIdOf("listing-on-existing-portal")).isEqualTo("existing-portal");
-    }
-
-    @Test
-    public void should_not_touch_listings_of_another_environment() throws Exception {
-        portalListingRepository.updatePortalIds(ORPHANS_ENV, DEAD_PORTALS, "target-portal");
-
-        assertThat(portalIdOf("orphan-listing-other-environment")).isEqualTo(ZERO_UUID);
-    }
-
-    @Test
-    public void should_only_change_the_portal_id() throws Exception {
-        var before = portalListingRepository.findById("orphan-listing-zero-uuid").orElseThrow();
-
-        portalListingRepository.updatePortalIds(ORPHANS_ENV, DEAD_PORTALS, "target-portal");
-
-        var after = portalListingRepository.findById("orphan-listing-zero-uuid").orElseThrow();
-        assertThat(after.getPortalId()).isEqualTo("target-portal");
-        assertThat(after).usingRecursiveComparison().ignoringFields("portalId").isEqualTo(before);
-    }
-
-    @Test
-    public void should_return_the_number_of_listings_changed_and_zero_once_moved() throws Exception {
-        assertThat(portalListingRepository.updatePortalIds(ORPHANS_ENV, DEAD_PORTALS, "target-portal")).isEqualTo(2L);
-        assertThat(portalListingRepository.updatePortalIds(ORPHANS_ENV, DEAD_PORTALS, "target-portal")).isZero();
-    }
-
-    @Test
-    public void should_change_nothing_for_an_empty_list() throws Exception {
-        assertThat(portalListingRepository.updatePortalIds(ORPHANS_ENV, List.of(), "target-portal")).isZero();
-
-        assertThat(portalIdOf("orphan-listing-zero-uuid")).isEqualTo(ZERO_UUID);
+        assertThat(remaining).extracting(PortalListing::getId).containsExactly("portal-listing-5");
     }
 }

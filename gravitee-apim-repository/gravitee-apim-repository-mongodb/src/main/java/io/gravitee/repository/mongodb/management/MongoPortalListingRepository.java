@@ -15,24 +15,18 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import static org.springframework.data.mongodb.core.query.Criteria.where;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalListingRepository;
 import io.gravitee.repository.management.model.PortalListing;
 import io.gravitee.repository.mongodb.management.internal.model.PortalListingMongo;
 import io.gravitee.repository.mongodb.management.internal.portallisting.PortalListingMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 /**
@@ -48,9 +42,6 @@ public class MongoPortalListingRepository implements PortalListingRepository {
     @Autowired
     private GraviteeMapper mapper;
 
-    @Autowired
-    private MongoTemplate mongoTemplate;
-
     @Override
     public Optional<PortalListing> findByIdAndEnvironmentId(String portalListingId, String environmentId) throws TechnicalException {
         log.debug("Find portal listing by ID [{}] and environment [{}]", portalListingId, environmentId);
@@ -62,31 +53,6 @@ public class MongoPortalListingRepository implements PortalListingRepository {
     public List<PortalListing> findAllByPortalIdAndEnvironmentId(String portalId, String environmentId) throws TechnicalException {
         log.debug("Find portal listings by portal [{}] and environment [{}]", portalId, environmentId);
         return internalPortalListingRepo.findAllByPortalIdAndEnvironmentId(portalId, environmentId).stream().map(mapper::map).toList();
-    }
-
-    @Override
-    public Set<String> findPortalIdsByEnvironmentId(String environmentId) throws TechnicalException {
-        log.debug("Find portal ids of the listings of environment [{}]", environmentId);
-        try {
-            var query = new Query(where("environmentId").is(environmentId));
-            return Set.copyOf(mongoTemplate.findDistinct(query, "portalId", PortalListingMongo.class, String.class));
-        } catch (Exception e) {
-            throw new TechnicalException("An error occurred when finding the portal ids of environment [" + environmentId + "]", e);
-        }
-    }
-
-    @Override
-    public long updatePortalIds(String environmentId, Collection<String> fromPortalIds, String toPortalId) throws TechnicalException {
-        log.debug("Update portal ids {} of environment [{}] to portal [{}]", fromPortalIds, environmentId, toPortalId);
-        if (fromPortalIds.isEmpty()) {
-            return 0;
-        }
-        try {
-            var query = new Query(where("environmentId").is(environmentId).and("portalId").in(fromPortalIds));
-            return mongoTemplate.updateMulti(query, Update.update("portalId", toPortalId), PortalListingMongo.class).getModifiedCount();
-        } catch (Exception e) {
-            throw new TechnicalException("An error occurred when updating the portal ids of environment [" + environmentId + "]", e);
-        }
     }
 
     @Override
