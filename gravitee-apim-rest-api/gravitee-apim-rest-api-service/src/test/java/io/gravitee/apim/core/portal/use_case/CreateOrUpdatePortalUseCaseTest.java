@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 import fixtures.core.model.PortalFixtures;
+import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalListingCrudServiceInMemory;
@@ -33,6 +34,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
@@ -46,6 +48,8 @@ import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationIte
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.theme.domain_service.CurrentThemeDomainService;
 import io.gravitee.apim.core.theme.model.Theme;
@@ -108,7 +112,8 @@ class CreateOrUpdatePortalUseCaseTest {
             scopeEnforcer,
             themeCrudService,
             new CurrentThemeDomainService(themeQueryService, themeCrudService),
-            new PortalUrlDomainService(installationAccessQueryService)
+            new PortalUrlDomainService(installationAccessQueryService),
+            new PortalContentOwnershipDomainService(portalCrudService, navCrudService, portalListingCrudService)
         );
     }
 
@@ -158,6 +163,43 @@ class CreateOrUpdatePortalUseCaseTest {
 
         assertThat(output.portal().getName()).isEqualTo("Renamed Portal");
         assertThat(portalCrudService.storage()).hasSize(1).containsExactly(renamed);
+    }
+
+    private PortalNavigationItem aLegacyFolder() {
+        var folder = PortalNavigationItemFixtures.aFolder("Legacy").toBuilder().environmentId(AUDIT_INFO.environmentId()).build();
+        navCrudService.initWith(List.of(folder));
+        return folder;
+    }
+
+    private NavigationItemReference storedReferenceOf(PortalNavigationItem item) {
+        return navCrudService
+            .storage()
+            .stream()
+            .filter(stored -> stored.getId().equals(item.getId()))
+            .findFirst()
+            .orElseThrow()
+            .getReference();
+    }
+
+    @Test
+    void should_give_the_first_portal_of_an_environment_its_orphan_content() {
+        var legacyFolder = aLegacyFolder();
+        var portal = PortalFixtures.aPortal();
+
+        useCase.execute(inputFor(AUDIT_INFO, portal));
+
+        assertThat(storedReferenceOf(legacyFolder)).isEqualTo(new NavigationItemReference.PortalReference(portal.getId()));
+    }
+
+    @Test
+    void should_leave_orphan_content_alone_when_updating_an_existing_portal() {
+        var legacyFolder = aLegacyFolder();
+        var existing = PortalFixtures.aPortal();
+        portalCrudService.initWith(List.of(existing));
+
+        useCase.execute(inputFor(AUDIT_INFO, existing));
+
+        assertThat(storedReferenceOf(legacyFolder)).isEqualTo(NavigationItemReference.defaultReference());
     }
 
     @Test

@@ -35,12 +35,14 @@ public class DefaultPortalDomainService {
 
     private final PortalCrudService portalCrudService;
     private final PortalUrlDomainService portalUrlDomainService;
+    private final PortalContentOwnershipDomainService portalContentOwnershipDomainService;
 
     /**
      * Creates the environment's default portal when it has no portal at all. A portal the environment
      * already has is never marked default: one created by the Automation API stays as it is. The portal is
      * created with its real URL only: while that URL cannot be resolved (a Cloud environment whose access
      * points are not stored yet, an invalid portal URL setting), creation is postponed to a later call.
+     * A portal created here receives the environment's content that names no existing portal.
      *
      * @return the default portal, or empty when the environment's only portal is not the default one or
      *     its creation is postponed
@@ -59,6 +61,16 @@ public class DefaultPortalDomainService {
             }
             var created = portalCrudService.create(Portal.createDefault(environmentId, organizationId, DEFAULT_PORTAL_NAME, url.get()));
             log.info("Default portal [{}] created for environment [{}] with URL [{}]", created.getId(), environmentId, created.getUrl());
+            var moved = portalContentOwnershipDomainService.moveOrphansTo(created);
+            if (!moved.isEmpty()) {
+                log.info(
+                    "Moved {} navigation item(s) and {} listing(s) of environment [{}] onto its new default portal [{}]",
+                    moved.navigationItems(),
+                    moved.listings(),
+                    environmentId,
+                    created.getId()
+                );
+            }
             return Optional.of(created);
         }
         var portal = portals.getFirst();

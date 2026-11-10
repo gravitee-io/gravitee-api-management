@@ -15,9 +15,11 @@
  */
 package io.gravitee.apim.core.portal_page.crud_service;
 
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,6 +41,15 @@ public interface PortalNavigationItemCrudService {
         PortalNavigationItemSource fetchedSource,
         PortalNavigationItemSource.FetchState fetchState
     );
+
+    /**
+     * Points every item of the environment attached to a portal outside {@code existingPortalIds} at
+     * {@code portalId}. Items attached to an API are left alone.
+     *
+     * @param existingPortalIds the portals of the environment, never empty
+     * @return the number of items changed
+     */
+    long updateOrphanPortalReferences(String environmentId, Collection<PortalId> existingPortalIds, PortalId portalId);
 
     void delete(PortalNavigationItemId portalNavigationItemId);
 

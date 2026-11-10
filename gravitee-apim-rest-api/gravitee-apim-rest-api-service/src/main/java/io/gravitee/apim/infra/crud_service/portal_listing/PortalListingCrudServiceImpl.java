@@ -23,6 +23,7 @@ import io.gravitee.apim.core.portal_listing.model.PortalListingId;
 import io.gravitee.apim.infra.adapter.PortalListingAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalListingRepository;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.context.annotation.Lazy;
@@ -96,6 +97,26 @@ public class PortalListingCrudServiceImpl implements PortalListingCrudService {
                     "An error occurred while trying to find Portal Listings for portal (%s) in environment (%s)",
                     portalId,
                     environmentId
+                ),
+                e
+            );
+        }
+    }
+
+    @Override
+    public long updateOrphanPortalIds(String environmentId, Collection<PortalId> existingPortalIds, PortalId portalId) {
+        try {
+            return portalListingRepository.updateOrphanPortalIds(
+                environmentId,
+                existingPortalIds.stream().map(PortalId::toString).toList(),
+                portalId.toString()
+            );
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format(
+                    "An error occurred while moving the orphan Portal Listings of environment (%s) to portal (%s)",
+                    environmentId,
+                    portalId
                 ),
                 e
             );

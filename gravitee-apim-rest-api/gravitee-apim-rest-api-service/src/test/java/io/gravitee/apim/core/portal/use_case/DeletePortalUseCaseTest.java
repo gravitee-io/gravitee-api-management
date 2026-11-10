@@ -35,6 +35,7 @@ import inmemory.ThemeQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
@@ -124,7 +125,8 @@ class DeletePortalUseCaseTest {
             scopeEnforcer,
             themeCrudService,
             currentThemeDomainService,
-            portalUrlDomainService
+            portalUrlDomainService,
+            new PortalContentOwnershipDomainService(portalCrudService, navCrudService, new PortalListingCrudServiceInMemory())
         );
         useCase = new DeletePortalUseCase(portalCrudService, navSync, themeCrudService, currentThemeDomainService);
     }

@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import fixtures.repository.model.PortalNavigationItemsRepositoryFixtures;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -38,6 +39,7 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -512,6 +514,32 @@ class PortalNavigationItemsCrudServiceImplTest {
             assertThatThrownBy(() -> service.updateSourceFetchState(PortalNavigationItemId.of(ID), FETCHED_SOURCE, FETCH_STATE))
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage("An error occurred while updating the fetch state of portal navigation item with id " + ID)
+                .hasCauseInstanceOf(TechnicalException.class);
+        }
+    }
+
+    @Nested
+    class UpdateOrphanPortalReferences {
+
+        private final PortalId existing = PortalId.of("11111111-1111-1111-1111-111111111111");
+        private final PortalId target = PortalId.of("22222222-2222-2222-2222-222222222222");
+
+        @Test
+        void should_pass_the_portal_ids_as_strings_and_return_the_rows_changed() throws TechnicalException {
+            when(
+                repository.updateOrphanPortalReferences("env", List.of(existing.toString(), target.toString()), target.toString())
+            ).thenReturn(4L);
+
+            assertThat(service.updateOrphanPortalReferences("env", List.of(existing, target), target)).isEqualTo(4L);
+        }
+
+        @Test
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
+            when(repository.updateOrphanPortalReferences(any(), any(), any())).thenThrow(new TechnicalException("boom"));
+
+            assertThatThrownBy(() -> service.updateOrphanPortalReferences("env", List.of(target), target))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while moving the orphan navigation items of environment env to portal " + target)
                 .hasCauseInstanceOf(TechnicalException.class);
         }
     }

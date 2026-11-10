@@ -21,10 +21,12 @@ import io.gravitee.apim.core.portal_listing.exception.PortalListingNotFoundExcep
 import io.gravitee.apim.core.portal_listing.model.PortalListing;
 import io.gravitee.apim.core.portal_listing.model.PortalListingId;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class PortalListingCrudServiceInMemory implements PortalListingCrudService, InMemoryAlternative<PortalListing> {
 
@@ -60,6 +62,19 @@ public class PortalListingCrudServiceInMemory implements PortalListingCrudServic
             .stream()
             .filter(p -> portalId.equals(p.getPortalId()) && environmentId.equals(p.getEnvironmentId()))
             .toList();
+    }
+
+    @Override
+    public long updateOrphanPortalIds(String environmentId, Collection<PortalId> existingPortalIds, PortalId portalId) {
+        var changed = new AtomicLong();
+        storage.replaceAll(listing -> {
+            if (!environmentId.equals(listing.getEnvironmentId()) || existingPortalIds.contains(listing.getPortalId())) {
+                return listing;
+            }
+            changed.incrementAndGet();
+            return PortalListing.of(listing.getId(), listing.getEnvironmentId(), listing.getOrganizationId(), portalId, listing.getApis());
+        });
+        return changed.get();
     }
 
     @Override

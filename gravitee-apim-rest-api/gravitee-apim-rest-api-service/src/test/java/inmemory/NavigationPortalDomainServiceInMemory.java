@@ -17,6 +17,7 @@ package inmemory;
 
 import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
 import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
@@ -41,7 +42,15 @@ public class NavigationPortalDomainServiceInMemory extends NavigationPortalDomai
 
     public NavigationPortalDomainServiceInMemory(PortalCrudServiceInMemory portalCrudService) {
         super(
-            new DefaultPortalDomainService(portalCrudService, new PortalUrlDomainService(everyEnvironmentHasAPortalUrl())),
+            new DefaultPortalDomainService(
+                portalCrudService,
+                new PortalUrlDomainService(everyEnvironmentHasAPortalUrl()),
+                new PortalContentOwnershipDomainService(
+                    portalCrudService,
+                    new PortalNavigationItemsCrudServiceInMemory(),
+                    new PortalListingCrudServiceInMemory()
+                )
+            ),
             portalCrudService
         );
         this.portalCrudService = portalCrudService;

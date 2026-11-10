@@ -15,11 +15,14 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
@@ -68,6 +71,21 @@ public class PortalNavigationItemsCrudServiceInMemory
             .filter(source -> source.sameOriginAs(fetchedSource))
             .ifPresent(fetchState::applyTo);
         return stored;
+    }
+
+    @Override
+    public long updateOrphanPortalReferences(String environmentId, Collection<PortalId> existingPortalIds, PortalId portalId) {
+        var orphans = storage
+            .stream()
+            .filter(item -> environmentId.equals(item.getEnvironmentId()))
+            .filter(
+                item ->
+                    item.getReference() instanceof NavigationItemReference.PortalReference portal &&
+                    !existingPortalIds.contains(portal.portalId())
+            )
+            .toList();
+        orphans.forEach(item -> item.changeOwner(new NavigationItemReference.PortalReference(portalId)));
+        return orphans.size();
     }
 
     @Override
