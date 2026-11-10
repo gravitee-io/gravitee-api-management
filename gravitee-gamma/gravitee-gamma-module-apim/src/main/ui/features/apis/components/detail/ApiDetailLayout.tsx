@@ -14,30 +14,10 @@
  * limitations under the License.
  */
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
-import {
-    Alert,
-    AlertAction,
-    AlertDescription,
-    AlertTitle,
-    Badge,
-    Button,
-    ContextSidebar,
-    ContextToggleButton,
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    Input,
-    Label,
-    Skeleton,
-    useLayoutConfig,
-} from '@gravitee/graphene-core';
+import { Badge, ContextSidebar, ContextToggleButton, Skeleton, useLayoutConfig } from '@gravitee/graphene-core';
 import { CircleCheckIcon, CircleStopIcon, CircleXIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Navigate, Outlet, useLocation, useParams, useSearchParams } from 'react-router-dom';
 
 import {
@@ -58,6 +38,7 @@ import {
 import { ApiReviewBanner } from './ApiReviewBanner';
 import { ApiReviewSheet } from './ApiReviewSheet';
 import { ConfirmDialog } from '../../../../shared/components';
+import { DeployBanner, DeployConfirmDialog } from '../../../../shared/components/DeployBanner';
 import { useDetailBasePath } from '../../../../shared/hooks/useDetailBasePath';
 import { notify } from '../../../../shared/notify';
 import { ApiDetailContext } from '../../context/ApiDetailContext';
@@ -75,9 +56,6 @@ import { isForbiddenError } from '../../utils/apiRequestError';
 import { apiReviewBannerCopy, canAskForReview, isAwaitingReviewerDecision, isReviewClearedForLifecycle } from '../../utils/apiReview';
 import { isFederatedAgentApi, isFederatedApi } from '../../utils/federatedApi';
 import { apiDetailKeys } from '../../utils/queryKeys';
-
-/** Classic console caps the deployment label at 32 characters. */
-const DEPLOYMENT_LABEL_MAX_LENGTH = 32;
 
 /** Tasks & Approvals opens the API with this query parameter so the reviewer lands straight in the review sheet. */
 export const OPEN_REVIEW_SEARCH_PARAM = 'review';
@@ -128,81 +106,6 @@ function ApiAvatar({ api }: { api: ApiDetailDto }) {
     const pictureUrl = api._links?.pictureUrl;
     if (!pictureUrl || imgError) return null;
     return <img src={pictureUrl} alt={api.name} className="size-8 rounded-lg shrink-0 object-cover" onError={() => setImgError(true)} />;
-}
-
-function DeployBanner({ onDeploy, isPending }: { onDeploy: () => void; isPending: boolean }) {
-    return (
-        // A persistent status banner, not an interruption — override Alert's assertive `role="alert"`.
-        <Alert variant="warning" role="region" aria-label="Deploy status" className="rounded-none border-0 border-b px-6">
-            <TriangleAlertIcon aria-hidden="true" />
-            <AlertTitle>This API is out of sync</AlertTitle>
-            <AlertDescription>Your latest changes are not live yet. Deploy to push them to the gateway.</AlertDescription>
-            <AlertAction align="center">
-                <Button size="sm" onClick={onDeploy} disabled={isPending}>
-                    {isPending ? 'Deploying…' : 'Deploy API'}
-                </Button>
-            </AlertAction>
-        </Alert>
-    );
-}
-
-/** Collects an optional deployment label before deploying — mirrors the classic console deploy dialog. */
-function DeployConfirmDialog({
-    open,
-    isPending,
-    onConfirm,
-    onOpenChange,
-}: {
-    open: boolean;
-    isPending: boolean;
-    onConfirm: (label: string) => void;
-    onOpenChange: (open: boolean) => void;
-}) {
-    const labelId = useId();
-    const [label, setLabel] = useState('');
-
-    const handleConfirm = () => onConfirm(label.trim());
-
-    return (
-        <Dialog
-            open={open}
-            onOpenChange={next => {
-                if (!next) setLabel('');
-                onOpenChange(next);
-            }}
-        >
-            <DialogContent className="max-w-md">
-                <DialogHeader>
-                    <DialogTitle>Deploy your API</DialogTitle>
-                    <DialogDescription>Provide a label to identify your deployment.</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-2">
-                    <Label htmlFor={labelId}>Deployment label (optional)</Label>
-                    <Input
-                        id={labelId}
-                        maxLength={DEPLOYMENT_LABEL_MAX_LENGTH}
-                        placeholder="e.g. hotfix-cors, v2.1-release"
-                        value={label}
-                        onChange={e => setLabel(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleConfirm()}
-                    />
-                    <p className="text-right text-xs text-muted-foreground">
-                        {label.length}/{DEPLOYMENT_LABEL_MAX_LENGTH}
-                    </p>
-                </div>
-                <DialogFooter>
-                    <DialogClose asChild>
-                        <Button variant="outline" size="sm">
-                            Cancel
-                        </Button>
-                    </DialogClose>
-                    <Button size="sm" onClick={handleConfirm} disabled={isPending}>
-                        {isPending ? 'Deploying…' : 'Deploy'}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    );
 }
 
 function ApiDetailContentSkeleton() {
@@ -440,7 +343,7 @@ export function ApiDetailLayout() {
                             />
                         ) : null}
                         {showDeployBanner ? (
-                            <DeployBanner onDeploy={() => setShowDeployDialog(true)} isPending={deployMutation.isPending} />
+                            <DeployBanner subject="API" onDeploy={() => setShowDeployDialog(true)} isPending={deployMutation.isPending} />
                         ) : null}
                     </div>
                 ) : null,
@@ -487,6 +390,8 @@ export function ApiDetailLayout() {
         <ApiDetailContext.Provider value={{ api: api ?? null, isLoading, permissionsReady }}>
             {isPending && !routeAllowedForFederated ? <ApiDetailContentSkeleton /> : <Outlet />}
             <DeployConfirmDialog
+                subject="API"
+                askForLabel
                 open={showDeployDialog}
                 isPending={deployMutation.isPending}
                 onConfirm={label => deployMutation.mutate(label || undefined)}
