@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.infra.service_provider;
+package io.gravitee.apim.infra.credential;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-import io.gravitee.apim.plugin.gamma.api.credential.CredentialConsumer;
-import io.gravitee.apim.plugin.gamma.api.credential.CredentialConsumerPort;
-import io.gravitee.gamma.module.platform.core.credential.port.service_provider.CredentialConsumers;
+import io.gravitee.apim.core.credential.service_provider.CredentialConsumerPort;
+import io.gravitee.apim.core.credential.service_provider.CredentialConsumerPort.Consumer;
+import io.gravitee.apim.core.credential.service_provider.CredentialConsumers;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -31,50 +31,45 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.support.GenericApplicationContext;
 
 /**
- * Wires the collector the way the plugin contexts are wired: the Platform context is a child of the host context, and a
- * loaded module's beans are copied into the host context under a {@code <module>.<bean>} name.
+ * Wires the collector the way the plugin contexts are wired: a loaded module's beans are copied into the APIM context
+ * under a {@code <module>.<bean>} name, after that context has started.
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ModuleCredentialConsumersTest {
 
-    private GenericApplicationContext host;
-    private GenericApplicationContext platform;
+    private GenericApplicationContext apim;
 
-    record FakePort(String module, Map<String, List<CredentialConsumer>> byCredential) implements CredentialConsumerPort {
+    record FakePort(String module, Map<String, List<Consumer>> byCredential) implements CredentialConsumerPort {
         @Override
-        public List<CredentialConsumer> consumersOf(String environmentId, String credentialId) {
+        public List<Consumer> consumersOf(String environmentId, String credentialId) {
             return byCredential.getOrDefault(environmentId + "/" + credentialId, List.of());
         }
     }
 
     @BeforeEach
     void setUp() {
-        host = new GenericApplicationContext();
-        host.refresh();
-        platform = new GenericApplicationContext();
-        platform.setParent(host);
-        platform.registerBean(ModuleCredentialConsumers.class, () ->
-            new ModuleCredentialConsumers(platform.getBeanProvider(CredentialConsumerPort.class))
+        apim = new GenericApplicationContext();
+        apim.registerBean(ModuleCredentialConsumers.class, () ->
+            new ModuleCredentialConsumers(apim.getBeanProvider(CredentialConsumerPort.class))
         );
-        platform.refresh();
+        apim.refresh();
     }
 
     @AfterEach
     void tearDown() {
-        platform.close();
-        host.close();
+        apim.close();
     }
 
     private CredentialConsumers collector() {
-        return platform.getBean(CredentialConsumers.class);
+        return apim.getBean(CredentialConsumers.class);
     }
 
     private void loadModule(String beanName, CredentialConsumerPort port) {
-        host.getBeanFactory().registerSingleton(beanName, port);
+        apim.getBeanFactory().registerSingleton(beanName, port);
     }
 
-    private static CredentialConsumer proxy(String id, String name) {
-        return new CredentialConsumer("LLM_PROXY", id, name);
+    private static Consumer proxy(String id, String name) {
+        return new Consumer("LLM_PROXY", id, name);
     }
 
     @Test
@@ -83,7 +78,7 @@ class ModuleCredentialConsumersTest {
     }
 
     @Test
-    void should_ask_a_module_loaded_after_the_platform_context() {
+    void should_ask_a_module_loaded_after_the_context_started() {
         loadModule("aim.credentialConsumers", new FakePort("aim", Map.of("env-1/credential-1", List.of(proxy("p1", "Support bot")))));
 
         assertThat(collector().of("env-1", "credential-1"))

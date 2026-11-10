@@ -13,30 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.core.credential.use_case;
+package io.gravitee.apim.core.credential.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.credential.model.Credential;
+import io.gravitee.apim.core.credential.model.CredentialActor;
+import io.gravitee.apim.core.credential.model.CredentialQuery;
+import io.gravitee.apim.core.credential.query_service.CredentialQueryService;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.gamma.module.platform.core.credential.model.Credential;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialActor;
-import io.gravitee.gamma.module.platform.core.credential.port.repository.CredentialRepository;
+import io.gravitee.rest.api.model.common.Pageable;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
 @RequiredArgsConstructor
 public class SearchCredentialsUseCase {
 
-    private final CredentialRepository credentialRepository;
+    private final CredentialQueryService credentialQueryService;
 
-    /** @param pageNumber the page, from 0 */
-    public record Input(CredentialActor actor, String query, int pageNumber, int pageSize) {}
+    public record Input(CredentialActor actor, CredentialQuery query, Pageable pageable) {}
 
     public record Output(Page<Credential> page) {}
 
     public Output execute(Input input) {
+        var pageable = input.pageable();
+        if ((long) (pageable.getPageNumber() - 1) * pageable.getPageSize() > Integer.MAX_VALUE) {
+            throw new ValidationDomainException(
+                "The page is out of range: (page - 1) * perPage must not exceed " + Integer.MAX_VALUE + "."
+            );
+        }
         var actor = input.actor();
-        return new Output(
-            credentialRepository.search(actor.organizationId(), actor.environmentId(), input.query(), input.pageNumber(), input.pageSize())
-        );
+        return new Output(credentialQueryService.search(actor.organizationId(), actor.environmentId(), input.query(), input.pageable()));
     }
 }

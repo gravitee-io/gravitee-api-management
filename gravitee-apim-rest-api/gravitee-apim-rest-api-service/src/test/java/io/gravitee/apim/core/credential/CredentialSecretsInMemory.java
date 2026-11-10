@@ -13,25 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.inmemory;
+package io.gravitee.apim.core.credential;
 
-import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.gamma.module.platform.core.credential.port.service_provider.CredentialSecretStore;
+import inmemory.SecretCrudServiceInMemory;
+import io.gravitee.apim.core.secret.model.Secret;
+import io.gravitee.apim.core.secret.service_provider.SecretValueEncryptor;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
- * Fails a write when the secret key ends with a field given to {@link #failOn(String)}, and a delete when it ends with a
- * field given to {@link #failDeleteOf(String)}.
+ * The secrets of the credentials under test. Each secret gets its own id, as the use case tests fix the generated id, and
+ * a write fails when the secret key ends with a field given to {@link #failOn(String)}, a delete when it ends with a field
+ * given to {@link #failDeleteOf(String)}.
  */
-public class InMemoryCredentialSecretStore implements CredentialSecretStore {
+public class CredentialSecretsInMemory extends SecretCrudServiceInMemory {
 
-    private record Stored(String key, String value) {}
+    private static final String SEALED = "sealed:";
 
-    private final Map<String, Stored> secrets = new LinkedHashMap<>();
+    /** Not bound to the secret id, so a secret can take the id this store gives it. */
+    public final SecretValueEncryptor encryptor = new SecretValueEncryptor() {
+        @Override
+        public String encrypt(Secret secret, String plaintext) {
+            return SEALED + plaintext;
+        }
+
+        @Override
+        public String decrypt(Secret secret, String ciphertext) {
+            return ciphertext.substring(SEALED.length());
+        }
+    };
+
     private final Set<String> failingFields = new HashSet<>();
     private final Set<String> failingDeletes = new HashSet<>();
     private int sequence;
@@ -45,53 +58,46 @@ public class InMemoryCredentialSecretStore implements CredentialSecretStore {
     }
 
     public Optional<String> valueOf(String key) {
-        return secrets
-            .values()
+        return storage
             .stream()
             .filter(s -> s.key().equals(key))
-            .map(Stored::value)
-            .findFirst();
+            .findFirst()
+            .flatMap(s -> encryptedValueOf(s.id()))
+            .map(ciphertext -> encryptor.decrypt(null, ciphertext));
     }
 
     public Set<String> keys() {
-        var keys = new HashSet<String>();
-        secrets.values().forEach(s -> keys.add(s.key()));
-        return keys;
+        return storage.stream().map(Secret::key).collect(Collectors.toSet());
     }
 
     public void removeSecret(String id) {
-        secrets.remove(id);
+        storage
+            .stream()
+            .filter(s -> s.id().equals(id))
+            .findFirst()
+            .ifPresent(super::delete);
     }
 
     @Override
-    public StoredSecret create(String key, String value, AuditInfo auditInfo) {
-        failIfAsked(key);
-        var id = "secret-" + (++sequence);
-        secrets.put(id, new Stored(key, value));
-        return new StoredSecret(id, "/gravitee/" + key + ":value");
+    public Secret create(Secret secret, String encryptedValue) {
+        failIfAsked(failingFields, secret.key());
+        return super.create(secret.toBuilder().id("secret-" + (++sequence)).build(), encryptedValue);
     }
 
     @Override
-    public void update(String secretId, String value, AuditInfo auditInfo) {
-        var existing = secrets.get(secretId);
-        if (existing == null) {
-            throw new IllegalStateException("no secret " + secretId);
-        }
-        failIfAsked(existing.key());
-        secrets.put(secretId, new Stored(existing.key(), value));
+    public Secret update(Secret secret, String encryptedValue) {
+        failIfAsked(failingFields, secret.key());
+        return super.update(secret, encryptedValue);
     }
 
     @Override
-    public void delete(String secretId, AuditInfo auditInfo) {
-        var existing = secrets.get(secretId);
-        if (existing != null && failingDeletes.stream().anyMatch(field -> existing.key().endsWith("." + field))) {
-            throw new IllegalStateException("secret store cannot delete " + existing.key());
-        }
-        secrets.remove(secretId);
+    public void delete(Secret secret) {
+        failIfAsked(failingDeletes, secret.key());
+        super.delete(secret);
     }
 
-    private void failIfAsked(String key) {
-        if (failingFields.stream().anyMatch(field -> key.endsWith("." + field))) {
+    private static void failIfAsked(Set<String> fields, String key) {
+        if (fields.stream().anyMatch(field -> key.endsWith("." + field))) {
             throw new IllegalStateException("secret store unavailable for " + key);
         }
     }

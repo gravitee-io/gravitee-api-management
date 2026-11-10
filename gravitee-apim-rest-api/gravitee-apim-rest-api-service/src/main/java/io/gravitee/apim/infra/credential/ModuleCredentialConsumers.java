@@ -13,28 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.infra.service_provider;
+package io.gravitee.apim.infra.credential;
 
-import io.gravitee.apim.plugin.gamma.api.credential.CredentialConsumerPort;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialConsumer;
-import io.gravitee.gamma.module.platform.core.credential.port.service_provider.CredentialConsumers;
+import io.gravitee.apim.core.credential.model.CredentialConsumer;
+import io.gravitee.apim.core.credential.service_provider.CredentialConsumerPort;
+import io.gravitee.apim.core.credential.service_provider.CredentialConsumers;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.stereotype.Service;
 
 /**
  * Asks every loaded Gamma module which of its objects use a credential.
  *
- * <p>The ports are looked up on each call: a module's beans reach the host context only once its plugin is loaded,
- * which may be after this context starts. A port copied into the host context can be seen under two names, so each
- * instance is asked once.
+ * <p>The ports are looked up on each call: a module's beans reach this context only once its plugin is loaded, which is
+ * after this context starts. A port copied into this context can be seen under two names, so each instance is asked once.
  */
-@RequiredArgsConstructor
+@Service
 public class ModuleCredentialConsumers implements CredentialConsumers {
 
     private final ObjectProvider<CredentialConsumerPort> ports;
+
+    public ModuleCredentialConsumers(ObjectProvider<CredentialConsumerPort> ports) {
+        this.ports = ports;
+    }
 
     @Override
     public List<CredentialConsumer> of(String environmentId, String credentialId) {

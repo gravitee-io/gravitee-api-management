@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.core.credential.domain_service;
+package io.gravitee.apim.core.credential.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.credential.exception.InvalidCredentialException;
+import io.gravitee.apim.core.credential.model.CredentialActor;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
-import io.gravitee.gamma.module.platform.core.credential.exception.InvalidCredentialException;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialActor;
 import lombok.RequiredArgsConstructor;
 
 @DomainService

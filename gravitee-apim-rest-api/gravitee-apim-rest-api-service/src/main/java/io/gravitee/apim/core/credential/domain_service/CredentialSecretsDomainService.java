@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.core.credential.domain_service;
+package io.gravitee.apim.core.credential.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.credential.exception.CredentialRotationIncompleteException;
+import io.gravitee.apim.core.credential.model.Credential;
+import io.gravitee.apim.core.credential.model.SecretReference;
+import io.gravitee.apim.core.secret.crud_service.SecretCrudService;
+import io.gravitee.apim.core.secret.domain_service.SecretDomainService;
 import io.gravitee.apim.core.secret.model.Secret;
-import io.gravitee.gamma.module.platform.core.credential.exception.CredentialRotationIncompleteException;
-import io.gravitee.gamma.module.platform.core.credential.model.Credential;
-import io.gravitee.gamma.module.platform.core.credential.model.SecretReference;
-import io.gravitee.gamma.module.platform.core.credential.port.service_provider.CredentialSecretStore;
+import io.gravitee.apim.core.secret.model.SecretValue;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -33,14 +35,15 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CredentialSecretsDomainService {
 
-    private final CredentialSecretStore secretStore;
+    private final SecretDomainService secretDomainService;
+    private final SecretCrudService secretCrudService;
 
     /** Deletes the secrets already written when one write fails, so a failed creation leaves no secret behind. */
     public Map<String, SecretReference> store(Credential credential, Map<String, String> values, AuditInfo auditInfo) {
         var stored = new LinkedHashMap<String, SecretReference>();
         try {
             for (var field : credential.strategy().secretFields()) {
-                var secret = secretStore.create(key(credential, field), values.get(field), auditInfo);
+                var secret = secretDomainService.create(key(credential, field), new SecretValue(values.get(field)), auditInfo);
                 stored.put(field, SecretReference.managed(secret.path(), secret.id()));
             }
         } catch (RuntimeException e) {
@@ -54,7 +57,7 @@ public class CredentialSecretsDomainService {
     public void discard(Collection<SecretReference> references, AuditInfo auditInfo, RuntimeException cause) {
         for (var reference : references) {
             try {
-                secretStore.delete(reference.secretId(), auditInfo);
+                deleteIfPresent(reference.secretId(), auditInfo);
             } catch (RuntimeException e) {
                 cause.addSuppressed(e);
             }
@@ -68,7 +71,12 @@ public class CredentialSecretsDomainService {
                 continue;
             }
             try {
-                secretStore.update(credential.secretReferences().get(field).secretId(), values.get(field), auditInfo);
+                var secret = secretCrudService.get(
+                    auditInfo.organizationId(),
+                    auditInfo.environmentId(),
+                    credential.secretReferences().get(field).secretId()
+                );
+                secretDomainService.update(secret, new SecretValue(values.get(field)), auditInfo);
             } catch (RuntimeException e) {
                 if (rotated.isEmpty()) {
                     throw e;
@@ -85,7 +93,14 @@ public class CredentialSecretsDomainService {
             .values()
             .stream()
             .filter(SecretReference::isManaged)
-            .forEach(reference -> secretStore.delete(reference.secretId(), auditInfo));
+            .forEach(reference -> deleteIfPresent(reference.secretId(), auditInfo));
+    }
+
+    /** A delete that failed after removing some secrets leaves them gone, so the retry must still go through. */
+    private void deleteIfPresent(String secretId, AuditInfo auditInfo) {
+        secretCrudService
+            .findById(auditInfo.organizationId(), auditInfo.environmentId(), secretId)
+            .ifPresent(secret -> secretDomainService.delete(secret, auditInfo));
     }
 
     private static String key(Credential credential, String field) {

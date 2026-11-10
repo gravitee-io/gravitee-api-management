@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.core.credential.model;
+package io.gravitee.apim.core.credential.model;
 
 /**
  * An object of a Gamma module that uses a credential.

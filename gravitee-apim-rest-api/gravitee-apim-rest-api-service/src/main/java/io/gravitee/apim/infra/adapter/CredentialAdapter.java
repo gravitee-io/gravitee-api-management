@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.infra.adapter;
+package io.gravitee.apim.infra.adapter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.credential.model.Credential;
+import io.gravitee.apim.core.credential.model.CredentialStrategy;
+import io.gravitee.apim.core.credential.model.SecretReference;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
-import io.gravitee.gamma.module.platform.core.credential.model.Credential;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialStrategy;
-import io.gravitee.gamma.module.platform.core.credential.model.SecretReference;
 import java.time.Instant;
 import java.util.Date;
 import java.util.LinkedHashMap;

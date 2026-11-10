@@ -13,27 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.core.credential.use_case;
+package io.gravitee.apim.core.credential.use_case;
 
-import static io.gravitee.gamma.module.platform.fixture.CredentialFixture.FOREIGN_USER_ID;
-import static io.gravitee.gamma.module.platform.fixture.CredentialFixture.NEXT_YEAR;
-import static io.gravitee.gamma.module.platform.fixture.CredentialFixture.OTHER_USER_ID;
-import static io.gravitee.gamma.module.platform.fixture.CredentialFixture.OWNER_ID;
+import static io.gravitee.apim.core.credential.CredentialFixture.FOREIGN_USER_ID;
+import static io.gravitee.apim.core.credential.CredentialFixture.NEXT_YEAR;
+import static io.gravitee.apim.core.credential.CredentialFixture.OTHER_USER_ID;
+import static io.gravitee.apim.core.credential.CredentialFixture.OWNER_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.AbstractUseCaseTest;
-import io.gravitee.gamma.module.platform.core.credential.exception.CredentialManagementNotAllowedException;
-import io.gravitee.gamma.module.platform.core.credential.exception.CredentialNotFoundException;
-import io.gravitee.gamma.module.platform.core.credential.exception.InvalidCredentialException;
-import io.gravitee.gamma.module.platform.core.credential.exception.SecretPermissionRequiredException;
-import io.gravitee.gamma.module.platform.core.credential.model.Credential;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialActor;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialActor.SecretAccess;
-import io.gravitee.gamma.module.platform.core.credential.model.SecretReference;
-import io.gravitee.gamma.module.platform.core.credential.model.UpdateCredentialCommand;
-import io.gravitee.gamma.module.platform.fixture.CredentialFixture;
-import io.gravitee.gamma.module.platform.fixture.RootFixture;
+import io.gravitee.apim.core.credential.CredentialFixture;
+import io.gravitee.apim.core.credential.exception.CredentialManagementNotAllowedException;
+import io.gravitee.apim.core.credential.exception.CredentialNotFoundException;
+import io.gravitee.apim.core.credential.exception.InvalidCredentialException;
+import io.gravitee.apim.core.credential.exception.SecretPermissionRequiredException;
+import io.gravitee.apim.core.credential.model.Credential;
+import io.gravitee.apim.core.credential.model.CredentialActor;
+import io.gravitee.apim.core.credential.model.CredentialActor.SecretAccess;
+import io.gravitee.apim.core.credential.model.SecretReference;
+import io.gravitee.apim.core.credential.model.UpdateCredentialCommand;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -52,7 +51,7 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        fixture = new RootFixture().credentialFixture;
+        fixture = new CredentialFixture();
     }
 
     private Credential update(
@@ -82,7 +81,7 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
         assertThat(updated.expiresAt()).isEqualTo(NEXT_YEAR);
         assertThat(updated.ownerId()).isEqualTo(OWNER_ID);
         assertThat(updated.createdAt()).isEqualTo(credential.createdAt());
-        assertThat(fixture.credentialRepository.storage()).containsExactly(updated);
+        assertThat(fixture.credentialCrudService.storage()).containsExactly(updated);
     }
 
     @Test
@@ -102,7 +101,7 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
         assertThatThrownBy(() -> update(withoutRead, credential, c -> c.references(Map.of("token", "/gravitee/other-secret:value"))))
             .isInstanceOf(SecretPermissionRequiredException.class)
             .hasMessageContaining("read");
-        assertThat(fixture.credentialRepository.storage()).containsExactly(credential);
+        assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
     }
 
     @Test
@@ -156,7 +155,7 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
         assertThatThrownBy(() -> update(fixture.admin(), credential, c -> c.references(referencesOf(other))))
             .isInstanceOf(InvalidCredentialException.class)
             .hasMessageContaining("another credential");
-        assertThat(fixture.credentialRepository.storage()).contains(credential);
+        assertThat(fixture.credentialCrudService.storage()).contains(credential);
     }
 
     @Test
@@ -193,13 +192,13 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
         assertThatThrownBy(() -> update(fixture.otherUser(), credential, c -> c.name("Hijacked"))).isInstanceOf(
             CredentialManagementNotAllowedException.class
         );
-        assertThat(fixture.credentialRepository.storage()).containsExactly(credential);
+        assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
     }
 
     @Test
     void should_keep_an_expiration_that_has_passed_since_it_was_set() {
         var credential = fixture.givenACredential(c -> c.expiresAt(NEXT_YEAR));
-        fixture.credentialRepository.update(credential.toBuilder().expiresAt(Instant.parse("2023-01-01T00:00:00Z")).build());
+        fixture.credentialCrudService.update(credential.toBuilder().expiresAt(Instant.parse("2023-01-01T00:00:00Z")).build());
 
         var updated = update(fixture.owner(), credential, c -> c.name("Renamed").expiresAt(Instant.parse("2023-01-01T00:00:00Z")));
 
@@ -223,7 +222,7 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
         assertThatThrownBy(() ->
             update(CredentialFixture.adminIn(organizationId, environmentId), credential, c -> c.name("Renamed"))
         ).isInstanceOf(CredentialNotFoundException.class);
-        assertThat(fixture.credentialRepository.storage()).containsExactly(credential);
+        assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
     }
 
     @Test

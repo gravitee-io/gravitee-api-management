@@ -13,26 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.core.credential.use_case;
+package io.gravitee.apim.core.credential.use_case;
 
-import static io.gravitee.gamma.module.platform.fixture.CredentialFixture.FOREIGN_USER_ID;
-import static io.gravitee.gamma.module.platform.fixture.CredentialFixture.NEXT_YEAR;
-import static io.gravitee.gamma.module.platform.fixture.CredentialFixture.OTHER_USER_ID;
-import static io.gravitee.gamma.module.platform.fixture.CredentialFixture.OWNER_ID;
+import static io.gravitee.apim.core.credential.CredentialFixture.FOREIGN_USER_ID;
+import static io.gravitee.apim.core.credential.CredentialFixture.NEXT_YEAR;
+import static io.gravitee.apim.core.credential.CredentialFixture.OTHER_USER_ID;
+import static io.gravitee.apim.core.credential.CredentialFixture.OWNER_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.AbstractUseCaseTest;
 import io.gravitee.apim.core.audit.model.AuditEntity;
+import io.gravitee.apim.core.credential.CredentialFixture;
+import io.gravitee.apim.core.credential.exception.InvalidCredentialException;
+import io.gravitee.apim.core.credential.exception.SecretPermissionRequiredException;
+import io.gravitee.apim.core.credential.model.CredentialActor.SecretAccess;
+import io.gravitee.apim.core.credential.model.CredentialStrategy;
+import io.gravitee.apim.core.credential.model.NewCredentialCommand;
+import io.gravitee.apim.core.credential.model.SecretReference;
 import io.gravitee.apim.core.secret.model.SecretValue;
-import io.gravitee.gamma.module.platform.core.credential.exception.InvalidCredentialException;
-import io.gravitee.gamma.module.platform.core.credential.exception.SecretPermissionRequiredException;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialActor.SecretAccess;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialStrategy;
-import io.gravitee.gamma.module.platform.core.credential.model.NewCredentialCommand;
-import io.gravitee.gamma.module.platform.core.credential.model.SecretReference;
-import io.gravitee.gamma.module.platform.fixture.CredentialFixture;
-import io.gravitee.gamma.module.platform.fixture.RootFixture;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +50,7 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        fixture = new RootFixture().credentialFixture;
+        fixture = new CredentialFixture();
     }
 
     private CreateCredentialUseCase.Output create(String id, NewCredentialCommand command) {
@@ -90,7 +89,7 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
                 Map.entry("password", new SecretReference("/vault/secret/openai:password", null))
             );
             assertThat(credential.isManaged()).isFalse();
-            assertThat(fixture.credentialRepository.storage()).containsExactly(credential);
+            assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
             assertThat(fixture.secretStore.keys()).isEmpty();
         }
 
@@ -123,7 +122,7 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
             )
                 .isInstanceOf(SecretPermissionRequiredException.class)
                 .hasMessageContaining("read");
-            assertThat(fixture.credentialRepository.storage()).isEmpty();
+            assertThat(fixture.credentialCrudService.storage()).isEmpty();
         }
 
         @Test
@@ -139,7 +138,7 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
             )
                 .isInstanceOf(InvalidCredentialException.class)
                 .hasMessageContaining("another credential");
-            assertThat(fixture.credentialRepository.storage()).isEmpty();
+            assertThat(fixture.credentialCrudService.storage()).isEmpty();
         }
 
         @Test
@@ -158,7 +157,7 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
                 )
                 .credential();
 
-            assertThat(fixture.credentialRepository.storage()).containsExactly(credential);
+            assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
         }
 
         @Test
@@ -177,7 +176,7 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
                 )
                 .credential();
 
-            assertThat(fixture.credentialRepository.storage()).containsExactly(credential);
+            assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
         }
 
         @Test
@@ -185,7 +184,7 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
             assertThatThrownBy(() -> fixture.givenACredential(c -> c.references(Map.of("token", "vault/secret/openai:token"))))
                 .isInstanceOf(InvalidCredentialException.class)
                 .hasMessageContaining("token");
-            assertThat(fixture.credentialRepository.storage()).isEmpty();
+            assertThat(fixture.credentialCrudService.storage()).isEmpty();
         }
 
         @Test
@@ -248,7 +247,7 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
                 )
             ).isInstanceOf(SecretPermissionRequiredException.class);
             assertThat(fixture.secretStore.keys()).isEmpty();
-            assertThat(fixture.credentialRepository.storage()).isEmpty();
+            assertThat(fixture.credentialCrudService.storage()).isEmpty();
         }
 
         @Test
@@ -284,7 +283,7 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
             ).isInstanceOf(IllegalStateException.class);
 
             assertThat(fixture.secretStore.keys()).isEmpty();
-            assertThat(fixture.credentialRepository.storage()).isEmpty();
+            assertThat(fixture.credentialCrudService.storage()).isEmpty();
         }
 
         @Test
@@ -303,12 +302,12 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
                         .singleElement()
                         .satisfies(s -> assertThat(s).hasMessageContaining("username"))
                 );
-            assertThat(fixture.credentialRepository.storage()).isEmpty();
+            assertThat(fixture.credentialCrudService.storage()).isEmpty();
         }
 
         @Test
         void should_delete_the_secrets_when_the_credential_cannot_be_saved() {
-            fixture.credentialRepository.failOnCreate();
+            fixture.credentialCrudService.failOnCreate();
 
             assertThatThrownBy(() -> fixture.givenAManagedCredential()).isInstanceOf(IllegalStateException.class);
 

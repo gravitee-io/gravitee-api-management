@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.core.credential.port.service_provider;
+package io.gravitee.apim.core.credential.service_provider;
 
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialConsumer;
+import io.gravitee.apim.core.credential.model.CredentialConsumer;
 import java.util.List;
 
 /** The objects of every Gamma module that use a credential. */

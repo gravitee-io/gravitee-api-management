@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.core.credential.model;
+package io.gravitee.apim.core.credential.model;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.gamma.module.platform.core.credential.exception.SecretPermissionRequiredException;
+import io.gravitee.apim.core.credential.exception.SecretPermissionRequiredException;
 import java.util.Set;
 
 /**

@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.core.credential.model;
+package io.gravitee.apim.core.credential.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import io.gravitee.gamma.module.platform.core.credential.exception.InvalidCredentialException;
+import io.gravitee.apim.core.credential.exception.InvalidCredentialException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

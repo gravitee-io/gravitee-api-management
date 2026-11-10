@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.core.credential.exception;
+package io.gravitee.apim.core.credential.exception;
 
 import io.gravitee.apim.core.exception.NotFoundDomainException;
 

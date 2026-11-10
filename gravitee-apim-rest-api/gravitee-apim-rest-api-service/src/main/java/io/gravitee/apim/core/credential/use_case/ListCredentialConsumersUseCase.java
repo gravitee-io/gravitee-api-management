@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.core.credential.use_case;
+package io.gravitee.apim.core.credential.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialActor;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialConsumer;
-import io.gravitee.gamma.module.platform.core.credential.port.repository.CredentialRepository;
-import io.gravitee.gamma.module.platform.core.credential.port.service_provider.CredentialConsumers;
+import io.gravitee.apim.core.credential.crud_service.CredentialCrudService;
+import io.gravitee.apim.core.credential.model.CredentialActor;
+import io.gravitee.apim.core.credential.model.CredentialConsumer;
+import io.gravitee.apim.core.credential.service_provider.CredentialConsumers;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ListCredentialConsumersUseCase {
 
-    private final CredentialRepository credentialRepository;
+    private final CredentialCrudService credentialCrudService;
     private final CredentialConsumers credentialConsumers;
 
     public record Input(CredentialActor actor, String credentialId) {}
@@ -36,7 +36,7 @@ public class ListCredentialConsumersUseCase {
 
     public Output execute(Input input) {
         var actor = input.actor();
-        var credential = credentialRepository.get(actor.organizationId(), actor.environmentId(), input.credentialId());
+        var credential = credentialCrudService.get(actor.organizationId(), actor.environmentId(), input.credentialId());
         return new Output(credentialConsumers.of(actor.environmentId(), credential.id()));
     }
 }

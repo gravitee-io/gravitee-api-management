@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.core.credential.use_case;
+package io.gravitee.apim.core.credential.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.AbstractUseCaseTest;
-import io.gravitee.gamma.module.platform.core.credential.exception.CredentialInUseException;
-import io.gravitee.gamma.module.platform.core.credential.exception.CredentialManagementNotAllowedException;
-import io.gravitee.gamma.module.platform.core.credential.exception.CredentialNotFoundException;
-import io.gravitee.gamma.module.platform.core.credential.exception.SecretPermissionRequiredException;
-import io.gravitee.gamma.module.platform.core.credential.model.Credential;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialActor;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialActor.SecretAccess;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialConsumer;
-import io.gravitee.gamma.module.platform.fixture.CredentialFixture;
-import io.gravitee.gamma.module.platform.fixture.RootFixture;
+import io.gravitee.apim.core.credential.CredentialFixture;
+import io.gravitee.apim.core.credential.exception.CredentialInUseException;
+import io.gravitee.apim.core.credential.exception.CredentialManagementNotAllowedException;
+import io.gravitee.apim.core.credential.exception.CredentialNotFoundException;
+import io.gravitee.apim.core.credential.exception.SecretPermissionRequiredException;
+import io.gravitee.apim.core.credential.model.Credential;
+import io.gravitee.apim.core.credential.model.CredentialActor;
+import io.gravitee.apim.core.credential.model.CredentialActor.SecretAccess;
+import io.gravitee.apim.core.credential.model.CredentialConsumer;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -44,7 +43,7 @@ class DeleteCredentialUseCaseTest extends AbstractUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        fixture = new RootFixture().credentialFixture;
+        fixture = new CredentialFixture();
     }
 
     private void delete(CredentialActor actor, Credential credential) {
@@ -57,7 +56,7 @@ class DeleteCredentialUseCaseTest extends AbstractUseCaseTest {
 
         delete(fixture.owner(), credential);
 
-        assertThat(fixture.credentialRepository.storage()).isEmpty();
+        assertThat(fixture.credentialCrudService.storage()).isEmpty();
     }
 
     @Test
@@ -66,7 +65,7 @@ class DeleteCredentialUseCaseTest extends AbstractUseCaseTest {
 
         delete(fixture.ownerWithSecretAccess(), credential);
 
-        assertThat(fixture.credentialRepository.storage()).isEmpty();
+        assertThat(fixture.credentialCrudService.storage()).isEmpty();
     }
 
     @Test
@@ -75,7 +74,7 @@ class DeleteCredentialUseCaseTest extends AbstractUseCaseTest {
 
         delete(fixture.owner(), credential);
 
-        assertThat(fixture.credentialRepository.storage()).isEmpty();
+        assertThat(fixture.credentialCrudService.storage()).isEmpty();
         assertThat(fixture.secretStore.keys()).isEmpty();
     }
 
@@ -86,7 +85,7 @@ class DeleteCredentialUseCaseTest extends AbstractUseCaseTest {
 
         delete(fixture.owner(), credential);
 
-        assertThat(fixture.credentialRepository.storage()).isEmpty();
+        assertThat(fixture.credentialCrudService.storage()).isEmpty();
     }
 
     @Test
@@ -96,7 +95,7 @@ class DeleteCredentialUseCaseTest extends AbstractUseCaseTest {
         assertThatThrownBy(() -> delete(fixture.ownerWithSecretAccess(SecretAccess.CREATE, SecretAccess.UPDATE), credential)).isInstanceOf(
             SecretPermissionRequiredException.class
         );
-        assertThat(fixture.credentialRepository.storage()).containsExactly(credential);
+        assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
         assertThat(fixture.secretStore.keys()).hasSize(1);
     }
 
@@ -108,7 +107,7 @@ class DeleteCredentialUseCaseTest extends AbstractUseCaseTest {
         assertThatThrownBy(() -> delete(CredentialFixture.adminIn(organizationId, environmentId), credential)).isInstanceOf(
             CredentialNotFoundException.class
         );
-        assertThat(fixture.credentialRepository.storage()).containsExactly(credential);
+        assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
         assertThat(fixture.secretStore.keys()).isNotEmpty();
     }
 
@@ -117,7 +116,7 @@ class DeleteCredentialUseCaseTest extends AbstractUseCaseTest {
         var credential = fixture.givenACredential();
 
         assertThatThrownBy(() -> delete(fixture.otherUser(), credential)).isInstanceOf(CredentialManagementNotAllowedException.class);
-        assertThat(fixture.credentialRepository.storage()).containsExactly(credential);
+        assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
     }
 
     @Test
@@ -126,7 +125,7 @@ class DeleteCredentialUseCaseTest extends AbstractUseCaseTest {
 
         delete(fixture.admin(), credential);
 
-        assertThat(fixture.credentialRepository.storage()).isEmpty();
+        assertThat(fixture.credentialCrudService.storage()).isEmpty();
     }
 
     @Test
@@ -147,7 +146,7 @@ class DeleteCredentialUseCaseTest extends AbstractUseCaseTest {
             .isInstanceOf(CredentialInUseException.class)
             .hasMessageContaining("Support bot proxy")
             .hasMessageContaining("Research workspace");
-        assertThat(fixture.credentialRepository.storage()).containsExactly(credential);
+        assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
         assertThat(fixture.secretStore.keys()).hasSize(1);
     }
 

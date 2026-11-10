@@ -13,28 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.inmemory;
+package inmemory;
 
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.gamma.module.platform.core.credential.model.Credential;
-import io.gravitee.gamma.module.platform.core.credential.port.repository.CredentialRepository;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
+import io.gravitee.apim.core.credential.crud_service.CredentialCrudService;
+import io.gravitee.apim.core.credential.model.Credential;
 import java.util.Optional;
 
-public class InMemoryCredentialRepository implements CredentialRepository {
+public class CredentialCrudServiceInMemory extends AbstractServiceInMemory<Credential> implements CredentialCrudService {
 
-    private final List<Credential> storage = new ArrayList<>();
     private boolean failOnCreate;
 
     public void failOnCreate() {
         failOnCreate = true;
-    }
-
-    public List<Credential> storage() {
-        return List.copyOf(storage);
     }
 
     @Override
@@ -69,17 +59,5 @@ public class InMemoryCredentialRepository implements CredentialRepository {
                 c.organizationId().equals(credential.organizationId()) &&
                 c.environmentId().equals(credential.environmentId())
         );
-    }
-
-    @Override
-    public Page<Credential> search(String organizationId, String environmentId, String query, int pageNumber, int pageSize) {
-        var matching = storage
-            .stream()
-            .filter(c -> c.organizationId().equals(organizationId) && c.environmentId().equals(environmentId))
-            .filter(c -> query == null || c.name().toLowerCase(Locale.ROOT).contains(query.toLowerCase(Locale.ROOT)))
-            .sorted(Comparator.comparing(Credential::name).thenComparing(Credential::id))
-            .toList();
-        var content = matching.stream().skip((long) pageNumber * pageSize).limit(pageSize).toList();
-        return new Page<>(content, pageNumber, content.size(), matching.size());
     }
 }

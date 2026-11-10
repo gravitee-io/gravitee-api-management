@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.core.credential.model;
+package io.gravitee.apim.core.credential.model;
 
+import io.gravitee.apim.core.credential.exception.InvalidCredentialException;
 import io.gravitee.apim.core.secret.model.SecretValue;
-import io.gravitee.gamma.module.platform.core.credential.exception.InvalidCredentialException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.LinkedHashMap;

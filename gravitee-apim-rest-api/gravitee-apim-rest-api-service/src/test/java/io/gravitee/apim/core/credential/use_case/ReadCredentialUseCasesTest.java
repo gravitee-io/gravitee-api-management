@@ -13,17 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.core.credential.use_case;
+package io.gravitee.apim.core.credential.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.AbstractUseCaseTest;
-import io.gravitee.gamma.module.platform.core.credential.exception.CredentialNotFoundException;
-import io.gravitee.gamma.module.platform.core.credential.model.Credential;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialConsumer;
-import io.gravitee.gamma.module.platform.fixture.CredentialFixture;
-import io.gravitee.gamma.module.platform.fixture.RootFixture;
+import io.gravitee.apim.core.credential.CredentialFixture;
+import io.gravitee.apim.core.credential.exception.CredentialNotFoundException;
+import io.gravitee.apim.core.credential.model.Credential;
+import io.gravitee.apim.core.credential.model.CredentialActor;
+import io.gravitee.apim.core.credential.model.CredentialConsumer;
+import io.gravitee.apim.core.credential.model.CredentialQuery;
+import io.gravitee.apim.core.credential.model.CredentialStrategy;
+import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.model.common.PageableImpl;
+import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -39,7 +46,7 @@ class ReadCredentialUseCasesTest extends AbstractUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        fixture = new RootFixture().credentialFixture;
+        fixture = new CredentialFixture();
     }
 
     @Nested
@@ -69,15 +76,22 @@ class ReadCredentialUseCasesTest extends AbstractUseCaseTest {
     @Nested
     class Search {
 
+        private Page<Credential> search(CredentialActor actor, CredentialQuery query, int page, int perPage) {
+            return fixture.searchCredentialsUseCase
+                .execute(new SearchCredentialsUseCase.Input(actor, query, new PageableImpl(page, perPage)))
+                .page();
+        }
+
         @Test
         void should_page_the_credentials_of_the_environment_sorted_by_name() {
             fixture.givenACredential(c -> c.name("Cohere"));
             fixture.givenACredential(c -> c.name("Anthropic"));
             fixture.givenACredential(c -> c.name("Bedrock"));
 
-            var page = fixture.searchCredentialsUseCase.execute(new SearchCredentialsUseCase.Input(fixture.owner(), null, 0, 2)).page();
+            var page = search(fixture.owner(), CredentialQuery.all(), 1, 2);
 
             assertThat(page.getContent()).extracting(Credential::name).containsExactly("Anthropic", "Bedrock");
+            assertThat(page.getPageNumber()).isEqualTo(1);
             assertThat(page.getTotalElements()).isEqualTo(3);
         }
 
@@ -86,22 +100,60 @@ class ReadCredentialUseCasesTest extends AbstractUseCaseTest {
             fixture.givenACredential(c -> c.name("OpenAI production"));
             fixture.givenACredential(c -> c.name("Anthropic"));
 
-            var page = fixture.searchCredentialsUseCase
-                .execute(new SearchCredentialsUseCase.Input(fixture.owner(), "openai", 0, 10))
-                .page();
+            var page = search(fixture.owner(), CredentialQuery.builder().name("openai").build(), 1, 10);
 
             assertThat(page.getContent()).extracting(Credential::name).containsExactly("OpenAI production");
+        }
+
+        @Test
+        void should_filter_on_the_strategies_and_the_service() {
+            fixture.givenACredential(c -> c.name("OpenAI").serviceId("openai"));
+            fixture.givenACredential(c ->
+                c
+                    .name("Anthropic")
+                    .strategy(CredentialStrategy.API_KEY)
+                    .serviceId("anthropic")
+                    .configuration(Map.of("headerName", "x-api-key"))
+                    .references(Map.of("value", "/vault/anthropic:key"))
+            );
+
+            assertThat(
+                search(
+                    fixture.owner(),
+                    CredentialQuery.builder().strategies(Set.of(CredentialStrategy.API_KEY)).build(),
+                    1,
+                    10
+                ).getContent()
+            )
+                .extracting(Credential::name)
+                .containsExactly("Anthropic");
+            assertThat(search(fixture.owner(), CredentialQuery.builder().serviceId("openai").build(), 1, 10).getContent())
+                .extracting(Credential::name)
+                .containsExactly("OpenAI");
+            assertThat(
+                search(
+                    fixture.owner(),
+                    CredentialQuery.builder().strategies(Set.of(CredentialStrategy.BEARER)).serviceId("anthropic").build(),
+                    1,
+                    10
+                ).getContent()
+            ).isEmpty();
         }
 
         @Test
         void should_not_return_credentials_of_another_environment() {
             fixture.givenACredential();
 
-            var page = fixture.searchCredentialsUseCase
-                .execute(new SearchCredentialsUseCase.Input(CredentialFixture.adminIn(CredentialFixture.ORG_ID, "env-2"), null, 0, 10))
-                .page();
+            var page = search(CredentialFixture.adminIn(CredentialFixture.ORG_ID, "env-2"), CredentialQuery.all(), 1, 10);
 
             assertThat(page.getContent()).isEmpty();
+        }
+
+        @Test
+        void should_refuse_a_page_whose_offset_overflows() {
+            assertThatThrownBy(() -> search(fixture.owner(), CredentialQuery.all(), 21474838, 100)).isInstanceOf(
+                ValidationDomainException.class
+            );
         }
     }
 

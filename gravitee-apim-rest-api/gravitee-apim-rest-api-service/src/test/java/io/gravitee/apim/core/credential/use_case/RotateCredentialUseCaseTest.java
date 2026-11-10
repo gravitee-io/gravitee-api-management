@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.core.credential.use_case;
+package io.gravitee.apim.core.credential.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.AbstractUseCaseTest;
+import io.gravitee.apim.core.audit.model.AuditEntity;
+import io.gravitee.apim.core.credential.CredentialFixture;
+import io.gravitee.apim.core.credential.exception.CredentialManagementNotAllowedException;
+import io.gravitee.apim.core.credential.exception.CredentialNotFoundException;
+import io.gravitee.apim.core.credential.exception.CredentialRotationIncompleteException;
+import io.gravitee.apim.core.credential.exception.InvalidCredentialException;
+import io.gravitee.apim.core.credential.exception.SecretPermissionRequiredException;
+import io.gravitee.apim.core.credential.model.Credential;
+import io.gravitee.apim.core.credential.model.CredentialActor;
+import io.gravitee.apim.core.credential.model.CredentialActor.SecretAccess;
+import io.gravitee.apim.core.credential.model.CredentialStrategy;
 import io.gravitee.apim.core.secret.model.SecretValue;
-import io.gravitee.gamma.module.platform.core.credential.exception.CredentialManagementNotAllowedException;
-import io.gravitee.gamma.module.platform.core.credential.exception.CredentialNotFoundException;
-import io.gravitee.gamma.module.platform.core.credential.exception.CredentialRotationIncompleteException;
-import io.gravitee.gamma.module.platform.core.credential.exception.InvalidCredentialException;
-import io.gravitee.gamma.module.platform.core.credential.exception.SecretPermissionRequiredException;
-import io.gravitee.gamma.module.platform.core.credential.model.Credential;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialActor;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialActor.SecretAccess;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialStrategy;
-import io.gravitee.gamma.module.platform.fixture.CredentialFixture;
-import io.gravitee.gamma.module.platform.fixture.RootFixture;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -46,7 +46,7 @@ class RotateCredentialUseCaseTest extends AbstractUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        fixture = new RootFixture().credentialFixture;
+        fixture = new CredentialFixture();
     }
 
     private Credential rotate(CredentialActor actor, Credential credential, Map<String, String> values) {
@@ -70,7 +70,7 @@ class RotateCredentialUseCaseTest extends AbstractUseCaseTest {
         assertThat(rotated.rotatedAt()).isEqualTo(INSTANT_NOW);
         assertThat(fixture.secretStore.valueOf("credential." + credential.id() + ".username")).contains("alice");
         assertThat(fixture.secretStore.valueOf("credential." + credential.id() + ".password")).contains("rotated");
-        assertThat(fixture.credentialRepository.storage()).containsExactly(rotated);
+        assertThat(fixture.credentialCrudService.storage()).containsExactly(rotated);
     }
 
     @Test
@@ -196,7 +196,7 @@ class RotateCredentialUseCaseTest extends AbstractUseCaseTest {
         assertThatThrownBy(() -> rotate(fixture.owner(), credential, Map.of("username", "alice", "password", "rotated"))).isInstanceOf(
             IllegalStateException.class
         );
-        assertThat(fixture.credentialRepository.storage()).containsExactly(credential);
+        assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
     }
 
     @Test
@@ -219,12 +219,9 @@ class RotateCredentialUseCaseTest extends AbstractUseCaseTest {
 
         rotate(fixture.owner(), credential, Map.of("password", "rotated-value"));
 
-        assertThat(fixture.auditCrudService.storage())
-            .singleElement()
-            .satisfies(audit -> {
-                assertThat(audit.getEvent()).isEqualTo("CREDENTIAL_ROTATED");
-                assertThat(audit.getProperties()).containsEntry("CREDENTIAL", credential.id());
-                assertThat(audit.getPatch()).doesNotContain("rotated-value");
-            });
+        var audits = fixture.auditCrudService.storage();
+        assertThat(audits).extracting(AuditEntity::getEvent).containsExactly("SECRET_UPDATED", "CREDENTIAL_ROTATED");
+        assertThat(audits.getLast().getProperties()).containsEntry("CREDENTIAL", credential.id());
+        assertThat(audits).allSatisfy(audit -> assertThat(audit.getPatch()).doesNotContain("rotated-value"));
     }
 }

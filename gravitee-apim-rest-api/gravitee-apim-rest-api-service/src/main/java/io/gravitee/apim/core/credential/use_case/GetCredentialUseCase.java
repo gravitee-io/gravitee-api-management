@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.core.credential.use_case;
+package io.gravitee.apim.core.credential.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.gamma.module.platform.core.credential.model.Credential;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialActor;
-import io.gravitee.gamma.module.platform.core.credential.port.repository.CredentialRepository;
+import io.gravitee.apim.core.credential.crud_service.CredentialCrudService;
+import io.gravitee.apim.core.credential.model.Credential;
+import io.gravitee.apim.core.credential.model.CredentialActor;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
 @RequiredArgsConstructor
 public class GetCredentialUseCase {
 
-    private final CredentialRepository credentialRepository;
+    private final CredentialCrudService credentialCrudService;
 
     public record Input(CredentialActor actor, String credentialId) {}
 
@@ -33,6 +33,6 @@ public class GetCredentialUseCase {
 
     public Output execute(Input input) {
         var actor = input.actor();
-        return new Output(credentialRepository.get(actor.organizationId(), actor.environmentId(), input.credentialId()));
+        return new Output(credentialCrudService.get(actor.organizationId(), actor.environmentId(), input.credentialId()));
     }
 }

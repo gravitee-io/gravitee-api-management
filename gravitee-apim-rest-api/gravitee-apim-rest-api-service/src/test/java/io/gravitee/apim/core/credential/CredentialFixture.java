@@ -13,34 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.fixture;
+package io.gravitee.apim.core.credential;
 
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.CredentialConsumersInMemory;
+import inmemory.CredentialCrudServiceInMemory;
+import inmemory.CredentialQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.credential.domain_service.CredentialAuditDomainService;
+import io.gravitee.apim.core.credential.domain_service.CredentialOwnerDomainService;
+import io.gravitee.apim.core.credential.domain_service.CredentialSecretsDomainService;
+import io.gravitee.apim.core.credential.model.Credential;
+import io.gravitee.apim.core.credential.model.CredentialActor;
+import io.gravitee.apim.core.credential.model.CredentialActor.SecretAccess;
+import io.gravitee.apim.core.credential.model.CredentialStrategy;
+import io.gravitee.apim.core.credential.model.NewCredentialCommand;
+import io.gravitee.apim.core.credential.use_case.CreateCredentialUseCase;
+import io.gravitee.apim.core.credential.use_case.DeleteCredentialUseCase;
+import io.gravitee.apim.core.credential.use_case.GetCredentialUseCase;
+import io.gravitee.apim.core.credential.use_case.ListCredentialConsumersUseCase;
+import io.gravitee.apim.core.credential.use_case.RotateCredentialUseCase;
+import io.gravitee.apim.core.credential.use_case.SearchCredentialsUseCase;
+import io.gravitee.apim.core.credential.use_case.UpdateCredentialUseCase;
+import io.gravitee.apim.core.secret.domain_service.SecretDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
-import io.gravitee.gamma.module.platform.core.credential.domain_service.CredentialAuditDomainService;
-import io.gravitee.gamma.module.platform.core.credential.domain_service.CredentialOwnerDomainService;
-import io.gravitee.gamma.module.platform.core.credential.domain_service.CredentialSecretsDomainService;
-import io.gravitee.gamma.module.platform.core.credential.model.Credential;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialActor;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialActor.SecretAccess;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialStrategy;
-import io.gravitee.gamma.module.platform.core.credential.model.NewCredentialCommand;
-import io.gravitee.gamma.module.platform.core.credential.port.service_provider.CredentialSecretStore;
-import io.gravitee.gamma.module.platform.core.credential.use_case.CreateCredentialUseCase;
-import io.gravitee.gamma.module.platform.core.credential.use_case.DeleteCredentialUseCase;
-import io.gravitee.gamma.module.platform.core.credential.use_case.GetCredentialUseCase;
-import io.gravitee.gamma.module.platform.core.credential.use_case.ListCredentialConsumersUseCase;
-import io.gravitee.gamma.module.platform.core.credential.use_case.RotateCredentialUseCase;
-import io.gravitee.gamma.module.platform.core.credential.use_case.SearchCredentialsUseCase;
-import io.gravitee.gamma.module.platform.core.credential.use_case.UpdateCredentialUseCase;
-import io.gravitee.gamma.module.platform.inmemory.InMemoryCredentialConsumers;
-import io.gravitee.gamma.module.platform.inmemory.InMemoryCredentialRepository;
-import io.gravitee.gamma.module.platform.inmemory.InMemoryCredentialSecretStore;
 import java.time.Instant;
 import java.util.EnumSet;
 import java.util.List;
@@ -59,9 +59,10 @@ public class CredentialFixture {
     public static final String FOREIGN_USER_ID = "foreign-user-id";
     public static final Instant NEXT_YEAR = Instant.parse("2024-10-22T10:15:30Z");
 
-    public InMemoryCredentialRepository credentialRepository = new InMemoryCredentialRepository();
-    public InMemoryCredentialSecretStore secretStore = new InMemoryCredentialSecretStore();
-    public InMemoryCredentialConsumers consumers = new InMemoryCredentialConsumers();
+    public CredentialCrudServiceInMemory credentialCrudService = new CredentialCrudServiceInMemory();
+    public CredentialQueryServiceInMemory credentialQueryService = new CredentialQueryServiceInMemory(credentialCrudService);
+    public CredentialSecretsInMemory secretStore = new CredentialSecretsInMemory();
+    public CredentialConsumersInMemory consumers = new CredentialConsumersInMemory();
     public AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     public UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
 
@@ -82,23 +83,20 @@ public class CredentialFixture {
 
     /** Rewires the use cases, for a test that swapped one of the public in-memory fields. */
     public void build() {
-        build(secretStore);
-    }
-
-    /** Rewires the use cases on another secret store, such as the host's own secret use cases. */
-    public void build(CredentialSecretStore store) {
-        var audit = new CredentialAuditDomainService(
-            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor())
+        var auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
+        var audit = new CredentialAuditDomainService(auditDomainService);
+        var secrets = new CredentialSecretsDomainService(
+            new SecretDomainService(secretStore, secretStore.encryptor, auditDomainService),
+            secretStore
         );
-        var secrets = new CredentialSecretsDomainService(store);
         var owners = new CredentialOwnerDomainService(userCrudService);
-        createCredentialUseCase = new CreateCredentialUseCase(credentialRepository, secrets, owners, audit);
-        getCredentialUseCase = new GetCredentialUseCase(credentialRepository);
-        searchCredentialsUseCase = new SearchCredentialsUseCase(credentialRepository);
-        updateCredentialUseCase = new UpdateCredentialUseCase(credentialRepository, owners, audit);
-        rotateCredentialUseCase = new RotateCredentialUseCase(credentialRepository, secrets, audit);
-        deleteCredentialUseCase = new DeleteCredentialUseCase(credentialRepository, secrets, consumers, audit);
-        listCredentialConsumersUseCase = new ListCredentialConsumersUseCase(credentialRepository, consumers);
+        createCredentialUseCase = new CreateCredentialUseCase(credentialCrudService, secrets, owners, audit);
+        getCredentialUseCase = new GetCredentialUseCase(credentialCrudService);
+        searchCredentialsUseCase = new SearchCredentialsUseCase(credentialQueryService);
+        updateCredentialUseCase = new UpdateCredentialUseCase(credentialCrudService, owners, audit);
+        rotateCredentialUseCase = new RotateCredentialUseCase(credentialCrudService, secrets, audit);
+        deleteCredentialUseCase = new DeleteCredentialUseCase(credentialCrudService, secrets, consumers, audit);
+        listCredentialConsumersUseCase = new ListCredentialConsumersUseCase(credentialCrudService, consumers);
     }
 
     public CredentialActor owner() {

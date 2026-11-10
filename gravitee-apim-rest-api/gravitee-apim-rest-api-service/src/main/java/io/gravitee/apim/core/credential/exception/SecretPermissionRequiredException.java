@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.core.credential.exception;
+package io.gravitee.apim.core.credential.exception;
 
+import io.gravitee.apim.core.credential.model.CredentialActor.SecretAccess;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialActor.SecretAccess;
 import java.util.Locale;
 
 public class SecretPermissionRequiredException extends NotAllowedDomainException {

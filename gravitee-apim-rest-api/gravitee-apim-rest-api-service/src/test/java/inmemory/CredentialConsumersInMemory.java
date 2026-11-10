@@ -13,21 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.inmemory;
+package inmemory;
 
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialConsumer;
-import io.gravitee.gamma.module.platform.core.credential.port.service_provider.CredentialConsumers;
+import io.gravitee.apim.core.credential.model.CredentialConsumer;
+import io.gravitee.apim.core.credential.service_provider.CredentialConsumers;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class InMemoryCredentialConsumers implements CredentialConsumers {
+public class CredentialConsumersInMemory implements CredentialConsumers {
 
     private final Map<String, List<CredentialConsumer>> byCredential = new HashMap<>();
 
     public void given(String environmentId, String credentialId, CredentialConsumer consumer) {
         byCredential.computeIfAbsent(environmentId + "/" + credentialId, k -> new ArrayList<>()).add(consumer);
+    }
+
+    public void reset() {
+        byCredential.clear();
     }
 
     @Override

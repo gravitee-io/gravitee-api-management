@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.core.credential.model;
+package io.gravitee.apim.core.credential.model;
 
-import io.gravitee.gamma.module.platform.core.credential.exception.CredentialManagementNotAllowedException;
-import io.gravitee.gamma.module.platform.core.credential.exception.InvalidCredentialException;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialActor.SecretAccess;
+import io.gravitee.apim.core.credential.exception.CredentialManagementNotAllowedException;
+import io.gravitee.apim.core.credential.exception.InvalidCredentialException;
+import io.gravitee.apim.core.credential.model.CredentialActor.SecretAccess;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;

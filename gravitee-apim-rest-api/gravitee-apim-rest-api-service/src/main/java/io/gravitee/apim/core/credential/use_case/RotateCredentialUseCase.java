@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.core.credential.use_case;
+package io.gravitee.apim.core.credential.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.credential.crud_service.CredentialCrudService;
+import io.gravitee.apim.core.credential.domain_service.CredentialAuditDomainService;
+import io.gravitee.apim.core.credential.domain_service.CredentialSecretsDomainService;
+import io.gravitee.apim.core.credential.model.Credential;
+import io.gravitee.apim.core.credential.model.CredentialActor;
+import io.gravitee.apim.core.credential.model.CredentialActor.SecretAccess;
+import io.gravitee.apim.core.credential.model.CredentialAuditEvent;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.gamma.module.platform.core.credential.domain_service.CredentialAuditDomainService;
-import io.gravitee.gamma.module.platform.core.credential.domain_service.CredentialSecretsDomainService;
-import io.gravitee.gamma.module.platform.core.credential.model.Credential;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialActor;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialActor.SecretAccess;
-import io.gravitee.gamma.module.platform.core.credential.model.CredentialAuditEvent;
-import io.gravitee.gamma.module.platform.core.credential.port.repository.CredentialRepository;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
@@ -32,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RotateCredentialUseCase {
 
-    private final CredentialRepository credentialRepository;
+    private final CredentialCrudService credentialCrudService;
     private final CredentialSecretsDomainService credentialSecretsDomainService;
     private final CredentialAuditDomainService credentialAuditDomainService;
 
@@ -48,13 +48,13 @@ public class RotateCredentialUseCase {
 
     public Output execute(Input input) {
         var actor = input.actor();
-        var existing = credentialRepository.get(actor.organizationId(), actor.environmentId(), input.credentialId());
+        var existing = credentialCrudService.get(actor.organizationId(), actor.environmentId(), input.credentialId());
         existing.requireManageableBy(actor);
         existing.requireRotatableWith(input.values());
         actor.requireSecretAccess(SecretAccess.UPDATE);
 
         credentialSecretsDomainService.rotate(existing, input.values(), actor.auditInfo());
-        var rotated = credentialRepository.update(existing.rotated(TimeProvider.instantNow()));
+        var rotated = credentialCrudService.update(existing.rotated(TimeProvider.instantNow()));
 
         credentialAuditDomainService.record(actor, CredentialAuditEvent.CREDENTIAL_ROTATED, existing, rotated);
         return new Output(rotated);

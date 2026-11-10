@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform.core.credential.port.repository;
+package io.gravitee.apim.core.credential.crud_service;
 
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.gamma.module.platform.core.credential.exception.CredentialNotFoundException;
-import io.gravitee.gamma.module.platform.core.credential.model.Credential;
+import io.gravitee.apim.core.credential.exception.CredentialNotFoundException;
+import io.gravitee.apim.core.credential.model.Credential;
 import java.util.Optional;
 
-public interface CredentialRepository {
+public interface CredentialCrudService {
     Credential create(Credential credential);
 
     Optional<Credential> findById(String organizationId, String environmentId, String id);
@@ -32,11 +31,4 @@ public interface CredentialRepository {
     Credential update(Credential credential);
 
     void delete(Credential credential);
-
-    /**
-     * @param query text the name contains, ignoring case, or {@code null} for every credential
-     * @param pageNumber the page, from 0
-     * @return the credentials sorted by name
-     */
-    Page<Credential> search(String organizationId, String environmentId, String query, int pageNumber, int pageSize);
 }
