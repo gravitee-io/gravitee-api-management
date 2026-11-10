@@ -20,7 +20,7 @@ import java.net.URI;
 
 /** A portal's logo: either image bytes stored in the theme, or a URL the theme points to. */
 public sealed interface PortalLogo {
-    record Inline(String mediaType, byte[] content) implements PortalLogo {}
+    record Inline(ThemeImageDataUri image) implements PortalLogo {}
 
     record External(URI url) implements PortalLogo {}
 
@@ -29,7 +29,6 @@ public sealed interface PortalLogo {
         if (ThemeImageDataUri.isHttpUrl(stored)) {
             return new External(URI.create(stored));
         }
-        var image = ThemeImageDataUri.parse("logo", stored);
-        return new Inline(image.mimeType(), image.bytes());
+        return new Inline(ThemeImageDataUri.parse("logo", stored));
     }
 }

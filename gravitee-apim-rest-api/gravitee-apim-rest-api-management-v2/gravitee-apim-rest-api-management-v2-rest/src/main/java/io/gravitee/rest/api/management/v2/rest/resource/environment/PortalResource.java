@@ -60,7 +60,7 @@ public class PortalResource extends AbstractResource {
             .execute(new GetPortalLogoUseCase.Input(GraviteeContext.getCurrentEnvironment(), PortalMapper.INSTANCE.toPortalId(portalId)))
             .logo();
         return switch (logo) {
-            case PortalLogo.Inline inline -> Response.ok(inline.content(), inline.mediaType()).build();
+            case PortalLogo.Inline inline -> Response.ok(inline.image().bytes(), inline.image().mimeType()).build();
             case PortalLogo.External external -> Response.temporaryRedirect(external.url()).build();
         };
     }
