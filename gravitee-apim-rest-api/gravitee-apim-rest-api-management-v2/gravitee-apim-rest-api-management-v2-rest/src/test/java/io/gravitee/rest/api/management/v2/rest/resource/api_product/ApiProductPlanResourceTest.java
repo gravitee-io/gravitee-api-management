@@ -23,6 +23,7 @@ import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,6 +32,7 @@ import assertions.MAPIAssertions;
 import fixtures.PlanFixtures;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.use_case.GetPlansUseCase;
 import io.gravitee.apim.core.plan.use_case.PlanOperationsUseCase;
@@ -39,6 +41,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateGenericApiProductPlan;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -367,6 +370,18 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
             verify(planOperationsUseCase).execute(captor.capture());
             assertThat(captor.getValue().planId()).isEqualTo(PLAN_ID);
             assertThat(captor.getValue().referenceType()).isEqualTo(GenericPlanEntity.ReferenceType.API_PRODUCT);
+        }
+
+        @Test
+        void should_return_400_when_oauth2_resource_validation_fails_on_publish() {
+            String validationMessage = "OAuth2 plan 'OAuth plan' references unknown resource 'missing' on the API Product";
+            doThrow(new ValidationDomainException(validationMessage)).when(planOperationsUseCase).execute(any());
+
+            final Response response = rootTarget().path("_publish").request().post(null);
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+            Error error = response.readEntity(Error.class);
+            assertThat(error.getMessage()).isEqualTo(validationMessage);
         }
 
         @Test

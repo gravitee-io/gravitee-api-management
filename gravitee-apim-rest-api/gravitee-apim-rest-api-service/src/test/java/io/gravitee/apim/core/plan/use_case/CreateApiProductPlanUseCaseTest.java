@@ -42,6 +42,7 @@ import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanMode;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
@@ -242,6 +243,29 @@ class CreateApiProductPlanUseCaseTest {
                 Plan::getDefinitionVersion
             )
             .containsExactly(api.getId(), null, GenericPlanEntity.ReferenceType.API_PRODUCT, PlanStatus.STAGING, DefinitionVersion.V4);
+    }
+
+    @Test
+    void should_create_staging_oauth2_plan_without_checking_product_resources() {
+        parametersQueryService.initWith(
+            List.of(new Parameter(Key.PLAN_SECURITY_OAUTH2_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true"))
+        );
+        var api = givenExistingApiProduct(API_PRODUCT.toBuilder().resources(List.of()).build());
+        var oauthPlan = PlanFixtures.HttpV4.anMtlsPlan().toBuilder().id(null).name("OAuth plan").build();
+        oauthPlan.setPlanDefinitionHttpV4(
+            oauthPlan
+                .getPlanDefinitionHttpV4()
+                .toBuilder()
+                .security(PlanSecurity.builder().type("oauth2").configuration("{\"oauthResource\":\"\"}").build())
+                .build()
+        );
+        oauthPlan.setReferenceType(GenericPlanEntity.ReferenceType.API_PRODUCT);
+        oauthPlan.setReferenceId(api.getId());
+
+        var result = createPlanUseCase.execute(new Input(api.getId(), _api -> oauthPlan, AUDIT_INFO));
+
+        assertThat(result.plan().getPlanStatus()).isEqualTo(PlanStatus.STAGING);
+        assertThat(result.plan().getPlanSecurity().getConfiguration()).contains("oauthResource");
     }
 
     private ApiProduct givenExistingApiProduct(ApiProduct api) {

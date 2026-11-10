@@ -130,6 +130,7 @@ import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableException;
 import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableWithSharedApiKeyException;
 import io.gravitee.rest.api.service.exceptions.PlanNotYetPublishedException;
+import io.gravitee.rest.api.service.exceptions.PlanOAuth2OrJWTAlreadySubscribedException;
 import io.gravitee.rest.api.service.exceptions.PlanRestrictedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionConsumerStatusNotUpdatableException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionFailureCustomerStatusRequiredException;
@@ -735,6 +736,221 @@ public class SubscriptionServiceTest {
         Subscription createdSubscription = subscriptionCaptor.getValue();
         assertEquals(apiProductId, createdSubscription.getReferenceId());
         assertEquals(SubscriptionReferenceType.API_PRODUCT, createdSubscription.getReferenceType());
+    }
+
+    private static final String OAUTH2_CLIENT_ID_REQUIRED = "A client_id is required to subscribe to an OAuth2 or JWT plan.";
+    private static final String OAUTH2_OR_JWT_ALREADY_SUBSCRIBED =
+        "An other OAuth2 or JWT plan is already subscribed by the same application.";
+
+    @Test
+    public void shouldRefuseOAuth2ApiProductSubscriptionWithoutClientId() throws Exception {
+        String apiProductId = "api-product-id";
+        when(planSearchService.findById(any(), anyString())).thenReturn(productPlan(PLAN_ID, apiProductId, "oauth2"));
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(List.of());
+
+        PlanNotSubscribableException exception = assertThrows(PlanNotSubscribableException.class, () ->
+            subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID))
+        );
+
+        assertEquals(OAUTH2_CLIENT_ID_REQUIRED, exception.getMessage());
+    }
+
+    @Test
+    public void shouldRefuseJwtApiProductSubscriptionWithoutClientIdWithTheSameMessage() throws Exception {
+        String apiProductId = "api-product-id";
+        when(planSearchService.findById(any(), anyString())).thenReturn(productPlan(PLAN_ID, apiProductId, "jwt"));
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(List.of());
+
+        PlanNotSubscribableException exception = assertThrows(PlanNotSubscribableException.class, () ->
+            subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID))
+        );
+
+        assertEquals(OAUTH2_CLIENT_ID_REQUIRED, exception.getMessage());
+    }
+
+    @Test
+    public void shouldStoreClientIdWhenSubscribingToOAuth2ApiProductPlan() throws Exception {
+        String apiProductId = "api-product-id";
+        when(planSearchService.findById(any(), anyString())).thenReturn(productPlan(PLAN_ID, apiProductId, "oauth2"));
+        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(List.of());
+        when(subscriptionRepository.create(any())).thenAnswer(returnsFirstArg());
+        SecurityContextHolder.setContext(generateSecurityContext());
+
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId("product-client");
+        settings.setApp(clientSettings);
+        application.setType("SIMPLE");
+        application.setSettings(settings);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+
+        subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+
+        ArgumentCaptor<Subscription> subscriptionCaptor = ArgumentCaptor.forClass(Subscription.class);
+        verify(subscriptionRepository).create(subscriptionCaptor.capture());
+        assertEquals("product-client", subscriptionCaptor.getValue().getClientId());
+        assertEquals(apiProductId, subscriptionCaptor.getValue().getReferenceId());
+        assertEquals(SubscriptionReferenceType.API_PRODUCT, subscriptionCaptor.getValue().getReferenceType());
+    }
+
+    @Test
+    public void shouldRefuseOAuth2ApiProductSubscriptionWhenJwtPlanIsAlreadySubscribed() throws Exception {
+        String apiProductId = "api-product-id";
+        Subscription existing = new Subscription();
+        existing.setId("jwt-subscription");
+        existing.setPlan("jwt-plan");
+        existing.setStatus(ACCEPTED);
+        existing.setApplication(APPLICATION_ID);
+
+        when(planSearchService.findById(any(), anyString())).thenAnswer(invocation -> {
+            String planId = invocation.getArgument(1);
+            return productPlan(planId, apiProductId, "jwt-plan".equals(planId) ? "jwt" : "oauth2");
+        });
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(applicationWithClientId());
+        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(List.of(existing));
+
+        PlanOAuth2OrJWTAlreadySubscribedException exception = assertThrows(PlanOAuth2OrJWTAlreadySubscribedException.class, () ->
+            subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID))
+        );
+
+        assertEquals(OAUTH2_OR_JWT_ALREADY_SUBSCRIBED, exception.getMessage());
+        verify(subscriptionRepository, never()).create(any());
+    }
+
+    @Test
+    public void shouldAllowOAuth2ApiProductSubscriptionWhenOnlyApiKeySubscriptionExists() throws Exception {
+        String apiProductId = "api-product-id";
+        Subscription existing = new Subscription();
+        existing.setId("api-key-subscription");
+        existing.setPlan("api-key-plan");
+        existing.setStatus(ACCEPTED);
+        existing.setApplication(APPLICATION_ID);
+
+        when(planSearchService.findById(any(), anyString())).thenAnswer(invocation -> {
+            String planId = invocation.getArgument(1);
+            return productPlan(planId, apiProductId, "api-key-plan".equals(planId) ? "api-key" : "oauth2");
+        });
+        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(List.of(existing));
+        when(subscriptionRepository.create(any())).thenAnswer(returnsFirstArg());
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(applicationWithClientId());
+        SecurityContextHolder.setContext(generateSecurityContext());
+
+        subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+
+        ArgumentCaptor<Subscription> subscriptionCaptor = ArgumentCaptor.forClass(Subscription.class);
+        verify(subscriptionRepository).create(subscriptionCaptor.capture());
+        assertEquals("product-client", subscriptionCaptor.getValue().getClientId());
+    }
+
+    @Test
+    public void shouldAcceptOAuth2ApiProductSubscription() throws Exception {
+        String apiProductId = "api-product-id";
+        Subscription subscription = buildTestSubscription(
+            SUBSCRIPTION_ID,
+            apiProductId,
+            PENDING,
+            PLAN_ID,
+            APPLICATION_ID,
+            SUBSCRIBER_ID,
+            SubscriptionReferenceType.API_PRODUCT
+        );
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(
+            productPlan(PLAN_ID, apiProductId, "oauth2")
+        );
+        when(acceptSubscriptionDomainService.autoAccept(any(String.class), any(), any(), any(), any(), any())).thenAnswer(invocation -> {
+            Subscription stored = subscriptionRepository.findById(invocation.getArgument(0)).orElseThrow();
+            GenericPlanEntity plan = planSearchService.findById(GraviteeContext.getExecutionContext(), stored.getPlan());
+            if (
+                stored.getReferenceType() != SubscriptionReferenceType.API_PRODUCT ||
+                plan.getPlanSecurity() == null ||
+                !"oauth2".equals(plan.getPlanSecurity().getType())
+            ) {
+                throw new AssertionError("expected an OAuth2 API Product subscription");
+            }
+            return io.gravitee.apim.core.subscription.model.SubscriptionEntity.builder()
+                .id(stored.getId())
+                .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED)
+                .planId(stored.getPlan())
+                .referenceId(stored.getReferenceId())
+                .referenceType(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT)
+                .build();
+        });
+        ProcessSubscriptionEntity processSubscription = new ProcessSubscriptionEntity();
+        processSubscription.setId(SUBSCRIPTION_ID);
+        processSubscription.setAccepted(true);
+
+        SubscriptionEntity accepted = subscriptionService.process(GraviteeContext.getExecutionContext(), processSubscription, USER_ID);
+
+        assertEquals(SubscriptionStatus.ACCEPTED, accepted.getStatus());
+        assertEquals(apiProductId, accepted.getReferenceId());
+        assertEquals(SubscriptionReferenceType.API_PRODUCT.name(), accepted.getReferenceType());
+        assertEquals(PLAN_ID, accepted.getPlan());
+        verify(acceptSubscriptionDomainService).autoAccept(eq(SUBSCRIPTION_ID), any(), eq(null), eq(null), eq(null), any());
+    }
+
+    @Test
+    public void shouldPauseOAuth2ApiProductSubscription() throws Exception {
+        String apiProductId = "api-product-id";
+        Subscription subscription = buildTestSubscription(
+            SUBSCRIPTION_ID,
+            apiProductId,
+            ACCEPTED,
+            PLAN_ID,
+            APPLICATION_ID,
+            SUBSCRIBER_ID,
+            SubscriptionReferenceType.API_PRODUCT
+        );
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
+        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).thenReturn(List.of());
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(
+            productPlan(PLAN_ID, apiProductId, "oauth2")
+        );
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        ApiProduct apiProduct = new ApiProduct();
+        apiProduct.setId(apiProductId);
+        apiProduct.setName("API Product");
+        when(apiProductsRepository.findById(apiProductId)).thenReturn(Optional.of(apiProduct));
+
+        SubscriptionEntity paused = subscriptionService.pause(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+
+        assertEquals(SubscriptionStatus.PAUSED, paused.getStatus());
+        verify(apiTemplateService, never()).findByIdForTemplates(any(), anyString());
+        verify(notifierService).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApiProductHook.SUBSCRIPTION_PAUSED),
+            eq(apiProductId),
+            anyMap()
+        );
+    }
+
+    private io.gravitee.rest.api.model.v4.plan.PlanEntity productPlan(String planId, String apiProductId, String securityType) {
+        io.gravitee.rest.api.model.v4.plan.PlanEntity plan = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        plan.setId(planId);
+        plan.setReferenceId(apiProductId);
+        plan.setReferenceType(GenericPlanEntity.ReferenceType.API_PRODUCT);
+        plan.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
+        plan.setMode(PlanMode.STANDARD);
+        plan.setStatus(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED);
+        plan.setValidation(MANUAL);
+        plan.setSecurity(io.gravitee.definition.model.v4.plan.PlanSecurity.builder().type(securityType).build());
+        return plan;
+    }
+
+    private ApplicationEntity applicationWithClientId() {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId("product-client");
+        settings.setApp(clientSettings);
+        ApplicationEntity subscriber = new ApplicationEntity();
+        subscriber.setId(APPLICATION_ID);
+        subscriber.setType("SIMPLE");
+        subscriber.setSettings(settings);
+        subscriber.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
+        return subscriber;
     }
 
     @Test

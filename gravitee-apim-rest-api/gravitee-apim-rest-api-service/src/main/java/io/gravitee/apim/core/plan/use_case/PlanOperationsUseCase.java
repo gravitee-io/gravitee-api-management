@@ -16,6 +16,8 @@
 package io.gravitee.apim.core.plan.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
+import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductPlanOAuth2ResourcesDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.domain_service.PublishPlanDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
@@ -40,6 +42,8 @@ public class PlanOperationsUseCase {
     private final PublishPlanDomainService publishPlanDomainService;
     private final ClosePlanDomainService closePlanDomainService;
     private final DeprecatePlanDomainService deprecatePlanDomainService;
+    private final ApiProductCrudService apiProductCrudService;
+    private final ValidateApiProductPlanOAuth2ResourcesDomainService validateApiProductPlanOAuth2ResourcesDomainService;
 
     public Output execute(Input input) {
         log.debug("Executing plan operation {} for plan {} on reference {}", input.operation, input.planId, input.referenceId);
@@ -57,7 +61,13 @@ public class PlanOperationsUseCase {
                 closePlanDomainService.close(input.planId, input.auditInfo);
                 yield new Output(planCrudService.getById(input.planId));
             }
-            case PUBLISH -> new Output(publishPlanDomainService.publish(input.auditInfo, input.planId));
+            case PUBLISH -> {
+                if (input.referenceType == GenericPlanEntity.ReferenceType.API_PRODUCT) {
+                    var apiProduct = apiProductCrudService.get(input.referenceId);
+                    validateApiProductPlanOAuth2ResourcesDomainService.validate(plan, apiProduct);
+                }
+                yield new Output(publishPlanDomainService.publish(input.auditInfo, input.planId));
+            }
             case DEPRECATE -> {
                 deprecatePlanDomainService.deprecate(input.planId, input.auditInfo, false);
                 yield new Output(planCrudService.getById(input.planId));
