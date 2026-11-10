@@ -38,6 +38,7 @@ class FindApiMetricsDetailQueryAdapterTest {
                 new ApiMetricsDetailQuery("apiId", "requestId"),
                 """
                 {
+                  "sort": [{"request-ended":{"order":"desc","unmapped_type":"boolean"}}],
                   "query": {
                     "bool": {
                       "must": [
@@ -53,6 +54,7 @@ class FindApiMetricsDetailQueryAdapterTest {
                 new ApiMetricsDetailQuery("apiId", null),
                 """
                 {
+                  "sort": [{"request-ended":{"order":"desc","unmapped_type":"boolean"}}],
                   "query": {
                     "bool": {
                       "must": [
@@ -67,6 +69,7 @@ class FindApiMetricsDetailQueryAdapterTest {
                 new ApiMetricsDetailQuery(null, "requestId"),
                 """
                 {
+                  "sort": [{"request-ended":{"order":"desc","unmapped_type":"boolean"}}],
                   "query": {
                     "bool": {
                       "must": [
@@ -80,7 +83,7 @@ class FindApiMetricsDetailQueryAdapterTest {
             Arguments.of(
                 new ApiMetricsDetailQuery(null, null),
                 """
-                {}
+                { "sort": [{"request-ended":{"order":"desc","unmapped_type":"boolean"}}] }
                 """
             )
         );

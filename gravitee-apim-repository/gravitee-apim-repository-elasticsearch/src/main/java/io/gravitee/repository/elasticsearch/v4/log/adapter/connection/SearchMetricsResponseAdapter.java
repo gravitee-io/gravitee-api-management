@@ -40,13 +40,23 @@ public class SearchMetricsResponseAdapter {
         }
 
         return new LogResponse<>(
-            (int) hits.getTotal().getValue(),
+            total(response),
             hits
                 .getHits()
                 .stream()
                 .map(h -> buildFromSource(h.getIndex(), h.getId(), h.getSource()))
                 .toList()
         );
+    }
+
+    /** A search made one row per connection counts connections; any other counts its hits. */
+    private static int total(SearchResponse response) {
+        var aggregations = response.getAggregations();
+        var connections = aggregations != null ? aggregations.get(SearchMetricsQueryAdapter.CONNECTIONS_AGGREGATION) : null;
+        if (connections != null && connections.getValue() != null) {
+            return connections.getValue().intValue();
+        }
+        return (int) response.getSearchHits().getTotal().getValue();
     }
 
     private static Metrics buildFromSource(String index, String id, JsonNode json) {

@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.log.adapter.connection;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.repository.elasticsearch.v4.shared.ConnectionEndFirst;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetailQuery;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -46,7 +47,7 @@ public class SearchConnectionLogDetailQueryAdapter {
             jsonContent.put("query", esQuery);
         }
 
-        jsonContent.put("sort", JsonObject.of("@timestamp", JsonObject.of("order", "desc")));
+        jsonContent.put("sort", JsonArray.of(JsonObject.of("@timestamp", JsonObject.of("order", "desc")), ConnectionEndFirst.sort()));
 
         return new JsonObject(jsonContent).encode();
     }
