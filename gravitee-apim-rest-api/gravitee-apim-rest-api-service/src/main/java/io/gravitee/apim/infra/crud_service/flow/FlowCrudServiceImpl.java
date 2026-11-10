@@ -82,6 +82,16 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
     }
 
     @Override
+    public List<Flow> saveApiProductFlows(String apiProductId, List<Flow> flows) {
+        return FlowAdapter.INSTANCE.toFlowV4(save(FlowReferenceType.API_PRODUCT, apiProductId, flows));
+    }
+
+    @Override
+    public List<Flow> getApiProductFlows(String apiProductId) {
+        return getHttpV4(FlowReferenceType.API_PRODUCT, apiProductId);
+    }
+
+    @Override
     public Map<String, List<Flow>> getPlanV4Flows(Set<String> planIds) {
         if (planIds == null || planIds.isEmpty()) {
             return Map.of();

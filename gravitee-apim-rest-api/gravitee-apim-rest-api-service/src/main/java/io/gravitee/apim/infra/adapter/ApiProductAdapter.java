@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.repository.management.model.ApiProduct;
 import java.io.IOException;
@@ -37,11 +38,13 @@ public interface ApiProductAdapter {
     @Mapping(target = "updatedAt", qualifiedByName = "dateToZonedDateTime")
     @Mapping(target = "primaryOwner", ignore = true)
     @Mapping(target = "analytics", qualifiedByName = "deserializeAnalytics")
+    @Mapping(target = "flowExecution", qualifiedByName = "deserializeFlowExecution")
     io.gravitee.apim.core.api_product.model.ApiProduct toModel(ApiProduct repositoryApiProduct);
 
     @Mapping(target = "createdAt", qualifiedByName = "zonedDateTimeToDate")
     @Mapping(target = "updatedAt", qualifiedByName = "zonedDateTimeToDate")
     @Mapping(target = "analytics", qualifiedByName = "serializeAnalytics")
+    @Mapping(target = "flowExecution", qualifiedByName = "serializeFlowExecution")
     io.gravitee.repository.management.model.ApiProduct toRepository(io.gravitee.apim.core.api_product.model.ApiProduct domainApiProduct);
 
     @Named("deserializeAnalytics")
@@ -66,6 +69,31 @@ public interface ApiProductAdapter {
             return GraviteeJacksonMapper.getInstance().writeValueAsString(analytics);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to serialize API Product analytics", e);
+        }
+    }
+
+    @Named("deserializeFlowExecution")
+    default FlowExecution deserializeFlowExecution(String flowExecution) {
+        if (flowExecution == null || flowExecution.isBlank()) {
+            return null;
+        }
+        try {
+            return GraviteeJacksonMapper.getInstance().readValue(flowExecution, FlowExecution.class);
+        } catch (IOException e) {
+            log.error("Unexpected error while deserializing API Product flow execution", e);
+            return null;
+        }
+    }
+
+    @Named("serializeFlowExecution")
+    default String serializeFlowExecution(FlowExecution flowExecution) {
+        if (flowExecution == null) {
+            return null;
+        }
+        try {
+            return GraviteeJacksonMapper.getInstance().writeValueAsString(flowExecution);
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to serialize API Product flow execution", e);
         }
     }
 

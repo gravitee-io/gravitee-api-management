@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +30,8 @@ import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.adapter.ApiProductAdapter;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -41,6 +44,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -182,6 +186,44 @@ public class ApiProductCrudServiceImplTest {
 
             assertThat(exception.getMessage()).contains("ApiProduct");
             assertThat(exception.getMessage()).contains("api-product-id");
+        }
+
+        @Test
+        void should_keep_the_stored_flow_execution_when_the_product_carries_none() throws TechnicalException {
+            var unreadable = "{\"mode\":\"a-mode-this-node-does-not-know\"}";
+            var stored = io.gravitee.repository.management.model.ApiProduct.builder()
+                .id("api-product-id")
+                .flowExecution(unreadable)
+                .build();
+            when(apiProductsRepository.findById("api-product-id")).thenReturn(Optional.of(stored));
+            when(apiProductsRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+            var apiProduct = ApiProduct.builder().id("api-product-id").environmentId("env-id").name("API Product").build();
+
+            apiProductCrudService.update(apiProduct);
+
+            var written = ArgumentCaptor.forClass(io.gravitee.repository.management.model.ApiProduct.class);
+            verify(apiProductsRepository).update(written.capture());
+            assertThat(written.getValue().getFlowExecution()).isEqualTo(unreadable);
+        }
+
+        @Test
+        void should_write_the_flow_execution_the_product_carries() throws TechnicalException {
+            when(apiProductsRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+            var flowExecution = new FlowExecution();
+            flowExecution.setMode(FlowMode.BEST_MATCH);
+            var apiProduct = ApiProduct.builder()
+                .id("api-product-id")
+                .environmentId("env-id")
+                .name("API Product")
+                .flowExecution(flowExecution)
+                .build();
+
+            apiProductCrudService.update(apiProduct);
+
+            var written = ArgumentCaptor.forClass(io.gravitee.repository.management.model.ApiProduct.class);
+            verify(apiProductsRepository).update(written.capture());
+            assertThat(written.getValue().getFlowExecution()).contains("\"mode\":\"best-match\"");
+            verify(apiProductsRepository, never()).findById(any());
         }
     }
 

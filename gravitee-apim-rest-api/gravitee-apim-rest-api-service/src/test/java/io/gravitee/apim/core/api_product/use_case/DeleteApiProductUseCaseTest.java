@@ -36,6 +36,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
+import inmemory.FlowCrudServiceInMemory;
 import inmemory.IndexerInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
@@ -55,6 +56,7 @@ import io.gravitee.apim.core.subscription.domain_service.DeleteSubscriptionDomai
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.definition.model.v4.flow.Flow;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
@@ -76,6 +78,7 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
     private final ApiProductIndexerDomainService apiProductIndexerDomainService = mock(ApiProductIndexerDomainService.class);
     private final CloseSubscriptionDomainService closeSubscriptionDomainService = mock(CloseSubscriptionDomainService.class);
     private final DeleteSubscriptionDomainService deleteSubscriptionDomainService = mock(DeleteSubscriptionDomainService.class);
+    private final FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
     private DeleteApiProductUseCase deleteApiProductUseCase;
 
     @BeforeEach
@@ -98,7 +101,8 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
             apiProductIndexerDomainService,
             subscriptionQueryService,
             closeSubscriptionDomainService,
-            deleteSubscriptionDomainService
+            deleteSubscriptionDomainService,
+            flowCrudService
         );
     }
 
@@ -119,6 +123,21 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
         verify(eventLatestCrudService).createOrPatchLatestEvent(eq(ORG_ID), eq(productId), any());
         verify(apiProductIndexerDomainService).delete(any(), argThat(apiProduct -> productId.equals(apiProduct.getId())));
         verify(apiProductIndexerDomainService, never()).index(any(), any(), any());
+    }
+
+    @Test
+    void should_delete_the_product_flows_and_leave_other_flows() {
+        var productId = "api-product-id";
+        var product = ApiProduct.builder().id(productId).name("Product").environmentId(ENV_ID).build();
+        apiProductCrudService.create(product);
+        apiProductQueryService.initWith(List.of(product));
+        flowCrudService.saveApiProductFlows(productId, List.of(Flow.builder().name("product-flow").build()));
+        flowCrudService.saveApiProductFlows("other-product", List.of(Flow.builder().name("other-flow").build()));
+
+        deleteApiProductUseCase.execute(new DeleteApiProductUseCase.Input(productId, AUDIT_INFO));
+
+        assertThat(flowCrudService.getApiProductFlows(productId)).isEmpty();
+        assertThat(flowCrudService.getApiProductFlows("other-product")).extracting(Flow::getName).containsExactly("other-flow");
     }
 
     @Test
@@ -150,7 +169,8 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
             realIndexerDomainService,
             subscriptionQueryService,
             closeSubscriptionDomainService,
-            deleteSubscriptionDomainService
+            deleteSubscriptionDomainService,
+            flowCrudService
         );
 
         useCaseWithRealIndexer.execute(new DeleteApiProductUseCase.Input(productId, AUDIT_INFO));

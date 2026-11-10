@@ -80,6 +80,13 @@ public class ApiProductCrudServiceImpl implements ApiProductCrudService {
             if (updateApiProduct.getGroups() != null) {
                 repositoryModel.setGroups(new HashSet<>(updateApiProduct.getGroups()));
             }
+            if (updateApiProduct.getFlowExecution() == null) {
+                // A product reads without a flow execution when none is stored or the stored one is unreadable (written
+                // by a newer node, say); writing null back would erase the latter.
+                apiProductsRepository
+                    .findById(updateApiProduct.getId())
+                    .ifPresent(stored -> repositoryModel.setFlowExecution(stored.getFlowExecution()));
+            }
             var updatedRepositoryModel = apiProductsRepository.update(repositoryModel);
             return ApiProductAdapter.INSTANCE.toModel(updatedRepositoryModel);
         } catch (TechnicalException e) {

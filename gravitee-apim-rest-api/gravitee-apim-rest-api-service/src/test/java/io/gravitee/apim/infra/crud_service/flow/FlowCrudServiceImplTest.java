@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.crud_service.flow;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
@@ -943,6 +944,58 @@ class FlowCrudServiceImplTest {
             verify(flowRepository, never()).deleteAllById(anySet());
             verify(flowRepository, times(1)).create(any());
             verify(flowRepository, times(1)).update(any());
+        }
+    }
+
+    @Nested
+    class ApiProductFlows {
+
+        private static final String API_PRODUCT_ID = "api-product-id";
+
+        @Test
+        @SneakyThrows
+        void should_delete_every_product_flow_when_saving_an_empty_list() {
+            service.saveApiProductFlows(API_PRODUCT_ID, List.of());
+
+            verify(flowRepository).deleteByReferenceIdAndReferenceType(API_PRODUCT_ID, FlowReferenceType.API_PRODUCT);
+        }
+
+        @Test
+        @SneakyThrows
+        void should_save_flows_under_the_api_product_reference_in_order() {
+            when(flowRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            service.saveApiProductFlows(
+                API_PRODUCT_ID,
+                List.of(Flow.builder().name("first").build(), Flow.builder().name("second").build())
+            );
+
+            var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.flow.Flow.class);
+            verify(flowRepository, times(2)).create(captor.capture());
+            assertThat(captor.getAllValues())
+                .extracting(
+                    io.gravitee.repository.management.model.flow.Flow::getName,
+                    io.gravitee.repository.management.model.flow.Flow::getReferenceType,
+                    io.gravitee.repository.management.model.flow.Flow::getReferenceId,
+                    io.gravitee.repository.management.model.flow.Flow::getOrder
+                )
+                .containsExactly(
+                    tuple("first", FlowReferenceType.API_PRODUCT, API_PRODUCT_ID, 0),
+                    tuple("second", FlowReferenceType.API_PRODUCT, API_PRODUCT_ID, 1)
+                );
+        }
+
+        @Test
+        @SneakyThrows
+        void should_read_the_product_flows_sorted_by_order() {
+            when(flowRepository.findByReference(FlowReferenceType.API_PRODUCT, API_PRODUCT_ID)).thenReturn(
+                List.of(
+                    io.gravitee.repository.management.model.flow.Flow.builder().id("b").name("b").order(1).build(),
+                    io.gravitee.repository.management.model.flow.Flow.builder().id("a").name("a").order(0).build()
+                )
+            );
+
+            assertThat(service.getApiProductFlows(API_PRODUCT_ID)).extracting(Flow::getName).containsExactly("a", "b");
         }
     }
 }
