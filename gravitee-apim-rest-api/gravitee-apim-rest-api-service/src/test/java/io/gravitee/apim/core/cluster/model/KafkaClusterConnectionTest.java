@@ -49,6 +49,11 @@ class KafkaClusterConnectionTest {
             "{\"protocol\":\"SASL_SSL\",\"sasl\":{\"mechanism\":{\"type\":\"SCRAM-SHA-512\",\"username\":\"a\",\"password\":\"b\"}}}",
             "{\"protocol\":\"SSL\",\"ssl\":{\"trustStore\":{\"type\":\"PEM\",\"content\":\"cert\"},\"keyStore\":{\"type\":\"PEM\",\"certContent\":\"cert\",\"keyContent\":\"key\"}}}",
             "{\"protocol\":\"SSL\",\"ssl\":{\"trustStore\":{\"type\":\"JKS\",\"path\":\"/t.jks\",\"password\":\"p\"}}}",
+            "{\"protocol\":\"SSL\",\"ssl\":{\"trustStore\":{\"type\":\"JKS\",\"content\":\"base64\",\"password\":\"p\"},\"keyStore\":{\"type\":\"PKCS12\",\"content\":\"base64\",\"password\":\"p\"}}}",
+            "{\"protocol\":\"SASL_SSL\",\"sasl\":{\"mechanism\":{\"type\":\"OAUTHBEARER\",\"tokenUrl\":\"https://idp/token\",\"clientId\":\"gw\",\"clientSecret\":\"s\"}}}",
+            "{\"protocol\":\"SASL_SSL\",\"sasl\":{\"mechanism\":{\"type\":\"OAUTHBEARER_TOKEN\",\"token\":\"t\"}}}",
+            "{\"protocol\":\"SASL_PLAINTEXT\",\"sasl\":{\"mechanism\":{\"type\":\"GSSAPI\",\"saslJaasConfig\":\"com.sun.security.auth.module.Krb5LoginModule required;\"}}}",
+            "{\"protocol\":\"SASL_SSL\",\"sasl\":{\"mechanism\":{\"type\":\"AWS_MSK_IAM\",\"saslJaasConfig\":\"software.amazon.msk.auth.iam.IAMLoginModule required;\"}}}",
         }
     )
     void should_let_message_apis_use_a_connection_the_kafka_endpoint_supports(String security) throws Exception {
@@ -61,11 +66,14 @@ class KafkaClusterConnectionTest {
         value = {
             "{\"protocol\":\"SASL_SSL\"} | It uses the SASL_SSL protocol without a SASL mechanism.",
             "{\"protocol\":\"SASL_PLAINTEXT\",\"sasl\":{\"mechanism\":{\"type\":\"NONE\"}}} | It uses the SASL_PLAINTEXT protocol without a SASL mechanism.",
-            "{\"protocol\":\"SASL_SSL\",\"sasl\":{\"mechanism\":{\"type\":\"OAUTHBEARER_TOKEN\"}}} | Message APIs do not support the SASL mechanism OAUTHBEARER_TOKEN yet.",
             "{\"protocol\":\"SSL\",\"ssl\":{\"trustAll\":true}} | Trust all is not supported: give a truststore.",
-            "{\"protocol\":\"SSL\",\"ssl\":{\"trustStore\":{\"type\":\"JKS\",\"content\":\"base64\",\"password\":\"p\"}}} | Its truststore must be given by path, not by content.",
+            "{\"protocol\":\"SASL_SSL\",\"sasl\":{\"mechanism\":{\"type\":\"DELEGATE_TO_BROKER\"}}} | A Message API has no client credentials to delegate to the broker.",
+            "{\"protocol\":\"SASL_SSL\",\"sasl\":{\"mechanism\":{\"type\":\"GSSAPI\",\"saslJaasConfig\":\"com.sun.security.auth.module.JndiLoginModule required;\"}}} | The JAAS configuration of GSSAPI must use the login module com.sun.security.auth.module.Krb5LoginModule, not com.sun.security.auth.module.JndiLoginModule.",
+            "{\"protocol\":\"SASL_SSL\",\"sasl\":{\"mechanism\":{\"type\":\"OAUTHBEARER\",\"tokenUrl\":\"file:///etc/token.jwt\"}}} | The OAUTHBEARER token endpoint must be an http or https URL.",
+            "{\"protocol\":\"SASL_SSL\",\"sasl\":{\"mechanism\":{\"type\":\"OAUTHBEARER_TOKEN\",\"token\":\"t\",\"saslExtensions\":[{\"extensionKey\":\"auth\",\"extensionValue\":\"v\"}]}}} | A SASL extension key must be made of letters only, and not be auth: auth.",
             "{\"protocol\":\"SSL\",\"ssl\":{\"keyStore\":{\"type\":\"PEM\",\"certPath\":\"/c.pem\",\"keyPath\":\"/k.pem\"}}} | Its PEM keystore must be given by key and certificate content, not by path.",
-            "{\"protocol\":\"SSL\",\"ssl\":{\"keyStore\":{\"type\":\"PKCS12\",\"content\":\"base64\",\"password\":\"p\"}}} | Its keystore must be given by path, not by content.",
+            "{\"protocol\":\"SSL\",\"ssl\":{\"trustStore\":{\"type\":\"JKS\",\"password\":\"p\"}}} | Its truststore has neither content nor path.",
+            "{\"protocol\":\"SSL\",\"ssl\":{\"keyStore\":{\"type\":\"PKCS12\",\"password\":\"p\"}}} | Its keystore has neither content nor path.",
         }
     )
     void should_say_why_message_apis_cannot_use_a_connection(String security, String reason) throws Exception {

@@ -9,7 +9,7 @@
           "type": "string",
           "title": "Extension key",
           "description": "without 'extension_' prefix",
-          "pattern": "[A-Za-z]+"
+          "pattern": "^(extension_)?[A-Za-z]+$"
         },
         "extensionValue": {
           "type": "string",
@@ -145,6 +145,16 @@
                       "description": "The token to use (supports EL and Secrets).",
                       "gioConfig": {
                         "el": true
+                      }
+                    },
+                    "saslExtensions": {
+                      "type": "array",
+                      "title": "OAUTHBEARER SASL extensions",
+                      "items": {
+                        "$ref": "#/definitions/saslExtension"
+                      },
+                      "gioConfig": {
+                        "uiBorder": "none"
                       }
                     }
                   },

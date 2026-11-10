@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.cluster.model;
 
+import io.gravitee.definition.model.cluster.SaslMechanism;
 import io.gravitee.definition.model.cluster.SecurityConfig;
 import io.gravitee.definition.model.cluster.SecurityProtocol;
 import io.gravitee.plugin.configurations.ssl.KeyStore;
@@ -26,12 +27,8 @@ import io.gravitee.plugin.configurations.ssl.pem.PEMKeyStore;
 import io.gravitee.plugin.configurations.ssl.pem.PEMTrustStore;
 import io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12KeyStore;
 import io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore;
-import java.util.Set;
 
 public record KafkaClusterConnection(String crossId, String name, String bootstrapServers, SecurityConfig security) {
-    /** SASL mechanisms the Kafka endpoint of Message APIs supports (ESM-261 adds the others). */
-    private static final Set<String> MESSAGE_API_SASL_MECHANISMS = Set.of("PLAIN", "SCRAM-SHA-256", "SCRAM-SHA-512");
-
     /**
      * Why a Message API cannot use this connection, or {@code null} when it can: the single rule behind the validation on
      * API save and the connection pickers. The Kafka endpoint refuses the same connections at runtime. Not a bean getter:
@@ -40,12 +37,17 @@ public record KafkaClusterConnection(String crossId, String name, String bootstr
     public String messageApiUnsupportedReason() {
         SecurityProtocol protocol = security == null || security.protocol() == null ? SecurityProtocol.PLAINTEXT : security.protocol();
         if (protocol == SecurityProtocol.SASL_PLAINTEXT || protocol == SecurityProtocol.SASL_SSL) {
-            String mechanism = security.sasl() == null || security.sasl().mechanism() == null ? null : security.sasl().mechanism().type();
-            if (mechanism == null || "NONE".equals(mechanism)) {
+            SaslMechanism mechanism = security.sasl() == null ? null : security.sasl().mechanism();
+            String type = mechanism == null ? null : mechanism.type();
+            if (type == null || "NONE".equals(type)) {
                 return "It uses the " + protocol + " protocol without a SASL mechanism.";
             }
-            if (!MESSAGE_API_SASL_MECHANISMS.contains(mechanism)) {
-                return "Message APIs do not support the SASL mechanism " + mechanism + " yet.";
+            if ("DELEGATE_TO_BROKER".equals(type)) {
+                return "A Message API has no client credentials to delegate to the broker.";
+            }
+            String mechanismReason = mechanism.unsupportedReason();
+            if (mechanismReason != null) {
+                return mechanismReason;
             }
         }
         if ((protocol == SecurityProtocol.SSL || protocol == SecurityProtocol.SASL_SSL) && security.ssl() != null) {
@@ -63,20 +65,20 @@ public record KafkaClusterConnection(String crossId, String name, String bootstr
             return "Its PEM truststore has neither content nor path.";
         }
         if (
-            (trustStore instanceof JKSTrustStore jks && !hasText(jks.getPath())) ||
-            (trustStore instanceof PKCS12TrustStore pkcs12 && !hasText(pkcs12.getPath()))
+            (trustStore instanceof JKSTrustStore jks && !hasText(jks.getPath()) && !hasText(jks.getContent())) ||
+            (trustStore instanceof PKCS12TrustStore pkcs12 && !hasText(pkcs12.getPath()) && !hasText(pkcs12.getContent()))
         ) {
-            return "Its truststore must be given by path, not by content.";
+            return "Its truststore has neither content nor path.";
         }
         KeyStore keyStore = ssl.getKeyStore();
         if (keyStore instanceof PEMKeyStore pem && (!hasText(pem.getKeyContent()) || !hasText(pem.getCertContent()))) {
             return "Its PEM keystore must be given by key and certificate content, not by path.";
         }
         if (
-            (keyStore instanceof JKSKeyStore jks && !hasText(jks.getPath())) ||
-            (keyStore instanceof PKCS12KeyStore pkcs12 && !hasText(pkcs12.getPath()))
+            (keyStore instanceof JKSKeyStore jks && !hasText(jks.getPath()) && !hasText(jks.getContent())) ||
+            (keyStore instanceof PKCS12KeyStore pkcs12 && !hasText(pkcs12.getPath()) && !hasText(pkcs12.getContent()))
         ) {
-            return "Its keystore must be given by path, not by content.";
+            return "Its keystore has neither content nor path.";
         }
         return null;
     }

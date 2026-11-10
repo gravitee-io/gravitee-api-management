@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.cluster.ClusterSecurityResolutionException;
 import io.gravitee.definition.model.cluster.SaslConfig;
 import io.gravitee.definition.model.cluster.SaslMechanism;
+import io.gravitee.definition.model.cluster.SaslMechanism.SaslExtension;
 import io.gravitee.definition.model.cluster.SecurityConfig;
 import io.gravitee.definition.model.cluster.SecurityProtocol;
 import io.gravitee.el.TemplateVariableProvider;
@@ -129,6 +130,57 @@ class DefaultClusterSecurityResolverTest {
         assertThat(secrets.accessControls).containsExactlyInAnyOrder(
             new SecretFieldAccessControl(true, FieldKind.PRIVATE_KEY, "ssl.keystore.keycontent"),
             new SecretFieldAccessControl(true, FieldKind.PUBLIC_KEY, "ssl.keystore.certcontent")
+        );
+    }
+
+    @Test
+    void should_resolve_secrets_in_every_field_of_an_oauth_mechanism_and_give_the_client_secret_the_kind_of_a_password() {
+        SecurityConfig security = new SecurityConfig(
+            SecurityProtocol.SASL_SSL,
+            new SaslConfig(
+                new SaslMechanism(
+                    "OAUTHBEARER",
+                    null,
+                    null,
+                    "https://idp.example.com/token",
+                    "gateway",
+                    PASSWORD_REF,
+                    "kafka",
+                    List.of(new SaslExtension("logicalCluster", "{#secrets.fromGrant('key', #secret_field_access_control_var)}")),
+                    null,
+                    null
+                )
+            ),
+            null
+        );
+
+        cut
+            .resolve(security)
+            .test()
+            .assertValue(
+                new SecurityConfig(
+                    SecurityProtocol.SASL_SSL,
+                    new SaslConfig(
+                        new SaslMechanism(
+                            "OAUTHBEARER",
+                            null,
+                            null,
+                            "https://idp.example.com/token",
+                            "gateway",
+                            "s3cr3t",
+                            "kafka",
+                            List.of(new SaslExtension("logicalCluster", "-----BEGIN PRIVATE KEY-----")),
+                            null,
+                            null
+                        )
+                    ),
+                    null
+                )
+            );
+
+        assertThat(secrets.accessControls).containsExactlyInAnyOrder(
+            new SecretFieldAccessControl(true, FieldKind.PASSWORD, "sasl.mechanism.clientsecret"),
+            new SecretFieldAccessControl(true, FieldKind.GENERIC, "sasl.mechanism.saslextensions[0].extensionvalue")
         );
     }
 

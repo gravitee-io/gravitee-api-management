@@ -85,7 +85,7 @@ class GetDeployedClustersUseCaseTest {
                         { "crossId": "primary", "name": "Primary Connection", "bootstrapServers": "kafka:9092", "security": { "protocol": "PLAINTEXT" } },
                         { "crossId": "secondary", "name": "Secondary Connection", "bootstrapServers": "kafka2:9092", "security": { "protocol": "SSL" } },
                         { "crossId": "sasl", "name": "SASL Connection", "bootstrapServers": "kafka3:9093", "security": { "protocol": "SASL_SSL", "sasl": { "mechanism": { "type": "SCRAM-SHA-512", "username": "a", "password": "b" } } } },
-                        { "crossId": "oauth", "name": "OAuth Connection", "bootstrapServers": "kafka3:9093", "security": { "protocol": "SASL_SSL", "sasl": { "mechanism": { "type": "OAUTHBEARER_TOKEN" } } } }
+                        { "crossId": "delegate", "name": "Delegate Connection", "bootstrapServers": "kafka3:9093", "security": { "protocol": "SASL_SSL", "sasl": { "mechanism": { "type": "DELEGATE_TO_BROKER" } } } }
                     ]
                 }
             }
@@ -121,7 +121,7 @@ class GetDeployedClustersUseCaseTest {
         assertThat(cluster.getConnections().get(1).getCrossId()).isEqualTo("secondary");
         assertThat(cluster.getConnections())
             .extracting(DeployedCluster.DeployedClusterConnection::getMessageApiUnsupportedReason)
-            .containsExactly(null, null, null, "Message APIs do not support the SASL mechanism OAUTHBEARER_TOKEN yet.");
+            .containsExactly(null, null, null, "A Message API has no client credentials to delegate to the broker.");
     }
 
     @Test
