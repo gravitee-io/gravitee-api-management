@@ -475,7 +475,7 @@ jobs:
           name: Build docker image for << parameters.apim-project >>-alpine
           command: |-
             docker buildx build --push --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
-            -t graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha.1 -t graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha \
+            -t graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha.1 -t graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha -t graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha.1-alpine -t graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha-alpine \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project-workdir >>
       - run:
