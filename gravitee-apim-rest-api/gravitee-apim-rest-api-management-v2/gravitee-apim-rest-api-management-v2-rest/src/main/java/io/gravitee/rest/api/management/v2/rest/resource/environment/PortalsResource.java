@@ -15,10 +15,12 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
+import io.gravitee.apim.core.portal.use_case.GetPortalsStatsUseCase;
 import io.gravitee.apim.core.portal.use_case.ListPortalsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalMapper;
 import io.gravitee.rest.api.management.v2.rest.model.PortalsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.PortalsStats;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
@@ -45,6 +47,9 @@ public class PortalsResource extends AbstractResource {
     @Inject
     private ListPortalsUseCase listPortalsUseCase;
 
+    @Inject
+    private GetPortalsStatsUseCase getPortalsStatsUseCase;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ) })
@@ -57,6 +62,17 @@ public class PortalsResource extends AbstractResource {
             .data(PortalMapper.INSTANCE.map(page.getContent(), uriInfo))
             .pagination(PaginationInfo.computePaginationInfo(page.getTotalElements(), page.getContent().size(), paginationParam))
             .links(computePaginationLinks(page.getTotalElements(), paginationParam));
+    }
+
+    @GET
+    @Path("_stats")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ) })
+    public PortalsStats getPortalsStats() {
+        var output = getPortalsStatsUseCase.execute(
+            new GetPortalsStatsUseCase.Input(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment())
+        );
+        return PortalMapper.INSTANCE.map(output);
     }
 
     @Path("{portalId}")

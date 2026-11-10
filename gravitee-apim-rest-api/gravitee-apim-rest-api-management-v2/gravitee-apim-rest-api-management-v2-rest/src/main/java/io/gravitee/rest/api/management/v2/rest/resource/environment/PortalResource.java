@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
+import io.gravitee.apim.core.portal.model.PortalLogo;
+import io.gravitee.apim.core.portal.use_case.GetPortalLogoUseCase;
 import io.gravitee.apim.core.portal.use_case.GetPortalSummaryUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalMapper;
@@ -27,13 +29,18 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Response;
 
 public class PortalResource extends AbstractResource {
 
     @Inject
     private GetPortalSummaryUseCase getPortalSummaryUseCase;
+
+    @Inject
+    private GetPortalLogoUseCase getPortalLogoUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -43,5 +50,18 @@ public class PortalResource extends AbstractResource {
             new GetPortalSummaryUseCase.Input(GraviteeContext.getCurrentEnvironment(), PortalMapper.INSTANCE.toPortalId(portalId))
         );
         return PortalMapper.INSTANCE.map(output.portal(), uriInfo);
+    }
+
+    @GET
+    @Path("logo")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ) })
+    public Response getPortalLogo(@PathParam("portalId") String portalId) {
+        var logo = getPortalLogoUseCase
+            .execute(new GetPortalLogoUseCase.Input(GraviteeContext.getCurrentEnvironment(), PortalMapper.INSTANCE.toPortalId(portalId)))
+            .logo();
+        return switch (logo) {
+            case PortalLogo.Inline inline -> Response.ok(inline.content(), inline.mediaType()).build();
+            case PortalLogo.External external -> Response.temporaryRedirect(external.url()).build();
+        };
     }
 }
