@@ -20,11 +20,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
+import io.gravitee.apim.core.cluster.model.KafkaClusterConnection;
 import io.gravitee.apim.core.cluster.model.KafkaVirtualClusterBackend;
 import io.gravitee.apim.core.cluster.query_service.ClusterQueryService;
 import io.gravitee.apim.core.json.JsonSchemaChecker;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.definition.model.cluster.ClusterType;
+import io.gravitee.definition.model.cluster.SaslMechanism;
+import io.gravitee.definition.model.cluster.SecurityConfig;
+import io.gravitee.definition.model.cluster.SecurityProtocol;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -60,6 +64,7 @@ public class ValidateClusterService {
         if (cluster.getType() == ClusterType.KAFKA_CLUSTER) {
             validateUniqueConnectionNames(cluster);
             validateUniqueConnectionCrossIds(cluster);
+            validateSaslMechanisms(cluster);
         }
 
         if (cluster.getType() == ClusterType.KAFKA_VIRTUAL_CLUSTER) {
@@ -124,6 +129,29 @@ public class ValidateClusterService {
         if (!duplicates.isEmpty()) {
             throw new InvalidDataException("Backend references must be unique within a virtual cluster. Duplicates found: " + duplicates);
         }
+    }
+
+    private void validateSaslMechanisms(Cluster cluster) {
+        var config = cluster.getKafkaClusterConfiguration(objectMapper);
+        if (config.connections() == null) {
+            return;
+        }
+        for (KafkaClusterConnection connection : config.connections()) {
+            SecurityConfig security = connection.security();
+            if (security == null || !isSasl(security.protocol()) || security.sasl() == null) {
+                // A protocol without SASL ignores the mechanism.
+                continue;
+            }
+            SaslMechanism mechanism = security.sasl().mechanism();
+            String reason = mechanism == null ? null : mechanism.unsupportedReason();
+            if (reason != null) {
+                throw new InvalidDataException("Connection [" + connection.name() + "]: " + reason);
+            }
+        }
+    }
+
+    private static boolean isSasl(SecurityProtocol protocol) {
+        return protocol == SecurityProtocol.SASL_PLAINTEXT || protocol == SecurityProtocol.SASL_SSL;
     }
 
     private void validateUniqueConnectionCrossIds(Cluster cluster) {
