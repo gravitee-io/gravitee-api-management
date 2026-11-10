@@ -17,6 +17,7 @@ package io.gravitee.apim.core.plan.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
+import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductPlanOAuth2ResourcesDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.PlanExcludedGroupsDomainService;
@@ -39,6 +40,7 @@ public class UpdateApiProductPlanUseCase {
     private final PlanCrudService planCrudService;
     private final ApiProductCrudService apiProductCrudService;
     private final PlanExcludedGroupsDomainService planExcludedGroupsDomainService;
+    private final ValidateApiProductPlanOAuth2ResourcesDomainService validateApiProductPlanOAuth2ResourcesDomainService;
 
     public Output execute(Input input) {
         log.debug("Updating plan {} for reference {}", input.planToUpdate.getId(), input.referenceId);
@@ -59,6 +61,10 @@ public class UpdateApiProductPlanUseCase {
         var apiProduct = apiProductCrudService.get(input.referenceId);
 
         planExcludedGroupsDomainService.validateExcludedGroups(apiProduct.getEnvironmentId(), input.planToUpdate.getExcludedGroups());
+
+        if (planEntity.isPublished() || planEntity.isDeprecated()) {
+            validateApiProductPlanOAuth2ResourcesDomainService.validate(updatedEntity, apiProduct);
+        }
 
         var updated = updatePlanDomainService.updatePlanForApiProduct(updatedEntity, Map.of(), apiProduct, input.auditInfo);
 

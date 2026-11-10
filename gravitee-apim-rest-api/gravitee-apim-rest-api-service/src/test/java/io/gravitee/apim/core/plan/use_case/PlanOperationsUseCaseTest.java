@@ -16,22 +16,38 @@
 package io.gravitee.apim.core.plan.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PlanFixtures;
+import inmemory.ApiProductCrudServiceInMemory;
+import inmemory.PlanCrudServiceInMemory;
+import inmemory.PlanSearchQueryServiceInMemory;
+import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
+import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductPlanOAuth2ResourcesDomainService;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.membership.domain_service.PublishPlanDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.ClosePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeprecatePlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.OAuth2PlanSecurityConfigurationReader;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanSearchQueryService;
 import io.gravitee.apim.core.plan.use_case.PlanOperationsUseCase.Operation;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.plan.PlanMode;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -69,17 +85,27 @@ class PlanOperationsUseCaseTest {
     @Mock
     private AuditInfo auditInfo;
 
+    @Mock
+    private ApiProductCrudService apiProductCrudService;
+
+    private ValidateApiProductPlanOAuth2ResourcesDomainService validateApiProductPlanOAuth2ResourcesDomainService;
+
     private PlanOperationsUseCase planOperationsUseCase;
 
     @BeforeEach
     void setUp() {
+        validateApiProductPlanOAuth2ResourcesDomainService = new ValidateApiProductPlanOAuth2ResourcesDomainService(
+            new OAuth2PlanSecurityConfigurationReader()
+        );
         planOperationsUseCase = new PlanOperationsUseCase(
             planSearchQueryService,
             planCrudService,
             deletePlanDomainService,
             publishPlanDomainService,
             closePlanDomainService,
-            deprecatePlanDomainService
+            deprecatePlanDomainService,
+            apiProductCrudService,
+            validateApiProductPlanOAuth2ResourcesDomainService
         );
     }
 
@@ -174,6 +200,7 @@ class PlanOperationsUseCaseTest {
                     eq(GenericPlanEntity.ReferenceType.API_PRODUCT)
                 )
             ).thenReturn(plan);
+            when(apiProductCrudService.get(API_PRODUCT_ID)).thenReturn(ApiProduct.builder().id(API_PRODUCT_ID).build());
             when(publishPlanDomainService.publish(eq(auditInfo), eq(PLAN_ID))).thenReturn(publishedPlan);
 
             var input = PlanOperationsUseCase.Input.builder()
@@ -189,6 +216,101 @@ class PlanOperationsUseCaseTest {
             assertThat(output).isNotNull();
             assertThat(output.plan()).isEqualTo(publishedPlan);
 
+            verify(publishPlanDomainService).publish(eq(auditInfo), eq(PLAN_ID));
+        }
+    }
+
+    @Nested
+    class PublishOAuth2ApiProductPlan {
+
+        private final PlanCrudServiceInMemory planCrudServiceInMemory = new PlanCrudServiceInMemory();
+        private final PlanSearchQueryServiceInMemory planSearchQueryServiceInMemory = new PlanSearchQueryServiceInMemory(
+            planCrudServiceInMemory
+        );
+        private final ApiProductCrudServiceInMemory apiProductCrudServiceInMemory = new ApiProductCrudServiceInMemory();
+
+        @BeforeEach
+        void setUpOAuth2PlanOperations() {
+            planOperationsUseCase = new PlanOperationsUseCase(
+                planSearchQueryServiceInMemory,
+                planCrudServiceInMemory,
+                deletePlanDomainService,
+                publishPlanDomainService,
+                closePlanDomainService,
+                deprecatePlanDomainService,
+                apiProductCrudServiceInMemory,
+                validateApiProductPlanOAuth2ResourcesDomainService
+            );
+            apiProductCrudServiceInMemory.initWith(
+                List.of(
+                    ApiProduct.builder()
+                        .id(API_PRODUCT_ID)
+                        .name("Product")
+                        .resources(List.of(Resource.builder().name("oauth").type("oauth2").configuration("{}").enabled(true).build()))
+                        .build()
+                )
+            );
+        }
+
+        private Plan stagingOAuth2Plan(String oauthResource) {
+            return Plan.builder()
+                .id(PLAN_ID)
+                .name("OAuth plan")
+                .definitionVersion(DefinitionVersion.V4)
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .planDefinitionHttpV4(
+                    io.gravitee.definition.model.v4.plan.Plan.builder()
+                        .id(PLAN_ID)
+                        .name("OAuth plan")
+                        .status(PlanStatus.STAGING)
+                        .mode(PlanMode.STANDARD)
+                        .security(
+                            PlanSecurity.builder().type("oauth2").configuration("{\"oauthResource\":\"" + oauthResource + "\"}").build()
+                        )
+                        .build()
+                )
+                .build();
+        }
+
+        @Test
+        void should_reject_publish_and_keep_plan_staging_when_oauth_resource_is_invalid() {
+            planCrudServiceInMemory.initWith(List.of(stagingOAuth2Plan("missing")));
+
+            var input = PlanOperationsUseCase.Input.builder()
+                .planId(PLAN_ID)
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .operation(Operation.PUBLISH)
+                .auditInfo(auditInfo)
+                .build();
+
+            assertThatThrownBy(() -> planOperationsUseCase.execute(input))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("unknown resource 'missing'");
+
+            assertThat(planCrudServiceInMemory.getById(PLAN_ID).getPlanStatus()).isEqualTo(PlanStatus.STAGING);
+            verify(publishPlanDomainService, never()).publish(eq(auditInfo), eq(PLAN_ID));
+        }
+
+        @Test
+        void should_publish_when_oauth_resource_is_valid() {
+            Plan staging = stagingOAuth2Plan("oauth");
+            Plan published = staging.toBuilder().build().setPlanStatus(PlanStatus.PUBLISHED);
+            planCrudServiceInMemory.initWith(List.of(staging));
+            when(publishPlanDomainService.publish(eq(auditInfo), eq(PLAN_ID))).thenReturn(published);
+
+            var input = PlanOperationsUseCase.Input.builder()
+                .planId(PLAN_ID)
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .operation(Operation.PUBLISH)
+                .auditInfo(auditInfo)
+                .build();
+
+            var output = planOperationsUseCase.execute(input);
+
+            assertThat(output.plan().getPlanStatus()).isEqualTo(PlanStatus.PUBLISHED);
             verify(publishPlanDomainService).publish(eq(auditInfo), eq(PLAN_ID));
         }
     }
