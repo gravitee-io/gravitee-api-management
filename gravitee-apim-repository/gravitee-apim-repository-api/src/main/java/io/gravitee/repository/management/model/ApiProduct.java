@@ -48,6 +48,7 @@ public class ApiProduct {
     private boolean disableMembershipNotifications;
     private ApiProductKind kind;
     private String analytics;
+    private String flowExecution;
 
     public boolean addGroup(String groupId) {
         if (groups == null) {

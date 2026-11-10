@@ -23,4 +23,5 @@ public enum FlowReferenceType {
     API,
     ORGANIZATION,
     PLAN,
+    API_PRODUCT,
 }

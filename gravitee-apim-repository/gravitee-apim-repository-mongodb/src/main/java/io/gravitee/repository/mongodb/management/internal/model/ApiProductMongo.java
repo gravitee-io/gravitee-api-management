@@ -55,4 +55,5 @@ public class ApiProductMongo {
     private boolean disableMembershipNotifications;
     private ApiProductKind kind;
     private String analytics;
+    private String flowExecution;
 }

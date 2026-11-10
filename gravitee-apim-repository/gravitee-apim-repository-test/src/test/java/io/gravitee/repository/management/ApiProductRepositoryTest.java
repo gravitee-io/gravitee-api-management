@@ -272,6 +272,35 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void shouldCreateAndUpdateFlowExecution() throws TechnicalException {
+        var date = new Date();
+        var uuid = UUID.random().toString();
+        ApiProduct apiProduct = createApiProduct(uuid, date, "my-env", "my-api-product", "1.0.0", List.of("api1"));
+        apiProduct.setFlowExecution("{\"mode\":\"best-match\",\"matchRequired\":true}");
+
+        ApiProduct created = apiProductsRepository.create(apiProduct);
+        assertThat(created.getFlowExecution()).isEqualTo("{\"mode\":\"best-match\",\"matchRequired\":true}");
+        assertThat(apiProductsRepository.findById(uuid))
+            .get()
+            .extracting(ApiProduct::getFlowExecution)
+            .isEqualTo("{\"mode\":\"best-match\",\"matchRequired\":true}");
+
+        apiProduct.setFlowExecution("{\"mode\":\"default\",\"matchRequired\":false}");
+        assertThat(apiProductsRepository.update(apiProduct).getFlowExecution()).isEqualTo("{\"mode\":\"default\",\"matchRequired\":false}");
+
+        apiProduct.setFlowExecution(null);
+        assertThat(apiProductsRepository.update(apiProduct).getFlowExecution()).isNull();
+    }
+
+    @Test
+    public void shouldReadNullFlowExecutionOnApiProductStoredBeforeTheColumnExisted() throws TechnicalException {
+        assertThat(apiProductsRepository.findById("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3"))
+            .get()
+            .extracting(ApiProduct::getFlowExecution)
+            .isNull();
+    }
+
+    @Test
     public void shouldThrowExceptionWhenApiProductToUpdateNotFound() {
         var id = "not-existing-id";
         var date = new Date(1_470_157_767_000L);
