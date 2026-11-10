@@ -28,6 +28,8 @@ import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.elasticsearch.analytics.spring.AnalyticsConfiguration;
 import io.gravitee.repository.elasticsearch.client.ElasticsearchHttpClientFactory;
+import io.gravitee.repository.elasticsearch.configuration.Flavor;
+import io.gravitee.repository.elasticsearch.configuration.FlavorRules;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.healthcheck.spring.HealthCheckConfiguration;
 import io.gravitee.repository.elasticsearch.log.spring.LogConfiguration;
@@ -36,6 +38,7 @@ import io.reactivex.rxjava3.core.BackpressureStrategy;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.core.Vertx;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Bean;
@@ -96,6 +99,27 @@ public class ElasticsearchRepositoryConfiguration {
         } else {
             return new MultiTypeIndexNameGenerator(repositoryConfiguration.getIndexName());
         }
+    }
+
+    /**
+     * Refuses to start when the configuration cannot work with a classic cluster: the analytics would otherwise read nothing.
+     */
+    @Bean
+    public Flavor flavor(RepositoryConfiguration repositoryConfiguration, ElasticsearchInfo info) {
+        final Flavor flavor = Flavor.configured(repositoryConfiguration.getFlavor()).orElseGet(() -> Flavor.detected(info));
+        final Optional<String> violation = FlavorRules.violation(flavor, repositoryConfiguration);
+        if (flavor == Flavor.CLASSIC) {
+            violation.ifPresent(message -> {
+                throw new IllegalStateException(message);
+            });
+            return flavor;
+        }
+        // Serverless reads still use the classic index names whatever the index mode, so refusing would only block the startup.
+        violation.ifPresent(log::warn);
+        log.warn(
+            "Reading analytics from Elastic Cloud Serverless data streams is not available in this version yet: analytics are read from the classic index names."
+        );
+        return flavor;
     }
 
     @Bean

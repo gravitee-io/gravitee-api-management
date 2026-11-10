@@ -246,6 +246,7 @@ repositories:
 #      index: gravitee
 #      index_per_type: true
 #      index_mode: daily    # "daily" indexes, suffixed with date. Or "ilm" managed indexes, without date
+#      flavor: auto         # "auto" detects Elastic Cloud Serverless from the cluster. Or "classic", or "serverless"
 #      cross_cluster:
 #        mapping:
 #          tenant_id: cluster_name
