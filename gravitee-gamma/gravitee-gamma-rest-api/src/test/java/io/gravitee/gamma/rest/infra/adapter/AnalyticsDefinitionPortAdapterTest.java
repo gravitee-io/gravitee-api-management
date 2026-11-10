@@ -54,7 +54,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -213,15 +212,7 @@ class AnalyticsDefinitionPortAdapterTest extends AnalyticsDefinitionPortContract
                 catalog
                     .getFacets(spec.name())
                     .stream()
-                    .map(f ->
-                        new DimensionDefinition(
-                            f.name().name(),
-                            f.label(),
-                            null,
-                            analyticsFilterKinds().getOrDefault(f.name().name(), Set.of()),
-                            CatalogOrigin.BUILT_IN
-                        )
-                    )
+                    .map(f -> new DimensionDefinition(f.name().name(), f.label(), CatalogOrigin.BUILT_IN))
                     .toList()
             );
             assertThat(metric.origin()).isEqualTo(CatalogOrigin.BUILT_IN);
@@ -280,32 +271,41 @@ class AnalyticsDefinitionPortAdapterTest extends AnalyticsDefinitionPortContract
         );
     }
 
-    /** The catalog classifies a facet as the filter on the same field: the dimension takes that filter's kinds. */
+    /**
+     * The definition ties a built-in facet to the kinds of every served metric listing it, the kinds the engine accepts
+     * it for: a picker scoped to one kind finds each facet of each metric it is offered (OBS-193, second PR; the
+     * filter's kinds served before hid {@code GATEWAY} for Message and the AuthZ facets for AuthZ hosts).
+     */
     @Test
-    void should_tie_a_built_in_facet_to_the_kinds_of_the_analytics_filter_of_its_name() {
-        var kindsByFilter = analyticsFilterKinds();
+    void should_tie_every_facet_of_a_served_metric_to_the_asked_kind_for_every_kind() {
+        for (var kind : ApiType.API_KINDS) {
+            var definition = definitionOf(kind);
+            var kindsByDimension = definition
+                .dimensions()
+                .stream()
+                .collect(Collectors.toMap(DimensionDefinition::name, DimensionDefinition::apiTypes));
 
-        var definition = definitionOf(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.NATIVE);
-
-        var kindsByDimension = definition
+            assertThat(definition.families()).as(kind.name()).isNotEmpty();
+            for (var family : definition.families()) {
+                for (var metric : family.metrics()) {
+                    for (var facet : metric.facets()) {
+                        assertThat(kindsByDimension.get(facet.name()))
+                            .as(kind + " " + metric.name() + " by " + facet.name())
+                            .contains(kind);
+                    }
+                }
+            }
+        }
+        var authz = definitionOf(ApiType.AUTHZ)
             .dimensions()
             .stream()
             .collect(Collectors.toMap(DimensionDefinition::name, DimensionDefinition::apiTypes));
-        assertThat(kindsByDimension.get("LLM_PROXY_MODEL")).containsExactly(ApiType.LLM);
-        assertThat(kindsByDimension.get("MCP_PROXY_TOOL")).containsExactly(ApiType.MCP);
-        assertThat(kindsByDimension.get("NATIVE_TOPIC")).containsExactly(ApiType.NATIVE);
-        assertThat(kindsByDimension.get("HTTP_STATUS")).containsExactlyInAnyOrder(
-            ApiType.HTTP_PROXY,
-            ApiType.LLM,
-            ApiType.MESSAGE,
-            ApiType.MCP,
-            ApiType.A2A
-        );
-        assertThat(kindsByDimension.get("API")).containsAll(ApiType.API_KINDS);
-        assertThat(kindsByDimension)
-            .as("every dimension, the ones with no filter of their name tied to none")
-            .allSatisfy((name, kinds) -> assertThat(kinds).isEqualTo(kindsByFilter.getOrDefault(name, Set.of())));
-        assertThat(kindsByDimension.values()).as("the fallback is exercised").contains(Set.of());
+        assertThat(authz.get("AUTHZ_PDP")).containsExactly(ApiType.AUTHZ);
+        assertThat(authz.get("GATEWAY")).contains(ApiType.AUTHZ);
+        assertThat(definitionOf(ApiType.LLM).dimensions())
+            .filteredOn(dimension -> dimension.name().equals("LLM_PROXY_MODEL"))
+            .singleElement()
+            .satisfies(dimension -> assertThat(dimension.apiTypes()).contains(ApiType.LLM, ApiType.HTTP_PROXY));
     }
 
     @Test
@@ -406,14 +406,6 @@ class AnalyticsDefinitionPortAdapterTest extends AnalyticsDefinitionPortContract
             null,
             null
         );
-    }
-
-    /** The kinds each filter of the {@code ANALYTICS} signal is tied to, as the registry serves them. */
-    private Map<String, Set<ApiType>> analyticsFilterKinds() {
-        return filterRegistry
-            .getFilters(Set.of(Signal.ANALYTICS), Set.of())
-            .stream()
-            .collect(Collectors.toMap(FilterSpec::name, spec -> spec.apiTypes() == null ? Set.of() : spec.apiTypes()));
     }
 
     private AnalyticsDefinition definitionOf(ApiType... kinds) {

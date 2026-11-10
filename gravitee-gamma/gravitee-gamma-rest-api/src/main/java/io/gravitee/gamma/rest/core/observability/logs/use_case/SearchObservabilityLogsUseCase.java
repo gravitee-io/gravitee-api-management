@@ -57,20 +57,6 @@ public class SearchObservabilityLogsUseCase {
     private static final int DEFAULT_PER_PAGE = 20;
     private static final int MAX_PER_PAGE = 100;
 
-    /**
-     * API types the LOGS signal serves today. Extensible: adding a type only requires widening this
-     * set — the rest of the pipeline (AccessibleApiScope, query building) adjusts automatically.
-     */
-    static final Set<ApiType> LOGS_SUPPORTED_API_TYPES = Set.of(
-        ApiType.HTTP_PROXY,
-        ApiType.LLM,
-        ApiType.MCP,
-        ApiType.A2A,
-        ApiType.MESSAGE,
-        ApiType.NATIVE,
-        ApiType.AUTHZ
-    );
-
     private final ObservabilityLogsDataPort logsDataPort;
     private final ObservabilityFilterValidator filterValidator;
     private final AccessibleApiScopeDomainService accessibleApiScope;
@@ -274,7 +260,7 @@ public class SearchObservabilityLogsUseCase {
     }
 
     /**
-     * Narrows {@link #LOGS_SUPPORTED_API_TYPES} when the caller supplies an explicit
+     * Narrows {@link ApiType#SEARCHED_ON_LOGS} when the caller supplies an explicit
      * {@code API_TYPE} filter. Values are intersected with the supported set so that an
      * unsupported type (e.g. {@code EDGE}) simply yields an empty scope instead of an error.
      */
@@ -293,9 +279,9 @@ public class SearchObservabilityLogsUseCase {
             .collect(Collectors.toSet());
 
         if (requested.isEmpty()) {
-            return LOGS_SUPPORTED_API_TYPES;
+            return ApiType.SEARCHED_ON_LOGS;
         }
-        requested.retainAll(LOGS_SUPPORTED_API_TYPES);
+        requested.retainAll(ApiType.SEARCHED_ON_LOGS);
         return requested;
     }
 

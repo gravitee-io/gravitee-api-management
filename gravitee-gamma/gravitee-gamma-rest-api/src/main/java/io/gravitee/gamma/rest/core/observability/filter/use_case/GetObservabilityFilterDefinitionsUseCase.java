@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.core.observability.filter.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.AnalyticsDefinitionPort;
 import io.gravitee.gamma.rest.core.observability.catalog.domain_service.AdditionalMetricCatalogDomainService;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricDiscovery;
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
@@ -30,6 +31,7 @@ import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.Fi
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 
 /**
@@ -38,9 +40,10 @@ import lombok.AllArgsConstructor;
  * filter chip palette dynamically and to know which filters it may apply to which signal — without
  * hardcoded value→label maps (each {@code ENUM} spec carries its labelled values).
  *
- * <p>The built-in specs reading an additional metric carry its key and value type; the environment's exposed records
- * follow as {@code DECLARED} entries and, for a caller who reads the environment's traffic, its discovered keys as
- * {@code DISCOVERED} entries, with every {@code lastSeen} (see
+ * <p>The built-in specs reading an additional metric carry its key and value type; a numeric key a built-in metric
+ * reads and no built-in filter reads follows as a {@code BUILT_IN} entry under its dynamic name; the environment's
+ * exposed records follow as {@code DECLARED} entries and, for a caller who reads the environment's traffic, its
+ * discovered keys as {@code DISCOVERED} entries, with every {@code lastSeen} (see
  * {@link AdditionalMetricCatalogDomainService#filterCatalog}). Exposure is a catalog concern only: the query
  * validators do not read records.
  *
@@ -62,6 +65,7 @@ public class GetObservabilityFilterDefinitionsUseCase {
     private final BuiltInAdditionalMetricsPort builtInAdditionalMetrics;
     private final AdditionalMetricDiscoveryPort discovery;
     private final TrafficReadPermissionPort trafficReadPermission;
+    private final AnalyticsDefinitionPort analyticsDefinition;
     private final AdditionalMetricCatalogDomainService catalog;
 
     public record Input(
@@ -97,6 +101,8 @@ public class GetObservabilityFilterDefinitionsUseCase {
             : Optional.empty();
         var filters = catalog.filterCatalog(
             filterRegistry.getFilters(input.signals(), input.apiTypes()),
+            filterRegistry.getFilters(Set.of(), Set.of()).stream().map(FilterSpec::name).collect(Collectors.toSet()),
+            analyticsDefinition.builtInMetrics(),
             builtInNamesByRawKey,
             records,
             discovered,

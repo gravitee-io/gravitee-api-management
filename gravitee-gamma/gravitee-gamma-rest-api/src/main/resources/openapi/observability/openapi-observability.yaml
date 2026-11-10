@@ -160,7 +160,12 @@ paths:
                 with no `apiTypes` applies to every API kind: it is dropped for `AUTHZ_DECISION` alone.
 
                 A built-in filter reading an additional metric carries `origin: BUILT_IN`, its `rawKey`
-                and `valueType`. The built-in filters are followed by the environment's metric definitions
+                and `valueType`. A numeric key a built-in metric reads and no built-in filter reads
+                (`long_llm-proxy_tokens-sent`, read by `LLM_PROMPT_TOKEN_SENT`) follows as a `BUILT_IN`
+                entry named `additional-metrics.<rawKey>`, with the metric's label and `apiTypes`, the
+                operators of its value type, the `LOGS` signal only when the logs search serves one of
+                its kinds (an Edge key is `ANALYTICS` only). The built-in filters are followed by the
+                environment's metric definitions
                 (see Metric definitions) as `DECLARED` entries: those with `exposed: true` and a `keyword`,
                 `number` or `boolean` type, labelled by their record or else by the label derived from
                 their key, with the record's `description`, for the `LOGS` and `ANALYTICS` signals. Such an
@@ -1704,17 +1709,18 @@ paths:
                                 dimensions:
                                     - name: "API"
                                       label: "API"
-                                      apiTypes: ["A2A", "AUTHZ", "AUTHZ_DECISION", "EDGE", "HTTP_PROXY", "LLM", "MCP", "MESSAGE", "NATIVE"]
+                                      apiTypes: ["A2A", "EDGE", "HTTP_PROXY", "LLM", "MCP", "MESSAGE"]
                                       origin: "BUILT_IN"
                                     - name: "HTTP_STATUS"
                                       label: "Status Code"
-                                      apiTypes: ["A2A", "HTTP_PROXY", "LLM", "MCP", "MESSAGE"]
+                                      apiTypes: ["A2A", "EDGE", "HTTP_PROXY", "LLM", "MCP", "MESSAGE"]
                                       origin: "BUILT_IN"
                                     - name: "additional-metrics.keyword_mcp-proxy_endpoint-protocol-version"
                                       label: "Endpoint protocol version"
                                       namespace: "mcp-proxy"
                                       apiTypes: ["MCP"]
                                       origin: "DISCOVERED"
+                                      lastSeen: "2026-10-29T09:41:00Z"
                                     - name: "LLM_PROXY_MODEL"
                                       label: "LLM Model"
                                       apiTypes: ["LLM"]
@@ -2710,7 +2716,9 @@ components:
             description: |
                 Where a catalog entry comes from. Resolved in this order, so one key never yields two entries:
 
-                - `BUILT_IN`: a field the product knows, served under its built-in name;
+                - `BUILT_IN`: a field the product knows, served under its built-in name, or under
+                  `additional-metrics.<rawKey>` when a built-in metric reads the key and no built-in
+                  filter does (the filter catalog only);
                 - `DECLARED`: an additional metric field described by a record of the environment, whether or
                   not documents carry it yet;
                 - `DISCOVERED`: an additional metric field found in the environment's documents, with no record;
@@ -2731,10 +2739,12 @@ components:
             type: object
             description: |
                 Catalog flags carried by the entries of the filter catalog (`FilterSpec`) and of the metric
-                definitions of the environment. The analytics definition carries `origin` only, until it is
-                aligned on this schema. The entry's `name` is its wire name: a built-in name (`HTTP_STATUS`),
-                or `additional-metrics.<rawKey>` for an additional metric field with no built-in name
-                (`additional-metrics.long_failover_count`).
+                definitions of the environment; the analytics definition carries `origin`, `namespace` and
+                `lastSeen` of them. The entry's `name` is its wire name: a built-in name (`HTTP_STATUS`), or
+                `additional-metrics.<rawKey>` for an additional metric field with no built-in name
+                (`additional-metrics.long_failover_count`) and, in the filter catalog, for a key a built-in
+                metric reads and no built-in filter reads (`additional-metrics.long_llm-proxy_tokens-sent`,
+                `origin: BUILT_IN`).
             properties:
                 origin:
                     $ref: "#/components/schemas/CatalogOrigin"
@@ -2791,10 +2801,11 @@ components:
                     type: string
                     description: |
                         Canonical unique identifier for this filter, sent back as is in filter conditions, URLs and
-                        saved dashboards. A built-in name is upper snake case; an additional metric field with no
-                        built-in name is `additional-metrics.<rawKey>`, where `rawKey` is a type prefix followed
-                        by one or more segments of letters, digits, `-`, `_` and `/` joined by single dots, 256
-                        characters at most. The two forms never collide.
+                        saved dashboards. A built-in name is upper snake case; an additional metric field no
+                        built-in filter serves is `additional-metrics.<rawKey>`, a key a built-in metric reads
+                        included (`origin: BUILT_IN`), where `rawKey` is a type prefix followed by one or more
+                        segments of letters, digits, `-`, `_` and `/` joined by single dots, 256 characters at
+                        most. The two forms never collide.
                     example: HTTP_GATEWAY_RESPONSE_TIME
                 label:
                     type: string
@@ -4074,8 +4085,10 @@ components:
                 dimensions:
                     type: array
                     description: |
-                        Every facet the returned metrics can be grouped by, with its label, the API kinds it is tied
-                        to and, on a `DECLARED` or `DISCOVERED` entry, the namespace of its key.
+                        Every facet the returned metrics can be grouped by, with its label and the API kinds it is
+                        tied to (on a built-in, those of the definition's metrics listing it, before `origin`
+                        narrows the response) and, on a `DECLARED` or `DISCOVERED` entry, the namespace, description
+                        and last sighting of its key.
                     items:
                         $ref: "#/components/schemas/DimensionDefinition"
                 truncated:
@@ -4188,10 +4201,20 @@ components:
                     description: |
                         Where the entry comes from: `BUILT_IN` for the catalog shipped with the server,
                         `DECLARED` for a record of the environment, `DISCOVERED` for a key found in its data.
+                lastSeen:
+                    type: string
+                    format: date-time
+                    description: |
+                        On a `DECLARED` or `DISCOVERED` entry, `CatalogEntryFlags.lastSeen` of its key: served to
+                        a caller who may read the environment's observability data, absent otherwise and on a
+                        built-in.
+                    example: "2026-10-29T09:41:00Z"
 
         DimensionDefinition:
             type: object
-            description: A facet a metric can be grouped by, with its label, its namespace and the API kinds it is tied to.
+            description: |
+                A facet a metric can be grouped by, with its label, the API kinds it is tied to and, on a
+                `DECLARED` or `DISCOVERED` entry, the namespace, description and last sighting of its key.
             required: [name, label, apiTypes, origin]
             properties:
                 name:
@@ -4201,6 +4224,10 @@ components:
                 label:
                     type: string
                     example: "Status Code"
+                description:
+                    type: string
+                    description: The record's description on a `DECLARED` entry; absent otherwise.
+                    example: "Kafka topic info"
                 namespace:
                     type: string
                     description: |
@@ -4210,11 +4237,15 @@ components:
                 apiTypes:
                     type: array
                     description: |
-                        API kinds the facet is tied to, sorted: the same values `GET /filters/definition` serves for
-                        the filter of the same name. On a `DECLARED` or `DISCOVERED` entry, the kinds its `namespace`
-                        ties the key to, none when the namespace says nothing; on a built-in, the kinds of the
-                        built-in filter of its name (`LLM_PROXY_MODEL` → `["LLM"]`, `HTTP_STATUS` → the HTTP family,
-                        `API` → every kind), none when no filter carries that name.
+                        API kinds the facet is tied to, sorted. On a `DECLARED` or `DISCOVERED` entry, the kinds its
+                        `namespace` ties the key to, the same values `GET /filters/definition` serves for the key,
+                        none when the namespace says nothing. On a built-in, every kind of the definition's metrics
+                        whose `facets` list it, the `ADDITIONAL` ones included: the kinds the engine accepts the
+                        facet for, so each facet of a metric served for a kind carries that kind (`LLM_PROXY_MODEL`
+                        → the kinds of the metrics grouped by it, the HTTP family included; `AUTHZ_PDP` →
+                        `["AUTHZ"]` for `?apiType=AUTHZ`). They follow the requested `apiType` and the metrics the
+                        caller is served (no `DISCOVERED` metric for a caller who may not read the traffic), not
+                        `origin`: the dimensions are tied before the response is narrowed to the asked origins.
                     items:
                         $ref: "#/components/schemas/ApiType"
                 origin:
@@ -4224,6 +4255,14 @@ components:
                         Where the entry comes from: `BUILT_IN` for a facet of the engine catalog, `DECLARED` or
                         `DISCOVERED` for a `keyword_` or `bool_` additional metric field of the environment,
                         named `additional-metrics.<rawKey>` as `by` accepts it.
+                lastSeen:
+                    type: string
+                    format: date-time
+                    description: |
+                        On a `DECLARED` or `DISCOVERED` entry, `CatalogEntryFlags.lastSeen` of its key: served to
+                        a caller who may read the environment's observability data, absent otherwise and on a
+                        built-in.
+                    example: "2026-10-29T09:41:00Z"
 
         DashboardFilter:
             type: object

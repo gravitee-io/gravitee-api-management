@@ -17,21 +17,40 @@ package io.gravitee.gamma.rest.core.observability.analytics.model;
 
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
+import java.time.Instant;
 import java.util.Set;
 
 /**
  * A facet a metric can be grouped by, with the label of the analytics catalog.
  *
+ * @param description the record's description on a {@code DECLARED} facet; {@code null} otherwise
  * @param namespace the namespace of an additional metric field, as the catalog serves it
  *             ({@code AdditionalMetricNamespace}); {@code null} on a built-in and when unknown
- * @param apiTypes the kinds the facet is tied to, as the filter catalog serves them for the filter of the same name:
- *             on an additional metric field, those its namespace ties it to, none when the namespace says nothing;
- *             on a built-in, those of the filter of its name, none when there is no such filter
+ * @param apiTypes the kinds the facet is tied to: on an additional metric field, those its namespace ties it to, none
+ *             when the namespace says nothing; on a built-in, the kinds of the metrics of a definition listing it
+ *             ({@link #tiedTo}), none before the definition is built
+ * @param lastSeen when a document of the environment last carried the key of a {@code DECLARED} or {@code DISCOVERED}
+ *             facet, as the filter catalog serves it: to a traffic reader only, {@code null} otherwise and on a built-in
  * @author GraviteeSource Team
  */
-public record DimensionDefinition(String name, String label, String namespace, Set<ApiType> apiTypes, CatalogOrigin origin) {
+public record DimensionDefinition(
+    String name,
+    String label,
+    String description,
+    String namespace,
+    Set<ApiType> apiTypes,
+    Instant lastSeen,
+    CatalogOrigin origin
+) {
     /** A facet tied to no kind: a built-in, or an additional metric field of no known namespace. */
     public DimensionDefinition(String name, String label, CatalogOrigin origin) {
-        this(name, label, null, Set.of(), origin);
+        this(name, label, null, null, Set.of(), null, origin);
+    }
+
+    /** A built-in facet tied to {@code kinds}, those of the metrics listing it; a dynamic facet keeps its namespace's. */
+    public DimensionDefinition tiedTo(Set<ApiType> kinds) {
+        return origin == CatalogOrigin.BUILT_IN
+            ? new DimensionDefinition(name, label, description, namespace, Set.copyOf(kinds), lastSeen, origin)
+            : this;
     }
 }

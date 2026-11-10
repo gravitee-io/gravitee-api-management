@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.core.observability.filter.use_case;
 
+import static io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinitionFixtures.aMetric;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.gamma.rest.core.observability.catalog.inmemory.MetricDefinitionFixture;
@@ -29,6 +30,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
+import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterContributor;
 import io.gravitee.gamma.rest.infra.adapter.SpiFilterRegistry;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -54,6 +56,7 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
     private final GetObservabilityFilterDefinitionsUseCase useCase = new GetObservabilityFilterDefinitionsUseCase(
         new SpiFilterRegistry(),
         metricDefinitions.repository,
+        metricDefinitions.ports,
         metricDefinitions.ports,
         metricDefinitions.ports,
         metricDefinitions.ports,
@@ -405,6 +408,180 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
                 .filter(spec -> spec.catalog() != null && spec.catalog().origin() != CatalogOrigin.BUILT_IN)
                 .map(FilterSpec::name)
                 .toList();
+        }
+
+        private FilterSpec spec(List<FilterSpec> filters, String name) {
+            return filters
+                .stream()
+                .filter(spec -> spec.name().equals(name))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No entry " + name));
+        }
+    }
+
+    /**
+     * A numeric key a built-in metric reads is filterable under its dynamic name, the engine answering on it, so the
+     * log detail and the filter bar can name and narrow on the tokens and costs (OBS-193, second PR).
+     */
+    @Nested
+    class BuiltInKeys {
+
+        private static final Instant SEEN = Instant.parse("2026-11-10T08:05:00Z");
+        private static final String TOKENS_SENT = "additional-metrics.long_llm-proxy_tokens-sent";
+
+        @Test
+        void should_list_a_numeric_key_a_built_in_metric_reads_and_no_built_in_filter_reads_under_its_dynamic_name() {
+            givenBuiltInMetricReading("long_llm-proxy_tokens-sent", "LLM_PROMPT_TOKEN_SENT", List.of(ApiType.LLM));
+            metricDefinitions.ports.givenDiscovered(
+                List.of(discovered("long_llm-proxy_tokens-sent", AdditionalMetricValueType.LONG)),
+                false
+            );
+
+            var spec = spec(execute(Set.of(), Set.of()), TOKENS_SENT);
+
+            assertThat(spec.label()).as("the metric's label, one source").isEqualTo("LLM_PROMPT_TOKEN_SENT label");
+            assertThat(spec.type()).isEqualTo(FilterType.NUMBER);
+            assertThat(spec.operators()).containsExactly(FilterOperator.EQ, FilterOperator.GTE, FilterOperator.LTE);
+            assertThat(spec.signals()).containsExactlyInAnyOrder(Signal.LOGS, Signal.ANALYTICS);
+            assertThat(spec.apiTypes()).containsExactly(ApiType.LLM);
+            assertThat(spec.description()).isNull();
+            assertThat(spec.takesDecimals()).isFalse();
+            assertThat(spec.catalog()).isEqualTo(
+                new CatalogFlags(CatalogOrigin.BUILT_IN, "long_llm-proxy_tokens-sent", AdditionalMetricValueType.LONG, SEEN, true, null)
+            );
+        }
+
+        @Test
+        void should_take_decimals_on_a_double_key_and_serve_its_last_seen_to_a_traffic_reader_only() {
+            givenBuiltInMetricReading("double_llm-proxy_sent-cost", "LLM_PROMPT_TOKEN_SENT_COST", List.of(ApiType.LLM));
+            metricDefinitions.ports.givenDiscovered(
+                List.of(discovered("double_llm-proxy_sent-cost", AdditionalMetricValueType.DOUBLE)),
+                false
+            );
+            metricDefinitions.ports.givenReadsTraffic(false);
+
+            var spec = spec(execute(Set.of(), Set.of()), "additional-metrics.double_llm-proxy_sent-cost");
+
+            assertThat(spec.takesDecimals()).isTrue();
+            assertThat(spec.origin()).isEqualTo(CatalogOrigin.BUILT_IN);
+            assertThat(spec.catalog().lastSeen()).isNull();
+        }
+
+        /** The logs search serves no Edge row: an Edge key is a filter of the analytics signal only. */
+        @Test
+        void should_serve_an_edge_key_on_the_analytics_signal_only() {
+            givenBuiltInMetricReading("long_edge_tokens_in", "EDGE_TOKENS_IN", List.of(ApiType.EDGE));
+
+            assertThat(spec(execute(Set.of(), Set.of()), "additional-metrics.long_edge_tokens_in").signals()).containsExactly(
+                Signal.ANALYTICS
+            );
+            assertThat(names(execute(Set.of(Signal.LOGS), Set.of()))).doesNotContain("additional-metrics.long_edge_tokens_in");
+            assertThat(names(execute(Set.of(Signal.ANALYTICS), Set.of(ApiType.EDGE)))).contains("additional-metrics.long_edge_tokens_in");
+        }
+
+        @Test
+        void should_serve_the_key_for_the_kinds_of_its_metric_only_and_never_twice_under_any_narrowing() {
+            givenBuiltInMetricReading("long_llm-proxy_tokens-sent", "LLM_PROMPT_TOKEN_SENT", List.of(ApiType.LLM));
+            metricDefinitions.ports.givenDiscovered(
+                List.of(discovered("long_llm-proxy_tokens-sent", AdditionalMetricValueType.LONG)),
+                false
+            );
+
+            assertThat(names(execute(Set.of(), Set.of(ApiType.LLM)))).containsOnlyOnce(TOKENS_SENT);
+            assertThat(names(execute(Set.of(), Set.of(ApiType.MCP)))).doesNotContain(TOKENS_SENT);
+            assertThat(names(execute(Set.of(), Set.of(ApiType.AUTHZ_DECISION)))).doesNotContain(TOKENS_SENT);
+            for (Signal signal : Signal.values()) {
+                for (ApiType kind : ApiType.values()) {
+                    assertThat(names(execute(Set.of(signal), Set.of(kind)))).as(signal + " " + kind).doesNotHaveDuplicates();
+                }
+            }
+        }
+
+        /**
+         * Numeric keys only: a keyword key lists its values nowhere, whether a facet or a metric reads it; a key whose
+         * metric the definition does not serve has no label.
+         */
+        @Test
+        void should_leave_out_a_keyword_key_whatever_built_in_reads_it_and_a_key_of_a_metric_the_definition_does_not_serve() {
+            metricDefinitions.ports.givenBuiltIn("keyword_edge_model", "EDGE_MODEL");
+            metricDefinitions.ports.givenBuiltInMetric(aMetric("EDGE_TOKENS_IN", "TOKENS", List.of(ApiType.EDGE), "EDGE_MODEL"));
+            givenBuiltInMetricReading("keyword_edge_route", "EDGE_ROUTE", List.of(ApiType.EDGE));
+            metricDefinitions.ports.givenBuiltIn("long_edge_tokens_out", "EDGE_TOKENS_OUT");
+
+            assertThat(names(execute(Set.of(), Set.of()))).doesNotContain(
+                "additional-metrics.keyword_edge_model",
+                "additional-metrics.keyword_edge_route",
+                "additional-metrics.long_edge_tokens_out"
+            );
+        }
+
+        /**
+         * The registry the use case serves is narrowed by signal and kind: whether a built-in filter reads the key is
+         * judged on the whole registry, or a filter narrowed out would let its key reappear under the dynamic name.
+         */
+        @Test
+        void should_judge_whether_a_built_in_filter_reads_the_key_on_the_whole_registry_not_on_the_narrowed_one() {
+            var tokensSentFilter = new FilterSpec(
+                "TOKENS_SENT",
+                "Sent token count",
+                FilterType.NUMBER,
+                List.of(FilterOperator.GTE),
+                null,
+                null,
+                Set.of(Signal.ANALYTICS),
+                Set.of(ApiType.LLM)
+            );
+            var contributed = new GetObservabilityFilterDefinitionsUseCase(
+                new SpiFilterRegistry(
+                    List.of(
+                        new FilterContributor() {
+                            @Override
+                            public List<FilterSpec> filters() {
+                                return List.of(tokensSentFilter);
+                            }
+                        }
+                    )
+                ),
+                metricDefinitions.repository,
+                metricDefinitions.ports,
+                metricDefinitions.ports,
+                metricDefinitions.ports,
+                metricDefinitions.ports,
+                metricDefinitions.catalog
+            );
+            metricDefinitions.ports.givenBuiltIn("long_llm-proxy_tokens-sent", "TOKENS_SENT", "LLM_PROMPT_TOKEN_SENT");
+            metricDefinitions.ports.givenBuiltInMetric(aMetric("LLM_PROMPT_TOKEN_SENT", "TOKENS", List.of(ApiType.LLM)));
+
+            var logsOnly = contributed
+                .execute(new GetObservabilityFilterDefinitionsUseCase.Input(ORGANIZATION, ENVIRONMENT, Set.of(Signal.LOGS), Set.of()))
+                .filters();
+            var all = contributed
+                .execute(new GetObservabilityFilterDefinitionsUseCase.Input(ORGANIZATION, ENVIRONMENT, Set.of(), Set.of()))
+                .filters();
+
+            assertThat(names(logsOnly))
+                .as("the analytics-only filter is narrowed out; its key stays read")
+                .doesNotContain("TOKENS_SENT", TOKENS_SENT);
+            assertThat(names(all)).contains("TOKENS_SENT").doesNotContain(TOKENS_SENT);
+        }
+
+        private void givenBuiltInMetricReading(String rawKey, String metric, List<ApiType> kinds) {
+            metricDefinitions.ports.givenBuiltIn(rawKey, metric);
+            metricDefinitions.ports.givenBuiltInMetric(aMetric(metric, "TOKENS", kinds));
+        }
+
+        private DiscoveredAdditionalMetric discovered(String rawKey, AdditionalMetricValueType valueType) {
+            return new DiscoveredAdditionalMetric(rawKey, valueType, SEEN);
+        }
+
+        private List<FilterSpec> execute(Set<Signal> signals, Set<ApiType> apiTypes) {
+            return useCase
+                .execute(new GetObservabilityFilterDefinitionsUseCase.Input(ORGANIZATION, ENVIRONMENT, signals, apiTypes))
+                .filters();
+        }
+
+        private static List<String> names(List<FilterSpec> filters) {
+            return filters.stream().map(FilterSpec::name).toList();
         }
 
         private FilterSpec spec(List<FilterSpec> filters, String name) {

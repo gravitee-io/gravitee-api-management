@@ -46,6 +46,7 @@ import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
+import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.List;
 import org.junit.jupiter.api.AfterAll;
@@ -115,8 +116,14 @@ class AnalyticsDefinitionResourceTest extends AbstractResourceTest {
         assertThat(body.get("dimensions").get(1).get("name").asText()).isEqualTo("LLM_PROXY_MODEL");
         assertThat(body.get("dimensions").get(1).get("label").asText()).isEqualTo("LLM_PROXY_MODEL label");
         assertThat(body.get("dimensions").get(1).get("origin").asText()).isEqualTo("BUILT_IN");
-        assertThat(body.get("dimensions").get(1).get("apiTypes")).isEmpty();
+        assertThat(body.get("dimensions").get(1).get("apiTypes"))
+            .as("the kinds of the metrics listing the facet")
+            .extracting(JsonNode::asText)
+            .containsExactly("LLM");
+        assertThat(body.get("dimensions").get(0).get("apiTypes")).extracting(JsonNode::asText).containsExactly("HTTP_PROXY", "LLM");
         assertThat(body.get("dimensions").get(1).has("namespace")).isFalse();
+        assertThat(body.get("dimensions").get(1).has("description")).isFalse();
+        assertThat(body.get("dimensions").get(1).has("lastSeen")).isFalse();
     }
 
     @Test
@@ -161,7 +168,7 @@ class AnalyticsDefinitionResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void should_serve_the_namespace_and_description_of_an_additional_metric_and_omit_them_when_unknown() {
+    void should_serve_the_namespace_description_and_last_seen_of_an_additional_metric_and_omit_them_when_unknown() {
         givenDefinition(
             new MetricDefinition(
                 "additional-metrics.long_llm-proxy_tokens-cached",
@@ -175,15 +182,18 @@ class AnalyticsDefinitionResourceTest extends AbstractResourceTest {
                     new DimensionDefinition(
                         "additional-metrics.bool_pii_detected",
                         "Detected",
+                        "PII found in the prompt",
                         "pii",
                         new LinkedHashSet<>(List.of(ApiType.LLM, ApiType.HTTP_PROXY)),
+                        Instant.parse("2026-11-10T08:05:00Z"),
                         CatalogOrigin.DISCOVERED
                     ),
                     new DimensionDefinition("additional-metrics.keyword_fraud-check_tier", "Fraud check tier", CatalogOrigin.DISCOVERED)
                 ),
                 List.of("API"),
                 CatalogOrigin.DECLARED,
-                null
+                null,
+                Instant.parse("2026-11-10T08:05:00Z")
             ),
             anAdditionalMetric("additional-metrics.long_failover_count", "Failover count", null, CatalogOrigin.DISCOVERED)
         );
@@ -197,12 +207,16 @@ class AnalyticsDefinitionResourceTest extends AbstractResourceTest {
         assertThat(cached.get("facets"))
             .extracting(JsonNode::asText)
             .containsExactly("additional-metrics.bool_pii_detected", "additional-metrics.keyword_fraud-check_tier");
+        assertThat(cached.get("lastSeen").asText()).isEqualTo("2026-11-10T08:05:00Z");
         JsonNode failover = body.get("families").get(0).get("metrics").get(1);
         assertThat(failover.has("namespace")).isFalse();
         assertThat(failover.has("description")).isFalse();
+        assertThat(failover.has("lastSeen")).isFalse();
         JsonNode dimension = body.get("dimensions").get(0);
         assertThat(dimension.get("name").asText()).isEqualTo("additional-metrics.bool_pii_detected");
         assertThat(dimension.get("namespace").asText()).isEqualTo("pii");
+        assertThat(dimension.get("description").asText()).isEqualTo("PII found in the prompt");
+        assertThat(dimension.get("lastSeen").asText()).isEqualTo("2026-11-10T08:05:00Z");
         assertThat(dimension.get("apiTypes"))
             .as("sorted, whatever order the kinds are held in")
             .extracting(JsonNode::asText)
@@ -211,6 +225,8 @@ class AnalyticsDefinitionResourceTest extends AbstractResourceTest {
         JsonNode unscoped = body.get("dimensions").get(1);
         assertThat(unscoped.get("name").asText()).isEqualTo("additional-metrics.keyword_fraud-check_tier");
         assertThat(unscoped.has("namespace")).isFalse();
+        assertThat(unscoped.has("description")).isFalse();
+        assertThat(unscoped.has("lastSeen")).isFalse();
         assertThat(unscoped.get("apiTypes")).isEmpty();
     }
 
