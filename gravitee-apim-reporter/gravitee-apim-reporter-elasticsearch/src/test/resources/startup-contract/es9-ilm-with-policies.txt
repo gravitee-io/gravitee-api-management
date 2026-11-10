@@ -1,0 +1,1634 @@
+### GET /_alias/gravitee-health
+
+### GET /_alias/gravitee-log
+
+### GET /_alias/gravitee-monitor
+
+### GET /_alias/gravitee-request
+
+### GET /_alias/gravitee-v4-log
+
+### GET /_alias/gravitee-v4-message-log
+
+### GET /_alias/gravitee-v4-message-metrics
+
+### GET /_alias/gravitee-v4-metrics
+
+### PUT /_index_template/gravitee-decisions
+{
+    "index_patterns": ["gravitee-decisions*"],
+    "data_stream": {},
+    "template": {
+        "settings": {
+            "index.lifecycle.name": "decisions-policy",
+            "index.number_of_shards":1,
+            "index.number_of_replicas":1,
+            "index.refresh_interval": "5s"
+        },
+        "mappings": {
+"dynamic_templates": [
+    {
+        "additional_long_metrics": {
+            "path_match": "additional-metrics.long_*",
+            "mapping": {
+                "type": "long"
+            }
+        }
+    },
+    {
+        "additional_int_metrics": {
+            "path_match": "additional-metrics.int_*",
+            "mapping": {
+                "type": "integer"
+            }
+        }
+    },
+    {
+        "additional_double_metrics": {
+            "path_match": "additional-metrics.double_*",
+            "mapping": {
+                "type": "double"
+            }
+        }
+    },
+    {
+        "additional_bool_metrics": {
+            "path_match": "additional-metrics.bool_*",
+            "mapping": {
+                "type": "boolean"
+            }
+        }
+    },
+    {
+        "additional_keyword_metrics": {
+            "path_match": "additional-metrics.keyword_*",
+            "mapping": {
+                "type": "keyword",
+                "ignore_above": 1024
+            }
+        }
+    },
+    {
+        "additional_string_metrics": {
+            "path_match": "additional-metrics.string_*",
+            "mapping": {
+                "type": "text"
+            }
+        }
+    },
+    {
+        "additional_json_metrics": {
+            "path_match": "additional-metrics.json_*",
+            "mapping": {
+                "type": "text"
+            }
+        }
+    }
+],
+"properties": {
+    "@timestamp": {
+        "type": "date"
+    },
+    "gw-id": {
+        "type": "keyword"
+    },
+    "org-id": {
+        "type": "keyword"
+    },
+    "env-id": {
+        "type": "keyword"
+    },
+    "api-id": {
+        "type": "keyword"
+    },
+    "plan-id": {
+        "type": "keyword"
+    },
+    "app-id": {
+        "type": "keyword"
+    },
+    "doc-type": {
+        "type": "keyword"
+    },
+    "event-id": {
+        "type": "keyword"
+    },
+    "case-id": {
+        "type": "keyword"
+    },
+    "batch-id": {
+        "type": "keyword"
+    },
+    "phase": {
+        "type": "keyword"
+    },
+    "decision-point-type": {
+        "type": "keyword"
+    },
+    "decision-point-id": {
+        "type": "keyword"
+    },
+    "decision-point-version": {
+        "type": "keyword"
+    },
+    "checkpoint": {
+        "type": "keyword",
+        "ignore_above": 1024
+    },
+    "caller": {
+        "type": "keyword"
+    },
+    "subject-type": {
+        "type": "keyword",
+        "ignore_above": 1024
+    },
+    "subject-id": {
+        "type": "keyword",
+        "ignore_above": 1024
+    },
+    "actor-type": {
+        "type": "keyword",
+        "ignore_above": 1024
+    },
+    "actor-id": {
+        "type": "keyword",
+        "ignore_above": 1024
+    },
+    "action": {
+        "type": "keyword",
+        "ignore_above": 1024
+    },
+    "resource-type": {
+        "type": "keyword",
+        "ignore_above": 1024
+    },
+    "resource-id": {
+        "type": "keyword",
+        "ignore_above": 1024
+    },
+    "args-hash": {
+        "type": "keyword",
+        "ignore_above": 1024
+    },
+    "outcome": {
+        "type": "keyword"
+    },
+    "enforced": {
+        "type": "keyword"
+    },
+    "verdict": {
+        "type": "keyword",
+        "ignore_above": 1024
+    },
+    "indeterminate-cause": {
+        "type": "keyword"
+    },
+    "confidence": {
+        "type": "half_float"
+    },
+    "reasons": {
+        "type": "keyword"
+    },
+    "matched-rules": {
+        "type": "nested",
+        "properties": {
+            "id": { "type": "keyword" },
+            "name": { "type": "keyword" },
+            "version": { "type": "keyword" },
+            "effect": { "type": "keyword" },
+            "annotations": {
+                "properties": {
+                    "guardrail": { "type": "keyword" },
+                    "location": { "type": "keyword" }
+                }
+            }
+        }
+    },
+    "transformed": {
+        "type": "boolean"
+    },
+    "transformation-type": {
+        "type": "keyword"
+    },
+    "required-approver": {
+        "type": "keyword",
+        "ignore_above": 1024
+    },
+    "decider-type": {
+        "type": "keyword",
+        "ignore_above": 1024
+    },
+    "decider-id": {
+        "type": "keyword",
+        "ignore_above": 1024
+    },
+    "channel": {
+        "type": "keyword"
+    },
+    "request-id": {
+        "type": "keyword"
+    },
+    "trace-id": {
+        "type": "keyword"
+    },
+    "conversation-id": {
+        "type": "keyword"
+    },
+    "mission-id": {
+        "type": "keyword"
+    },
+    "status": {
+        "type": "keyword"
+    },
+    "error-type": {
+        "type": "keyword"
+    },
+    "duration-nanos": {
+        "type": "long"
+    },
+    "waited-nanos": {
+        "type": "long"
+    }
+}
+        }
+    },
+    "priority": 9344593,
+    "_meta": {
+        "description": "Template for decisions time series data stream"
+    }
+}
+
+### PUT /_index_template/gravitee-event-metrics
+{
+    "index_patterns": ["gravitee-event-metrics*"],
+    "data_stream": {},
+    "template": {
+        "settings": {
+            "index.lifecycle.name": "event-metrics-policy",
+            "index.number_of_shards":1,
+            "index.number_of_replicas":1,
+            "index.refresh_interval": "5s"
+        },
+        "mappings": {
+"properties": {
+    "gw-id": {
+        "type": "keyword"
+    },
+    "org-id": {
+        "type": "keyword"
+    },
+    "env-id": {
+        "type": "keyword"
+    },
+    "api-id": {
+        "type": "keyword"
+    },
+    "plan-id": {
+        "type": "keyword"
+    },
+    "app-id": {
+        "type": "keyword"
+    },
+    "topic": {
+        "type": "keyword"
+    },
+    "doc-type": {
+        "type": "keyword"
+    },
+    "operation": {
+        "type": "keyword"
+    },
+    "downstream-publish-messages-count-increment": {
+        "type": "integer"
+    },
+    "downstream-publish-message-bytes-increment": {
+        "type": "long"
+    },
+    "upstream-publish-messages-count-increment": {
+        "type": "integer"
+    },
+    "upstream-publish-message-bytes-increment": {
+        "type": "long"
+    },
+    "downstream-subscribe-messages-count-increment": {
+        "type": "integer"
+    },
+    "downstream-subscribe-message-bytes-increment": {
+        "type": "long"
+    },
+    "upstream-subscribe-messages-count-increment": {
+        "type": "integer"
+    },
+    "upstream-subscribe-message-bytes-increment": {
+        "type": "long"
+    },
+    "downstream-active-connections": {
+        "type": "integer"
+    },
+    "upstream-active-connections": {
+        "type": "integer"
+    },
+    "upstream-authenticated-connections": {
+        "type": "integer"
+    },
+    "downstream-authenticated-connections": {
+        "type": "integer"
+    },
+    "downstream-authentication-failures-count-increment": {
+        "type": "integer"
+    },
+    "upstream-authentication-failures-count-increment": {
+        "type": "integer"
+    },
+    "downstream-authentication-successes-count-increment": {
+        "type": "integer"
+    },
+    "upstream-authentication-successes-count-increment": {
+        "type": "integer"
+    },
+    "@timestamp": {
+        "type": "date"
+    },
+    "upstream-durations-nanos": {
+        "type": "long"
+    },
+    "endpoint-durations-nanos": {
+        "type": "long"
+    },
+    "downstream-durations-nanos": {
+        "type": "long"
+    },
+    "upstream-count-increment": {
+        "type": "integer"
+    },
+    "endpoint-upstream-count-increment": {
+        "type": "integer"
+    },
+    "endpoint-downstream-count-increment": {
+        "type": "integer"
+    },
+    "downstream-count-increment": {
+        "type": "integer"
+    }
+}
+        }
+    },
+    "priority": 9344593,
+    "_meta": {
+        "description": "Template for event metrics time series data stream"
+    }
+}
+
+### PUT /_index_template/gravitee-health
+{
+    "index_patterns": ["gravitee-health*"],
+    "template": {
+        "settings": {
+            "index.lifecycle.name": "health-policy",
+            "index.lifecycle.rollover_alias": "gravitee-health",
+            "index.number_of_shards":1,
+            "index.number_of_replicas":1,
+            "index.refresh_interval": "5s"
+            
+        },
+        "mappings": {
+            "properties": {
+                "api": {
+                    "type": "keyword"
+                },
+                "api-name": {
+                    "type": "keyword"
+                },
+                "available": {
+                    "type": "boolean",
+                    "index": false
+                },
+                "endpoint": {
+                    "type": "keyword"
+                },
+                "gateway": {
+                    "type": "keyword"
+                },
+                "response-time": {
+                    "type": "integer"
+                },
+                "state": {
+                    "type": "integer",
+                    "index": false
+                },
+                "transition": {
+                    "type": "boolean"
+                },
+                "steps": {
+                    "type": "object",
+                    "enabled": false
+                },
+                "success": {
+                    "type": "boolean",
+                    "index": true
+                }
+            }
+        }
+    }
+}
+
+### PUT /_index_template/gravitee-log
+{
+    "index_patterns": ["gravitee-log*"],
+    "template": {
+        "settings": {
+            "index.lifecycle.name": "log-policy",
+            "index.lifecycle.rollover_alias": "gravitee-log",
+            "index.number_of_shards":1,
+            "index.number_of_replicas":1,
+            "index.refresh_interval": "5s"
+            ,
+            "analysis": {
+                "analyzer": {
+                    "gravitee_body_analyzer": {
+                        "type": "custom",
+                        "tokenizer": "whitespace",
+                        "filter": [
+                            "lowercase"
+                        ]
+                    }
+                }
+            }
+            
+        },
+        "mappings": {
+            "properties": {
+                "@timestamp": {
+                    "type": "date"
+                },
+                "api": {
+                    "type": "keyword"
+                },
+                "api-name": {
+                    "type": "keyword"
+                },
+                "client-request": {
+                    "type": "object",
+                    "properties": {
+                        "body": {
+    "type": "text",
+    "analyzer": "gravitee_body_analyzer",
+    "index_options": "docs",
+    "norms": false
+}
+,
+                        "headers":  {
+                           "enabled":  false,
+                           "type": "object"
+                       }
+                    }
+                },
+                "client-response": {
+                    "type": "object",
+                    "properties": {
+                        "body": {
+    "type": "text",
+    "analyzer": "gravitee_body_analyzer",
+    "index_options": "docs",
+    "norms": false
+}
+,
+                        "headers":  {
+                           "enabled":  false,
+                           "type": "object"
+                       }
+                    }
+                },
+                "proxy-request": {
+                    "type": "object",
+                    "properties": {
+                        "body": {
+    "type": "text",
+    "analyzer": "gravitee_body_analyzer",
+    "index_options": "docs",
+    "norms": false
+}
+,
+                        "headers":  {
+                           "enabled":  false,
+                           "type": "object"
+                       }
+                    }
+                },
+                "proxy-response": {
+                    "type": "object",
+                    "properties": {
+                        "body": {
+    "type": "text",
+    "analyzer": "gravitee_body_analyzer",
+    "index_options": "docs",
+    "norms": false
+}
+,
+                        "headers": {
+                            "enabled":  false,
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+### PUT /_index_template/gravitee-monitor
+{
+    "index_patterns": ["gravitee-monitor*"],
+    "template": {
+        "settings": {
+            "index.lifecycle.name": "monitor-policy",
+            "index.lifecycle.rollover_alias": "gravitee-monitor",
+            "index.number_of_shards":1,
+            "index.number_of_replicas":1,
+            "index.refresh_interval": "5s"
+            
+        },
+        "mappings": {
+            "properties": {
+                "os": {
+                    "properties": {
+                        "cpu": {
+                            "properties": {
+                                "load_average": {
+                                    "properties": {
+                                        "1m": {
+                                            "type": "float"
+                                        },
+                                        "5m": {
+                                            "type": "float"
+                                        },
+                                        "15m": {
+                                            "type": "float"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "gateway": {
+                    "type": "keyword"
+                },
+                "hostname": {
+                    "type": "keyword"
+                }
+            }
+        }
+    }
+}
+
+### PUT /_index_template/gravitee-request
+{
+    "index_patterns": ["gravitee-request*"],
+    "template": {
+        "settings": {
+            "index.lifecycle.name": "request-policy",
+            "index.lifecycle.rollover_alias": "gravitee-request",
+            "index.number_of_shards":1,
+            "index.number_of_replicas":1,
+            "index.refresh_interval": "5s"
+            
+        },
+        "mappings": {
+            "properties": {
+                "@timestamp": {
+                    "type": "date"
+                },
+                "org-id": {
+                    "type": "keyword"
+                },
+                "env-id": {
+                    "type": "keyword"
+                },
+                "api": {
+                    "type": "keyword"
+                },
+                "api-name": {
+                    "type": "keyword"
+                },
+                "api-response-time": {
+                    "type": "long"
+                },
+                "application": {
+                    "type": "keyword"
+                },
+                "endpoint": {
+                    "type": "keyword"
+                },
+                "gateway": {
+                    "type": "keyword"
+                },
+                "local-address": {
+                    "type": "keyword",
+                    "index": false
+                },
+                "message": {
+                    "type": "text"
+                },
+                "method": {
+                    "type": "short"
+                },
+                "plan": {
+                    "type": "keyword"
+                },
+                "proxy-latency": {
+                    "type": "integer"
+                },
+                "remote-address": {
+                    "type": "ip"
+                },
+                "geoip" : {
+                    "properties": {
+                        "continent_name":{
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "country_iso_code":{
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "region_name":{
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "city_name":{
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "location": {
+                            "type": "geo_point"
+                        }
+                    }
+                },
+                "request-content-length": {
+                    "type": "long",
+                    "index": false
+                },
+                "response-content-length": {
+                    "type": "long",
+                    "index": false
+                },
+                "response-time": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "short"
+                },
+                "tenant": {
+                    "type": "keyword"
+                },
+                "transaction": {
+                    "type": "keyword"
+                },
+                "uri": {
+                    "type": "keyword"
+                },
+                "path": {
+                    "type": "keyword"
+                },
+                "mapped-path": {
+                    "type": "keyword"
+                },
+                "host": {
+                    "type": "keyword"
+                },
+                "user-agent": {
+                    "type": "keyword"
+                },
+                "user_agent": {
+                    "properties": {
+                        "device": {
+                            "properties": {
+                                "name": {
+                                    "type": "keyword"
+                                }
+                            }
+                        },
+                        "name": {
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "original": {
+                            "type": "text"
+                        },
+                        "os": {
+                            "properties": {
+                                "full": {
+                                    "type": "text"
+                                },
+                                "name": {
+                                    "type": "keyword",
+                                    "index": true
+                                },
+                                "version": {
+                                    "type": "keyword",
+                                    "index": true
+                                }
+                            }
+                        },
+                        "os_name": {
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "version": {
+                            "type": "text"
+                        }
+                    }
+                },
+                "user": {
+                    "type": "keyword"
+                },
+                "security-type": {
+                    "type": "keyword",
+                    "index": true
+                },
+                "security-token": {
+                    "type": "keyword",
+                    "index": true
+                },
+                "error-key": {
+                    "type": "keyword",
+                    "index": true
+                },
+                "error-component-type": {
+                    "type": "keyword",
+                    "index": true
+                },
+                "error-component-name": {
+                    "type": "keyword",
+                    "index": true
+                },
+                "subscription": {
+                    "type": "keyword"
+                },
+                "zone": {
+                    "type": "keyword"
+                },
+                "warnings": {
+                    "type": "nested",
+                    "properties": {
+                        "key": {
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "message": {
+                            "type": "text"
+                        },
+                        "component-type": {
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "component-name": {
+                            "type": "keyword",
+                            "index": true
+                        }
+                    }
+                },
+                "api-id": {
+                    "type": "alias",
+                    "path": "api"
+                },
+                "application-id": {
+                    "type": "alias",
+                    "path": "application"
+                },
+                "plan-id": {
+                    "type": "alias",
+                    "path": "plan"
+                },
+                "gateway-response-time-ms": {
+                    "type": "alias",
+                    "path": "response-time"
+                },
+                "http-method": {
+                    "type": "alias",
+                    "path": "method"
+                },
+                "transaction-id": {
+                    "type": "alias",
+                    "path": "transaction"
+                },
+                "subscription-id": {
+                    "type": "alias",
+                    "path": "subscription"
+                },
+                "gateway-latency-ms": {
+                    "type": "alias",
+                    "path": "proxy-latency"
+                },
+                "endpoint-response-time-ms": {
+                    "type": "alias",
+                    "path": "api-response-time"
+                }
+                
+            },
+            "dynamic_templates": [
+                {
+                    "strings_as_keywords": {
+                        "path_match": "custom.*",
+                        "match_mapping_type": "string",
+                        "mapping": {
+                            "type": "keyword"
+                        }
+                    }
+                },
+                {
+                    "additional_long_metrics": {
+                        "path_match": "additional-metrics.long_*",
+                        "match_mapping_type": "long",
+                        "mapping": {
+                            "type": "long"
+                        }
+                    }
+                },
+                {
+                    "additional_keyword_metrics": {
+                        "path_match": "additional-metrics.keyword_*",
+                        "mapping": {
+                            "type": "keyword",
+                            "ignore_above": 1024
+                        }
+                    }
+                },
+                {
+                    "additional_boolean_metrics": {
+                        "path_match": "additional-metrics.bool_*",
+                        "mapping": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                {
+                    "additional_double_metrics": {
+                        "path_match": "additional-metrics.double_*",
+                        "mapping": {
+                            "type": "double"
+                        }
+                    }
+                },
+                {
+                    "additional_int_metrics": {
+                        "path_match": "additional-metrics.int_*",
+                        "mapping": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                {
+                    "additional_string_metrics": {
+                        "path_match": "additional-metrics.string_*",
+                        "mapping": {
+                            "type": "text"
+                        }
+                    }
+                },
+                {
+                    "additional_json_metrics": {
+                        "path_match": "additional-metrics.json_*",
+                        "mapping": {
+                            "type": "text"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
+
+### PUT /_index_template/gravitee-v4-log
+{
+    "index_patterns": ["gravitee-v4-log*"],
+    "template": {
+        "settings": {
+            "index.lifecycle.name": "log-policy",
+            "index.lifecycle.rollover_alias": "gravitee-v4-log",
+            "index.number_of_shards":1,
+            "index.number_of_replicas":1,
+            "index.refresh_interval": "5s"
+            ,
+            "analysis": {
+                "analyzer": {
+                    "gravitee_body_analyzer": {
+                        "type": "custom",
+                        "tokenizer": "whitespace",
+                        "filter": [
+                            "lowercase"
+                        ]
+                    }
+                }
+            }
+            
+        },
+        "mappings": {
+            "properties": {
+                "@timestamp": {
+                    "type": "date"
+                },
+                "api-id": {
+                    "type": "keyword"
+                },
+                "api-name": {
+                    "type": "keyword"
+                },
+                "api-product-id": {
+                    "type": "keyword"
+                },
+                "request-id": {
+                    "type": "keyword"
+                },
+                "trace-id": {
+                    "type": "keyword"
+                },
+                "span-id": {
+                    "type": "keyword"
+                },
+                "client-identifier": {
+                    "type": "keyword"
+                },
+                "request-ended": {
+                    "type": "boolean"
+                },
+                "connection-phase": {
+                    "type": "keyword"
+                },
+                "entrypoint-request": {
+                    "type": "object",
+                    "properties": {
+                        "body": {
+    "type": "text",
+    "analyzer": "gravitee_body_analyzer",
+    "index_options": "docs",
+    "norms": false
+}
+,
+                        "headers":  {
+                           "enabled":  false,
+                           "type": "object"
+                       }
+                    }
+                },
+                "entrypoint-response": {
+                    "type": "object",
+                    "properties": {
+                        "body": {
+    "type": "text",
+    "analyzer": "gravitee_body_analyzer",
+    "index_options": "docs",
+    "norms": false
+}
+,
+                        "headers":  {
+                           "enabled":  false,
+                           "type": "object"
+                       }
+                    }
+                },
+                "endpoint-request": {
+                    "type": "object",
+                    "properties": {
+                        "body": {
+    "type": "text",
+    "analyzer": "gravitee_body_analyzer",
+    "index_options": "docs",
+    "norms": false
+}
+,
+                        "headers":  {
+                           "enabled":  false,
+                           "type": "object"
+                       }
+                    }
+                },
+                "endpoint-response": {
+                    "type": "object",
+                    "properties": {
+                        "body": {
+    "type": "text",
+    "analyzer": "gravitee_body_analyzer",
+    "index_options": "docs",
+    "norms": false
+}
+,
+                        "headers": {
+                            "enabled":  false,
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+### PUT /_index_template/gravitee-v4-message-log
+{
+    "index_patterns": ["gravitee-v4-message-log*"],
+    "template": {
+        "settings": {
+            "index.lifecycle.name": "log-policy",
+            "index.lifecycle.rollover_alias": "gravitee-v4-message-log",
+            "index.number_of_shards":1,
+            "index.number_of_replicas":1,
+            "index.refresh_interval": "5s"
+            ,
+            "analysis": {
+                "analyzer": {
+                    "gravitee_body_analyzer": {
+                        "type": "custom",
+                        "tokenizer": "whitespace",
+                        "filter": [
+                            "lowercase"
+                        ]
+                    }
+                }
+            }
+            
+        },
+        "mappings": {
+            "properties": {
+                "@timestamp": {
+                    "type": "date"
+                },
+                "api-id": {
+                    "type": "keyword"
+                },
+                "api-name": {
+                    "type": "keyword"
+                },
+                "request-id": {
+                    "type": "keyword"
+                },
+                "client-identifier": {
+                    "type": "keyword"
+                },
+                "correlation-id": {
+                    "type": "keyword"
+                },
+                "parent-correlation-id": {
+                    "type": "keyword"
+                },
+                "operation": {
+                    "type": "keyword"
+                },
+                "connector-type": {
+                    "type": "keyword"
+                },
+                "connector-id": {
+                    "type": "keyword"
+                },
+                "message": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "keyword"
+                        },
+                        "payload": {
+    "type": "text",
+    "analyzer": "gravitee_body_analyzer",
+    "index_options": "docs",
+    "norms": false
+}
+,
+                        "headers":{
+                            "enabled": false,
+                            "type": "object"
+                        },
+                        "metadata":  {
+                           "enabled": false,
+                           "type": "object"
+                        },
+                        "error":  {
+                            "type": "boolean"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+### PUT /_index_template/gravitee-v4-message-metrics
+{
+    "index_patterns": ["gravitee-v4-message-metrics*"],
+    "template": {
+        "settings": {
+            "index.lifecycle.name": "request-policy",
+            "index.lifecycle.rollover_alias": "gravitee-v4-message-metrics",
+            "index.number_of_shards":1,
+            "index.number_of_replicas":1,
+            "index.refresh_interval": "5s"
+            
+        },
+        "mappings": {
+            "properties": {
+                "gateway": {
+                    "type": "keyword"
+                },
+                "org-id": {
+                    "type": "keyword"
+                },
+                "env-id": {
+                    "type": "keyword"
+                },
+                "@timestamp": {
+                    "type": "date"
+                },
+                "api-id": {
+                    "type": "keyword"
+                },
+                "api-name": {
+                    "type": "keyword"
+                },
+                "request-id": {
+                    "type": "keyword"
+                },
+                "client-identifier": {
+                    "type": "keyword"
+                },
+                "correlation-id": {
+                    "type": "keyword"
+                },
+                "parent-correlation-id": {
+                    "type": "keyword"
+                },
+                "operation": {
+                    "type": "keyword"
+                },
+                "connector-type": {
+                    "type": "keyword"
+                },
+                "connector-id": {
+                    "type": "keyword"
+                },
+                "plan-id": {
+                    "type": "keyword"
+                },
+                "application-id": {
+                    "type": "keyword"
+                },
+                "entrypoint-id": {
+                    "type": "keyword"
+                },
+                "schema-version": {
+                    "type": "short"
+                },
+                "content-length": {
+                    "type": "integer"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "error-count": {
+                    "type": "integer"
+                },
+                "count-increment": {
+                    "type": "integer"
+                },
+                "error-count-increment": {
+                    "type": "integer"
+                },
+                "error": {
+                    "type": "boolean"
+                },
+                "gateway-latency-ms": {
+                    "type": "integer"
+                }
+                
+            },
+            "dynamic_templates": [
+                {
+                    "strings_as_keywords": {
+                        "path_match": "custom.*",
+                        "match_mapping_type": "string",
+                        "mapping": {
+                            "type": "keyword"
+                        }
+                    }
+                },
+                {
+                    "additional_long_metrics": {
+                        "path_match": "additional-metrics.long_*",
+                        "match_mapping_type": "long",
+                        "mapping": {
+                            "type": "long"
+                        }
+                    }
+                },
+                {
+                    "additional_keyword_metrics": {
+                        "path_match": "additional-metrics.keyword_*",
+                        "mapping": {
+                            "type": "keyword",
+                            "ignore_above": 1024
+                        }
+                    }
+                },
+                {
+                    "additional_boolean_metrics": {
+                        "path_match": "additional-metrics.bool_*",
+                        "mapping": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                {
+                    "additional_double_metrics": {
+                        "path_match": "additional-metrics.double_*",
+                        "mapping": {
+                            "type": "double"
+                        }
+                    }
+                },
+                {
+                    "additional_int_metrics": {
+                        "path_match": "additional-metrics.int_*",
+                        "mapping": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                {
+                    "additional_string_metrics": {
+                        "path_match": "additional-metrics.string_*",
+                        "mapping": {
+                            "type": "text"
+                        }
+                    }
+                },
+                {
+                    "additional_json_metrics": {
+                        "path_match": "additional-metrics.json_*",
+                        "mapping": {
+                            "type": "text"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
+
+### PUT /_index_template/gravitee-v4-metrics
+{
+    "index_patterns": ["gravitee-v4-metrics*"],
+    "template": {
+        "settings": {
+            "index.lifecycle.name": "request-policy",
+            "index.lifecycle.rollover_alias": "gravitee-v4-metrics",
+            "index.number_of_shards":1,
+            "index.number_of_replicas":1,
+            "index.refresh_interval": "5s"
+            
+        },
+        "mappings": {
+            "properties": {
+                "gateway": {
+                    "type": "keyword"
+                },
+                "org-id": {
+                    "type": "keyword"
+                },
+                "env-id": {
+                    "type": "keyword"
+                },
+                "@timestamp": {
+                    "type": "date"
+                },
+                "transaction-id": {
+                    "type": "keyword"
+                },
+                "api-id": {
+                    "type": "keyword"
+                },
+                "api-name": {
+                    "type": "keyword"
+                },
+                "api-product-id": {
+                    "type": "keyword"
+                },
+                "request-id": {
+                    "type": "keyword"
+                },
+                "trace-id": {
+                    "type": "keyword"
+                },
+                "span-id": {
+                    "type": "keyword"
+                },
+                "decision-id": {
+                    "type": "keyword"
+                },
+                "plan-id": {
+                    "type": "keyword"
+                },
+                "application-id": {
+                    "type": "keyword"
+                },
+                "subscription-id": {
+                    "type": "keyword"
+                },
+                "client-identifier": {
+                    "type": "keyword"
+                },
+                "tenant": {
+                    "type": "keyword"
+                },
+                "zone": {
+                    "type": "keyword"
+                },
+                "http-method": {
+                    "type": "short"
+                },
+                "local-address": {
+                    "type": "keyword",
+                    "index": false
+                },
+                "remote-address": {
+                    "type": "ip"
+                },
+                "host": {
+                    "type": "keyword"
+                },
+                "uri": {
+                    "type": "keyword"
+                },
+                "path-info": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword"
+                        }
+                    }
+                },
+                "mapped-path": {
+                    "type": "keyword"
+                },
+                "user-agent": {
+                    "type": "keyword"
+                },
+                "user_agent": {
+                    "properties": {
+                        "device": {
+                            "properties": {
+                                "name": {
+                                    "type": "keyword"
+                                }
+                            }
+                        },
+                        "name": {
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "original": {
+                            "type": "text"
+                        },
+                        "os": {
+                            "properties": {
+                                "full": {
+                                    "type": "text"
+                                },
+                                "name": {
+                                    "type": "keyword",
+                                    "index": true
+                                },
+                                "version": {
+                                    "type": "keyword",
+                                    "index": true
+                                }
+                            }
+                        },
+                        "os_name": {
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "version": {
+                            "type": "text"
+                        }
+                    }
+                },
+                "request-content-length": {
+                    "type": "long",
+                    "index": false
+                },
+                "request-ended": {
+                    "type": "boolean"
+                },
+                "connection-phase": {
+                    "type": "keyword"
+                },
+                "entrypoint-id": {
+                    "type": "keyword"
+                },
+                "endpoint": {
+                    "type": "keyword"
+                },
+                "endpoint-response-time-ms": {
+                    "type": "long"
+                },
+                "endpoint-response-ttfb-ms": {
+                    "type": "long"
+                },
+                "endpoint-connect-time-ms": {
+                    "type": "long"
+                },
+                "endpoint-response-time-ns": {
+                    "type": "long"
+                },
+                "endpoint-response-ttfb-ns": {
+                    "type": "long"
+                },
+                "endpoint-connect-time-ns": {
+                    "type": "long"
+                },
+                "gateway-response-time-ns": {
+                    "type": "long"
+                },
+                "gateway-latency-ns": {
+                    "type": "long"
+                },
+                "status": {
+                    "type": "short"
+                },
+                "response-content-length": {
+                    "type": "long",
+                    "index": false
+                },
+                "gateway-latency-ms": {
+                    "type": "integer"
+                },
+                "gateway-response-time-ms": {
+                    "type": "integer"
+                },
+                "ai-input-token": {
+                    "type": "integer"
+                },
+                "ai-output-token": {
+                    "type": "integer"
+                },
+                "geoip" : {
+                    "properties": {
+                        "continent_name":{
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "country_iso_code":{
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "region_name":{
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "city_name":{
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "location": {
+                            "type": "geo_point"
+                        }
+                    }
+                },
+                "user": {
+                    "type": "keyword"
+                },
+                "security-type": {
+                    "type": "keyword",
+                    "index": true
+                },
+                "security-token": {
+                    "type": "keyword",
+                    "index": true
+                },
+                "error-message": {
+                    "type": "text"
+                },
+                "error-key": {
+                    "type": "keyword",
+                    "index": true
+                },
+                "error-component-type": {
+                    "type": "keyword",
+                    "index": true
+                },
+                "error-component-name": {
+                    "type": "keyword",
+                    "index": true
+                },
+                "warnings": {
+                    "type": "nested",
+                    "properties": {
+                        "key": {
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "message": {
+                            "type": "text"
+                        },
+                        "component-type": {
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "component-name": {
+                            "type": "keyword",
+                            "index": true
+                        }
+                    }
+                }
+                
+            },
+            "dynamic_templates": [
+                {
+                    "strings_as_keywords": {
+                        "path_match": "custom.*",
+                        "match_mapping_type": "string",
+                        "mapping": {
+                            "type": "keyword"
+                        }
+                    }
+                },
+                {
+                    "additional_long_metrics": {
+                        "path_match": "additional-metrics.long_*",
+                        "match_mapping_type": "long",
+                        "mapping": {
+                            "type": "long"
+                        }
+                    }
+                },
+                {
+                    "additional_keyword_metrics": {
+                        "path_match": "additional-metrics.keyword_*",
+                        "mapping": {
+                            "type": "keyword",
+                            "ignore_above": 1024
+                        }
+                    }
+                },
+                {
+                    "additional_boolean_metrics": {
+                        "path_match": "additional-metrics.bool_*",
+                        "mapping": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                {
+                    "additional_double_metrics": {
+                        "path_match": "additional-metrics.double_*",
+                        "mapping": {
+                            "type": "double"
+                        }
+                    }
+                },
+                {
+                    "additional_int_metrics": {
+                        "path_match": "additional-metrics.int_*",
+                        "mapping": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                {
+                    "additional_string_metrics": {
+                        "path_match": "additional-metrics.string_*",
+                        "mapping": {
+                            "type": "text"
+                        }
+                    }
+                },
+                {
+                    "additional_json_metrics": {
+                        "path_match": "additional-metrics.json_*",
+                        "mapping": {
+                            "type": "text"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
+
+### PUT /_ingest/pipeline/gravitee_pipeline
+{ "description" : "Gravitee pipeline", "processors" : [ { "geoip" : { "field" : "remote-address" } }, { "set": { "field": "geoip.city_name", "value": "Unknown", "override": false } }, { "set": { "field": "geoip.continent_name", "value": "Unknown", "override": false } }, { "set": { "field": "geoip.country_iso_code", "value": "Unknown", "override": false } }, { "set": { "field": "geoip.region_name", "value": "Unknown", "override": false } },{ "user_agent" : { "field": "user-agent" } }, { "set": { "field": "user_agent.name", "value": "Unknown", "override": false } }, { "set": { "field": "user_agent.os_name", "value": "{{user_agent.os.name}}", "override": false } }, { "set": { "field": "user_agent.os_name", "value": "Unknown", "override": false } } ] }
+### PUT /gravitee-health-000001
+{ "aliases": { "gravitee-health": { "is_write_index": true } } }
+### PUT /gravitee-log-000001
+{ "aliases": { "gravitee-log": { "is_write_index": true } } }
+### PUT /gravitee-monitor-000001
+{ "aliases": { "gravitee-monitor": { "is_write_index": true } } }
+### PUT /gravitee-request-000001
+{ "aliases": { "gravitee-request": { "is_write_index": true } } }
+### PUT /gravitee-v4-log-000001
+{ "aliases": { "gravitee-v4-log": { "is_write_index": true } } }
+### PUT /gravitee-v4-message-log-000001
+{ "aliases": { "gravitee-v4-message-log": { "is_write_index": true } } }
+### PUT /gravitee-v4-message-metrics-000001
+{ "aliases": { "gravitee-v4-message-metrics": { "is_write_index": true } } }
+### PUT /gravitee-v4-metrics-000001
+{ "aliases": { "gravitee-v4-metrics": { "is_write_index": true } } }
