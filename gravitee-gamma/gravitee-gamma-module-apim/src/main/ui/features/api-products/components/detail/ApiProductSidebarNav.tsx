@@ -23,6 +23,7 @@ import {
     SlidersHorizontalIcon,
     UsersIcon,
     UsersRoundIcon,
+    WorkflowIcon,
 } from '@gravitee/graphene-core/icons';
 import { useMemo, type ComponentType } from 'react';
 import { NavLink } from 'react-router-dom';
@@ -38,6 +39,8 @@ interface NavGroup {
     label: string;
     items: NavItem[];
 }
+
+const POLICY_STUDIO_PATH = 'policy-studio';
 
 /**
  * An API Product is not an API, but it borrows the canonical API-detail vocabulary (FOUND-304) so a
@@ -58,6 +61,7 @@ const API_PRODUCT_NAV_GROUPS: NavGroup[] = [
         label: 'Consumers',
         items: [
             { path: 'plans', label: 'Plans', icon: ShieldIcon },
+            { path: POLICY_STUDIO_PATH, label: 'Policy Studio', icon: WorkflowIcon },
             { path: 'consumers', label: 'Subscriptions', icon: UsersRoundIcon, end: false },
         ],
     },
@@ -69,21 +73,23 @@ const API_PRODUCT_NAV_GROUPS: NavGroup[] = [
 
 interface ApiProductSidebarNavProps {
     basePath: string;
-    showResourcesNav?: boolean;
+    /** DEFINITION read, once the permissions are loaded: shows Resources and the Policy Studio. */
+    showDefinitionNav?: boolean;
 }
 
-export function ApiProductSidebarNav({ basePath, showResourcesNav = false }: ApiProductSidebarNavProps) {
+const RESOURCES_GROUP: NavGroup = {
+    label: 'Design',
+    items: [{ path: 'resources', label: 'Resources', icon: ServerIcon }],
+};
+
+export function ApiProductSidebarNav({ basePath, showDefinitionNav = false }: ApiProductSidebarNavProps) {
     const navGroups = useMemo((): NavGroup[] => {
-        if (!showResourcesNav) {
-            return API_PRODUCT_NAV_GROUPS;
+        if (!showDefinitionNav) {
+            return API_PRODUCT_NAV_GROUPS.map(group => ({ ...group, items: group.items.filter(item => item.path !== POLICY_STUDIO_PATH) }));
         }
-        const resourcesGroup: NavGroup = {
-            label: 'Design',
-            items: [{ path: 'resources', label: 'Resources', icon: ServerIcon }],
-        };
         const [general, ...rest] = API_PRODUCT_NAV_GROUPS;
-        return [general, resourcesGroup, ...rest];
-    }, [showResourcesNav]);
+        return [general, RESOURCES_GROUP, ...rest];
+    }, [showDefinitionNav]);
 
     return (
         <div className="space-y-0.5 px-2 py-2">

@@ -20,13 +20,13 @@ import { ApiProductSidebarNav } from './ApiProductSidebarNav';
 
 const BASE = '/environments/DEFAULT/api-products/product-1';
 
-function renderNav(showResourcesNav: boolean) {
+function renderNav(showDefinitionNav: boolean) {
     return render(
         <MemoryRouter initialEntries={[BASE]}>
             <Routes>
                 <Route
                     path="/environments/:envId/api-products/:productId/*"
-                    element={<ApiProductSidebarNav basePath={BASE} showResourcesNav={showResourcesNav} />}
+                    element={<ApiProductSidebarNav basePath={BASE} showDefinitionNav={showDefinitionNav} />}
                 />
             </Routes>
         </MemoryRouter>,
@@ -34,15 +34,30 @@ function renderNav(showResourcesNav: boolean) {
 }
 
 describe('ApiProductSidebarNav', () => {
-    it('places Resources in the Design group when showResourcesNav is true', () => {
+    it('places Resources in the Design group when showDefinitionNav is true', () => {
         renderNav(true);
         expect(screen.getByText('Design')).toBeInTheDocument();
         expect(screen.getByRole('link', { name: /^resources$/i })).toHaveAttribute('href', `${BASE}/resources`);
     });
 
-    it('omits the Design group when showResourcesNav is false', () => {
+    it('omits the Design group when showDefinitionNav is false', () => {
         renderNav(false);
         expect(screen.queryByText('Design')).not.toBeInTheDocument();
         expect(screen.queryByRole('link', { name: /^resources$/i })).not.toBeInTheDocument();
+    });
+
+    it('links to the Policy Studio right after Plans when showDefinitionNav is true', () => {
+        renderNav(true);
+
+        const labels = screen.getAllByRole('link').map(link => link.textContent);
+        expect(labels.slice(labels.indexOf('Plans'), labels.indexOf('Plans') + 2)).toEqual(['Plans', 'Policy Studio']);
+        expect(screen.getByRole('link', { name: 'Policy Studio' })).toHaveAttribute('href', `${BASE}/policy-studio`);
+    });
+
+    it('hides the Policy Studio when showDefinitionNav is false', () => {
+        renderNav(false);
+
+        expect(screen.queryByRole('link', { name: 'Policy Studio' })).not.toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'Plans' })).toBeInTheDocument();
     });
 });
