@@ -103,6 +103,7 @@ gravitee-policy-ai-routing
 gravitee-policy-ai-token-compression
 gravitee-policy-pii-filtering
 gravitee-policy-native-ipfiltering
+gravitee-policy-guardrail-rule
 gravitee-policy-authz-pep
 gravitee-policy-authz-pdp-authzen
 
