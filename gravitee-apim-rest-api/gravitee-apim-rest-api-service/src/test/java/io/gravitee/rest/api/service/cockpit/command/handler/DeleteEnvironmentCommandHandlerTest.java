@@ -653,6 +653,8 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(apiProductsRepository).findByEnvironmentId(ENV_ID);
         verify(apiProductsRepository).delete(API_PRODUCT_ID_1);
         verify(apiProductsRepository).delete(API_PRODUCT_ID_2);
+        verify(flowRepository).deleteByReferenceIdAndReferenceType(API_PRODUCT_ID_1, FlowReferenceType.API_PRODUCT);
+        verify(flowRepository).deleteByReferenceIdAndReferenceType(API_PRODUCT_ID_2, FlowReferenceType.API_PRODUCT);
     }
 
     @Test

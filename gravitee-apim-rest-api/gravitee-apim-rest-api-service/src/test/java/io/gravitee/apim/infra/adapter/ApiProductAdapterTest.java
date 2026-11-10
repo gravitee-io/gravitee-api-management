@@ -18,6 +18,8 @@ package io.gravitee.apim.infra.adapter;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.repository.management.model.ApiProduct;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -88,6 +90,23 @@ class ApiProductAdapterTest {
                 soft.assertThat(analytics.getLogging().getContent().isHeaders()).isTrue();
             });
         }
+
+        @Test
+        void should_deserialize_flow_execution() {
+            var repository = apiProduct().flowExecution("{\"mode\":\"best-match\",\"matchRequired\":true}").build();
+
+            var flowExecution = ApiProductAdapter.INSTANCE.toModel(repository).getFlowExecution();
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(flowExecution.getMode()).isEqualTo(FlowMode.BEST_MATCH);
+                soft.assertThat(flowExecution.isMatchRequired()).isTrue();
+            });
+        }
+
+        @Test
+        void should_read_a_product_stored_without_flow_execution_as_having_none() {
+            assertThat(ApiProductAdapter.INSTANCE.toModel(apiProduct().build()).getFlowExecution()).isNull();
+        }
     }
 
     @Nested
@@ -117,6 +136,23 @@ class ApiProductAdapterTest {
             var model = BASE().analytics(analytics).build();
 
             assertThat(ApiProductAdapter.INSTANCE.toRepository(model).getAnalytics()).contains("\"enabled\":true");
+        }
+
+        @Test
+        void should_serialize_flow_execution() {
+            var flowExecution = new FlowExecution();
+            flowExecution.setMode(FlowMode.BEST_MATCH);
+            flowExecution.setMatchRequired(true);
+            var model = BASE().flowExecution(flowExecution).build();
+
+            assertThat(ApiProductAdapter.INSTANCE.toRepository(model).getFlowExecution())
+                .contains("\"mode\":\"best-match\"")
+                .contains("\"matchRequired\":true");
+        }
+
+        @Test
+        void should_store_no_flow_execution_when_the_product_has_none() {
+            assertThat(ApiProductAdapter.INSTANCE.toRepository(BASE().build()).getFlowExecution()).isNull();
         }
     }
 

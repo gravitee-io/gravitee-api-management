@@ -557,6 +557,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
             .forEach(apiProduct -> {
                 try {
                     aiWorkspaceComponentRepository.deleteByApiProductId(apiProduct.getId());
+                    flowRepository.deleteByReferenceIdAndReferenceType(apiProduct.getId(), FlowReferenceType.API_PRODUCT);
                     apiProductsRepository.delete(apiProduct.getId());
                 } catch (TechnicalException e) {
                     throw new TechnicalManagementException(e);

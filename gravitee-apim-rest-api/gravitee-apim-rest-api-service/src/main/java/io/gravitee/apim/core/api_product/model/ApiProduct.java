@@ -15,9 +15,11 @@
  */
 package io.gravitee.apim.core.api_product.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -52,6 +54,10 @@ public class ApiProduct {
     private boolean disableMembershipNotifications;
     private ApiProductKind kind;
     private Analytics analytics;
+
+    /** Served by its own flows endpoint, not the product's; still read, so a deploy payload parses back with its mode. */
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private FlowExecution flowExecution;
 
     public void update(UpdateApiProduct updateApiProduct) {
         this.updatedAt = ZonedDateTime.now(TimeProvider.clock());

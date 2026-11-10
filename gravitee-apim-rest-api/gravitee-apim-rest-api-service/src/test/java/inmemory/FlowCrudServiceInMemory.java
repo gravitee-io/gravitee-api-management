@@ -33,6 +33,7 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
 
     final Map<String, List<Flow>> apiFlowsHttpV4 = new HashMap<>();
     final Map<String, List<Flow>> planFlowsHttpV4 = new HashMap<>();
+    final Map<String, List<Flow>> apiProductFlowsHttpV4 = new HashMap<>();
 
     final Map<String, List<NativeFlow>> apiFlowsNativeV4 = new HashMap<>();
     final Map<String, List<NativeFlow>> planFlowsNativeV4 = new HashMap<>();
@@ -60,6 +61,21 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
     @Override
     public List<Flow> getPlanV4Flows(String planId) {
         return planFlowsHttpV4.getOrDefault(planId, new ArrayList<>());
+    }
+
+    @Override
+    public List<Flow> saveApiProductFlows(String apiProductId, List<Flow> flows) {
+        if (isEmpty(flows)) {
+            apiProductFlowsHttpV4.remove(apiProductId);
+            return List.of();
+        }
+        apiProductFlowsHttpV4.put(apiProductId, List.copyOf(flows));
+        return flows;
+    }
+
+    @Override
+    public List<Flow> getApiProductFlows(String apiProductId) {
+        return apiProductFlowsHttpV4.getOrDefault(apiProductId, new ArrayList<>());
     }
 
     @Override
@@ -129,17 +145,17 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
     @Override
     public void reset() {
         planFlowsHttpV4.clear();
+        apiProductFlowsHttpV4.clear();
     }
 
     @Override
     public List<AbstractFlow> storage() {
-        var v4Flows = Stream.concat(planFlowsHttpV4.values().stream(), apiFlowsHttpV4.values().stream()).reduce(
-            new ArrayList<>(),
-            (acc, flow) -> {
+        var v4Flows = Stream.of(planFlowsHttpV4, apiFlowsHttpV4, apiProductFlowsHttpV4)
+            .flatMap(flowsByReference -> flowsByReference.values().stream())
+            .reduce(new ArrayList<>(), (acc, flow) -> {
                 acc.addAll(flow);
                 return acc;
-            }
-        );
+            });
         var nativeFlows = Stream.concat(planFlowsNativeV4.values().stream(), apiFlowsNativeV4.values().stream()).reduce(
             new ArrayList<>(),
             (acc, flow) -> {

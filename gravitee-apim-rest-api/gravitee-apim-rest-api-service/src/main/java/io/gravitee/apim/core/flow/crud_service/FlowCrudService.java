@@ -30,6 +30,10 @@ public interface FlowCrudService {
 
     List<Flow> getPlanV4Flows(String planId);
 
+    List<Flow> saveApiProductFlows(String apiProductId, List<Flow> flows);
+
+    List<Flow> getApiProductFlows(String apiProductId);
+
     Map<String, List<Flow>> getPlanV4Flows(Set<String> planIds);
 
     List<io.gravitee.definition.model.flow.Flow> getApiV2Flows(String apiId);

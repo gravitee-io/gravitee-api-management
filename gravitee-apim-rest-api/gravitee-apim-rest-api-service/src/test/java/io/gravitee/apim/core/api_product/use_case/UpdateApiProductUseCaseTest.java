@@ -54,6 +54,8 @@ import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDom
 import io.gravitee.apim.core.notification.model.hook.ApiProductUpdatedHookContext;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
@@ -715,6 +717,27 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         var output = updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
 
         assertThat(output.apiProduct().getAnalytics()).isNull();
+    }
+
+    @Test
+    void should_keep_the_stored_flow_mode() {
+        var flowExecution = new FlowExecution();
+        flowExecution.setMode(FlowMode.BEST_MATCH);
+        flowExecution.setMatchRequired(true);
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("API Product")
+            .version("1.0.0")
+            .environmentId(ENV_ID)
+            .flowExecution(flowExecution)
+            .build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        var toUpdate = UpdateApiProduct.builder().name("Renamed").version("2.0.0").description("Updated").build();
+        updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
+
+        assertThat(apiProductCrudService.get("api-product-id").getFlowExecution()).usingRecursiveComparison().isEqualTo(flowExecution);
     }
 
     private Plan productPlanWithTags(String planId, Set<String> tags) {

@@ -34,12 +34,14 @@ import io.gravitee.apim.core.audit.model.event.ApiProductAuditEvent;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.DeleteSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.EventType;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.CustomLog;
@@ -61,6 +63,7 @@ public class DeleteApiProductUseCase {
     private final SubscriptionQueryService subscriptionQueryService;
     private final CloseSubscriptionDomainService closeSubscriptionDomainService;
     private final DeleteSubscriptionDomainService deleteSubscriptionDomainService;
+    private final FlowCrudService flowCrudService;
 
     public void execute(Input input) {
         ApiProduct apiProduct = apiProductQueryService
@@ -80,6 +83,7 @@ public class DeleteApiProductUseCase {
 
         publishUndeployEvent(input.auditInfo(), apiProduct);
 
+        flowCrudService.saveApiProductFlows(input.apiProductId(), List.of());
         apiProductCrudService.delete(input.apiProductId());
         apiProductIndexerDomainService.delete(oneShotIndexation(input.auditInfo()), apiProduct);
         createAuditLog(input.apiProductId, input.auditInfo());
