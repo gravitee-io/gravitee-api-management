@@ -79,7 +79,6 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
     private final ClusterRepository clusterRepository;
     private final DashboardRepository dashboardRepository;
     private final PortalListingRepository portalListingRepository;
-    private final SecretRepository secretRepository;
     private final OrganizationKeyRepository organizationKeyRepository;
     private final DeleteEnvironmentCommandHandler deleteEnvironmentCommandHandler;
 
@@ -108,7 +107,6 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         @Lazy ClusterRepository clusterRepository,
         @Lazy DashboardRepository dashboardRepository,
         @Lazy PortalListingRepository portalListingRepository,
-        @Lazy SecretRepository secretRepository,
         @Lazy OrganizationKeyRepository organizationKeyRepository,
         AccessPointCrudService accessPointService,
         EnvironmentService environmentService,
@@ -146,7 +144,6 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         this.clusterRepository = clusterRepository;
         this.dashboardRepository = dashboardRepository;
         this.portalListingRepository = portalListingRepository;
-        this.secretRepository = secretRepository;
         this.organizationKeyRepository = organizationKeyRepository;
         this.deleteEnvironmentCommandHandler = deleteEnvironmentCommandHandler;
     }
@@ -237,6 +234,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         tagRepository.deleteByReferenceIdAndReferenceType(organization.getId(), TagReferenceType.ORGANIZATION);
         commandRepository.deleteByOrganizationId(organization.getId());
         mediaRepository.deleteByOrganization(organization.getId());
+        organizationKeyRepository.deleteByOrganizationId(organization.getId());
         organizationService.delete(organization.getId());
         auditRepository.deleteByReferenceIdAndReferenceType(organization.getId(), Audit.AuditReferenceType.ORGANIZATION);
         notificationTemplateRepository.deleteByReferenceIdAndReferenceType(
@@ -246,8 +244,6 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         entrypointRepository.deleteByReferenceIdAndReferenceType(organization.getId(), EntrypointReferenceType.ORGANIZATION);
         clusterRepository.deleteByOrganizationId(organization.getId());
         portalListingRepository.deleteByOrganizationId(organization.getId());
-        secretRepository.deleteByOrganizationId(organization.getId());
-        organizationKeyRepository.deleteByOrganizationId(organization.getId());
         log.debug("Deleting am connection for organization [{}]", organization.getId());
         amConnectionRepository.delete(organization.getId());
     }

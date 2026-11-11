@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -51,7 +52,6 @@ import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.api.PortalListingRepository;
 import io.gravitee.repository.management.api.PortalNotificationRepository;
 import io.gravitee.repository.management.api.RoleRepository;
-import io.gravitee.repository.management.api.SecretRepository;
 import io.gravitee.repository.management.api.TagRepository;
 import io.gravitee.repository.management.api.TenantRepository;
 import io.gravitee.repository.management.api.TokenRepository;
@@ -187,9 +187,6 @@ public class DeleteOrganizationCommandHandlerTest {
     private PortalListingRepository portalListingRepository;
 
     @Mock
-    private SecretRepository secretRepository;
-
-    @Mock
     private OrganizationKeyRepository organizationKeyRepository;
 
     @Mock
@@ -236,7 +233,6 @@ public class DeleteOrganizationCommandHandlerTest {
             clusterRepository,
             dashboardRepository,
             portalListingRepository,
-            secretRepository,
             organizationKeyRepository,
             accessPointService,
             environmentService,
@@ -304,6 +300,15 @@ public class DeleteOrganizationCommandHandlerTest {
         var context = new ExecutionContext(ORG_ID);
         verifyDisableOrganization(context);
         verifyDeleteOrganization(context);
+    }
+
+    @Test
+    public void should_delete_the_organization_key_before_the_organization() throws TechnicalException {
+        cut.handle(new DeleteOrganizationCommand(new DeleteOrganizationCommandPayload("delete-org", ORG_ID, USER_ID))).blockingGet();
+
+        var order = inOrder(organizationKeyRepository, organizationService);
+        order.verify(organizationKeyRepository).deleteByOrganizationId(ORG_ID);
+        order.verify(organizationService).delete(ORG_ID);
     }
 
     @Test
@@ -381,7 +386,6 @@ public class DeleteOrganizationCommandHandlerTest {
         );
         verify(clusterRepository).deleteByOrganizationId(executionContext.getOrganizationId());
         verify(portalListingRepository).deleteByOrganizationId(executionContext.getOrganizationId());
-        verify(secretRepository).deleteByOrganizationId(executionContext.getOrganizationId());
         verify(organizationKeyRepository).deleteByOrganizationId(executionContext.getOrganizationId());
         verify(amConnectionRepository).delete(executionContext.getOrganizationId());
     }
