@@ -52,10 +52,6 @@ public final class SecretEnvelope {
         }
     }
 
-    public static String keyId(String envelope) {
-        return parse(envelope).keyId();
-    }
-
     // Ids never hold NUL, so two different (organization, environment, secret) triples never give the same bytes.
     private static byte[] aad(SecretScope scope) {
         return String.join("\0", scope.organizationId(), scope.environmentId(), scope.secretId()).getBytes(StandardCharsets.UTF_8);

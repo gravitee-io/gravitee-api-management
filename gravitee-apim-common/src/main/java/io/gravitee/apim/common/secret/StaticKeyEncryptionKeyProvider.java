@@ -62,6 +62,11 @@ public final class StaticKeyEncryptionKeyProvider implements KeyEncryptionKeyPro
     }
 
     @Override
+    public boolean canUnwrap(String kekId) {
+        return id.equals(kekId);
+    }
+
+    @Override
     public byte[] wrap(String organizationId, byte[] dataKey) {
         try {
             return AesGcm.encrypt(key, wrapAad(organizationId), dataKey);
@@ -71,7 +76,12 @@ public final class StaticKeyEncryptionKeyProvider implements KeyEncryptionKeyPro
     }
 
     @Override
-    public byte[] unwrap(String organizationId, byte[] wrappedDataKey) {
+    public byte[] unwrap(String organizationId, String kekId, byte[] wrappedDataKey) {
+        if (!canUnwrap(kekId)) {
+            throw new KeyEncryptionKeyMismatchException(
+                "The data key of organization " + organizationId + " was wrapped by another key encryption key"
+            );
+        }
         try {
             return AesGcm.decrypt(key, wrapAad(organizationId), wrappedDataKey);
         } catch (GeneralSecurityException e) {

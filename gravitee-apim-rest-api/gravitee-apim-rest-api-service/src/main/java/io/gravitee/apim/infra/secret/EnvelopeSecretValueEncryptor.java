@@ -15,15 +15,16 @@
  */
 package io.gravitee.apim.infra.secret;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import io.gravitee.apim.common.secret.DataKey;
+import io.gravitee.apim.common.secret.DataKeyResolver;
 import io.gravitee.apim.common.secret.InvalidKeyEncryptionKeyException;
+import io.gravitee.apim.common.secret.KeyEncryptionKeyMismatchException;
 import io.gravitee.apim.common.secret.KeyEncryptionKeyProvider;
 import io.gravitee.apim.common.secret.SecretCryptoException;
 import io.gravitee.apim.common.secret.SecretEnvelope;
 import io.gravitee.apim.common.secret.SecretScope;
 import io.gravitee.apim.common.secret.StaticKeyEncryptionKeyProvider;
+import io.gravitee.apim.common.secret.StoredDataKey;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.secret.exception.SecretEncryptionUnavailableException;
 import io.gravitee.apim.core.secret.model.Secret;
@@ -32,11 +33,12 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationKeyRepository;
+import io.gravitee.repository.management.api.SecretRepository;
 import io.gravitee.repository.management.model.OrganizationKey;
-import java.time.Duration;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Optional;
+import java.util.Set;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -44,8 +46,9 @@ import org.springframework.stereotype.Service;
 
 /**
  * Envelope encryption: each organization's secret values are encrypted under its own data key, stored wrapped by the
- * key encryption key. A missing, invalid or mismatched key encryption key never stops the Management API: it disables
- * the secrets feature, and every encrypt or decrypt fails with the reason.
+ * key encryption key. A missing or invalid key encryption key never stops the Management API: it disables the secrets
+ * feature, and every encrypt or decrypt fails with the reason. A data key wrapped by another key encryption key fails
+ * only the calls of its organization.
  */
 @CustomLog
 @Service
@@ -54,83 +57,83 @@ public class EnvelopeSecretValueEncryptor implements SecretValueEncryptor {
     public static final String KEY_PROPERTY = "api.secrets.encryption.key";
 
     private static final String MISMATCH = "does not match the key that encrypted the stored secrets";
-    // A data key never changes for its id, so the cache cannot go stale: the TTL only bounds how long a deleted organization's key stays in memory.
-    private static final Duration DATA_KEY_TTL = Duration.ofHours(1);
-    private static final long DATA_KEY_CACHE_SIZE = 10_000;
+    private static final String KEY_HINT = "Set it to a base64-encoded 256-bit key.";
 
-    private final KeyEncryptionKeyProvider kek;
     private final OrganizationKeyRepository organizationKeyRepository;
-    private final Cache<String, DataKey> dataKeys = CacheBuilder.newBuilder()
-        .expireAfterAccess(DATA_KEY_TTL)
-        .maximumSize(DATA_KEY_CACHE_SIZE)
-        .build();
-
-    private volatile String unavailableReason;
-    private volatile boolean storedKeysChecked;
+    private final SecretRepository secretRepository;
+    private final KeyEncryptionKeyProvider kek;
+    private final DataKeyResolver dataKeys;
+    private final String unavailableReason;
 
     public EnvelopeSecretValueEncryptor(
         @Value("${" + KEY_PROPERTY + ":#{null}}") String base64Kek,
-        @Lazy OrganizationKeyRepository organizationKeyRepository
+        @Lazy OrganizationKeyRepository organizationKeyRepository,
+        @Lazy SecretRepository secretRepository
     ) {
         this.organizationKeyRepository = organizationKeyRepository;
-        this.kek = toProvider(base64Kek);
+        this.secretRepository = secretRepository;
+        KeyEncryptionKeyProvider provider = null;
+        String reason = null;
+        try {
+            provider = StaticKeyEncryptionKeyProvider.fromBase64(base64Kek);
+        } catch (InvalidKeyEncryptionKeyException e) {
+            reason = e.getMessage();
+            logUnavailable(base64Kek, reason);
+        }
+        this.kek = provider;
+        this.unavailableReason = reason;
+        this.dataKeys = provider == null ? null : new DataKeyResolver(provider, this::findStored);
     }
 
     @Override
     public String encrypt(Secret secret, String plaintext) {
-        var dataKey = dataKeyOf(secret.organizationId());
         try {
-            return SecretEnvelope.seal(dataKey, scopeOf(secret), plaintext);
+            return SecretEnvelope.seal(dataKeyFor(secret.organizationId()), scopeOf(secret), plaintext);
         } catch (SecretCryptoException e) {
-            throw new TechnicalDomainException("Failed to encrypt the value of secret " + secret.id(), e);
+            throw translate(secret.organizationId(), e);
         }
     }
 
     @Override
     public String decrypt(Secret secret, String ciphertext) {
         ensureAvailable();
-        var dataKey = storedDataKeyOf(secret.organizationId()).orElseThrow(() ->
-            new TechnicalDomainException("Organization " + secret.organizationId() + " has no data key to decrypt secret " + secret.id())
-        );
         try {
+            var dataKey = dataKeys
+                .resolve(secret.organizationId())
+                .orElseThrow(() ->
+                    new TechnicalDomainException(
+                        "Organization " + secret.organizationId() + " has no data key to decrypt secret " + secret.id()
+                    )
+                );
             return SecretEnvelope.open(dataKey, scopeOf(secret), ciphertext);
         } catch (SecretCryptoException e) {
-            throw new TechnicalDomainException("Failed to decrypt the value of secret " + secret.id(), e);
+            throw translate(secret.organizationId(), e);
         }
     }
 
-    DataKey dataKeyOf(String organizationId) {
+    DataKey dataKeyFor(String organizationId) {
         ensureAvailable();
-        return storedDataKeyOf(organizationId).orElseGet(() -> createDataKey(organizationId));
-    }
-
-    // Always read the stored key: the cache alone would miss a key deleted through another node.
-    private Optional<DataKey> storedDataKeyOf(String organizationId) {
-        return findStored(organizationId).map(this::dataKeyOf);
-    }
-
-    private DataKey dataKeyOf(OrganizationKey organizationKey) {
-        var cached = dataKeys.getIfPresent(organizationKey.getId());
-        return cached != null ? cached : unwrap(organizationKey);
+        return dataKeys.resolve(organizationId).orElseGet(() -> createDataKey(organizationId));
     }
 
     private DataKey createDataKey(String organizationId) {
+        refuseToMixKeyEncryptionKeys();
+        refuseToOrphanSecrets(organizationId);
         var dataKey = DataKey.generate();
         var organizationKey = OrganizationKey.builder()
             .id(dataKey.id())
             .organizationId(organizationId)
-            .wrappedKey(Base64.getEncoder().encodeToString(wrap(organizationId, dataKey)))
+            .wrappedKey(Base64.getEncoder().encodeToString(kek.wrap(organizationId, dataKey.material())))
             .kekId(kek.id())
             .createdAt(Date.from(TimeProvider.instantNow()))
             .build();
         try {
             organizationKeyRepository.create(organizationKey);
-            dataKeys.put(dataKey.id(), dataKey);
             return dataKey;
         } catch (DuplicateKeyException e) {
             // Another node created the organization's data key first: use that one.
-            return findStored(organizationId)
-                .map(this::dataKeyOf)
+            return dataKeys
+                .resolve(organizationId)
                 .orElseThrow(() ->
                     new TechnicalDomainException("The data key of organization " + organizationId + " could not be read", e)
                 );
@@ -139,86 +142,87 @@ public class EnvelopeSecretValueEncryptor implements SecretValueEncryptor {
         }
     }
 
-    private Optional<OrganizationKey> findStored(String organizationId) {
+    // Checked on each new data key, not only at startup: a node with another key could otherwise write the first data keys.
+    private void refuseToMixKeyEncryptionKeys() {
+        if (!storedKeysMatch()) {
+            throw new SecretEncryptionUnavailableException(KEY_PROPERTY, MISMATCH);
+        }
+    }
+
+    // A new data key could never decrypt the secrets already stored under the lost one.
+    private void refuseToOrphanSecrets(String organizationId) {
+        boolean hasSecrets;
         try {
-            return organizationKeyRepository.findByOrganizationId(organizationId);
+            hasSecrets = secretRepository.existsByOrganizationId(organizationId);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("Failed to check for the secrets of organization " + organizationId, e);
+        }
+        if (hasSecrets) {
+            throw new TechnicalDomainException(
+                "Organization " +
+                    organizationId +
+                    " has secrets but no data key to decrypt them: restore its data key or delete its secrets"
+            );
+        }
+    }
+
+    private Optional<StoredDataKey> findStored(String organizationId) {
+        try {
+            return organizationKeyRepository
+                .findByOrganizationId(organizationId)
+                .map(key -> new StoredDataKey(key.getId(), key.getKekId(), key.getWrappedKey()));
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("Failed to read the data key of organization " + organizationId, e);
         }
     }
 
-    private byte[] wrap(String organizationId, DataKey dataKey) {
-        try {
-            return kek.wrap(organizationId, dataKey.material());
-        } catch (SecretCryptoException e) {
-            throw new TechnicalDomainException("Failed to wrap the data key of organization " + organizationId, e);
-        }
-    }
-
-    private DataKey unwrap(OrganizationKey organizationKey) {
-        if (!kek.id().equals(organizationKey.getKekId())) {
-            disable(MISMATCH);
-            throw unavailable();
-        }
-        try {
-            var material = kek.unwrap(organizationKey.getOrganizationId(), Base64.getDecoder().decode(organizationKey.getWrappedKey()));
-            var dataKey = new DataKey(organizationKey.getId(), material);
-            dataKeys.put(dataKey.id(), dataKey);
-            return dataKey;
-        } catch (SecretCryptoException | IllegalArgumentException e) {
-            throw new TechnicalDomainException("Failed to unwrap the data key of organization " + organizationKey.getOrganizationId(), e);
-        }
-    }
-
     /**
-     * Checks the key encryption key against the ids stored beside the wrapped data keys. A mismatch disables the
-     * secrets feature and logs why; it never throws.
+     * Logs at ERROR when the key encryption key did not wrap every stored data key. It does not disable the secrets
+     * feature: only the organizations whose data key it did not wrap fail.
      *
-     * @throws TechnicalDomainException when the stored ids cannot be read
+     * @throws TechnicalDomainException when the stored key encryption key ids cannot be read
      */
     public void verifyStoredKeys() {
-        if (unavailableReason == null && !storedKeysChecked) {
-            checkStoredKeys();
+        if (kek != null && !storedKeysMatch()) {
+            log.error(
+                "{} {}: the organizations whose data key it did not wrap cannot store or read secrets until it is fixed.",
+                KEY_PROPERTY,
+                MISMATCH
+            );
         }
     }
 
-    private void ensureAvailable() {
-        verifyStoredKeys();
-        if (unavailableReason != null) {
-            throw unavailable();
-        }
-    }
-
-    private void checkStoredKeys() {
+    private boolean storedKeysMatch() {
+        Set<String> kekIds;
         try {
-            var kekIds = organizationKeyRepository.findKekIds();
-            // One stored id from another key is enough: reading that organization would disable secrets on this node.
-            if (kekIds.stream().anyMatch(id -> !id.equals(kek.id()))) {
-                disable(MISMATCH);
-            }
-            storedKeysChecked = true;
+            kekIds = organizationKeyRepository.findKekIds();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("Failed to read the key encryption key ids of the stored secrets", e);
         }
+        return kekIds.stream().allMatch(kek::canUnwrap);
     }
 
-    private synchronized void disable(String reason) {
-        if (unavailableReason == null) {
-            unavailableReason = reason;
-            log.error("{} {}: secrets cannot be stored or read until it is fixed.", KEY_PROPERTY, reason);
+    private void ensureAvailable() {
+        if (kek == null) {
+            throw new SecretEncryptionUnavailableException(KEY_PROPERTY, unavailableReason);
         }
     }
 
-    private SecretEncryptionUnavailableException unavailable() {
-        return new SecretEncryptionUnavailableException(KEY_PROPERTY, unavailableReason);
+    private static TechnicalDomainException translate(String organizationId, SecretCryptoException e) {
+        if (e instanceof KeyEncryptionKeyMismatchException) {
+            return new SecretEncryptionUnavailableException(
+                KEY_PROPERTY,
+                "does not match the key that wrapped the data key of organization " + organizationId
+            );
+        }
+        return new TechnicalDomainException(e.getMessage(), e);
     }
 
-    private KeyEncryptionKeyProvider toProvider(String base64Kek) {
-        try {
-            return StaticKeyEncryptionKeyProvider.fromBase64(base64Kek);
-        } catch (InvalidKeyEncryptionKeyException e) {
-            disable(e.getMessage());
-            return null;
+    private static void logUnavailable(String base64Kek, String reason) {
+        if (base64Kek == null || base64Kek.isBlank()) {
+            log.warn("{} {}: secrets cannot be stored or read. {}", KEY_PROPERTY, reason, KEY_HINT);
+        } else {
+            log.error("{} {}: secrets cannot be stored or read until it is fixed. {}", KEY_PROPERTY, reason, KEY_HINT);
         }
     }
 

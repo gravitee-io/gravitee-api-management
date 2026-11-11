@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Checks on each start that the key encryption key is the one that wrapped the stored data keys. It never fails the
- * start: a wrong key only disables the secrets feature.
+ * start: a wrong key only fails the secrets calls of the organizations whose data key it did not wrap.
  */
 @CustomLog
 @Component
@@ -41,7 +41,7 @@ public class SecretKeyEncryptionKeyInitializer implements Initializer {
             encryptor.verifyStoredKeys();
         } catch (TechnicalDomainException e) {
             log.warn(
-                "Could not check {} against the stored secrets at startup, it is checked on the first secrets call instead",
+                "Could not check {} against the stored secrets at startup, it is checked again before each new data key",
                 EnvelopeSecretValueEncryptor.KEY_PROPERTY,
                 e
             );

@@ -17,16 +17,25 @@ package io.gravitee.apim.common.secret;
 
 /**
  * Wraps and unwraps the data keys of the organizations. A KMS provider can implement it without ever exposing the key
- * encryption key.
+ * encryption key, and a provider that holds a previous key encryption key as well can unwrap the data keys stored under it.
  */
 public interface KeyEncryptionKeyProvider {
     /**
-     * A stable identifier of the key encryption key that holds no key material, stored beside each wrapped data key so a
-     * wrong key or a rotation can be detected.
+     * A stable identifier of the key encryption key that wraps new data keys. It holds no key material and is stored
+     * beside each wrapped data key.
      */
     String id();
 
+    /**
+     * Whether this provider holds the key encryption key of that id, and so can unwrap the data keys stored under it.
+     */
+    boolean canUnwrap(String kekId);
+
     byte[] wrap(String organizationId, byte[] dataKey);
 
-    byte[] unwrap(String organizationId, byte[] wrappedDataKey);
+    /**
+     * @param kekId the id stored beside the wrapped data key
+     * @throws KeyEncryptionKeyMismatchException when this provider does not hold the key encryption key of that id
+     */
+    byte[] unwrap(String organizationId, String kekId, byte[] wrappedDataKey);
 }

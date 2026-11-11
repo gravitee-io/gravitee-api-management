@@ -16,7 +16,6 @@
 package io.gravitee.apim.common.secret;
 
 import java.security.SecureRandom;
-import java.util.Arrays;
 import java.util.UUID;
 
 public final class DataKey {
@@ -50,16 +49,6 @@ public final class DataKey {
 
     public byte[] material() {
         return material.clone();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return o instanceof DataKey other && id.equals(other.id) && Arrays.equals(material, other.material);
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
     }
 
     @Override

@@ -43,7 +43,6 @@ class SecretEnvelopeTest {
         String envelope = SecretEnvelope.seal(KEY, SCOPE, "sk-ant-123");
 
         assertThat(envelope).startsWith("v1:" + KEY.id() + ":");
-        assertThat(SecretEnvelope.keyId(envelope)).isEqualTo(KEY.id());
     }
 
     @Test
@@ -109,11 +108,5 @@ class SecretEnvelopeTest {
         assertThatThrownBy(() -> SecretEnvelope.open(new DataKey("key", KEY.material()), SCOPE, envelope)).isInstanceOf(
             SecretCryptoException.class
         );
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = { "", "AAAA", "v1:", "v2:key:AAAA" })
-    void should_refuse_to_read_the_key_id_of_a_malformed_envelope(String envelope) {
-        assertThatThrownBy(() -> SecretEnvelope.keyId(envelope)).isInstanceOf(SecretCryptoException.class);
     }
 }

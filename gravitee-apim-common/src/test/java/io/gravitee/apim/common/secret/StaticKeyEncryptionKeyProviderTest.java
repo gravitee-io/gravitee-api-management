@@ -38,7 +38,7 @@ class StaticKeyEncryptionKeyProviderTest {
     void should_unwrap_what_it_wrapped() {
         byte[] wrapped = provider.wrap("org-1", DATA_KEY.material());
 
-        assertThat(provider.unwrap("org-1", wrapped)).isEqualTo(DATA_KEY.material());
+        assertThat(provider.unwrap("org-1", provider.id(), wrapped)).isEqualTo(DATA_KEY.material());
     }
 
     @Test
@@ -53,19 +53,36 @@ class StaticKeyEncryptionKeyProviderTest {
     void should_refuse_to_unwrap_the_data_key_of_another_organization() {
         byte[] wrapped = provider.wrap("org-1", DATA_KEY.material());
 
-        assertThatThrownBy(() -> provider.unwrap("org-2", wrapped)).isInstanceOf(SecretCryptoException.class);
+        assertThatThrownBy(() -> provider.unwrap("org-2", provider.id(), wrapped)).isInstanceOf(SecretCryptoException.class);
     }
 
     @Test
-    void should_refuse_to_unwrap_under_another_key_encryption_key() {
-        byte[] wrapped = StaticKeyEncryptionKeyProvider.fromBase64(base64Key(2)).wrap("org-1", DATA_KEY.material());
+    void should_refuse_to_unwrap_a_data_key_stored_under_another_key_encryption_key() {
+        var other = StaticKeyEncryptionKeyProvider.fromBase64(base64Key(2));
+        byte[] wrapped = other.wrap("org-1", DATA_KEY.material());
 
-        assertThatThrownBy(() -> provider.unwrap("org-1", wrapped)).isInstanceOf(SecretCryptoException.class);
+        assertThat(provider.canUnwrap(other.id())).isFalse();
+        assertThatThrownBy(() -> provider.unwrap("org-1", other.id(), wrapped))
+            .isInstanceOf(KeyEncryptionKeyMismatchException.class)
+            .hasMessageContaining("org-1");
+    }
+
+    @Test
+    void should_refuse_to_unwrap_a_data_key_stored_without_a_key_encryption_key_id() {
+        byte[] wrapped = provider.wrap("org-1", DATA_KEY.material());
+
+        assertThat(provider.canUnwrap(null)).isFalse();
+        assertThatThrownBy(() -> provider.unwrap("org-1", null, wrapped)).isInstanceOf(KeyEncryptionKeyMismatchException.class);
+    }
+
+    @Test
+    void should_unwrap_the_data_keys_stored_under_its_own_id() {
+        assertThat(provider.canUnwrap(provider.id())).isTrue();
     }
 
     @Test
     void should_refuse_to_unwrap_a_truncated_wrapped_key() {
-        assertThatThrownBy(() -> provider.unwrap("org-1", new byte[8])).isInstanceOf(SecretCryptoException.class);
+        assertThatThrownBy(() -> provider.unwrap("org-1", provider.id(), new byte[8])).isInstanceOf(SecretCryptoException.class);
     }
 
     @Test
