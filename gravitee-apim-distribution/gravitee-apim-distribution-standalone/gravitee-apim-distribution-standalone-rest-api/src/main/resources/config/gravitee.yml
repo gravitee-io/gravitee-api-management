@@ -996,11 +996,14 @@ api:
   # - Set it here or with the GRAVITEE_API_SECRETS_ENCRYPTION_KEY environment variable. Keep it apart from
   #   api.properties.encryption.secret, and give every Management API node the same value.
   # - To read it from a Kubernetes Secret, set the environment variable with valueFrom.secretKeyRef (api.env in the
-  #   Helm chart), or point the key at a secret provider, e.g. secret://kubernetes/<secret>:<key>. A secret:// reference
-  #   that does not resolve stops the Management API at startup.
+  #   Helm chart), or point the key at a secret provider, e.g. secret://kubernetes/<secret>:<key>, with that provider
+  #   enabled (secrets.kubernetes.enabled: true). With the provider disabled the reference is not resolved: it is read as
+  #   the key itself, which is invalid, so the Management API starts with secrets disabled as below.
   # - Keep a copy somewhere safe: if the KEK is lost, every stored secret is lost with it.
-  # Without a valid KEK, or with a KEK other than the one that encrypted the stored secrets, the Management API still
-  # starts and logs an error naming the problem (never the key), and creating or updating a secret fails with that error.
+  # Without a KEK, the Management API starts, logs a warning, and creating or updating a secret fails. With an invalid KEK,
+  # it logs an error naming the problem (never the key) and secret calls fail the same way. With a KEK other than the one
+  # that wrapped an organization's data key, it logs an error at startup and only that organization's secret calls fail,
+  # and that node creates no new data key for any organization until every stored one matches its KEK.
   # Warning: DEBUG on the org.mongodb.driver logger writes whole commands and replies, encrypted secret values included,
   # to the logs. The Gravitee and Spring loggers never log a value, up to TRACE.
   #secrets:
