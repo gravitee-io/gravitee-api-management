@@ -20,9 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.elasticsearch.model.Aggregation;
-import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.elasticsearch.model.SearchResponse;
-import io.gravitee.elasticsearch.model.TotalHits;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import java.util.EnumSet;
@@ -96,27 +94,36 @@ class SearchRequestResponseTimeAdapterTest {
                  }
                },
                "aggs": {
-                 "max_response_time": {
-                   "max": {
-                     "script": {
-                       "lang": "painless",
-                       "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
-                     }
-                   }
+                 "counted": {
+                   "filter": { "bool": { "must_not": [ { "term": { "connection-phase": "end" } } ] } },
+                   "aggs": { "connections": { "value_count": { "field": "@timestamp" } } }
                  },
-                 "min_response_time": {
-                   "min": {
-                     "script": {
-                       "lang": "painless",
-                       "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
-                     }
-                   }
-                 },
-                 "avg_response_time": {
-                   "avg": {
-                     "script": {
-                       "lang": "painless",
-                       "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
+                 "measured": {
+                   "filter": { "bool": { "must_not": [ { "term": { "connection-phase": "open" } } ] } },
+                   "aggs": {
+                     "max_response_time": {
+                       "max": {
+                         "script": {
+                           "lang": "painless",
+                           "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
+                         }
+                       }
+                     },
+                     "min_response_time": {
+                       "min": {
+                         "script": {
+                           "lang": "painless",
+                           "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
+                         }
+                       }
+                     },
+                     "avg_response_time": {
+                       "avg": {
+                         "script": {
+                           "lang": "painless",
+                           "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
+                         }
+                       }
                      }
                    }
                  }
@@ -144,27 +151,36 @@ class SearchRequestResponseTimeAdapterTest {
                       }
                     },
                     "aggs": {
-                      "max_response_time": {
-                        "max": {
-                          "script": {
-                            "lang": "painless",
-                            "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
-                          }
-                        }
+                      "counted": {
+                        "filter": { "bool": { "must_not": [ { "term": { "connection-phase": "end" } } ] } },
+                        "aggs": { "connections": { "value_count": { "field": "@timestamp" } } }
                       },
-                      "min_response_time": {
-                        "min": {
-                          "script": {
-                            "lang": "painless",
-                            "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
-                          }
-                        }
-                      },
-                      "avg_response_time": {
-                        "avg": {
-                          "script": {
-                            "lang": "painless",
-                            "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
+                      "measured": {
+                        "filter": { "bool": { "must_not": [ { "term": { "connection-phase": "open" } } ] } },
+                        "aggs": {
+                          "max_response_time": {
+                            "max": {
+                              "script": {
+                                "lang": "painless",
+                                "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
+                              }
+                            }
+                          },
+                          "min_response_time": {
+                            "min": {
+                              "script": {
+                                "lang": "painless",
+                                "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
+                              }
+                            }
+                          },
+                          "avg_response_time": {
+                            "avg": {
+                              "script": {
+                                "lang": "painless",
+                                "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
+                              }
+                            }
                           }
                         }
                       }
@@ -217,20 +233,16 @@ class SearchRequestResponseTimeAdapterTest {
             final Aggregation avgResponseTimeAggregation = new Aggregation();
             avgResponseTimeAggregation.setValue(335.23d);
 
-            searchResponse.setAggregations(
-                Map.of(
-                    "max_response_time",
-                    maxResponseTimeAggregation,
-                    "min_response_time",
-                    minResponseTimeAggregation,
-                    "avg_response_time",
-                    avgResponseTimeAggregation
-                )
-            );
+            final Aggregation measured = new Aggregation();
+            measured.getAggregations().put("max_response_time", maxResponseTimeAggregation);
+            measured.getAggregations().put("min_response_time", minResponseTimeAggregation);
+            measured.getAggregations().put("avg_response_time", avgResponseTimeAggregation);
+            final Aggregation connections = new Aggregation();
+            connections.setValue(4.0d);
+            final Aggregation counted = new Aggregation();
+            counted.getAggregations().put("connections", connections);
 
-            final SearchHits searchHits = new SearchHits();
-            searchHits.setTotal(new TotalHits(4L));
-            searchResponse.setSearchHits(searchHits);
+            searchResponse.setAggregations(Map.of("measured", measured, "counted", counted));
 
             var result = sut.adaptResponse(searchResponse, queryParams);
 

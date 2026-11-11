@@ -465,10 +465,10 @@ class FilterAdapterTest {
             var queryString = measuresAdapter.adapt(query);
             var jsonQuery = JSON.readTree(queryString);
 
-            var filterAgg = jsonQuery.at("/aggs/HTTP_REQUESTS#__FILTER__");
+            var filterAgg = jsonQuery.at("/aggs/HTTP_REQUESTS#__COUNTED__");
             assertThat(filterAgg.isMissingNode()).isFalse();
 
-            var filterClause = filterAgg.at("/filter/bool/must/0/bool/should");
+            var filterClause = filterAgg.at("/filter/bool/filter/0/bool/must/0/bool/should");
             assertThat(filterClause.isMissingNode()).isFalse();
             assertThat(filterClause.isArray()).isTrue();
             assertThat(filterClause.size()).isEqualTo(2);
@@ -667,10 +667,10 @@ class FilterAdapterTest {
             var queryString = measuresAdapter.adapt(query);
             var jsonQuery = JSON.readTree(queryString);
 
-            var filterAgg = jsonQuery.at("/aggs/HTTP_GATEWAY_RESPONSE_TIME#__FILTER__");
+            var filterAgg = jsonQuery.at("/aggs/HTTP_GATEWAY_RESPONSE_TIME#__MEASURED__");
             assertThat(filterAgg.isMissingNode()).isFalse();
 
-            var rangeClause = filterAgg.at("/filter/bool/must/0/range/gateway-response-time-ms");
+            var rangeClause = filterAgg.at("/filter/bool/filter/0/bool/must/0/range/gateway-response-time-ms");
             assertThat(rangeClause.isMissingNode()).isFalse();
             assertThat(rangeClause.get("gte").asInt()).isEqualTo(1000);
         }

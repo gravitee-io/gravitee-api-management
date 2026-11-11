@@ -60,7 +60,10 @@ class StatsQueryAdapterTest {
             assertEquals(API_ID, node.at("/query/bool/filter/0/bool/should/1/term/api").asText());
             assertEquals(FROM, node.at("/query/bool/filter/1/range/@timestamp/gte").asLong());
             assertEquals(TO, node.at("/query/bool/filter/1/range/@timestamp/lte").asLong());
-            assertEquals(FIELD, node.at("/aggregations/by_response-time/stats/field").asText());
+            assertEquals(FIELD, node.at("/aggregations/counted/aggregations/by_response-time/stats/field").asText());
+            assertEquals("end", node.at("/aggregations/counted/filter/bool/must_not/0/term/connection-phase").asText());
+            assertEquals(FIELD, node.at("/aggregations/measured/aggregations/by_response-time/stats/field").asText());
+            assertEquals("open", node.at("/aggregations/measured/filter/bool/must_not/0/term/connection-phase").asText());
         }
 
         @Test
@@ -130,15 +133,24 @@ class StatsQueryAdapterTest {
                 )
             );
 
-            Aggregation agg = new Aggregation();
-            agg.setCount(3600d);
-            agg.setSum(100d);
-            agg.setAvg(10d);
-            agg.setMin(1d);
-            agg.setMax(20d);
+            // The count reads every connection; the values leave the opening of a message API connection out.
+            Aggregation counted = new Aggregation();
+            Aggregation allConnections = new Aggregation();
+            allConnections.setCount(3600d);
+            counted.getAggregations().put("by_response-time", allConnections);
+
+            Aggregation measured = new Aggregation();
+            Aggregation endedConnections = new Aggregation();
+            endedConnections.setCount(3500d);
+            endedConnections.setSum(100d);
+            endedConnections.setAvg(10d);
+            endedConnections.setMin(1d);
+            endedConnections.setMax(20d);
+            measured.getAggregations().put("by_response-time", endedConnections);
 
             HashMap<String, Aggregation> aggs = new HashMap<>();
-            aggs.put("by_response-time", agg);
+            aggs.put("counted", counted);
+            aggs.put("measured", measured);
 
             SearchResponse response = new SearchResponse();
             response.setAggregations(aggs);

@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 import io.gravitee.repository.analytics.engine.api.metric.AdditionalMetric;
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.repository.analytics.engine.api.metric.MetricName;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
@@ -36,6 +37,8 @@ import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.Simp
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleP95Builder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleP99Builder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleSUMBuilder;
+import io.gravitee.repository.elasticsearch.v4.shared.ConnectionPhaseClause;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.List;
 import java.util.Map;
@@ -76,26 +79,79 @@ public class HTTPMeasuresQueryAdapter {
         return new JsonObject().put("size", 0).put("query", queryAdapter.adaptForHTTP(query)).put("aggs", adaptMetrics(query.metrics()));
     }
 
-    static final String FILTER_AGG_SUFFIX = "__FILTER__";
-
+    /**
+     * A count reads every connection as it opens, leaving the end of a message API connection out. A value — a
+     * duration, a size — is only known once the connection has ended, and leaves its opening out. Each kind sits under
+     * a filter of its own, which also carries the filters of the metric. The error rate leaves ends out by itself, and
+     * keeps its place: its buckets are read beside the measure they compute.
+     */
     JsonObject adaptMetrics(List<MetricMeasuresQuery> metrics) {
         var aggs = new JsonObject();
         for (var metric : metrics) {
-            var measureAggs = buildMeasureAggs(metric);
-            if (metric.filters() != null && !metric.filters().isEmpty()) {
-                var filterName = metric.metric().name() + AggregationAdapter.AGG_NAME_SEPARATOR + FILTER_AGG_SUFFIX;
-                var filterAgg = new JsonObject().put("filter", filterAdapter.adaptMetricFilters(metric.filters())).put("aggs", measureAggs);
-                aggs.put(filterName, filterAgg);
-            } else {
-                aggs.mergeIn(measureAggs);
+            var rateAggs = buildMeasureAggs(
+                metric,
+                metric
+                    .measures()
+                    .stream()
+                    .filter(measure -> measure == Measure.PERCENTAGE)
+                    .toList()
+            );
+            var countAggs = buildMeasureAggs(metric, metric.measures().stream().filter(HTTPMeasuresQueryAdapter::isCount).toList());
+            var valueAggs = buildMeasureAggs(metric, metric.measures().stream().filter(HTTPMeasuresQueryAdapter::isValue).toList());
+            if (!rateAggs.isEmpty()) {
+                if (metric.filters() != null && !metric.filters().isEmpty()) {
+                    var filterName = metric.metric().name() + AggregationAdapter.AGG_NAME_SEPARATOR + AggregationAdapter.FILTER_AGG_SUFFIX;
+                    aggs.put(
+                        filterName,
+                        new JsonObject().put("filter", filterAdapter.adaptMetricFilters(metric.filters())).put("aggs", rateAggs)
+                    );
+                } else {
+                    aggs.mergeIn(rateAggs);
+                }
+            }
+            if (!countAggs.isEmpty()) {
+                aggs.put(AggregationAdapter.countedName(metric.metric()), envelope(ConnectionPhaseClause.notEnd(), metric, countAggs));
+            }
+            if (!valueAggs.isEmpty()) {
+                aggs.put(AggregationAdapter.measuredName(metric.metric()), envelope(ConnectionPhaseClause.notOpening(), metric, valueAggs));
             }
         }
         return aggs;
     }
 
-    private JsonObject buildMeasureAggs(MetricMeasuresQuery metric) {
+    /** The path a terms aggregation orders its buckets by, through the envelope the measure sits under. */
+    static String orderPath(MetricName metric, Measure measure) {
+        var path = AggregationAdapter.orderPath(metric, measure);
+        if (isValue(measure)) {
+            return AggregationAdapter.measuredName(metric) + ">" + path;
+        }
+        if (isCount(measure)) {
+            return AggregationAdapter.countedName(metric) + ">" + path;
+        }
+        return path;
+    }
+
+    private static boolean isCount(Measure measure) {
+        return measure != Measure.PERCENTAGE && !isValue(measure);
+    }
+
+    private JsonObject envelope(JsonObject phase, MetricMeasuresQuery metric, JsonObject measureAggs) {
+        if (metric.filters() != null && !metric.filters().isEmpty()) {
+            phase.getJsonObject("bool").put("filter", JsonArray.of(filterAdapter.adaptMetricFilters(metric.filters())));
+        }
+        return new JsonObject().put("filter", phase).put("aggs", measureAggs);
+    }
+
+    static boolean isValue(Measure measure) {
+        return switch (measure) {
+            case AVG, MIN, MAX, P50, P90, P95, P99, SUM -> true;
+            default -> false;
+        };
+    }
+
+    private JsonObject buildMeasureAggs(MetricMeasuresQuery metric, List<Measure> measures) {
         var aggs = new JsonObject();
-        for (var measure : metric.measures()) {
+        for (var measure : measures) {
             var aggName = AggregationAdapter.adaptName(metric.metric(), measure);
             var measureAgg = switch (metric.metric()) {
                 case Metric builtIn -> aggregate(

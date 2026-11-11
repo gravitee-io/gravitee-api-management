@@ -183,12 +183,14 @@ class AdditionalMetricFieldAdapterTest extends AbstractQueryAdapterTest {
             var aggs = JSON.readTree(adapter.adapt(measures(new MetricMeasuresQuery(FAILOVER_METRIC, MEASURED)))).at("/aggs");
 
             var field = "additional-metrics.long_failover_count";
-            assertThat(aggs.at("/" + field + "#AVG")).isEqualTo(JSON.readTree("{\"avg\":{\"field\":\"" + field + "\"}}"));
-            assertThat(aggs.at("/" + field + "#MIN")).isEqualTo(JSON.readTree("{\"min\":{\"field\":\"" + field + "\"}}"));
-            assertThat(aggs.at("/" + field + "#MAX")).isEqualTo(JSON.readTree("{\"max\":{\"field\":\"" + field + "\"}}"));
-            assertThat(aggs.at("/" + field + "#SUM")).isEqualTo(JSON.readTree("{\"sum\":{\"field\":\"" + field + "\"}}"));
-            assertThat(aggs.at("/" + field + "#COUNT")).isEqualTo(JSON.readTree("{\"value_count\":{\"field\":\"" + field + "\"}}"));
-            assertThat(aggs.at("/" + field + "#P90")).isEqualTo(
+            var measured = aggs.at("/additional-metrics_long_failover_count#__MEASURED__/aggs");
+            var counted = aggs.at("/additional-metrics_long_failover_count#__COUNTED__/aggs");
+            assertThat(measured.at("/" + field + "#AVG")).isEqualTo(JSON.readTree("{\"avg\":{\"field\":\"" + field + "\"}}"));
+            assertThat(measured.at("/" + field + "#MIN")).isEqualTo(JSON.readTree("{\"min\":{\"field\":\"" + field + "\"}}"));
+            assertThat(measured.at("/" + field + "#MAX")).isEqualTo(JSON.readTree("{\"max\":{\"field\":\"" + field + "\"}}"));
+            assertThat(measured.at("/" + field + "#SUM")).isEqualTo(JSON.readTree("{\"sum\":{\"field\":\"" + field + "\"}}"));
+            assertThat(counted.at("/" + field + "#COUNT")).isEqualTo(JSON.readTree("{\"value_count\":{\"field\":\"" + field + "\"}}"));
+            assertThat(measured.at("/" + field + "#P90")).isEqualTo(
                 JSON.readTree("{\"percentiles\":{\"field\":\"" + field + "\",\"percents\":[90.0]}}")
             );
             assertThat(aggs.findValues("missing")).isEmpty();
@@ -200,9 +202,11 @@ class AdditionalMetricFieldAdapterTest extends AbstractQueryAdapterTest {
 
             var aggs = JSON.readTree(adapter.adapt(measures(builtIn))).at("/aggs");
 
-            assertThat(aggs.at("/LLM_PROMPT_TOKEN_SENT#AVG/avg/missing").asInt(-1)).isZero();
-            assertThat(aggs.at("/LLM_PROMPT_TOKEN_SENT#P95/percentiles/missing").asInt(-1)).isZero();
-            assertThat(aggs.at("/LLM_PROMPT_TOKEN_SENT#SUM/sum/missing").asInt(-1)).isZero();
+            assertThat(aggs.at("/LLM_PROMPT_TOKEN_SENT#__MEASURED__/aggs/LLM_PROMPT_TOKEN_SENT#AVG/avg/missing").asInt(-1)).isZero();
+            assertThat(
+                aggs.at("/LLM_PROMPT_TOKEN_SENT#__MEASURED__/aggs/LLM_PROMPT_TOKEN_SENT#P95/percentiles/missing").asInt(-1)
+            ).isZero();
+            assertThat(aggs.at("/LLM_PROMPT_TOKEN_SENT#__MEASURED__/aggs/LLM_PROMPT_TOKEN_SENT#SUM/sum/missing").asInt(-1)).isZero();
         }
 
         @Test
@@ -291,17 +295,25 @@ class AdditionalMetricFieldAdapterTest extends AbstractQueryAdapterTest {
             var builtIn = sorted(Metric.HTTP_GATEWAY_LATENCY, Measure.P90);
             var additional = sorted(FAILOVER_METRIC, Measure.P90);
 
-            assertThat(order(builtIn)).isEqualTo(JSON.readTree("{\"HTTP_GATEWAY_LATENCY#P90[90.0]\":\"desc\"}"));
-            assertThat(order(additional)).isEqualTo(JSON.readTree("{\"additional-metrics.long_failover_count#P90[90.0]\":\"desc\"}"));
+            assertThat(order(builtIn)).isEqualTo(
+                JSON.readTree("{\"HTTP_GATEWAY_LATENCY#__MEASURED__>HTTP_GATEWAY_LATENCY#P90[90.0]\":\"desc\"}")
+            );
+            assertThat(order(additional)).isEqualTo(
+                JSON.readTree(
+                    "{\"additional-metrics_long_failover_count#__MEASURED__>additional-metrics.long_failover_count#P90[90.0]\":\"desc\"}"
+                )
+            );
         }
 
         @Test
         void should_order_facet_buckets_by_the_value_of_a_field_whose_name_holds_dots() throws JsonProcessingException {
             assertThat(order(sorted(FAILOVER_METRIC, Measure.AVG))).isEqualTo(
-                JSON.readTree("{\"additional-metrics.long_failover_count#AVG[value]\":\"desc\"}")
+                JSON.readTree(
+                    "{\"additional-metrics_long_failover_count#__MEASURED__>additional-metrics.long_failover_count#AVG[value]\":\"desc\"}"
+                )
             );
             assertThat(order(sorted(Metric.HTTP_GATEWAY_LATENCY, Measure.AVG))).isEqualTo(
-                JSON.readTree("{\"HTTP_GATEWAY_LATENCY#AVG\":\"desc\"}")
+                JSON.readTree("{\"HTTP_GATEWAY_LATENCY#__MEASURED__>HTTP_GATEWAY_LATENCY#AVG\":\"desc\"}")
             );
         }
 
@@ -341,7 +353,9 @@ class AdditionalMetricFieldAdapterTest extends AbstractQueryAdapterTest {
 
             assertThat(
                 aggs
-                    .at("/additional-metrics.long_failover_count#TIME_SERIES/aggs/additional-metrics.long_failover_count#AVG/avg/field")
+                    .at(
+                        "/additional-metrics.long_failover_count#TIME_SERIES/aggs/additional-metrics_long_failover_count#__MEASURED__/aggs/additional-metrics.long_failover_count#AVG/avg/field"
+                    )
                     .asText()
             ).isEqualTo("additional-metrics.long_failover_count");
         }

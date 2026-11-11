@@ -73,13 +73,15 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         assertThat(aggs).isNotEmpty();
 
         var latencyP90 = aggs
-            .at("/HTTP_GATEWAY_LATENCY#API/aggs/HTTP_GATEWAY_LATENCY#APPLICATION/aggs/HTTP_GATEWAY_LATENCY#P90/percentiles/percents/0")
+            .at(
+                "/HTTP_GATEWAY_LATENCY#API/aggs/HTTP_GATEWAY_LATENCY#APPLICATION/aggs/HTTP_GATEWAY_LATENCY#__MEASURED__/aggs/HTTP_GATEWAY_LATENCY#P90/percentiles/percents/0"
+            )
             .asDouble();
         assertThat(latencyP90).isEqualTo(90.0);
 
         var gatewayP90 = aggs
             .at(
-                "/HTTP_GATEWAY_RESPONSE_TIME#API/aggs/HTTP_GATEWAY_RESPONSE_TIME#APPLICATION/aggs/HTTP_GATEWAY_RESPONSE_TIME#P90/percentiles/percents/0"
+                "/HTTP_GATEWAY_RESPONSE_TIME#API/aggs/HTTP_GATEWAY_RESPONSE_TIME#APPLICATION/aggs/HTTP_GATEWAY_RESPONSE_TIME#__MEASURED__/aggs/HTTP_GATEWAY_RESPONSE_TIME#P90/percentiles/percents/0"
             )
             .asDouble();
         assertThat(gatewayP90).isEqualTo(90.0);
@@ -128,7 +130,7 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         var size = terms.at("/size").asInt();
         assertThat(size).isEqualTo(limit);
 
-        var order = terms.at("/order/HTTP_REQUESTS#COUNT").asText();
+        var order = terms.at("/order/HTTP_REQUESTS#__COUNTED__>HTTP_REQUESTS#COUNT").asText();
         assertThat(order).isEqualTo("desc");
     }
 
@@ -266,7 +268,7 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         var nestedSize = groupAgg.at("/aggs/HTTP_REQUESTS#HTTP_STATUS/terms/size").asInt();
         assertThat(nestedSize).isEqualTo(limit);
 
-        var nestedMeasures = groupAgg.at("/aggs/HTTP_REQUESTS#HTTP_STATUS/aggs/HTTP_REQUESTS#COUNT");
+        var nestedMeasures = groupAgg.at("/aggs/HTTP_REQUESTS#HTTP_STATUS/aggs/HTTP_REQUESTS#__COUNTED__/aggs/HTTP_REQUESTS#COUNT");
         assertThat(nestedMeasures).isNotNull();
     }
 
