@@ -45,7 +45,7 @@ import lombok.EqualsAndHashCode;
 public class HealthCheckManagedEndpoint implements ManagedEndpoint {
 
     public static final int DEFAULT_SUCCESS_THRESHOLD = 2;
-    public static final int DEFAULT_FAILURE_THRESHOLD = 3;
+    public static final int DEFAULT_FAILURE_THRESHOLD = 2;
     private static final String EVENT_TYPE = "ENDPOINT_HEALTH_CHECK";
     private static final String CONTEXT_NODE_ID = "node.id";
     private static final String CONTEXT_NODE_HOSTNAME = "node.hostname";
