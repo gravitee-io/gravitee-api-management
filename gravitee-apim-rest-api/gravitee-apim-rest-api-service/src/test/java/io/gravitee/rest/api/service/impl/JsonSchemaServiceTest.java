@@ -69,7 +69,7 @@ public class JsonSchemaServiceTest {
         String validate = jsonSchemaService.validate(schema, configuration);
         assertThatJson(validate).isEqualTo(
             """
-            {"http":{"keepAliveTimeout":30000,"readTimeout":7777,"idleTimeout":60000,"connectTimeout":5000,"maxConcurrentConnections":100},"ssl":{"trustStore":{"path":"...","type":"PEM"},"hostnameVerifier":false,"trustAll":false}}"""
+            {"http":{"clearTextUpgrade":true,"connectTimeout":5000,"followRedirects":false,"idleTimeout":60000,"keepAlive":true,"keepAliveTimeout":30000,"maxConcurrentConnections":100,"pipelining":false,"propagateClientAcceptEncoding":false,"readTimeout":7777,"useCompression":true,"version":"HTTP_1_1"},"ssl":{"trustStore":{"path":"...","type":"PEM"},"hostnameVerifier":false,"trustAll":false}}"""
         );
     }
 
