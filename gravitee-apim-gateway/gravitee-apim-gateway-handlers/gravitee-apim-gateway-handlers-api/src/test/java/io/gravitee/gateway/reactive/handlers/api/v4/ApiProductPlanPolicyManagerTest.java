@@ -206,7 +206,7 @@ class ApiProductPlanPolicyManagerTest {
     }
 
     @Test
-    void should_return_flow_step_policies_from_product_plan_flows() {
+    void should_leave_product_plan_flow_policies_to_the_product_runtime() {
         Step tokenRateLimitStep = new Step();
         tokenRateLimitStep.setPolicy("token-ratelimit");
         tokenRateLimitStep.setConfiguration("{\"limit\":1000}");
@@ -239,7 +239,7 @@ class ApiProductPlanPolicyManagerTest {
 
         Set<Policy> dependencies = invokeDependencies(manager);
 
-        assertThat(dependencies).extracting(Policy::getName).containsExactlyInAnyOrder("api-key", "token-ratelimit");
+        assertThat(dependencies).extracting(Policy::getName).containsExactly("api-key");
     }
 
     @Test

@@ -16,6 +16,8 @@
 package io.gravitee.gateway.handlers.api;
 
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.reactor.Reactable;
 import java.io.Serializable;
@@ -62,6 +64,9 @@ public class ReactableApiProduct implements Reactable, Serializable {
     private Analytics analytics;
     private Set<String> tags;
 
+    private List<Flow> flows;
+    private FlowExecution flowExecution;
+
     @Override
     public boolean enabled() {
         // API Products are always enabled when deployed
@@ -70,7 +75,7 @@ public class ReactableApiProduct implements Reactable, Serializable {
 
     @Override
     public <D> Set<D> dependencies(Class<D> type) {
-        // API Products don't have policy dependencies (no flows/policies at product level)
+        // The product runtime loads the product policies itself.
         return Set.of();
     }
 }

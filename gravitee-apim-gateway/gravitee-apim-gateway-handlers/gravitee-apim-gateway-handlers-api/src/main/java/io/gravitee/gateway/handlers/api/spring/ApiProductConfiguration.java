@@ -16,12 +16,26 @@
 package io.gravitee.gateway.handlers.api.spring;
 
 import io.gravitee.common.event.EventManager;
+import io.gravitee.gateway.core.classloader.DefaultClassLoader;
+import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiProductManagerImpl;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.handlers.api.registry.impl.ApiProductRegistryImpl;
+import io.gravitee.gateway.reactive.core.condition.CompositeConditionFilter;
+import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
+import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeFactory;
+import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeRegistry;
+import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
+import io.gravitee.gateway.reactive.v4.flow.BestMatchFlowSelector;
+import io.gravitee.gateway.reactive.v4.flow.selection.ConditionSelectorConditionFilter;
+import io.gravitee.gateway.reactive.v4.flow.selection.HttpSelectorConditionFilter;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -37,13 +51,42 @@ public class ApiProductConfiguration {
         return new ApiProductRegistryImpl(gatewayConfiguration);
     }
 
+    @Bean(destroyMethod = "clear")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public ApiProductRuntimeRegistry apiProductRuntimeRegistry(
+        ApplicationContext applicationContext,
+        @Value("${api.pending_requests_timeout:10000}") long drainTimeoutMs,
+        DefaultClassLoader classLoader,
+        PolicyFactoryManager policyFactoryManager,
+        PolicyClassLoaderFactory policyClassLoaderFactory,
+        ComponentProvider componentProvider,
+        GatewayConfiguration gatewayConfiguration
+    ) {
+        FlowResolverFactory flowResolverFactory = new FlowResolverFactory(
+            new CompositeConditionFilter(new HttpSelectorConditionFilter()),
+            new ConditionSelectorConditionFilter(),
+            new BestMatchFlowSelector()
+        );
+        ApiProductRuntimeFactory runtimeFactory = new ApiProductRuntimeFactory(
+            classLoader,
+            policyFactoryManager,
+            ApiProductRuntimeFactory.policyPluginManager(applicationContext),
+            policyClassLoaderFactory,
+            componentProvider,
+            flowResolverFactory,
+            gatewayConfiguration
+        );
+        return new ApiProductRuntimeRegistry(runtimeFactory, drainTimeoutMs, Schedulers.io());
+    }
+
     @Bean
     public ApiProductManager apiProductManager(
         ApiProductRegistry apiProductRegistry,
+        ApiProductRuntimeRegistry apiProductRuntimeRegistry,
         EventManager eventManager,
         LicenseManager licenseManager,
         GatewayConfiguration gatewayConfiguration
     ) {
-        return new ApiProductManagerImpl(apiProductRegistry, eventManager, licenseManager, gatewayConfiguration);
+        return new ApiProductManagerImpl(apiProductRegistry, apiProductRuntimeRegistry, eventManager, licenseManager, gatewayConfiguration);
     }
 }

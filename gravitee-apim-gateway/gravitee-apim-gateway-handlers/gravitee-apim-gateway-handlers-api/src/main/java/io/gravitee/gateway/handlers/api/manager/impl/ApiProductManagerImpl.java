@@ -24,6 +24,7 @@ import io.gravitee.gateway.handlers.api.manager.ApiProductChange;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.handlers.api.sharding.ApiProductShardingFilter;
+import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeRegistry;
 import io.gravitee.node.api.license.LicenseManager;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Collection;
@@ -43,6 +44,7 @@ import lombok.CustomLog;
 public class ApiProductManagerImpl implements ApiProductManager {
 
     private final ApiProductRegistry apiProductRegistry;
+    private final ApiProductRuntimeRegistry apiProductRuntimeRegistry;
     private final EventManager eventManager;
     private final LicenseManager licenseManager;
     private final GatewayConfiguration gatewayConfiguration;
@@ -50,11 +52,13 @@ public class ApiProductManagerImpl implements ApiProductManager {
 
     public ApiProductManagerImpl(
         ApiProductRegistry apiProductRegistry,
+        ApiProductRuntimeRegistry apiProductRuntimeRegistry,
         EventManager eventManager,
         LicenseManager licenseManager,
         GatewayConfiguration gatewayConfiguration
     ) {
         this.apiProductRegistry = apiProductRegistry;
+        this.apiProductRuntimeRegistry = apiProductRuntimeRegistry;
         this.eventManager = eventManager;
         this.licenseManager = licenseManager;
         this.gatewayConfiguration = gatewayConfiguration;
@@ -135,6 +139,8 @@ public class ApiProductManagerImpl implements ApiProductManager {
         log.debug("Deploying API Product [{}]", apiProduct.getId());
 
         ApiProductChange change = changeAgainst(null, apiProduct);
+        // Started before anything is stored, so a product whose runtime cannot start is never served.
+        apiProductRuntimeRegistry.deploy(apiProduct);
         apiProducts.put(apiProduct.getId(), apiProduct);
         apiProductRegistry.register(apiProduct);
 
@@ -156,13 +162,17 @@ public class ApiProductManagerImpl implements ApiProductManager {
         ReactableApiProduct previousProduct = apiProducts.get(apiProduct.getId());
         ApiProductChange change = changeAgainst(previousProduct, apiProduct);
 
+        // Started before anything is stored, so an update whose runtime cannot start leaves the deployed version serving.
+        if (change.affectsMemberApis()) {
+            apiProductRuntimeRegistry.deploy(apiProduct);
+        }
         apiProducts.put(apiProduct.getId(), apiProduct);
         apiProductRegistry.register(apiProduct);
 
         Completable emit = Completable.fromRunnable(() -> publishApiProductUpdateEvent(apiProduct, change));
         return doBeforeEmit
             .apply(change)
-            .doOnError(e -> restoreAfterFailedUpdate(apiProduct, previousProduct))
+            .doOnError(e -> restoreAfterFailedUpdate(apiProduct, previousProduct, change))
             .andThen(emit);
     }
 
@@ -178,13 +188,29 @@ public class ApiProductManagerImpl implements ApiProductManager {
         if (replaceIfStillStored(apiProduct, null)) {
             log.warn("Deployment of API Product [{}] failed, it is not kept as deployed", apiProduct.getId());
             apiProductRegistry.remove(apiProduct.getId(), apiProduct.getEnvironmentId());
+            apiProductRuntimeRegistry.remove(apiProduct.getId(), apiProduct.getEnvironmentId());
         }
     }
 
-    private void restoreAfterFailedUpdate(ReactableApiProduct failedProduct, ReactableApiProduct previousProduct) {
+    private void restoreAfterFailedUpdate(ReactableApiProduct failedProduct, ReactableApiProduct previousProduct, ApiProductChange change) {
         if (replaceIfStillStored(failedProduct, previousProduct)) {
             log.warn("Update of API Product [{}] failed, its previous version is kept as deployed", previousProduct.getId());
+            if (change.affectsMemberApis()) {
+                putBackRuntime(previousProduct);
+            }
             apiProductRegistry.register(previousProduct);
+        }
+    }
+
+    private void putBackRuntime(ReactableApiProduct previousProduct) {
+        try {
+            apiProductRuntimeRegistry.deploy(previousProduct);
+        } catch (RuntimeException e) {
+            log.error(
+                "Unable to put back the runtime of the deployed version of API Product [{}]: its plan flows follow the failed update until the next one",
+                previousProduct.getId(),
+                e
+            );
         }
     }
 
@@ -225,6 +251,7 @@ public class ApiProductManagerImpl implements ApiProductManager {
             log.debug("Undeploying API Product [{}] from environment [{}]", apiProductId, currentApiProduct.getEnvironmentId());
 
             apiProductRegistry.remove(apiProductId, currentApiProduct.getEnvironmentId());
+            apiProductRuntimeRegistry.remove(apiProductId, currentApiProduct.getEnvironmentId());
 
             emitApiProductChangedEvent(ApiProductEventType.UNDEPLOY, currentApiProduct, Set.of());
 

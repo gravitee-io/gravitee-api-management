@@ -141,7 +141,9 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
 
         return entries
             .stream()
-            .map(entry -> HttpSecurityPlanFactory.forPlan(api.getId(), entry.plan(), productPlanPolicyManager, executionPhase))
+            .map(entry ->
+                HttpSecurityPlanFactory.forPlan(api.getId(), entry.apiProductId(), entry.plan(), productPlanPolicyManager, executionPhase)
+            )
             .filter(Objects::nonNull)
             .sorted(Comparator.comparingInt(HttpSecurityPlan::order))
             .toList();
