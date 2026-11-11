@@ -28,6 +28,7 @@ import java.util.Set;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 
 @CustomLog
@@ -69,10 +70,7 @@ public class MongoOrganizationKeyRepository implements OrganizationKeyRepository
     public Set<String> findKekIds() throws TechnicalException {
         log.debug("MongoOrganizationKeyRepository.findKekIds()");
         try {
-            return mongoTemplate
-                .getCollection(mongoTemplate.getCollectionName(OrganizationKeyMongo.class))
-                .distinct("kekId", String.class)
-                .into(new HashSet<>());
+            return new HashSet<>(mongoTemplate.findDistinct(new Query(), "kekId", OrganizationKeyMongo.class, String.class));
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find the key encryption key ids", ex);
         }
