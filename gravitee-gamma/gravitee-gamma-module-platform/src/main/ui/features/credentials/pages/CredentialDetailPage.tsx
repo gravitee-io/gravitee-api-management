@@ -147,7 +147,7 @@ function CredentialDetailsCard({ credential, ownerName }: Readonly<{ credential:
             </CardHeader>
             <CardContent>
                 <dl className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <Detail label="Provider">{credential.serviceId ?? <span className="text-muted-foreground">Not set</span>}</Detail>
+                    <Detail label="Service">{credential.serviceId ?? <span className="text-muted-foreground">Not set</span>}</Detail>
                     <Detail label="Type">
                         <Badge variant="outline">{credentialStrategyLabel(credential.strategy)}</Badge>
                     </Detail>

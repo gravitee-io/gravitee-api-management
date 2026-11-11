@@ -63,8 +63,10 @@ describe('CredentialsTable', () => {
         } as typeof ResizeObserver;
     });
 
-    it('shows the name, provider, type, owner and expiry of each credential', () => {
+    it('shows the name, service, type, owner and expiry of each credential', () => {
         renderTable();
+
+        expect(screen.getByRole('columnheader', { name: /Service/ })).toBeInTheDocument();
 
         const openAiRow = screen.getByRole('link', { name: 'OpenAI production' }).closest('tr')!;
         expect(screen.getByRole('link', { name: 'OpenAI production' })).toHaveAttribute('href', '/cred-1');

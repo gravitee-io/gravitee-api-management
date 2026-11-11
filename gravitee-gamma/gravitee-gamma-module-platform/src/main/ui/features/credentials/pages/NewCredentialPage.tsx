@@ -123,7 +123,7 @@ export function NewCredentialPage() {
                                         id="credential-name"
                                         value={draft.name}
                                         maxLength={256}
-                                        placeholder="Provider credential"
+                                        placeholder="OpenAI production"
                                         aria-invalid={Boolean(errors.name)}
                                         onChange={e => updateDraft({ ...draft, name: e.target.value })}
                                     />
