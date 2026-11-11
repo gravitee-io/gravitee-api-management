@@ -59,11 +59,14 @@ import io.gravitee.apim.core.theme.model.ThemeType;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CreateOrUpdatePortalUseCaseTest {
@@ -606,6 +609,32 @@ class CreateOrUpdatePortalUseCaseTest {
         assertThatThrownBy(() -> failingUseCase.execute(inputFor(AUDIT_INFO, PortalFixtures.aPortal()))).hasMessage("portal store is down");
 
         assertThat(failingPortals.storage()).singleElement().extracting(Portal::getId).isEqualTo(DEFAULT_PORTAL_ID);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void should_finish_an_interrupted_replacement_on_the_next_put(boolean multiplePortalsAllowed) {
+        var deleteFails = new AtomicBoolean(true);
+        var portals = new PortalCrudServiceInMemory() {
+            @Override
+            public void delete(PortalId portalId) {
+                if (deleteFails.get()) {
+                    throw new IllegalStateException("portal store is down");
+                }
+                super.delete(portalId);
+            }
+        };
+        portals.initWith(List.of(aDefaultPortal()));
+        var replacing = aUseCase(portals, () -> multiplePortalsAllowed);
+        var portal = PortalFixtures.aPortal();
+
+        assertThatThrownBy(() -> replacing.execute(inputFor(AUDIT_INFO, portal))).hasMessage("portal store is down");
+        assertThat(portals.storage()).extracting(Portal::getId).containsExactlyInAnyOrder(DEFAULT_PORTAL_ID, portal.getId());
+
+        deleteFails.set(false);
+        replacing.execute(inputFor(AUDIT_INFO, portal));
+
+        assertThat(portals.storage()).singleElement().extracting(Portal::getId).isEqualTo(portal.getId());
     }
 
     @Test

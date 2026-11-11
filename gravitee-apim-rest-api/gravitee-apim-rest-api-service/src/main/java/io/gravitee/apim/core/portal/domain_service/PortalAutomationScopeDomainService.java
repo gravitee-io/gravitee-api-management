@@ -57,19 +57,19 @@ public class PortalAutomationScopeDomainService {
     }
 
     /**
-     * The default portal that the first Automation API portal of this environment takes over from.
+     * The default portal that the first Automation API portal of this environment takes over from: before that portal
+     * is stored, once it is stored, and on its next write when deleting the default portal failed.
      *
-     * @return the environment's only portal, when it is the default one and is not {@code portalId}; the default
+     * @return the environment's only portal other than {@code portalId}, when it is the default one; the default
      *     marker is enough to recognize it, since an Automation API portal is never default
      */
     public Optional<Portal> findReplaceableDefault(AuditInfo auditInfo, PortalId portalId) {
-        var portals = portalCrudService.findByEnvironmentId(auditInfo.environmentId());
-        if (portals.size() != 1) {
-            return Optional.empty();
-        }
-        return Optional.of(portals.getFirst())
-            .filter(Portal::isDefault)
-            .filter(portal -> !portal.getId().equals(portalId));
+        var others = portalCrudService
+            .findByEnvironmentId(auditInfo.environmentId())
+            .stream()
+            .filter(portal -> !portal.getId().equals(portalId))
+            .toList();
+        return others.size() == 1 && others.getFirst().isDefault() ? Optional.of(others.getFirst()) : Optional.empty();
     }
 
     private boolean hasEstablishedPortalConflict(AuditInfo auditInfo, PortalId portalId) {

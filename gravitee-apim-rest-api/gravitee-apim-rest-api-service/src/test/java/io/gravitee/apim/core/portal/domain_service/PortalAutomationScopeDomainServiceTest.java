@@ -139,6 +139,21 @@ class PortalAutomationScopeDomainServiceTest {
     }
 
     @Test
+    void should_not_offer_the_default_portal_to_replace_itself() {
+        portalCrudService.initWith(List.of(aDefaultPortal()));
+
+        assertThat(domainService.findReplaceableDefault(AUDIT_INFO, DEFAULT_PORTAL_ID)).isEmpty();
+    }
+
+    @Test
+    void should_offer_the_default_portal_left_next_to_the_portal_that_replaces_it() {
+        portalCrudService.initWith(List.of(aDefaultPortal(), PortalFixtures.aPortal()));
+
+        assertThat(domainService.findReplaceableDefault(AUDIT_INFO, ESTABLISHED_PORTAL_ID)).map(Portal::getId).contains(DEFAULT_PORTAL_ID);
+        assertThat(domainService.validatePortal(AUDIT_INFO, ESTABLISHED_PORTAL_ID, "hrid")).isEmpty();
+    }
+
+    @Test
     void should_keep_refusing_the_other_automation_writes_while_the_default_portal_is_alone() {
         portalCrudService.initWith(List.of(aDefaultPortal()));
 

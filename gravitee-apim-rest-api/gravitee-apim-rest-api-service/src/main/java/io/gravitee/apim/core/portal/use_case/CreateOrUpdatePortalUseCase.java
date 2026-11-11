@@ -93,11 +93,12 @@ public class CreateOrUpdatePortalUseCase {
         var resolvedActiveThemeId = resolveActiveThemeId(input, existing.map(Portal::getActiveThemeId).orElse(null));
         var portalToSave = existing.orElseGet(() -> newPortal(input));
         portalToSave.update(input.name(), sanitized.structure(), resolvedActiveThemeId);
-        var replacedDefault = portalAutomationScopeEnforcer.findReplaceableDefault(input.auditInfo(), sanitized.portalId());
         var saved = existing.isPresent() ? portalCrudService.update(portalToSave) : portalCrudService.create(portalToSave);
-        if (existing.isEmpty()) {
-            // Deleted only once the new portal is stored, so a failed creation leaves the environment its default portal
-            replacedDefault.ifPresent(defaultPortal -> {
+        // Deleted only once the new portal is stored, so a failed creation leaves the environment its default portal,
+        // and looked up on every write, so the next one finishes a replacement whose delete failed
+        portalAutomationScopeEnforcer
+            .findReplaceableDefault(input.auditInfo(), saved.getId())
+            .ifPresent(defaultPortal -> {
                 portalCrudService.delete(defaultPortal.getId());
                 log.info(
                     "Default portal [{}] of environment [{}] replaced by Automation API portal [{}]",
@@ -106,7 +107,6 @@ public class CreateOrUpdatePortalUseCase {
                     saved.getId()
                 );
             });
-        }
         // On every write, onto the default portal, else the only one: adopts what a replaced default portal or a skipped
         // upgrade left behind, and retries an interrupted move
         portalContentOwnershipDomainService.moveOrphans(input.auditInfo().environmentId());
