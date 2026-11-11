@@ -146,6 +146,20 @@ class EnvelopeSecretValueEncryptorTest {
     }
 
     @Test
+    void should_use_the_data_key_another_node_created_and_used_since_this_node_looked() throws Exception {
+        var winner = wrappedUnder(KEK, "org-1");
+        when(secrets.existsByOrganizationId("org-1")).thenAnswer(invocation -> {
+            keys.store(winner);
+            return true;
+        });
+
+        String ciphertext = encryptor.encrypt(SECRET, "sk-ant-123");
+
+        assertThat(ciphertext).startsWith("v1:" + winner.getId() + ":");
+        assertThat(node(KEK).decrypt(SECRET, ciphertext)).isEqualTo("sk-ant-123");
+    }
+
+    @Test
     void should_refuse_to_decrypt_the_value_of_another_organization() {
         String ciphertext = encryptor.encrypt(SECRET, "sk-ant-123");
 

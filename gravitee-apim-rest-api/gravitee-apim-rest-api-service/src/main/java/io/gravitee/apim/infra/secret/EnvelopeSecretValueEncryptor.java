@@ -118,7 +118,18 @@ public class EnvelopeSecretValueEncryptor implements SecretValueEncryptor {
 
     private DataKey createDataKey(String organizationId) {
         refuseToMixKeyEncryptionKeys();
-        refuseToOrphanSecrets(organizationId);
+        if (hasSecrets(organizationId)) {
+            // Another node may have created the data key and stored a secret since this node looked: only a key that is still missing is lost.
+            return dataKeys
+                .resolve(organizationId)
+                .orElseThrow(() ->
+                    new TechnicalDomainException(
+                        "Organization " +
+                            organizationId +
+                            " has secrets but no data key to decrypt them: restore its data key or delete its secrets"
+                    )
+                );
+        }
         var dataKey = DataKey.generate();
         var organizationKey = OrganizationKey.builder()
             .id(dataKey.id())
@@ -149,20 +160,12 @@ public class EnvelopeSecretValueEncryptor implements SecretValueEncryptor {
         }
     }
 
-    // A new data key could never decrypt the secrets already stored under the lost one.
-    private void refuseToOrphanSecrets(String organizationId) {
-        boolean hasSecrets;
+    // A new data key could never decrypt the secrets already stored under a lost one.
+    private boolean hasSecrets(String organizationId) {
         try {
-            hasSecrets = secretRepository.existsByOrganizationId(organizationId);
+            return secretRepository.existsByOrganizationId(organizationId);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("Failed to check for the secrets of organization " + organizationId, e);
-        }
-        if (hasSecrets) {
-            throw new TechnicalDomainException(
-                "Organization " +
-                    organizationId +
-                    " has secrets but no data key to decrypt them: restore its data key or delete its secrets"
-            );
         }
     }
 
