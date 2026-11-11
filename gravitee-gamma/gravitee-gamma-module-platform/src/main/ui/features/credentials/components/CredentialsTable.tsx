@@ -69,10 +69,10 @@ function buildColumns({
             ),
         },
         {
-            id: 'provider',
+            id: 'service',
             accessorKey: 'serviceId',
             enableSorting: false,
-            header: ({ column }: ColHeader<Credential>) => <DataTableColumnHeader column={column} title="Provider" />,
+            header: ({ column }: ColHeader<Credential>) => <DataTableColumnHeader column={column} title="Service" />,
             cell: ({ row }: ColCell<Credential>) =>
                 row.original.serviceId ? (
                     <span className="text-sm">{row.original.serviceId}</span>
