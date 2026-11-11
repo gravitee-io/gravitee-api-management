@@ -67,7 +67,7 @@ export function draftFromCredential(credential: Credential): CredentialDraft {
         name: credential.name,
         serviceId: credential.serviceId ?? '',
         strategy: credential.strategy,
-        expiresAt: toDateInput(credential.expiresAt),
+        expiresAt: isoToDateInput(credential.expiresAt),
         mode: managed ? 'value' : 'reference',
         settings,
         secrets,
@@ -109,8 +109,8 @@ export function validateCredentialDraft(
         }
     }
 
-    const expiryChanged = draft.expiresAt !== toDateInput(options.currentExpiresAt);
-    if (draft.expiresAt && expiryChanged && draft.expiresAt < toDateInput(options.now.toISOString())) {
+    const expiryChanged = draft.expiresAt !== isoToDateInput(options.currentExpiresAt);
+    if (draft.expiresAt && expiryChanged && draft.expiresAt < toDateInput(options.now)) {
         errors.expiresAt = 'The expiry date must be today or later.';
     }
 
@@ -161,7 +161,7 @@ export function toUpdateCredentialPayload(draft: CredentialDraft, credential: Cr
 
 /** Keeps the stored instant when the day is unchanged, so a save does not move an expiry set elsewhere. */
 function updatedExpiry(draft: CredentialDraft, credential: Credential): { expiresAt?: string } {
-    if (draft.expiresAt === toDateInput(credential.expiresAt)) {
+    if (draft.expiresAt === isoToDateInput(credential.expiresAt)) {
         return optionalText('expiresAt', credential.expiresAt ?? '');
     }
     return draft.expiresAt ? { expiresAt: fromDateInput(draft.expiresAt) } : {};
@@ -220,14 +220,15 @@ function isHttpUrl(value: string): boolean {
     }
 }
 
-function toDateInput(isoDate: string | undefined): string {
-    if (!isoDate) {
-        return '';
-    }
-    const date = new Date(isoDate);
+/** The local `YYYY-MM-DD` of a date, as the draft holds it. */
+export function toDateInput(date: Date): string {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${date.getFullYear()}-${month}-${day}`;
+}
+
+function isoToDateInput(isoDate: string | undefined): string {
+    return isoDate ? toDateInput(new Date(isoDate)) : '';
 }
 
 // The credential stays valid through the chosen day; the backend refuses an expiry that is not in the future.

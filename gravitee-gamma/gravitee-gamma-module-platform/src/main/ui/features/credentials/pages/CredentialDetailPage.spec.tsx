@@ -18,18 +18,13 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useNavigate, useParams } from 'react-router-dom';
 
 import { CredentialDetailPage } from './CredentialDetailPage';
-import { useHasEnvironmentPermission } from '../../../shared/hooks/useEnvironmentPermissions';
+import { useCredentialActions } from '../hooks/useCredentialActions';
 import { useCredential, useCredentialConsumers, useCredentialOwnerNames } from '../hooks/useCredentials';
 import type { Credential, CredentialConsumer } from '../types/credential';
-import {
-    ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION,
-    ENVIRONMENT_CREDENTIAL_UPDATE_PERMISSION,
-    ENVIRONMENT_SECRET_DELETE_PERMISSION,
-} from '../utils/credentialPermissions';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({ useEnvironment: () => ({ id: 'env-1' }) }));
 jest.mock('react-router-dom', () => ({ ...jest.requireActual('react-router-dom'), useNavigate: jest.fn(), useParams: jest.fn() }));
-jest.mock('../../../shared/hooks/useEnvironmentPermissions');
+jest.mock('../hooks/useCredentialActions');
 jest.mock('../hooks/useCredentials');
 jest.mock('../components/DeleteCredentialDialog', () => ({
     DeleteCredentialDialog: ({ open, onDeleted }: { open: boolean; onDeleted: () => void }) =>
@@ -72,8 +67,8 @@ function given(credential: Credential, consumers: CredentialConsumer[] = []) {
     >);
 }
 
-function givenPermissions(granted: readonly string[]) {
-    jest.mocked(useHasEnvironmentPermission).mockImplementation(anyOf => anyOf.some(permission => granted.includes(permission)));
+function givenActions({ canEdit = false, canDelete = false }: { canEdit?: boolean; canDelete?: boolean } = {}) {
+    jest.mocked(useCredentialActions).mockReturnValue({ canEdit: () => canEdit, canDelete: () => canDelete });
 }
 
 function renderPage() {
@@ -97,7 +92,7 @@ describe('CredentialDetailPage', () => {
         jest.clearAllMocks();
         jest.mocked(useNavigate).mockReturnValue(navigate);
         jest.mocked(useCredentialOwnerNames).mockReturnValue({ 'user-1': 'Priya Raman' });
-        givenPermissions([]);
+        givenActions();
     });
 
     it('shows the details of a credential Gravitee stores', () => {
@@ -157,9 +152,9 @@ describe('CredentialDetailPage', () => {
         expect(screen.queryByRole('button', { name: 'Credential actions' })).not.toBeInTheDocument();
     });
 
-    it('opens the edit page with the update permission', async () => {
+    it('opens the edit page when the user may edit the credential', async () => {
         given(MANAGED);
-        givenPermissions([ENVIRONMENT_CREDENTIAL_UPDATE_PERMISSION]);
+        givenActions({ canEdit: true });
         renderPage();
 
         await userEvent.click(screen.getByRole('button', { name: 'Credential actions' }));
@@ -179,27 +174,22 @@ describe('CredentialDetailPage', () => {
         expect(screen.getByText(/could not load what uses this credential/i)).toBeInTheDocument();
     });
 
-    it.each([
-        ['a stored credential with the credential permission only', MANAGED, [ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION], false],
-        [
-            'a stored credential with the secret permission too',
-            MANAGED,
-            [ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION, ENVIRONMENT_SECRET_DELETE_PERMISSION],
-            true,
-        ],
-        ['a reference credential with the credential permission', REFERENCED, [ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION], true],
-    ])('offers delete for %s: %s', (_case, credential, granted, offered) => {
-        given(credential);
-        givenPermissions(granted);
-
+    it('offers only the actions the user may take on this credential', async () => {
+        given(REFERENCED);
+        const canDelete = jest.fn(() => true);
+        jest.mocked(useCredentialActions).mockReturnValue({ canEdit: () => false, canDelete });
         renderPage();
 
-        expect(Boolean(screen.queryByRole('button', { name: 'Credential actions' }))).toBe(offered);
+        await userEvent.click(screen.getByRole('button', { name: 'Credential actions' }));
+
+        expect(await screen.findByRole('menuitem', { name: 'Delete' })).toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument();
+        expect(canDelete).toHaveBeenCalledWith(REFERENCED);
     });
 
     it('goes back to the list once the credential is deleted', async () => {
         given(MANAGED);
-        givenPermissions([ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION, ENVIRONMENT_SECRET_DELETE_PERMISSION]);
+        givenActions({ canDelete: true });
         renderPage();
 
         await userEvent.click(screen.getByRole('button', { name: 'Credential actions' }));

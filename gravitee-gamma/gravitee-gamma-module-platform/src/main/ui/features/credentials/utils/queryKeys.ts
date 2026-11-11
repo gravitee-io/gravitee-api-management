@@ -15,8 +15,9 @@
  */
 export const credentialKeys = {
     all: ['environment-credentials'] as const,
+    lists: () => [...credentialKeys.all, 'list'] as const,
     list: (envId: string, query: string, page: number, perPage: number) =>
-        [...credentialKeys.all, 'list', envId, query, page, perPage] as const,
+        [...credentialKeys.lists(), envId, query, page, perPage] as const,
     detail: (envId: string, credentialId: string) => [...credentialKeys.all, 'detail', envId, credentialId] as const,
     consumers: (envId: string, credentialId: string) => [...credentialKeys.all, 'consumers', envId, credentialId] as const,
     owner: (ownerId: string) => [...credentialKeys.all, 'owner', ownerId] as const,

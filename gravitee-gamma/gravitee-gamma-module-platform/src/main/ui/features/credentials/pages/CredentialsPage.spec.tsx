@@ -19,19 +19,17 @@ import { useNavigate } from 'react-router-dom';
 
 import { CredentialsPage } from './CredentialsPage';
 import { useHasEnvironmentPermission } from '../../../shared/hooks/useEnvironmentPermissions';
+import { useCredentialActions } from '../hooks/useCredentialActions';
 import { useCredentialOwnerNames, useCredentialsPaged } from '../hooks/useCredentials';
 import type { Credential } from '../types/credential';
-import {
-    ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION,
-    ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION,
-    ENVIRONMENT_SECRET_DELETE_PERMISSION,
-} from '../utils/credentialPermissions';
+import { ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION } from '../utils/credentialPermissions';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({ useEnvironment: () => ({ id: 'env-1' }) }));
 jest.mock('react-router-dom', () => ({ ...jest.requireActual('react-router-dom'), useNavigate: jest.fn() }));
 jest.mock('../../../shared/hooks/useEnvironmentPermissions');
 jest.mock('../../../shared/hooks/useForbiddenResourceRedirect');
 jest.mock('../hooks/useCredentials');
+jest.mock('../hooks/useCredentialActions');
 jest.mock('../components/CredentialsTable', () => ({
     CredentialsTable: ({
         credentials,
@@ -111,6 +109,7 @@ describe('CredentialsPage', () => {
         jest.mocked(useNavigate).mockReturnValue(navigate);
         jest.mocked(useCredentialOwnerNames).mockReturnValue({ 'user-1': 'Alex Doyle' });
         givenPermissions([]);
+        jest.mocked(useCredentialActions).mockReturnValue({ canEdit: () => true, canDelete: () => true });
     });
 
     it('lists the credentials with their owner names', () => {
@@ -174,10 +173,10 @@ describe('CredentialsPage', () => {
         expect(navigate).toHaveBeenCalledWith('cred-1/edit');
     });
 
-    it('offers delete on a stored credential only with the secret permission too', () => {
+    it('offers delete only on the credentials the user may delete', () => {
         const vault: Credential = { id: 'cred-2', name: 'Vault token', strategy: 'BEARER', managed: false };
         givenCredentials([OPENAI, vault]);
-        givenPermissions([ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION]);
+        jest.mocked(useCredentialActions).mockReturnValue({ canEdit: () => false, canDelete: credential => credential.id === vault.id });
 
         render(<CredentialsPage />);
 
@@ -187,7 +186,6 @@ describe('CredentialsPage', () => {
 
     it('asks before it deletes a credential', async () => {
         givenCredentials([OPENAI]);
-        givenPermissions([ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION, ENVIRONMENT_SECRET_DELETE_PERMISSION]);
         render(<CredentialsPage />);
 
         await userEvent.click(screen.getByRole('button', { name: 'Delete OpenAI production' }));
