@@ -36,6 +36,7 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.Invoker;
+import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
@@ -78,6 +79,8 @@ import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LoggingHoo
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntime;
+import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeRegistry;
 import io.gravitee.gateway.reactive.handlers.api.v4.security.HttpSecurityChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.policy.action.PolicyActionExecutor;
@@ -158,7 +161,6 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected final FlowChain apiPlanFlowChain;
     protected final FlowChain apiFlowChain;
     protected final FlowChain internalFlowChain;
-    protected volatile FlowChain apiProductPlanFlowChain;
     private final Node node;
     protected final String loggingExcludedResponseType;
     protected final String loggingMaxSize;
@@ -172,7 +174,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected final LogGuardService logGuardService;
     private final ApiProductRegistry apiProductRegistry;
     private final ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory;
-    private final FlowChainFactory v4FlowChainFactory;
+    private final ApiProductRuntimeRegistry apiProductRuntimeRegistry;
     private PolicyManager apiProductPlanPolicyManager;
     private final PolicyActionExecutor endpointRequestActionExecutor;
     private final PolicyActionExecutor entrypointResponseActionExecutor;
@@ -257,6 +259,63 @@ public class DefaultApiReactor extends AbstractApiReactor {
         final ApiProductRegistry apiProductRegistry,
         final ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory
     ) {
+        this(
+            api,
+            deploymentContext,
+            componentProvider,
+            ctxTemplateVariableProviders,
+            policyManager,
+            entrypointConnectorPluginManager,
+            apiServicePluginManager,
+            endpointManager,
+            resourceLifecycleManager,
+            apiProcessorChainFactory,
+            flowChainFactory,
+            v4FlowChainFactory,
+            configuration,
+            node,
+            requestTimeoutConfiguration,
+            reporterService,
+            accessPointManager,
+            eventManager,
+            httpAcceptorFactory,
+            tracingContext,
+            logGuardService,
+            apiProductRegistry,
+            apiProductPlanPolicyManagerFactory,
+            null
+        );
+    }
+
+    /**
+     * @param apiProductRuntimeRegistry runs the product plan flows; null when API Product support is not loaded
+     */
+    public DefaultApiReactor(
+        final Api api,
+        final DeploymentContext deploymentContext,
+        final ComponentProvider componentProvider,
+        final List<TemplateVariableProvider> ctxTemplateVariableProviders,
+        final PolicyManager policyManager,
+        final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
+        final ApiServicePluginManager apiServicePluginManager,
+        final EndpointManager endpointManager,
+        final ResourceLifecycleManager resourceLifecycleManager,
+        final ApiProcessorChainFactory apiProcessorChainFactory,
+        final io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory flowChainFactory,
+        final FlowChainFactory v4FlowChainFactory,
+        final Configuration configuration,
+        final Node node,
+        final RequestTimeoutConfiguration requestTimeoutConfiguration,
+        final ReporterService reporterService,
+        final AccessPointManager accessPointManager,
+        final EventManager eventManager,
+        final HttpAcceptorFactory httpAcceptorFactory,
+        final TracingContext tracingContext,
+        final LogGuardService logGuardService,
+        final ApiProductRegistry apiProductRegistry,
+        final ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory,
+        final ApiProductRuntimeRegistry apiProductRuntimeRegistry
+    ) {
         // apiProductRegistry may be null when API Product support is not loaded
         super(
             configuration,
@@ -278,6 +337,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
         this.logGuardService = logGuardService;
         this.apiProductRegistry = apiProductRegistry;
         this.apiProductPlanPolicyManagerFactory = apiProductPlanPolicyManagerFactory;
+        this.apiProductRuntimeRegistry = apiProductRuntimeRegistry;
 
         this.defaultInvoker = endpointInvoker(endpointManager);
 
@@ -290,7 +350,6 @@ public class DefaultApiReactor extends AbstractApiReactor {
         this.afterApiExecutionProcessors = apiProcessorChainFactory.afterApiExecution(api);
         this.onErrorProcessors = apiProcessorChainFactory.onError(api);
 
-        this.v4FlowChainFactory = v4FlowChainFactory;
         this.organizationFlowChain = flowChainFactory.createOrganizationFlow(api, tracingContext);
         this.apiPlanFlowChain = v4FlowChainFactory.createPlanFlow(api, tracingContext);
         this.apiFlowChain = v4FlowChainFactory.createApiFlow(api, tracingContext);
@@ -384,6 +443,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
             .chainWith(httpSecurityChain.execute(ctx))
             // Before flows processors.
             .chainWith(executeProcessorChain(ctx, beforeApiExecutionProcessors, REQUEST))
+            .chainWith(Completable.fromRunnable(() -> pinApiProductRuntime(ctx)))
             // Resolve entrypoint and prepare request to be handled.
             .chainWith(handleEntrypointRequest(ctx))
             // Execute the internal flow before the publisher's flows, so they see what it did to the request.
@@ -443,7 +503,10 @@ public class DefaultApiReactor extends AbstractApiReactor {
                 endPhaseTracing(ctx, REQUEST, null);
                 endPhaseTracing(ctx, RESPONSE, null);
             })
-            .doFinally(pendingRequests::decrementAndGet);
+            .doFinally(() -> {
+                releaseApiProductRuntime(ctx);
+                pendingRequests.decrementAndGet();
+            });
     }
 
     protected Completable startPhaseTracing(final MutableExecutionContext ctx, final ExecutionPhase executionPhase) {
@@ -697,7 +760,6 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
         // Create httpSecurityChain once policy manager has been started.
         refreshSecurityChain();
-        refreshApiProductPlanFlowChain();
 
         tracingContext.start();
         analyticsContext = createAnalyticsContext();
@@ -762,7 +824,6 @@ public class DefaultApiReactor extends AbstractApiReactor {
                 }
             }
             refreshSecurityChain();
-            refreshApiProductPlanFlowChain();
             log.debug("API [{}] security chain refreshed after API Product change", api.getId());
         } catch (Exception e) {
             log.warn("Failed to refresh security chain for API [{}] on API Product change", api.getId(), e);
@@ -801,26 +862,6 @@ public class DefaultApiReactor extends AbstractApiReactor {
         this.httpSecurityChain = chain;
     }
 
-    private void refreshApiProductPlanFlowChain() {
-        if (apiProductRegistry != null && apiProductPlanPolicyManager != null) {
-            io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory productPlanPolicyChainFactory =
-                new io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory(
-                    api.getId(),
-                    apiProductPlanPolicyManager,
-                    tracingContext != null && tracingContext.isEnabled()
-                );
-            this.apiProductPlanFlowChain = v4FlowChainFactory.createProductPlanFlow(
-                api,
-                api.getEnvironmentId(),
-                apiProductRegistry,
-                productPlanPolicyChainFactory,
-                tracingContext
-            );
-        } else {
-            this.apiProductPlanFlowChain = null;
-        }
-    }
-
     /**
      * Runs what policies registered for the end of the request. Each is given its turn whatever happened before
      * it, and one that fails is logged rather than replacing the failure the client is being told about — a
@@ -843,9 +884,52 @@ public class DefaultApiReactor extends AbstractApiReactor {
         });
     }
 
+    /**
+     * Pins, for the whole request, the runtime of the product of the internal subscription, provided the product lists
+     * this API. The public {@code apiProduct} attribute is never read: a policy can rewrite it.
+     */
+    private void pinApiProductRuntime(final MutableExecutionContext ctx) {
+        if (apiProductRuntimeRegistry == null) {
+            return;
+        }
+        final Subscription subscription = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION);
+        if (subscription == null || subscription.getApiProductId() == null) {
+            return;
+        }
+        final ApiProductRuntime runtime = apiProductRuntimeRegistry.acquire(subscription.getApiProductId(), api.getEnvironmentId());
+        if (runtime == null) {
+            return;
+        }
+        if (!runtime.servesApi(api.getId())) {
+            runtime.release();
+            return;
+        }
+        ctx.setInternalAttribute(ApiProductRuntime.ATTR_INTERNAL_API_PRODUCT_RUNTIME, runtime);
+        runtime.extractPathParameters(ctx);
+    }
+
+    private void releaseApiProductRuntime(final MutableExecutionContext ctx) {
+        if (apiProductRuntimeRegistry == null) {
+            return;
+        }
+        final ApiProductRuntime runtime = ctx.getInternalAttribute(ApiProductRuntime.ATTR_INTERNAL_API_PRODUCT_RUNTIME);
+        if (runtime != null) {
+            ctx.removeInternalAttribute(ApiProductRuntime.ATTR_INTERNAL_API_PRODUCT_RUNTIME);
+            runtime.release();
+        }
+    }
+
     private Completable executeProductPlanFlowChain(final MutableExecutionContext ctx, final ExecutionPhase phase) {
-        final FlowChain chain = apiProductPlanFlowChain;
-        return chain != null ? chain.execute(ctx, phase) : Completable.complete();
+        if (apiProductRuntimeRegistry == null) {
+            return Completable.complete();
+        }
+        return Completable.defer(() -> {
+            final ApiProductRuntime runtime = ctx.getInternalAttribute(ApiProductRuntime.ATTR_INTERNAL_API_PRODUCT_RUNTIME);
+            if (runtime == null) {
+                return Completable.complete();
+            }
+            return runtime.productPlanFlowChain(tracingContext.isEnabled()).execute(ctx, phase);
+        });
     }
 
     protected void addInvokerHooks(List<InvokerHook> invokerHooks) {}

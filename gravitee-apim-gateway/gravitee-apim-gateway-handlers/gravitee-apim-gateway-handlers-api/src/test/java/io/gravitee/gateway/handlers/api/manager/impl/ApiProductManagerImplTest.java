@@ -17,16 +17,22 @@ package io.gravitee.gateway.handlers.api.manager.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -36,6 +42,7 @@ import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
 import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
 import io.gravitee.gateway.handlers.api.manager.ApiProductChange;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
+import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeRegistry;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
 import io.reactivex.rxjava3.core.Completable;
@@ -79,6 +86,9 @@ class ApiProductManagerImplTest {
     @Mock
     private GatewayConfiguration gatewayConfiguration;
 
+    @Mock
+    private ApiProductRuntimeRegistry apiProductRuntimeRegistry;
+
     private ApiProductManagerImpl manager;
 
     @BeforeEach
@@ -87,7 +97,13 @@ class ApiProductManagerImplTest {
         lenient().when(license.isFeatureEnabled("apim-api-products")).thenReturn(true);
         lenient().when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(List.of("internal")));
         lenient().when(gatewayConfiguration.hasMatchingTags(any())).thenReturn(true);
-        manager = new ApiProductManagerImpl(apiProductRegistry, eventManager, licenseManager, gatewayConfiguration);
+        manager = new ApiProductManagerImpl(
+            apiProductRegistry,
+            apiProductRuntimeRegistry,
+            eventManager,
+            licenseManager,
+            gatewayConfiguration
+        );
     }
 
     @Nested
@@ -579,6 +595,181 @@ class ApiProductManagerImplTest {
                 .security(PlanSecurity.builder().type("api-key").build())
                 .status(PlanStatus.PUBLISHED)
                 .build();
+        }
+    }
+
+    @Nested
+    class RuntimeTest {
+
+        private final Date oldDate = new Date(System.currentTimeMillis() - 10000);
+        private final Date newDate = new Date();
+
+        @Test
+        void should_publish_the_runtime_before_emitting_the_deploy_event() {
+            ReactableApiProduct product = createApiProduct("product-1", "env-1", newDate);
+
+            manager.register(product);
+
+            InOrder inOrder = inOrder(apiProductRuntimeRegistry, eventManager);
+            inOrder.verify(apiProductRuntimeRegistry).deploy(product);
+            inOrder.verify(eventManager).publishEvent(eq(ApiProductEventType.DEPLOY), any(ApiProductChangedEvent.class));
+        }
+
+        @Test
+        void should_keep_the_runtime_when_only_the_name_changes() {
+            ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
+            ReactableApiProduct renamed = createApiProduct("product-1", "env-1", newDate);
+            renamed.setName("Renamed");
+            manager.register(oldProduct);
+
+            manager.register(renamed);
+
+            verify(apiProductRuntimeRegistry, never()).deploy(renamed);
+        }
+
+        @Test
+        void should_swap_the_runtime_when_a_plan_flow_changes() {
+            ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
+            ReactableApiProduct withFlow = createApiProduct("product-1", "env-1", newDate);
+            Plan plan = Plan.builder().id("plan-1").flows(List.of(Flow.builder().name("flow").build())).build();
+            withFlow.setPlans(List.of(plan));
+            manager.register(oldProduct);
+
+            manager.register(withFlow);
+
+            verify(apiProductRuntimeRegistry).deploy(withFlow);
+        }
+
+        @Test
+        void should_swap_the_runtime_when_the_flow_mode_changes() {
+            ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
+            ReactableApiProduct bestMatch = createApiProduct("product-1", "env-1", newDate);
+            FlowExecution flowExecution = new FlowExecution();
+            flowExecution.setMode(FlowMode.BEST_MATCH);
+            bestMatch.setFlowExecution(flowExecution);
+            manager.register(oldProduct);
+
+            manager.register(bestMatch);
+
+            verify(apiProductRuntimeRegistry).deploy(bestMatch);
+        }
+
+        @Test
+        void should_put_back_the_previous_runtime_when_an_update_fails() {
+            ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
+            ReactableApiProduct failed = createApiProduct("product-1", "env-1", newDate);
+            failed.setApiIds(Set.of("api-3"));
+            manager.register(oldProduct);
+
+            manager
+                .register(failed, change -> Completable.error(new IllegalStateException("repository down")))
+                .test()
+                .assertError(IllegalStateException.class);
+
+            InOrder inOrder = inOrder(apiProductRuntimeRegistry);
+            inOrder.verify(apiProductRuntimeRegistry).deploy(failed);
+            inOrder.verify(apiProductRuntimeRegistry).deploy(oldProduct);
+        }
+
+        @Test
+        void should_remove_the_runtime_of_a_failed_first_deployment() {
+            ReactableApiProduct product = createApiProduct("product-1", "env-1", newDate);
+
+            manager
+                .register(product, change -> Completable.error(new IllegalStateException("repository down")))
+                .test()
+                .assertError(IllegalStateException.class);
+
+            verify(apiProductRuntimeRegistry).remove("product-1", "env-1");
+        }
+
+        @Test
+        void should_remove_the_runtime_on_undeploy() {
+            manager.register(createApiProduct("product-1", "env-1", newDate));
+
+            manager.unregister("product-1");
+
+            verify(apiProductRuntimeRegistry).remove("product-1", "env-1");
+        }
+
+        @Test
+        void should_refuse_a_first_deployment_whose_runtime_cannot_start() {
+            ReactableApiProduct product = createApiProduct("product-1", "env-1", newDate);
+            doThrow(new IllegalStateException("runtime cannot start")).when(apiProductRuntimeRegistry).deploy(product);
+            List<ApiProductChange> beforeEmitCalls = new ArrayList<>();
+
+            manager
+                .register(product, change -> {
+                    beforeEmitCalls.add(change);
+                    return Completable.complete();
+                })
+                .test()
+                .assertError(e -> "runtime cannot start".equals(e.getMessage()));
+
+            assertThat(manager.get("product-1")).isNull();
+            assertThat(beforeEmitCalls).isEmpty();
+            verify(apiProductRegistry, never()).register(product);
+            verify(eventManager, never()).publishEvent(eq(ApiProductEventType.DEPLOY), any(ApiProductChangedEvent.class));
+        }
+
+        @Test
+        void should_refuse_an_update_whose_runtime_cannot_start_and_keep_the_deployed_version() {
+            ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
+            ReactableApiProduct newProduct = createApiProduct("product-1", "env-1", newDate);
+            newProduct.setApiIds(Set.of("api-1", "api-2", "api-3"));
+            manager.register(oldProduct);
+            doThrow(new IllegalStateException("runtime cannot start")).when(apiProductRuntimeRegistry).deploy(newProduct);
+            List<ApiProductChange> beforeEmitCalls = new ArrayList<>();
+
+            manager
+                .register(newProduct, change -> {
+                    beforeEmitCalls.add(change);
+                    return Completable.complete();
+                })
+                .test()
+                .assertError(e -> "runtime cannot start".equals(e.getMessage()));
+
+            assertThat(manager.get("product-1")).isSameAs(oldProduct);
+            assertThat(beforeEmitCalls).isEmpty();
+            verify(apiProductRegistry, never()).register(newProduct);
+            verify(eventManager, never()).publishEvent(eq(ApiProductEventType.UPDATE), any(ApiProductChangedEvent.class));
+        }
+
+        @Test
+        void should_still_restore_the_deployed_version_when_its_runtime_cannot_be_put_back() {
+            ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
+            ReactableApiProduct failed = createApiProduct("product-1", "env-1", newDate);
+            failed.setApiIds(Set.of("api-3"));
+            manager.register(oldProduct);
+            lenient()
+                .doThrow(new IllegalStateException("runtime cannot start"))
+                .when(apiProductRuntimeRegistry)
+                .deploy(argThat(product -> product == oldProduct));
+
+            manager
+                .register(failed, change -> Completable.error(new IllegalStateException("repository down")))
+                .test()
+                .assertError(e -> "repository down".equals(e.getMessage()));
+
+            assertThat(manager.get("product-1")).isSameAs(oldProduct);
+            verify(apiProductRegistry, times(2)).register(oldProduct);
+        }
+
+        @Test
+        void should_not_touch_the_runtime_when_an_update_that_only_renamed_the_product_fails() {
+            ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
+            ReactableApiProduct renamed = createApiProduct("product-1", "env-1", newDate);
+            renamed.setName("Renamed");
+            manager.register(oldProduct);
+            clearInvocations(apiProductRuntimeRegistry);
+
+            manager
+                .register(renamed, change -> Completable.error(new IllegalStateException("repository down")))
+                .test()
+                .assertError(IllegalStateException.class);
+
+            assertThat(manager.get("product-1")).isSameAs(oldProduct);
+            verifyNoInteractions(apiProductRuntimeRegistry);
         }
     }
 

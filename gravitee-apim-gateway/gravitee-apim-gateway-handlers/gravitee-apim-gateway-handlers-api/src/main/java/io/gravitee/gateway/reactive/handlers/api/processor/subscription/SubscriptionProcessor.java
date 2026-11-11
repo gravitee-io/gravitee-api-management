@@ -30,6 +30,7 @@ import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.handlers.api.context.SubscriptionVariable;
+import io.gravitee.gateway.reactive.handlers.api.security.plan.AbstractSecurityPlan;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import java.security.MessageDigest;
@@ -143,6 +144,8 @@ public class SubscriptionProcessor implements Processor {
                 subscription.setPlan(planId);
                 subscription.setApplication(applicationId);
                 subscription.setStatus(ACCEPTED.name());
+                // Without a stored subscription, the product comes from the plan that accepted the request.
+                subscription.setApiProductId(ctx.getInternalAttribute(AbstractSecurityPlan.ATTR_INTERNAL_PLAN_API_PRODUCT));
                 ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
             }
             metrics.setApplicationName(subscription.getApplicationName());

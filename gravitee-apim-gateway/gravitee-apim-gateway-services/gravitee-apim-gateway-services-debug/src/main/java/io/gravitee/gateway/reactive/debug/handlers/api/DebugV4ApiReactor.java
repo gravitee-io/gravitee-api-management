@@ -35,6 +35,7 @@ import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.handlers.api.v4.ApiProductPlanPolicyManagerFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeRegistry;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
@@ -76,7 +77,8 @@ public class DebugV4ApiReactor extends DefaultApiReactor {
         TracingContext tracingContext,
         LogGuardService logGuardService,
         ApiProductRegistry apiProductRegistry,
-        ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory
+        ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory,
+        ApiProductRuntimeRegistry apiProductRuntimeRegistry
     ) {
         super(
             api,
@@ -101,7 +103,8 @@ public class DebugV4ApiReactor extends DefaultApiReactor {
             tracingContext,
             logGuardService,
             apiProductRegistry,
-            apiProductPlanPolicyManagerFactory
+            apiProductPlanPolicyManagerFactory,
+            apiProductRuntimeRegistry
         );
         invokerHooks.add(new DebugInvokerHook());
     }

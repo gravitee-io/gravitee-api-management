@@ -57,6 +57,12 @@ import lombok.CustomLog;
 @CustomLog
 public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C extends BaseExecutionContext> {
 
+    /**
+     * The product owning the plan that accepted the request. Internal so that no policy can change which product
+     * the request is served by.
+     */
+    public static final String ATTR_INTERNAL_PLAN_API_PRODUCT = "securityPlan.apiProduct";
+
     protected static final Maybe<Boolean> TRUE = Maybe.just(true);
     protected static final Maybe<Boolean> FALSE = Maybe.just(false);
     protected final T policy;
@@ -107,6 +113,9 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
             .doOnSubscribe(disposable -> {
                 ComponentScope.push(ctx, ComponentType.POLICY, policy.id());
                 ctx.setAttribute(ATTR_PLAN, planContext.planId());
+                if (planContext.apiProductId() != null) {
+                    ctx.setInternalAttribute(ATTR_INTERNAL_PLAN_API_PRODUCT, planContext.apiProductId());
+                }
             })
             .doFinally(() -> ComponentScope.remove(ctx, ComponentType.POLICY, policy.id()));
     }

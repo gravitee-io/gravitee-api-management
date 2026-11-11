@@ -46,6 +46,7 @@ import io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariableProvi
 import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeRegistry;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
@@ -360,10 +361,12 @@ public class DefaultApiReactorFactory extends AbstractApiReactorFactory<Api> {
         // Get API Product support beans if available
         ApiProductRegistry apiProductRegistry = null;
         ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory = null;
+        ApiProductRuntimeRegistry apiProductRuntimeRegistry = null;
         try {
             apiProductRegistry = applicationContext.getBean(ApiProductRegistry.class);
             if (apiProductRegistry != null) {
                 apiProductPlanPolicyManagerFactory = createApiProductPlanPolicyManagerFactory(componentProvider, apiProductRegistry);
+                apiProductRuntimeRegistry = applicationContext.getBean(ApiProductRuntimeRegistry.class);
             }
         } catch (BeansException e) {
             // API Product support may not be loaded
@@ -392,7 +395,8 @@ public class DefaultApiReactorFactory extends AbstractApiReactorFactory<Api> {
             createTracingContext(api, "API_V4"),
             logGuardService,
             apiProductRegistry,
-            apiProductPlanPolicyManagerFactory
+            apiProductPlanPolicyManagerFactory,
+            apiProductRuntimeRegistry
         );
         return reactor;
     }

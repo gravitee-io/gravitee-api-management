@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
@@ -217,6 +218,78 @@ class ApiProductMapperTest {
                     return true;
                 })
                 .assertComplete();
+        }
+
+        @SneakyThrows
+        @Test
+        void should_map_flows_and_flow_execution_from_payload() {
+            givenEnvironment();
+            Event event = new Event();
+            event.setCreatedAt(new Date());
+            event.setPayload(
+                objectMapper.writeValueAsString(
+                    Map.of(
+                        "id",
+                        "api-product-flows",
+                        "environmentId",
+                        "env-id",
+                        "flowExecution",
+                        Map.of("mode", "best-match", "matchRequired", true),
+                        "flows",
+                        List.of(Map.of("name", "product flow", "request", List.of(Map.of("policy", "transform-headers"))))
+                    )
+                )
+            );
+
+            cut
+                .to(event)
+                .test()
+                .assertValue(reactableApiProduct -> {
+                    assertThat(reactableApiProduct.getFlowExecution().getMode()).isEqualTo(FlowMode.BEST_MATCH);
+                    assertThat(reactableApiProduct.getFlowExecution().isMatchRequired()).isTrue();
+                    assertThat(reactableApiProduct.getFlows())
+                        .singleElement()
+                        .satisfies(flow -> {
+                            assertThat(flow.getName()).isEqualTo("product flow");
+                            assertThat(flow.getRequest())
+                                .singleElement()
+                                .satisfies(step -> assertThat(step.getPolicy()).isEqualTo("transform-headers"));
+                        });
+                    return true;
+                })
+                .assertComplete();
+        }
+
+        @SneakyThrows
+        @Test
+        void should_tolerate_a_payload_without_flows_nor_flow_execution() {
+            givenEnvironment();
+            Event event = new Event();
+            event.setCreatedAt(new Date());
+            event.setPayload(objectMapper.writeValueAsString(Map.of("id", "api-product-legacy", "environmentId", "env-id")));
+
+            cut
+                .to(event)
+                .test()
+                .assertValue(reactableApiProduct -> {
+                    assertThat(reactableApiProduct.getFlows()).isNull();
+                    assertThat(reactableApiProduct.getFlowExecution()).isNull();
+                    return true;
+                })
+                .assertComplete();
+        }
+
+        private void givenEnvironment() throws Exception {
+            Organization organization = new Organization();
+            organization.setId("org-id");
+            organization.setHrids(List.of("org-hrid"));
+            when(organizationRepository.findById(organization.getId())).thenReturn(Optional.of(organization));
+
+            Environment environment = new Environment();
+            environment.setId("env-id");
+            environment.setHrids(List.of("env-hrid"));
+            environment.setOrganizationId(organization.getId());
+            when(environmentRepository.findById("env-id")).thenReturn(Optional.of(environment));
         }
 
         @SneakyThrows

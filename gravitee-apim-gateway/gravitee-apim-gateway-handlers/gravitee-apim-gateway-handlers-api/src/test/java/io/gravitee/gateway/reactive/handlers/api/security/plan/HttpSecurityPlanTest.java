@@ -328,4 +328,27 @@ class HttpSecurityPlanTest {
         obs.assertResult(true);
         verify(ctx, times(1)).setInternalAttribute(eq(ATTR_INTERNAL_SECURITY_TOKEN), any());
     }
+
+    @Test
+    void execute_shouldRecordTheProductOfAProductPlan() {
+        when(policy.onRequest(ctx)).thenReturn(Completable.complete());
+
+        final HttpSecurityPlan cut = new HttpSecurityPlan(
+            SecurityPlanContext.builder().fromV2(plan).apiProductId("product-1").build(),
+            policy
+        );
+        cut.execute(ctx, ExecutionPhase.REQUEST).test().assertResult();
+
+        verify(ctx).setInternalAttribute(AbstractSecurityPlan.ATTR_INTERNAL_PLAN_API_PRODUCT, "product-1");
+    }
+
+    @Test
+    void execute_shouldRecordNoProductForAnApiPlan() {
+        when(policy.onRequest(ctx)).thenReturn(Completable.complete());
+
+        final HttpSecurityPlan cut = new HttpSecurityPlan(SecurityPlanContext.builder().fromV2(plan).build(), policy);
+        cut.execute(ctx, ExecutionPhase.REQUEST).test().assertResult();
+
+        verify(ctx, never()).setInternalAttribute(eq(AbstractSecurityPlan.ATTR_INTERNAL_PLAN_API_PRODUCT), any());
+    }
 }

@@ -44,6 +44,7 @@ import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactive.handlers.api.context.SubscriptionVariable;
 import io.gravitee.gateway.reactive.handlers.api.processor.AbstractProcessorTest;
+import io.gravitee.gateway.reactive.handlers.api.security.plan.AbstractSecurityPlan;
 import io.gravitee.node.api.opentelemetry.Span;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.reactivex.rxjava3.observers.TestObserver;
@@ -192,6 +193,39 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
             cut.execute(spyCtx).test().assertComplete();
 
             assertThat(spyCtx.metrics().getApiProductId()).isEqualTo("pre-existing");
+        }
+
+        @Test
+        void should_give_the_anonymous_subscription_the_product_of_the_matched_product_plan() {
+            spyCtx.setInternalAttribute(AbstractSecurityPlan.ATTR_INTERNAL_PLAN_API_PRODUCT, "api-product-id");
+
+            cut.execute(spyCtx).test().assertComplete();
+
+            Subscription subscription = spyCtx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION);
+            assertThat(subscription.getApiProductId()).isEqualTo("api-product-id");
+            assertThat(spyCtx.metrics().getApiProductId()).isEqualTo("api-product-id");
+        }
+
+        @Test
+        void should_not_take_the_anonymous_subscription_product_from_the_public_attribute() {
+            spyCtx.setAttribute(SubscriptionProcessor.ATTR_API_PRODUCT, "set-by-a-policy");
+
+            cut.execute(spyCtx).test().assertComplete();
+
+            Subscription subscription = spyCtx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION);
+            assertThat(subscription.getApiProductId()).isNull();
+        }
+
+        @Test
+        void should_keep_the_product_of_a_stored_subscription() {
+            var subscription = new Subscription();
+            subscription.setApiProductId("stored-product");
+            spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
+            spyCtx.setInternalAttribute(AbstractSecurityPlan.ATTR_INTERNAL_PLAN_API_PRODUCT, "other-product");
+
+            cut.execute(spyCtx).test().assertComplete();
+
+            assertThat(subscription.getApiProductId()).isEqualTo("stored-product");
         }
 
         @Test
