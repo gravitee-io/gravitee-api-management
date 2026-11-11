@@ -20,6 +20,7 @@ import {
     EyeIcon,
     FileTextIcon,
     GlobeIcon,
+    KeyRoundIcon,
     MailIcon,
     MessageSquareIcon,
     SettingsIcon,
@@ -104,8 +105,9 @@ describe('platform navigation config', () => {
         expect(findNavSectionKey(NAV_SECTIONS, 'user-fields')).toBe('environment');
     });
 
-    it('places Primary Owner Mode, Access Management, API Review, Gateways, Alerts, Notifications, API Health Check, SMTP, CORS, API Logging, Metrics configuration, Security Plan Types, Client Registration, and Audit under Environment / System & Security', () => {
+    it('places Credentials, Primary Owner Mode, Access Management, API Review, Gateways, Alerts, Notifications, API Health Check, SMTP, CORS, API Logging, Metrics configuration, Security Plan Types, Client Registration, and Audit under Environment / System & Security', () => {
         expect(sectionKeys('Environment', 'System & Security')).toEqual([
+            'credentials',
             'primary-owner-mode',
             'access-management',
             'api-review',
@@ -124,6 +126,8 @@ describe('platform navigation config', () => {
         const systemItems =
             NAV_SECTIONS.find(section => section.key === 'environment')?.groups.find(group => group.label === 'System & Security')?.items ??
             [];
+        expect(systemItems.find(item => item.key === 'credentials')?.title).toBe('Credentials');
+        expect(systemItems.find(item => item.key === 'credentials')?.icon).toBe(KeyRoundIcon);
         expect(systemItems.find(item => item.key === 'primary-owner-mode')?.title).toBe('Primary Owner Mode');
         expect(systemItems.find(item => item.key === 'primary-owner-mode')?.icon).toBe(UsersRoundIcon);
         expect(systemItems.find(item => item.key === 'notification-settings')?.title).toBe('Notifications');
@@ -135,6 +139,12 @@ describe('platform navigation config', () => {
         expect(systemItems.find(item => item.key === 'api-health-check')?.title).toBe('API Health Check');
         expect(systemItems.find(item => item.key === 'environment-smtp')?.icon).toBe(SettingsIcon);
         expect(systemItems.find(item => item.key === 'environment-cors')?.icon).toBe(GlobeIcon);
+    });
+
+    it('declares the credentials route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('credentials');
+        expect(ROUTES.credentials).toEqual({ path: 'credentials', label: 'Credentials' });
+        expect(findNavSectionKey(NAV_SECTIONS, 'credentials')).toBe('environment');
     });
 
     it('declares the primary-owner-mode route in platform routing config', () => {

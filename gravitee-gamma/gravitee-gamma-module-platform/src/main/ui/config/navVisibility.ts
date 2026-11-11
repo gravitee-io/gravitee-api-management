@@ -21,6 +21,7 @@ import { filterNavSections, firstNavItemKey, NAV_SECTIONS, type PlatformNavSecti
 import { DEFAULT_ROUTE_KEY, ROUTES, ROUTE_KEYS, type RouteKey } from './routes';
 import { ENVIRONMENT_ALERT_READ_PERMISSION } from '../features/alerts/utils/alertPermissions';
 import { ENVIRONMENT_AUDIT_READ_PERMISSION, ORGANIZATION_AUDIT_READ_PERMISSION } from '../features/audit-logs/utils/auditPermissions';
+import { ENVIRONMENT_CREDENTIAL_READ_PERMISSION } from '../features/credentials/utils/credentialPermissions';
 import { ENVIRONMENT_GROUP_READ_PERMISSION } from '../features/groups/utils/groupPermissions';
 import { ORGANIZATION_NOTIFICATION_TEMPLATES_READ } from '../features/notification-templates/utils/permissions';
 import { ORGANIZATION_POLICIES_ACCESS_PERMISSIONS } from '../features/platform-policies/utils/platformPolicyPermissions';
@@ -75,6 +76,7 @@ export const NAV_ITEM_PERMISSIONS: Readonly<Record<string, readonly string[]>> =
     'entrypoints-and-sharding-tags': [ORGANIZATION_TAG_READ_PERMISSION],
     'policy-studio': ORGANIZATION_POLICIES_ACCESS_PERMISSIONS,
     'access-management': [ENVIRONMENT_AM_CONFIGURATION_READ_PERMISSION],
+    credentials: [ENVIRONMENT_CREDENTIAL_READ_PERMISSION],
     authentication: [ORGANIZATION_IDENTITY_PROVIDER_READ_PERMISSION],
     'management-and-schedulers': [ORGANIZATION_SETTINGS_READ_PERMISSION],
     cors: [ORGANIZATION_SETTINGS_READ_PERMISSION],
