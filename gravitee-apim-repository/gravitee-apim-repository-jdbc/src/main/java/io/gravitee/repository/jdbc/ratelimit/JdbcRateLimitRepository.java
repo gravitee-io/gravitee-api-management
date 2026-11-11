@@ -188,6 +188,7 @@ public class JdbcRateLimitRepository implements RateLimitRepository<RateLimit> {
                     throw e;
                 }
                 // Another request seeded the row first; the locking pass will increment it.
+                log.debug("Rate limit {} was not seeded, an integrity violation is taken as a concurrent seed", key, e);
             } finally {
                 restoreAutoCommit(connection, previousAutoCommit);
             }
