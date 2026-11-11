@@ -52,7 +52,7 @@ function buildColumns({
 }: {
     ownerNames: Readonly<Record<string, string>>;
     canEdit: boolean;
-    canDelete: boolean;
+    canDelete: (credential: Credential) => boolean;
     onEdit: (credential: Credential) => void;
     onDelete: (credential: Credential) => void;
 }): DataTableProps<Credential>['columns'] {
@@ -122,7 +122,8 @@ function buildColumns({
             enableHiding: false,
             cell: ({ row }: ColCell<Credential>) => {
                 const credential = row.original;
-                if (!canEdit && !canDelete) {
+                const deletable = canDelete(credential);
+                if (!canEdit && !deletable) {
                     return null;
                 }
                 return (
@@ -140,8 +141,8 @@ function buildColumns({
                                         Edit
                                     </DropdownMenuItem>
                                 )}
-                                {canEdit && canDelete && <DropdownMenuSeparator />}
-                                {canDelete && (
+                                {canEdit && deletable && <DropdownMenuSeparator />}
+                                {deletable && (
                                     <DropdownMenuItem variant="destructive" onSelect={() => onDelete(credential)}>
                                         <Trash2Icon className="size-4 mr-2" aria-hidden />
                                         Delete
@@ -165,7 +166,7 @@ interface CredentialsTableProps {
     readonly page: number;
     readonly pageSize: number;
     readonly canEdit: boolean;
-    readonly canDelete: boolean;
+    readonly canDelete: (credential: Credential) => boolean;
     readonly onSearchChange: (value: string) => void;
     readonly onPageChange: (page: number) => void;
     readonly onPageSizeChange: (size: number) => void;

@@ -34,10 +34,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useHasEnvironmentPermission } from '../../../shared/hooks/useEnvironmentPermissions';
 import { CredentialConsumerList } from '../components/CredentialConsumerList';
 import { DeleteCredentialDialog } from '../components/DeleteCredentialDialog';
+import { useCanDeleteCredential } from '../hooks/useCanDeleteCredential';
 import { useCredential, useCredentialConsumers, useCredentialOwnerNames } from '../hooks/useCredentials';
 import type { Credential } from '../types/credential';
 import { isCredentialExpired } from '../utils/credentialExpiry';
-import { ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION, ENVIRONMENT_CREDENTIAL_UPDATE_PERMISSION } from '../utils/credentialPermissions';
+import { ENVIRONMENT_CREDENTIAL_UPDATE_PERMISSION } from '../utils/credentialPermissions';
 import { CREDENTIAL_ROTATION_WINDOW_NOTE } from '../utils/credentialRotation';
 import { CREDENTIAL_STRATEGY_DEFINITIONS, credentialStrategyLabel } from '../utils/credentialStrategies';
 
@@ -51,10 +52,10 @@ export function CredentialDetailPage() {
     const navigate = useNavigate();
     const { credentialId } = useParams<{ credentialId: string }>();
     const { data: credential, isLoading, isError } = useCredential(credentialId);
-    const { data: consumers } = useCredentialConsumers(credentialId);
+    const { data: consumers, isError: consumersFailed } = useCredentialConsumers(credentialId);
     const ownerNames = useCredentialOwnerNames([credential?.ownerId]);
     const canEdit = useHasEnvironmentPermission([ENVIRONMENT_CREDENTIAL_UPDATE_PERMISSION]);
-    const canDelete = useHasEnvironmentPermission([ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION]);
+    const canDeleteCredential = useCanDeleteCredential();
     const [deleting, setDeleting] = useState(false);
 
     if (isLoading) {
@@ -68,6 +69,8 @@ export function CredentialDetailPage() {
             </div>
         );
     }
+
+    const canDelete = canDeleteCredential(credential);
 
     return (
         <div className="flex flex-col gap-6">
@@ -118,7 +121,9 @@ export function CredentialDetailPage() {
                     {credential.managed !== false ? (
                         <p className="text-sm text-muted-foreground">{CREDENTIAL_ROTATION_WINDOW_NOTE}</p>
                     ) : null}
-                    {consumers === undefined ? (
+                    {consumersFailed ? (
+                        <p className="text-sm text-muted-foreground">Could not load what uses this credential. Refresh to try again.</p>
+                    ) : consumers === undefined ? (
                         <Skeleton className="h-6 w-48" />
                     ) : consumers.length > 0 ? (
                         <CredentialConsumerList consumers={consumers} />

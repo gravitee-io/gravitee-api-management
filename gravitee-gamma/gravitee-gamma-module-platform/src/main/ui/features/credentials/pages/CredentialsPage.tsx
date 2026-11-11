@@ -23,11 +23,11 @@ import { useForbiddenResourceRedirect } from '../../../shared/hooks/useForbidden
 import { isForbiddenApiError } from '../../../shared/utils/apiErrors';
 import { CredentialsTable } from '../components/CredentialsTable';
 import { DeleteCredentialDialog } from '../components/DeleteCredentialDialog';
+import { useCanDeleteCredential } from '../hooks/useCanDeleteCredential';
 import { useCredentialOwnerNames, useCredentialsPaged } from '../hooks/useCredentials';
 import type { Credential } from '../types/credential';
 import {
     ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION,
-    ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION,
     ENVIRONMENT_CREDENTIAL_PERMISSION_PREFIX,
     ENVIRONMENT_CREDENTIAL_UPDATE_PERMISSION,
 } from '../utils/credentialPermissions';
@@ -39,7 +39,7 @@ export function CredentialsPage() {
     const navigate = useNavigate();
     const canCreate = useHasEnvironmentPermission([ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION]);
     const canEdit = useHasEnvironmentPermission([ENVIRONMENT_CREDENTIAL_UPDATE_PERMISSION]);
-    const canDelete = useHasEnvironmentPermission([ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION]);
+    const canDelete = useCanDeleteCredential();
 
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -65,6 +65,13 @@ export function CredentialsPage() {
     });
 
     const totalCount = data?.pagination.totalCount ?? 0;
+    const lastPage = data?.pagination.pageCount ?? 0;
+    useEffect(() => {
+        // A delete can empty the last page; show the new last page instead of an empty table.
+        if (lastPage > 0 && page > lastPage) {
+            setPage(lastPage);
+        }
+    }, [lastPage, page]);
     const isFirstUse = !isLoading && totalCount === 0 && !search.trim() && !debouncedSearch.trim();
 
     function handleSearchChange(value: string) {

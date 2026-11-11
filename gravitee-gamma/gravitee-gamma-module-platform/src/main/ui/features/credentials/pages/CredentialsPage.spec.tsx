@@ -21,7 +21,11 @@ import { CredentialsPage } from './CredentialsPage';
 import { useHasEnvironmentPermission } from '../../../shared/hooks/useEnvironmentPermissions';
 import { useCredentialOwnerNames, useCredentialsPaged } from '../hooks/useCredentials';
 import type { Credential } from '../types/credential';
-import { ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION } from '../utils/credentialPermissions';
+import {
+    ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION,
+    ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION,
+    ENVIRONMENT_SECRET_DELETE_PERMISSION,
+} from '../utils/credentialPermissions';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({ useEnvironment: () => ({ id: 'env-1' }) }));
 jest.mock('react-router-dom', () => ({ ...jest.requireActual('react-router-dom'), useNavigate: jest.fn() }));
@@ -33,16 +37,23 @@ jest.mock('../components/CredentialsTable', () => ({
         credentials,
         ownerNames,
         loading,
+        canDelete,
+        onPageChange,
         onEdit,
         onDelete,
     }: {
         credentials: Credential[];
         ownerNames: Record<string, string>;
         loading: boolean;
+        canDelete: (credential: Credential) => boolean;
+        onPageChange: (page: number) => void;
         onEdit: (credential: Credential) => void;
         onDelete: (credential: Credential) => void;
     }) => (
         <div aria-busy={loading}>
+            <button type="button" onClick={() => onPageChange(2)}>
+                Go to page 2
+            </button>
             {credentials.map(credential => (
                 <div key={credential.id}>
                     <span>{credential.name}</span>
@@ -50,9 +61,11 @@ jest.mock('../components/CredentialsTable', () => ({
                     <button type="button" onClick={() => onEdit(credential)}>
                         Edit {credential.name}
                     </button>
-                    <button type="button" onClick={() => onDelete(credential)}>
-                        Delete {credential.name}
-                    </button>
+                    {canDelete(credential) ? (
+                        <button type="button" onClick={() => onDelete(credential)}>
+                            Delete {credential.name}
+                        </button>
+                    ) : null}
                 </div>
             ))}
         </div>
@@ -66,11 +79,20 @@ jest.mock('../components/DeleteCredentialDialog', () => ({
 const navigate = jest.fn();
 const OPENAI: Credential = { id: 'cred-1', name: 'OpenAI production', strategy: 'BEARER', ownerId: 'user-1' };
 
-function givenCredentials(credentials: Credential[], state: { isLoading?: boolean; isFetching?: boolean } = {}) {
+function givenCredentials(
+    credentials: Credential[],
+    state: { isLoading?: boolean; isFetching?: boolean; pageCount?: number; totalCount?: number } = {},
+) {
     jest.mocked(useCredentialsPaged).mockReturnValue({
         data: {
             data: credentials,
-            pagination: { page: 1, perPage: 25, pageCount: 1, pageItemsCount: credentials.length, totalCount: credentials.length },
+            pagination: {
+                page: 1,
+                perPage: 25,
+                pageCount: state.pageCount ?? 1,
+                pageItemsCount: credentials.length,
+                totalCount: state.totalCount ?? credentials.length,
+            },
         },
         isLoading: state.isLoading ?? false,
         isFetching: state.isFetching ?? false,
@@ -131,6 +153,18 @@ describe('CredentialsPage', () => {
         expect(screen.getByText('OpenAI production').closest('[aria-busy]')).toHaveAttribute('aria-busy', 'true');
     });
 
+    it('goes back to the last page when the page it shows no longer exists', async () => {
+        givenCredentials([OPENAI], { pageCount: 2, totalCount: 26 });
+        const { rerender } = render(<CredentialsPage />);
+        await userEvent.click(screen.getByRole('button', { name: 'Go to page 2' }));
+        expect(useCredentialsPaged).toHaveBeenLastCalledWith(expect.objectContaining({ page: 2 }));
+
+        givenCredentials([OPENAI], { pageCount: 1, totalCount: 25 });
+        rerender(<CredentialsPage />);
+
+        expect(useCredentialsPaged).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1 }));
+    });
+
     it('opens the edit page of a credential', async () => {
         givenCredentials([OPENAI]);
         render(<CredentialsPage />);
@@ -140,8 +174,20 @@ describe('CredentialsPage', () => {
         expect(navigate).toHaveBeenCalledWith('cred-1/edit');
     });
 
+    it('offers delete on a stored credential only with the secret permission too', () => {
+        const vault: Credential = { id: 'cred-2', name: 'Vault token', strategy: 'BEARER', managed: false };
+        givenCredentials([OPENAI, vault]);
+        givenPermissions([ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION]);
+
+        render(<CredentialsPage />);
+
+        expect(screen.queryByRole('button', { name: 'Delete OpenAI production' })).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Delete Vault token' })).toBeInTheDocument();
+    });
+
     it('asks before it deletes a credential', async () => {
         givenCredentials([OPENAI]);
+        givenPermissions([ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION, ENVIRONMENT_SECRET_DELETE_PERMISSION]);
         render(<CredentialsPage />);
 
         await userEvent.click(screen.getByRole('button', { name: 'Delete OpenAI production' }));

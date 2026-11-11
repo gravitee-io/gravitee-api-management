@@ -29,7 +29,7 @@ interface DeleteCredentialDialogProps {
 }
 
 export function DeleteCredentialDialog({ credential, open, onOpenChange, onDeleted }: DeleteCredentialDialogProps) {
-    const { data: consumers, refetch } = useCredentialConsumers(credential.id, open);
+    const { data: consumers, isError: consumersFailed, refetch } = useCredentialConsumers(credential.id, open);
     const deleteMutation = useDeleteCredential();
     const inUse = (consumers?.length ?? 0) > 0;
 
@@ -60,10 +60,16 @@ export function DeleteCredentialDialog({ credential, open, onOpenChange, onDelet
             pendingLabel="Deleting…"
             destructive
             isPending={deleteMutation.isPending}
-            confirmDisabled={consumers === undefined || inUse}
+            // When the consumers cannot load, the delete stays possible: the server refuses it while something uses the credential.
+            confirmDisabled={(consumers === undefined && !consumersFailed) || inUse}
             onConfirm={() => void handleConfirm()}
         >
             {inUse ? <CredentialConsumerList consumers={consumers ?? []} /> : null}
+            {consumersFailed ? (
+                <p className="text-sm text-muted-foreground">
+                    Could not check what uses this credential. Gravitee refuses the delete if something still uses it.
+                </p>
+            ) : null}
         </ConfirmDialog>
     );
 }

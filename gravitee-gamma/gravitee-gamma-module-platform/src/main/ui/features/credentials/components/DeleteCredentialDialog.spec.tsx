@@ -87,6 +87,23 @@ describe('DeleteCredentialDialog', () => {
         expect(screen.getByRole('button', { name: 'Delete' })).toBeDisabled();
     });
 
+    it('still allows the delete when the consumers fail to load, since the server refuses a delete in use', async () => {
+        mockUseCredentialConsumers.mockReturnValue({
+            data: undefined,
+            isLoading: false,
+            isError: true,
+            refetch: jest.fn(),
+        } as unknown as ReturnType<typeof useCredentialConsumers>);
+        const mutateAsync = jest.fn().mockResolvedValue(undefined);
+        deleteMutation(mutateAsync);
+        renderDialog();
+
+        expect(screen.getByText(/could not check what uses this credential/i)).toBeInTheDocument();
+        await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+
+        expect(mutateAsync).toHaveBeenCalledWith('cred-1');
+    });
+
     it('reloads the consumers when the server refuses a delete in use', async () => {
         const refetch = consumers([]);
         const conflict = new ApimApiError(409, 'Credential in use', undefined);

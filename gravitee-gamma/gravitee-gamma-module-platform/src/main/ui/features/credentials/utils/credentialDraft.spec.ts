@@ -31,8 +31,8 @@ function draft(overrides: Partial<CredentialDraft> = {}): CredentialDraft {
     return { ...emptyCredentialDraft(), name: 'OpenAI', ...overrides };
 }
 
-function localMidnight(date: string): string {
-    return new Date(`${date}T00:00:00`).toISOString();
+function endOfLocalDay(date: string): string {
+    return new Date(`${date}T23:59:59.999`).toISOString();
 }
 
 describe('credential strategies', () => {
@@ -100,6 +100,13 @@ describe('validateCredentialDraft', () => {
 
         expect(errors).toEqual({ expiresAt: 'The expiry date must be today or later.' });
     });
+
+    it('accepts today, which expires at the end of the day', () => {
+        const today = draft({ expiresAt: '2026-11-11' });
+
+        expect(validateCredentialDraft(today, { secretsRequired: false, now: NOW })).toEqual({});
+        expect(new Date(toCreateCredentialPayload(today).expiresAt!).getTime()).toBeGreaterThan(NOW.getTime());
+    });
 });
 
 describe('toCreateCredentialPayload', () => {
@@ -134,7 +141,7 @@ describe('toCreateCredentialPayload', () => {
     it('sends the service and the expiry only when set', () => {
         expect(toCreateCredentialPayload(draft({ serviceId: ' openai ', expiresAt: '2027-03-01' }))).toMatchObject({
             serviceId: 'openai',
-            expiresAt: localMidnight('2027-03-01'),
+            expiresAt: endOfLocalDay('2027-03-01'),
         });
         expect(toCreateCredentialPayload(draft())).not.toHaveProperty('serviceId');
         expect(toCreateCredentialPayload(draft())).not.toHaveProperty('expiresAt');
@@ -187,6 +194,18 @@ describe('editing a credential', () => {
             expiresAt: '2027-03-01T10:30:00Z',
             configuration: { tokenUrl: 'https://idp/token', scopes: ['read', 'write'] },
         });
+    });
+
+    it('sends no expiry when the user clears it', () => {
+        const payload = toUpdateCredentialPayload({ ...draftFromCredential(managed), expiresAt: '' }, managed);
+
+        expect(payload).not.toHaveProperty('expiresAt');
+    });
+
+    it('sends the end of the new day when the user changes the expiry', () => {
+        const payload = toUpdateCredentialPayload({ ...draftFromCredential(managed), expiresAt: '2027-06-30' }, managed);
+
+        expect(payload.expiresAt).toBe(endOfLocalDay('2027-06-30'));
     });
 
     it('sends the edited references of a reference credential', () => {
