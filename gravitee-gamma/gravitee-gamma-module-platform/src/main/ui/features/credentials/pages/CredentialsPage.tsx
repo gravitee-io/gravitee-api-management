@@ -52,7 +52,7 @@ export function CredentialsPage() {
         return () => clearTimeout(timer);
     }, [search]);
 
-    const { data, isLoading, isError, error } = useCredentialsPaged({ query: debouncedSearch, page, perPage: pageSize });
+    const { data, isLoading, isFetching, isError, error } = useCredentialsPaged({ query: debouncedSearch, page, perPage: pageSize });
     const credentials = data?.data ?? [];
     const ownerNames = useCredentialOwnerNames(credentials.map(credential => credential.ownerId));
 
@@ -91,10 +91,10 @@ export function CredentialsPage() {
                     <h1 className="text-2xl font-semibold tracking-tight">Credentials</h1>
                     <p className="text-sm text-muted-foreground">Credentials saved for reuse across modules.</p>
                 </div>
-                {canCreate && !isLoading ? (
+                {canCreate ? (
                     <Button className="shrink-0" size="sm" onClick={() => navigate('new')}>
                         <PlusIcon className="size-4" aria-hidden />
-                        New credential
+                        Add credential
                     </Button>
                 ) : null}
             </div>
@@ -113,7 +113,7 @@ export function CredentialsPage() {
                     credentials={credentials}
                     ownerNames={ownerNames}
                     totalCount={totalCount}
-                    loading={isLoading}
+                    loading={isFetching}
                     search={search}
                     page={page}
                     pageSize={pageSize}

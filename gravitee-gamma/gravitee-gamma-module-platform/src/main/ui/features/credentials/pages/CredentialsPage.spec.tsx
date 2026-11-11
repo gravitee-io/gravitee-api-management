@@ -32,15 +32,17 @@ jest.mock('../components/CredentialsTable', () => ({
     CredentialsTable: ({
         credentials,
         ownerNames,
+        loading,
         onEdit,
         onDelete,
     }: {
         credentials: Credential[];
         ownerNames: Record<string, string>;
+        loading: boolean;
         onEdit: (credential: Credential) => void;
         onDelete: (credential: Credential) => void;
     }) => (
-        <div>
+        <div aria-busy={loading}>
             {credentials.map(credential => (
                 <div key={credential.id}>
                     <span>{credential.name}</span>
@@ -64,13 +66,14 @@ jest.mock('../components/DeleteCredentialDialog', () => ({
 const navigate = jest.fn();
 const OPENAI: Credential = { id: 'cred-1', name: 'OpenAI production', strategy: 'BEARER', ownerId: 'user-1' };
 
-function givenCredentials(credentials: Credential[]) {
+function givenCredentials(credentials: Credential[], state: { isLoading?: boolean; isFetching?: boolean } = {}) {
     jest.mocked(useCredentialsPaged).mockReturnValue({
         data: {
             data: credentials,
             pagination: { page: 1, perPage: 25, pageCount: 1, pageItemsCount: credentials.length, totalCount: credentials.length },
         },
-        isLoading: false,
+        isLoading: state.isLoading ?? false,
+        isFetching: state.isFetching ?? false,
         isError: false,
         error: null,
     } as unknown as ReturnType<typeof useCredentialsPaged>);
@@ -98,17 +101,34 @@ describe('CredentialsPage', () => {
         expect(screen.getByText('Alex Doyle')).toBeInTheDocument();
     });
 
-    it('offers a new credential only with the create permission', async () => {
+    it('offers to add a credential only with the create permission', async () => {
         givenCredentials([OPENAI]);
         const { unmount } = render(<CredentialsPage />);
-        expect(screen.queryByRole('button', { name: 'New credential' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Add credential' })).not.toBeInTheDocument();
         unmount();
 
         givenPermissions([ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION]);
         render(<CredentialsPage />);
-        await userEvent.click(screen.getByRole('button', { name: 'New credential' }));
+        await userEvent.click(screen.getByRole('button', { name: 'Add credential' }));
 
         expect(navigate).toHaveBeenCalledWith('new');
+    });
+
+    it('offers to add a credential while the list loads', () => {
+        givenPermissions([ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION]);
+        givenCredentials([], { isLoading: true, isFetching: true });
+
+        render(<CredentialsPage />);
+
+        expect(screen.getByRole('button', { name: 'Add credential' })).toBeInTheDocument();
+    });
+
+    it('marks the table busy while a search or page change refetches', () => {
+        givenCredentials([OPENAI], { isFetching: true });
+
+        render(<CredentialsPage />);
+
+        expect(screen.getByText('OpenAI production').closest('[aria-busy]')).toHaveAttribute('aria-busy', 'true');
     });
 
     it('opens the edit page of a credential', async () => {

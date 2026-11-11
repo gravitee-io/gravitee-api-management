@@ -54,7 +54,7 @@ export function EditCredentialPage() {
     const { data: credential, isLoading, isError } = useCredential(credentialId);
 
     if (isLoading) {
-        return <Skeleton className="h-64 w-full" />;
+        return <Skeleton className="h-40 w-full" />;
     }
     if (isError || !credential) {
         return (
@@ -113,7 +113,7 @@ function EditCredentialForm({ credential }: Readonly<{ credential: Credential }>
 
     return (
         <PageFocused>
-            <div className="mx-auto max-w-3xl space-y-6">
+            <div className="space-y-6">
                 <div className="space-y-2">
                     <Button
                         type="button"
@@ -227,7 +227,7 @@ function Section({
 }: Readonly<{ index: number; title: string; description: string; children: ReactNode }>) {
     return (
         <section className="flex gap-4">
-            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
                 {index}
             </span>
             <div className="flex-1 space-y-4">

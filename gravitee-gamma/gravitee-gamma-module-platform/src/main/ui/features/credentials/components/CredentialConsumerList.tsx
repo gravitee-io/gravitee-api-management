@@ -25,7 +25,7 @@ export function CredentialConsumerList({ consumers }: Readonly<{ consumers: read
     const env = useEnvironment();
 
     return (
-        <ul className="space-y-1.5">
+        <ul className="space-y-2">
             {consumers.map(consumer => {
                 const href = env ? credentialConsumerHref(env.id, consumer) : undefined;
                 return (
