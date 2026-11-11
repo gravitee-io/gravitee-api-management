@@ -101,7 +101,7 @@ class PortalContentOwnershipDomainServiceTest {
 
         var moved = cut.moveOrphans(ENV_ID);
 
-        assertThat(moved).contains(new Moved(2));
+        assertThat(moved).isEqualTo(new Moved(2));
         assertThat(topNavbarItem.getReference()).isEqualTo(onPortal(DEFAULT_PORTAL_ID));
         assertThat(homepage.getReference()).isEqualTo(onPortal(DEFAULT_PORTAL_ID));
     }
@@ -113,7 +113,7 @@ class PortalContentOwnershipDomainServiceTest {
 
         var moved = cut.moveOrphans(ENV_ID);
 
-        assertThat(moved).contains(new Moved(1));
+        assertThat(moved).isEqualTo(new Moved(1));
         assertThat(item.getReference()).isEqualTo(onPortal(AUTOMATION_PORTAL_ID));
     }
 
@@ -135,7 +135,7 @@ class PortalContentOwnershipDomainServiceTest {
 
         var moved = cut.moveOrphans(ENV_ID);
 
-        assertThat(moved).isEmpty();
+        assertThat(moved).isEqualTo(new Moved(0, true));
         assertThat(item.getReference()).isEqualTo(ON_ZERO_UUID);
     }
 
@@ -146,7 +146,7 @@ class PortalContentOwnershipDomainServiceTest {
 
         var moved = cut.moveOrphans(ENV_ID);
 
-        assertThat(moved).isEmpty();
+        assertThat(moved).isEqualTo(new Moved(0, true));
         assertThat(item.getReference()).isEqualTo(ON_ZERO_UUID);
     }
 
@@ -180,7 +180,7 @@ class PortalContentOwnershipDomainServiceTest {
 
         var moved = cut.moveOrphans(ENV_ID);
 
-        assertThat(moved).contains(new Moved(0));
+        assertThat(moved).isEqualTo(new Moved(0));
         assertThat(apiOwned.getReference()).isEqualTo(new NavigationItemReference.ApiReference("some-api"));
         assertThat(onExistingPortal.getReference()).isEqualTo(onPortal(AUTOMATION_PORTAL_ID));
     }
@@ -219,7 +219,7 @@ class PortalContentOwnershipDomainServiceTest {
 
         var moved = cut.moveOrphans(ENV_ID);
 
-        assertThat(moved).contains(new Moved(0));
+        assertThat(moved).isEqualTo(new Moved(0));
         assertThat(automationItem.getReference()).isEqualTo(onPortal(DELETED_PORTAL_ID));
     }
 
@@ -231,9 +231,22 @@ class PortalContentOwnershipDomainServiceTest {
 
         var moved = cut.moveOrphans(ENV_ID);
 
-        assertThat(moved).contains(new Moved(2));
+        assertThat(moved).isEqualTo(new Moved(2));
         assertThat(syncedBeforePortalsWereNamed.getReference()).isEqualTo(onPortal(AUTOMATION_PORTAL_ID));
         assertThat(consoleItem.getReference()).isEqualTo(onPortal(DEFAULT_PORTAL_ID));
+    }
+
+    @Test
+    void should_point_automation_items_at_their_portal_even_without_a_target_for_console_items() {
+        portalCrudService.initWith(List.of(aPortal(AUTOMATION_PORTAL_ID, false), aPortal(DEFAULT_PORTAL_ID, false)));
+        var syncedBeforePortalsWereNamed = storedAutomationFolder(ON_ZERO_UUID, AUTOMATION_PORTAL_ID);
+        var consoleItem = storedFolder(ENV_ID, ON_ZERO_UUID);
+
+        var moved = cut.moveOrphans(ENV_ID);
+
+        assertThat(moved).isEqualTo(new Moved(1, true));
+        assertThat(syncedBeforePortalsWereNamed.getReference()).isEqualTo(onPortal(AUTOMATION_PORTAL_ID));
+        assertThat(consoleItem.getReference()).isEqualTo(ON_ZERO_UUID);
     }
 
     @Test
@@ -266,6 +279,7 @@ class PortalContentOwnershipDomainServiceTest {
                 .visibility(PortalVisibility.PRIVATE)
                 .build()
         );
+        storedAutomationFolder(ON_ZERO_UUID, DEFAULT_PORTAL_ID);
         navigationItemCrudService.create(
             PortalNavigationApi.builder()
                 .id(PortalNavigationItemId.random())
@@ -360,7 +374,7 @@ class PortalContentOwnershipDomainServiceTest {
 
         var moved = racingCut.moveOrphans(ENV_ID);
 
-        assertThat(moved).contains(new Moved(1));
+        assertThat(moved).isEqualTo(new Moved(1));
         assertThat(navigationReferences()).containsExactlyInAnyOrder(onPortal(DEFAULT_PORTAL_ID), onPortal(concurrentPortalId));
     }
 
@@ -387,6 +401,6 @@ class PortalContentOwnershipDomainServiceTest {
 
         var secondRun = cut.moveOrphans(ENV_ID);
 
-        assertThat(secondRun).contains(new Moved(0));
+        assertThat(secondRun).isEqualTo(new Moved(0));
     }
 }

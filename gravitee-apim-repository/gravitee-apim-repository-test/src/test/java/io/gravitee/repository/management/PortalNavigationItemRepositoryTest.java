@@ -1423,11 +1423,22 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
 
     @Test
     public void should_point_automation_items_at_the_portal_they_were_synced_for() throws Exception {
+        var before = storedItem("legacy-automation-on-zero-uuid");
+
         var changed = portalNavigationItemRepository.updateAutomationPortalReferences(ORPHANS_ENV, DEAD_PORTALS, "existing-portal");
 
         assertThat(changed).isEqualTo(1L);
-        assertThat(storedItem("legacy-automation-on-zero-uuid").getReferenceId()).isEqualTo("existing-portal");
+        var after = storedItem("legacy-automation-on-zero-uuid");
+        assertThat(after.getReferenceId()).isEqualTo("existing-portal");
+        assertThat(after).usingRecursiveComparison().ignoringFields("referenceId").isEqualTo(before);
         assertThat(storedItem("orphan-zero-uuid").getReferenceId()).isEqualTo(ZERO_UUID);
+    }
+
+    @Test
+    public void should_not_point_items_synced_for_an_api_at_a_portal() throws Exception {
+        portalNavigationItemRepository.updateAutomationPortalReferences(ORPHANS_ENV, DEAD_PORTALS, "existing-portal");
+
+        assertThat(storedItem("api-synced-on-zero-uuid").getReferenceId()).isEqualTo(ZERO_UUID);
     }
 
     @Test

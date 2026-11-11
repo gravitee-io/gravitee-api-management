@@ -37,7 +37,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PortalContentOwnershipDomainService {
 
-    public record Moved(long navigationItems) {
+    /**
+     * @param navigationItems the items moved
+     * @param targetMissing true when the environment has no portal, or several and none is the default one: its
+     *     console items had nowhere to go and stayed where they are
+     */
+    public record Moved(long navigationItems, boolean targetMissing) {
+        public Moved(long navigationItems) {
+            this(navigationItems, false);
+        }
+
         public boolean isEmpty() {
             return navigationItems == 0;
         }
@@ -52,15 +61,12 @@ public class PortalContentOwnershipDomainService {
         return moveOrphansTo(portal, references, portalCrudService.findByEnvironmentId(portal.getEnvironmentId()));
     }
 
-    /**
-     * Moves the orphan content of the environment onto its default portal, or else onto its only portal.
-     *
-     * @return what was moved, empty when the environment has no portal, or several and none is the default one
-     */
-    public Optional<Moved> moveOrphans(String environmentId) {
+    /** Moves the orphan console content of the environment onto its default portal, or else onto its only portal. */
+    public Moved moveOrphans(String environmentId) {
         var references = portalNavigationItemCrudService.findReferencedPortalIds(environmentId);
         var portals = portalCrudService.findByEnvironmentId(environmentId);
-        return targetAmong(portals).map(target -> moveOrphansTo(target, references, portals));
+        var target = targetAmong(portals);
+        return new Moved(moveOrphans(environmentId, target, references, portals), target.isEmpty());
     }
 
     private static Optional<Portal> targetAmong(List<Portal> portals) {
@@ -76,18 +82,24 @@ public class PortalContentOwnershipDomainService {
      * among them, so its content is never taken for orphan content.
      */
     private Moved moveOrphansTo(Portal target, Set<PortalId> references, List<Portal> portalsOfEnvironment) {
+        return new Moved(moveOrphans(target.getEnvironmentId(), Optional.of(target), references, portalsOfEnvironment));
+    }
+
+    /** An Automation API item names its own portal, so it moves whether or not console items have a target. */
+    private long moveOrphans(String environmentId, Optional<Portal> target, Set<PortalId> references, List<Portal> portalsOfEnvironment) {
         var existingPortalIds = portalsOfEnvironment.stream().map(Portal::getId).collect(Collectors.toSet());
         var dead = without(references, existingPortalIds);
         if (dead.isEmpty()) {
-            return new Moved(0);
+            return 0;
         }
-        var environmentId = target.getEnvironmentId();
-        var consoleItems = portalNavigationItemCrudService.updatePortalReferences(environmentId, dead, target.getId());
+        var consoleItems = target
+            .map(portal -> portalNavigationItemCrudService.updatePortalReferences(environmentId, dead, portal.getId()))
+            .orElse(0L);
         var automationItems = portalsOfEnvironment
             .stream()
             .mapToLong(portal -> portalNavigationItemCrudService.updateAutomationPortalReferences(environmentId, dead, portal.getId()))
             .sum();
-        return new Moved(consoleItems + automationItems);
+        return consoleItems + automationItems;
     }
 
     private static Set<PortalId> without(Set<PortalId> referenced, Set<PortalId> existing) {

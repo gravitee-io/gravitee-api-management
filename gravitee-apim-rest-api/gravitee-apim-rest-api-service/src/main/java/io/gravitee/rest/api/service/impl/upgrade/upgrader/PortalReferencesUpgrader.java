@@ -27,9 +27,10 @@ import org.springframework.stereotype.Component;
 
 /**
  * Moves the navigation items that name no existing portal of their environment onto its
- * portal. An environment without a usable target is skipped. Without a portal, its content moves when its
- * first portal is created. With several portals and none default, its content stays where it is: nothing
- * moves it later, so it needs a manual fix before PORTAL-345 removes the zero UUID reference.
+ * portal. The console items of an environment without a usable target are skipped; its Automation API items
+ * still move onto the portal they were synced for. Without a portal, its content moves when its first portal
+ * is created. With several portals and none default, its console content stays where it is: nothing moves it
+ * later, so it needs a manual fix before PORTAL-345 removes the zero UUID reference.
  */
 @Component
 @CustomLog
@@ -62,9 +63,11 @@ public class PortalReferencesUpgrader implements Upgrader {
     private boolean applyUpgrade() throws TechnicalException {
         for (var environment : environmentRepository.findAll()) {
             var environmentId = environment.getId();
-            portalContentOwnershipDomainService
-                .moveOrphans(environmentId)
-                .ifPresentOrElse(moved -> logMoved(environmentId, moved), () -> logSkipped(environmentId));
+            var moved = portalContentOwnershipDomainService.moveOrphans(environmentId);
+            logMoved(environmentId, moved);
+            if (moved.targetMissing()) {
+                logSkipped(environmentId);
+            }
         }
         return true;
     }
@@ -77,7 +80,7 @@ public class PortalReferencesUpgrader implements Upgrader {
             );
         } else {
             log.warn(
-                "Environment [{}] skipped: it has several portals and no default one. Its navigation items that name no existing portal stay as they are and need a manual fix: re-point them onto one of its portals",
+                "Environment [{}] skipped: it has several portals and no default one. Its console navigation items that name no existing portal stay as they are and need a manual fix: re-point them onto one of its portals",
                 environmentId
             );
         }
