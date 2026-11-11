@@ -23,8 +23,8 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
-    PageFocused,
     Skeleton,
 } from '@gravitee/graphene-core';
 import { ArrowLeftIcon, MoreVerticalIcon, PencilIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
@@ -58,7 +58,7 @@ export function CredentialDetailPage() {
     const [deleting, setDeleting] = useState(false);
 
     if (isLoading) {
-        return <Skeleton className="h-64 w-full" />;
+        return <Skeleton className="h-40 w-full" />;
     }
 
     if (isError || !credential) {
@@ -70,70 +70,66 @@ export function CredentialDetailPage() {
     }
 
     return (
-        <PageFocused>
-            <div className="mx-auto max-w-4xl space-y-6">
-                <div className="space-y-2">
-                    <Button type="button" variant="ghost" className="gap-1.5 px-0 text-muted-foreground" onClick={() => navigate('..')}>
-                        <ArrowLeftIcon className="size-4" aria-hidden />
-                        Back to credentials
-                    </Button>
-                    <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-1">
-                            <h1 className="text-2xl font-semibold tracking-tight">{credential.name}</h1>
-                            <p className="text-sm text-muted-foreground">{credentialStrategyLabel(credential.strategy)}</p>
-                        </div>
-                        {canEdit || canDelete ? (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" aria-label="Credential actions">
-                                        <MoreVerticalIcon className="size-4" aria-hidden />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    {canEdit && (
-                                        <DropdownMenuItem onSelect={() => navigate('edit')}>
-                                            <PencilIcon className="size-4 mr-2" aria-hidden />
-                                            Edit
-                                        </DropdownMenuItem>
-                                    )}
-                                    {canDelete && (
-                                        <DropdownMenuItem variant="destructive" onSelect={() => setDeleting(true)}>
-                                            <Trash2Icon className="size-4 mr-2" aria-hidden />
-                                            Delete
-                                        </DropdownMenuItem>
-                                    )}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        ) : null}
+        <div className="flex flex-col gap-6">
+            <div className="space-y-2">
+                <Button type="button" variant="ghost" className="gap-1.5 px-0 text-muted-foreground" onClick={() => navigate('..')}>
+                    <ArrowLeftIcon className="size-4" aria-hidden />
+                    Back to credentials
+                </Button>
+                <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                        <h1 className="text-2xl font-semibold tracking-tight">{credential.name}</h1>
+                        <p className="text-sm text-muted-foreground">{credentialStrategyLabel(credential.strategy)}</p>
                     </div>
+                    {canEdit || canDelete ? (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" aria-label="Credential actions">
+                                    <MoreVerticalIcon className="size-4" aria-hidden />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                {canEdit && (
+                                    <DropdownMenuItem onSelect={() => navigate('edit')}>
+                                        <PencilIcon className="size-4 mr-2" aria-hidden />
+                                        Edit
+                                    </DropdownMenuItem>
+                                )}
+                                {canEdit && canDelete && <DropdownMenuSeparator />}
+                                {canDelete && (
+                                    <DropdownMenuItem variant="destructive" onSelect={() => setDeleting(true)}>
+                                        <Trash2Icon className="size-4 mr-2" aria-hidden />
+                                        Delete
+                                    </DropdownMenuItem>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    ) : null}
                 </div>
-
-                <CredentialDetailsCard
-                    credential={credential}
-                    ownerName={credential.ownerId ? ownerNames[credential.ownerId] : undefined}
-                />
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Used by</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                        {credential.managed !== false ? (
-                            <p className="text-sm text-muted-foreground">{CREDENTIAL_ROTATION_WINDOW_NOTE}</p>
-                        ) : null}
-                        {consumers === undefined ? (
-                            <Skeleton className="h-6 w-48" />
-                        ) : consumers.length > 0 ? (
-                            <CredentialConsumerList consumers={consumers} />
-                        ) : (
-                            <p className="text-sm">Nothing uses this credential yet.</p>
-                        )}
-                    </CardContent>
-                </Card>
             </div>
 
+            <CredentialDetailsCard credential={credential} ownerName={credential.ownerId ? ownerNames[credential.ownerId] : undefined} />
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Used by</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    {credential.managed !== false ? (
+                        <p className="text-sm text-muted-foreground">{CREDENTIAL_ROTATION_WINDOW_NOTE}</p>
+                    ) : null}
+                    {consumers === undefined ? (
+                        <Skeleton className="h-6 w-48" />
+                    ) : consumers.length > 0 ? (
+                        <CredentialConsumerList consumers={consumers} />
+                    ) : (
+                        <p className="text-sm">Nothing uses this credential yet.</p>
+                    )}
+                </CardContent>
+            </Card>
+
             <DeleteCredentialDialog credential={credential} open={deleting} onOpenChange={setDeleting} onDeleted={() => navigate('..')} />
-        </PageFocused>
+        </div>
     );
 }
 
@@ -147,7 +143,7 @@ function CredentialDetailsCard({ credential, ownerName }: Readonly<{ credential:
                 <CardTitle>Details</CardTitle>
             </CardHeader>
             <CardContent>
-                <dl className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
+                <dl className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                     <Detail label="Provider">{credential.serviceId ?? <span className="text-muted-foreground">Not set</span>}</Detail>
                     <Detail label="Type">
                         <Badge variant="outline">{credentialStrategyLabel(credential.strategy)}</Badge>

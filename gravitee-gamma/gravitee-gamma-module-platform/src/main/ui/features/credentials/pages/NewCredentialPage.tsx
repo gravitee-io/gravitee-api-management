@@ -95,7 +95,7 @@ export function NewCredentialPage() {
 
     return (
         <PageFocused>
-            <div className="mx-auto max-w-3xl space-y-6">
+            <div className="space-y-6">
                 <div className="space-y-2">
                     <Button type="button" variant="ghost" className="gap-1.5 px-0 text-muted-foreground" onClick={() => navigate('..')}>
                         <ArrowLeftIcon className="size-4" aria-hidden />
