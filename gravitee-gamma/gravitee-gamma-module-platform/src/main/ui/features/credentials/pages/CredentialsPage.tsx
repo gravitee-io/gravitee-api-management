@@ -23,14 +23,10 @@ import { useForbiddenResourceRedirect } from '../../../shared/hooks/useForbidden
 import { isForbiddenApiError } from '../../../shared/utils/apiErrors';
 import { CredentialsTable } from '../components/CredentialsTable';
 import { DeleteCredentialDialog } from '../components/DeleteCredentialDialog';
-import { useCanDeleteCredential } from '../hooks/useCanDeleteCredential';
+import { useCredentialActions } from '../hooks/useCredentialActions';
 import { useCredentialOwnerNames, useCredentialsPaged } from '../hooks/useCredentials';
 import type { Credential } from '../types/credential';
-import {
-    ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION,
-    ENVIRONMENT_CREDENTIAL_PERMISSION_PREFIX,
-    ENVIRONMENT_CREDENTIAL_UPDATE_PERMISSION,
-} from '../utils/credentialPermissions';
+import { ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION, ENVIRONMENT_CREDENTIAL_PERMISSION_PREFIX } from '../utils/credentialPermissions';
 
 const DEFAULT_PAGE_SIZE = 25;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -38,8 +34,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 export function CredentialsPage() {
     const navigate = useNavigate();
     const canCreate = useHasEnvironmentPermission([ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION]);
-    const canEdit = useHasEnvironmentPermission([ENVIRONMENT_CREDENTIAL_UPDATE_PERMISSION]);
-    const canDelete = useCanDeleteCredential();
+    const { canEdit, canDelete } = useCredentialActions();
 
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');

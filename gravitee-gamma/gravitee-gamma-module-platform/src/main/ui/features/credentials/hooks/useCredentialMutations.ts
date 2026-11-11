@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { type QueryClient, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
@@ -21,7 +21,14 @@ import { createCredential, deleteCredential, rotateCredential, updateCredential 
 import type { CreateCredentialPayload, Credential, RotateCredentialPayload, UpdateCredentialPayload } from '../types/credential';
 import { credentialKeys } from '../utils/queryKeys';
 
-function useCredentialMutation<TData, TResult>(mutationFn: (envId: string, data: TData) => Promise<TResult>) {
+type Refresh<TData> = (queryClient: QueryClient, envId: string, data: TData) => Promise<void>;
+
+const refreshAll: Refresh<unknown> = queryClient => queryClient.invalidateQueries({ queryKey: credentialKeys.all });
+
+function useCredentialMutation<TData, TResult>(
+    mutationFn: (envId: string, data: TData) => Promise<TResult>,
+    refreshAfterSuccess: Refresh<TData> = refreshAll,
+) {
     const env = useEnvironment();
     const queryClient = useQueryClient();
 
@@ -34,7 +41,8 @@ function useCredentialMutation<TData, TResult>(mutationFn: (envId: string, data:
         },
         // A 5xx can come after the write landed: a repeat would create a duplicate or rotate twice.
         retry: false,
-        onSettled: () => queryClient.invalidateQueries({ queryKey: credentialKeys.all }),
+        onSuccess: (_result, data) => refreshAfterSuccess(queryClient, env?.id ?? '', data),
+        onError: () => refreshAll(queryClient, env?.id ?? '', undefined),
     });
 }
 
@@ -55,5 +63,10 @@ export function useRotateCredential() {
 }
 
 export function useDeleteCredential() {
-    return useCredentialMutation<string, void>(deleteCredential);
+    // Reloading the deleted credential would only fetch a 404 while the page navigates away.
+    return useCredentialMutation<string, void>(deleteCredential, (queryClient, envId, id) => {
+        queryClient.removeQueries({ queryKey: credentialKeys.detail(envId, id) });
+        queryClient.removeQueries({ queryKey: credentialKeys.consumers(envId, id) });
+        return queryClient.invalidateQueries({ queryKey: credentialKeys.lists() });
+    });
 }

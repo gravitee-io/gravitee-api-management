@@ -22,6 +22,7 @@ import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useCreateCredential, useDeleteCredential, useRotateCredential, useUpdateCredential } from './useCredentialMutations';
 import { retryTransientRequest } from '../../../shared/api/queryRetry';
 import { createCredential, deleteCredential, rotateCredential, updateCredential } from '../services/credentials';
+import { credentialKeys } from '../utils/queryKeys';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useEnvironment: jest.fn(),
@@ -65,5 +66,27 @@ describe('credential mutations', () => {
         });
 
         expect(service).toHaveBeenCalledTimes(1);
+    });
+
+    it('drops the queries of a deleted credential instead of reloading them, and reloads the lists', async () => {
+        jest.mocked(deleteCredential).mockResolvedValue(undefined);
+        const list = credentialKeys.list('env-1', '', 1, 25);
+        const detail = credentialKeys.detail('env-1', 'cred-1');
+        const consumers = credentialKeys.consumers('env-1', 'cred-1');
+        const owner = credentialKeys.owner('user-1');
+        queryClient.setQueryData(list, { data: [] });
+        queryClient.setQueryData(detail, { id: 'cred-1' });
+        queryClient.setQueryData(consumers, []);
+        queryClient.setQueryData(owner, { id: 'user-1' });
+        const { result } = renderHook(() => useDeleteCredential(), { wrapper });
+
+        await act(async () => {
+            await result.current.mutateAsync('cred-1');
+        });
+
+        expect(queryClient.getQueryState(detail)).toBeUndefined();
+        expect(queryClient.getQueryState(consumers)).toBeUndefined();
+        expect(queryClient.getQueryState(list)?.isInvalidated).toBe(true);
+        expect(queryClient.getQueryState(owner)?.isInvalidated).toBe(false);
     });
 });

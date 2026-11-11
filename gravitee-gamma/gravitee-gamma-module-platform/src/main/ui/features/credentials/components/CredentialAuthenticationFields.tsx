@@ -25,7 +25,7 @@ import {
     ToggleGroupItem,
 } from '@gravitee/graphene-core';
 
-import type { CredentialDraft, CredentialDraftErrors, CredentialSecretMode } from '../utils/credentialDraft';
+import { toDateInput, type CredentialDraft, type CredentialDraftErrors, type CredentialSecretMode } from '../utils/credentialDraft';
 import { CREDENTIAL_STRATEGY_DEFINITIONS, type CredentialField } from '../utils/credentialStrategies';
 
 interface CredentialAuthenticationFieldsProps {
@@ -186,10 +186,4 @@ function TextField({
             {error ? <FieldError>{error}</FieldError> : null}
         </Field>
     );
-}
-
-function toDateInput(date: Date): string {
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${date.getFullYear()}-${month}-${day}`;
 }

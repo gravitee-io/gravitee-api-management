@@ -51,7 +51,7 @@ function buildColumns({
     onDelete,
 }: {
     ownerNames: Readonly<Record<string, string>>;
-    canEdit: boolean;
+    canEdit: (credential: Credential) => boolean;
     canDelete: (credential: Credential) => boolean;
     onEdit: (credential: Credential) => void;
     onDelete: (credential: Credential) => void;
@@ -122,8 +122,9 @@ function buildColumns({
             enableHiding: false,
             cell: ({ row }: ColCell<Credential>) => {
                 const credential = row.original;
+                const editable = canEdit(credential);
                 const deletable = canDelete(credential);
-                if (!canEdit && !deletable) {
+                if (!editable && !deletable) {
                     return null;
                 }
                 return (
@@ -135,13 +136,13 @@ function buildColumns({
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                {canEdit && (
+                                {editable && (
                                     <DropdownMenuItem onSelect={() => onEdit(credential)}>
                                         <PencilIcon className="size-4 mr-2" aria-hidden />
                                         Edit
                                     </DropdownMenuItem>
                                 )}
-                                {canEdit && deletable && <DropdownMenuSeparator />}
+                                {editable && deletable && <DropdownMenuSeparator />}
                                 {deletable && (
                                     <DropdownMenuItem variant="destructive" onSelect={() => onDelete(credential)}>
                                         <Trash2Icon className="size-4 mr-2" aria-hidden />
@@ -165,7 +166,7 @@ interface CredentialsTableProps {
     readonly search: string;
     readonly page: number;
     readonly pageSize: number;
-    readonly canEdit: boolean;
+    readonly canEdit: (credential: Credential) => boolean;
     readonly canDelete: (credential: Credential) => boolean;
     readonly onSearchChange: (value: string) => void;
     readonly onPageChange: (page: number) => void;

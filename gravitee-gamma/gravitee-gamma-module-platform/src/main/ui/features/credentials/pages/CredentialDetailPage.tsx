@@ -31,14 +31,12 @@ import { ArrowLeftIcon, MoreVerticalIcon, PencilIcon, Trash2Icon } from '@gravit
 import { useState, type ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useHasEnvironmentPermission } from '../../../shared/hooks/useEnvironmentPermissions';
 import { CredentialConsumerList } from '../components/CredentialConsumerList';
 import { DeleteCredentialDialog } from '../components/DeleteCredentialDialog';
-import { useCanDeleteCredential } from '../hooks/useCanDeleteCredential';
+import { useCredentialActions } from '../hooks/useCredentialActions';
 import { useCredential, useCredentialConsumers, useCredentialOwnerNames } from '../hooks/useCredentials';
 import type { Credential } from '../types/credential';
 import { isCredentialExpired } from '../utils/credentialExpiry';
-import { ENVIRONMENT_CREDENTIAL_UPDATE_PERMISSION } from '../utils/credentialPermissions';
 import { CREDENTIAL_ROTATION_WINDOW_NOTE } from '../utils/credentialRotation';
 import { CREDENTIAL_STRATEGY_DEFINITIONS, credentialStrategyLabel } from '../utils/credentialStrategies';
 
@@ -54,8 +52,7 @@ export function CredentialDetailPage() {
     const { data: credential, isLoading, isError } = useCredential(credentialId);
     const { data: consumers, isError: consumersFailed } = useCredentialConsumers(credentialId);
     const ownerNames = useCredentialOwnerNames([credential?.ownerId]);
-    const canEdit = useHasEnvironmentPermission([ENVIRONMENT_CREDENTIAL_UPDATE_PERMISSION]);
-    const canDeleteCredential = useCanDeleteCredential();
+    const actions = useCredentialActions();
     const [deleting, setDeleting] = useState(false);
 
     if (isLoading) {
@@ -70,7 +67,8 @@ export function CredentialDetailPage() {
         );
     }
 
-    const canDelete = canDeleteCredential(credential);
+    const canEdit = actions.canEdit(credential);
+    const canDelete = actions.canDelete(credential);
 
     return (
         <div className="flex flex-col gap-6">
