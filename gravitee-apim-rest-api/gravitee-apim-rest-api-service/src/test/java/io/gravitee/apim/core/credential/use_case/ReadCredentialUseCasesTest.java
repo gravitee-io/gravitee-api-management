@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.AbstractUseCaseTest;
-import io.gravitee.apim.core.credential.CredentialFixture;
 import io.gravitee.apim.core.credential.exception.CredentialNotFoundException;
 import io.gravitee.apim.core.credential.model.Credential;
 import io.gravitee.apim.core.credential.model.CredentialActor;

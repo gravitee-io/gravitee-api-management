@@ -49,7 +49,13 @@ public class DeleteCredentialUseCase {
 
         var consumers = credentialConsumers.of(actor.environmentId(), credential.id());
         if (!consumers.isEmpty()) {
-            throw new CredentialInUseException(credential.id(), consumers);
+            throw new CredentialInUseException(
+                credential.id(),
+                consumers
+                    .stream()
+                    .map(c -> c.type() + " \"" + c.name() + "\"")
+                    .toList()
+            );
         }
 
         // Secrets first: if a delete fails, the credential still lists the secrets left to clean up.

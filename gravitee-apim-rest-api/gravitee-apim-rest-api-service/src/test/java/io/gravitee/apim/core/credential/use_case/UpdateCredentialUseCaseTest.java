@@ -15,15 +15,14 @@
  */
 package io.gravitee.apim.core.credential.use_case;
 
-import static io.gravitee.apim.core.credential.CredentialFixture.FOREIGN_USER_ID;
-import static io.gravitee.apim.core.credential.CredentialFixture.NEXT_YEAR;
-import static io.gravitee.apim.core.credential.CredentialFixture.OTHER_USER_ID;
-import static io.gravitee.apim.core.credential.CredentialFixture.OWNER_ID;
+import static io.gravitee.apim.core.credential.use_case.CredentialFixture.FOREIGN_USER_ID;
+import static io.gravitee.apim.core.credential.use_case.CredentialFixture.NEXT_YEAR;
+import static io.gravitee.apim.core.credential.use_case.CredentialFixture.OTHER_USER_ID;
+import static io.gravitee.apim.core.credential.use_case.CredentialFixture.OWNER_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.AbstractUseCaseTest;
-import io.gravitee.apim.core.credential.CredentialFixture;
 import io.gravitee.apim.core.credential.exception.CredentialManagementNotAllowedException;
 import io.gravitee.apim.core.credential.exception.CredentialNotFoundException;
 import io.gravitee.apim.core.credential.exception.InvalidCredentialException;

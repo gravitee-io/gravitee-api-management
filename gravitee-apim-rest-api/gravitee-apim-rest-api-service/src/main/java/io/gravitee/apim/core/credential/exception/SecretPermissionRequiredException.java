@@ -15,18 +15,17 @@
  */
 package io.gravitee.apim.core.credential.exception;
 
-import io.gravitee.apim.core.credential.model.CredentialActor.SecretAccess;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import java.util.Locale;
 
 public class SecretPermissionRequiredException extends NotAllowedDomainException {
 
-    public SecretPermissionRequiredException(SecretAccess access) {
+    public SecretPermissionRequiredException(String access) {
         super(
-            (access == SecretAccess.READ
+            ("READ".equals(access)
                         ? "This credential references secrets that Gravitee stores, so it also needs the secret "
                         : "Gravitee stores the values of this credential as secrets, so this action also needs the secret ") +
-                access.name().toLowerCase(Locale.ROOT) +
+                access.toLowerCase(Locale.ROOT) +
                 " permission."
         );
     }

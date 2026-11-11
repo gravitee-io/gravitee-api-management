@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.credential;
+package io.gravitee.apim.core.credential.use_case;
 
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.CredentialConsumersInMemory;
@@ -23,6 +23,7 @@ import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.credential.CredentialSecretsInMemory;
 import io.gravitee.apim.core.credential.domain_service.CredentialAuditDomainService;
 import io.gravitee.apim.core.credential.domain_service.CredentialOwnerDomainService;
 import io.gravitee.apim.core.credential.domain_service.CredentialSecretsDomainService;
@@ -31,13 +32,6 @@ import io.gravitee.apim.core.credential.model.CredentialActor;
 import io.gravitee.apim.core.credential.model.CredentialActor.SecretAccess;
 import io.gravitee.apim.core.credential.model.CredentialStrategy;
 import io.gravitee.apim.core.credential.model.NewCredentialCommand;
-import io.gravitee.apim.core.credential.use_case.CreateCredentialUseCase;
-import io.gravitee.apim.core.credential.use_case.DeleteCredentialUseCase;
-import io.gravitee.apim.core.credential.use_case.GetCredentialUseCase;
-import io.gravitee.apim.core.credential.use_case.ListCredentialConsumersUseCase;
-import io.gravitee.apim.core.credential.use_case.RotateCredentialUseCase;
-import io.gravitee.apim.core.credential.use_case.SearchCredentialsUseCase;
-import io.gravitee.apim.core.credential.use_case.UpdateCredentialUseCase;
 import io.gravitee.apim.core.secret.domain_service.SecretDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;

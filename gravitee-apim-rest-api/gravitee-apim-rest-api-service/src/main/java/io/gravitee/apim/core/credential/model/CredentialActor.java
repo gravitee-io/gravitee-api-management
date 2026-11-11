@@ -48,7 +48,7 @@ public record CredentialActor(AuditInfo auditInfo, boolean admin, Set<SecretAcce
 
     public void requireSecretAccess(SecretAccess access) {
         if (!secretAccess.contains(access)) {
-            throw new SecretPermissionRequiredException(access);
+            throw new SecretPermissionRequiredException(access.name());
         }
     }
 }

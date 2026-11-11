@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.credential.exception;
 
-import io.gravitee.apim.core.credential.model.CredentialConsumer;
 import io.gravitee.apim.core.exception.ConflictDomainException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,16 +23,12 @@ public class CredentialInUseException extends ConflictDomainException {
 
     private static final int NAMED_CONSUMERS = 10;
 
-    public CredentialInUseException(String credentialId, List<CredentialConsumer> consumers) {
+    public CredentialInUseException(String credentialId, List<String> consumers) {
         super(message(consumers), credentialId);
     }
 
-    private static String message(List<CredentialConsumer> consumers) {
-        var named = consumers
-            .stream()
-            .limit(NAMED_CONSUMERS)
-            .map(c -> c.type() + " \"" + c.name() + "\"")
-            .collect(Collectors.joining(", "));
+    private static String message(List<String> consumers) {
+        var named = consumers.stream().limit(NAMED_CONSUMERS).collect(Collectors.joining(", "));
         var more = consumers.size() > NAMED_CONSUMERS ? " and " + (consumers.size() - NAMED_CONSUMERS) + " more" : "";
         return "The credential is still used by " + named + more + ". Remove it from them before you delete it.";
     }
