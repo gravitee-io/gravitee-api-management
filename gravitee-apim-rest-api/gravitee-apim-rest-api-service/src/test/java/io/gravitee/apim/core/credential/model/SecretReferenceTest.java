@@ -77,6 +77,24 @@ class SecretReferenceTest {
     }
 
     @ParameterizedTest
+    @ValueSource(
+        strings = {
+            "/gravitee/\u0000credential.other.token:value",
+            "/gravitee/\u0001credential.other.token:value",
+            "/gravitee/\u001fcredential.other.token:value",
+            "/gravitee/\u007fcredential.other.token:value",
+            "/gravitee/\u00a0credential.other.token:value",
+            "/gravitee/\u2028credential.other.token:value",
+            "/vault/secret/my\u0001key:value",
+        }
+    )
+    void should_reject_a_reference_with_a_control_or_unicode_space_character(String reference) {
+        assertThatThrownBy(() -> SecretReference.external("token", reference))
+            .isInstanceOf(InvalidCredentialException.class)
+            .hasMessageContaining("no spaces");
+    }
+
+    @ParameterizedTest
     @ValueSource(strings = { "/gravitee/my-credential.token:value", "/vault/credential.other.token:value", "/gravitee/Credential.x:value" })
     void should_accept_a_reference_that_only_looks_like_a_credential_secret(String reference) {
         assertThat(SecretReference.external("token", reference).reference()).isEqualTo(reference);

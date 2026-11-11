@@ -31,7 +31,8 @@ public record SecretReference(String reference, String secretId) {
 
     private static final String GRAVITEE_PROVIDER = "gravitee";
     private static final int MAX_LENGTH = 2048;
-    private static final Pattern WHITESPACE = Pattern.compile("\\s");
+    // The gateway's SecretURL trims every character up to U+0020, so a control character could hide a credential key from the check below.
+    private static final Pattern WHITESPACE = Pattern.compile("[\\s\\p{Cc}\\p{Z}]");
 
     public static SecretReference external(String field, String reference) {
         if (
