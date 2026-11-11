@@ -213,6 +213,22 @@ public class JdbcSecretRepository extends TransactionalRepository implements Sec
         }
     }
 
+    @Override
+    public boolean existsByOrganizationId(String organizationId) throws TechnicalException {
+        log.debug("JdbcSecretRepository.existsByOrganizationId({})", organizationId);
+        try {
+            return !jdbcTemplate
+                .queryForList(
+                    "SELECT 1 FROM " + tableName + " WHERE organization_id = ? ORDER BY id " + createPagingClause(1, 0),
+                    Integer.class,
+                    organizationId
+                )
+                .isEmpty();
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to check for secrets of organization " + organizationId, ex);
+        }
+    }
+
     private static Secret toSecret(ResultSet rs, int rowNum) throws SQLException {
         return Secret.builder()
             .id(rs.getString("id"))

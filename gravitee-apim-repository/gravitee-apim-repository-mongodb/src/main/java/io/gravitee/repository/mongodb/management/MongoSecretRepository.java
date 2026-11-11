@@ -154,4 +154,14 @@ public class MongoSecretRepository implements SecretRepository {
             throw new TechnicalException("Failed to delete secrets of environment " + environmentId, ex);
         }
     }
+
+    @Override
+    public boolean existsByOrganizationId(String organizationId) throws TechnicalException {
+        log.debug("MongoSecretRepository.existsByOrganizationId({})", organizationId);
+        try {
+            return internalRepo.existsByOrganizationId(organizationId);
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to check for secrets of organization " + organizationId, ex);
+        }
+    }
 }

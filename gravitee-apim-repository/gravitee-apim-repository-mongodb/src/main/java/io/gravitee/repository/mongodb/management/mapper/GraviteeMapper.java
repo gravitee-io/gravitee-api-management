@@ -435,6 +435,9 @@ public interface GraviteeMapper {
     Secret map(SecretMongo toMap);
     SecretMongo map(Secret toMap);
 
+    OrganizationKey map(OrganizationKeyMongo toMap);
+    OrganizationKeyMongo map(OrganizationKey toMap);
+
     // SubscriptionForm mapping
     SubscriptionForm map(SubscriptionFormMongo toMap);
     SubscriptionFormMongo map(SubscriptionForm toMap);

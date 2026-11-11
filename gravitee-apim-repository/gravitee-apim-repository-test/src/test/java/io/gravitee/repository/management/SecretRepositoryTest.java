@@ -279,6 +279,13 @@ public class SecretRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(secretRepository.search("org-1", "env-2", pageable).getContent()).extracting(Secret::getId).containsExactly("secret-4");
     }
 
+    @Test
+    public void should_tell_whether_an_organization_has_secrets() throws Exception {
+        assertThat(secretRepository.existsByOrganizationId("org-1")).isTrue();
+        assertThat(secretRepository.existsByOrganizationId("org-2")).isTrue();
+        assertThat(secretRepository.existsByOrganizationId("org-without-secrets")).isFalse();
+    }
+
     private static Secret.SecretBuilder aSecret(String id) {
         return Secret.builder()
             .id(id)

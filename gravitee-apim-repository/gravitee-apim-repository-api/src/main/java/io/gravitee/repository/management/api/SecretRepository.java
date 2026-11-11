@@ -35,4 +35,6 @@ public interface SecretRepository {
     Page<Secret> search(String organizationId, String environmentId, Pageable pageable) throws TechnicalException;
 
     void deleteByEnvironmentId(String environmentId) throws TechnicalException;
+
+    boolean existsByOrganizationId(String organizationId) throws TechnicalException;
 }

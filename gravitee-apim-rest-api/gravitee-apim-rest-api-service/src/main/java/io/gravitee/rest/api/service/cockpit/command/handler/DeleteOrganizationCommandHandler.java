@@ -79,6 +79,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
     private final ClusterRepository clusterRepository;
     private final DashboardRepository dashboardRepository;
     private final PortalListingRepository portalListingRepository;
+    private final OrganizationKeyRepository organizationKeyRepository;
     private final DeleteEnvironmentCommandHandler deleteEnvironmentCommandHandler;
 
     public DeleteOrganizationCommandHandler(
@@ -106,6 +107,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         @Lazy ClusterRepository clusterRepository,
         @Lazy DashboardRepository dashboardRepository,
         @Lazy PortalListingRepository portalListingRepository,
+        @Lazy OrganizationKeyRepository organizationKeyRepository,
         AccessPointCrudService accessPointService,
         EnvironmentService environmentService,
         IdentityProviderActivationService identityProviderActivationService,
@@ -142,6 +144,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         this.clusterRepository = clusterRepository;
         this.dashboardRepository = dashboardRepository;
         this.portalListingRepository = portalListingRepository;
+        this.organizationKeyRepository = organizationKeyRepository;
         this.deleteEnvironmentCommandHandler = deleteEnvironmentCommandHandler;
     }
 
@@ -231,6 +234,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         tagRepository.deleteByReferenceIdAndReferenceType(organization.getId(), TagReferenceType.ORGANIZATION);
         commandRepository.deleteByOrganizationId(organization.getId());
         mediaRepository.deleteByOrganization(organization.getId());
+        organizationKeyRepository.deleteByOrganizationId(organization.getId());
         organizationService.delete(organization.getId());
         auditRepository.deleteByReferenceIdAndReferenceType(organization.getId(), Audit.AuditReferenceType.ORGANIZATION);
         notificationTemplateRepository.deleteByReferenceIdAndReferenceType(

@@ -37,6 +37,11 @@ public class NoOpSecretRepositoryTest extends AbstractNoOpRepositoryTest {
     }
 
     @Test
+    public void should_have_no_secret_in_any_organization() throws TechnicalException {
+        assertThat(cut.existsByOrganizationId("org-1")).isFalse();
+    }
+
+    @Test
     public void should_search_an_empty_page() throws TechnicalException {
         var page = cut.search("org-1", "env-1", new PageableBuilder().pageNumber(0).pageSize(10).build());
 
