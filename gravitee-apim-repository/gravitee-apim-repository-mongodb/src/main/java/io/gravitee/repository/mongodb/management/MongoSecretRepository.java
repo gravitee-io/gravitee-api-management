@@ -156,12 +156,12 @@ public class MongoSecretRepository implements SecretRepository {
     }
 
     @Override
-    public void deleteByOrganizationId(String organizationId) throws TechnicalException {
-        log.debug("MongoSecretRepository.deleteByOrganizationId({})", organizationId);
+    public boolean existsByOrganizationId(String organizationId) throws TechnicalException {
+        log.debug("MongoSecretRepository.existsByOrganizationId({})", organizationId);
         try {
-            internalRepo.deleteByOrganizationId(organizationId);
+            return internalRepo.existsByOrganizationId(organizationId);
         } catch (Exception ex) {
-            throw new TechnicalException("Failed to delete secrets of organization " + organizationId, ex);
+            throw new TechnicalException("Failed to check for secrets of organization " + organizationId, ex);
         }
     }
 }

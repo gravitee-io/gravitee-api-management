@@ -36,5 +36,5 @@ public interface SecretRepository {
 
     void deleteByEnvironmentId(String environmentId) throws TechnicalException;
 
-    void deleteByOrganizationId(String organizationId) throws TechnicalException;
+    boolean existsByOrganizationId(String organizationId) throws TechnicalException;
 }

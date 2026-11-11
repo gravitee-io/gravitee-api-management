@@ -40,6 +40,5 @@ public interface SecretMongoRepository extends MongoRepository<SecretMongo, Stri
     @Query(value = "{ 'environmentId': ?0 }", delete = true)
     void deleteByEnvironmentId(String environmentId);
 
-    @Query(value = "{ 'organizationId': ?0 }", delete = true)
-    void deleteByOrganizationId(String organizationId);
+    boolean existsByOrganizationId(String organizationId);
 }

@@ -214,12 +214,14 @@ public class JdbcSecretRepository extends TransactionalRepository implements Sec
     }
 
     @Override
-    public void deleteByOrganizationId(String organizationId) throws TechnicalException {
-        log.debug("JdbcSecretRepository.deleteByOrganizationId({})", organizationId);
+    public boolean existsByOrganizationId(String organizationId) throws TechnicalException {
+        log.debug("JdbcSecretRepository.existsByOrganizationId({})", organizationId);
         try {
-            jdbcTemplate.update("DELETE FROM " + tableName + " WHERE organization_id = ?", organizationId);
+            return !jdbcTemplate
+                .queryForList("SELECT 1 FROM " + tableName + " WHERE organization_id = ?", Integer.class, organizationId)
+                .isEmpty();
         } catch (Exception ex) {
-            throw new TechnicalException("Failed to delete secrets of organization " + organizationId, ex);
+            throw new TechnicalException("Failed to check for secrets of organization " + organizationId, ex);
         }
     }
 
