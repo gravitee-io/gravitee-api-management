@@ -363,6 +363,18 @@ jest.mock('../pages/BroadcastsPage', () => ({
     BroadcastsPage: () => <div data-testid="broadcasts-page" />,
 }));
 
+jest.mock('../features/credentials/pages/CredentialsPage', () => ({
+    CredentialsPage: () => <div data-testid="credentials-page" />,
+}));
+jest.mock('../features/credentials/pages/NewCredentialPage', () => ({
+    NewCredentialPage: () => <div data-testid="new-credential-page" />,
+}));
+jest.mock('../features/credentials/pages/CredentialDetailPage', () => ({
+    CredentialDetailPage: () => <div data-testid="credential-detail-page" />,
+}));
+jest.mock('../features/credentials/pages/EditCredentialPage', () => ({
+    EditCredentialPage: () => <div data-testid="edit-credential-page" />,
+}));
 jest.mock('../pages/ClientRegistrationPage', () => ({
     ClientRegistrationPage: () => <div data-testid="client-registration-page" />,
 }));
@@ -2570,7 +2582,30 @@ describe('AppRoutes', () => {
         renderPlatform('/primary-owner-mode');
 
         expect(visibleNavKeys()).toContain('primary-owner-mode');
-        expect(navGroupItemKeys('System & Security')[0]).toBe('primary-owner-mode');
+        expect(navGroupItemKeys('System & Security').slice(0, 2)).toEqual(['credentials', 'primary-owner-mode']);
+    });
+
+    it.each([
+        ['/credentials', 'credentials-page'],
+        ['/credentials/new', 'new-credential-page'],
+        ['/credentials/cred-1', 'credential-detail-page'],
+        ['/credentials/cred-1/edit', 'edit-credential-page'],
+    ])('renders %s from a pasted URL', (path, testId) => {
+        renderPlatform(path);
+        expect(screen.getByTestId(testId)).not.toBeNull();
+    });
+
+    it('redirects a new credential to the list without environment-credential-c', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-credential-c'));
+        renderPlatform('/credentials/new');
+        expect(screen.queryByTestId('new-credential-page')).toBeNull();
+        expect(screen.getByTestId('credentials-page')).not.toBeNull();
+    });
+
+    it('redirects a credential edit without environment-credential-u', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-credential-u'));
+        renderPlatform('/credentials/cred-1/edit');
+        expect(screen.queryByTestId('edit-credential-page')).toBeNull();
     });
 
     it('renders Client Registration from a pasted URL', () => {

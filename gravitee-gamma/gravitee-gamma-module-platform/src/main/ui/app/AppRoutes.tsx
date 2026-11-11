@@ -55,6 +55,14 @@ import { ImportScoringFunctionPage } from '../features/api-score/pages/ImportSco
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
 import { APIM_AUDIT_TRAIL_FEATURE } from '../features/audit-logs/license/auditTrailLicense';
 import { DCR_REGISTRATION_LICENSE_FEATURE } from '../features/client-registration/license/dcrRegistrationLicense';
+import { CredentialDetailPage } from '../features/credentials/pages/CredentialDetailPage';
+import { CredentialsPage } from '../features/credentials/pages/CredentialsPage';
+import { EditCredentialPage } from '../features/credentials/pages/EditCredentialPage';
+import { NewCredentialPage } from '../features/credentials/pages/NewCredentialPage';
+import {
+    ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION,
+    ENVIRONMENT_CREDENTIAL_UPDATE_PERMISSION,
+} from '../features/credentials/utils/credentialPermissions';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
 import { GatewayInstanceDetailLayout } from '../features/gateway-instances/components/GatewayInstanceDetailLayout';
 import { IntegrationDetailLayout } from '../features/integrations/components/IntegrationDetailLayout';
@@ -515,6 +523,33 @@ export function AppRoutes() {
                                     </PermissionPageGuard>
                                 }
                             />
+                            <Route
+                                path="credentials"
+                                element={
+                                    <NavPermissionGuard itemKey="credentials">
+                                        <Outlet />
+                                    </NavPermissionGuard>
+                                }
+                            >
+                                <Route index element={<CredentialsPage />} />
+                                <Route
+                                    path="new"
+                                    element={
+                                        <PermissionPageGuard permission={ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION} unauthorizedTo="..">
+                                            <NewCredentialPage />
+                                        </PermissionPageGuard>
+                                    }
+                                />
+                                <Route path=":credentialId" element={<CredentialDetailPage />} />
+                                <Route
+                                    path=":credentialId/edit"
+                                    element={
+                                        <PermissionPageGuard permission={ENVIRONMENT_CREDENTIAL_UPDATE_PERMISSION} unauthorizedTo="..">
+                                            <EditCredentialPage />
+                                        </PermissionPageGuard>
+                                    }
+                                />
+                            </Route>
                             <Route
                                 path="access-management"
                                 element={
