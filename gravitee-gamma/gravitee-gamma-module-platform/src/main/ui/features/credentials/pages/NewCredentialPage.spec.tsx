@@ -98,6 +98,15 @@ describe('NewCredentialPage', () => {
         });
     });
 
+    it('explains the flags that let a referenced secret pick up a rotated value', async () => {
+        render(<NewCredentialPage />);
+
+        await fillDetails('Anthropic research', 'API key');
+        await userEvent.click(screen.getByRole('radio', { name: 'Reference a secret' }));
+
+        expect(screen.getByText(/\?renewable=true&reloadOnChange=true/)).toBeInTheDocument();
+    });
+
     it('stays on the details step until the credential has a name', async () => {
         render(<NewCredentialPage />);
 
