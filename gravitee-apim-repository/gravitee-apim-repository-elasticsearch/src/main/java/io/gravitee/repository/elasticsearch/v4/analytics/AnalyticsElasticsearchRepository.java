@@ -39,7 +39,7 @@ import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguratio
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.*;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.*;
-import io.gravitee.repository.elasticsearch.v4.shared.ConnectionOpeningClause;
+import io.gravitee.repository.elasticsearch.v4.shared.ConnectionPhaseClause;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.*;
 import io.reactivex.rxjava3.annotations.NonNull;
@@ -174,7 +174,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
                 this.client.search(
                     index,
                     null,
-                    ConnectionOpeningClause.excludeFrom(SearchRequestsCountQueryAdapter.adapt(query, isEntrypointIdKeyword))
+                    ConnectionPhaseClause.excludeEndsFrom(SearchRequestsCountQueryAdapter.adapt(query, isEntrypointIdKeyword))
                 )
             )
             .map(SearchRequestsCountResponseAdapter::adapt)
@@ -214,7 +214,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
             .getFieldTypes(indices, ENTRYPOINT_ID_FIELD)
             .map(types -> types.stream().allMatch(KEYWORD::equals))
             .flatMap(isEntrypointIdKeyword ->
-                client.search(indices, null, ConnectionOpeningClause.excludeFrom(adapter.adaptQuery(query, isEntrypointIdKeyword)))
+                client.search(indices, null, ConnectionPhaseClause.excludeEndsFrom(adapter.adaptQuery(query, isEntrypointIdKeyword)))
             )
             .map(adapter::adaptResponse)
             .blockingGet();
@@ -225,14 +225,14 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var adapter = new ResponseTimeRangeQueryAdapter();
         String indices = getIndices(queryContext, query.versions());
         return client
-            .search(indices, null, ConnectionOpeningClause.excludeFrom(adapter.queryAdapt(info, query)))
+            .search(indices, null, ConnectionPhaseClause.excludeOpeningsFrom(adapter.queryAdapt(info, query)))
             .flatMapMaybe(adapter::responseAdapt);
     }
 
     @Override
     public ResponseStatusOverTimeAggregate searchResponseStatusOvertime(QueryContext queryContext, ResponseStatusOverTimeQuery query) {
         String indices = getIndices(queryContext, query.versions());
-        var esQuery = ConnectionOpeningClause.excludeFrom(searchResponseStatusOverTimeAdapter.adaptQuery(query, info));
+        var esQuery = ConnectionPhaseClause.excludeEndsFrom(searchResponseStatusOverTimeAdapter.adaptQuery(query, info));
 
         log.debug("Search response status over time: {}", esQuery);
         return client.search(indices, null, esQuery).map(searchResponseStatusOverTimeAdapter::adaptResponse).blockingGet();
@@ -245,7 +245,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var indexes = String.join(",", List.of(indexV2Request, indexV4Metrics));
 
         var apiIdFields = List.of("api-id");
-        var esQuery = ConnectionOpeningClause.excludeFrom(AggregateValueCountByFieldAdapter.adaptQueryForFields(apiIdFields, criteria));
+        var esQuery = ConnectionPhaseClause.excludeEndsFrom(AggregateValueCountByFieldAdapter.adaptQueryForFields(apiIdFields, criteria));
 
         log.debug("Search response top hit query: {}", esQuery);
         return client.search(indexes, null, esQuery).map(AggregateValueCountByFieldAdapter::adaptResponse).blockingGet();
@@ -258,7 +258,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     ) {
         String indices = getIndices(queryContext, queryCriteria.definitionVersions());
         var adapter = new SearchRequestResponseTimeAdapter();
-        var esQuery = ConnectionOpeningClause.excludeFrom(adapter.adaptQuery(queryCriteria));
+        var esQuery = adapter.adaptQuery(queryCriteria);
 
         log.debug("Search request response time query: {}", esQuery);
         return client
@@ -274,7 +274,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var indexes = String.join(",", List.of(indexV2Request, indexV4Metrics));
 
         var applicationIdFields = List.of("application-id");
-        var esQuery = ConnectionOpeningClause.excludeFrom(
+        var esQuery = ConnectionPhaseClause.excludeEndsFrom(
             AggregateValueCountByFieldAdapter.adaptQueryForFields(applicationIdFields, criteria)
         );
 
@@ -288,7 +288,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var indexV4Metrics = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         var indexes = String.join(",", List.of(indexV2Request, indexV4Metrics));
 
-        var esQuery = ConnectionOpeningClause.excludeFrom(SearchTopFailedApisAdapter.adaptQuery(criteria));
+        var esQuery = ConnectionPhaseClause.excludeEndsFrom(SearchTopFailedApisAdapter.adaptQuery(criteria));
 
         log.debug("Search top failed apis query: {}", esQuery);
         return this.client.search(indexes, null, esQuery).map(SearchTopFailedApisAdapter::adaptResponse).blockingGet();
@@ -300,7 +300,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var indexV2 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
         var index = String.join(",", indexV4, indexV2);
         var adapter = new SearchHistogramQueryAdapter();
-        var esQuery = ConnectionOpeningClause.excludeFrom(adapter.adapt(query));
+        var esQuery = adapter.adapt(query);
 
         log.debug("Search histogram query: {}", esQuery);
         return client.search(index, null, esQuery).map(adapter::adaptResponse).blockingGet();
@@ -312,7 +312,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var indexV2 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
         var index = String.join(",", indexV4, indexV2);
         var adapter = new GroupByQueryAdapter();
-        var esQuery = ConnectionOpeningClause.excludeFrom(adapter.adapt(query));
+        var esQuery = ConnectionPhaseClause.excludeEndsFrom(adapter.adapt(query));
 
         log.debug("Search group by query: {}", esQuery);
         return client.search(index, null, esQuery).map(adapter::adaptResponse).blockingGet();
@@ -324,7 +324,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var indexV2 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
         var index = String.join(",", indexV4, indexV2);
         var adapter = new StatsQueryAdapter();
-        var esQuery = ConnectionOpeningClause.excludeFrom(adapter.adapt(query));
+        var esQuery = adapter.adapt(query);
 
         log.debug("Search stats query: {}", esQuery);
         return client.search(index, null, esQuery).map(adapter::adaptResponse).blockingGet();
@@ -335,7 +335,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var indexV4 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         var indexV2 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
         var index = String.join(",", indexV4, indexV2);
-        var esQuery = ConnectionOpeningClause.excludeFrom(SearchRequestsCountByEventQueryAdapter.adapt(query));
+        var esQuery = ConnectionPhaseClause.excludeEndsFrom(SearchRequestsCountByEventQueryAdapter.adapt(query));
         log.debug("Search Request total counts query: {}", esQuery);
 
         return client.search(index, null, esQuery).map(SearchRequestsCountByEventQueryAdapter::adaptResponse).blockingGet();
@@ -368,7 +368,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     @Override
     public MeasuresResult searchHTTPMeasures(QueryContext queryContext, MeasuresQuery query) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
-        var esQuery = ConnectionOpeningClause.excludeFrom(httpMeasuresQueryAdapter.adapt(query));
+        var esQuery = httpMeasuresQueryAdapter.adapt(query);
 
         log.debug("HTTP measures query: {}", esQuery);
 
@@ -381,7 +381,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     @Override
     public FacetsResult searchHTTPFacets(QueryContext queryContext, FacetsQuery query) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
-        var esQuery = ConnectionOpeningClause.excludeFrom(httpFacetsQueryAdapter.adapt(query));
+        var esQuery = httpFacetsQueryAdapter.adapt(query);
 
         log.debug("HTTP facets query: {}", esQuery);
 
@@ -433,7 +433,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     @Override
     public TimeSeriesResult searchHTTPTimeSeries(QueryContext queryContext, TimeSeriesQuery query) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
-        var esQuery = ConnectionOpeningClause.excludeFrom(httpTimeSeriesQueryAdapter.adapt(query));
+        var esQuery = httpTimeSeriesQueryAdapter.adapt(query);
 
         log.debug("HTTP time series query: {}", esQuery);
 

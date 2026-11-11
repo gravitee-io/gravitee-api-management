@@ -21,15 +21,16 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.Test;
 
-class ConnectionOpeningClauseTest {
+class ConnectionPhaseClauseTest {
 
     private static final JsonObject OPENING = JsonObject.of("term", JsonObject.of("connection-phase", "open"));
+    private static final JsonObject END = JsonObject.of("term", JsonObject.of("connection-phase", "end"));
 
     @Test
     void should_keep_the_query_and_leave_openings_out() {
         var search = JsonObject.of("size", 0, "query", JsonObject.of("term", JsonObject.of("api-id", "api")), "aggs", JsonObject.of());
 
-        var result = new JsonObject(ConnectionOpeningClause.excludeFrom(search.encode()));
+        var result = new JsonObject(ConnectionPhaseClause.excludeOpeningsFrom(search.encode()));
 
         assertThat(result.getJsonObject("query")).isEqualTo(
             JsonObject.of("bool", JsonObject.of("must_not", JsonArray.of(OPENING), "must", JsonArray.of(search.getJsonObject("query"))))
@@ -39,9 +40,19 @@ class ConnectionOpeningClauseTest {
     }
 
     @Test
-    void should_leave_openings_out_of_a_search_without_query() {
-        var result = new JsonObject(ConnectionOpeningClause.excludeFrom(JsonObject.of("size", 0).encode()));
+    void should_leave_ends_out_of_a_search_without_query() {
+        var result = new JsonObject(ConnectionPhaseClause.excludeEndsFrom(JsonObject.of("size", 0).encode()));
 
-        assertThat(result.getJsonObject("query")).isEqualTo(JsonObject.of("bool", JsonObject.of("must_not", JsonArray.of(OPENING))));
+        assertThat(result.getJsonObject("query")).isEqualTo(JsonObject.of("bool", JsonObject.of("must_not", JsonArray.of(END))));
+    }
+
+    @Test
+    void should_filter_an_aggregation_on_documents_that_are_not_an_end() {
+        assertThat(ConnectionPhaseClause.notEnd()).isEqualTo(JsonObject.of("bool", JsonObject.of("must_not", JsonArray.of(END))));
+    }
+
+    @Test
+    void should_filter_an_aggregation_on_documents_that_are_not_an_opening() {
+        assertThat(ConnectionPhaseClause.notOpening()).isEqualTo(JsonObject.of("bool", JsonObject.of("must_not", JsonArray.of(OPENING))));
     }
 }

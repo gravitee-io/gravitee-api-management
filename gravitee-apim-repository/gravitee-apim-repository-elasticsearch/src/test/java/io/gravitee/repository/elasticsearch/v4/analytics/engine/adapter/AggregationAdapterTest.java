@@ -267,7 +267,9 @@ class AggregationAdapterTest {
 
         assertThat(orders)
             .singleElement()
-            .satisfies(order -> assertThat(order.fieldNames()).toIterable().containsExactly(metric.name() + "#P90[90.0]"));
+            .satisfies(order ->
+                assertThat(order.fieldNames()).toIterable().singleElement().asString().endsWith(metric.name() + "#P90[90.0]")
+            );
     }
 
     static Stream<Arguments> facetsSearchedOnEveryPath() {

@@ -21,8 +21,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.repository.elasticsearch.v4.shared.ConnectionPhaseClause;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
+import io.vertx.core.json.JsonObject;
 import java.util.List;
 import java.util.Map;
 import lombok.CustomLog;
@@ -36,6 +38,9 @@ public class SearchRequestResponseTimeAdapter {
     private static final String MAX_RESPONSE_TIME_AGG = "max_response_time";
     private static final String MIN_RESPONSE_TIME_AGG = "min_response_time";
     private static final String AVG_RESPONSE_TIME_AGG = "avg_response_time";
+    private static final String MEASURED_AGG = "measured";
+    private static final String COUNTED_AGG = "counted";
+    private static final String COUNT_AGG = "connections";
 
     public String adaptQuery(RequestResponseTimeQueryCriteria queryCriteria) {
         return json().put("size", 0).<ObjectNode>set("query", buildQuery(queryCriteria)).set("aggs", buildAggregation()).toString();
@@ -72,7 +77,25 @@ public class SearchRequestResponseTimeAdapter {
         return json().set("terms", json().set("entrypoint-id", toArray(FILTERED_ENTRYPOINT_TYPES)));
     }
 
+    /**
+     * The total counts every connection as it opens, leaving its end out; response times are only known once it has
+     * ended, leaving its opening out.
+     */
     private ObjectNode buildAggregation() {
+        var count = json().set(COUNT_AGG, json().set("value_count", json().put("field", "@timestamp")));
+        return json()
+            .<ObjectNode>set(COUNTED_AGG, json().<ObjectNode>set("filter", toNode(ConnectionPhaseClause.notEnd())).set("aggs", count))
+            .set(
+                MEASURED_AGG,
+                json().<ObjectNode>set("filter", toNode(ConnectionPhaseClause.notOpening())).set("aggs", buildResponseTimeAggregations())
+            );
+    }
+
+    private static ObjectNode toNode(JsonObject json) {
+        return MAPPER.valueToTree(json.mapTo(Map.class));
+    }
+
+    private ObjectNode buildResponseTimeAggregations() {
         String script =
             "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }";
         return json()
@@ -95,12 +118,16 @@ public class SearchRequestResponseTimeAdapter {
             return requestResponseTimeAggregateBuilder.build();
         }
 
-        requestResponseTimeAggregateBuilder.responseMinTime(getAggregationResponseValue(aggregations, MIN_RESPONSE_TIME_AGG));
-        requestResponseTimeAggregateBuilder.responseMaxTime(getAggregationResponseValue(aggregations, MAX_RESPONSE_TIME_AGG));
-        requestResponseTimeAggregateBuilder.responseAvgTime(getAggregationResponseValue(aggregations, AVG_RESPONSE_TIME_AGG));
+        var measured = aggregations.containsKey(MEASURED_AGG)
+            ? aggregations.get(MEASURED_AGG).getAggregations()
+            : Map.<String, Aggregation>of();
+        requestResponseTimeAggregateBuilder.responseMinTime(getAggregationResponseValue(measured, MIN_RESPONSE_TIME_AGG));
+        requestResponseTimeAggregateBuilder.responseMaxTime(getAggregationResponseValue(measured, MAX_RESPONSE_TIME_AGG));
+        requestResponseTimeAggregateBuilder.responseAvgTime(getAggregationResponseValue(measured, AVG_RESPONSE_TIME_AGG));
 
-        if (response.getSearchHits() != null && response.getSearchHits().getTotal() != null) {
-            var totalRequestValue = response.getSearchHits().getTotal().getValue();
+        var counted = aggregations.get(COUNTED_AGG);
+        if (counted != null && counted.getAggregations().get(COUNT_AGG) != null) {
+            var totalRequestValue = counted.getAggregations().get(COUNT_AGG).getValue().longValue();
             requestResponseTimeAggregateBuilder.requestsTotal(totalRequestValue);
 
             var timeDiffInSeconds = ((queryCriteria.to() - queryCriteria.from()) / 1000);
