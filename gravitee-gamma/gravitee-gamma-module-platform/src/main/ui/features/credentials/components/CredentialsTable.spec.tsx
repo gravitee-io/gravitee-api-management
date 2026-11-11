@@ -42,7 +42,7 @@ function renderTable(overrides: Partial<React.ComponentProps<typeof CredentialsT
                 page={1}
                 pageSize={25}
                 canEdit={false}
-                canDelete={false}
+                canDelete={() => false}
                 onSearchChange={jest.fn()}
                 onPageChange={jest.fn()}
                 onPageSizeChange={jest.fn()}
@@ -88,7 +88,7 @@ describe('CredentialsTable', () => {
     it('offers edit and delete with the permissions', async () => {
         const onEdit = jest.fn();
         const onDelete = jest.fn();
-        renderTable({ canEdit: true, canDelete: true, onEdit, onDelete });
+        renderTable({ canEdit: true, canDelete: () => true, onEdit, onDelete });
 
         await userEvent.click(screen.getByRole('button', { name: 'OpenAI production actions' }));
         await userEvent.click(await screen.findByRole('menuitem', { name: 'Edit' }));

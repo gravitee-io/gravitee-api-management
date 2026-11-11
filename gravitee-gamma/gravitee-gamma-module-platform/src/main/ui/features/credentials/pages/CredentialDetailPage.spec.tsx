@@ -21,7 +21,11 @@ import { CredentialDetailPage } from './CredentialDetailPage';
 import { useHasEnvironmentPermission } from '../../../shared/hooks/useEnvironmentPermissions';
 import { useCredential, useCredentialConsumers, useCredentialOwnerNames } from '../hooks/useCredentials';
 import type { Credential, CredentialConsumer } from '../types/credential';
-import { ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION, ENVIRONMENT_CREDENTIAL_UPDATE_PERMISSION } from '../utils/credentialPermissions';
+import {
+    ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION,
+    ENVIRONMENT_CREDENTIAL_UPDATE_PERMISSION,
+    ENVIRONMENT_SECRET_DELETE_PERMISSION,
+} from '../utils/credentialPermissions';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({ useEnvironment: () => ({ id: 'env-1' }) }));
 jest.mock('react-router-dom', () => ({ ...jest.requireActual('react-router-dom'), useNavigate: jest.fn(), useParams: jest.fn() }));
@@ -164,9 +168,38 @@ describe('CredentialDetailPage', () => {
         expect(navigate).toHaveBeenCalledWith('edit');
     });
 
+    it('says so when the consumers fail to load', () => {
+        given(MANAGED);
+        jest.mocked(useCredentialConsumers).mockReturnValue({ data: undefined, isLoading: false, isError: true } as unknown as ReturnType<
+            typeof useCredentialConsumers
+        >);
+
+        renderPage();
+
+        expect(screen.getByText(/could not load what uses this credential/i)).toBeInTheDocument();
+    });
+
+    it.each([
+        ['a stored credential with the credential permission only', MANAGED, [ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION], false],
+        [
+            'a stored credential with the secret permission too',
+            MANAGED,
+            [ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION, ENVIRONMENT_SECRET_DELETE_PERMISSION],
+            true,
+        ],
+        ['a reference credential with the credential permission', REFERENCED, [ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION], true],
+    ])('offers delete for %s: %s', (_case, credential, granted, offered) => {
+        given(credential);
+        givenPermissions(granted);
+
+        renderPage();
+
+        expect(Boolean(screen.queryByRole('button', { name: 'Credential actions' }))).toBe(offered);
+    });
+
     it('goes back to the list once the credential is deleted', async () => {
         given(MANAGED);
-        givenPermissions([ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION]);
+        givenPermissions([ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION, ENVIRONMENT_SECRET_DELETE_PERMISSION]);
         renderPage();
 
         await userEvent.click(screen.getByRole('button', { name: 'Credential actions' }));

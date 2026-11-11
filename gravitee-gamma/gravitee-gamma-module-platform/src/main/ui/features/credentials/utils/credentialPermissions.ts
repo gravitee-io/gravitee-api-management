@@ -22,3 +22,4 @@ export const ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION = `${ENVIRONMENT_CREDENTIA
 // Typed values are stored as secrets, so storing or rotating them also needs the secret permission.
 export const ENVIRONMENT_SECRET_CREATE_PERMISSION = 'environment-secret-c' as const;
 export const ENVIRONMENT_SECRET_UPDATE_PERMISSION = 'environment-secret-u' as const;
+export const ENVIRONMENT_SECRET_DELETE_PERMISSION = 'environment-secret-d' as const;

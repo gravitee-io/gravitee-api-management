@@ -150,14 +150,21 @@ export function toCreateCredentialPayload(draft: CredentialDraft): CreateCredent
 
 /** The PUT body. A managed credential leaves its references out to keep them; its values change through rotation only. */
 export function toUpdateCredentialPayload(draft: CredentialDraft, credential: Credential): UpdateCredentialPayload {
-    const expiryUnchanged = draft.expiresAt === toDateInput(credential.expiresAt);
     return {
         name: draft.name.trim(),
         ...optionalText('serviceId', draft.serviceId),
-        ...(expiryUnchanged ? optionalText('expiresAt', credential.expiresAt ?? '') : { expiresAt: fromDateInput(draft.expiresAt) }),
+        ...updatedExpiry(draft, credential),
         configuration: toConfiguration(draft),
         ...(draft.mode === 'reference' ? { references: filledSecrets(draft, true) } : {}),
     };
+}
+
+/** Keeps the stored instant when the day is unchanged, so a save does not move an expiry set elsewhere. */
+function updatedExpiry(draft: CredentialDraft, credential: Credential): { expiresAt?: string } {
+    if (draft.expiresAt === toDateInput(credential.expiresAt)) {
+        return optionalText('expiresAt', credential.expiresAt ?? '');
+    }
+    return draft.expiresAt ? { expiresAt: fromDateInput(draft.expiresAt) } : {};
 }
 
 /** The values typed into a managed credential, or `undefined` when there is nothing to rotate. */
@@ -223,6 +230,7 @@ function toDateInput(isoDate: string | undefined): string {
     return `${date.getFullYear()}-${month}-${day}`;
 }
 
+// The credential stays valid through the chosen day; the backend refuses an expiry that is not in the future.
 function fromDateInput(date: string): string {
-    return new Date(`${date}T00:00:00`).toISOString();
+    return new Date(`${date}T23:59:59.999`).toISOString();
 }
